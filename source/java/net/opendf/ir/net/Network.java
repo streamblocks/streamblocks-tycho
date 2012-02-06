@@ -7,7 +7,7 @@ import java.util.List;
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.Decl;
-import net.opendf.ir.common.Namespace;
+import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDecl;
 import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.PortContainer;
@@ -45,15 +45,15 @@ public class Network extends DeclEntity {
 	// Ctor
 	// 
 	
-	public Network(String name, Namespace ns) {
+	public Network(String name, NamespaceDecl ns) {
 		this (name, ns, new ParDecl [0], new Decl [0], new CompositePortDecl(null, null), new CompositePortDecl(null, null));
 	}
 	
-	public Network(String name, Namespace ns, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
+	public Network(String name, NamespaceDecl ns, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
 		this (name, ns, new ParDecl [0], new Decl [0], inputPorts, outputPorts);
 	}
 
-	public Network (String name, Namespace ns, ParDecl [] pars, Decl [] decls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
+	public Network (String name, NamespaceDecl ns, ParDecl [] pars, Decl [] decls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
 		super (name, ns, pars, decls, inputPorts, outputPorts);
 	}
 

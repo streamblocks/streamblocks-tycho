@@ -35,11 +35,11 @@ public class DeclVar extends Decl {
     // Ctor
     //
     
-	public DeclVar(TypeExpr type, String name, Namespace namespace) {
+	public DeclVar(TypeExpr type, String name, NamespaceDecl namespace) {
 		this(type, name, namespace, null, true);
 	}
 
-    public DeclVar(TypeExpr type, String name, Namespace namespace,
+    public DeclVar(TypeExpr type, String name, NamespaceDecl namespace,
     		Expression initialValue, boolean isAssignable) {
     	
     	super(name, namespace);

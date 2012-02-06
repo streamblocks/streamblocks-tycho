@@ -54,11 +54,11 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	// Ctor
 	//
 
-	public DeclEntity(String name, Namespace ns, ParDecl [] pars, Decl [] decls) {
+	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, Decl [] decls) {
 		this (name, ns, pars, decls, new CompositePortDecl(null, null), new CompositePortDecl(null, null));
 	}
 
-	public DeclEntity(String name, Namespace ns, ParDecl [] pars, Decl [] decls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
+	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, Decl [] decls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
 		super (name, ns);
 		this.name = name;
 		this.namespace = ns;
@@ -74,7 +74,7 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	
 
 	private String 			name;
-	private Namespace		namespace;
+	private NamespaceDecl		namespace;
 	private ParDecl [] 		pars;
 	private Decl [] 		decls;
 	

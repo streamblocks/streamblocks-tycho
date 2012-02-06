@@ -33,7 +33,7 @@ abstract public class Decl extends AbstractIRNode {
 	
 	public String getName() { return name; }
 	
-	public Namespace getNamespace() { return namespace; }
+	public NamespaceDecl getNamespace() { return namespace; }
 
 	public boolean isImport() { return isImport; }
 	
@@ -56,13 +56,13 @@ abstract public class Decl extends AbstractIRNode {
 	//
 	
 
-	public Decl(String name, Namespace namespace) {
+	public Decl(String name, NamespaceDecl namespace) {
 		isImport = false;
 		this.name = name;
 		this.namespace = namespace;
 	}
 	
-	public Decl(String name, Namespace namespace, String [] qid) {
+	public Decl(String name, NamespaceDecl namespace, String [] qid) {
 		
 		assert qid != null && qid.length >= 1;
 		
@@ -78,7 +78,7 @@ abstract public class Decl extends AbstractIRNode {
 	
 	private String   name;
 	private boolean  isImport;
-	private Namespace namespace;
+	private NamespaceDecl namespace;
 	
 	//  import
 	

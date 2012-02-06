@@ -6,7 +6,7 @@ import java.util.List;
 import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclEntity;
-import net.opendf.ir.common.Namespace;
+import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDecl;
 
 
@@ -42,7 +42,7 @@ public class ActorMachine extends DeclEntity {
 	//  Ctor
 	//
 	
-	public ActorMachine(String name, Namespace namespace,
+	public ActorMachine(String name, NamespaceDecl namespace,
 			ParDecl [] parameters, Decl [] decls,
             CompositePortDecl inputPorts, CompositePortDecl outputPorts,
             Scope [] scopes, List<Instruction> [] controller

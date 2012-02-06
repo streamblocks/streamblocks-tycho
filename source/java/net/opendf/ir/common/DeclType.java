@@ -20,7 +20,7 @@ public class DeclType extends Decl {
 		v.visitDeclType(this);
 	}
 
-	public DeclType(String name, Namespace namespace) {
+	public DeclType(String name, NamespaceDecl namespace) {
 		super(name, namespace);
 	}
 }

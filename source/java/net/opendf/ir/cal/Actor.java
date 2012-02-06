@@ -45,7 +45,7 @@ import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.Expression;
-import net.opendf.ir.common.Namespace;
+import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDecl;
 import net.opendf.ir.common.QID;
 
@@ -53,7 +53,7 @@ import net.opendf.ir.common.QID;
 public class Actor extends DeclEntity  {
 
 	    
-	public Actor(String name, Namespace namespace,
+	public Actor(String name, NamespaceDecl namespace,
 			ParDecl [] parameters, Decl [] decls,
         CompositePortDecl inputPorts, CompositePortDecl outputPorts,
         Action [] initializers, Action [] actions, 
