@@ -10,6 +10,8 @@ import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDecl;
+import net.opendf.ir.common.ParDeclType;
+import net.opendf.ir.common.ParDeclValue;
 
 
 /**
@@ -45,12 +47,12 @@ public class ActorMachine extends DeclEntity {
 	//
 	
 	public ActorMachine(String name, NamespaceDecl namespace,
-			ParDecl [] parameters, DeclType [] typeDecls, DeclVar [] varDecls,
+			ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls,
             CompositePortDecl inputPorts, CompositePortDecl outputPorts,
             Scope [] scopes, List<Instruction> [] controller
         )
     {
-		super(name, namespace, parameters, typeDecls, varDecls);
+		super(name, namespace, typePars, valuePars, typeDecls, varDecls);
 		this.scopes = scopes;
         this.controller = controller;
     }

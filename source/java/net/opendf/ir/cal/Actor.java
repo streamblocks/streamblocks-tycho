@@ -49,6 +49,8 @@ import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDecl;
+import net.opendf.ir.common.ParDeclType;
+import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.QID;
 
 
@@ -56,12 +58,12 @@ public class Actor extends DeclEntity  {
 
 	    
 	public Actor(String name, NamespaceDecl namespace,
-			ParDecl [] parameters, DeclType [] typeDecls, DeclVar [] varDecls,
+			ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls,
         CompositePortDecl inputPorts, CompositePortDecl outputPorts,
         Action [] initializers, Action [] actions, 
         ScheduleFSM scheduleFSM, List<QID> [] priorities, Expression [] invariants)
     {
-		super(name, namespace, parameters, typeDecls, varDecls);
+		super(name, namespace, typePars, valuePars, typeDecls, varDecls);
         
         this.initializers = initializers;
         this.actions = actions;

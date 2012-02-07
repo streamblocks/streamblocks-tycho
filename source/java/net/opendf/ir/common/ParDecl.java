@@ -26,6 +26,5 @@ public abstract class ParDecl extends AbstractIRNode {
 		this.name = name;
 	}
 	
-	
 	private String name;
 }

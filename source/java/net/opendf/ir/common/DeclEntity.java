@@ -20,8 +20,12 @@ import net.opendf.ir.net.Node;
 abstract public class DeclEntity extends Decl implements PortContainer {
 
 	
-	public ParDecl []  getParameters() {
-		return pars;
+	public ParDeclType []  getTypeParameters() {
+		return typePars;
+	}
+	
+	public ParDeclValue []  getValueParameters() {
+		return valuePars;
 	}
 	
 	public DeclType []  getTypeDecls() {
@@ -58,13 +62,14 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	// Ctor
 	//
 
-	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, DeclType [] typeDecls, DeclVar [] varDecls) {
-		this (name, ns, pars, typeDecls, varDecls, new CompositePortDecl(null, null), new CompositePortDecl(null, null));
+	public DeclEntity(String name, NamespaceDecl ns, ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls) {
+		this (name, ns, typePars, valuePars, typeDecls, varDecls, new CompositePortDecl(null, null), new CompositePortDecl(null, null));
 	}
 
-	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, DeclType [] typeDecls, DeclVar [] varDecls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
+	public DeclEntity(String name, NamespaceDecl ns, ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
 		super (name, ns);
-		this.pars = pars;
+		this.typePars = typePars;
+		this.valuePars = valuePars;
 		this.typeDecls = typeDecls;
 		this.varDecls = varDecls;
 
@@ -76,7 +81,8 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	}
 	
 
-	private ParDecl [] 		pars;
+	private ParDeclType [] 	typePars;
+	private ParDeclValue [] valuePars;
 	private DeclType [] 	typeDecls;
 	private DeclVar []		varDecls;
 	
