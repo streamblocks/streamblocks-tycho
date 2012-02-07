@@ -48,19 +48,25 @@ public class ExprLet extends Expression {
         v.visitExprLet(this);
     }
 
-    public ExprLet(DeclVar [] decls, Expression body) {
+    public ExprLet(DeclType[] typeDecls, DeclVar [] varDecls, Expression body) {
         this.body = body;
-        this.decls = decls;
+        this.typeDecls = typeDecls;
+        this.varDecls = varDecls;
     }
 
-    public DeclVar[] getDecls() {
-        return decls;
+    public DeclType [] getTypeDecls() {
+    	return typeDecls;
+    }
+    
+    public DeclVar[] getVarDecls() {
+        return varDecls;
     }
 
     public Expression getBody() {
         return body;
     }
 
-    private DeclVar []         decls;
+    private DeclType []		typeDecls;
+    private DeclVar []      varDecls;
     private Expression      body;
 }

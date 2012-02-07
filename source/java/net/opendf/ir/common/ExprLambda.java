@@ -40,45 +40,49 @@ ENDCOPYRIGHT
 package net.opendf.ir.common;
 
 
-
-
 public class ExprLambda extends Expression {
 
     public void accept(ExpressionVisitor v) {
         v.visitExprLambda(this);
     }
 
-    public ExprLambda(ParDecl [] params, TypeExpr[] parTypeExpr, DeclVar [] decls, Expression body, TypeExpr returnTypeExpr) {
+    public ExprLambda(ParDeclType [] typeParams, ParDeclValue [] valueParams, DeclType [] typeDecls, DeclVar [] varDecls, Expression body, TypeExpr returnTypeExpr) {
+    	this.typeParameters = typeParams;
+    	this.valueParameters = valueParams;
+    	this.typeDecls = typeDecls;
+    	this.varDecls = varDecls;
         this.body = body;
-        this.decls = decls;
-        this.parameters = params;
         this.returnTypeExpr = returnTypeExpr;
-        this.parTypeExpr = parTypeExpr;
     }
 
-    public ParDecl [] getParameters() {
-        return parameters;
+    public ParDeclType []  getTypeParameters() {
+    	return typeParameters;
+    }
+    
+    public ParDeclValue [] getValueParameters() {
+        return valueParameters;
     }
 
-    public DeclVar[] getDecls() {
-        return decls;
+    public DeclType[] getTypeDecls() {
+        return typeDecls;
+    }
+
+    public DeclVar[] getVarDecls() {
+        return varDecls;
     }
 
     public Expression getBody() {
         return body;
     }
 
-    public TypeExpr getReturnTypeExpr() {
+    public TypeExpr getReturnType() {
     	return returnTypeExpr;
     }
-    
-    public TypeExpr[] getParTypeExpr() {
-    	return parTypeExpr;
-    }
 
-    private ParDecl []      parameters;
-    private DeclVar []		decls;
+    private ParDeclType [] 	typeParameters;
+    private ParDeclValue [] valueParameters;
+    private DeclType []		typeDecls;
+    private DeclVar [] 		varDecls;
     private Expression      body;
     private TypeExpr		returnTypeExpr;
-    private TypeExpr[]      parTypeExpr;
 }

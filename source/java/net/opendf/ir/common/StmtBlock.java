@@ -49,23 +49,29 @@ public class StmtBlock extends Statement {
         v.visitStmtBlock(this);
     }
 
-    public StmtBlock(DeclVar[] decls, Statement[] statements) {
-        this.decls = decls;
+    public StmtBlock(DeclType [] typeDecls, DeclVar [] varDecls, Statement[] statements) {
+    	this.typeDecls = typeDecls;
+    	this.varDecls = varDecls;
         this.statements = statements;
     }
 
-    public boolean hasLocalDecls() {
-        return decls != null && decls.length > 0;
+    public boolean hasLocalVarDecls() {
+        return varDecls != null && varDecls.length > 0;
     }
 
-    public DeclVar[] getDecls() {
-        return decls;
+    public DeclType [] getTypeDecls() {
+        return typeDecls;
     }
 
-    public Statement[] getStatements() {
+    public DeclVar [] getVarDecls() {
+        return varDecls;
+    }
+
+    public Statement [] getStatements() {
         return statements;
     }
 
-    private DeclVar []         decls;
+    private DeclType []		typeDecls;
+    private DeclVar []      varDecls;
     private Statement []    statements;
 }

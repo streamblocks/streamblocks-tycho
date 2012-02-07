@@ -45,25 +45,37 @@ public class ExprProc extends Expression {
         v.visitExprProc(this);
     }
 
-    public ExprProc(ParDecl [] parameters, DeclVar[] decls, Statement[] body) {
-        this.parameters = parameters;
-        this.decls = decls;
+    public ExprProc(ParDeclType [] typeParams, ParDeclValue [] valueParams, DeclType [] typeDecls, DeclVar [] varDecls, Statement[] body) {
+    	this.typeParameters = typeParams;
+    	this.valueParameters = valueParams;
+    	this.typeDecls = typeDecls;
+    	this.varDecls = varDecls;
         this.body = body;
     }
 
-    public ParDecl [] getParameters() {
-        return parameters;
+    public ParDeclType []  getTypeParameters() {
+    	return typeParameters;
+    }
+    
+    public ParDeclValue [] getValueParameters() {
+        return valueParameters;
     }
 
-    public DeclVar[] getDecls() {
-        return decls;
+    public DeclType[] getTypeDecls() {
+        return typeDecls;
+    }
+
+    public DeclVar[] getVarDecls() {
+        return varDecls;
     }
 
     public Statement[] getBody() {
         return body;
     }
 
-    private ParDecl []      parameters;
-    private DeclVar []      decls;
+    private ParDeclType [] 	typeParameters;
+    private ParDeclValue [] valueParameters;
+    private DeclType []		typeDecls;
+    private DeclVar [] 		varDecls;
     private Statement []    body;
 }

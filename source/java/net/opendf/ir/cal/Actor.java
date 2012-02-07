@@ -63,7 +63,7 @@ public class Actor extends DeclEntity  {
         Action [] initializers, Action [] actions, 
         ScheduleFSM scheduleFSM, List<QID> [] priorities, Expression [] invariants)
     {
-		super(name, namespace, typePars, valuePars, typeDecls, varDecls);
+		super(name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
         
         this.initializers = initializers;
         this.actions = actions;

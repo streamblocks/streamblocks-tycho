@@ -71,7 +71,8 @@ public abstract class PortDecl extends AbstractIRNode {
 	abstract public List<PortDecl>  getChildren();
 
 	/**
-	 * Every port is uniquely assigned to a {@link DeclEntity}, which is either a {@link Network} or a {@link Node}.
+	 * Every port is uniquely assigned to a {@link PortContainer port container}, which is either a {@link Network} or a {@link Node}.
+	 * It can also be null, usually during construction of the port declarations.
 	 * 
 	 * @return The PortContainer of this port.
 	 */
@@ -79,19 +80,25 @@ public abstract class PortDecl extends AbstractIRNode {
 	public PortContainer  getContainer() { return container; }	
 
 	/**
-	 * Locates a port starting from this port using its relative name, i.e. the trailing part of the full name that follows 
-	 * the full name of this port.
+	 * Sets the port container of this port, and all its children.
 	 * 
-	 * @param relativeName The relative name of the port.
-	 * @return The port identified by that name.
+	 * @param c The new port container.
 	 */
-	
+
 	public void  setContainer(PortContainer c) {
 		this.container = c;
 		for (PortDecl p : getChildren()) {
 			p.setContainer(c);
 		}
 	}
+	
+	/**
+	 * Locates a port starting from this port using its relative name, i.e. the trailing part of the full name that follows 
+	 * the full name of this port.
+	 * 
+	 * @param relativeName The relative name of the port.
+	 * @return The port identified by that name.
+	 */
 	
 	public PortDecl getPort(String [] relativeName) {
 		return getPort(0, relativeName);
