@@ -33,6 +33,10 @@ public class CompositePortDecl extends PortDecl {
 	// Ctor
 	//
 	
+	public CompositePortDecl() {
+		this (null, null);
+	}
+	
 	public CompositePortDecl(PortDecl parent, String name) {
 		super(parent, name);
 	}
