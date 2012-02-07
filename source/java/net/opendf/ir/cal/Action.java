@@ -41,6 +41,7 @@ package net.opendf.ir.cal;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Decl;
+import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.QID;
@@ -51,13 +52,14 @@ public class Action extends AbstractIRNode {
 
     public Action(int id, QID tag,
                   InputPattern [] inputPatterns, OutputExpression [] outputExpressions,
-                  Decl [] decls, Expression [] guards, Statement [] body, Expression delay,
+                  DeclType [] typeDecls, DeclVar[] varDecls, Expression [] guards, Statement [] body, Expression delay,
                   Expression [] preconditions, Expression [] postconditions) {
     	this.id = id;
         this.tag = tag;
         this.inputPatterns = inputPatterns;
         this.outputExpressions = outputExpressions;
-        this.decls = decls;
+        this.typeDecls = typeDecls;
+        this.varDecls = varDecls;
         this.guards = guards;
         this.body = body;
         this.delay = delay;
@@ -77,8 +79,12 @@ public class Action extends AbstractIRNode {
         return outputExpressions;
     }
 
-    public Decl [] getDecls() {
-        return decls;
+    public DeclType [] getTypeDecls() {
+        return typeDecls;
+    }
+
+    public DeclVar [] getVarDecls() {
+        return varDecls;
     }
 
     public Expression[] getGuards() {
@@ -109,7 +115,8 @@ public class Action extends AbstractIRNode {
     private QID					tag;
     private InputPattern []     inputPatterns;
     private OutputExpression [] outputExpressions;
-    private Decl []             decls;
+    private DeclType []			typeDecls;
+    private DeclVar [] 			varDecls;
     private Expression []       guards;
     private Statement []        body;
     private Expression          delay;
