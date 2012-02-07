@@ -7,6 +7,8 @@ import java.util.List;
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.Decl;
+import net.opendf.ir.common.DeclType;
+import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDecl;
 import net.opendf.ir.common.DeclEntity;
@@ -46,15 +48,16 @@ public class Network extends DeclEntity {
 	// 
 	
 	public Network(String name, NamespaceDecl ns) {
-		this (name, ns, new ParDecl [0], new Decl [0], new CompositePortDecl(null, null), new CompositePortDecl(null, null));
+		this (name, ns, new ParDecl [0], new DeclType [0], new DeclVar [0], new CompositePortDecl(null, null), new CompositePortDecl(null, null));
 	}
 	
 	public Network(String name, NamespaceDecl ns, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
-		this (name, ns, new ParDecl [0], new Decl [0], inputPorts, outputPorts);
+		this (name, ns, new ParDecl [0], new DeclType [0], new DeclVar [0], inputPorts, outputPorts);
 	}
 
-	public Network (String name, NamespaceDecl ns, ParDecl [] pars, Decl [] decls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
-		super (name, ns, pars, decls, inputPorts, outputPorts);
+	public Network (String name, NamespaceDecl ns, ParDecl [] pars, DeclType [] typeDecls, DeclVar [] varDecls, 
+			        CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
+		super (name, ns, pars, typeDecls, varDecls, inputPorts, outputPorts);
 	}
 
 	private List<Node>  		nodes = new ArrayList<Node>();

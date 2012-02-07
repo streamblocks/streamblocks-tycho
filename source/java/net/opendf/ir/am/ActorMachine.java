@@ -6,6 +6,8 @@ import java.util.List;
 import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclEntity;
+import net.opendf.ir.common.DeclType;
+import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDecl;
 
@@ -43,12 +45,12 @@ public class ActorMachine extends DeclEntity {
 	//
 	
 	public ActorMachine(String name, NamespaceDecl namespace,
-			ParDecl [] parameters, Decl [] decls,
+			ParDecl [] parameters, DeclType [] typeDecls, DeclVar [] varDecls,
             CompositePortDecl inputPorts, CompositePortDecl outputPorts,
             Scope [] scopes, List<Instruction> [] controller
         )
     {
-		super(name, namespace, parameters, decls);
+		super(name, namespace, parameters, typeDecls, varDecls);
 		this.scopes = scopes;
         this.controller = controller;
     }

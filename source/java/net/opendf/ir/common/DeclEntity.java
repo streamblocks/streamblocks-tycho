@@ -24,8 +24,12 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 		return pars;
 	}
 	
-	public Decl []  getDecls() {
-		return decls;
+	public DeclType []  getTypeDecls() {
+		return typeDecls;
+	}
+	
+	public DeclVar []  getVarDecls() {
+		return varDecls;
 	}
 	
 	// Decl
@@ -54,14 +58,15 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	// Ctor
 	//
 
-	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, Decl [] decls) {
-		this (name, ns, pars, decls, new CompositePortDecl(null, null), new CompositePortDecl(null, null));
+	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, DeclType [] typeDecls, DeclVar [] varDecls) {
+		this (name, ns, pars, typeDecls, varDecls, new CompositePortDecl(null, null), new CompositePortDecl(null, null));
 	}
 
-	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, Decl [] decls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
+	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, DeclType [] typeDecls, DeclVar [] varDecls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
 		super (name, ns);
 		this.pars = pars;
-		this.decls = decls;
+		this.typeDecls = typeDecls;
+		this.varDecls = varDecls;
 
 		this.inputPorts = inputPorts;
 		this.inputPorts.setContainer(this);
@@ -72,7 +77,8 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	
 
 	private ParDecl [] 		pars;
-	private Decl [] 		decls;
+	private DeclType [] 	typeDecls;
+	private DeclVar []		varDecls;
 	
 	private CompositePortDecl  inputPorts;
 	private CompositePortDecl  outputPorts;
