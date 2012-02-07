@@ -60,8 +60,6 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 
 	public DeclEntity(String name, NamespaceDecl ns, ParDecl [] pars, Decl [] decls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
 		super (name, ns);
-		this.name = name;
-		this.namespace = ns;
 		this.pars = pars;
 		this.decls = decls;
 
@@ -73,8 +71,6 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	}
 	
 
-	private String 			name;
-	private NamespaceDecl		namespace;
 	private ParDecl [] 		pars;
 	private Decl [] 		decls;
 	

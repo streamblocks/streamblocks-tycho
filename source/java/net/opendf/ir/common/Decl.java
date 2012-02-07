@@ -10,7 +10,7 @@ import net.opendf.ir.AbstractIRNode;
 /**
  * Declarations bind a name to a an object in a way that code may refer to the object by that name. They are distinguished in
  * a number of ways: <ol type="a">
- * <li>the location of their occurrence (top-level or scoped within other program code),
+ * <li>the location of their occurrence (top-level inside a {@link NamespaceDecl namespace declaration} or scoped within other program code),
  * <li>whether they directly declare the name, or do so by reference to another global declaration (import),
  * <li>in case of top-level declarations, their accessibility (local, private, or public),
  * <li>the kind of object they declare (variable, type, or entity).
@@ -31,11 +31,16 @@ abstract public class Decl extends AbstractIRNode {
 	
 	abstract public void  accept(DeclVisitor v);
 	
+	
+	
+	
 	public String getName() { return name; }
 	
-	public NamespaceDecl getNamespace() { return namespace; }
+	public NamespaceDecl getNamespaceDecl() { return namespaceDecl; }
 
 	public boolean isImport() { return isImport; }
+	
+
 	
 	public String [] getQID() { 
 
@@ -56,19 +61,23 @@ abstract public class Decl extends AbstractIRNode {
 	//
 	
 
-	public Decl(String name, NamespaceDecl namespace) {
+	public Decl(String name, NamespaceDecl namespaceDecl) {
 		isImport = false;
 		this.name = name;
-		this.namespace = namespace;
+		this.namespaceDecl = namespaceDecl;
+		if (namespaceDecl != null)
+			namespaceDecl.addDecl(this);
 	}
 	
-	public Decl(String name, NamespaceDecl namespace, String [] qid) {
+	public Decl(String name, NamespaceDecl namespaceDecl, String [] qid) {
 		
 		assert qid != null && qid.length >= 1;
 		
 		isImport = true;
 		this.name = name;
-		this.namespace = namespace;
+		this.namespaceDecl = namespaceDecl;
+		if (namespaceDecl != null)
+			namespaceDecl.addDecl(this);
 		this.qid = qid;
 	}
 	
@@ -78,7 +87,7 @@ abstract public class Decl extends AbstractIRNode {
 	
 	private String   name;
 	private boolean  isImport;
-	private NamespaceDecl namespace;
+	private NamespaceDecl namespaceDecl;
 	
 	//  import
 	

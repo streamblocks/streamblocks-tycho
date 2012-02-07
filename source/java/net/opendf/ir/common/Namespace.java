@@ -45,6 +45,11 @@ public class Namespace extends AbstractIRNode {
 		}
 	}
 	
+	public NamespaceDecl  createNamespaceDecl() {
+		NamespaceDecl nd = new NamespaceDecl(this);
+		return nd;
+	}
+	
 	public List<NamespaceDecl>  getDecls() {
 		return decls;
 	}
@@ -52,12 +57,25 @@ public class Namespace extends AbstractIRNode {
 	public List<Namespace>  getSubnamespaces() {
 		return subnamespaces;
 	}
+	
+	public Namespace  getSubnamespace(String name) {
+		for (Namespace n : subnamespaces) {
+			if (name.equals(n.relativeName))
+				return n;
+		}
+		return null;
+	}
+	
+	//
 
 	void  addDecl(NamespaceDecl decl) { 
 		decls.add(decl);
 	}
 	
 	void  addSubnamespace(Namespace sub) {
+		
+		assert getSubnamespace(sub.getRelativeName()) == null;
+		
 		subnamespaces.add(sub);
 	}
 	
