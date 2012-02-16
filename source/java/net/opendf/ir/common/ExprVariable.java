@@ -50,7 +50,7 @@ public class ExprVariable extends Expression {
 
 
     public ExprVariable(String name) {
-        this.name = name;
+        this.name = name.intern();
     }
 
     public String getName() {
