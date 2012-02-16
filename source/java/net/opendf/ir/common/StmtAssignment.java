@@ -56,7 +56,7 @@ public class StmtAssignment extends Statement {
     }
 
     protected StmtAssignment(String var, Expression val, Expression [] location, String field) {
-        this.var = var;
+        this.var = var.intern();
         this.val = val;
         this.field = field;
         this.location = location;
