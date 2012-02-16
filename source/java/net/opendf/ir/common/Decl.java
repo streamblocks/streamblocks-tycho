@@ -15,6 +15,7 @@ import net.opendf.ir.AbstractIRNode;
  * <li>in case of top-level declarations, their accessibility (local, private, or public),
  * <li>the kind of object they declare (variable, type, or entity).
  * </ol>
+ * The name inside a declaration is interned, so it can be compared for identity more efficiently.
  * 
  * @author Jorn W. Janneck <jwj@acm.org>
  *
@@ -63,7 +64,7 @@ abstract public class Decl extends AbstractIRNode {
 
 	public Decl(String name, NamespaceDecl namespaceDecl) {
 		isImport = false;
-		this.name = name;
+		this.name = name.intern();
 		this.namespaceDecl = namespaceDecl;
 		if (namespaceDecl != null)
 			namespaceDecl.addDecl(this);
@@ -74,7 +75,7 @@ abstract public class Decl extends AbstractIRNode {
 		assert qid != null && qid.length >= 1;
 		
 		isImport = true;
-		this.name = name;
+		this.name = name.intern();
 		this.namespaceDecl = namespaceDecl;
 		if (namespaceDecl != null)
 			namespaceDecl.addDecl(this);
