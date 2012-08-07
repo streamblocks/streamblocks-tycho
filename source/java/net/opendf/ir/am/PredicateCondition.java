@@ -1,5 +1,7 @@
 package net.opendf.ir.am;
 
+import java.util.List;
+
 import net.opendf.ir.common.Expression;
 
 /**
@@ -28,7 +30,7 @@ public class PredicateCondition extends Condition {
 		return expression;
 	}
 
-	public int getScope() {
+	public List<Scope> getScope() {
 		return scope;
 	}
 	
@@ -36,11 +38,11 @@ public class PredicateCondition extends Condition {
 	//  Ctor
 	//
 	
-	public PredicateCondition(Expression expression, int scope) {
+	public PredicateCondition(Expression expression, List<Scope> scope) {
 		this.expression = expression;
 		this.scope = scope;
 	}
 		
 	private Expression  expression;
-	private int			scope;
+	private List<Scope>	scope;
 }

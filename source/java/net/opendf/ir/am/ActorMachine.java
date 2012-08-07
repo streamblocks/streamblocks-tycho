@@ -12,6 +12,7 @@ import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
+import net.opendf.ir.common.PortContainer;
 
 
 /**
@@ -34,30 +35,34 @@ import net.opendf.ir.common.ParDeclValue;
  *
  */
 
-public class ActorMachine extends DeclEntity {
+public class ActorMachine implements PortContainer {
 	
-	public List<Instruction> []  getController() { return controller; }
+	public List<List<Instruction>>  getController() { return controller; }
 	
-	public List<Instruction>  getInstructions(int n) { return controller[n]; }
+	public List<Instruction>  getInstructions(int n) { return controller.get(n); }
 	
-	public Scope []  getScopes() { return scopes; }
+	public List<Scope>  getScopes() { return scopes; }
 	
+	public CompositePortDecl getInputPorts() { return inputPorts; }
+	
+	public CompositePortDecl getOutputPorts() { return outputPorts; }
+
 	//
 	//  Ctor
 	//
 	
-	public ActorMachine(String name, NamespaceDecl namespace,
-			ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls,
-            CompositePortDecl inputPorts, CompositePortDecl outputPorts,
-            Scope [] scopes, List<Instruction> [] controller
+	public ActorMachine(CompositePortDecl inputPorts, CompositePortDecl outputPorts,
+            List<Scope> scopes, List<List<Instruction>> controller
         )
     {
-		super(name, namespace, typePars, valuePars, typeDecls, varDecls);
-		this.scopes = scopes;
+		this.scopes = scopes; 
         this.controller = controller;
+        this.inputPorts = inputPorts;
+        this.outputPorts = outputPorts;
     }
 	
-	private Scope []		  scopes;
-	
-	private List<Instruction> []  controller;
+	private List<Scope>		  scopes;
+	private List<List<Instruction>> controller;
+	private CompositePortDecl inputPorts;
+	private CompositePortDecl outputPorts;
 }

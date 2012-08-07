@@ -1,5 +1,6 @@
 package net.opendf.ir.am;
 
+import java.util.List;
 import java.util.Map;
 
 import net.opendf.ir.AbstractIRNode;
@@ -37,7 +38,7 @@ public class Transition extends AbstractIRNode {
 		}
 	}
 	
-	public int		  getScope() { return scope; }
+	public List<Scope>		  getScope() { return scope; }
 	
 	public Statement[]  getBody() { return body; }
 	
@@ -45,7 +46,7 @@ public class Transition extends AbstractIRNode {
 	//  Ctor
 	//
 	
-	public Transition(Map<PortName, Integer> inputRates, Map<PortName, Integer> outputRates, int scope, Statement [] body) {
+	public Transition(Map<PortName, Integer> inputRates, Map<PortName, Integer> outputRates, List<Scope> scope, Statement [] body) {
 		this.inputRates = inputRates;
 		this.outputRates = outputRates;
 		this.scope = scope;
@@ -53,7 +54,7 @@ public class Transition extends AbstractIRNode {
 	}
 	
 
-	private int						scope;
+	private List<Scope>				scope;
 	private Statement []			body;
 	private Map<PortName, Integer>  inputRates;
 	private Map<PortName, Integer>	outputRates;	

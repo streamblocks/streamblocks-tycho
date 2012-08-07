@@ -1,5 +1,8 @@
 package net.opendf.ir.am;
 
+import java.util.Collections;
+import java.util.List;
+
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Decl;
 
@@ -17,13 +20,16 @@ import net.opendf.ir.common.Decl;
  */
 
 public class Scope extends AbstractIRNode {
+
+	public enum ScopeKind {Persistent, Transient};
 	
+	public ScopeKind getKind() { return kind; }
 	
-	public int[] getRequiredScopes() {
+	public List<Scope> getRequiredScopes() {
 		return requiredScopes;
 	}
 	
-	public Decl[] getDeclarations() {
+	public List<Decl> getDeclarations() {
 		return declarations;
 	}
 
@@ -31,17 +37,20 @@ public class Scope extends AbstractIRNode {
 	//  Ctor
 	//
 	
-	public Scope(Decl [] declarations) {
-		this (new int [0], declarations);
+	public Scope(ScopeKind kind, List<Decl> declarations) {
+		this (thisisbollocks, kind, declarations);
 	}
 	
-	public Scope(int [] requiredScopes, Decl [] declarations) {
+	public Scope(List<Scope> requiredScopes, ScopeKind kind, List<Decl> declarations) {
 		this.requiredScopes = requiredScopes;
+		this.kind = kind;
 		this.declarations = declarations;
 	}
 	
 	
-	private int []  	requiredScopes;
-	private Decl []		declarations;
+	private List<Scope>  	requiredScopes;
+	private ScopeKind		kind;
+	private List<Decl>		declarations;
 
+	private static List<Scope> thisisbollocks = Collections.emptyList();
 }
