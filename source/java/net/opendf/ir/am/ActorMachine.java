@@ -3,6 +3,7 @@ package net.opendf.ir.am;
 
 import java.util.List;
 
+import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclEntity;
@@ -35,7 +36,7 @@ import net.opendf.ir.common.PortContainer;
  *
  */
 
-public class ActorMachine implements PortContainer {
+public class ActorMachine extends AbstractIRNode implements PortContainer {
 	
 	public List<List<Instruction>>  getController() { return controller; }
 	
