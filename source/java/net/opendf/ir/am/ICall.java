@@ -1,7 +1,5 @@
 package net.opendf.ir.am;
 
-import net.opendf.ir.AbstractIRNode;
-
 /**
  * This class represents the call instruction, which has two components: the {@link Transition transition} to be executed during the call, and the 
  * controller state to go to after the call instruction completes.
@@ -15,11 +13,11 @@ import net.opendf.ir.AbstractIRNode;
  *
  */
 
-public class ICall extends AbstractIRNode implements Instruction {
+public class ICall extends Instruction {
 
 	@Override
-	public void accept(InstructionVisitor v) {
-		v.visitCall(this);
+	public <R,P> R accept(InstructionVisitor<R,P> v, P p) {
+		return v.visitCall(this, p);
 	}
 	
 	public Transition		T() { return t; }

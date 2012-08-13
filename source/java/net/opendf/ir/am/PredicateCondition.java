@@ -21,8 +21,8 @@ public class PredicateCondition extends Condition {
 	}
 	
 	@Override
-	public void accept(ConditionVisitor v) {
-		v.visitPredicateCondition(this);
+	public <R,P> R accept(ConditionVisitor<R,P> v, P p) {
+		return v.visitPredicateCondition(this, p);
 	}
 	
 

@@ -22,11 +22,11 @@ public class PortCondition extends Condition {
 	}
 	
 	@Override
-	public void accept(ConditionVisitor v) {
+	public <R,P> R accept(ConditionVisitor<R,P> v, P p) {
 		if (isInputCondition)
-			v.visitInputCondition(this);
+			return v.visitInputCondition(this, p);
 		else
-			v.visitOutputCondition(this);
+			return v.visitOutputCondition(this, p);
 	}
 	
 	public PortName		getPortName() { return portName; }

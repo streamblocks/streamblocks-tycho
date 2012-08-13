@@ -1,7 +1,5 @@
 package net.opendf.ir.am;
 
-import net.opendf.ir.AbstractIRNode;
-
 /**
  * This class represents the wait instruction, which contains the controller state to transition to.
  * 
@@ -11,11 +9,11 @@ import net.opendf.ir.AbstractIRNode;
  *
  */
 
-public class IWait extends AbstractIRNode implements Instruction {
+public class IWait extends Instruction {
 
 	@Override
-	public void accept(InstructionVisitor v) {
-		v.visitWait(this);
+	public <R,P> R accept(InstructionVisitor<R,P> v, P p) {
+		return v.visitWait(this, p);
 	}
 	
 	public int  S() { return s; }

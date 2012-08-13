@@ -1,7 +1,5 @@
 package net.opendf.ir.am;
 
-import net.opendf.ir.AbstractIRNode;
-
 /**
  * This class represents the test instruction, which has three components: the {@link Condition condition} to be tested,
  * and the controller states to go to when the condition is found to be either true (s1) or false (s0).
@@ -13,11 +11,11 @@ import net.opendf.ir.AbstractIRNode;
  *
  */
 
-public class ITest extends AbstractIRNode implements Instruction {
+public class ITest extends Instruction {
 
 	@Override
-	public void accept(InstructionVisitor v) {
-		v.visitTest(this);
+	public <R,P> R accept(InstructionVisitor<R,P> v, P p) {
+		return v.visitTest(this, p);
 	}
 	
 	public Condition  C() { return c; }

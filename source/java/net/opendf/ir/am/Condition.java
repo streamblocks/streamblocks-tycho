@@ -20,6 +20,10 @@ abstract public class Condition extends AbstractIRNode {
 	
 	abstract public ConditionKind  kind();
 	
-	abstract public void accept(ConditionVisitor v);
+	abstract public <R,P> R accept(ConditionVisitor<R,P> v, P p);
+	
+	public <R> R accept(ConditionVisitor<R,Void> v) {
+		return accept(v, null);
+	}
 
 }

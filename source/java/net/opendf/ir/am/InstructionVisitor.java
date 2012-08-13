@@ -1,11 +1,11 @@
 package net.opendf.ir.am;
 
-public interface InstructionVisitor {
+public interface InstructionVisitor<R,P> {
 	
-	public void  visitWait(IWait i);
+	public R visitWait(IWait i, P p);
 	
-	public void  visitTest(ITest i);
+	public R visitTest(ITest i, P p);
 	
-	public void  visitCall(ICall i);
+	public R visitCall(ICall i, P p);
 
 }

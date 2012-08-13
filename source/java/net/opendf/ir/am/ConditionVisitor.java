@@ -6,10 +6,10 @@ package net.opendf.ir.am;
  *
  */
 
-public interface ConditionVisitor {
+public interface ConditionVisitor<R,P> {
 	
-	public void  visitInputCondition(PortCondition c);
-	public void  visitOutputCondition(PortCondition c);
-	public void  visitPredicateCondition(PredicateCondition c);
+	public R visitInputCondition(PortCondition c, P p);
+	public R visitOutputCondition(PortCondition c, P p);
+	public R visitPredicateCondition(PredicateCondition c, P p);
 
 }
