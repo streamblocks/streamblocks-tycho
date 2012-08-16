@@ -42,13 +42,11 @@ package net.opendf.ir.cal;
 import java.util.List;
 
 import net.opendf.ir.common.CompositePortDecl;
-import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.NamespaceDecl;
-import net.opendf.ir.common.ParDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.QID;

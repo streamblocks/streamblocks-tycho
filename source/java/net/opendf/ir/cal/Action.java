@@ -40,7 +40,6 @@ ENDCOPYRIGHT
 package net.opendf.ir.cal;
 
 import net.opendf.ir.AbstractIRNode;
-import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;

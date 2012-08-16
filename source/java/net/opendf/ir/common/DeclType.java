@@ -1,6 +1,5 @@
 package net.opendf.ir.common;
 
-import net.opendf.ir.common.Decl.DeclKind;
 
 /**
  * 

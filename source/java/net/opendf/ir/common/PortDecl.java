@@ -1,10 +1,8 @@
 package net.opendf.ir.common;
 
-import java.util.Iterator;
 import java.util.List;
 
 import net.opendf.ir.AbstractIRNode;
-import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
 
