@@ -38,7 +38,7 @@ public class Scope extends AbstractIRNode {
 	//
 	
 	public Scope(ScopeKind kind, List<Decl> declarations) {
-		this (thisisbollocks, kind, declarations);
+		this (Collections.<Scope>emptyList(), kind, declarations);
 	}
 	
 	public Scope(List<Scope> requiredScopes, ScopeKind kind, List<Decl> declarations) {
@@ -52,5 +52,4 @@ public class Scope extends AbstractIRNode {
 	private ScopeKind		kind;
 	private List<Decl>		declarations;
 
-	private static List<Scope> thisisbollocks = Collections.emptyList();
 }
