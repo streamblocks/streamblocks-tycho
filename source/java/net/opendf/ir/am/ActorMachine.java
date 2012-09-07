@@ -23,7 +23,7 @@ import net.opendf.ir.common.PortContainer;
  * Along with the controller, an actor machine contains an array of lists of {@link Decl declarations}. Each
  * of these declaration lists is called a <it>scope</it>, and it represents a set of temporary variable declarations that are
  * referred to by the {@link PredicateCondition predicate conditions} and the {@link Transition transition code}. These bindings
- * are valid until a {@link call instruction} clears them.
+ * are valid until a {@link ICall instruction} clears them.
  * 
  * @author Jorn W. Janneck <jwj@acm.org>
  *

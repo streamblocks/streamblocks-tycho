@@ -45,6 +45,7 @@ package net.opendf.ir.common;
 
 public interface ExpressionVisitor {
     void visitExprApplication(ExprApplication e);
+    void visitExprBinaryOp(ExprBinaryOp e);
     void visitExprEntry(ExprEntry e);
     void visitExprIf(ExprIf e);
     void visitExprIndexer(ExprIndexer e);
@@ -56,5 +57,6 @@ public interface ExpressionVisitor {
     void visitExprMap(ExprMap e);
     void visitExprProc(ExprProc e);
     void visitExprSet(ExprSet e);
+    void visitExprUnaryOp(ExprUnaryOp e);
     void visitExprVariable(ExprVariable e);
 }

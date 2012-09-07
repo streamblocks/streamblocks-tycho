@@ -7,7 +7,7 @@ import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
 
 /**
- * PortDecls (or ports for short) are arranged tree-like in a composite pattern: a port is either atomic (see {@link AtomicPort}) or composite (see {@link CompositePort}), and 
+ * PortDecls (or ports for short) are arranged tree-like in a composite pattern: a port is either atomic (see {@link AtomicPortDecl}) or composite (see {@link CompositePortDecl}), and 
  * composite ports can contain any number of ports as children. Each port has a <it>local name</it>, which is a simple string identifying it
  * relative to its parent port, if it has one. It also has a <it>full name</it>, which is an array of strings identifying the port in the
  * manner of a path from the topmost parent downward.
