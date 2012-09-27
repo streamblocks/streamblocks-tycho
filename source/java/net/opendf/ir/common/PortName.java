@@ -45,6 +45,18 @@ public class PortName extends AbstractIRNode {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (String n : name) {
+			if (!first) sb.append(PortDecl.portNameSeparator);
+			first = false;
+			sb.append(n);
+		}
+		return sb.toString();
+	}
+
 	//
 	//  Ctor
 	//
