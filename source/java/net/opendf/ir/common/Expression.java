@@ -45,7 +45,7 @@ import net.opendf.ir.AbstractIRNode;
 
 public abstract class Expression extends AbstractIRNode {
 
-    public abstract void accept(ExpressionVisitor v);
+    public abstract <R,P> R accept(ExpressionVisitor<R,P> v, P p);
     
     public TypeExpr  getType() {
     	return type;

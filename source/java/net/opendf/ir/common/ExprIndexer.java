@@ -46,8 +46,8 @@ package net.opendf.ir.common;
 public class ExprIndexer extends Expression {
 
 
-    public void accept(ExpressionVisitor visitor) {
-        visitor.visitExprIndexer(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> visitor, P p) {
+        return visitor.visitExprIndexer(this, p);
     }
 
     public ExprIndexer(Expression structure, Expression [] location) {

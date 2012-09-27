@@ -41,8 +41,8 @@ package net.opendf.ir.common;
 
 public class ExprProc extends Expression {
 
-    public void accept(ExpressionVisitor v) {
-        v.visitExprProc(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprProc(this, p);
     }
 
     public ExprProc(ParDeclType [] typeParams, ParDeclValue [] valueParams, DeclType [] typeDecls, DeclVar [] varDecls, Statement[] body) {

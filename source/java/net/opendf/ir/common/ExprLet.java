@@ -44,8 +44,8 @@ package net.opendf.ir.common;
 
 public class ExprLet extends Expression {
 
-    public void accept(ExpressionVisitor v) {
-        v.visitExprLet(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprLet(this, p);
     }
 
     public ExprLet(DeclType[] typeDecls, DeclVar [] varDecls, Expression body) {

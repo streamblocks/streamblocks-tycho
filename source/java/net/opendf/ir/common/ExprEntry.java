@@ -59,7 +59,7 @@ public class ExprEntry extends Expression {
         this._enclosingExpr = enclosingExpr;
     }
 
-    public void accept(ExpressionVisitor v) {
-        v.visitExprEntry(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprEntry(this, p);
     }
 }

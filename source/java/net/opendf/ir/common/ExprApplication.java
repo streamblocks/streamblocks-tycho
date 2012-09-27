@@ -43,8 +43,8 @@ package net.opendf.ir.common;
 public class ExprApplication extends Expression {
 
 
-    public void accept(ExpressionVisitor visitor) {
-        visitor.visitExprApplication(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> visitor, P p) {
+        return visitor.visitExprApplication(this, p);
     }
 
     public ExprApplication(Expression function, Expression [] args) {

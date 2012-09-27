@@ -43,8 +43,8 @@ package net.opendf.ir.common;
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
  */
 public class ExprList extends Expression {
-    public void accept(ExpressionVisitor v) {
-        v.visitExprList(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprList(this, p);
     }
 
     public ExprList(Expression[] elements, GeneratorFilter [] generators) {

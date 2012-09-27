@@ -42,8 +42,8 @@ package net.opendf.ir.common;
 
 public class ExprLambda extends Expression {
 
-    public void accept(ExpressionVisitor v) {
-        v.visitExprLambda(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprLambda(this, p);
     }
 
     public ExprLambda(ParDeclType [] typeParams, ParDeclValue [] valueParams, DeclType [] typeDecls, DeclVar [] varDecls, Expression body, TypeExpr returnTypeExpr) {

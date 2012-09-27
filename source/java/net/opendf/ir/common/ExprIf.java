@@ -43,8 +43,8 @@ package net.opendf.ir.common;
 
 public class ExprIf extends Expression {
 
-    public void accept(ExpressionVisitor v) {
-        v.visitExprIf(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprIf(this, p);
     }
 
     public ExprIf(Expression condition, Expression thenExpr, Expression elseExpr) {

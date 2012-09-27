@@ -8,8 +8,8 @@ package net.opendf.ir.common;
 
 public class ExprUnaryOp extends Expression {
 
-    public void accept(ExpressionVisitor v) {
-        v.visitExprUnaryOp(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprUnaryOp(this, p);
     }
 
     public ExprUnaryOp(java.lang.String operation, Expression operand) {

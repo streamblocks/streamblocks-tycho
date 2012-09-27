@@ -43,20 +43,20 @@ package net.opendf.ir.common;
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
-public interface ExpressionVisitor {
-    void visitExprApplication(ExprApplication e);
-    void visitExprBinaryOp(ExprBinaryOp e);
-    void visitExprEntry(ExprEntry e);
-    void visitExprIf(ExprIf e);
-    void visitExprIndexer(ExprIndexer e);
-    void visitExprInput(ExprInput e);
-    void visitExprLambda(ExprLambda e);
-    void visitExprLet(ExprLet e);
-    void visitExprList(ExprList e);
-    void visitExprLiteral(ExprLiteral e);
-    void visitExprMap(ExprMap e);
-    void visitExprProc(ExprProc e);
-    void visitExprSet(ExprSet e);
-    void visitExprUnaryOp(ExprUnaryOp e);
-    void visitExprVariable(ExprVariable e);
+public interface ExpressionVisitor<R,P> {
+    public R visitExprApplication(ExprApplication e, P p);
+    public R visitExprBinaryOp(ExprBinaryOp e, P p);
+    public R visitExprEntry(ExprEntry e, P p);
+    public R visitExprIf(ExprIf e, P p);
+    public R visitExprIndexer(ExprIndexer e, P p);
+    public R visitExprInput(ExprInput e, P p);
+    public R visitExprLambda(ExprLambda e, P p);
+    public R visitExprLet(ExprLet e, P p);
+    public R visitExprList(ExprList e, P p);
+    public R visitExprLiteral(ExprLiteral e, P p);
+    public R visitExprMap(ExprMap e, P p);
+    public R visitExprProc(ExprProc e, P p);
+    public R visitExprSet(ExprSet e, P p);
+    public R visitExprUnaryOp(ExprUnaryOp e, P p);
+    public R visitExprVariable(ExprVariable e, P p);
 }

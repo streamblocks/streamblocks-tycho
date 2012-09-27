@@ -44,8 +44,8 @@ package net.opendf.ir.common;
 public class ExprVariable extends Expression {
 
 
-    public void accept(ExpressionVisitor visitor) {
-        visitor.visitExprVariable(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> visitor, P p) {
+        return visitor.visitExprVariable(this, p);
     }
 
 

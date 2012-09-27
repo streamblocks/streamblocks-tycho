@@ -41,8 +41,8 @@ package net.opendf.ir.common;
 
 public class ExprLiteral extends Expression {
 
-    public void accept(ExpressionVisitor visitor) {
-        visitor.visitExprLiteral(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> visitor, P p) {
+        return visitor.visitExprLiteral(this, p);
     }
     
     public int getKind() {

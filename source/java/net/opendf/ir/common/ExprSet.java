@@ -43,8 +43,8 @@ package net.opendf.ir.common;
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
  */
 public class ExprSet extends Expression {
-    public void accept(ExpressionVisitor v) {
-        v.visitExprSet(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprSet(this, p);
     }
 
     public ExprSet(Expression[] elements, GeneratorFilter [] generators) {

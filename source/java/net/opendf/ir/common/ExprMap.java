@@ -44,8 +44,8 @@ package net.opendf.ir.common;
  */
 
 public class ExprMap extends Expression {
-    public void accept(ExpressionVisitor v) {
-        v.visitExprMap(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprMap(this, p);
     }
 
     public ExprMap(Expression[][] mappings, GeneratorFilter [] generators) {

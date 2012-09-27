@@ -3,8 +3,8 @@ package net.opendf.ir.common;
 public class ExprInput extends Expression {
 
 	@Override
-	public void accept(ExpressionVisitor v) {
-		v.visitExprInput(this);
+	public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+		return v.visitExprInput(this, p);
 	}
 	
 	public PortName  getPort() { return port; }

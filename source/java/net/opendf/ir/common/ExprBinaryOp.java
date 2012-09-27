@@ -11,8 +11,8 @@ package net.opendf.ir.common;
 
 public class ExprBinaryOp extends Expression {
 
-    public void accept(ExpressionVisitor v) {
-        v.visitExprBinaryOp(this);
+    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
+        return v.visitExprBinaryOp(this, p);
     }
 
     public ExprBinaryOp(java.lang.String[] operations, Expression[] operands) {
