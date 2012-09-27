@@ -23,11 +23,11 @@ public class ExprInput extends Expression {
 	//
 	
 	public ExprInput(PortName port, int offset) {
-		this (port, offset, false, -1); 
+		this (port, offset, false, -1, -1);
 	}
 	
-	public ExprInput(PortName port, int offset, int repeat) {
-		this (port, offset, true, repeat);
+	public ExprInput(PortName port, int offset, int repeat, int patternLength) {
+		this (port, offset, true, repeat, -1);
 	}
 	
 	private ExprInput(PortName port, int offset, boolean hasRepeat, int repeat, int patternLength) {
