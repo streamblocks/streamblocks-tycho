@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Map;
+
 /**
  * @author Jorn W. Janneck <jwj@acm.org>
  */
@@ -48,16 +50,16 @@ public class ExprMap extends Expression {
         return v.visitExprMap(this, p);
     }
 
-    public ExprMap(Expression[][] mappings, GeneratorFilter [] generators) {
+    public ExprMap(java.util.Map<Expression,Expression> mappings, GeneratorFilter [] generators) {
         this.mappings = mappings;
         this.generators = generators;
     }
 
-    public ExprMap(Expression[][] mappings) {
+    public ExprMap(java.util.Map<Expression,Expression> mappings) {
         this(mappings, null);
     }
 
-    public Expression[][] getMappings() {
+    public Map<Expression, Expression> getMappings() {
         return mappings;
     }
     
@@ -65,7 +67,6 @@ public class ExprMap extends Expression {
     	return generators;
     }
 
-    private Expression [][] mappings;
+    private java.util.Map<Expression,Expression> mappings;
     private GeneratorFilter [] generators;
-
 }
