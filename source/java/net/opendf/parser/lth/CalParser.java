@@ -1,8 +1,8 @@
 /* 
  *  @author Per Andersson<Per.Andersson@cs.lth.se>, Lund University
  *  To parse a CAL file use one of the methods:
- *  - public Actor parse(String path, String fileName)
- *  - public Actor parse(File file)
+ *  - public net.opendf.ir.cal.Actor parse(String path, String fileName)
+ *  - public net.opendf.ir.cal.Actor parse(File file)
  *
  *  After parsing check for errors in the attribute parseProblems.
  *
@@ -557,7 +557,7 @@ public class CalParser extends Parser {
                                   out_expr_list==null ? new OutputExpression[0] : (OutputExpression[])out_expr_list.toArray(new OutputExpression[out_expr_list.size()]),  //outputExpressions
                                   new DeclType[0],                                              // typeDecls
                                   declVarList.toArray(new DeclVar[declVarList.size()]),         // varDecls
-                                  guardList.toArray(new Expression[declVarList.size()]),        // guards 
+                                  guardList.toArray(new Expression[guardList.size()]),              // guards 
                                   (Statement[])body.toArray(new Statement[body.size()]),        // body
                                   delay,                      // delay
                                   new Expression[0],         // preconditions  NOTE, can not be expressed in CAL
@@ -601,7 +601,7 @@ public class CalParser extends Parser {
                                   out_expr_list==null ? new OutputExpression[0] : (OutputExpression[])out_expr_list.toArray(new OutputExpression[out_expr_list.size()]),  //outputExpressions
                                   new DeclType[0],                                              // typeDecls
                                   declVarList.toArray(new DeclVar[declVarList.size()]),         // varDecls
-                                  guardList.toArray(new Expression[declVarList.size()]),        // guards 
+                                  guardList.toArray(new Expression[guardList.size()]),          // guards 
                                   (Statement[])body.toArray(new Statement[body.size()]),        // body
                                   delay,                      // delay
                                   new Expression[0],         // preconditions  NOTE, can not be expressed in CAL
@@ -800,7 +800,7 @@ public class CalParser extends Parser {
     Actor a = new Actor((String)name.value,
                          null,                 // NamespaceDecl namespace,
                          typePars == null ? new ParDeclType[0] : (ParDeclType[])typePars.toArray(new ParDeclType[typePars.size()]),     // typePars,
-                         valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[typePars.size()]), // valuePars,
+                         valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
                          new DeclType[0],      // typeDecls, NOTE, can not be expressed in CAL
                          (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
                          in,                   // CompositePortDecl inputPorts,
@@ -1458,15 +1458,15 @@ public class CalParser extends Parser {
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final Map.Entry m = (Map.Entry) _symbol_m.value;
-					 Map l = new java.util.IdentityHashMap(); l.put(m.getKey(), m.getValue()); return new Symbol(l);
+					 ArrayList l = new ArrayList(); l.add(m); return new Symbol(l);
 			}
 			case 184: // map_list = map_list.l COMMA map_entry.m
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final Map l = (Map) _symbol_l.value;
+					final ArrayList l = (ArrayList) _symbol_l.value;
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final Map.Entry m = (Map.Entry) _symbol_m.value;
-					 l.put(m.getKey(), m.getValue()); return _symbol_l;
+					 l.add(m); return _symbol_l;
 			}
 			case 185: // map_entry = expression.e1 ARROW expression.e2
 			{
@@ -1655,16 +1655,19 @@ public class CalParser extends Parser {
 			case 216: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
-					final Map m = (Map) _symbol_m.value;
-					 return new Symbol(new ExprMap(m==null? new TreeMap() : m));
+					final ArrayList m = (ArrayList) _symbol_m.value;
+					 return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
+                                                                                                              (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()])));
 			}
 			case 217: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
-					final Map m = (Map) _symbol_m.value;
+					final ArrayList m = (ArrayList) _symbol_m.value;
 					final Symbol _symbol_generators = _symbols[offset + 5];
 					final ArrayList generators = (ArrayList) _symbol_generators.value;
-					 return new Symbol(new ExprMap(m==null? new TreeMap() : m, (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()])));
+					 return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
+                                                                                                              (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()]), 
+                                                                                                              (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()])));
 			}
 			case 218: // simple_expression = LET decl_list.l COLON expression.e end_let
 			{

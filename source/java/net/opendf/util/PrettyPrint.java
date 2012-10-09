@@ -239,11 +239,13 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 		e.accept(this, null);
 	}
 	public void print(Expression[] expressions) {  // comma separated expressions
-		String sep = "";
-		for(Expression e : expressions){
-			out.append(sep);
-			sep = ", ";
-			e.accept(this, null);
+		if(expressions != null){
+			String sep = "";
+			for(Expression e : expressions){
+				out.append(sep);
+				sep = ", ";
+				e.accept(this, null);
+			}
 		}
 	}
 
@@ -267,8 +269,36 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 		}
 	}
 	public void print(TypeExpr type){
-		//TODO
-		out.append("TODO");	  
+		out.append(type.getName());
+		if(type.getParameters() != null && type.getParameters().length>0){
+			out.append("[");
+			String sep = "";
+			for(TypeExpr t : type.getParameters()){
+				out.append(sep);
+				sep = ", ";
+				print(t);
+			}
+			out.append("]");
+		} else if((type.getTypeParameters() != null && !type.getTypeParameters().isEmpty()) || 
+   				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
+			out.append("(");
+			String sep = "";
+			for(Map.Entry<String, Expression>par : type.getValueParameters().entrySet()){
+				out.append(sep);
+				sep = ", ";
+				out.append(par.getKey());
+				out.append("=");
+				par.getValue().accept(this, null);
+			}
+			for(Map.Entry<String, TypeExpr>par : type.getTypeParameters().entrySet()){
+				out.append(sep);
+				sep = ", ";
+				out.append(par.getKey());
+				out.append(":");
+				print(par.getValue());
+			}
+			out.append(")");
+		}
 	}
 
 	private void incIndent(){ 
@@ -433,7 +463,7 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 	public String visitExprMap(ExprMap e, String p) {
 		out.append("map {");
 		String sep = "";
-		for(Map.Entry<Expression, Expression> body : e.getMappings().entrySet()){
+		for(Map.Entry<Expression, Expression> body : e.getMappings()){
 			out.append(sep);
 			sep = ", ";
 			body.getKey().accept(this, null);

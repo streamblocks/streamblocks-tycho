@@ -128,7 +128,13 @@
   "in"                           { return sym(Terminals.IN); }  // needed in for generators "for i in 1..5"
   "bit_xor"                      { return sym(Terminals.OPERATOR); }
   "bit_or"                       { return sym(Terminals.OPERATOR); }
-  {Operator}                     { if(str().equals("=")){ return sym(Terminals.EQ); } else { return sym(Terminals.OPERATOR);} }
+  {Operator}                     { // Some legal operator names are used in other parts of the language. Detect them.
+                                   if(str().startsWith("->")){          // used by maps, "a->-b" is "a", "->", "-", "b"
+                                     yypushback(str().length()-2);
+                                     return sym(Terminals.ARROW, "->");
+                                   }
+                                   return sym(Terminals.OPERATOR); 
+                                 }
 //TODO, MULT is needed by regular expression schedules  
   // assignment
   ":="                           { return sym(Terminals.COLONEQ);}

@@ -50,16 +50,16 @@ public class ExprMap extends Expression {
         return v.visitExprMap(this, p);
     }
 
-    public ExprMap(java.util.Map<Expression,Expression> mappings, GeneratorFilter [] generators) {
+    public ExprMap(java.util.Map.Entry<Expression,Expression>[] mappings, GeneratorFilter [] generators) {
         this.mappings = mappings;
         this.generators = generators;
     }
 
-    public ExprMap(java.util.Map<Expression,Expression> mappings) {
+    public ExprMap(java.util.Map.Entry<Expression,Expression>[] mappings) {
         this(mappings, null);
     }
 
-    public Map<Expression, Expression> getMappings() {
+    public java.util.Map.Entry<Expression,Expression>[] getMappings() {
         return mappings;
     }
     
@@ -67,6 +67,6 @@ public class ExprMap extends Expression {
     	return generators;
     }
 
-    private java.util.Map<Expression,Expression> mappings;
+    private java.util.Map.Entry<Expression,Expression>[] mappings;
     private GeneratorFilter [] generators;
 }

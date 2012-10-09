@@ -44,7 +44,8 @@ EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
 TraditionalIdentifier = [:jletter:][:jletterdigit:]*  // any sequence of digits, letters, $ and _ is an identifier according to CLR, but $ is an potential operator. 
 EscapedIdentifier = "\\" [^\\]* "\\"
 
-Operator = [!@#$%\^&*/+\-=<>?~]*  // "$" will be parsed as an identifier. "|" should also be included, but that would break tail annotation in list comprehension
+Operator = [!@#$%\^&*/+\-<>?~][!@#$%\^&*/+\-=<>?~\|]*  // "$" will be parsed as an identifier. "|" should also be included, but that would break tail annotation in list comprehension
+                                                       // "a=-b" should be parsed as "a = - b". Therefore an operation may not start with '='. (longest match will give the tokens "a", "=-", "b")
 
 // 3.10.1 Integer Literals
 DecimalNumeral = 0 | {NonZeroDigit} {Digits}? 

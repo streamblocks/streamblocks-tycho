@@ -307,7 +307,7 @@
 %typeof for_foreach = "String";
 %typeof actor_parameter_list = "ArrayList";
 %typeof map_entry = "Map.Entry";
-%typeof map_list = "Map";
+%typeof map_list = "ArrayList";
 %typeof type_bound = "TypeExpr";
 %typeof type_bound_opt = "TypeExpr";
 %typeof type = "TypeExpr";
@@ -386,7 +386,7 @@ action_decl =
                                   out_expr_list==null ? new OutputExpression[0] : (OutputExpression[])out_expr_list.toArray(new OutputExpression[out_expr_list.size()]),  //outputExpressions
                                   new DeclType[0],                                              // typeDecls
                                   declVarList.toArray(new DeclVar[declVarList.size()]),         // varDecls
-                                  guardList.toArray(new Expression[declVarList.size()]),        // guards 
+                                  guardList.toArray(new Expression[guardList.size()]),              // guards 
                                   (Statement[])body.toArray(new Statement[body.size()]),        // body
                                   delay,                      // delay
                                   new Expression[0],         // preconditions  NOTE, can not be expressed in CAL
@@ -426,7 +426,7 @@ init_action_decl =
                                   out_expr_list==null ? new OutputExpression[0] : (OutputExpression[])out_expr_list.toArray(new OutputExpression[out_expr_list.size()]),  //outputExpressions
                                   new DeclType[0],                                              // typeDecls
                                   declVarList.toArray(new DeclVar[declVarList.size()]),         // varDecls
-                                  guardList.toArray(new Expression[declVarList.size()]),        // guards 
+                                  guardList.toArray(new Expression[guardList.size()]),          // guards 
                                   (Statement[])body.toArray(new Statement[body.size()]),        // body
                                   delay,                      // delay
                                   new Expression[0],         // preconditions  NOTE, can not be expressed in CAL
@@ -531,7 +531,7 @@ actor_decl =
     Actor a = new Actor((String)name.value,
                          null,                 // NamespaceDecl namespace,
                          typePars == null ? new ParDeclType[0] : (ParDeclType[])typePars.toArray(new ParDeclType[typePars.size()]),     // typePars,
-                         valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[typePars.size()]), // valuePars,
+                         valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
                          new DeclType[0],      // typeDecls, NOTE, can not be expressed in CAL
                          (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
                          in,                   // CompositePortDecl inputPorts,
@@ -799,8 +799,8 @@ lambda_expr_body =
                                              t)); :}
   ;
 map_list =
-    map_entry.m                  {: Map l = new java.util.IdentityHashMap(); l.put(m.getKey(), m.getValue()); return new Symbol(l); :}
-  | map_list.l COMMA map_entry.m {: l.put(m.getKey(), m.getValue()); return _symbol_l; :}
+    map_entry.m                  {: ArrayList l = new ArrayList(); l.add(m); return new Symbol(l); :}
+  | map_list.l COMMA map_entry.m {: l.add(m); return _symbol_l; :}
   ;
 map_entry =
     expression.e1 ARROW expression.e2 {: return new Symbol(new AbstractMap.SimpleEntry(e1, e2)); :}
@@ -850,8 +850,11 @@ simple_expression =
   | LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK  {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
 //TODO, tail is ignored
   | LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
-  | MAP LBRACE map_list.m? RBRACE                                            {: return new Symbol(new ExprMap(m==null? new TreeMap() : m)); :}
-  | MAP LBRACE map_list.m? COLON for_generator_list.generators RBRACE        {: return new Symbol(new ExprMap(m==null? new TreeMap() : m, (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()]))); :}
+  | MAP LBRACE map_list.m? RBRACE                                            {: return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
+                                                                                                              (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()]))); :}
+  | MAP LBRACE map_list.m? COLON for_generator_list.generators RBRACE        {: return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
+                                                                                                              (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()]), 
+                                                                                                              (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()]))); :}
   | LET decl_list.l COLON expression.e end_let                               {: return new Symbol(new ExprLet(new DeclType[0], (DeclVar[])l.toArray(new DeclVar[l.size()]), e)); :}
   | LAMBDA lambda_expr_body.lambda                                           {: return _symbol_lambda; :}
 //TODO, const is ignored
@@ -895,6 +898,7 @@ operator =
   | IN.op       {: return op; :}
   | GT.op       {: return op; :}
   | MULT.op     {: return op; :}
+//  | BAR.op      {: return op; :}  //TODO, ambigous in list comprehension. Is it indicating a list tail, or binary operation (c|d): [a, b, c | d]
   ;
 //--- formal parameter
 formal_parameter =
