@@ -54,7 +54,7 @@ public class ScheduleFSM extends AbstractIRNode{
 		this.initialState = initialState;
 	}
 	
-	public Object getInitialState() {
+	public String getInitialState() {
 		return initialState;
 	}
 

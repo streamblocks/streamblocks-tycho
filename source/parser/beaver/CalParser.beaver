@@ -1,0 +1,994 @@
+%header {: 
+/* 
+ *  @author Per Andersson<Per.Andersson@cs.lth.se>, Lund University
+ *  To parse a CAL file use one of the methods:
+ *  - public Actor parse(String path, String fileName)
+ *  - public Actor parse(File file)
+ *
+ *  After parsing check for errors in the attribute parseProblems.
+ *
+ *  The parser is created using jflex and beaver.
+ */
+ :} ;
+%package "net.opendf.parser.lth";
+%import "net.opendf.ir.*";
+%import "net.opendf.ir.common.*";
+%import "net.opendf.ir.cal.*";
+%import "net.opendf.ir.cal.Action";
+%import "java.io.File";
+%import "java.util.TreeSet";
+%import "java.util.Map";
+%import "java.util.TreeMap";
+%import "java.util.AbstractMap";
+%import "java.util.Arrays";
+%embed {:
+/*******************************************************
+ *  Inject code for custom error handling in the parser class.
+ *******************************************************/
+  // all errors encountered during parsing is stored in the array parseProblems. This includes lexical, syntactical and semantic error (multiple initialization actors et.c.)
+  protected java.util.TreeSet<String> parseProblems = new TreeSet<String>();
+  public void printParseProblems(){
+    System.err.println("number of problems: " + parseProblems.size());
+    for(String msg : parseProblems){
+      System.err.println("ERROR: " + msg);
+    }
+  }
+
+  // parser plug-in methods that are called when the parser encounters a syntactical problem
+  class Events extends Parser.Events {
+    public void scannerError(Scanner.Exception e) {
+      parseProblems.add(e.getMessage());
+    }
+    public void syntaxError(Symbol token) {
+      // This method is always called when a problem is encountered, even if it is repaired.
+      // beaver.Parser$Exception is thrown if recovery fails.
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("unexpected token \"" + value + "\" at " + token.getLine(token.getStart()) + ", " + token.getColumn(token.getStart()));
+    }
+    public void unexpectedTokenRemoved(Symbol token) {
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + token.getLine(token.getStart()) + ", " + token.getColumn(token.getStart()));
+    }
+    public void missingTokenInserted(Symbol token) {
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("parser recovered after inserting token \"" + value + "\" at " + token.getLine(token.getStart()) + ", " + token.getColumn(token.getStart()));
+    }
+    public void misspelledTokenReplaced(Symbol token) {
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("parser recovered after replacing token \"" + value + "\" at " + token.getLine(token.getStart()) + ", " + token.getColumn(token.getStart()));
+    }
+    public void errorPhraseRemoved(Symbol token) {
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + token.getLine(token.getStart()) + ", " + token.getColumn(token.getStart()));
+    }
+  }
+
+  {
+    // initialization, before the constructor
+    report = new Events(); // Use error handler in parser
+  }
+
+/*******************************************************
+ *  Help routine that parses a file, given its name.
+ *  A compilation unit is always returned, containing all parseProblems encountered during parsing.
+ *  If a Parser.exception is thrown a CompilationUnit with an empty AST is returned.
+ *******************************************************/
+  private Actor makeEmptyActor(File file){
+    String name;
+    String FileName = file.getName();
+    int lastPeriodPos = file.getName().lastIndexOf('.');
+    if(lastPeriodPos >=0){
+      name = file.getName().substring(0, lastPeriodPos);
+    } else {
+      name = file.getName();
+    }
+    return new Actor(name, null, new ParDeclType[0], new ParDeclValue[0], new DeclType[0], new DeclVar[0], new CompositePortDecl(), 
+                     new CompositePortDecl(), new Action[0], new Action[0], null, new java.util.List[0], new Expression[0]);   
+  }
+  
+  public Actor parse(String path, String fileName){
+    return parse(new java.io.File(path + "/" + fileName));
+  }
+  public Actor parse(File file){
+     Actor actor;
+     parseProblems = new TreeSet<String>();
+     java.io.FileReader fr = null;
+     try {
+       try{
+         fr = new java.io.FileReader(file);
+  	     CalScanner scanner = new CalScanner(new java.io.BufferedReader(fr));
+         actor = (Actor)parse(scanner);
+       } catch(CalParser.Exception e) {
+         // build empty compilation unit for failed error recovery
+         // The problem is added to parseProblems[] by the syntaxError() method added to the parser above.
+         actor = makeEmptyActor(file);
+       } finally {
+         if(fr != null){
+           fr.close();
+         }
+       }
+     } catch (java.io.FileNotFoundException e){
+       parseProblems.add("file not found: " + e.getMessage());
+       actor = makeEmptyActor(file);
+//       actor.setFileNotFound(true);
+     } catch (java.io.IOException e){
+       parseProblems.add("error reading file: " + e.getMessage());
+       actor = makeEmptyActor(file);
+     }
+//     actor.setSourceFile(file);
+//     actor.parseProblems = parseProblems;
+     return actor;
+   }
+
+  private GeneratorFilter makeGeneratorFilter(TypeExpr type, ArrayList varList, Expression e, ArrayList filterList){
+    DeclVar[] vars = new DeclVar[varList.size()];
+    for(int i = 0; i<varList.size(); i++){
+      Symbol symbol = (Symbol)varList.get(i);
+      vars[i] = new DeclVar(type, (String)symbol.value, null);
+    }
+    Expression[] filters = filterList == null ? new Expression[0] : (Expression[])filterList.toArray(new Expression[filterList.size()]);
+    return new GeneratorFilter(vars, e, filters);
+  }
+  class ParenthesSymbol extends Symbol{ // used by the parser to wrap subexpressions that are enclosed by parentheses, i.e. do not add them to a ExprBinaryOp sequence.
+     ParenthesSymbol(Symbol s){
+       super(s.getId(), s.getStart(), s.getEnd(), s.value);
+     }
+  }
+  private enum ActionPartKind{ GUARD, DECL_LIST, DELAY; }
+  private enum ActorPartKind{ DECL_VAR, INIT_ACTION, ACTION, FSM_SCHEDULE, PRIORITY, INVARIANT_LIST; }
+  private class TypeAttributeList{ 
+    java.util.Map<java.lang.String,TypeExpr> typeParameters = new TreeMap();
+    java.util.Map<java.lang.String,Expression> valueParameters = new TreeMap();
+    void add(Map.Entry parameter){
+      if(parameter.getValue() instanceof TypeExpr){
+        typeParameters.put((String)parameter.getKey(), (TypeExpr)parameter.getValue());
+      } else if(parameter.getValue() instanceof Expression){
+        valueParameters.put((String)parameter.getKey(), (Expression)parameter.getValue());
+      } else {
+        throw new UnsupportedOperationException("internal error, the type for the parameter is not supported");
+      }
+    }
+  }
+:};
+%terminals SEMICOLON;
+%terminals IMPORT;
+%terminals EQ;
+%terminals IDENTIFIER;
+%terminals ALL;
+%terminals ACTION;
+%terminals PORTCONN;
+%terminals INITIALIZE;
+%terminals GUARD;
+%terminals DELAY;
+%terminals DO;
+%terminals COMMA;
+%terminals LBRACK;
+%terminals RBRACK;
+%terminals AT;
+%terminals ATSTAR;
+%terminals ANY;
+%terminals REPEAT;
+%terminals COLON;
+%terminals ACTOR;
+%terminals LPAREN;
+%terminals RPAREN;
+%terminals TIME;
+%terminals PRIORITY;
+%terminals END;
+%terminals INVARIANT;
+%terminals SCHEDULE;
+%terminals FSM;
+%terminals REGEXP;
+%terminals BAR;
+%terminals MULT;
+%terminals EDGE;
+%terminals GT;
+%terminals ENDACTION;
+%terminals ENDACTOR;
+%terminals ENDINVARIANT;
+%terminals ENDSCHEDULE;
+%terminals LT;
+%terminals DOT;
+%terminals VAR;
+%terminals MUTABLE;
+%terminals EQCOLON;
+%terminals COLONEQ;
+%terminals FUNCTION;
+%terminals PROCEDURE;
+%terminals MULTI;
+%terminals ARROW;
+%terminals INTEGER_LITERAL;
+%terminals LONG_LITERAL;
+%terminals FLOATING_POINT_LITERAL;
+%terminals DOUBLE_LITERAL;
+%terminals TRUE_LITERAL;
+%terminals FALSE_LITERAL;
+%terminals CHARACTER_LITERAL;
+%terminals STRING_LITERAL;
+%terminals NULL_LITERAL;
+%terminals DOUBLECOLON;
+%terminals OLD;
+%terminals IF;
+%terminals THEN;
+%terminals ELSE;
+%terminals LBRACE;
+%terminals RBRACE;
+%terminals MAP;
+%terminals LET;
+%terminals LAMBDA;
+%terminals CONST;
+%terminals PROC;
+%terminals OPERATOR;
+%terminals IN;
+%terminals BEGIN;
+%terminals WHILE;
+%terminals CHOOSE;
+%terminals FOREACH;
+%terminals FOR;
+%terminals ENDCHOOSE;
+%terminals ENDFOREACH;
+%terminals ENDIF;
+%terminals ENDLAMBDA;
+%terminals ENDLET;
+%terminals ENDPROC;
+%terminals ENDWHILE;
+%typeof expression_list = "ArrayList";
+%typeof expression_list_opt = "ArrayList";
+%typeof action_head = "Map.Entry";
+%typeof action_in_pattern = "InputPattern";
+%typeof end_foreach = "String";
+%typeof type_parameter_list = "ArrayList";
+%typeof decl_block = "ArrayList";
+%typeof generator_variable_list = "ArrayList";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
+%typeof channel_selector = "String";
+%typeof invariant = "ArrayList";
+%typeof time = "TypeExpr";
+%typeof import_part = "String";
+%typeof pri_inequality = "ArrayList";        //<QID>
+%typeof pri_inequality_list = "ArrayList";   //<QID>
+%typeof actor_parameter = "ParDeclValue";
+%typeof choose_generator_list = "ArrayList";
+%typeof primary = "Expression";
+%typeof end_actor = "String";
+%typeof end_let = "String";
+%typeof end_action = "String";
+%typeof action_decl = "Action";
+%typeof regexpr_simple = "AbstractIRNode";
+%typeof edge_type = "TypeExpr";
+%typeof decl_block_opt = "ArrayList";
+%typeof stmt_block_opt = "ArrayList";
+%typeof action_output_expression_list = "ArrayList";
+%typeof regexpr_kleene = "AbstractIRNode";
+%typeof decl_list = "ArrayList";
+%typeof port_name_colon = "PortName";
+%typeof var_decl = "DeclVar";
+%typeof tail = "Expression";
+%typeof goal = "Actor";
+%typeof fun_decl = "DeclVar";
+%typeof formal_parameter = "ParDeclValue";
+%typeof formal_parameter_list = "ArrayList";
+%typeof statement = "Statement";
+%typeof statement_list_opt = "ArrayList";
+%typeof statement_list = "ArrayList";
+%typeof end_if = "String";
+%typeof port_decl_list = "CompositePortDecl";
+%typeof port_decl_list_opt = "CompositePortDecl";
+%typeof type_parameter = "ParDeclType";
+%typeof actor_decl = "Actor";
+%typeof import_list = "ArrayList";
+%typeof end_proc = "String";
+%typeof proc_decl = "DeclVar";
+%typeof end_lambda = "String";
+%typeof action_in_pattern_list = "ArrayList";
+%typeof action_tag = "QID";
+%typeof type_list = "ArrayList";
+%typeof type_parameter_block = "ArrayList";
+%typeof do_begin = "String";
+%typeof lambda_expr_body = "ExprLambda";
+%typeof fsm_state_transitions = "ArrayList";
+%typeof fsm_state_target = "Transition";
+%typeof end_choose = "String";
+%typeof import_group = "String";
+%typeof token_name_list = "ArrayList";
+%typeof procedure_expr_body = "ExprProc";
+%typeof action_statement_body = "ArrayList";
+%typeof repeat = "Expression";
+%typeof method_invocation = "ExprApplication";
+%typeof end_schedule = "String";
+%typeof end_invariant = "String";
+%typeof import_single = "String";
+%typeof regexpr = "AbstractIRNode";
+%typeof qual_id = "ArrayList";
+//--- expression
+%typeof simple_expression = "Expression";
+%typeof unary_expression = "Expression";
+%typeof indexing_expression = "Expression";
+%typeof expression = "Expression";
+%typeof for_foreach = "String";
+%typeof actor_parameter_list = "ArrayList";
+%typeof map_entry = "Map.Entry";
+%typeof map_list = "Map";
+%typeof type_bound = "TypeExpr";
+%typeof type_bound_opt = "TypeExpr";
+%typeof type = "TypeExpr";
+%typeof type_attribute = "Map.Entry";
+%typeof type_attribute_list = "TypeAttributeList";
+%typeof type_attribute_list_opt = "TypeAttributeList";
+%typeof action_output_expression = "OutputExpression";
+%typeof init_action_decl = "Action";
+%typeof decl = "DeclVar";
+%typeof end_while = "String";
+%typeof var_name_type = "DeclVar";
+%typeof operator = "String";
+%typeof schedule = "ScheduleFSM";
+%typeof actor_parameter_init_expression = "Expression";
+%typeof for_generator_list = "ArrayList";
+%typeof action_tag_list = "ArrayList";
+%typeof actor_body = "Map.Entry";
+%typeof port_decl = "PortDecl";
+%typeof literal = "ExprLiteral";
+%goal goal;
+goal =
+    actor_decl.actor_decl end_actor SEMICOLON? {: return _symbol_actor_decl;:}
+  ;
+//=== import ==================================================================
+import_list =
+    import_part.i {: ArrayList l = new ArrayList(); l.add(i); return new Symbol(l);:}
+  | import_list.l import_part.i {: l.add(i); return _symbol_l;:}
+  ;
+import_part =
+    import_single.i {: return _symbol_i;:}
+  | import_group.i {: return _symbol_i;:}
+  ;
+import_single =
+//TODO return
+    IMPORT qual_id.qual_id SEMICOLON {: return new Symbol(null);:}
+  | IMPORT qual_id.qual_id EQ IDENTIFIER.alias SEMICOLON {: return new Symbol(null);:}
+  ;
+import_group =
+//TODO return
+    IMPORT ALL qual_id.qual_id SEMICOLON {: return new Symbol(null);:}
+  ;
+//=== Action ==================================================================
+action_decl =
+  action_tag.tag? ACTION.ACTION action_in_pattern_list.in_pattern_list PORTCONN action_output_expression_list.out_expr_list?
+  action_head.head*  // guard, variable declaration, or delay
+  action_statement_body.body
+  end_action
+  SEMICOLON?
+  /**
+   * When the the content of an action is parsed, the Action object is not jet created. (the tree is build bottom up)
+   * To allow multiple elements in any order (guard, declaration, delay) the parser first collect these in a list, using action_head.
+   * When the Action object is created this list is traversed and each element is added to the right attribute
+   **/
+        {:
+           // split the action head to it's parts
+           ArrayList<Expression> guardList = new ArrayList<Expression>();
+           Expression delay = null;
+           ArrayList<DeclVar> declVarList = new ArrayList<DeclVar>();
+           for(Map.Entry part : head){
+             switch((ActionPartKind)part.getKey()){
+               case GUARD:
+                 guardList.addAll((ArrayList)part.getValue());
+                 break;
+               case DECL_LIST:
+                 declVarList.addAll((ArrayList<DeclVar>)part.getValue());
+                 break;
+               case DELAY:
+                 if(delay != null){ parseProblems.add("multiple delays is not allowed in action, at " + Symbol.getLine(ACTION.getStart()) + ", " + Symbol.getColumn(ACTION.getStart())); }
+                 delay = (Expression)part.getValue();
+                 break;
+             }
+           }
+            Action a = new Action(-1,                        // id
+                                  tag,                       // tag
+                                  (InputPattern[])in_pattern_list.toArray(new InputPattern[in_pattern_list.size()]), //inputPatterns
+                                  out_expr_list==null ? new OutputExpression[0] : (OutputExpression[])out_expr_list.toArray(new OutputExpression[out_expr_list.size()]),  //outputExpressions
+                                  new DeclType[0],                                              // typeDecls
+                                  declVarList.toArray(new DeclVar[declVarList.size()]),         // varDecls
+                                  guardList.toArray(new Expression[declVarList.size()]),        // guards 
+                                  (Statement[])body.toArray(new Statement[body.size()]),        // body
+                                  delay,                      // delay
+                                  new Expression[0],         // preconditions  NOTE, can not be expressed in CAL
+                                  new Expression[0]);        // postconditions NOTE, can not be expressed in CAL
+            return new Symbol(a);
+        :}
+
+  ;
+init_action_decl =
+  action_tag.tag? INITIALIZE.INITIALIZE PORTCONN action_output_expression_list.out_expr_list?
+  action_head.head*  // guard, variable declaration, or delay
+  action_statement_body.body
+  end_action
+  SEMICOLON?
+        {: 
+           // split the action head to it's parts
+           ArrayList<Expression> guardList = new ArrayList<Expression>();
+           Expression delay = null;
+           ArrayList<DeclVar> declVarList = new ArrayList<DeclVar>();
+           for(Map.Entry part : head){
+             switch((ActionPartKind)part.getKey()){
+               case GUARD:
+                 guardList.addAll((ArrayList)part.getValue());
+                 break;
+               case DECL_LIST:
+                 declVarList.addAll((ArrayList<DeclVar>)part.getValue());
+                 break;
+               case DELAY:
+                 if(delay != null){ parseProblems.add("multiple delays is not allowed in action, at " + Symbol.getLine(INITIALIZE.getStart()) + ", " + Symbol.getColumn(INITIALIZE.getStart())); }
+                 delay = (Expression)part.getValue();
+                 break;
+             }
+           }
+            Action a = new Action(-1,                        // id
+                                  tag,                       // tag
+                                  new InputPattern[0],       //inputPatterns
+                                  out_expr_list==null ? new OutputExpression[0] : (OutputExpression[])out_expr_list.toArray(new OutputExpression[out_expr_list.size()]),  //outputExpressions
+                                  new DeclType[0],                                              // typeDecls
+                                  declVarList.toArray(new DeclVar[declVarList.size()]),         // varDecls
+                                  guardList.toArray(new Expression[declVarList.size()]),        // guards 
+                                  (Statement[])body.toArray(new Statement[body.size()]),        // body
+                                  delay,                      // delay
+                                  new Expression[0],         // preconditions  NOTE, can not be expressed in CAL
+                                  new Expression[0]);        // postconditions NOTE, can not be expressed in CAL
+            return new Symbol(a);
+        :}
+  ;
+action_tag =
+    qual_id.n COLON                    {: return new Symbol(new QID((String[])n.toArray(new String[n.size()]))); :}
+  ;
+action_head =
+    GUARD expression_list.l       {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.GUARD, l)); :}
+  | VAR decl_list.d               {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DECL_LIST, d)); :}
+  | DELAY expression.e            {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DELAY, e)); :}
+  ;
+action_statement_body =
+                            {: return new Symbol(new ArrayList()); :}
+  | DO statement_list_opt.s {: return new Symbol(s); :}
+  ;
+action_in_pattern_list =
+                                                       {: return new Symbol(new ArrayList()); :}
+  | action_in_pattern.p                                {: ArrayList l = new ArrayList(); l.add(p); return new Symbol(l); :}
+  | action_in_pattern_list.l COMMA action_in_pattern.p {: l.add(p); return _symbol_l;:}
+  ;
+action_in_pattern =
+//TODO channels are ignored
+  port_name_colon.actor_port_name? LBRACK token_name_list.tokens? RBRACK repeat.r? channel_selector.c? 
+     {: return new Symbol(new InputPattern(actor_port_name, tokens==null ? new String[0] : (String[])tokens.toArray(new String[tokens.size()]), r)); :}
+  ;
+token_name_list =
+//TODO, the position of the names are not saved
+    IDENTIFIER.ID                           {: ArrayList l = new ArrayList(); l.add(ID.value); return new Symbol(l); :}
+  | token_name_list.l COMMA IDENTIFIER.ID   {: l.add(ID.value); return _symbol_l; :}
+  ;
+channel_selector =
+    AT expression.e          {: return new Symbol(null); :} //TODO new SingleChannel(e); :}
+  | ATSTAR expression.e      {: return new Symbol(null); :} //TODO new AtStarChannel(e); :}
+  | ATSTAR? ANY              {: return new Symbol(null); :} //TODO new AnyChannel(); :}
+  | ATSTAR? ALL              {: return new Symbol(null); :} //TODO new AllChannels(); :}
+  ;
+repeat =
+    REPEAT expression.e {: return _symbol_e; :}
+  ;
+action_output_expression_list =
+    action_output_expression.e                                       {: ArrayList l = new ArrayList(); l.add(e); return new Symbol(l); :}
+  | action_output_expression_list.l COMMA action_output_expression.e {: l.add(e); return _symbol_l; :}
+  ;
+action_output_expression =
+//TODO channels are ignored
+  port_name_colon.actor_port_name? LBRACK expression_list.values? RBRACK repeat.r? channel_selector.c? 
+      {: return new Symbol(new OutputExpression(actor_port_name, 
+                                                values==null ? new Expression[0] : (Expression[])values.toArray(new Expression[values.size()]), r)); :}
+  ;
+port_name_colon =
+    IDENTIFIER.IDENTIFIER COLON {: return new Symbol(new PortName((String)IDENTIFIER.value));:}
+  ;
+//=== Actor ===================================================================
+actor_decl =
+  import_list.imports? 
+  ACTOR IDENTIFIER.name
+  type_parameter_block.typePars?
+  LPAREN actor_parameter_list.valuePars? RPAREN 
+  port_decl_list_opt.in PORTCONN port_decl_list_opt.out 
+//TODO, time is ignored
+  time.t?
+  COLON 
+  actor_body.body*
+  /**
+   * When the the content of an actor is parsed (actor_body_list), the Actor object is not jet created. (the tree is build bottom up)
+   * To allow multiple elements in any order (actions, schedule...) the parser first collect these in a list, using actor_body_list.
+   * When the Actor object is created this list is traversed and each element is added to the right attribute (Actor.VariableList, Actor.ActionList, ...)
+   **/
+  {:
+    ArrayList varDecls = new ArrayList();
+    ArrayList initializers = new ArrayList();
+    ArrayList actions = new ArrayList();
+    ScheduleFSM scheduleFSM = null;
+    ArrayList priorities = new ArrayList();
+    ArrayList invariants = new ArrayList();
+    for(Map.Entry part : body){
+      switch((ActorPartKind)part.getKey()){
+        case DECL_VAR:
+          varDecls.add(part.getValue());
+          break;
+        case INIT_ACTION:
+          initializers.add(part.getValue());
+          break;
+        case ACTION:
+          actions.add(part.getValue());
+          break;
+        case FSM_SCHEDULE:
+          scheduleFSM = (ScheduleFSM)part.getValue();
+          break;
+        case PRIORITY:
+          priorities.addAll((ArrayList)part.getValue());
+          break;
+        case INVARIANT_LIST:
+          invariants.addAll((ArrayList)part.getValue());
+          break;
+      }
+    }
+    Actor a = new Actor((String)name.value,
+                         null,                 // NamespaceDecl namespace,
+                         typePars == null ? new ParDeclType[0] : (ParDeclType[])typePars.toArray(new ParDeclType[typePars.size()]),     // typePars,
+                         valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[typePars.size()]), // valuePars,
+                         new DeclType[0],      // typeDecls, NOTE, can not be expressed in CAL
+                         (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
+                         in,                   // CompositePortDecl inputPorts,
+                         out,                  // CompositePortDecl outputPorts,
+                         (Action[])initializers.toArray(new Action[initializers.size()]),
+                         (Action[])actions.toArray(new Action[actions.size()]),
+                         scheduleFSM,
+                         (java.util.List<QID>[])priorities.toArray(new java.util.List[priorities.size()]),
+                         (Expression[])invariants.toArray(new Expression[invariants.size()])
+                        );
+     
+    return new Symbol(a);
+  :}
+  ;
+
+time =
+    TIME type.t {: return _symbol_t; :}
+  ;
+actor_body =
+    action_decl.a                               {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.ACTION, a)); :}
+  | init_action_decl.a                          {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.INIT_ACTION, a)); :}
+  | var_decl.d SEMICOLON                        {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.DECL_VAR, d)); :}
+  | fun_decl.d                                  {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.DECL_VAR, d)); :}
+  | proc_decl.d                                 {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.DECL_VAR, d)); :}
+  | PRIORITY pri_inequality_list.l+ END         {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.PRIORITY, _list_l)); :}
+  | schedule.s                                  {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.FSM_SCHEDULE, s)); :}
+  | invariant.i                                 {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.INVARIANT_LIST, i)); :}
+  ;
+invariant =
+    INVARIANT expression_list.l end_invariant   {: return _symbol_l; :}
+  ;
+//--- Schedule ----------------------------------------------------------------
+schedule =
+    SCHEDULE FSM? IDENTIFIER.ID COLON fsm_state_transitions.trans* end_schedule 
+      {:  ArrayList tl = trans[0];
+          for(int i=1; i<trans.length; i++){
+            tl.addAll(trans[i]);
+          }
+          return new Symbol(new ScheduleFSM((Transition[])tl.toArray(new Transition[tl.size()]), (String)ID.value)); :}
+  | SCHEDULE.SCHEDULE REGEXP regexpr.r end_schedule                            {: parseProblems.add("Regular expression schedules are not supported, at " + Symbol.getLine(SCHEDULE.getStart()) + ", " + Symbol.getColumn(SCHEDULE.getStart())); return new Symbol(null); :}
+  ;
+fsm_state_transitions =
+    IDENTIFIER.Src_state LPAREN action_tag_list.tags RPAREN EDGE IDENTIFIER.Dst_state fsm_state_target.more* SEMICOLON 
+       {: ArrayList result = new ArrayList();
+          String startState = (String)Src_state.value;
+          result.add(new Transition(startState,
+                                    (String)Dst_state.value,
+                                    (QID[])tags.toArray(new QID[tags.size()]))); 
+          for(Transition t : more){
+            result.add(new Transition(startState, t.getDestinationState(), t.getActionTags()));
+          }
+          return new Symbol(result); :}
+  ;
+fsm_state_target =
+  BAR LPAREN action_tag_list.tags RPAREN EDGE IDENTIFIER.Dst_state
+       {: return new Symbol(new Transition(null,  // the start state is unknown. This is filled in later.
+                                           (String)Dst_state.value,
+                                           (QID[])tags.toArray(new QID[tags.size()]))); :}
+  ;
+action_tag_list =
+    qual_id.id                         {: ArrayList l = new ArrayList(); l.add(new QID((String[])id.toArray(new String[id.size()]))); return new Symbol(l); :}
+  | action_tag_list.l COMMA qual_id.id {: l.add(new QID((String[])id.toArray(new String[id.size()]))); return _symbol_l; :}
+  ;
+//TODO, reg expr schedules
+regexpr =
+    regexpr_kleene.r                 {: return new Symbol(null); :}
+  | regexpr.r1 regexpr_kleene.r2     {: return new Symbol(null); :}
+  | regexpr.r1 BAR regexpr_kleene.r2 {: return new Symbol(null); :}
+  ;
+regexpr_kleene =
+    regexpr_simple.r        {: return new Symbol(null); :}
+  | regexpr_simple.r MULT   {: return new Symbol(null); :}
+  ;
+regexpr_simple =
+    qual_id.n               {: return new Symbol(null); :}
+  | LPAREN regexpr.r RPAREN {: return new Symbol(null); :}
+  | LBRACK regexpr.r RBRACK {: return new Symbol(null); :}
+  ;
+//--- priority ----------------------------------------------------------------
+pri_inequality_list =
+    pri_inequality.p SEMICOLON         {: return _symbol_p; :}
+  ;
+pri_inequality =
+    qual_id.high GT qual_id.low        {: ArrayList l = new ArrayList(); 
+                                          l.add(new QID((String[])high.toArray(new String[high.size()])));
+                                          l.add(new QID((String[])low.toArray(new String[low.size()])));
+                                          return new Symbol(l); :}
+  | pri_inequality.l GT qual_id.n      {: l.add(new QID((String[])n.toArray(new String[n.size()]))); return _symbol_l; :}
+  ;
+//--- end ---------------------------------------------------------------------
+end_action =
+    END 
+  | ENDACTION
+  ;
+end_actor =
+    END 
+  | ENDACTOR
+  ;
+end_invariant =
+    END 
+  | ENDINVARIANT
+  ;
+end_schedule =
+    END 
+  | ENDSCHEDULE
+  ;
+
+/******************************************************************************
+ *  Common for both Actor and Networks
+ *****************************************************************************/
+
+//--- actor parameter ---
+actor_parameter_list =
+    actor_parameter.p                              {: ArrayList result = new ArrayList(); result.add(p); return new Symbol(result); :}
+  | actor_parameter_list.l COMMA actor_parameter.p {: l.add(p); return _symbol_l; :}
+  ;
+actor_parameter =
+//TODO, init expression is ignored
+           IDENTIFIER.id actor_parameter_init_expression.e? {: return new Symbol(new ParDeclValue((String)id.value, null)); :}
+  | type.t IDENTIFIER.id actor_parameter_init_expression.e? {: return new Symbol(new ParDeclValue((String)id.value, t)); :}
+  ;
+actor_parameter_init_expression =
+    EQ expression.e {: return _symbol_e; :}
+  ;
+
+//--- Qualified id
+qual_id =
+    IDENTIFIER.id                     {: ArrayList l = new ArrayList(); l.add(id.value); return new Symbol(l); :}
+  | IDENTIFIER.id DOT qual_id.l       {: l.add(0, id.value); return _symbol_l; :}
+  ;
+
+//=== Declaration =============================================================
+decl_list =
+    decl.d                   {: ArrayList l = new ArrayList(); l.add(d); return new Symbol(l); :}
+  | decl_list.l COMMA decl.d {: l.add(d); return _symbol_l; :}
+  ;
+decl_block =
+    VAR decl_list.d          {: return _symbol_d; :}
+  ;
+decl_block_opt =
+                             {: return new Symbol(new ArrayList()); :}
+  | VAR decl_list.d          {: return _symbol_d; :}
+  ;
+decl =
+    var_decl.d  {: return _symbol_d; :}
+  | fun_decl.d  {: return _symbol_d; :}
+  | proc_decl.d {: return _symbol_d; :}
+  ;
+var_decl =
+//TODO, mutable is ignored
+    MUTABLE var_name_type.v                         {: return new Symbol(new DeclVar(v.getType(), v.getName(), null, null, true)); :}
+  | MUTABLE var_name_type.v EQ expression.init      {: return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, false)); :}
+  | MUTABLE var_name_type.v EQCOLON expression.init {: return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, true)); :}
+  | var_name_type.v                                 {: return new Symbol(new DeclVar(v.getType(), v.getName(), null, null, true)); :}
+  | var_name_type.v EQ expression.init              {: return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, false)); :}
+  | var_name_type.v COLONEQ expression.init         {: return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, true)); :}
+  ;
+var_name_type =
+    IDENTIFIER.id           {: return new Symbol(new DeclVar(null, (String)id.value, null)); :}
+  | type.type IDENTIFIER.id {: return new Symbol(new DeclVar(type, (String)id.value, null)); :}
+  ;
+fun_decl =
+    FUNCTION IDENTIFIER.id lambda_expr_body.lambda   {: return new Symbol(new DeclVar(null, (String)id.value, null, lambda, false)); :}
+  ;
+proc_decl =
+    PROCEDURE IDENTIFIER.id procedure_expr_body.body {: return new Symbol(new DeclVar(null, (String)id.value, null, body, false)); :}
+  ;
+port_decl =
+//TODO, the keyword multi is ignored
+    IDENTIFIER.id                 {: return new Symbol(new AtomicPortDecl((String)id.value, null)); :}
+  | type.type IDENTIFIER.id       {: return new Symbol(new AtomicPortDecl((String)id.value, type)); :}
+  | MULTI IDENTIFIER.id           {: return new Symbol(new AtomicPortDecl((String)id.value, null)); :}
+  | MULTI type.type IDENTIFIER.id {: return new Symbol(new AtomicPortDecl((String)id.value, type)); :}
+  ;
+port_decl_list_opt =
+                     {: return new Symbol(new CompositePortDecl()); :}
+  | port_decl_list.l {: return _symbol_l; :}
+  ;
+port_decl_list =
+    port_decl.port_decl                {: CompositePortDecl l = new CompositePortDecl(); l.addChild(port_decl); return new Symbol(l); :}
+  | port_decl_list.l COMMA port_decl.d {: l.addChild(d); return _symbol_l; :}
+  ;
+
+//=== type ====================================================================
+type_bound =
+    LT type.type {: return _symbol_type; :}
+  ;
+type_bound_opt =
+                 {: return new Symbol(null); :}
+  | type_bound.n {: return _symbol_n; :}
+  ;
+type_parameter =
+//TODO, type bound is ignored
+    IDENTIFIER.id type_bound_opt.type_bound {: return new Symbol(new ParDeclType((String)id.value)); :}
+  ;
+type_parameter_block =
+  LBRACK type_parameter_list.l? RBRACK {: return _symbol_l; :}
+  ;
+type_parameter_list =
+    type_parameter.tp                             {: ArrayList l = new ArrayList(); l.add(tp); return new Symbol(l); :}
+  | type_parameter_list.l COMMA type_parameter.tp {: l.add(tp); return _symbol_l; :}
+  ;
+type_list =
+    type.t                   {: ArrayList l = new ArrayList(); l.add(t); return new Symbol(l); :}
+  | type_list.l COMMA type.t {: l.add(t); return _symbol_l; :}
+  ;
+type =
+    IDENTIFIER.id                                            {: return new Symbol(new TypeExpr((String)id.value)); :}
+//TODO, according to the gramma in CLR "MyType[a<int, b<float]" is a valid type. The rule below should include a type_par_list. This can not be represented in the IR, so I use a type_list.
+  | IDENTIFIER.id LBRACK type_list.t? RBRACK                 {: return new Symbol(t==null ? new TypeExpr((String)id.value) : new TypeExpr((String)id.value, (TypeExpr[])t.toArray(new TypeExpr[t.size()]))); :}
+  | IDENTIFIER.id LPAREN type_attribute_list_opt.type RPAREN {: return new Symbol(new TypeExpr((String)id.value, type.typeParameters, type.valueParameters)); :}
+//TODO, types involving '->' can not be represented in the internal representation
+  | LBRACK type_list.param? EDGE type.result_type RBRACK     {: return new Symbol(null); :}
+  | LBRACK type_list.param? EDGE RBRACK                      {: return new Symbol(null); :}
+  ;
+type_attribute_list_opt =
+                          {: return new Symbol(new TypeAttributeList()); :}
+  | type_attribute_list.n {: return _symbol_n; :}
+  ;
+type_attribute_list =
+    type_attribute.t {: TypeAttributeList l = new TypeAttributeList(); l.add(t); return new Symbol(l); :}
+  | type_attribute_list.l COMMA type_attribute.t {: l.add(t); return _symbol_l;:}
+  ;
+type_attribute =
+    IDENTIFIER.id COLON type.type {: return new Symbol(new AbstractMap.SimpleEntry((String)id.value, type)); :}
+  | IDENTIFIER.id EQ expression.e {: return new Symbol(new AbstractMap.SimpleEntry((String)id.value, e)); :}
+  ;
+edge_type =
+    EDGE type.t {: return _symbol_t; :}
+  ;
+
+//=== Expression ==============================================================
+procedure_expr_body =
+    LPAREN formal_parameter_list.param? RPAREN decl_block.decl? stmt_block_opt.body end_proc {: return new Symbol(new ExprProc(new ParDeclType[0], 
+                                                                                                                    param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
+                                                                                                                    new DeclType[0],
+                                                                                                                    decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
+                                                                                                                    (Statement[])body.toArray(new Statement[body.size()]))); :}
+  ;
+stmt_block_opt =
+                                  {: return new Symbol(new ArrayList()); :}
+  | do_begin statement_list_opt.s {: return _symbol_s; :}
+  ;
+lambda_expr_body =
+    LPAREN formal_parameter_list.param? RPAREN expression.body end_lambda
+         {: return new Symbol(new ExprLambda(new ParDeclType[0],
+                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
+                                             new DeclType[0], 
+                                             new DeclVar[0],
+                                             body,
+                                             null)); :}
+  | LPAREN formal_parameter_list.param? RPAREN decl_block.decl? COLON expression.body end_lambda
+         {: return new Symbol(new ExprLambda(new ParDeclType[0],
+                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
+                                             new DeclType[0],
+                                             decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
+                                             body,
+                                             null)); :}
+  | LPAREN formal_parameter_list.param? RPAREN edge_type.t decl_block.decl? COLON expression.body end_lambda
+         {: return new Symbol(new ExprLambda(new ParDeclType[0],
+                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
+                                             new DeclType[0],
+                                             decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
+                                             body,
+                                             t)); :}
+  ;
+map_list =
+    map_entry.m                  {: Map l = new java.util.IdentityHashMap(); l.put(m.getKey(), m.getValue()); return new Symbol(l); :}
+  | map_list.l COMMA map_entry.m {: l.put(m.getKey(), m.getValue()); return _symbol_l; :}
+  ;
+map_entry =
+    expression.e1 ARROW expression.e2 {: return new Symbol(new AbstractMap.SimpleEntry(e1, e2)); :}
+  ;
+tail =
+    BAR expression.e {: return _symbol_e; :}
+  ;
+expression_list =
+    expression.e                         {: ArrayList l = new ArrayList(); l.add(e); return new Symbol(l); :}
+  | expression_list.l COMMA expression.e {: l.add(e); return _symbol_l; :}
+  ;
+expression_list_opt =
+                      {: return new Symbol(new ArrayList()); :}
+  | expression_list.n {: return _symbol_n; :}
+  ;
+method_invocation =
+    indexing_expression.function LPAREN expression_list.args? RPAREN {: return new Symbol(new ExprApplication(function, args==null ? new Expression[0] : (Expression[])args.toArray(new Expression[args.size()]))); :}
+  ;
+literal =
+    INTEGER_LITERAL.txt        {: return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value))); :}
+  | LONG_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value))); :}
+  | FLOATING_POINT_LITERAL.txt {: return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value))); :}
+  | DOUBLE_LITERAL.txt         {: return new Symbol(new ExprLiteral(ExprLiteral.litReal, ((String)txt.value))); :}
+  | TRUE_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.litTrue, ((String)txt.value))); :}
+  | FALSE_LITERAL.txt          {: return new Symbol(new ExprLiteral(ExprLiteral.litFalse, ((String)txt.value))); :}
+  | CHARACTER_LITERAL.txt      {: return new Symbol(new ExprLiteral(ExprLiteral.litChar, ((String)txt.value))); :}
+  | STRING_LITERAL.txt         {: return new Symbol(new ExprLiteral(ExprLiteral.litString, ((String)txt.value))); :}
+  | NULL_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.litNull, ((String)txt.value))); :}
+  ;
+primary =
+    literal.l                                            {: return _symbol_l; :}
+  | LPAREN expression.e RPAREN                           {: return new ParenthesSymbol(_symbol_e); :}
+  | LPAREN.LPAREN expression.e DOUBLECOLON type.t RPAREN {: parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(LPAREN.getStart()) + ", " + Symbol.getColumn(LPAREN.getStart())); :}
+//TODO, type assertion is not supported
+  ;
+simple_expression =
+    primary.p                                                       {: return _symbol_p; :}
+  | IDENTIFIER.id                                                   {: return new Symbol(new ExprVariable((String)id.value)); :}
+//TODO, old is ignored
+  | OLD IDENTIFIER.id                                               {: return new Symbol(new ExprVariable((String)id.value)); :}
+  | IF expression.c THEN expression.e1 ELSE expression.e2 END       {: return new Symbol(new ExprIf(c, e1, e2)); :}
+  | LBRACE expression_list_opt.e RBRACE                             {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]))); :}
+  | LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE  {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
+  | LBRACK expression_list_opt.e RBRACK                             {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]))); :}
+//TODO, tail is ignored
+  | LBRACK expression_list_opt.e tail.tail RBRACK                   {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]))); :}
+  | LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK  {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
+//TODO, tail is ignored
+  | LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
+  | MAP LBRACE map_list.m? RBRACE                                            {: return new Symbol(new ExprMap(m==null? new TreeMap() : m)); :}
+  | MAP LBRACE map_list.m? COLON for_generator_list.generators RBRACE        {: return new Symbol(new ExprMap(m==null? new TreeMap() : m, (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()]))); :}
+  | LET decl_list.l COLON expression.e end_let                               {: return new Symbol(new ExprLet(new DeclType[0], (DeclVar[])l.toArray(new DeclVar[l.size()]), e)); :}
+  | LAMBDA lambda_expr_body.lambda                                           {: return _symbol_lambda; :}
+//TODO, const is ignored
+  | CONST LAMBDA lambda_expr_body.lambda                                     {: return _symbol_lambda;:}
+  | PROC procedure_expr_body.p                                               {: return _symbol_p; :}
+  ;
+unary_expression =
+    simple_expression.e                     {: return _symbol_e; :}
+  | operator.operator unary_expression.expr {: return new Symbol(new ExprUnaryOp(operator, expr)); :}
+  ;
+indexing_expression =
+    unary_expression.e                                    {: return _symbol_e; :}
+  | indexing_expression.p LBRACK expression_list.l RBRACK {: return new Symbol(new ExprIndexer(p, (Expression[])l.toArray(new Expression[l.size()]))); :}
+  | indexing_expression.p DOT IDENTIFIER.id               {: return new Symbol(new ExprEntry((String)id.value, p)); :}
+  | method_invocation.m                                   {: return _symbol_m; :}
+  ;
+expression =
+    indexing_expression.e {: return _symbol_e; :}
+  | expression.arg1 operator.operator indexing_expression.arg2 {: String[] operators;
+                                                               Expression[] operands;
+                                                               boolean arg1IsPar = _symbol_arg1 instanceof ParenthesSymbol;
+                                                               if((arg1 instanceof ExprBinaryOp) && !(arg1IsPar)){
+                                                                 ExprBinaryOp expr = (ExprBinaryOp)arg1;
+                                                                 operators = Arrays.copyOf(expr.getOperations(), expr.getOperations().length + 1);
+                                                                 operators[operators.length-1] = operator;
+                                                                 operands = Arrays.copyOf(expr.getOperands(), expr.getOperands().length + 1);
+                                                                 operands[operands.length-1] = arg2;
+                                                               } else {
+                                                                 operators = new String[1];
+                                                                 operators[0] = operator;
+                                                                 operands = new Expression[2];
+                                                                 operands[0] = arg1;
+                                                                 operands[1] = arg2;
+                                                               }
+                                                               return new Symbol(new ExprBinaryOp(operators, operands));
+                                                            :}
+  ;
+operator =
+    OPERATOR.op {: return op; :}
+  | EQ.op       {: return op; :}
+  | IN.op       {: return op; :}
+  | GT.op       {: return op; :}
+  | MULT.op     {: return op; :}
+  ;
+//--- formal parameter
+formal_parameter =
+    IDENTIFIER.id        {: return new Symbol(new ParDeclValue((String)id.value, null)); :}
+  | type.t IDENTIFIER.id {: return new Symbol(new ParDeclValue((String)id.value, t)); :}
+  ;
+formal_parameter_list =
+    formal_parameter.p                               {: ArrayList l = new ArrayList(); l.add(p); return new Symbol(l); :}
+  | formal_parameter_list.l COMMA formal_parameter.p {: l.add(p);  return _symbol_l; :}
+  ;
+//=== Statement ===============================================================
+statement =
+    IDENTIFIER.dest COLONEQ expression.value SEMICOLON {: return new Symbol(new StmtAssignment((String)dest.value, value)); :}
+//TODO the other leagal targets
+ 
+  | method_invocation.m SEMICOLON    {: return new Symbol(new StmtCall(m.getFunction(), m.getArgs())); :}
+  | BEGIN statement_list_opt.s END   {: return new Symbol(new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()]))); :}
+  | BEGIN VAR decl_list.d DO statement_list_opt.s END {: return new Symbol(new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()]))); :}
+  | IF expression.e THEN statement_list_opt.s end_if  {: return new Symbol(new StmtIf(e, new StmtBlock(null, null, (Statement[])s.toArray(new Statement[s.size()])), null)); :}
+  | IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if {: return new Symbol(new StmtIf(e, 
+                                                                                                                 new StmtBlock(null, null, (Statement[])s1.toArray(new Statement[s1.size()])),
+                                                                                                                 new StmtBlock(null, null, (Statement[])s2.toArray(new Statement[s2.size()])))); :}
+  | WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while {: return new Symbol(new StmtWhile(e, new StmtBlock(new DeclType[0],
+                                                                                                                              (DeclVar[])d.toArray(new DeclVar[d.size()]),
+                                                                                                                              (Statement[])s.toArray(new Statement[s.size()])))); :}
+//TODO choose statements are irnored
+  | choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
+  | choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
+  | choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
+
+  | for_generator_list.g DO statement_list_opt.s end_foreach              {: return new Symbol(new StmtForeach((GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]),
+                                                                                                               new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()])))); :}
+  | for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach {: return new Symbol(new StmtForeach((GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]),
+                                                                                                               new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()])))); :}
+  ;
+// note, using the normal left recursion will cause an ambiguity between "COMMA expression" and "COMMA generator"
+choose_generator_list =
+    CHOOSE        generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, null)); return new Symbol(l); :}
+  | CHOOSE type.t generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, null)); return new Symbol(l); :}
+  | CHOOSE        generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, filters)); return new Symbol(l); :}
+  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, filters)); return new Symbol(l); :}
+  | CHOOSE        generator_variable_list.vars IN expression.e COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars, e, null)); return _symbol_l; :}
+  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars, e, null)); return _symbol_l; :}
+  | CHOOSE        generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars, e, filters)); return _symbol_l; :}
+  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars, e, filters)); return _symbol_l; :}
+  ;
+// note, using the normal left recursion will cause an ambiguity between "COMMA expression" and "COMMA generator"
+for_generator_list =
+    for_foreach        generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, null)); return new Symbol(l); :}
+  | for_foreach type.t generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, null)); return new Symbol(l); :}
+  | for_foreach        generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, filters)); return new Symbol(l); :}
+  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, filters)); return new Symbol(l); :}
+  | for_foreach        generator_variable_list.vars IN expression.e COMMA for_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars, e, null)); return _symbol_l; :}
+  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars, e, null)); return _symbol_l; :}
+  | for_foreach        generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars, e, filters)); return _symbol_l; :}
+  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars, e, filters)); return _symbol_l; :}
+  ;
+generator_variable_list =
+    IDENTIFIER.id                                 {: ArrayList l = new ArrayList(); l.add(id); return new Symbol(l); :}
+  | generator_variable_list.l COMMA IDENTIFIER.id {: l.add(id); return _symbol_l; :}
+  ;
+for_foreach =
+    FOREACH.FOREACH 
+  | FOR.FOR   ;
+do_begin =
+    BEGIN.BEGIN 
+  | DO.DO   ;
+end_choose =
+    END.END 
+  | ENDCHOOSE.ENDCHOOSE   ;
+end_foreach =
+    END.END 
+  | ENDFOREACH.ENDFOREACH   ;
+end_if =
+    END.END 
+  | ENDIF.ENDIF   ;
+end_lambda =
+    END.END 
+  | ENDLAMBDA.ENDLAMBDA   ;
+end_let =
+    END.END 
+  | ENDLET.ENDLET   ;
+end_proc =
+    END.END 
+  | ENDPROC.ENDPROC   ;
+end_while =
+    END.END 
+  | ENDWHILE.ENDWHILE   ;
+
+statement_list_opt =
+                       {: return new Symbol(new ArrayList()); :}
+  | statement_list.l   {: return _symbol_l; :}
+  ;
+statement_list =
+    statement.n                  {: ArrayList l = new ArrayList(); l.add(n); return new Symbol(l); :}
+  | statement_list.l statement.n {: l.add(n); return _symbol_l; :}
+  ;

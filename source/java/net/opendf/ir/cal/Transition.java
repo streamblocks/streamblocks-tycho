@@ -69,14 +69,14 @@ public class Transition extends AbstractIRNode {
 	/**
 	 * @return Returns the destinationState.
 	 */
-	public Object getDestinationState() {
+	public String getDestinationState() {
 		return destinationState;
 	}
 
 	/**
 	 * @return Returns the sourceState.
 	 */
-	public Object getSourceState() {
+	public String getSourceState() {
 		return sourceState;
 	}
 
