@@ -389,10 +389,10 @@ public class CalParser extends Parser {
                      new CompositePortDecl(), new Action[0], new Action[0], null, new java.util.List[0], new Expression[0]);   
   }
   
-  public Actor parse(String path, String fileName){
+  public net.opendf.ir.cal.Actor parse(String path, String fileName){
     return parse(new java.io.File(path + "/" + fileName));
   }
-  public Actor parse(File file){
+  public net.opendf.ir.cal.Actor parse(File file){
      Actor actor;
      parseProblems = new TreeSet<String>();
      java.io.FileReader fr = null;
