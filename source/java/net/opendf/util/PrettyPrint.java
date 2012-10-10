@@ -539,7 +539,14 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 //--- Statement ---------------------------------------------------------------
 	public void visitStmtAssignment(StmtAssignment s) {
 		out.append(s.getVar());
-		//TODO field and index
+		if(s.getField() != null){
+			out.append(".");
+			out.append(s.getField());
+		} else if(s.getLocation() != null){
+			out.append("[");
+			print(s.getLocation());
+			out.append("]");
+		}
 		out.append(" := ");
 		s.getVal().accept(this, null);
 		out.append(";");

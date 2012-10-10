@@ -27,6 +27,9 @@
  *******************************************************/
   // all errors encountered during parsing is stored in the array parseProblems. This includes lexical, syntactical and semantic error (multiple initialization actors et.c.)
   protected java.util.TreeSet<String> parseProblems = new TreeSet<String>();
+  public void newError(String msg, Symbol token){
+      parseProblems.add(msg + " At row " + token.getLine(token.getStart()) + ", column " + token.getColumn(token.getStart()));
+  };
   public void printParseProblems(){
     System.err.println("number of problems: " + parseProblems.size());
     for(String msg : parseProblems){
@@ -911,9 +914,24 @@ formal_parameter_list =
   ;
 //=== Statement ===============================================================
 statement =
-    IDENTIFIER.dest COLONEQ expression.value SEMICOLON {: return new Symbol(new StmtAssignment((String)dest.value, value)); :}
-//TODO the other leagal targets
- 
+    // NOTE lhs must be an expression to avoid a shift reduce conflict with method calls.
+//    IDENTIFIER.lhs COLONEQ expression.value SEMICOLON {: return new Symbol(new StmtAssignment((String)lhs.value, value)); :}
+    expression.lhs COLONEQ expression.value SEMICOLON {: if(lhs instanceof ExprVariable){
+                                                           return new Symbol(new StmtAssignment(((ExprVariable)lhs).getName(), value)); 
+                                                         } else if(lhs instanceof ExprIndexer){
+                                                             ExprIndexer indexer = (ExprIndexer)lhs;
+                                                             if(indexer.getStructure() instanceof ExprVariable){
+                                                               return new Symbol(new StmtAssignment(((ExprVariable)indexer.getStructure()).getName(), value, indexer.getLocation())); 
+                                                             }
+                                                         } else if(lhs instanceof ExprEntry){
+                                                             ExprEntry field = (ExprEntry)lhs;
+                                                             if(field.getEnclosingExpr() instanceof ExprVariable){
+                                                               return new Symbol(new StmtAssignment(((ExprVariable)field.getEnclosingExpr()).getName(), value, field.getName())); 
+                                                             }
+                                                         }
+                                                         newError("Illegal left hand sign of assignment.", _symbol_lhs);
+                                                         return new Symbol(new StmtAssignment("illegal", value));
+                                                         :}
   | method_invocation.m SEMICOLON    {: return new Symbol(new StmtCall(m.getFunction(), m.getArgs())); :}
   | BEGIN statement_list_opt.s END   {: return new Symbol(new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()]))); :}
   | BEGIN VAR decl_list.d DO statement_list_opt.s END {: return new Symbol(new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()]))); :}
