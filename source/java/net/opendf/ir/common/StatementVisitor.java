@@ -42,13 +42,13 @@ package net.opendf.ir.common;
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
-public interface StatementVisitor {
+public interface StatementVisitor<R,P> {
 
-    void visitStmtAssignment(StmtAssignment s);
-    void visitStmtBlock(StmtBlock s);
-    void visitStmtIf(StmtIf s);
-    void visitStmtCall(StmtCall s);
-    void visitStmtOutput(StmtOutput s);
-    void visitStmtWhile(StmtWhile s);
-    void visitStmtForeach(StmtForeach s);
+    public R visitStmtAssignment(StmtAssignment s, P p);
+    public R visitStmtBlock(StmtBlock s, P p);
+    public R visitStmtIf(StmtIf s, P p);
+    public R visitStmtCall(StmtCall s, P p);
+    public R visitStmtOutput(StmtOutput s, P p);
+    public R visitStmtWhile(StmtWhile s, P p);
+    public R visitStmtForeach(StmtForeach s, P p);
 }

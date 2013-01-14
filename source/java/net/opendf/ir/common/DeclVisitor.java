@@ -7,12 +7,12 @@ package net.opendf.ir.common;
  *
  */
 
-public interface DeclVisitor {
+public interface DeclVisitor<R,P> {
 	
-	public void  visitDeclEntity(DeclEntity d);
+	public R visitDeclEntity(DeclEntity d, P p);
 	
-	public void  visitDeclType(DeclType d);
+	public R visitDeclType(DeclType d, P p);
 	
-	public void  visitDeclVar(DeclVar d);
+	public R visitDeclVar(DeclVar d, P p);
 
 }

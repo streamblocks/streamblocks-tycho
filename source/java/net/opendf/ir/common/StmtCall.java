@@ -41,8 +41,8 @@ package net.opendf.ir.common;
 
 public class StmtCall extends Statement {
 
-    public void accept(StatementVisitor v) {
-        v.visitStmtCall(this);
+    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
+        return v.visitStmtCall(this, p);
     }
 
     public StmtCall(Expression procedure, Expression[] args) {

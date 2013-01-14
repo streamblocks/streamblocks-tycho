@@ -30,9 +30,11 @@ abstract public class Decl extends AbstractIRNode {
 
 	abstract public DeclKind  getKind();
 	
-	abstract public void  accept(DeclVisitor v);
+	abstract public <R,P> R accept(DeclVisitor<R,P> v, P p);
 	
-	
+	public <R> R accept(DeclVisitor<R,Void> v) {
+		return accept(v, null);
+	}
 	
 	
 	public String getName() { return name; }

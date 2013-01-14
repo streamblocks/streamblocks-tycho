@@ -15,8 +15,8 @@ public class DeclType extends Decl {
 	}
 	
 	@Override
-	public void  accept(DeclVisitor v) {
-		v.visitDeclType(this);
+	public <R,P> R accept(DeclVisitor<R,P> v, P p) {
+		return v.visitDeclType(this, p);
 	}
 
 	public DeclType(String name, NamespaceDecl namespace) {

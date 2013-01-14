@@ -43,8 +43,8 @@ package net.opendf.ir.common;
 
 public class StmtAssignment extends Statement {
 
-    public void accept(StatementVisitor v) {
-        v.visitStmtAssignment(this);
+    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
+        return v.visitStmtAssignment(this, p);
     }
 
     public StmtAssignment(String var, Expression val) {

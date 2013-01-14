@@ -3,43 +3,41 @@ package net.opendf.ir.common;
 public class StmtOutput extends Statement {
 
 	@Override
-	public void accept(StatementVisitor v) {
-		v.visitStmtOutput(this);
+	public <R,P> R accept(StatementVisitor<R,P> v, P p) {
+		return v.visitStmtOutput(this, p);
 	}
 
 	public PortName  getPort() { return port; }
-	
-	public int  getOffset() { return offset; }
 	
 	public boolean  hasRepeat() { return hasRepeat; }
 	
 	public int  getRepeat() { return repeat; }
 	
+	public Expression[]  getValues() { return values; }
+
 
 	//
 	//  Ctor
 	//
 	
-	public StmtOutput(Expression value, PortName port, int offset) {
-		this(value, port, offset, false, 0);
+	public StmtOutput(Expression[] values, PortName port) {
+		this(values, port, false, 0);
 	}
 	
-	public StmtOutput(Expression value, PortName port, int offset, int repeat) {
-		this(value, port, offset, true, repeat);
+	public StmtOutput(Expression[] values, PortName port, int repeat) {
+		this(values, port, true, repeat);
 	}
 	
-	private StmtOutput(Expression value, PortName port, int offset, boolean hasRepeat, int repeat) {
-		this.value = value;
+	private StmtOutput(Expression[] values, PortName port, boolean hasRepeat, int repeat) {
+		this.values = values;
 		this.port = port;
-		this.offset = offset;
 		this.hasRepeat = hasRepeat;
 		this.repeat = repeat;
 	}
 	
-	private Expression	value;
+	private Expression[]	values;
 	
-	private boolean		hasRepeat;
-	private PortName	port;
-	private int			offset;
-	private int			repeat;	
+	private boolean			hasRepeat;
+	private PortName		port;
+	private int				repeat;
 }

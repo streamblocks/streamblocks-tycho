@@ -57,5 +57,9 @@ public abstract class Statement extends AbstractIRNode {
      * This is the accept method of the visitor pattern.
      * @param v The visitor.
      */
-    public abstract void accept(StatementVisitor v);
+    public abstract <R,P> R accept(StatementVisitor<R,P> v, P p);
+
+    public <R> R accept(StatementVisitor<R,Void> v) {
+        return accept(v, null);
+    }
 }

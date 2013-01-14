@@ -2,8 +2,8 @@ package net.opendf.ir.common;
 
 public class StmtForeach extends Statement {
 
-    public void accept(StatementVisitor v) {
-        v.visitStmtForeach(this);
+    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
+        return v.visitStmtForeach(this, p);
     }
 
     public StmtForeach(GeneratorFilter [] generators, Statement body) {

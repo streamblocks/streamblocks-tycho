@@ -36,8 +36,8 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	public DeclKind  getKind() { return DeclKind.entity; };
 
 	@Override
-	public void  accept(DeclVisitor v) {
-		v.visitDeclEntity(this);
+	public <R,P> R accept(DeclVisitor<R,P> v, P p) {
+		return v.visitDeclEntity(this, p);
 	}
 	
 	

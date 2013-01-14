@@ -6,7 +6,7 @@ import java.util.Map;
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
 
-public class PrettyPrint implements ExpressionVisitor<String,String>, StatementVisitor{
+public class PrettyPrint implements ExpressionVisitor<String,String>, StatementVisitor<Void, Void>{
 	private java.io.PrintStream out = System.out;
 	private int indentDepth = 0;
 
@@ -537,7 +537,7 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 		return null;
 	}
 //--- Statement ---------------------------------------------------------------
-	public void visitStmtAssignment(StmtAssignment s) {
+	public Void visitStmtAssignment(StmtAssignment s, Void p) {
 		out.append(s.getVar());
 		if(s.getField() != null){
 			out.append(".");
@@ -550,8 +550,9 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 		out.append(" := ");
 		s.getVal().accept(this, null);
 		out.append(";");
+		return null;
 	}
-	public void visitStmtBlock(StmtBlock s) {
+	public Void visitStmtBlock(StmtBlock s, Void p) {
 		out.append("begin");
 		incIndent();
 		if(s.getVarDecls() != null && s.getVarDecls().length>0){
@@ -571,8 +572,9 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 		decIndent();
 		indent();
 		out.append("end");
+		return null;
 	}
-	public void visitStmtIf(StmtIf s) {
+	public Void visitStmtIf(StmtIf s, Void p) {
 		out.append("if ");
 		s.getCondition().accept(this, null);
 		out.append(" then");
@@ -590,8 +592,9 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 		decIndent();
 		indent();
 		out.append("end");
+		return null;
 	}
-	public void visitStmtCall(StmtCall s) {
+	public Void visitStmtCall(StmtCall s, Void p) {
 		s.getProcedure().accept(this, null);
 		out.append("(");
 		String sep = "";
@@ -601,20 +604,23 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 			arg.accept(this, null);
 		}
 		out.append(");");
+		return null;
 	}
-	public void visitStmtOutput(StmtOutput s) {
+	public Void visitStmtOutput(StmtOutput s, Void p) {
 		out.append("output;");
 		// TODO output statement
+		return null;
 	}
-	public void visitStmtWhile(StmtWhile s) {
+	public Void visitStmtWhile(StmtWhile s, Void p) {
 		out.append("while ");
 		s.getCondition().accept(this, null);
 		indent();
 		s.getBody().accept(this);
 		indent();
 		out.append("endwhile");
+		return null;
 	}
-	public void visitStmtForeach(StmtForeach s) {
+	public Void visitStmtForeach(StmtForeach s, Void p) {
 		String sep = "";
 		for(GeneratorFilter f : s.getGenerators()){
 			out.append(sep);
@@ -626,5 +632,6 @@ public class PrettyPrint implements ExpressionVisitor<String,String>, StatementV
 		s.getBody().accept(this);
 		indent();
 		out.append("endforeach");
+		return null;
 	}
 }

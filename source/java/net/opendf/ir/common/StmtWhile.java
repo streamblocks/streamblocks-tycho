@@ -45,8 +45,8 @@ package net.opendf.ir.common;
 
 public class StmtWhile extends Statement {
 
-    public void accept(StatementVisitor v) {
-        v.visitStmtWhile(this);
+    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
+        return v.visitStmtWhile(this, p);
     }
 
     public StmtWhile(Expression condition, Statement body) {

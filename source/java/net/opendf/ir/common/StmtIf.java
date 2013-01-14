@@ -45,8 +45,8 @@ package net.opendf.ir.common;
 
 public class StmtIf extends Statement {
 
-    public void accept(StatementVisitor v) {
-        v.visitStmtIf(this);
+    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
+        return v.visitStmtIf(this, p);
     }
 
     public StmtIf(Expression condition, Statement thenBranch, Statement elseBranch) {

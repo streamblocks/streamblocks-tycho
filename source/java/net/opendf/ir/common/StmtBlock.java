@@ -45,8 +45,8 @@ package net.opendf.ir.common;
 
 public class StmtBlock extends Statement {
 
-    public void accept(StatementVisitor v) {
-        v.visitStmtBlock(this);
+    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
+        return v.visitStmtBlock(this, p);
     }
 
     public StmtBlock(DeclType [] typeDecls, DeclVar [] varDecls, Statement[] statements) {

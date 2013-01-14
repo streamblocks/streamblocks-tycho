@@ -14,8 +14,8 @@ public class DeclVar extends Decl {
 	}
 
 	@Override
-	public void  accept(DeclVisitor v) {
-		v.visitDeclVar(this);
+	public <R,P> R accept(DeclVisitor<R,P> v, P p) {
+		return v.visitDeclVar(this, p);
 	}
 
 	public Expression getInitialValue() {
