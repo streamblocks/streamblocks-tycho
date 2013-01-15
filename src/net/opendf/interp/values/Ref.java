@@ -1,0 +1,12 @@
+package net.opendf.interp.values;
+
+public interface Ref extends RefView {
+	public void setValue(Value v);
+
+	public void setLong(long v);
+
+	public void setDouble(double v);
+
+	public void clear();
+
+}
