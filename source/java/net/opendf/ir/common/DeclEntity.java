@@ -67,10 +67,10 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 		this.typeDecls = typeDecls;
 		this.varDecls = varDecls;
 
-		this.inputPorts = inputPorts;
+		this.inputPorts = inputPorts != null ? inputPorts : new CompositePortDecl();
 		this.inputPorts.setContainer(this);
 
-		this.outputPorts = outputPorts;
+		this.outputPorts = outputPorts != null ? outputPorts : new CompositePortDecl();
 		this.outputPorts.setContainer(this);
 	}
 	

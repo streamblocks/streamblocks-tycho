@@ -1,0 +1,452 @@
+%header {: 
+/* 
+ *  @author Per Andersson<Per.Andersson@cs.lth.se>, Lund University
+ *  To parse a CAL file use one of the methods:
+ *  - public net.opendf.ir.cal.Actor parse(String path, String fileName)
+ *  - public net.opendf.ir.cal.Actor parse(File file)
+ *
+ *  After parsing check for errors in the attribute parseProblems.
+ *
+ *  The parser is created using jflex and beaver.
+ */
+ :} ;
+%package "net.opendf.parser.lth";
+%import "net.opendf.ir.common.*";
+%import "net.opendf.ir.net.ast.NetworkDefinition";
+%import "net.opendf.ir.net.ast.EntityExpr";
+%import "net.opendf.ir.net.ast.EntityIfExpr";
+%import "net.opendf.ir.net.ast.EntityInstanceExpr";
+%import "net.opendf.ir.net.ast.EntityListExpr";
+%import "net.opendf.ir.net.ast.PortReference";
+%import "net.opendf.ir.net.ast.StructureConnectionStmt";
+%import "net.opendf.ir.net.ast.StructureIfStmt";
+%import "net.opendf.ir.net.ast.StructureForeachStmt";
+%import "net.opendf.ir.net.ast.StructureStatement";
+%import "net.opendf.ir.net.ToolAttribute";
+%import "net.opendf.ir.net.ToolTypeAttribute";
+%import "net.opendf.ir.net.ToolValueAttribute";
+%import "java.io.PrintStream";
+%import "java.util.Map";
+%import "java.util.TreeSet";
+%import "java.util.AbstractMap";
+%import "java.util.Arrays";
+%embed {:
+/*******************************************************
+ *  Inject code for custom error handling in the parser class.
+ *******************************************************/
+  // all errors encountered during parsing is stored in the array parseProblems. This includes lexical, syntactical and semantic error (multiple initialization actors et.c.)
+  public java.util.TreeSet<String> parseProblems = new TreeSet<String>();
+  public void newError(String msg, Symbol token){
+      parseProblems.add(msg + " At row " + Symbol.getLine(token.getStart()) + ", column " + Symbol.getColumn(token.getStart()));
+  };
+  public void printParseProblems(){ printParseProblems(System.err); }
+  public void printParseProblems(PrintStream out){
+    out.println("number of problems: " + parseProblems.size());
+    for(String msg : parseProblems){
+      out.println("ERROR: " + msg);
+    }
+  }
+
+  // parser plug-in methods that are called when the parser encounters a syntactical problem
+  class Events extends Parser.Events {
+    public void scannerError(Scanner.Exception e) {
+      parseProblems.add(e.getMessage());
+    }
+    public void syntaxError(Symbol token) {
+      // This method is always called when a problem is encountered, even if it is repaired.
+      // beaver.Parser$Exception is thrown if recovery fails.
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("unexpected token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+    }
+    public void unexpectedTokenRemoved(Symbol token) {
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+    }
+    public void missingTokenInserted(Symbol token) {
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("parser recovered after inserting token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+    }
+    public void misspelledTokenReplaced(Symbol token) {
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("parser recovered after replacing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+    }
+    public void errorPhraseRemoved(Symbol token) {
+      String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
+      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+    }
+  }
+
+  {
+    // initialization, before the constructor
+    report = new Events(); // Use error handler in parser
+  }
+
+/*******************************************************
+ *  Help routine that parses a file, given its name.
+ *  A compilation unit is always returned, containing all parseProblems encountered during parsing.
+ *  If a Parser.exception is thrown a CompilationUnit with an empty AST is returned.
+ *******************************************************/
+
+  public NetworkDefinition parse(String fileName){
+    return parse(new java.io.File(fileName));
+  }
+  public NetworkDefinition parse(String path, String fileName){
+    return parse(new java.io.File(path + "/" + fileName));
+  }
+  public NetworkDefinition parse(java.io.File file){
+     NetworkDefinition network;
+     parseProblems = new TreeSet<String>();
+     java.io.FileReader fr = null;
+     try {
+       try {
+         fr = new java.io.FileReader(file);
+	       NlScanner scanner = new NlScanner(new java.io.BufferedReader(fr));
+         network = (NetworkDefinition)parse(scanner);
+         fr.close();
+       } catch(CalParser.Exception e) {
+         // build empty compilation unit for failed error recovery
+         // The problem is added to parseProblems[] by the syntaxError() method added to the parser above.
+         network = new NetworkDefinition(file.getName());
+       } finally {
+         if(fr != null){ fr.close(); }
+       }
+     } catch (java.io.FileNotFoundException e){
+       parseProblems.add("file not found: " + e.getMessage());
+       network = new NetworkDefinition(file.getName());
+     } catch (java.io.IOException e){
+       parseProblems.add("error reading file: " + e.getMessage());
+       network = new NetworkDefinition(file.getName());
+     }
+//     network.setSourceFile(file);
+//     network.parseProblems = parseProblems;
+//     for(Problem p : parseProblems) {
+//       p.setSourceFile(file);
+//     }
+     return network;
+   }
+
+  private enum NetworkBodyPartKind{ IMPORT, VAR_DECL, ENTITIES, STRUCTURE, TOOL_ATTRIBUTE; }
+
+/******************************************************************************
+ * Needed by CommonParser.beaver
+ * Repeated in both NlParser.beaver and CalParser.beaver
+ *****************************************************************************/
+   private GeneratorFilter makeGeneratorFilter(TypeExpr type, ArrayList varList, Expression e, ArrayList filterList){
+    DeclVar[] vars = new DeclVar[varList.size()];
+    for(int i = 0; i<varList.size(); i++){
+      Symbol symbol = (Symbol)varList.get(i);
+      vars[i] = new DeclVar(type, (String)symbol.value, null);
+    }
+    Expression[] filters = filterList == null ? new Expression[0] : (Expression[])filterList.toArray(new Expression[filterList.size()]);
+    return new GeneratorFilter(vars, e, filters);
+  }
+  class ParenthesSymbol extends Symbol{ // used by the parser to wrap subexpressions that are enclosed by parentheses, i.e. do not add them to a ExprBinaryOp sequence.
+     ParenthesSymbol(Symbol s){
+       super(s.getId(), s.getStart(), s.getEnd(), s.value);
+     }
+  }
+   
+:};
+// common terminals
+%terminals ARROW;
+%terminals BAR;
+%terminals BEGIN;
+%terminals CHARACTER_LITERAL;
+%terminals CHOOSE;
+%terminals COMMA;
+%terminals COLON;
+%terminals COLONEQ;
+%terminals CONST;
+%terminals DO;
+%terminals DOT;
+%terminals DOUBLECOLON;
+%terminals DOUBLE_LITERAL;
+%terminals EDGE;
+%terminals ELSE;
+%terminals END;
+%terminals ENDCHOOSE;
+%terminals ENDFOREACH;
+%terminals ENDIF;
+%terminals ENDLAMBDA;
+%terminals ENDLET;
+%terminals ENDPROC;
+%terminals ENDWHILE;
+%terminals EQ;
+%terminals FALSE_LITERAL;
+%terminals FLOATING_POINT_LITERAL;
+%terminals FOR;
+%terminals FOREACH;
+%terminals FUNCTION;
+%terminals GT;
+%terminals IDENTIFIER;
+%terminals IF;
+%terminals IN;
+%terminals INTEGER_LITERAL;
+%terminals LAMBDA;
+%terminals LBRACE;
+%terminals LBRACK;
+%terminals LONG_LITERAL;
+%terminals LPAREN;
+%terminals LET;
+%terminals LT;
+%terminals MAP;
+%terminals MULT;
+%terminals MULTI;
+%terminals MUTABLE;
+%terminals NULL_LITERAL;
+%terminals OLD;
+%terminals OPERATOR;
+%terminals PROC;
+%terminals PROCEDURE;
+%terminals RBRACE;
+%terminals RBRACK;
+%terminals RPAREN;
+%terminals SEMICOLON;
+%terminals STRING_LITERAL;
+%terminals THEN;
+%terminals TRUE_LITERAL;
+%terminals VAR;
+%terminals WHILE;
+
+// Network specific terminals
+%terminals ALL;
+%terminals ENTITIES;
+%terminals ENTITY;
+%terminals ENDNETWORK;
+%terminals EQCOLON;
+%terminals IMPORT;
+%terminals NETWORK;
+%terminals PORTCONN;
+%terminals STRUCTURE;
+
+
+//--- rules from CommonParser.beaver 
+%typeof actor_parameter_list = "ArrayList";
+%typeof actor_parameter = "ParDeclValue";
+%typeof actor_parameter_init_expression = "Expression";
+%typeof qual_id = "ArrayList";
+%typeof decl_list = "ArrayList";
+%typeof decl_block = "ArrayList";
+%typeof decl_block_opt = "ArrayList";
+%typeof decl = "DeclVar";
+%typeof var_decl = "DeclVar";
+%typeof var_name_type = "DeclVar";
+%typeof fun_decl = "DeclVar";
+%typeof proc_decl = "DeclVar";
+%typeof port_decl = "PortDecl";
+%typeof port_decl_list = "CompositePortDecl";
+%typeof port_decl_list_opt = "CompositePortDecl";
+%typeof type_bound = "TypeExpr";
+%typeof type_bound_opt = "TypeExpr";
+%typeof type_parameter = "ParDeclType";
+%typeof type_parameter_block = "ArrayList";
+%typeof type_parameter_list = "ArrayList";
+%typeof type_list = "ArrayList";
+%typeof type = "TypeExpr";
+%typeof type_attribute = "Map.Entry";
+%typeof type_attribute_list = "ArrayList";
+%typeof edge_type = "TypeExpr";
+%typeof procedure_expr_body = "ExprProc";
+%typeof stmt_block_opt = "ArrayList";
+%typeof lambda_expr_body = "ExprLambda";
+%typeof map_list = "ArrayList";
+%typeof map_entry = "Map.Entry";
+%typeof tail = "Expression";
+%typeof expression_list = "ArrayList";
+%typeof expression_list_opt = "ArrayList";
+%typeof method_invocation = "ExprApplication";
+%typeof literal = "ExprLiteral";
+%typeof primary = "Expression";
+%typeof simple_expression = "Expression";
+%typeof unary_expression = "Expression";
+%typeof indexing_expression = "Expression";
+%typeof expression = "Expression";
+%typeof operator = "String";
+%typeof formal_parameter = "ParDeclValue";
+%typeof formal_parameter_list = "ArrayList";
+%typeof statement = "Statement";
+%typeof choose_generator_list = "ArrayList";
+%typeof for_generator_list = "ArrayList";
+%typeof generator_variable_list = "ArrayList";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
+%typeof for_foreach = "String";
+%typeof do_begin = "String";
+%typeof end_choose = "String";
+%typeof end_foreach = "String";
+%typeof end_if = "String";
+%typeof end_lambda = "String";
+%typeof end_let = "String";
+%typeof end_proc = "String";
+%typeof end_while = "String";
+%typeof statement_list = "ArrayList";
+%typeof statement_list_opt = "ArrayList";
+
+//--- Network specific keywords
+%typeof end_network = "String";
+%typeof entities = "ArrayList";
+%typeof entity = "java.util.Map.Entry";
+%typeof entity_expr = "EntityExpr";
+%typeof entity_expr_list = "ArrayList";
+%typeof entity_indexing = "Expression";
+%typeof entity_port = "PortReference";
+%typeof entity_statement = "StructureStatement";
+%typeof import_group = "ArrayList";  //TODO
+%typeof import_kind = "String";
+%typeof import_part = "ArrayList";   //TODO
+%typeof import_single = "ArrayList"; //TODO
+%typeof network = "net.opendf.ir.net.NetworkBuilder";
+%typeof network_body_part = "Map.Entry";
+%typeof network_decl = "DeclVar";
+%typeof network_decl_block = "ArrayList";
+%typeof param_assign = "Map.Entry";
+%typeof param_assign_list = "ArrayList";
+%typeof structure = "ArrayList";
+%typeof tool_attribute = "ToolAttribute";
+%typeof tool_attribute_block = "ArrayList";
+
+%goal network;
+
+network =
+    NETWORK 
+    IDENTIFIER.name
+    type_parameter_block.typePars?
+    LPAREN actor_parameter_list.valuePars? RPAREN 
+    port_decl_list_opt.inputPorts
+    PORTCONN
+    port_decl_list_opt.outputPorts
+    COLON
+    network_body_part.body*
+    end_network.end_network
+    SEMICOLON?
+    {:
+        NamespaceDecl ns = null;
+        ArrayList varDecls = new ArrayList();
+        ArrayList structure = new ArrayList();
+        ArrayList<java.util.Map.Entry<String,EntityExpr>> entities = new ArrayList();
+        ArrayList<ToolAttribute> toolAttributes = new ArrayList();
+        for(Map.Entry part : body){
+             switch((NetworkBodyPartKind)part.getKey()){
+               case IMPORT:
+                 System.out.println("UNSUPPORTED, import is ignored.");
+                 //TODO
+                 break;
+               case VAR_DECL:
+                 varDecls.addAll((ArrayList)part.getValue());
+                 break;
+               case ENTITIES:
+                 entities.addAll((ArrayList)part.getValue());                 
+                 break;
+               case STRUCTURE:
+                 structure.addAll((ArrayList)part.getValue());                 
+                 break;
+               case TOOL_ATTRIBUTE:
+                 toolAttributes.addAll((ArrayList)part.getValue());
+                 break;
+             }
+           }
+        
+        return new Symbol(new NetworkDefinition((String)name.value, 
+                          ns, 
+                          typePars == null ? new ParDeclType[0] : (ParDeclType[])typePars.toArray(new ParDeclType[typePars.size()]),     // typePars,
+                          valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
+                          new DeclType[0],      // typeDecls, NOTE, can not be expressed in NL
+                          (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
+                          inputPorts, outputPorts,
+                          (Map.Entry<String,EntityExpr>[])entities.toArray(new Map.Entry[entities.size()]), // entities
+                          (StructureStatement[])structure.toArray(new StructureStatement[structure.size()]), // structure
+                          (ToolAttribute[])toolAttributes.toArray(new ToolAttribute[toolAttributes.size()])
+                          ));
+    :}
+  ;
+  
+network_body_part =
+    import_part.part          {: return new Symbol(new AbstractMap.SimpleEntry(NetworkBodyPartKind.IMPORT, part)); :}
+  | network_decl_block.part   {: return new Symbol(new AbstractMap.SimpleEntry(NetworkBodyPartKind.VAR_DECL, part)); :}  // variables, functions and procedures
+  | entities.part             {: return new Symbol(new AbstractMap.SimpleEntry(NetworkBodyPartKind.ENTITIES, part)); :}
+  | structure.part            {: return new Symbol(new AbstractMap.SimpleEntry(NetworkBodyPartKind.STRUCTURE, part)); :}
+  | tool_attribute_block.part {: return new Symbol(new AbstractMap.SimpleEntry(NetworkBodyPartKind.TOOL_ATTRIBUTE, part)); :}
+  ;
+
+network_decl_block =
+    VAR network_decl.d*       {: return _symbol_d; :}
+  ;
+
+network_decl =
+    var_decl.d SEMICOLON {: return _symbol_d; :}
+  | fun_decl.d           {: return _symbol_d; :}
+  | proc_decl.d          {: return _symbol_d; :}
+  ;
+
+entities =
+    ENTITIES entity.l* {: return _symbol_l; :}
+  ;
+
+entity =
+    IDENTIFIER.ID EQ entity_expr.e SEMICOLON {: return new Symbol(new java.util.AbstractMap.SimpleEntry((String)ID.value, e)); :}
+  ;
+
+entity_expr =
+    IDENTIFIER.id LPAREN param_assign_list.l? RPAREN tool_attribute_block.a? {: return new Symbol(new EntityInstanceExpr((String)id.value, l == null ? new Map.Entry[0] : (Map.Entry[])l.toArray(new Map.Entry[l.size()]),
+                                                                                                                          (ToolAttribute[]) (a==null ? new ToolAttribute[0] : a.toArray(new ToolAttribute[a.size()]))
+                                                                                                                         ));
+                                                                             :}
+  | IF expression.e THEN entity_expr.t ELSE entity_expr.f end_if             {: return new Symbol(new EntityIfExpr(e, t, f)); :}
+  | LBRACK entity_expr_list.e? RBRACK                                        {: return new Symbol(new EntityListExpr((EntityExpr[])(e==null? new EntityExpr[0] : e.toArray(new EntityExpr[e.size()])), null)); :}
+  | LBRACK entity_expr_list.e COLON for_generator_list.g RBRACK              {: return new Symbol(new EntityListExpr((EntityExpr[])(e==null? new EntityExpr[0] : e.toArray(new EntityExpr[e.size()])), (GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]))); :}
+  ;
+param_assign_list =
+    param_assign.p                           {: ArrayList l = new ArrayList(); l.add(p); return new Symbol(l); :}
+  | param_assign_list.l COMMA param_assign.p {: l.add(p); return _symbol_l; :}
+  ;
+entity_expr_list =
+    entity_expr.e                            {: ArrayList l = new ArrayList(); l.add(e); return new Symbol(l); :}
+  | entity_expr_list.l COMMA entity_expr.e   {: l.add(e); return _symbol_l; :}
+  ;
+param_assign =
+    IDENTIFIER.ID EQ expression.expression   {: return new Symbol(new java.util.AbstractMap.SimpleEntry((String)ID.value, expression)); :}
+  ;
+
+structure =
+    STRUCTURE entity_statement.l* {: return _symbol_l; :}
+  ;
+entity_statement =
+    entity_port.src EDGE entity_port.dst tool_attribute_block.a? SEMICOLON          {: return new Symbol(new StructureConnectionStmt(src, dst, (ToolAttribute[])(a==null ? null : a.toArray(new ToolAttribute[a.size()])))); :}
+  | for_generator_list.g DO entity_statement.s* END                                 {: return new Symbol(new StructureForeachStmt((GeneratorFilter[])(g.toArray(new GeneratorFilter[g.size()])), s)); :}
+  | IF expression.e THEN entity_statement.t_stmt* END                               {: return new Symbol(new StructureIfStmt(e, t_stmt, null)); :}
+  | IF expression.e THEN entity_statement.t_stmt* ELSE entity_statement.f_stmt* END {: return new Symbol(new StructureIfStmt(e, t_stmt, f_stmt)); :}
+  ;
+
+entity_port =
+//TODO, port index is not supported
+    IDENTIFIER.id_port entity_indexing.index_port*                                                        {: return new Symbol(new PortReference(null, null, (String)id_port.value)); :}
+  | IDENTIFIER.id_entity entity_indexing.index_entity* DOT IDENTIFIER.id_port entity_indexing.index_port* {: return new Symbol(new PortReference((String)id_entity.value, index_entity , (String)id_port.value)); :}
+  ;
+entity_indexing =
+    LBRACK.LBRACK expression.e RBRACK.RBRACK {: return _symbol_e; :}
+  ;
+
+import_part =
+    import_single.i {: return _symbol_i; :}
+  | import_group.i  {: return _symbol_i; :}
+  ;
+import_single =
+    IMPORT import_kind.k qual_id.qual_id SEMICOLON                     {: return new Symbol(qual_id); :}
+  | IMPORT import_kind.k qual_id.qual_id EQ IDENTIFIER.alias SEMICOLON {: return new Symbol(qual_id); :}
+  ;
+import_group =
+    IMPORT import_kind.k ALL qual_id.qual_id SEMICOLON                 {: return new Symbol(qual_id); :}
+  ;
+import_kind =
+                {: return new Symbol(""); :}
+  | ENTITY.kind {: return kind; :}
+  | VAR.kind    {: return kind; :}
+  ;
+tool_attribute_block =
+    LBRACE tool_attribute.a* RBRACE {: return _symbol_a; :}
+  ;
+tool_attribute =
+    IDENTIFIER.ID EQ expression.expression SEMICOLON {: return new Symbol(new ToolValueAttribute((String)ID.value, expression)); :}
+  | IDENTIFIER.ID COLON type.type SEMICOLON          {: return new Symbol(new ToolTypeAttribute((String)ID.value, type)); :}
+  ;
+end_network =
+    END 
+  | ENDNETWORK   ;

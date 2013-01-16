@@ -151,7 +151,8 @@ public abstract class PortDecl extends AbstractIRNode {
 
 	public PortDecl(PortDecl parent, String name) {
 		
-		assert (name == null && parent == null) || (name != null && parent != null);
+		// this do not hold when the tree is built bottom up, which is the case for all LALR parsers.
+		//assert (name == null && parent == null) || (name != null && parent != null);
 		
 		this.parent = parent;
 		this.name = name;		

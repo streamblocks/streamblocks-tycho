@@ -5,13 +5,13 @@ package net.opendf.parser.lth;
  **/
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 
 import beaver.Scanner;
 
 import net.opendf.ir.cal.Actor;
+import net.opendf.ir.net.ast.EntityNameBinding;
+import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.parser.lth.CalParser;
 import net.opendf.util.PrettyPrint;
 
@@ -48,9 +48,12 @@ public class Parse{
 	public static void main(String[] args){
 		int index = 0;
 		boolean tokens = false;
+		boolean prittyPrint = false;
 		while(index<args.length && args[index].startsWith("-")){
-			if(args[index].equals("-tokens")){
+			if(args[index].equals("-pp")){
 				tokens = true;
+			} else if(args[index].equals("-tokens")){
+					tokens = true;
 			} else {
 				System.err.println(usage);
 				return;
@@ -69,12 +72,29 @@ public class Parse{
 		if(tokens){
 			dumpScanner(path, fileName);
 		}
-		CalParser parser = new CalParser();
-		Actor actor = parser.parse(path, fileName);
-		parser.printParseProblems();
-		if(parser.parseProblems.isEmpty()){
-			PrettyPrint pp = new PrettyPrint();
-			pp.print(actor);
+		if(fileName.endsWith(".cal")){
+			CalParser parser = new CalParser();
+			Actor actor = parser.parse(path, fileName);
+			parser.printParseProblems();
+			if(parser.parseProblems.isEmpty()){
+				if(prittyPrint){
+					PrettyPrint pp = new PrettyPrint();
+					pp.print(actor);
+				}
+			}
+		} else if(fileName.endsWith(".nl")){
+			NlParser parser = new NlParser();
+			NetworkDefinition network = parser.parse(path, fileName);
+			parser.printParseProblems();
+			if(parser.parseProblems.isEmpty()){
+				new EntityNameBinding(network);
+				if(prittyPrint){
+					PrettyPrint pp = new PrettyPrint();
+					pp.print(network);
+				}
+			}
+		} else{
+			System.out.println("unknown file extension");
 		}
 		System.out.println("---- done ---");
 	}

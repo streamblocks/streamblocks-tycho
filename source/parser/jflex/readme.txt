@@ -1,4 +1,4 @@
-The CAL (actor) and network scanners are divided to 4 parts. There is a large overlap between the languages and therfore the scanners have some common source code (expressions, statements et.c.). The macros.flex and postamble.flex are shared between the two scanners.
+The CAL (actor) and network scanners are divided to 4 parts. There is a large overlap between the languages and therefore the scanners have some common source code (expressions, statements et.c.). The macros.flex and postamble.flex are shared between the two scanners.
 
 Here is an ant target for assembling the files:
 

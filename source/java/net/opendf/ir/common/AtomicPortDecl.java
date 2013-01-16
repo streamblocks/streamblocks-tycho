@@ -43,6 +43,7 @@ public class AtomicPortDecl extends PortDecl {
 	
 	public AtomicPortDecl(PortDecl parent, String name, TypeExpr type) {
 		super(parent, name);
+		this.type = type;
 	}
 	
 
