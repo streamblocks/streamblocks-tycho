@@ -1,17 +1,10 @@
 package net.opendf.interp;
 
-import net.opendf.interp.attributed.AttrExprInput;
-import net.opendf.interp.attributed.AttrExprLambda;
-import net.opendf.interp.attributed.AttrExprLiteral;
-import net.opendf.interp.attributed.AttrExprVariable;
-import net.opendf.interp.attributed.ChannelId;
-import net.opendf.interp.attributed.VarLocation;
 import net.opendf.interp.values.Builder;
 import net.opendf.interp.values.BasicList;
 import net.opendf.interp.values.Function;
 import net.opendf.interp.values.LambdaFunction;
 import net.opendf.interp.values.List;
-import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
@@ -99,7 +92,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	@Override
 	public RefView visitExprInput(ExprInput expr, Environment env) {
 		Stack stack = simulator.stack();
-		Channel channel = getChannel(expr, env);
+		Channel channel = env.getChannel(expr.getChannelID());
 		if (expr.getRepeat() == 1) {
 			channel.peek(expr.getOffset(), stack.push());
 			return stack.pop();
@@ -117,36 +110,14 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 		}
 	}
 
-	private Channel getChannel(Object obj, Environment env) {
-		if (obj instanceof ChannelId) {
-			return env.getChannel(((ChannelId) obj).channelId());
-		} else {
-			throw exceptionNotDecorated();
-		}
-	}
-
 	@Override
 	public RefView visitExprLambda(ExprLambda expr, Environment env) {
 		Stack stack = simulator.stack();
 		TypeConverter converter = simulator.converter();
-		AttrExprLambda lambda = assertAttributed(expr, AttrExprLambda.class);
-		Environment closure = env.closure(new int[0], lambda.memoryRefs, stack.closure(lambda.stackRefs));
-		Function f = new LambdaFunction(lambda, closure);
+		Environment closure = expr.createClosure(env, simulator.stack());
+		Function f = new LambdaFunction(expr, closure);
 		converter.setFunction(stack.push(), f);
 		return stack.pop();
-	}
-
-	private Ref getRef(Object o, Environment env) {
-		if (o instanceof VarLocation) {
-			VarLocation loc = (VarLocation) o;
-			if (loc.varOnStack()) {
-				return simulator.stack().peek(loc.varPosition());
-			} else {
-				return env.getMemory().get(loc.varPosition());
-			} 
-		} else {
-			throw new IllegalArgumentException("Missing attribute.");
-		}
 	}
 
 	@Override
@@ -188,12 +159,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprLiteral(ExprLiteral expr, Environment env) {
-		return assertAttributed(expr, AttrExprLiteral.class).value;
-	}
-
-	private <A,B extends A> B assertAttributed(A expr, Class<B> c) {
-		// TODO Auto-generated method stub
-		return null;
+		return expr.getValue();
 	}
 
 	@Override
@@ -225,15 +191,13 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprVariable(ExprVariable expr, Environment env) {
-		return getRef(expr, env);
+		int pos = expr.getVariablePosition();
+		boolean stack = expr.isVariableOnStack();
+		if (stack) return simulator.stack().peek(pos);
+		else return env.getMemory().get(pos);
 	}
 
 	private RuntimeException exceptionNotTransformed() {
 		return new IllegalArgumentException("Tree not transformed");
 	}
-	
-	private RuntimeException exceptionNotDecorated() {
-		return new IllegalArgumentException("Tree not decorated.");
-	}
-	
 }

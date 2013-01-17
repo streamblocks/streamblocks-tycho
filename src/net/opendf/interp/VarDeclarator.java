@@ -1,8 +1,5 @@
 package net.opendf.interp;
 
-import java.nio.channels.UnsupportedAddressTypeException;
-
-import net.opendf.interp.attributed.AttrDeclVar;
 import net.opendf.interp.values.Ref;
 import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclEntity;
@@ -25,7 +22,7 @@ public class VarDeclarator implements DeclVisitor<Integer, Environment>, Declara
 
 	@Override
 	public Integer visitDeclEntity(DeclEntity d, Environment p) {
-		throw new UnsupportedAddressTypeException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -35,22 +32,13 @@ public class VarDeclarator implements DeclVisitor<Integer, Environment>, Declara
 
 	@Override
 	public Integer visitDeclVar(DeclVar d, Environment env) {
-		AttrDeclVar decl = assertDecorated(d, AttrDeclVar.class);
-		if (decl.varOnStack()) {
-			simulator.stack().push(simulator.evaluator().evaluate(decl.getInitialValue(), env));
+		if (d.isVariableOnStack()) {
+			simulator.stack().push(simulator.evaluator().evaluate(d.getInitialValue(), env));
 			return 1;
 		} else {
-			Ref r = env.getMemory().declare(decl.varPosition());
-			simulator.evaluator().evaluate(decl.getInitialValue(), env).assignTo(r);
+			Ref r = env.getMemory().declare(d.getVariablePosition());
+			simulator.evaluator().evaluate(d.getInitialValue(), env).assignTo(r);
 			return 0;
-		}
-	}
-	
-	public <A, B extends A> B assertDecorated(A a, Class<B> c) {
-		if (c.isInstance(a)) {
-			return c.cast(a);
-		} else {
-			throw new IllegalArgumentException("Tree not decorated");
 		}
 	}
 

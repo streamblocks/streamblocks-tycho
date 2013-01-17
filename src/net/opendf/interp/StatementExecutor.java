@@ -1,6 +1,5 @@
 package net.opendf.interp;
 
-import net.opendf.interp.attributed.AttrStmtAssignment;
 import net.opendf.interp.values.BasicRef;
 import net.opendf.interp.values.List;
 import net.opendf.interp.values.Procedure;
@@ -33,12 +32,8 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 
 	@Override
 	public Void visitStmtAssignment(StmtAssignment stmt, Environment env) {
-		AttrStmtAssignment assign = assertAttributed(stmt, AttrStmtAssignment.class);
-		if (assign.getField() != null) {
-			throw new UnsupportedOperationException("Assignment to field not yet supported.");
-		}
-		Ref ref = assign.varOnStack() ? simulator.stack().peek(assign.varPosition()) : env.getMemory().get(assign.varPosition());
-		Expression[] loc = assign.getLocation();
+		Ref ref = stmt.isVariableOnStack() ? simulator.stack().peek(stmt.getVariablePosition()) : env.getMemory().get(stmt.getVariablePosition());
+		Expression[] loc = stmt.getLocation();
 		if (loc != null) {
 			TypeConverter conv = simulator.converter();
 			Evaluator eval = simulator.evaluator();
@@ -104,7 +99,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 	@Override
 	public Void visitStmtOutput(StmtOutput stmt, Environment env) {
 		Evaluator eval = simulator.evaluator();
-		Channel channel = null; // TODO select channel
+		Channel channel = env.getChannel(stmt.getChannelID());
 		if (stmt.hasRepeat()) {
 			Expression[] exprs = stmt.getValues();
 			BasicRef[] values = new BasicRef[exprs.length];
@@ -143,11 +138,4 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 		return null;
 	}
 	
-	private <A,B extends A> B assertAttributed(A a, Class<B> c) {
-		if (c.isInstance(a)) {
-			return c.cast(a);
-		} else {
-			throw new IllegalArgumentException("Tree not attributed");
-		}
-	}
 }

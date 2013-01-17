@@ -1,7 +1,5 @@
 package net.opendf.interp;
 
-import net.opendf.interp.attributed.AttrExprLiteral;
-import net.opendf.interp.attributed.AttrExprVariable;
 import net.opendf.interp.values.ConstRef;
 import net.opendf.interp.values.Iterator;
 import net.opendf.interp.values.List;
@@ -15,12 +13,16 @@ import net.opendf.ir.common.GeneratorFilter;
 
 public class Test {
 	
-	private static AttrExprLiteral intLit(int value) {
-		return new AttrExprLiteral(new ExprLiteral(ExprLiteral.litInteger, Integer.toString(value)), ConstRef.of(value));
+	private static ExprLiteral intLit(int value) {
+		ExprLiteral l = new ExprLiteral(ExprLiteral.litInteger, Integer.toString(value));
+		l.setValue(ConstRef.of(value));
+		return l;
 	}
 	
-	private static AttrExprVariable var(String name, int pos, boolean onStack) {
-		return new AttrExprVariable(new ExprVariable(name), pos, onStack);
+	private static ExprVariable var(String name, int pos, boolean onStack) {
+		ExprVariable v = new ExprVariable(name);
+		v.setVariablePosition(pos, onStack);
+		return v;
 	}
 	
 	private static GeneratorFilter gen(String var, Expression[] elems) {
