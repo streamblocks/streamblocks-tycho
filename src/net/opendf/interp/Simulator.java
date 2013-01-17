@@ -8,4 +8,5 @@ public interface Simulator {
 	public Stack stack();
 	public TypeConverter converter();
 	public GeneratorFilterHelper generator();
+	public Environment actorMachineEnvironment();
 }

@@ -10,6 +10,7 @@ public class Sim implements Simulator {
 	private final Stack stack;
 	private final TypeConverter converter;
 	private final GeneratorFilterHelper generator;
+	private final Environment actorMachineEnvironment;
 	
 	public Sim(int stackSize) {
 		actorMachineRunner = null; //TODO add implementation
@@ -19,6 +20,7 @@ public class Sim implements Simulator {
 		stack = new BasicStack(stackSize);
 		converter = new TypeConverter();
 		generator = new GeneratorFilterHelper(this);
+		actorMachineEnvironment = null; //FIXME
 	}
 
 	@Override
@@ -54,6 +56,11 @@ public class Sim implements Simulator {
 	@Override
 	public GeneratorFilterHelper generator() {
 		return generator;
+	}
+
+	@Override
+	public Environment actorMachineEnvironment() {
+		return actorMachineEnvironment;
 	}
 
 }
