@@ -324,25 +324,28 @@ network =
         ArrayList<java.util.Map.Entry<String,EntityExpr>> entities = new ArrayList();
         ArrayList<ToolAttribute> toolAttributes = new ArrayList();
         for(Map.Entry part : body){
-             switch((NetworkBodyPartKind)part.getKey()){
-               case IMPORT:
-                 System.out.println("UNSUPPORTED, import is ignored.");
-                 //TODO
-                 break;
-               case VAR_DECL:
-                 varDecls.addAll((ArrayList)part.getValue());
-                 break;
-               case ENTITIES:
-                 entities.addAll((ArrayList)part.getValue());                 
-                 break;
-               case STRUCTURE:
-                 structure.addAll((ArrayList)part.getValue());                 
-                 break;
-               case TOOL_ATTRIBUTE:
-                 toolAttributes.addAll((ArrayList)part.getValue());
-                 break;
-             }
-           }
+            ArrayList all = (ArrayList)part.getValue();
+            if(all != null){  // entities and structure may be empty. Then the parser return null.
+                switch((NetworkBodyPartKind)part.getKey()){
+                case IMPORT:
+                     System.out.println("UNSUPPORTED, import is ignored.");
+                     //TODO
+                     break;
+                case VAR_DECL:
+                    varDecls.addAll(all);
+                    break;
+                case ENTITIES:
+                    entities.addAll(all);
+                    break;
+                case STRUCTURE:
+                    structure.addAll(all);
+                    break;
+                case TOOL_ATTRIBUTE:
+                    toolAttributes.addAll(all);
+                    break;
+                }
+            }
+        }
         
         return new Symbol(new NetworkDefinition((String)name.value, 
                           ns, 

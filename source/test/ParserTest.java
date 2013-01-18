@@ -39,13 +39,15 @@ public class ParserTest extends TestCase{
  	public void addDir(File f){
 		System.out.println("looking in directiry " + f.getPath());
 		String[] child = f.list();
-		for(int i=0;i<child.length;i++){
-			File candidate = new File(f, child[i]);
-			if(!candidate.isHidden()){
-				if(candidate.isDirectory()){
-					addDir(candidate);
-				} else if(candidate.isFile()){
-					parseFile(candidate);
+		if(child != null){
+			for(int i=0;i<child.length;i++){
+				File candidate = new File(f, child[i]);
+				if(!candidate.isHidden()){
+					if(candidate.isDirectory()){
+						addDir(candidate);
+					} else if(candidate.isFile()){
+						parseFile(candidate);
+					}
 				}
 			}
 		}

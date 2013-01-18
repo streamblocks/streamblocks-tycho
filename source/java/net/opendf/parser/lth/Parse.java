@@ -48,12 +48,12 @@ public class Parse{
 	public static void main(String[] args){
 		int index = 0;
 		boolean tokens = false;
-		boolean prittyPrint = false;
+		boolean prettyPrint = false;
 		while(index<args.length && args[index].startsWith("-")){
 			if(args[index].equals("-pp")){
-				tokens = true;
+				prettyPrint = true;
 			} else if(args[index].equals("-tokens")){
-					tokens = true;
+				tokens = true;
 			} else {
 				System.err.println(usage);
 				return;
@@ -77,7 +77,7 @@ public class Parse{
 			Actor actor = parser.parse(path, fileName);
 			parser.printParseProblems();
 			if(parser.parseProblems.isEmpty()){
-				if(prittyPrint){
+				if(prettyPrint){
 					PrettyPrint pp = new PrettyPrint();
 					pp.print(actor);
 				}
@@ -88,7 +88,7 @@ public class Parse{
 			parser.printParseProblems();
 			if(parser.parseProblems.isEmpty()){
 				new EntityNameBinding(network);
-				if(prittyPrint){
+				if(prettyPrint){
 					PrettyPrint pp = new PrettyPrint();
 					pp.print(network);
 				}

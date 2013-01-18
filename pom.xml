@@ -60,7 +60,7 @@
                     <file name="CommonParser.beaver"/>
                   </filelist>
                 </concat>
-<!-- compile the beaver source files -->
+<!-- run beaver, generate the java source files for the parsers -->
                 <java classpath="tools/beaver.jar" jar="tools/beaver.jar" fork="true">
                       <arg line="-d source/java/ -t -w bin/generated/CalParser.beaver"/>
                 </java>
