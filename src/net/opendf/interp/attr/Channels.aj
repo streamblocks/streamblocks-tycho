@@ -11,11 +11,11 @@ public aspect Channels {
 	
 	private int ChannelId.channelId;
 	
-	public void ChannelId.setChanneID(int id) {
+	public void ChannelId.setChannelId(int id) {
 		channelId = id;
 	}
 	
-	public int ChannelId.getChannelID() {
+	public int ChannelId.getChannelId() {
 		return channelId;
 	}
 

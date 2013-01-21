@@ -99,7 +99,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 	@Override
 	public Void visitStmtOutput(StmtOutput stmt, Environment env) {
 		Evaluator eval = simulator.evaluator();
-		Channel channel = env.getChannel(stmt.getChannelID());
+		Channel channel = env.getChannel(stmt.getChannelId());
 		if (stmt.hasRepeat()) {
 			Expression[] exprs = stmt.getValues();
 			BasicRef[] values = new BasicRef[exprs.length];

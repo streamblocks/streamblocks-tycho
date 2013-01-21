@@ -92,7 +92,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	@Override
 	public RefView visitExprInput(ExprInput expr, Environment env) {
 		Stack stack = simulator.stack();
-		Channel channel = env.getChannel(expr.getChannelID());
+		Channel channel = env.getChannel(expr.getChannelId());
 		if (expr.getRepeat() == 1) {
 			channel.peek(expr.getOffset(), stack.push());
 			return stack.pop();
