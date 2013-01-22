@@ -5,6 +5,8 @@ import net.opendf.interp.values.BasicList;
 import net.opendf.interp.values.Function;
 import net.opendf.interp.values.LambdaFunction;
 import net.opendf.interp.values.List;
+import net.opendf.interp.values.ProcProcedure;
+import net.opendf.interp.values.Procedure;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
@@ -58,13 +60,13 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprBinaryOp(ExprBinaryOp expr, Environment env) {
-		throw exceptionNotTransformed();
+		throw notTransformed();
 	}
 
 	@Override
 	public RefView visitExprEntry(ExprEntry expr, Environment env) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO implement
+		throw notImplemented();
 	}
 
 	@Override
@@ -164,29 +166,29 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprMap(ExprMap expr, Environment env) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO implement
+		throw notImplemented();
 	}
 
 	@Override
 	public RefView visitExprProc(ExprProc expr, Environment env) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public RefView visitExprSet(ExprSet expr, Environment env) {
-		Builder builder = null; // TODO instantiate
-		buildCollection(expr.getGenerators(), expr.getElements(), builder, env);
 		Stack stack = simulator.stack();
 		TypeConverter converter = simulator.converter();
-		converter.setCollection(stack.push(), builder.build());
+		Environment closure = expr.createClosure(env, simulator.stack());
+		Procedure p = new ProcProcedure(expr, closure);
+		converter.setProcedure(stack.push(), p);
 		return stack.pop();
 	}
 
 	@Override
+	public RefView visitExprSet(ExprSet expr, Environment env) {
+		// TODO implement
+		throw notImplemented();
+	}
+
+	@Override
 	public RefView visitExprUnaryOp(ExprUnaryOp expr, Environment env) {
-		throw exceptionNotTransformed();
+		throw notTransformed();
 	}
 
 	@Override
@@ -197,7 +199,11 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 		else return env.getMemory().get(pos);
 	}
 
-	private RuntimeException exceptionNotTransformed() {
+	private IllegalArgumentException notTransformed() {
 		return new IllegalArgumentException("Tree not transformed");
+	}
+	
+	private UnsupportedOperationException notImplemented() {
+		return new UnsupportedOperationException("Not implemented");
 	}
 }
