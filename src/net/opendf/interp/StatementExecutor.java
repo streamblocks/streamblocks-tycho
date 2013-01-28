@@ -32,20 +32,21 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 
 	@Override
 	public Void visitStmtAssignment(StmtAssignment stmt, Environment env) {
-		Ref ref = stmt.isVariableOnStack() ? simulator.stack().peek(stmt.getVariablePosition()) : env.getMemory().get(stmt.getVariablePosition());
+		Ref ref = stmt.isVariableOnStack() ? simulator.stack().peek(stmt.getVariablePosition()) : env.getMemory().get(
+				stmt.getVariablePosition());
 		Expression[] loc = stmt.getLocation();
 		if (loc != null) {
 			TypeConverter conv = simulator.converter();
 			Evaluator eval = simulator.evaluator();
 			Stack stack = simulator.stack();
-			for (int i = 0; i < loc.length-1; i++) {
+			for (int i = 0; i < loc.length - 1; i++) {
 				Expression l = loc[i];
 				List list = conv.getList(ref);
 				list.get(conv.getInt(eval.evaluate(l, env)), stack.push());
 				ref = stack.pop();
 			}
 			List list = conv.getList(ref);
-			list.set(conv.getInt(eval.evaluate(loc[loc.length-1], env)), eval.evaluate(stmt.getVal(), env));
+			list.set(conv.getInt(eval.evaluate(loc[loc.length - 1], env)), eval.evaluate(stmt.getVal(), env));
 		} else {
 			simulator.evaluator().evaluate(stmt.getVal(), env).assignTo(ref);
 		}
@@ -99,7 +100,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 	@Override
 	public Void visitStmtOutput(StmtOutput stmt, Environment env) {
 		Evaluator eval = simulator.evaluator();
-		Channel channel = env.getChannel(stmt.getChannelId());
+		Channel.InputEnd channel = env.getChannelIn(stmt.getChannelId());
 		if (stmt.hasRepeat()) {
 			Expression[] exprs = stmt.getValues();
 			BasicRef[] values = new BasicRef[exprs.length];
@@ -108,7 +109,8 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 				eval.evaluate(exprs[i], env).assignTo(values[i]);
 			}
 			for (int r = 0; r < stmt.getRepeat(); r++) {
-				for (BasicRef v : values) channel.write(v);
+				for (BasicRef v : values)
+					channel.write(v);
 			}
 		} else {
 			Expression[] exprs = stmt.getValues();
@@ -137,5 +139,5 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 		simulator.generator().generate(stmt.getGenerators(), execStmt, env);
 		return null;
 	}
-	
+
 }

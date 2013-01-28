@@ -4,8 +4,11 @@ import net.opendf.interp.values.Ref;
 
 public interface Environment {
 	public Memory getMemory();
-	public Channel getChannel(int i);
-	
-	public Environment closure(int[] selectChannels, int[] selectMemory, Ref[] addRefs);
+
+	public Channel.InputEnd getChannelIn(int i);
+
+	public Channel.OutputEnd getChannelOut(int i);
+
+	public Environment closure(int[] selectChannelIn, int[] selectChannelOut, int[] selectMemory, Ref[] addRefs);
 
 }

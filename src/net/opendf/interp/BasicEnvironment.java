@@ -4,15 +4,17 @@ import net.opendf.interp.values.Ref;
 
 public class BasicEnvironment implements Environment {
 	private final BasicMemory memory;
-	private final Channel[] channels;
+	private final Channel.InputEnd[] channelIn;
+	private final Channel.OutputEnd[] channelOut;
 
-	public BasicEnvironment(Channel[] channels, int memorySize) {
-		this(channels, new BasicMemory(memorySize));
+	public BasicEnvironment(Channel.InputEnd[] channelIn, Channel.OutputEnd[] channelOut, int memorySize) {
+		this(channelIn, channelOut, new BasicMemory(memorySize));
 	}
-	
-	private BasicEnvironment(Channel[] channels, BasicMemory memory) {
+
+	private BasicEnvironment(Channel.InputEnd[] channelIn, Channel.OutputEnd[] channelOut, BasicMemory memory) {
 		this.memory = memory;
-		this.channels = channels;
+		this.channelIn = channelIn;
+		this.channelOut = channelOut;
 	}
 
 	@Override
@@ -21,18 +23,27 @@ public class BasicEnvironment implements Environment {
 	}
 
 	@Override
-	public Channel getChannel(int i) {
-		return channels[i];
+	public Channel.InputEnd getChannelIn(int i) {
+		return channelIn[i];
 	}
 
 	@Override
-	public BasicEnvironment closure(int[] selectChannels, int[] selectMemory, Ref[] addRefs) {
+	public Channel.OutputEnd getChannelOut(int i) {
+		return channelOut[i];
+	}
+
+	@Override
+	public BasicEnvironment closure(int[] selectChannelIn, int[] selectChannelOut, int[] selectMemory, Ref[] addRefs) {
 		BasicMemory mem = memory.closure(selectMemory, addRefs);
-		Channel[] cs = new Channel[selectChannels.length];
-		for (int i = 0; i < selectChannels.length; i++) {
-			cs[i] = channels[selectChannels[i]];
+		Channel.InputEnd[] csi = new Channel.InputEnd[selectChannelIn.length];
+		Channel.OutputEnd[] cso = new Channel.OutputEnd[selectChannelIn.length];
+		for (int i = 0; i < selectChannelIn.length; i++) {
+			csi[i] = channelIn[selectChannelIn[i]];
 		}
-		return new BasicEnvironment(cs, mem);
+		for (int i = 0; i < selectChannelOut.length; i++) {
+			cso[i] = channelOut[selectChannelOut[i]];
+		}
+		return new BasicEnvironment(csi, cso, mem);
 	}
 
 }

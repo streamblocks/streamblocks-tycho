@@ -13,7 +13,8 @@ public class Sim implements Simulator {
 	private final GeneratorFilterHelper generator;
 	private final Environment actorMachineEnvironment;
 
-	public Sim(ActorMachine actorMachine, Channel[] channels, int memorySize, int stackSize) {
+	public Sim(ActorMachine actorMachine, Channel.InputEnd[] channelIn, Channel.OutputEnd[] channelOut, int memorySize,
+			int stackSize) {
 		actorMachineRunner = new BasicActorMachineRunner(this, actorMachine);
 		executor = new StatementExecutor(this);
 		evaluator = new ExpressionEvaluator(this);
@@ -21,7 +22,7 @@ public class Sim implements Simulator {
 		stack = new BasicStack(stackSize);
 		converter = new TypeConverter();
 		generator = new GeneratorFilterHelper(this);
-		actorMachineEnvironment = new BasicEnvironment(channels, memorySize);
+		actorMachineEnvironment = new BasicEnvironment(channelIn, channelOut, memorySize);
 	}
 
 	@Override

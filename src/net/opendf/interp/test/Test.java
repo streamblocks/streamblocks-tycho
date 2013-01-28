@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 import net.opendf.analysis.BinOpToFunc;
 import net.opendf.analysis.UnOpToFunc;
 import net.opendf.analysis.VariableBindings;
-import net.opendf.interp.BasicFixedSizeChannel;
+import net.opendf.interp.BasicChannel;
 import net.opendf.interp.Channel;
 import net.opendf.interp.Memory;
 import net.opendf.interp.Sim;
@@ -42,8 +42,9 @@ import net.opendf.trans.caltoam.ActorToActorMachine;
 
 public class Test {
 	public static void main(String[] args) throws FileNotFoundException {
-		//File calFile = new File("../dataflow/examples/SimpleExamples/Add.cal");
-		File calFile = new File("../dataflow/examples/MPEG4_SP_Decoder/ACPred.cal");
+		File calFile = new File("../dataflow/examples/SimpleExamples/Add.cal");
+		// File calFile = new
+		// File("../dataflow/examples/MPEG4_SP_Decoder/ACPred.cal");
 
 		CalParser parser = new CalParser();
 		Actor actor = parser.parse(calFile);
@@ -52,9 +53,9 @@ public class Test {
 		// print.print(actor);
 
 		List<Decl> actorArgs = new ArrayList<Decl>();
-		actorArgs.add(varDecl("MAXW_IN_MB", lit(121)));
-		actorArgs.add(varDecl("MB_COORD_SZ", lit(8)));
-		actorArgs.add(varDecl("SAMPLE_SZ", lit(13)));
+		// actorArgs.add(varDecl("MAXW_IN_MB", lit(121)));
+		// actorArgs.add(varDecl("MB_COORD_SZ", lit(8)));
+		// actorArgs.add(varDecl("SAMPLE_SZ", lit(13)));
 		Scope argScope = new Scope(ScopeKind.Persistent, actorArgs);
 
 		ActorToActorMachine trans = new ActorToActorMachine();
@@ -81,7 +82,7 @@ public class Test {
 			VariableUse use = (VariableUse) binding.getKey();
 			use.setVariablePosition(pos, stack);
 		}
-		
+
 		EvaluateLiterals evalLit = new EvaluateLiterals();
 		evalLit.evaluateLiterals(actorMachine);
 
@@ -91,6 +92,9 @@ public class Test {
 			for (PortDecl in : actorMachine.getInputPorts().getChildren()) {
 				portMap.put(new PortName(in.getLocalName()), i++);
 			}
+		}
+		{
+			int i = 0;
 			for (PortDecl out : actorMachine.getOutputPorts().getChildren()) {
 				portMap.put(new PortName(out.getLocalName()), i++);
 			}
@@ -102,10 +106,14 @@ public class Test {
 		SetChannelIds ci = new SetChannelIds();
 		ci.setChannelIds(actorMachine, portMap);
 
-		Channel[] channels = { new BasicFixedSizeChannel(1), new BasicFixedSizeChannel(1), new BasicFixedSizeChannel(1) };
-		channels[0].write(ConstRef.of(3));
-		channels[1].write(ConstRef.of(5));
-		Sim s = new Sim(actorMachine, channels, 100, 100);
+		Channel[] channels = { new BasicChannel(1), new BasicChannel(1), new BasicChannel(1) };
+		Channel.InputEnd[] channelIn = { channels[2].getInputEnd() };
+		Channel.OutputEnd[] channelOut = { channels[0].createOutputEnd(), channels[1].createOutputEnd() };
+		channels[0].getInputEnd().write(ConstRef.of(3));
+		channels[1].getInputEnd().write(ConstRef.of(5));
+		Channel.OutputEnd channelResult = channels[2].createOutputEnd();
+
+		Sim s = new Sim(actorMachine, channelIn, channelOut, 100, 100);
 		Memory mem = s.actorMachineEnvironment().getMemory();
 
 		int pos = memSize;
@@ -118,18 +126,19 @@ public class Test {
 			pos += 1;
 		}
 		s.actorMachineRunner().step();
-		if (channels[2].tokens(1)) {
+		if (channelResult.tokens(1)) {
 			BasicRef r = new BasicRef();
-			channels[2].peek(0, r);
+			channelResult.peek(0, r);
 			System.out.println(r.getLong());
 		} else {
 			System.out.println("error");
 		}
 	}
+
 	private static DeclVar varDecl(String name, Expression expr) {
 		return new DeclVar(null, name, null, expr, false);
 	}
-	
+
 	private static ExprLiteral lit(int i) {
 		return new ExprLiteral(ExprLiteral.litInteger, Integer.toString(i));
 	}

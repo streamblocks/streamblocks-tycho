@@ -111,14 +111,14 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 	@Override
 	public Boolean visitInputCondition(PortCondition c, Environment p) {
 		int id = c.getChannelId();
-		Channel channel = simulator.actorMachineEnvironment().getChannel(id);
+		Channel.OutputEnd channel = simulator.actorMachineEnvironment().getChannelOut(id);
 		return channel.tokens(c.N());
 	}
 
 	@Override
 	public Boolean visitOutputCondition(PortCondition c, Environment p) {
 		int id = c.getChannelId();
-		Channel channel = simulator.actorMachineEnvironment().getChannel(id);
+		Channel.InputEnd channel = simulator.actorMachineEnvironment().getChannelIn(id);
 		return channel.space(c.N());
 	}
 
