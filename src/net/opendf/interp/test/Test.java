@@ -2,7 +2,9 @@ package net.opendf.interp.test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -15,6 +17,7 @@ import net.opendf.interp.Memory;
 import net.opendf.interp.Sim;
 import net.opendf.interp.attr.Variables.VariableDeclaration;
 import net.opendf.interp.attr.Variables.VariableUse;
+import net.opendf.interp.preprocess.EvaluateLiterals;
 import net.opendf.interp.preprocess.SetChannelIds;
 import net.opendf.interp.preprocess.SetScopeInitializers;
 import net.opendf.interp.preprocess.SetVariablePositions;
@@ -24,8 +27,14 @@ import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.predef.Predef;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.am.Scope;
+import net.opendf.ir.am.Scope.ScopeKind;
 import net.opendf.ir.cal.Actor;
+import net.opendf.ir.common.Decl;
+import net.opendf.ir.common.DeclVar;
+import net.opendf.ir.common.ExprLiteral;
 import net.opendf.ir.common.ExprVariable;
+import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.PortName;
 import net.opendf.parser.lth.CalParser;
@@ -33,7 +42,7 @@ import net.opendf.trans.caltoam.ActorToActorMachine;
 
 public class Test {
 	public static void main(String[] args) throws FileNotFoundException {
-		// File calFile = new File("../dataflow/examples/SimpleExamples/Add.cal");
+		//File calFile = new File("../dataflow/examples/SimpleExamples/Add.cal");
 		File calFile = new File("../dataflow/examples/MPEG4_SP_Decoder/ACPred.cal");
 
 		CalParser parser = new CalParser();
@@ -42,8 +51,14 @@ public class Test {
 		// net.opendf.util.PrettyPrint();
 		// print.print(actor);
 
+		List<Decl> actorArgs = new ArrayList<Decl>();
+		actorArgs.add(varDecl("MAXW_IN_MB", lit(121)));
+		actorArgs.add(varDecl("MB_COORD_SZ", lit(8)));
+		actorArgs.add(varDecl("SAMPLE_SZ", lit(13)));
+		Scope argScope = new Scope(ScopeKind.Persistent, actorArgs);
+
 		ActorToActorMachine trans = new ActorToActorMachine();
-		ActorMachine actorMachine = trans.translate(actor);
+		ActorMachine actorMachine = trans.translate(actor, argScope);
 
 		// net.opendf.ir.am.util.ControllerToGraphviz.print(new
 		// PrintStream("controller.gv"), actorMachine, "Controller");
@@ -66,6 +81,9 @@ public class Test {
 			VariableUse use = (VariableUse) binding.getKey();
 			use.setVariablePosition(pos, stack);
 		}
+		
+		EvaluateLiterals evalLit = new EvaluateLiterals();
+		evalLit.evaluateLiterals(actorMachine);
 
 		Map<PortName, Integer> portMap = new HashMap<PortName, Integer>();
 		{
@@ -108,4 +126,12 @@ public class Test {
 			System.out.println("error");
 		}
 	}
+	private static DeclVar varDecl(String name, Expression expr) {
+		return new DeclVar(null, name, null, expr, false);
+	}
+	
+	private static ExprLiteral lit(int i) {
+		return new ExprLiteral(ExprLiteral.litInteger, Integer.toString(i));
+	}
+
 }
