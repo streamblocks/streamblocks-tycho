@@ -43,4 +43,23 @@ public class BoolFunctions {
 		}
 	}
 
+	public static class Not implements Function {
+
+		@Override
+		public final Value copy() {
+			return this;
+		}
+
+		@Override
+		public final RefView apply(int args, Simulator sim) {
+			assert args == 1;
+			Stack stack = sim.stack();
+			TypeConverter conv = sim.converter();
+			boolean b = conv.getBoolean(stack.pop());
+			Ref r = stack.push();
+			conv.setBoolean(r, !b);
+			return stack.pop();
+		}
+	}
+
 }

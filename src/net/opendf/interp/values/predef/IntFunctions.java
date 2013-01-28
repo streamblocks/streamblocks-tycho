@@ -134,6 +134,12 @@ public class IntFunctions {
 		}
 	}
 
+	public static class NE extends CompOp {
+		protected final boolean op(int a, int b) {
+			return a != b;
+		}
+	}
+
 	public static class GE extends CompOp {
 		protected final boolean op(int a, int b) {
 			return a >= b;

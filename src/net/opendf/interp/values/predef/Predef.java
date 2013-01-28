@@ -24,9 +24,14 @@ public class Predef {
 		predef.put(">", ConstRef.of(new IntFunctions.GT()));
 		predef.put(">=", ConstRef.of(new IntFunctions.GE()));
 		predef.put("=", ConstRef.of(new IntFunctions.EQ()));
+		predef.put("!=", ConstRef.of(new IntFunctions.NE()));
 
 		predef.put("and", ConstRef.of(new BoolFunctions.And()));
 		predef.put("or", ConstRef.of(new BoolFunctions.Or()));
+		predef.put("not", ConstRef.of(new BoolFunctions.Not()));
+		
+		predef.put("Integers", ConstRef.of(new CollFunctions.IntegerRange()));
+		
 		predef = Collections.unmodifiableMap(predef);
 	}
 
