@@ -1,8 +1,9 @@
 package net.opendf.interp;
 
+import net.opendf.ir.am.ActorMachine;
 
 public class Sim implements Simulator {
-	
+
 	private final ActorMachineRunner actorMachineRunner;
 	private final Executor executor;
 	private final Evaluator evaluator;
@@ -11,16 +12,16 @@ public class Sim implements Simulator {
 	private final TypeConverter converter;
 	private final GeneratorFilterHelper generator;
 	private final Environment actorMachineEnvironment;
-	
-	public Sim(int stackSize) {
-		actorMachineRunner = null; //TODO add implementation
+
+	public Sim(ActorMachine actorMachine, Channel[] channels, int memorySize, int stackSize) {
+		actorMachineRunner = new BasicActorMachineRunner(this, actorMachine);
 		executor = new StatementExecutor(this);
 		evaluator = new ExpressionEvaluator(this);
 		declarator = new VarDeclarator(this);
 		stack = new BasicStack(stackSize);
 		converter = new TypeConverter();
 		generator = new GeneratorFilterHelper(this);
-		actorMachineEnvironment = null; //FIXME
+		actorMachineEnvironment = new BasicEnvironment(channels, memorySize);
 	}
 
 	@Override

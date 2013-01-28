@@ -19,8 +19,9 @@ import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Statement;
 
-public class BasicActorMachineRunner implements ActorMachineRunner, InstructionVisitor<Integer, Environment>, ConditionVisitor<Boolean, Environment> {
-	
+public class BasicActorMachineRunner implements ActorMachineRunner, InstructionVisitor<Integer, Environment>,
+		ConditionVisitor<Boolean, Environment> {
+
 	private final Simulator simulator;
 	private final ActorMachine actorMachine;
 	private final Decl[] decls;
@@ -35,7 +36,7 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 		this.liveVariables = new BitSet();
 		this.state = 0;
 	}
-	
+
 	private Decl[] collectDecls(ActorMachine actorMachine) {
 		HashMap<Integer, Decl> declMap = new HashMap<Integer, Decl>();
 		int max = 0;
@@ -50,31 +51,37 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 				}
 			}
 		}
-		Decl[] d = new Decl[max+1];
+		Decl[] d = new Decl[max + 1];
 		for (Map.Entry<Integer, Decl> declEntry : declMap.entrySet()) {
 			d[declEntry.getKey()] = declEntry.getValue();
 		}
 		return d;
 	}
-	
+
 	@Override
 	public void step() {
-		Instruction i = actorMachine.getInstructions(state).get(0);
-		state = i.accept(this, null);
+		boolean done = false;
+		while (!done) {
+			Instruction i = actorMachine.getInstructions(state).get(0);
+			state = i.accept(this, simulator.actorMachineEnvironment());
+			if (i instanceof ICall || i instanceof IWait) {
+				done = true;
+			}
+		}
 	}
-	
+
 	private void initVars(BitSet vars) {
 		BitSet s = new BitSet();
 		s.or(vars);
 		s.andNot(liveVariables);
 		Declarator d = simulator.declarator();
 		Environment env = simulator.actorMachineEnvironment();
-		for (int i = s.nextSetBit(0); i >= 0; i = s.nextSetBit(i+1)) {
+		for (int i = s.nextSetBit(0); i >= 0; i = s.nextSetBit(i + 1)) {
 			d.declare(decls[i], env);
 		}
 		liveVariables.or(s);
 	}
-	
+
 	private void remVars(BitSet vars) {
 		liveVariables.andNot(vars);
 	}
@@ -86,19 +93,18 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 
 	@Override
 	public Integer visitTest(ITest i, Environment p) {
-		initVars(i.getRequiredVariables());
 		boolean cond = i.C().accept(this, p);
 		return cond ? i.S1() : i.S0();
 	}
 
 	@Override
 	public Integer visitCall(ICall i, Environment p) {
-		initVars(i.getRequiredVariables());
+		initVars(i.T().getRequiredVariables());
 		Executor exec = simulator.executor();
 		for (Statement s : i.T().getBody()) {
 			exec.execute(s, p);
 		}
-		remVars(i.getInvalidatedVariables());
+		remVars(i.T().getInvalidatedVariables());
 		return i.S();
 	}
 
@@ -118,8 +124,9 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 
 	@Override
 	public Boolean visitPredicateCondition(PredicateCondition c, Environment p) {
+		initVars(c.getRequiredVariables());
 		RefView cond = simulator.evaluator().evaluate(c.getExpression(), p);
 		return simulator.converter().getBoolean(cond);
 	}
-	
+
 }

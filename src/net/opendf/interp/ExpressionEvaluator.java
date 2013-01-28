@@ -95,7 +95,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	public RefView visitExprInput(ExprInput expr, Environment env) {
 		Stack stack = simulator.stack();
 		Channel channel = env.getChannel(expr.getChannelId());
-		if (expr.getRepeat() == 1) {
+		if (!expr.hasRepeat()) {
 			channel.peek(expr.getOffset(), stack.push());
 			return stack.pop();
 		} else {
@@ -147,8 +147,9 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 		converter.setList(stack.push(), builder.build());
 		return stack.pop();
 	}
-	
-	private void buildCollection(GeneratorFilter[] generators, final Expression[] elements, final Builder builder, final Environment env) {
+
+	private void buildCollection(GeneratorFilter[] generators, final Expression[] elements, final Builder builder,
+			final Environment env) {
 		Runnable buildList = new Runnable() {
 			public void run() {
 				for (Expression e : elements) {
@@ -195,14 +196,16 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	public RefView visitExprVariable(ExprVariable expr, Environment env) {
 		int pos = expr.getVariablePosition();
 		boolean stack = expr.isVariableOnStack();
-		if (stack) return simulator.stack().peek(pos);
-		else return env.getMemory().get(pos);
+		if (stack)
+			return simulator.stack().peek(pos);
+		else
+			return env.getMemory().get(pos);
 	}
 
 	private IllegalArgumentException notTransformed() {
 		return new IllegalArgumentException("Tree not transformed");
 	}
-	
+
 	private UnsupportedOperationException notImplemented() {
 		return new UnsupportedOperationException("Not implemented");
 	}

@@ -9,5 +9,6 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cal-to-am"/>
+	<classpathentry kind="src" path="/am-analysis"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
