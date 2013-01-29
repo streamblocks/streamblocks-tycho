@@ -11,11 +11,11 @@ import java.util.Map.Entry;
 import net.opendf.analysis.BinOpToFunc;
 import net.opendf.analysis.UnOpToFunc;
 import net.opendf.analysis.VariableBindings;
-import net.opendf.interp.ActorMachineRunner;
-import net.opendf.interp.BasicActorMachineRunner;
+import net.opendf.interp.Simulator;
+import net.opendf.interp.BasicSimulator;
 import net.opendf.interp.BasicChannel;
 import net.opendf.interp.BasicEnvironment;
-import net.opendf.interp.BasicProceduralExecutor;
+import net.opendf.interp.BasicInterpreter;
 import net.opendf.interp.BasicStack;
 import net.opendf.interp.Channel;
 import net.opendf.interp.Environment;
@@ -95,7 +95,7 @@ public class Test {
 		channels[1].getInputEnd().write(ConstRef.of(5));
 		Channel.OutputEnd channelResult = channels[2].createOutputEnd();
 
-		ActorMachineRunner runner = createActorMachineRunner(actorMachine, channelIn, channelOut, portMap, 100);
+		Simulator runner = createActorMachineRunner(actorMachine, channelIn, channelOut, portMap, 100);
 
 		runner.step();
 		if (channelResult.tokens(1)) {
@@ -107,7 +107,7 @@ public class Test {
 		}
 	}
 
-	private static ActorMachineRunner createActorMachineRunner(ActorMachine actorMachine, Channel.InputEnd[] channelIn,
+	private static Simulator createActorMachineRunner(ActorMachine actorMachine, Channel.InputEnd[] channelIn,
 			Channel.OutputEnd[] channelOut, Map<PortName, Integer> portMap, int stackSize) {
 		VariableBindings varBind = new VariableBindings();
 		VariableBindings.Bindings b = varBind.bindVariables(actorMachine);
@@ -138,7 +138,7 @@ public class Test {
 		SetChannelIds ci = new SetChannelIds();
 		ci.setChannelIds(actorMachine, portMap);
 
-		return new BasicActorMachineRunner(actorMachine, env, new BasicProceduralExecutor(new BasicStack(stackSize)));
+		return new BasicSimulator(actorMachine, env, new BasicInterpreter(new BasicStack(stackSize)));
 	}
 
 	private static DeclVar varDecl(String name, Expression expr) {

@@ -1,5 +1,5 @@
 package net.opendf.interp;
 
-public interface ActorMachineRunner {
+public interface Simulator {
 	public void step();
 }

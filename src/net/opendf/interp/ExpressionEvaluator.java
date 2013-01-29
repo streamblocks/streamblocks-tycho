@@ -31,13 +31,13 @@ import net.opendf.ir.common.GeneratorFilter;
 
 public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environment> {
 
-	private final ProceduralExecutor executor;
+	private final Interpreter interpreter;
 	private final Stack stack;
 	private final TypeConverter converter;
 	private final GeneratorFilterHelper generator;
 
-	public ExpressionEvaluator(ProceduralExecutor executor) {
-		this.executor = executor;
+	public ExpressionEvaluator(Interpreter executor) {
+		this.interpreter = executor;
 		this.stack = executor.getStack();
 		this.converter = TypeConverter.getInstance();
 		this.generator = new GeneratorFilterHelper(executor);
@@ -55,7 +55,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 		for (Expression arg : argExprs) {
 			stack.push(evaluate(arg, env));
 		}
-		return f.apply(executor);
+		return f.apply(interpreter);
 	}
 
 	@Override
@@ -120,10 +120,10 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	public RefView visitExprLet(ExprLet expr, Environment env) {
 		int stackAllocs = 0;
 		for (DeclType d : expr.getTypeDecls()) {
-			stackAllocs += executor.declare(d, env);
+			stackAllocs += interpreter.declare(d, env);
 		}
 		for (DeclVar d : expr.getVarDecls()) {
-			stackAllocs += executor.declare(d, env);
+			stackAllocs += interpreter.declare(d, env);
 		}
 		RefView r = evaluate(expr.getBody(), env);
 		stack.remove(stackAllocs);

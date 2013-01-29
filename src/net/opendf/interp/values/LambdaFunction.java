@@ -1,7 +1,7 @@
 package net.opendf.interp.values;
 
 import net.opendf.interp.Environment;
-import net.opendf.interp.ProceduralExecutor;
+import net.opendf.interp.Interpreter;
 import net.opendf.ir.common.ExprLambda;
 
 public class LambdaFunction implements Function {
@@ -20,8 +20,8 @@ public class LambdaFunction implements Function {
 	}
 
 	@Override
-	public RefView apply(ProceduralExecutor exec) {
-		return exec.evaluate(lambda.getBody(), closure);
+	public RefView apply(Interpreter interpreter) {
+		return interpreter.evaluate(lambda.getBody(), closure);
 	}
 
 }

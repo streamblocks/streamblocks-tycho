@@ -1,6 +1,6 @@
 package net.opendf.interp.values.predef;
 
-import net.opendf.interp.ProceduralExecutor;
+import net.opendf.interp.Interpreter;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
 import net.opendf.interp.values.Function;
@@ -18,8 +18,8 @@ public class IntFunctions {
 		}
 
 		@Override
-		public final RefView apply(ProceduralExecutor exec) {
-			Stack stack = exec.getStack();
+		public final RefView apply(Interpreter interpreter) {
+			Stack stack = interpreter.getStack();
 			int b = conv.getInt(stack.pop());
 			int a = conv.getInt(stack.pop());
 			conv.setInt(stack.push(), op(a, b));
@@ -81,8 +81,8 @@ public class IntFunctions {
 		}
 
 		@Override
-		public RefView apply(ProceduralExecutor exec) {
-			Stack stack = exec.getStack();
+		public RefView apply(Interpreter interpreter) {
+			Stack stack = interpreter.getStack();
 			int value = conv.getInt(stack.pop());
 			int size = conv.getInt(stack.pop());
 			int sizeDiff = 32 - size;
@@ -102,8 +102,8 @@ public class IntFunctions {
 		}
 
 		@Override
-		public final RefView apply(ProceduralExecutor exec) {
-			Stack stack = exec.getStack();
+		public final RefView apply(Interpreter interpreter) {
+			Stack stack = interpreter.getStack();
 			int b = conv.getInt(stack.pop());
 			int a = conv.getInt(stack.pop());
 			conv.setBoolean(stack.push(), op(a, b));

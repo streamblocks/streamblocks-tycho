@@ -20,16 +20,16 @@ import net.opendf.ir.common.StmtWhile;
 
 public class StatementExecutor implements StatementVisitor<Void, Environment> {
 
-	private final ProceduralExecutor exec;
+	private final Interpreter interpreter;
 	private final TypeConverter conv;
 	private final Stack stack;
 	private final GeneratorFilterHelper gen;
 
-	public StatementExecutor(ProceduralExecutor exec) {
-		this.exec = exec;
+	public StatementExecutor(Interpreter interpreter) {
+		this.interpreter = interpreter;
 		this.conv = TypeConverter.getInstance();
-		this.stack = exec.getStack();
-		this.gen = new GeneratorFilterHelper(exec);
+		this.stack = interpreter.getStack();
+		this.gen = new GeneratorFilterHelper(interpreter);
 	}
 
 	private void execute(Statement stmt, Environment env) {
@@ -45,13 +45,13 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 			for (int i = 0; i < loc.length - 1; i++) {
 				Expression l = loc[i];
 				List list = conv.getList(ref);
-				list.get(conv.getInt(exec.evaluate(l, env)), stack.push());
+				list.get(conv.getInt(interpreter.evaluate(l, env)), stack.push());
 				ref = stack.pop();
 			}
 			List list = conv.getList(ref);
-			list.set(conv.getInt(exec.evaluate(loc[loc.length - 1], env)), exec.evaluate(stmt.getVal(), env));
+			list.set(conv.getInt(interpreter.evaluate(loc[loc.length - 1], env)), interpreter.evaluate(stmt.getVal(), env));
 		} else {
-			exec.evaluate(stmt.getVal(), env).assignTo(ref);
+			interpreter.evaluate(stmt.getVal(), env).assignTo(ref);
 		}
 		return null;
 	}
@@ -60,10 +60,10 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 	public Void visitStmtBlock(StmtBlock stmt, Environment env) {
 		int stackAllocs = 0;
 		for (DeclType d : stmt.getTypeDecls()) {
-			stackAllocs += exec.declare(d, env);
+			stackAllocs += interpreter.declare(d, env);
 		}
 		for (DeclVar d : stmt.getVarDecls()) {
-			stackAllocs += exec.declare(d, env);
+			stackAllocs += interpreter.declare(d, env);
 		}
 		for (Statement s : stmt.getStatements()) {
 			execute(s, env);
@@ -74,7 +74,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 
 	@Override
 	public Void visitStmtIf(StmtIf stmt, Environment env) {
-		RefView condRef = exec.evaluate(stmt.getCondition(), env);
+		RefView condRef = interpreter.evaluate(stmt.getCondition(), env);
 		boolean cond = conv.getBoolean(condRef);
 		if (cond) {
 			execute(stmt.getThenBranch(), env);
@@ -86,13 +86,13 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 
 	@Override
 	public Void visitStmtCall(StmtCall stmt, Environment env) {
-		RefView r = exec.evaluate(stmt.getProcedure(), env);
+		RefView r = interpreter.evaluate(stmt.getProcedure(), env);
 		Procedure p = conv.getProcedure(r);
 		Expression[] argExprs = stmt.getArgs();
 		for (Expression arg : argExprs) {
-			stack.push(exec.evaluate(arg, env));
+			stack.push(interpreter.evaluate(arg, env));
 		}
-		p.exec(exec);
+		p.exec(interpreter);
 		return null;
 	}
 
@@ -104,7 +104,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 			BasicRef[] values = new BasicRef[exprs.length];
 			for (int i = 0; i < exprs.length; i++) {
 				values[i] = new BasicRef();
-				exec.evaluate(exprs[i], env).assignTo(values[i]);
+				interpreter.evaluate(exprs[i], env).assignTo(values[i]);
 			}
 			for (int r = 0; r < stmt.getRepeat(); r++) {
 				for (BasicRef v : values)
@@ -113,7 +113,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 		} else {
 			Expression[] exprs = stmt.getValues();
 			for (int i = 0; i < exprs.length; i++) {
-				channel.write(exec.evaluate(exprs[i], env));
+				channel.write(interpreter.evaluate(exprs[i], env));
 			}
 		}
 		return null;
@@ -121,7 +121,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 
 	@Override
 	public Void visitStmtWhile(StmtWhile stmt, Environment env) {
-		while (conv.getBoolean(exec.evaluate(stmt.getCondition(), env))) {
+		while (conv.getBoolean(interpreter.evaluate(stmt.getCondition(), env))) {
 			execute(stmt.getBody(), env);
 		}
 		return null;

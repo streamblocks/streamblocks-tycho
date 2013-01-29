@@ -19,12 +19,12 @@ import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Statement;
 
-public class BasicActorMachineRunner implements ActorMachineRunner, InstructionVisitor<Integer, Environment>,
+public class BasicSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
 		ConditionVisitor<Boolean, Environment> {
 
 	private final ActorMachine actorMachine;
 	private final Environment environment;
-	private final ProceduralExecutor exec;
+	private final Interpreter interpreter;
 	private final Decl[] decls;
 	
 	private final TypeConverter converter;
@@ -32,10 +32,10 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 	private BitSet liveVariables;
 	private int state;
 
-	public BasicActorMachineRunner(ActorMachine actorMachine, Environment environment, ProceduralExecutor exec) {
+	public BasicSimulator(ActorMachine actorMachine, Environment environment, Interpreter interpreter) {
 		this.actorMachine = actorMachine;
 		this.environment = environment;
-		this.exec = exec;
+		this.interpreter = interpreter;
 		this.decls = collectDecls(actorMachine);
 		this.converter = TypeConverter.getInstance();
 		this.liveVariables = new BitSet();
@@ -80,7 +80,7 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 		s.or(vars);
 		s.andNot(liveVariables);
 		for (int i = s.nextSetBit(0); i >= 0; i = s.nextSetBit(i + 1)) {
-			exec.declare(decls[i], environment);
+			interpreter.declare(decls[i], environment);
 		}
 		liveVariables.or(s);
 	}
@@ -104,7 +104,7 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 	public Integer visitCall(ICall i, Environment p) {
 		initVars(i.T().getRequiredVariables());
 		for (Statement s : i.T().getBody()) {
-			exec.execute(s, p);
+			interpreter.execute(s, p);
 		}
 		remVars(i.T().getInvalidatedVariables());
 		return i.S();
@@ -127,7 +127,7 @@ public class BasicActorMachineRunner implements ActorMachineRunner, InstructionV
 	@Override
 	public Boolean visitPredicateCondition(PredicateCondition c, Environment p) {
 		initVars(c.getRequiredVariables());
-		RefView cond = exec.evaluate(c.getExpression(), p);
+		RefView cond = interpreter.evaluate(c.getExpression(), p);
 		return converter.getBoolean(cond);
 	}
 

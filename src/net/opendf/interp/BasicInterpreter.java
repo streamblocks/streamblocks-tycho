@@ -5,14 +5,14 @@ import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Statement;
 
-public class BasicProceduralExecutor implements ProceduralExecutor {
+public class BasicInterpreter implements Interpreter {
 
 	private final ExpressionEvaluator evaluator;
 	private final StatementExecutor executor;
 	private final VarDeclarator declarator;
 	private final Stack stack;
 
-	public BasicProceduralExecutor(Stack stack) {
+	public BasicInterpreter(Stack stack) {
 		this.stack = stack;
 		this.evaluator = new ExpressionEvaluator(this);
 		this.executor = new StatementExecutor(this);

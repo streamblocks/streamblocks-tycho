@@ -8,13 +8,13 @@ import net.opendf.ir.common.GeneratorFilter;
 
 public class GeneratorFilterHelper {
 
-	private final ProceduralExecutor executor;
+	private final Interpreter interpreter;
 	private final Stack stack;
 	private final TypeConverter converter;
 
-	public GeneratorFilterHelper(ProceduralExecutor executor) {
-		this.executor = executor;
-		this.stack = executor.getStack();
+	public GeneratorFilterHelper(Interpreter interpreter) {
+		this.interpreter = interpreter;
+		this.stack = interpreter.getStack();
 		this.converter = TypeConverter.getInstance();
 	}
 
@@ -28,14 +28,14 @@ public class GeneratorFilterHelper {
 		} else if (var == generators[gen].getVariables().length) {
 			generate(generators, action, env, gen + 1, 0);
 		} else {
-			RefView c = executor.evaluate(generators[gen].getCollectionExpr(), env);
+			RefView c = interpreter.evaluate(generators[gen].getCollectionExpr(), env);
 			Collection coll = converter.getCollection(c);
 			Iterator iter = coll.iterator();
 			while (!iter.finished()) {
 				stack.push(iter);
 				boolean included = true;
 				for (Expression filter : generators[gen].getFilters()) {
-					if (!converter.getBoolean(executor.evaluate(filter, env))) {
+					if (!converter.getBoolean(interpreter.evaluate(filter, env))) {
 						included = false;
 						break;
 					}

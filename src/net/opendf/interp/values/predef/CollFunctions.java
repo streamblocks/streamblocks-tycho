@@ -1,6 +1,6 @@
 package net.opendf.interp.values.predef;
 
-import net.opendf.interp.ProceduralExecutor;
+import net.opendf.interp.Interpreter;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
 import net.opendf.interp.values.Function;
@@ -19,8 +19,8 @@ public class CollFunctions {
 		}
 
 		@Override
-		public final RefView apply(ProceduralExecutor exec) {
-			Stack stack = exec.getStack();
+		public final RefView apply(Interpreter interpreter) {
+			Stack stack = interpreter.getStack();
 			int to = conv.getInt(stack.pop());
 			int from = conv.getInt(stack.pop());
 			conv.setCollection(stack.push(), new Range(from, to));

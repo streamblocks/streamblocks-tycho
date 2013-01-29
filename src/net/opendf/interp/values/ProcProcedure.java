@@ -1,7 +1,7 @@
 package net.opendf.interp.values;
 
 import net.opendf.interp.Environment;
-import net.opendf.interp.ProceduralExecutor;
+import net.opendf.interp.Interpreter;
 import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.Statement;
 
@@ -21,9 +21,9 @@ public class ProcProcedure implements Procedure {
 	}
 
 	@Override
-	public void exec(ProceduralExecutor exec) {
+	public void exec(Interpreter interpreter) {
 		for (Statement s : proc.getBody()) {
-			exec.execute(s, closure);
+			interpreter.execute(s, closure);
 		}
 	}
 

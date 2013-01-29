@@ -8,10 +8,10 @@ import net.opendf.ir.common.DeclVisitor;
 
 public class VarDeclarator implements DeclVisitor<Integer, Environment> {
 	
-	private final ProceduralExecutor exec;
+	private final Interpreter interpreter;
 	
-	public VarDeclarator(ProceduralExecutor exec) {
-		this.exec = exec;
+	public VarDeclarator(Interpreter interpreter) {
+		this.interpreter = interpreter;
 	}
 
 	@Override
@@ -27,11 +27,11 @@ public class VarDeclarator implements DeclVisitor<Integer, Environment> {
 	@Override
 	public Integer visitDeclVar(DeclVar d, Environment env) {
 		if (d.isVariableOnStack()) {
-			exec.getStack().push(exec.evaluate(d.getInitialValue(), env));
+			interpreter.getStack().push(interpreter.evaluate(d.getInitialValue(), env));
 			return 1;
 		} else {
 			Ref r = env.getMemory().declare(d.getVariablePosition());
-			exec.evaluate(d.getInitialValue(), env).assignTo(r);
+			interpreter.evaluate(d.getInitialValue(), env).assignTo(r);
 			return 0;
 		}
 	}
