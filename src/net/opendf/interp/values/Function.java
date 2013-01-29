@@ -1,8 +1,7 @@
 package net.opendf.interp.values;
 
-import net.opendf.interp.Simulator;
-
+import net.opendf.interp.Interpreter;
 
 public interface Function extends Value {
-	public RefView apply(int args, Simulator sim);
+	public RefView apply(Interpreter interpreter);
 }

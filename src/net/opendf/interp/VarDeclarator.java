@@ -1,23 +1,17 @@
 package net.opendf.interp;
 
 import net.opendf.interp.values.Ref;
-import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.DeclVisitor;
 
-public class VarDeclarator implements DeclVisitor<Integer, Environment>, Declarator {
+public class VarDeclarator implements DeclVisitor<Integer, Environment> {
 	
-	private final Simulator simulator;
+	private final Interpreter interpreter;
 	
-	public VarDeclarator(Simulator simulator) {
-		this.simulator = simulator;
-	}
-
-	@Override
-	public int declare(Decl decl, Environment env) {
-		return decl.accept(this, env);
+	public VarDeclarator(Interpreter interpreter) {
+		this.interpreter = interpreter;
 	}
 
 	@Override
@@ -33,11 +27,11 @@ public class VarDeclarator implements DeclVisitor<Integer, Environment>, Declara
 	@Override
 	public Integer visitDeclVar(DeclVar d, Environment env) {
 		if (d.isVariableOnStack()) {
-			simulator.stack().push(simulator.evaluator().evaluate(d.getInitialValue(), env));
+			interpreter.getStack().push(interpreter.evaluate(d.getInitialValue(), env));
 			return 1;
 		} else {
 			Ref r = env.getMemory().declare(d.getVariablePosition());
-			simulator.evaluator().evaluate(d.getInitialValue(), env).assignTo(r);
+			interpreter.evaluate(d.getInitialValue(), env).assignTo(r);
 			return 0;
 		}
 	}

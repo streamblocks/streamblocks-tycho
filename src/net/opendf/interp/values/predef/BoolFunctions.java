@@ -1,15 +1,17 @@
 package net.opendf.interp.values.predef;
 
-import net.opendf.interp.Simulator;
+import net.opendf.interp.Interpreter;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
 import net.opendf.interp.values.Function;
-import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.Value;
 
 public class BoolFunctions {
+
 	private static abstract class LogicOp implements Function {
+
+		private TypeConverter conv = TypeConverter.getInstance();
 
 		@Override
 		public final Value copy() {
@@ -17,14 +19,11 @@ public class BoolFunctions {
 		}
 
 		@Override
-		public final RefView apply(int args, Simulator sim) {
-			assert args == 2;
-			Stack stack = sim.stack();
-			TypeConverter conv = sim.converter();
+		public final RefView apply(Interpreter interpreter) {
+			Stack stack = interpreter.getStack();
 			boolean b = conv.getBoolean(stack.pop());
 			boolean a = conv.getBoolean(stack.pop());
-			Ref r = stack.push();
-			conv.setBoolean(r, op(a, b));
+			conv.setBoolean(stack.push(), op(a, b));
 			return stack.pop();
 		}
 
@@ -45,19 +44,18 @@ public class BoolFunctions {
 
 	public static class Not implements Function {
 
+		private TypeConverter conv = TypeConverter.getInstance();
+
 		@Override
 		public final Value copy() {
 			return this;
 		}
 
 		@Override
-		public final RefView apply(int args, Simulator sim) {
-			assert args == 1;
-			Stack stack = sim.stack();
-			TypeConverter conv = sim.converter();
+		public final RefView apply(Interpreter interpreter) {
+			Stack stack = interpreter.getStack();
 			boolean b = conv.getBoolean(stack.pop());
-			Ref r = stack.push();
-			conv.setBoolean(r, !b);
+			conv.setBoolean(stack.push(), !b);
 			return stack.pop();
 		}
 	}
