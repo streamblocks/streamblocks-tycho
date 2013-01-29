@@ -18,62 +18,64 @@ import net.opendf.ir.common.StmtIf;
 import net.opendf.ir.common.StmtOutput;
 import net.opendf.ir.common.StmtWhile;
 
-public class StatementExecutor implements StatementVisitor<Void, Environment>, Executor {
+public class StatementExecutor implements StatementVisitor<Void, Environment> {
 
-	private final Simulator simulator;
+	private final ProceduralExecutor exec;
+	private final TypeConverter conv;
+	private final Stack stack;
+	private final GeneratorFilterHelper gen;
 
-	public StatementExecutor(Simulator simulator) {
-		this.simulator = simulator;
+	public StatementExecutor(ProceduralExecutor exec) {
+		this.exec = exec;
+		this.conv = TypeConverter.getInstance();
+		this.stack = exec.getStack();
+		this.gen = new GeneratorFilterHelper(exec);
 	}
 
-	public void execute(Statement stmt, Environment env) {
+	private void execute(Statement stmt, Environment env) {
 		stmt.accept(this, env);
 	}
 
 	@Override
 	public Void visitStmtAssignment(StmtAssignment stmt, Environment env) {
-		Ref ref = stmt.isVariableOnStack() ? simulator.stack().peek(stmt.getVariablePosition()) : env.getMemory().get(
+		Ref ref = stmt.isVariableOnStack() ? stack.peek(stmt.getVariablePosition()) : env.getMemory().get(
 				stmt.getVariablePosition());
 		Expression[] loc = stmt.getLocation();
 		if (loc != null) {
-			TypeConverter conv = simulator.converter();
-			Evaluator eval = simulator.evaluator();
-			Stack stack = simulator.stack();
 			for (int i = 0; i < loc.length - 1; i++) {
 				Expression l = loc[i];
 				List list = conv.getList(ref);
-				list.get(conv.getInt(eval.evaluate(l, env)), stack.push());
+				list.get(conv.getInt(exec.evaluate(l, env)), stack.push());
 				ref = stack.pop();
 			}
 			List list = conv.getList(ref);
-			list.set(conv.getInt(eval.evaluate(loc[loc.length - 1], env)), eval.evaluate(stmt.getVal(), env));
+			list.set(conv.getInt(exec.evaluate(loc[loc.length - 1], env)), exec.evaluate(stmt.getVal(), env));
 		} else {
-			simulator.evaluator().evaluate(stmt.getVal(), env).assignTo(ref);
+			exec.evaluate(stmt.getVal(), env).assignTo(ref);
 		}
 		return null;
 	}
 
 	@Override
 	public Void visitStmtBlock(StmtBlock stmt, Environment env) {
-		Declarator decl = simulator.declarator();
 		int stackAllocs = 0;
 		for (DeclType d : stmt.getTypeDecls()) {
-			stackAllocs += decl.declare(d, env);
+			stackAllocs += exec.declare(d, env);
 		}
 		for (DeclVar d : stmt.getVarDecls()) {
-			stackAllocs += decl.declare(d, env);
+			stackAllocs += exec.declare(d, env);
 		}
 		for (Statement s : stmt.getStatements()) {
 			execute(s, env);
 		}
-		simulator.stack().remove(stackAllocs);
+		stack.remove(stackAllocs);
 		return null;
 	}
 
 	@Override
 	public Void visitStmtIf(StmtIf stmt, Environment env) {
-		RefView condRef = simulator.evaluator().evaluate(stmt.getCondition(), env);
-		boolean cond = simulator.converter().getBoolean(condRef);
+		RefView condRef = exec.evaluate(stmt.getCondition(), env);
+		boolean cond = conv.getBoolean(condRef);
 		if (cond) {
 			execute(stmt.getThenBranch(), env);
 		} else {
@@ -84,29 +86,25 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 
 	@Override
 	public Void visitStmtCall(StmtCall stmt, Environment env) {
-		Evaluator eval = simulator.evaluator();
-		TypeConverter converter = simulator.converter();
-		RefView r = eval.evaluate(stmt.getProcedure(), env);
-		Procedure p = converter.getProcedure(r);
+		RefView r = exec.evaluate(stmt.getProcedure(), env);
+		Procedure p = conv.getProcedure(r);
 		Expression[] argExprs = stmt.getArgs();
-		Stack stack = simulator.stack();
 		for (Expression arg : argExprs) {
-			stack.push(eval.evaluate(arg, env));
+			stack.push(exec.evaluate(arg, env));
 		}
-		p.exec(argExprs.length, simulator);
+		p.exec(exec);
 		return null;
 	}
 
 	@Override
 	public Void visitStmtOutput(StmtOutput stmt, Environment env) {
-		Evaluator eval = simulator.evaluator();
 		Channel.InputEnd channel = env.getChannelIn(stmt.getChannelId());
 		if (stmt.hasRepeat()) {
 			Expression[] exprs = stmt.getValues();
 			BasicRef[] values = new BasicRef[exprs.length];
 			for (int i = 0; i < exprs.length; i++) {
 				values[i] = new BasicRef();
-				eval.evaluate(exprs[i], env).assignTo(values[i]);
+				exec.evaluate(exprs[i], env).assignTo(values[i]);
 			}
 			for (int r = 0; r < stmt.getRepeat(); r++) {
 				for (BasicRef v : values)
@@ -115,7 +113,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 		} else {
 			Expression[] exprs = stmt.getValues();
 			for (int i = 0; i < exprs.length; i++) {
-				channel.write(eval.evaluate(exprs[i], env));
+				channel.write(exec.evaluate(exprs[i], env));
 			}
 		}
 		return null;
@@ -123,7 +121,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 
 	@Override
 	public Void visitStmtWhile(StmtWhile stmt, Environment env) {
-		while (simulator.converter().getBoolean(simulator.evaluator().evaluate(stmt.getCondition(), env))) {
+		while (conv.getBoolean(exec.evaluate(stmt.getCondition(), env))) {
 			execute(stmt.getBody(), env);
 		}
 		return null;
@@ -136,7 +134,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, E
 				execute(stmt.getBody(), env);
 			}
 		};
-		simulator.generator().generate(stmt.getGenerators(), execStmt, env);
+		gen.generate(stmt.getGenerators(), execStmt, env);
 		return null;
 	}
 

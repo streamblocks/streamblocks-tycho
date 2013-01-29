@@ -7,7 +7,13 @@ import net.opendf.interp.values.Procedure;
 import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 
-public class TypeConverter {
+public enum TypeConverter {
+	
+	instance;
+	
+	public static TypeConverter getInstance() {
+		return instance;
+	}
 	
 	public boolean getBoolean(RefView r) { return r.getLong() != 0; }
 	public void setBoolean(Ref r, boolean v) { r.setLong(v ? 1 : 0); }

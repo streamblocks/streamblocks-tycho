@@ -1,7 +1,7 @@
 package net.opendf.interp;
 
-import net.opendf.interp.values.Builder;
 import net.opendf.interp.values.BasicList;
+import net.opendf.interp.values.Builder;
 import net.opendf.interp.values.Function;
 import net.opendf.interp.values.LambdaFunction;
 import net.opendf.interp.values.List;
@@ -29,33 +29,33 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.ExpressionVisitor;
 import net.opendf.ir.common.GeneratorFilter;
 
-public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environment>, Evaluator {
+public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environment> {
 
-	private final Simulator simulator;
+	private final ProceduralExecutor executor;
+	private final Stack stack;
+	private final TypeConverter converter;
+	private final GeneratorFilterHelper generator;
 
-	public ExpressionEvaluator(Simulator simulator) {
-		this.simulator = simulator;
+	public ExpressionEvaluator(ProceduralExecutor executor) {
+		this.executor = executor;
+		this.stack = executor.getStack();
+		this.converter = TypeConverter.getInstance();
+		this.generator = new GeneratorFilterHelper(executor);
 	}
 
-	public RefView evaluate(Expression expr, Environment env) {
+	private RefView evaluate(Expression expr, Environment env) {
 		return expr.accept(this, env);
-	}
-
-	public Stack getStack() {
-		return simulator.stack();
 	}
 
 	@Override
 	public RefView visitExprApplication(ExprApplication expr, Environment env) {
-		TypeConverter converter = simulator.converter();
 		RefView r = evaluate(expr.getFunction(), env);
 		Function f = converter.getFunction(r);
 		Expression[] argExprs = expr.getArgs();
-		Stack stack = simulator.stack();
 		for (Expression arg : argExprs) {
 			stack.push(evaluate(arg, env));
 		}
-		return f.apply(argExprs.length, simulator);
+		return f.apply(executor);
 	}
 
 	@Override
@@ -71,7 +71,6 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprIf(ExprIf expr, Environment env) {
-		TypeConverter converter = simulator.converter();
 		RefView c = evaluate(expr.getCondition(), env);
 		Expression e = converter.getBoolean(c) ? expr.getThenExpr() : expr.getElseExpr();
 		return evaluate(e, env);
@@ -79,8 +78,6 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprIndexer(ExprIndexer expr, Environment env) {
-		TypeConverter converter = simulator.converter();
-		Stack stack = simulator.stack();
 		stack.push(evaluate(expr.getStructure(), env));
 		for (Expression indexExpr : expr.getLocation()) {
 			List l = converter.getList(stack.pop());
@@ -93,7 +90,6 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprInput(ExprInput expr, Environment env) {
-		Stack stack = simulator.stack();
 		Channel.OutputEnd channel = env.getChannelOut(expr.getChannelId());
 		if (!expr.hasRepeat()) {
 			channel.peek(expr.getOffset(), stack.push());
@@ -107,16 +103,14 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 				channel.peek(i, stack.push());
 				builder.add(stack.pop());
 			}
-			simulator.converter().setList(stack.push(), builder.build());
+			converter.setList(stack.push(), builder.build());
 			return stack.pop();
 		}
 	}
 
 	@Override
 	public RefView visitExprLambda(ExprLambda expr, Environment env) {
-		Stack stack = simulator.stack();
-		TypeConverter converter = simulator.converter();
-		Environment closure = expr.createClosure(env, simulator.stack());
+		Environment closure = expr.createClosure(env, stack);
 		Function f = new LambdaFunction(expr, closure);
 		converter.setFunction(stack.push(), f);
 		return stack.pop();
@@ -124,14 +118,12 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprLet(ExprLet expr, Environment env) {
-		Stack stack = simulator.stack();
 		int stackAllocs = 0;
-		Declarator decl = simulator.declarator();
 		for (DeclType d : expr.getTypeDecls()) {
-			stackAllocs += decl.declare(d, env);
+			stackAllocs += executor.declare(d, env);
 		}
 		for (DeclVar d : expr.getVarDecls()) {
-			stackAllocs += decl.declare(d, env);
+			stackAllocs += executor.declare(d, env);
 		}
 		RefView r = evaluate(expr.getBody(), env);
 		stack.remove(stackAllocs);
@@ -142,8 +134,6 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	public RefView visitExprList(ExprList expr, Environment env) {
 		BasicList.Builder builder = new BasicList.Builder();
 		buildCollection(expr.getGenerators(), expr.getElements(), builder, env);
-		Stack stack = simulator.stack();
-		TypeConverter converter = simulator.converter();
 		converter.setList(stack.push(), builder.build());
 		return stack.pop();
 	}
@@ -157,7 +147,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 				}
 			}
 		};
-		simulator.generator().generate(generators, buildList, env);
+		generator.generate(generators, buildList, env);
 	}
 
 	@Override
@@ -173,9 +163,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprProc(ExprProc expr, Environment env) {
-		Stack stack = simulator.stack();
-		TypeConverter converter = simulator.converter();
-		Environment closure = expr.createClosure(env, simulator.stack());
+		Environment closure = expr.createClosure(env, stack);
 		Procedure p = new ProcProcedure(expr, closure);
 		converter.setProcedure(stack.push(), p);
 		return stack.pop();
@@ -195,9 +183,9 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	@Override
 	public RefView visitExprVariable(ExprVariable expr, Environment env) {
 		int pos = expr.getVariablePosition();
-		boolean stack = expr.isVariableOnStack();
-		if (stack)
-			return simulator.stack().peek(pos);
+		boolean onStack = expr.isVariableOnStack();
+		if (onStack)
+			return stack.peek(pos);
 		else
 			return env.getMemory().get(pos);
 	}

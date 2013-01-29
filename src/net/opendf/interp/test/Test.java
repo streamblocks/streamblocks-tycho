@@ -11,10 +11,14 @@ import java.util.Map.Entry;
 import net.opendf.analysis.BinOpToFunc;
 import net.opendf.analysis.UnOpToFunc;
 import net.opendf.analysis.VariableBindings;
+import net.opendf.interp.ActorMachineRunner;
+import net.opendf.interp.BasicActorMachineRunner;
 import net.opendf.interp.BasicChannel;
+import net.opendf.interp.BasicEnvironment;
+import net.opendf.interp.BasicProceduralExecutor;
+import net.opendf.interp.BasicStack;
 import net.opendf.interp.Channel;
-import net.opendf.interp.Memory;
-import net.opendf.interp.Sim;
+import net.opendf.interp.Environment;
 import net.opendf.interp.attr.Variables.VariableDeclaration;
 import net.opendf.interp.attr.Variables.VariableUse;
 import net.opendf.interp.preprocess.EvaluateLiterals;
@@ -70,22 +74,6 @@ public class Test {
 		UnOpToFunc unOpToFunc = new UnOpToFunc();
 		unOpToFunc.transformActorMachine(actorMachine);
 
-		VariableBindings varBind = new VariableBindings();
-		VariableBindings.Bindings b = varBind.bindVariables(actorMachine);
-
-		SetVariablePositions setVarPos = new SetVariablePositions();
-		int memSize = setVarPos.setVariablePositions(actorMachine);
-		for (Entry<IRNode, IRNode> binding : b.getVariableBindings().entrySet()) {
-			VariableDeclaration decl = (VariableDeclaration) binding.getValue();
-			int pos = decl.getVariablePosition();
-			boolean stack = decl.isVariableOnStack();
-			VariableUse use = (VariableUse) binding.getKey();
-			use.setVariablePosition(pos, stack);
-		}
-
-		EvaluateLiterals evalLit = new EvaluateLiterals();
-		evalLit.evaluateLiterals(actorMachine);
-
 		Map<PortName, Integer> portMap = new HashMap<PortName, Integer>();
 		{
 			int i = 0;
@@ -100,12 +88,6 @@ public class Test {
 			}
 		}
 
-		SetScopeInitializers si = new SetScopeInitializers();
-		si.setScopeInitializers(actorMachine);
-
-		SetChannelIds ci = new SetChannelIds();
-		ci.setChannelIds(actorMachine, portMap);
-
 		Channel[] channels = { new BasicChannel(1), new BasicChannel(1), new BasicChannel(1) };
 		Channel.InputEnd[] channelIn = { channels[2].getInputEnd() };
 		Channel.OutputEnd[] channelOut = { channels[0].createOutputEnd(), channels[1].createOutputEnd() };
@@ -113,19 +95,9 @@ public class Test {
 		channels[1].getInputEnd().write(ConstRef.of(5));
 		Channel.OutputEnd channelResult = channels[2].createOutputEnd();
 
-		Sim s = new Sim(actorMachine, channelIn, channelOut, 100, 100);
-		Memory mem = s.actorMachineEnvironment().getMemory();
+		ActorMachineRunner runner = createActorMachineRunner(actorMachine, channelIn, channelOut, portMap, 100);
 
-		int pos = memSize;
-		Map<String, RefView> predef = Predef.predef();
-		for (IRNode n : b.getFreeVariables()) {
-			ExprVariable e = (ExprVariable) n;
-			System.out.println("Free var: " + e.getName());
-			e.setVariablePosition(pos, false);
-			predef.get(e.getName()).assignTo(mem.declare(pos));
-			pos += 1;
-		}
-		s.actorMachineRunner().step();
+		runner.step();
 		if (channelResult.tokens(1)) {
 			BasicRef r = new BasicRef();
 			channelResult.peek(0, r);
@@ -133,6 +105,40 @@ public class Test {
 		} else {
 			System.out.println("error");
 		}
+	}
+
+	private static ActorMachineRunner createActorMachineRunner(ActorMachine actorMachine, Channel.InputEnd[] channelIn,
+			Channel.OutputEnd[] channelOut, Map<PortName, Integer> portMap, int stackSize) {
+		VariableBindings varBind = new VariableBindings();
+		VariableBindings.Bindings b = varBind.bindVariables(actorMachine);
+
+		SetVariablePositions setVarPos = new SetVariablePositions();
+		int memPos = setVarPos.setVariablePositions(actorMachine);
+		Environment env = new BasicEnvironment(channelIn, channelOut, memPos + b.getFreeVariables().size());
+		for (Entry<IRNode, IRNode> binding : b.getVariableBindings().entrySet()) {
+			VariableDeclaration decl = (VariableDeclaration) binding.getValue();
+			int pos = decl.getVariablePosition();
+			boolean stack = decl.isVariableOnStack();
+			VariableUse use = (VariableUse) binding.getKey();
+			use.setVariablePosition(pos, stack);
+		}
+		Map<String, RefView> predef = Predef.predef();
+		for (IRNode n : b.getFreeVariables()) {
+			ExprVariable e = (ExprVariable) n;
+			e.setVariablePosition(memPos, false);
+			predef.get(e.getName()).assignTo(env.getMemory().declare(memPos));
+		}
+
+		EvaluateLiterals evalLit = new EvaluateLiterals();
+		evalLit.evaluateLiterals(actorMachine);
+
+		SetScopeInitializers si = new SetScopeInitializers();
+		si.setScopeInitializers(actorMachine);
+
+		SetChannelIds ci = new SetChannelIds();
+		ci.setChannelIds(actorMachine, portMap);
+
+		return new BasicActorMachineRunner(actorMachine, env, new BasicProceduralExecutor(new BasicStack(stackSize)));
 	}
 
 	private static DeclVar varDecl(String name, Expression expr) {

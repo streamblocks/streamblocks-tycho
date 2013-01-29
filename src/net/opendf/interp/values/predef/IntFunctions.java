@@ -1,15 +1,16 @@
 package net.opendf.interp.values.predef;
 
-import net.opendf.interp.Simulator;
+import net.opendf.interp.ProceduralExecutor;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
 import net.opendf.interp.values.Function;
-import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.Value;
 
 public class IntFunctions {
 	private static abstract class ArithOp implements Function {
+
+		private TypeConverter conv = TypeConverter.getInstance();
 
 		@Override
 		public final Value copy() {
@@ -17,14 +18,11 @@ public class IntFunctions {
 		}
 
 		@Override
-		public final RefView apply(int args, Simulator sim) {
-			assert args == 2;
-			Stack stack = sim.stack();
-			TypeConverter conv = sim.converter();
+		public final RefView apply(ProceduralExecutor exec) {
+			Stack stack = exec.getStack();
 			int b = conv.getInt(stack.pop());
 			int a = conv.getInt(stack.pop());
-			Ref r = stack.push();
-			conv.setInt(r, op(a, b));
+			conv.setInt(stack.push(), op(a, b));
 			return stack.pop();
 		}
 
@@ -75,16 +73,16 @@ public class IntFunctions {
 
 	public static class Truncate implements Function {
 
+		private TypeConverter conv = TypeConverter.getInstance();
+
 		@Override
 		public Value copy() {
 			return this;
 		}
 
 		@Override
-		public RefView apply(int args, Simulator sim) {
-			assert args == 2;
-			Stack stack = sim.stack();
-			TypeConverter conv = sim.converter();
+		public RefView apply(ProceduralExecutor exec) {
+			Stack stack = exec.getStack();
 			int value = conv.getInt(stack.pop());
 			int size = conv.getInt(stack.pop());
 			int sizeDiff = 32 - size;
@@ -96,20 +94,19 @@ public class IntFunctions {
 
 	private static abstract class CompOp implements Function {
 
+		private TypeConverter conv = TypeConverter.getInstance();
+
 		@Override
 		public final Value copy() {
 			return this;
 		}
 
 		@Override
-		public final RefView apply(int args, Simulator sim) {
-			assert args == 2;
-			Stack stack = sim.stack();
-			TypeConverter conv = sim.converter();
+		public final RefView apply(ProceduralExecutor exec) {
+			Stack stack = exec.getStack();
 			int b = conv.getInt(stack.pop());
 			int a = conv.getInt(stack.pop());
-			Ref r = stack.push();
-			conv.setBoolean(r, op(a, b));
+			conv.setBoolean(stack.push(), op(a, b));
 			return stack.pop();
 		}
 
