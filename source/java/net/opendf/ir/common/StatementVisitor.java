@@ -49,6 +49,7 @@ public interface StatementVisitor<R,P> {
     public R visitStmtIf(StmtIf s, P p);
     public R visitStmtCall(StmtCall s, P p);
     public R visitStmtOutput(StmtOutput s, P p);
+    public R visitStmtConsume(StmtConsume s, P p);
     public R visitStmtWhile(StmtWhile s, P p);
     public R visitStmtForeach(StmtForeach s, P p);
 }
