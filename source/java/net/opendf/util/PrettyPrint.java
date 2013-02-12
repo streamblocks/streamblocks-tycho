@@ -706,6 +706,12 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		// TODO output statement
 		return null;
 	}
+	public Void visitStmtConsume(StmtConsume s, Void p) {
+		out.append("consume;");
+		// TODO consume statement
+		return null;
+	}
+	
 	public Void visitStmtWhile(StmtWhile s, Void p) {
 		out.append("while ");
 		s.getCondition().accept(this, null);
