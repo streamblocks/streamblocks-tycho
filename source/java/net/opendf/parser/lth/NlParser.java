@@ -443,7 +443,7 @@ public class NlParser extends Parser {
         ArrayList<ToolAttribute> toolAttributes = new ArrayList();
         for(Map.Entry part : body){
             ArrayList all = (ArrayList)part.getValue();
-            if(all != null){
+            if(all != null){  // entities and structure may be empty. Then the parser return null.
                 switch((NetworkBodyPartKind)part.getKey()){
                 case IMPORT:
                      System.out.println("UNSUPPORTED, import is ignored.");
@@ -453,10 +453,10 @@ public class NlParser extends Parser {
                     varDecls.addAll(all);
                     break;
                 case ENTITIES:
-               	    entities.addAll(all);                 
+                    entities.addAll(all);
                     break;
                 case STRUCTURE:
-                    structure.addAll(all);                 
+                    structure.addAll(all);
                     break;
                 case TOOL_ATTRIBUTE:
                     toolAttributes.addAll(all);

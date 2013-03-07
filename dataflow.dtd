@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- NOTE the XML export is currently incomplete. It only exports expressions. -->
+
+<!DOCTYPE dataflow [
+ <!ELEMENT Network (VarDeclarations?)>
+ <!ELEMENT Actor (VarDeclarations?)>
+
+ <!ELEMENT DeclVarList (VarDecl*)>
+ <!ELEMENT DeclVar (InitialValue?)>
+ <!ATTLIST DeclVar name CDATA #REQUIRED>
+ 
+ <!ELEMENT InitialValue (%expression;)>
+
+<!ELEMENT ValueParameters (ParDeclValue*)>
+<!ELEMENT ParDeclValue (TypeExpr?)>
+<!ATTLIST ParDeclValue name CDATA #REQUIRED>
+
+<!ELEMENT TypeExpr> <!-- TODO -->
+
+<!ENTITY % expression "ExprApplication, ExprBinaryOp, ExprEntry, ExprIf, ExprIndexer, ExprInput, ExprLambda, ExprLet, ExprList, ExprLiteral, ExprMap, ExprProc, ExprSet, ExprUnaryOp, ExprVariable">
+<!ELEMENT ExprApplication (Function, Arguments)>
+<!ELEMENT ExprBinaryOp (Operations, Operands)>
+<!ELEMENT ExprEntry (%expression;)>
+<!ATTLIST ExprEntry field CDATA #REQUIRED>
+<!ELEMENT ExprIf (Condition, TrueExpr, ElseExpr)>
+<!ELEMENT ExprIndexer (Structure, Locations)>
+<!ELEMENT ExprInput > <!-- TODO -->
+<!ELEMENT ExprLambda (ValueParameters? ReturnType? VarDeclarations? BodyExpr)>
+<!ELEMENT ExprLet (VarDeclarations? BodyExpr)>
+<!ELEMENT ExprList (Elements? GeneratorFilters?)>
+<!ELEMENT ExprLiteral >
+<!ATTLIST ExprLiteral text CDATA #REQUIRED>
+<!ELEMENT ExprMap (Maps? GeneratorFilters?)>
+<!ELEMENT ExprProc (ValueParameters? VarDeclarations? BodyStmt)>
+<!ELEMENT ExprSet (Elements? GeneratorFilters?)>
+<!ELEMENT ExprUnaryOp (%expression;)>
+<!ATTLIST ExprVariable operation CDATA #REQUIRED>
+<!ELEMENT ExprVariable >
+<!ATTLIST ExprVariable text CDATA #REQUIRED>
+
+<!ELEMENT Function (%expression;)>
+<!ELEMENT Arguments (%expression;*)>
+<!ELEMENT Operations (Operation*)>
+<!ELEMENT Operation >
+<!ATTLIST Operation operation CDATA #REQUIRED>
+<!ELEMENT Operands (%expression;*)
+<!ELEMENT Condition (%expression;)>
+<!ELEMENT TrueExpr (%expression;)>
+<!ELEMENT ElseExpr (%expression;)>
+<!ELEMENT Structure (%expression;)>
+<!ELEMENT Locations (%expression;+)
+<!ELEMENT ReturnType (TypeExpr)>
+<!ELEMENT BodyExpr (%expression;)>
+<!ELEMENT Elements (%expression;*)>
+<!ELEMENT GeneratorFilters (GeneratorFilter*)>
+<!ELEMENT GeneratorFilter (VarDecls?, CollectionExpr, Filters?)>
+<!ELEMENT CollectionExpr (%expression;)>
+<!ELEMENT Filters (Exrtessions?)>
+<!ELEMENT Maps (MapKey, MapValue)>
+<!ELEMENT MapKey (%expression;)>
+<!ELEMENT MapValue (%expression;)>
+
+<!ENTITY % stateent "StmtAssignment, StmtBlock, StmtCall, StmtForeach, StmtIf, StmtOutput, StmtWhile">
+<!ELEMENT StmtAssignment>
+<!ELEMENT StmtBlock>
+<!ELEMENT StmtCall>
+<!ELEMENT StmtForeach>
+<!ELEMENT StmtIf>
+<!ELEMENT StmtOutput>
+<!ELEMENT StmtWhile>
+ ]>
