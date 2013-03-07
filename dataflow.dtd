@@ -60,10 +60,11 @@
 <!ELEMENT MapKey (%expression;)>
 <!ELEMENT MapValue (%expression;)>
 
-<!ENTITY % stateent "StmtAssignment, StmtBlock, StmtCall, StmtForeach, StmtIf, StmtOutput, StmtWhile">
+<!ENTITY % stateent "StmtAssignment, StmtBlock, StmtCall, visitStmtConsume, StmtForeach, StmtIf, StmtOutput, StmtWhile">
 <!ELEMENT StmtAssignment>
 <!ELEMENT StmtBlock>
 <!ELEMENT StmtCall>
+<!ELEMENT visitStmtConsume>
 <!ELEMENT StmtForeach>
 <!ELEMENT StmtIf>
 <!ELEMENT StmtOutput>

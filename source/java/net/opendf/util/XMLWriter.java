@@ -803,6 +803,11 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		out.append(");");
 		return null;
 	}
+	@Override
+	public Void visitStmtConsume(StmtConsume s, Element p) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	public Void visitStmtOutput(StmtOutput s, Void p) {
 		out.append("output;");
 		// TODO output statement
