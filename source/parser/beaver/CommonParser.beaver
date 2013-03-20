@@ -188,7 +188,7 @@ expression_list_opt =
   | expression_list.n {: return _symbol_n; :}
   ;
 method_invocation =
-    indexing_expression.function LPAREN expression_list.args? RPAREN {: return new Symbol(new ExprApplication(function, args==null ? new Expression[0] : (Expression[])args.toArray(new Expression[args.size()]))); :}
+    simple_expression.function LPAREN expression_list.args? RPAREN {: return new Symbol(new ExprApplication(function, args==null ? new Expression[0] : (Expression[])args.toArray(new Expression[args.size()]))); :}
   ;
 literal =
     INTEGER_LITERAL.txt        {: return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value))); :}
@@ -204,7 +204,7 @@ literal =
 primary =
     literal.l                                            {: return _symbol_l; :}
   | LPAREN expression.e RPAREN                           {: return new ParenthesSymbol(_symbol_e); :}
-  | LPAREN.LPAREN expression.e DOUBLECOLON type.t RPAREN {: parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(LPAREN.getStart()) + ", " + Symbol.getColumn(LPAREN.getStart())); :}
+  | LPAREN.start expression.e DOUBLECOLON type.t RPAREN {: parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(start.getStart()) + ", " + Symbol.getColumn(start.getStart())); :}
 //TODO, type assertion is not supported
   ;
 simple_expression =
@@ -212,6 +212,7 @@ simple_expression =
   | IDENTIFIER.id                                                   {: return new Symbol(new ExprVariable((String)id.value)); :}
 //TODO, old is ignored
   | OLD IDENTIFIER.id                                               {: return new Symbol(new ExprVariable((String)id.value)); :}
+  | method_invocation.m                                             {: return _symbol_m; :}
   | IF expression.c THEN expression.e1 ELSE expression.e2 END       {: return new Symbol(new ExprIf(c, e1, e2)); :}
   | LBRACE expression_list_opt.e RBRACE                             {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]))); :}
   | LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE  {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
@@ -240,7 +241,6 @@ indexing_expression =
     unary_expression.e                                    {: return _symbol_e; :}
   | indexing_expression.p LBRACK expression_list.l RBRACK {: return new Symbol(new ExprIndexer(p, (Expression[])l.toArray(new Expression[l.size()]))); :}
   | indexing_expression.p DOT IDENTIFIER.id               {: return new Symbol(new ExprEntry((String)id.value, p)); :}
-  | method_invocation.m                                   {: return _symbol_m; :}
   ;
 
 //used by NlParser

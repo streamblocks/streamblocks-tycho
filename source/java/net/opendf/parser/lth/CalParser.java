@@ -203,125 +203,125 @@ public class CalParser extends Parser {
 	}
 
 	static final ParsingTables PARSING_TABLES = new ParsingTables(
-		"U9pjMmUK5DNIhkf9kooxgyYwguk98AAO0$ZK1GL9eWYBWAui83bZ80Wg820gKL10eWaa2H8" +
-		"KH4H0107nuJChAcBE2XWmpFs$MtsdfwUdPmSyxxppUB#pf$hckjzNLJSqp13b$46jw0Kgfg" +
-		"jf8rr3BQWEDQU6z2m5U5rqDzr6xPMY5VGqlScvr8YVvRKKedwk$bUWVpCAKnTkHQTGQxg77" +
-		"gRxgIVjy$RXBjI46gEsfLtBrz0U#fW#eK$fC$gSlg0lwIjwZ1fG7#ehc88KuKxSZNRGTlMd" +
-		"niHxw3IrMMEYasW5$qFTgJ6f4kh0ewWV3$NC#22lf9rKsS7qNZ8csgenSH4TpnFKIpIBwgN" +
-		"1r9zsgdOqc1Vmu$oDsAaAdMNRYRA0wMswL6EYSboBRlAnKqFOgHsrZM7YwsaVVyqDODaFQ2" +
-		"SJ1rHxUalib4iJUGUVpUVnfsamRUFNzGYrYQU2Bp2fdzHFT9nWcWXCMeV6r83Ev8b9c2xdB" +
-		"TI5UdFGiLEcZ#$#9JEyGQjv1vrDOzBwxciUmVrve7gZR4pyETr8rVmnSIcTw61wryTtRukT" +
-		"jd8#R8rvkM8QJBMeFFVWhu3d3HiJzw5p4JLUJ7TI1GuWdcwWkdGEPIVD6$DTPM2gpJtv12g" +
-		"YXlmXlqfDQORO2JxaOTnUZORLoyJ4bz5FgWLmREEXQezW2l8wEbbZujvOTpewDQONUIrV34" +
-		"oN0BaNJmDUvTXf9Z3LyrfJj6X4Hwk#QXc$bGPJ7zPhAGUHlWShGyVuJbe0gsXCJyDEx$8am" +
-		"LIFtwKtVMByE$eHLjdiOBeooNTtyULsFF5bN4kreADeQXhVTQ5ETZm1Y$WEkyAhN2V9T$Ne" +
-		"2DgR74#oghfnWODfL1AcosrCN9LFGZnLestqUDcOr3RiTpg$qx9CFFt1wtmmmNVKCTbEWka" +
-		"6Nk$4KsUV63z1Ohmk0HCVG9IybCPtHVmR$qvDkI7LDtQwYjiZehnxmJ1#1gYycAwZeLIDd#" +
-		"SD3gOrIPYkj$TnYV5Qt9gxyCOqllk0kie#lers6plfqbj9TXh5RoFkl9XAkGUyFm2ZOvWc9" +
-		"s7gZjrJ#suarknWcVV8D9W6qh5yC$GEvzhOFRMTD6$RJlS1qnh4iBPJaQ#TXl0jV2jlv4qE" +
-		"fgUIOzm#MsWwlQ$QgUiHKKLfVBSDA#vglW8nD0Cnt92kfVh8pv5r1nHSWnxYUqqy9U#PTmk" +
-		"lglo2Wwcbw5ZCstcrwD2OQmccHiAs6NGiJ84fjax6m6DBvAJTY5rf1DsXHueEdMejnwRTJp" +
-		"RI4tm4puAzQYElCUsKsDUOQj8u6ayJw01udORzvDuaNfCbqW9n$tlQv$1iccHilPLhS3bPk" +
-		"rlJOBeIf#sHs0zs0jClDYQkIh#vCN6sO0hIgYHCQxaI5wZci8q$flNyFNQsqsMT3EUws9N6" +
-		"89A#JHEJEz7dMYxW5S2Kep7ncLITBqt6X2WvDGdJ9h0VnaqG9VwOFkARg0OFCRuRpVVmetg" +
-		"7JxF7lSA3UGpMvMqEfl7Sd6zBmBH2x3ICBqh2j9$V52sxdPWSIwTgBUf3QeYvzMgRGRLYfv" +
-		"nwd1SXDllvO#8d$9bn1Hwcvc6aPdQXw7gCQgUC06tf1ZZPzlC#NiQrSM9gxv$7xy7#RbQvm" +
-		"ce9T$MoukFeVEEl6AiVU9cmwW9MMsrMwaNdxFu3D#RKh7QdO7K6x#7FUQ#mka1qVSnVbiqA" +
-		"CVm9VwAwEgoAwB9aLZGMPqDH4gkpP5ryX9OOgwZuM#7PHZYrGrkHsJ#AgBFcf5v9ityapj4" +
-		"OuthHpQ9Za3nleLjJxeisfzjf9DqfCnS9fodq04qJFBFf4PGUfNb0CfVc8$AzdAuI7OjekO" +
-		"FdAT6n1iyYqL7auhI5NX8$7Hgdg#bb#YV9$PXUa#Vhz0wzNoQdNVGXPlsMVg2V1S#lz0VzA" +
-		"NWKMnpc3Aw6k2cF$I0lYTDrugTZkD3nKnNZwuPyelZwP3u5#qtCJqMQ4vzpI9owqnG#byyN" +
-		"7VCazYxW2xb#MPou4JV5NFMv2hUnyN1RxY1uEYBUzFxN2vpwykq#iJT0EDqOZptRr#eZS1e" +
-		"kxw3R#IwC54vyDuyJFrruI9m6yNryFpyWEaB2QGfFumVBv3IT7#QPa8Vu4U5KZUVnNE4qdn" +
-		"VoOfIN0i#JI9SdSRf3E3sdddJyj5NMqp$L2$oQS7gEt#1t3ATT$Bws2tznI9m#uq$L5jLPs" +
-		"7ndXNWl$yW$yq#fEV6V#dve4LMps0e89toieCHU1iK#ZKpQZwnO5VygYRQB$iJmaD7H4A9r" +
-		"K7GNSdRisPhwuLas9$lplEWWl1lR7wt3hQcizKIEZXWUYk5nDCKvUJyn7LvERXrk97JGdCX" +
-		"mehWEVPToqAJcbFZvzt5gIFwS3jvFjeuIDoSwL3$zTtAAVzoSUXosd19PnJdPUFuw9#zQ6E" +
-		"t3YHBm$7lzz9mFfyCpzZOudEAVmvrJ34qAJdpK$o2du$y7EPNyxt6Iyd#Uarl7Nxr797vi9" +
-		"F7FNxz7s9#oET7Vd0wM4zwyzVELk0wyUHz3XLIf34xkpna9D$nbT0dgkd0cdh$JaynqaUZV" +
-		"wT#BGxeN$OCkufUDldmge9fqkiS25LFCaYVZbsAMCb3GoZJjpoIrhqje$oRD#E$JjF#IfZr" +
-		"QTZj7qhHd9RV3hzg#hqXxTUq5nwzUJGqTJHVJY$AlfBPV6#5TLl#x0wdBCRe5pqg8L3lIZg" +
-		"RDl34fNkFnIBv#rItswf5Ouja#enl4McCVBiQxNK3#D$OQh8ZMr0Ph88lAqrDKIhbq11s9J" +
-		"aSXKag0Af#wKNUy7nPw#b#7djVZZQsKJg4QT2gTHXs1oTkd8jMYsgxQZbI7wjAbT1dLe$fq" +
-		"EN0r17$DuGh1r0yHV0QTITFeGM3Gc2oQG471D5amvGcc8DrDFO6fTzACzw4smy5Ku8F94an" +
-		"zwLaQYnblJeifBBxEH2G$Zvp6L9iM63ij0gOI6YcOBFnLyh5JbjWf9y5EMx3IycaGUkT0av" +
-		"v5Onf6LP2lHYTZJDcO2ccAZ0ZJiGRJyNG2dIYOgW2Jrg4nDPRwP4pd2wQc3YRsiTDvCiCni" +
-		"BX58LWodPsceyzPT3QTamPJ2NndfSIKws3Qw8FfPS5aKJk8dZSTfbn8V#pHXU8PZQadtOwe" +
-		"yM8QG4#WRo6DGV$RQ77Il35CxO3fGXg7UOkXRJszX36v1bC0KXaUoK#3oQ8R4RzszDgOcc8" +
-		"LLHPC0u19QukjkwFG8y$7Lerfe8Ef6J1rJEfXOzAM2abQDgQUYE7UG5M8lxw2gH0hOu1WEW" +
-		"aegiCgjk#gGvBnw2WUHnUKkHVSQk99emd2JiFJODBHOCTJeR6JtXLc#iHJYAxomQHrwBqoX" +
-		"cb6IansFEcOJ8U9uIcTBvGJG6CgXvfaJDftuHIOAhXyvsUd2O8fWFtEedkX8rsCzwLPD5ly" +
-		"LM0mLK8qbIPX2WkgP4mLH4lGmPIPSX#texS4fSAqUsOVsSSr7XkJBWMICFM4jju#cFgBzmi" +
-		"TJBVxO1eacCPYpMRAlCFIOAg4Ss64w2t1xccVBG5Zfqx0b8aOrfYAKzZfONf4zf4Ofeafpv" +
-		"PRa4PWKGljwVQdGjWg0XIh4CCQKm7opmacZQ8YT8qmyUItPzeC1hfYNEl8nIrbjEZGc6rC#" +
-		"SvPjYm5flYPMOXRSaNPTohJ9jnaOkUJxVy0x9TkFocaveW0pQx4#BzGwcrRTwOkr1Mj#TG3" +
-		"#qcl5BnoNVxtjbyCdPR1L55EgCAqcAgYJxwmAw6f3gOMFfYQ#cBIOuDbODe0RLc2AGyzIo3" +
-		"5j3sjdOf5RodwNocOQY9$gm#cS0exMOYGYYantIaxhcsd9r6Q97jfsPY2s74t0yz33YQBLg" +
-		"FanbGgc2nVJ8FCQel7KwdPbVHUeBNacZDJhxOChBlyb9WcfMHcoKZRslePnBcSAW8qdiQOO" +
-		"ojj4yyq4pntIDIuMHqjh8A#h8OQVyLP5JYisB0AEgpA0LrgLWLbi2enSTrFdW$WBnshn$5N" +
-		"oM5LB36Qp4f7e$ywq$#p5CEJ8JgoP7NPd8hnP#yVnJWfycK7B7l$yCvHZBdl4HtsivAyEPN" +
-		"5wKYCg20p5mkU00qsxm1XwDSbVRBFHrt559oMkzu1SisUc8MUMaUnYrC9T6XE1OV8ITix8Z" +
-		"fA3ATW6ZzDHyzY6eM$FC6p0hV0FC5p4$xo87s1v2wnbZyd2pjg38zbV9s5tbf77aOME7ug5" +
-		"awfyAJYfErgcRk7ViuluzveSmeBfm91PkCfC77JNzQ7BciavwQClKgks2isUt8Mz6eTXJBI" +
-		"vbG9lVFbBdned49OvKD5HuPPLK#dvMJXxBHmkWVCtgVFSeqd0##M0IdPxtgbAJZLmZE6Pwt" +
-		"e28kbxFWjSCxZ4haV7BgViZ17m4JTlHWz5PekAODJgTmFBTanPITM#22lyInKvaFv9YsabK" +
-		"xTC$A43aaD7kH41sL1e0FF7H3XP6kYGZpBv6JqrzGwaEQOCdGaQ2h3Jmx6cZ4yKX8yZYQ7a" +
-		"$9yOZgydDmwt4Xi7GV3oRQBQoQj0pUK69hKd3m8$ssSudvAv7JmVZ8wijsS3jLF$vsS4lqK" +
-		"qqG5XokdH5PnJZQUlyx9knQeA9aJdet$Zhrqd2Z3wwN3drFSJ$wS3j$rz3UdmvsJbF$ZdDm" +
-		"wl7ldmU$boPnSvRzyZp2bCZb9#ZUdWukz4dcMkdIOD#$Kd1Am3V7Uy55tFRN5insrfmvqW$" +
-		"GQxzyBRv6c5yqn#XwbnsWkpVDOO4cAyMkSyMbG$7zhnrkL$V#RZXUSVr7n$Hy#eodenDeGx" +
-		"61Pb2dxMoL8BkMw8zNiJUFfkEHuZSSIdZv#bIYpMoMMw6AVqOrZhKxDrKHMU9Zy7x0rG$wF" +
-		"bn3zH2rqNKo8E8B7VCXmv6z2Mep#gECVaTw0z6VKVO2y$aR2TZCcBr57u6PFUHdw5CNBrDN" +
-		"KlstIlKJ1BdO##1pa5$TuC#Ojw5W00Mv6VpgHADGS#Sv85tZwxZAuJhRJZ7oYS1EKxqNVSf" +
-		"2lxFhGHwZl1UdhdS$OwHMqhKJwcbqElvFO7dxJKywrqyZnH9dPIEkYi0ZftMWBcRQ5qBVOu" +
-		"2j0VQQPQnIaBTh1BNCWRB87RIV05ZKJvyYeYCT4CrzbCxOb#fUQkYgct$L4EJDHBaB#3lJP" +
-		"RsmDRE4wfczjj6ssyvcOB#CBp5yF1TWv03zpksIR1FO3KolqFmlzluQEbeRBMkIlGVjwvAT" +
-		"wxABxju2zppBbSo0b9j$MSBWO#NOGn2blW9xTYJgudqjVTvqYgAF8crYoBa4VHcOIwdeOJj" +
-		"E9obs1#ZN0UY7Am5ZkgRYUSa7OQ86T3xR7kE66e$uspsqeZpJpzKDxHzC6$uMnVXY#2e$rs" +
-		"6O9wkRQUUmA59vlwa$5#6vcpfE1unglNLC9U1rhKc0Dt9ROLguFU3sAUU0lwohCSQu7pvze" +
-		"0oPh6Wgh3Av6m3uaiLzu1Vh0$y5wnXRmLQ0cqjiJ#mNlX62zbPj8b8NO39sEiKyZxU$IPTP" +
-		"q67j4S0Jwles#zw0FC8Ht8FNurO9jmwzXlW7elyNKZKRTlyoS3qF7Rx3Pyz1p6V8rqFO3uZ" +
-		"HYjqUmdYFbpJZuENAaoR#AiTCz#84XQFmTE0PzAxZQW25o7ERe18mpJDqUEyrQZ7ad8yL#a" +
-		"BCesKUH79DMmvYbHEMFHjzzo8DJ1EirkDxLzpGpVz1EooFM8i0IA4HwBCgeBlUdwLi9Opys" +
-		"URI7BQIdG10Bz4TSP$b7C5zNf5yXrRpVJyINNHvjsAyZM7UHnf1QTdte9ACR649vIB468oV" +
-		"1TbLDE$QAI6iFrxwenpeDP27V4FcpaTvej$5Fo6FTHE2$o5ZWgEePEzwa4o2mPmYn544iHU" +
-		"v77kitCidCUvtfzo04Qos4VJio5JBRrCz9za7WL$XciSkVUQRlG5UTjhFPXuEmPs2u2ziJi" +
-		"9FUHvtz8Tx6ZwDzcQllSc3gZXIn7vaBNSSRdTgNQmq7d9z1hCd8XlYu4FI4jjbvUj7b7yH9" +
-		"URttRuAyvffd5$g$Z7GBv7taiOuYiNXOvDBxkYi$Bn6xfS#Ue1dp2sIVoSDUaGE9VIEu5wb" +
-		"Ma5rU6yG4RGSCVeE3hZ3p8FPYvswsgSkfbKgFqGLULXrlFNnmTpmVTEtxmNTIwFd5RkSAzX" +
-		"aGmle8OIs5EYJgpHvjS3KrjfgEiKiDZog9VQryxQzKs37FZdW#jDA3vnF$CHRk0g6DI7772" +
-		"Rs05EibjCMCUIVUZtzsZNd1s0HtiD37scO6xzn4tRGAxKizysdzonFh0dLGzwt9DtVLd#JX" +
-		"zw7Xfj26k0lhFk#Qkl79t09LJOevmze77nWz6mm##2PmKVAuO0Zr7UBbqAScNMCuP1azSz3" +
-		"lIjIlInoVdUGZrArowJUuihUuwc23CFRHRDmfmwUXt0nfJLUxvdkwdG$NSEk6$LSdpXLkOF" +
-		"0PFuMR9EEnxskkCIUuyktCdDZhmjsyOrC9#fezFFjpVOzBRDDd6Lzbsh7cmpcUiStjD2SIl" +
-		"xzbtwBlRydpvEYxSsiphWJbwZ7EyJw1JNOQGf241#irQ6monGTtRzCNzz8mzdw#n2vRDRnz" +
-		"pVorqC$SlO9z4jj2DzftiH3kF#6PHlzzhhbw9EiBhlRMcVfM$lNMG3FNU#Xpaz6xrQH7wNi" +
-		"Av79zV$GRR$gPM0xVhkz7o9YxBttlq$TPCsy7Cw#vpuTnhmZlZlVZLgxyACC1xslMWNXzMC" +
-		"V6f$Rz8hmtUQu8tf$2FkzQbcil2ZOnwQtmSt4gZWR7B8nzJ#kq9NOl2xlMNW3xG2J3WuDTy" +
-		"oNup7qMwRkUgzz67pxrVJ3rm9oEJkXRuiCNTs9hii67#sYWkgVzPd3ujIpkBWobBenF#xHt" +
-		"zHyNCh4LgkFgEo9#jmhLJUmV#DAZjvcPSxchRcmyRpNnz9#M0lzi3$SmEHyLLVUhoUJvgBx" +
-		"oNA$MgUVL1hLMFOlI6lMCMYtrJwkdyCJkfgOgt0lLNL8xJQrIAnNUEnJYK#rJtwlFnJlVgY" +
-		"dgWUXkzLdqm#ZxqlDOUTPLU7TGzTGnga3bgwDLdYgK#kDLVNM2ggHmQrKdgdCLRhZgx0HqP" +
-		"ocyDQWp9N#6NHVz0u9tYkZFqRtH7wKTRpAgflJ1UQ1EDMFnhg6gI#vaXVD2oI#CbFa#lHgf" +
-		"XgcX2k$M2kjQuTwhgZgpNX7z8lgvoJUHPnL8PSbThN2EgQkYdqG$1jEcqG#0FrTQSfpnsO9" +
-		"pjoaTeIwGz7nvdgVQIzfMbUBPmHbphMgZRf3STV9i9K#yawkMgeugKfUeYzL5wX$gGbLRrL" +
-		"AjKLzUpw2oebz5lpIMqULoqJtHZvnIfZmpejz5lpKr4PE6ezz4lpPp1o5uEub6bHwtpzG68" +
-		"BWBHF#CgkZ#w7up3YU#6g56APmK2hkA6YHz#ylp5ZKGpm4o#m$HxrKpgJrIuIrA7QKgE5pn" +
-		"5gEA8KEaL2twMVHJrKXT6ltLyFWTSW3oKnJxa3fEVQVmpgXmHrLWghvGFwgzIFzfj7sWTgc" +
-		"N5NOkzPPwNRs9z3NrBuNuKw#Q7ZiX7xjwlokvjzKxwfE4#Ft6zC7RX5ga9ge9Qh5QGWaVXJ" +
-		"S6DTzLVWpoY7fKBL1BfRnGFOJd73LRpL8pfMQ6FAUhXys8vMgIka$j5rjzhSmlHrGVI2#5l" +
-		"KhX750u6rK$rLjQngcnwbur1Zcy3I1$ZngVWAYZwg6wARpHg9wg4vw$gz$K0MaHUwfVvFcp" +
-		"mhhXAlAhg7x4j8C2z0pIP#IxoYmo2tMpA4IpAKZQDqDGXvK1OHeZOX5M2uJfKSganoY3vg2" +
-		"klqkmekJxUJZL8GpHtr4d2DEJI9z4gdzBVoTIx90Gfh6ue6v6kXbz7yPOBNWhXh1JVWWo3k" +
-		"Lnw3CIRIEH7u1nlL6$4EM5AEE63c726p#42Nw4CAqHiKZxSWdoAocRNa9vFFAsnFFFYkXom" +
-		"AcRXppU5Y5CpubO#iOEOPeB37DXhtN8hqEz$kNGyyXFb6yTXMaIyfCmVY3IWMWVY7mtvBiX" +
-		"tnrfTvIrJ41vidntF413KQ$bAIDhZOmsibuaG0zWhWUGlnzZxqVvSVbka$wcUu1w8Uqbtp7" +
-		"NlreWY4KzK1UJpYXt1cvRT3aWqWdvJcZhWdnNo22KzVT2RGcOmuLfYaY0jg9#6#gseJmL#U" +
-		"t8RqT#2zes8Ds0T1hIQVBjOvPV1ps8L7z$J$ykwcMJrxy5qEb6b3VARr9iMGgTU1k7C65rG" +
-		"9ZcmwxBa5#6ji4ODvWYa0pQXBPD63C3SW$QEgBS4Nci6mZJjT1$3T9qqaea00bHQ#HjiI0H" +
-		"I00ICcdGvCFq8kPuKVe5fMpNMwQVHItHrX9f6wHjqASDwdN#EX7zcovEabj5B9g9T2RwwF#" +
-		"ZQ8zoUyc78I58n9FFDFr2r0vfEqd3a8WhpO1aKbkqjqLxMzItHNqypO1aKX$CsqT#py4YBn" +
-		"YvoSXTHaOPkSN8QYFBZQmmea#x3aXl4B7ebVy3lwzvH0==");
+		"U9pjN0UO54NJhjfuWRj3vEJmpaHKJ1W1mu42AeWY80WUIG79KJ8g4XG3IKH1IQ82AYWYA3a" +
+		"BA0X#c0Cg8eevWXYt$xThUcTdPpQ0Zy$tVFWxzzHqggv#t#hgdfwxtIFA$ODQq8lKZAwYHh" +
+		"IHcbChgatrQPLIv8$ifblf1gf3IsWf1RaqNSPtK4CUJdtZz1jGK$KcTURhw6IwZkwXH#a1w" +
+		"a7xtJfqALr1b$Dele47y23r9hUWJsWlVKgVqJxwdBwWB#ahcaFrg3VriJ5TQ$LNrsXCl8TE" +
+		"LPi5qqcqX2zK8mLJDReHkFe2L$o83$CIsidFsvX2Nanyas2gJSVp13gBPbAJr9Xu6e$YZjo" +
+		"5d#HvF4jZeZ1LDtxA1gPtgB76H06kILkzVaAFpjoUsaOnSHlQpr$nvM3n8UsadQgTQa$lQ4" +
+		"oKH$VnTZwRp#DFq$Xf6x#XUwX5F0KszDmTK0VeEC5q7p1f6nfJFJgJ9temrUKjr9bwyGjHJ" +
+		"EfFhv$KYpB2cvG5J9lvchHpzpMDDRES4XFletxyMc9Ct8uoxRbxFq4ylIj#6iW5yFKmpkNy" +
+		"D9YsqitSZR#aKggTXObxqJc86ZUcaSmSG3pT2AspASSpRdJkAW9J7UxE9t8UrUUFg0mrfEd" +
+		"Y9yoXo1XuFNKyrUMTgYbmR0EERO8fo6keYiR4FR7kT7HgJ9ju5UN2JyN0vCPJZvVQVfe1J4" +
+		"tStXGhRzDMBgTwqpJaKcFgnNs0fhIEHtfBOdmdtyuZnKzlmq$lyIJ1L8$VGzaRuz$HZznTx" +
+		"R4nNUAPkp5ycSnT3V2lgPhIqJGrpTmTIple5RuPEynEQ#vGVethUEQk7jMadxpnHCkvFm#X" +
+		"iJQcEpsOwXfC9t05hic$OeTv8ZKcjPL$uz#bLDd4qn#y9W4cFNST4#oPUgLtu7LsF7LAi3$" +
+		"T7eqdn7XbHCbBQUPk3VpUcJf1Sx7nKsLUYV7TUq5NBaydUZ2Lg9UWlvRNsvXMU32rCNlcFL" +
+		"G9VlgQ7#CDQJ3LvfPwpwIdg8BnavwBTpoOkc3tVDg3gHrt4qlRR4ptUp1rm#wfvwuYrcnd6" +
+		"aJ3wAWqyQJJmT0TIIEmUrf#MekLfp4z0qmhw7QDIPNmSdZFZUaMqTx0Bzhnj2j1Z5SMFzt4" +
+		"5rCn5yDBnMdyj1Nx$pNS236alLMVhgTBWUXdsGk00i#vsOW2AvwgU33TBRmgyqRRJyt5nax" +
+		"Unik4ruyQjVZfCi5V21lpas2AsjZ0Hz52eFYGDwZMD9g6Hsq8ehVrCpWjhmrg1DV2gXoBkv" +
+		"x$woNo9mclqsayJQ29s4akuzEeAjthuJLPjBTHDTlNyUsFOA##7tkxvhMLgt4sdGBjhMamN" +
+		"Gs$bC4QsCcr#A3b9$gDcyPXoXLCjMYP1zDghgoQS823IJ2jv#$e8pv3$7G9VSp7oKZVf5id" +
+		"Y9Dwz3jV0Knv6XDNvxfOzGvCTAx6X6V4gHvCc$XIyByIF19ZsiFNStbhF#5#F8Q7qNdyEBH" +
+		"Jxt4xr1w#bnVH#S0qL33TWcV1tN5#6Yz#2l957am7i0jfA$QpW6VmBH81k$7472jHELrz57" +
+		"tAgNay7x7PDmccuiJC#6WWUffdYXKvEwcvi9Ci0lGggGT4DNW$$uI8d26pNvdVWY#Sh4gBf" +
+		"v$XpcvMVBpF9$ErpyPJ30zfApMfldhPiDfaFxl$e2kJi#BTILYToU$p7ew85INt7$bZ$YGL" +
+		"A$riv2zuhyrgg#fCLxjPqJZUIzTuM9qbDdRYb6wp4XijCLFV2wVswYRKMVj7CNx0IUr8lN#" +
+		"uncX8sa9FiT5VxWDeIDBzm#8qb6wZEsYKZAZn5DCKUb3mF4Ipa7#C7WUIUJINdlHmQYppL8" +
+		"qMs7WMYuqNS2yM6yMqqi7f9Pcdbm#BKnDwbRRJVyJ6wt9$Wzwazr9o#f0#eDqOxrlwGV0Sf" +
+		"5$fJy4JOM8$Pt8OSLE5Sw3ZvbGYd8xX8djD7IlhibAK4v$4LVaKczDOuPJCnuavTULp#5pu" +
+		"LaVT#M9f7jVW2r9nulfy5JV0IgY42D9uMY7VLl1qGCrOb7g0Ks##DG6dWSAfhsE5orohZn5" +
+		"x8xGDjOtlv74M9xuBDi29xpiiJeEf5a$c1yH6K9Wzo5FvePIS7kRPF1to23zgTecvF4SuFS" +
+		"5FyGAK5mBFiqYVyt2wJJYjLi$Qy$Io#ELLjP5V5qwh#Kr#rt3QnHzel$3dXyNfC$vKRL6TX" +
+		"CstlY1sY1$uPpwGd1F$gS#iFgBAFlRvXHCkNq1YBuEYrsKcxKk#Q1N$8edsYxwYUCZOg0$H" +
+		"DYYo2pahzYnBVN5FpScwreaDmhknTMaRJakfrXFPDg9uA8h7jXJZvBwYDjoSd3QSIEYGEP7" +
+		"XH34RScAYj9pYhx#FKtrApEdGvycoqTh9YGvtdlutESKk9wVkHoodU5OnJXQUlyx9lHRkIi" +
+		"29ul3ylVEq9W6d8pFsDjYSOjUHpYcA9WadBliFv7J2Fv1JwtyU9od$zpavRVpLSqJyPI69N" +
+		"N$z765TgJdHlvmEbHFUlFLzHym6thpBKo4LfU3alCvmdF2VemPqCUewSnRkVz0Yzj65Oly$" +
+		"YRKufBNe0hgGNp7sob41dKQdkpnGDiae#TB$MOoI0WKzdwPzXQTzRLpxDsdwVv#c$PSqxIf" +
+		"rEsUaQI$bRSUyQl$kaFQJzIpOy#gsLD#sT15jbj#MMlDw6TvbL#YzIK6u6S#8YrGhqewXBR" +
+		"p14w#nUAI4ywfRhDKZiSGp4$Ik5ssDNdmjtktyG7yjaBT07BV46sKsbKBJyvH7fUaei3iQa" +
+		"P81LELm2gv0FL4JhtyzVD2Qsk2TxMGwXQhHgTG1cDmw1LI3Qj9O#AewdKLdGwSsrQ5Bw5Ag" +
+		"2qprmLtZRq0DwKeFff1Wyj442WYc#mLJlc0gYvDdTs3gwHdnFjHEj37b9S1KLZ3rffN05QI" +
+		"Rqs9Q2XPdq9auUwwbrOBf0dhI#6a#C9NGQC7K1zg#17xA5Z$bnlbf2or4Zy7Grd6aHz6ORg" +
+		"UAo5UcAkYJ6bCXFIWzV7GiyXhJyNG2dIYOAWAJjg4nDP1wBwRp1DD9DYPAuAUGZ51UM9sFK" +
+		"Ze$FGm$MRES6bC9vkxSf9ZOnhGX0QPN15E8sc74JCn1Eam#U7S0JKOkR31rnpxVquDf8EOd" +
+		"3nhtGcwX1PvnevZQ0LCXZSEuLy7QEdeQQoFFp8HV90HhwJ2zX8YsejV2r0Yhg89W6WXCsfh" +
+		"6r8MwGa$xoUkh1ZJ8njGOc3fuD2nCFY0EKd#agJ5rHmptXAOLZnfJ8Ue72gOIOAeAhrXpLn" +
+		"NYnQEzDmxrgVQ28O8fJr05uASHQJ1bq5HwY4R1DuN6JxeyFK4yrQAh4s3AfzbuFXVOcAObn" +
+		"JH1ukaUx33fC37De9ccP67A0Zul9ZrteGIOj8qoZhbBv2UV8vxqAEbYNFj7hvn2oLbxfXxV" +
+		"ZKa$D$8IOBBYDc1ZoaowP#gvq8WcGL9ZwerPqNlcpPX52vEU2xy7Ko$e9S8qG2p5ukdM19W" +
+		"62wQQMBEQVIPspzIOT5eakY7idfQVjFSqfYR0b8cPqPW2uht4SwTNHnHJGTAvAmjhpH1$sa" +
+		"PgJ9fx27jJM$6MnbI0V5$1f56KbRLhnLE599XyZdYQPjRkXJH6REJPpvPoajDhTr4IJ54RX" +
+		"PYLZMQc0pWlRx9jQ1G#UGQdurK8dHAioW8PCUhhZeAf8tMYcwWpTf9or0tZz4ZgwzZPmjsU" +
+		"1vlHTQBnr9JzAZMcIj3HQw0GcAOOF#NHiZXCUO8fFmcc0DeR9SMqNaui6bC1KckaRMdNIJE" +
+		"WQOfrKY9Fb58usUbLxyHqcs1gb13J4EZsTwmJTxj6OVbf9CxsvMcuF55IOz8Qcz6l3p2TBP" +
+		"WUGVt8E4m#mPIH45DRCtknCzWZOaK$LmfCL1RPJxaChBjoIJ4rIyhCXrte8h5I8dTj9ra4Q" +
+		"3mDPBPVfgtGRsmYKf#$dAoE4LQ1XApAc$KJmrCWLchXpePLm6QL9HvAngeW1IiVc6WhsIQw" +
+		"9#CDCpMhGcZCSx0gCljiFAjvvYoHQ9qvyLWsd3FLpEmVpV1JJdR0rFk7UumouYjjuswv5o5" +
+		"DjdzOd8emSe7qi$0qG#rGmQFF3NwCCHH8$FH4KavbyKOMnPCXDlIEqKniD4C#ngb4E0KEar" +
+		"C1C5fn5pOnM9JKXiN9X$Dn2UpSWH#D9vyMctq#d$h9JpwGzAOx4vxtj8q2xCjHF3vxdYnE1" +
+		"UXzfysfG3Wbyt7os1jgzdbhnz3#JRsYV60KWXsVMGkzP6oDPm3I0Xl9EKav5SMjS6jFpePD" +
+		"wnsqq20f1xrpn5BmC3dbO$SSRlO7VUz3BwJX548w1Z8H9Sl7FionnfE1Tqk$bCf9RTiad6h" +
+		"W7iMpIco4y5CYDaBsVgpFhJxnIp8yoJXbOmo$MKdteFSKMBeu1QUsScQrTfQs6e$2XRp6yv" +
+		"Go5vKpQI4jiUkMonqs93Lua1CRb0s13TotGuIJPOaASK$9oTW$JTj0cclAi15dASKysHXFY" +
+		"#AHak2nBTcSbEkAsd1pSjfm8h5i70edoo#EaQppO7uKJN9EBeH$6wVOFCLpElHvCZPod9mE" +
+		"Tvx#Dpd5prFK4XKSgPpYMSKuMNZ#EYVtMg1YBoVS6$mRU#auKOPxbevyJh5vIipfo5rF$t8" +
+		"wqZb9#R$EoMd3lNSU#bxkvUGe$#LpX2cbv2JflvmEBVPAvDxMOSEyUIVd58TjcFk4ZxhMr0" +
+		"RtTjIURg0RHMjyOYsyGnejccNiwKz5pw6vBWyyawJ$2hj$6XJ$tzhnLcNzVTEU1VitAWd$m" +
+		"cSi1UnO6uOTB9ioPNyhWkHHdZDIpTuqdexpnciibd1FCAyIPLQhn19TbA1tWsYhNNCDaIzq" +
+		"k$mDs3SDjqwGR2BEq7LHGRaHf2oHtuzq02gQoUSEY7$G$P7#32c5lFv4mZRJ9p$UXg#Xgpm" +
+		"Byasix3$TrBzcoiiWUwrye3fakxE$LKzlGxyqqk58zL$3kq5lAF9d40KBNRgx3AugLffHZY" +
+		"ZK44uuWBG7AegGBe7qTezZ#es2pOMnSl1hI1RaPrF#3dtVXRmLto#K4yk7ZoVAp45Q1uNvI" +
+		"Ez2Uz2qFGNS2umFcgE#al63hly4xJ#Yxo2Kzw3jHF0yBNwS3CmFjp9ZLZ1zmv3sfkuSezUQ" +
+		"A7SwohMHlmtjGumkV1ogOtHheMspbS$4U1cVO$owA3o9COw6jFFwn$y6CBM0FknaV0KRpOt" +
+		"VLY7V4ktha9$Yyirrq6yAtrKtvNCX9IRVplZY8kJRGu3RFmDImpKlVHpsUkaKSnf1lflfVp" +
+		"6a3JAJKDV7S7gOAEjAz5q1hE2Q2OnPpyViP0NWeoUjV42FFTfmh8aRvYDqXnaFynVeO73qG" +
+		"tacKinJQ5mynW1YD3JNsBW7#QMcVWwaYncp2d0qT$ircO3JiIO5Ll#dyMrPlS3hCOop0ErN" +
+		"Oum1BZo8sz0Yj4q5tc5M7Pv256WIhnTw7ZgO$y0uqmzpvJzDVrx4PGzs0jWxiYPY#pW1yta" +
+		"w#cv0Ei1XwqEJVWnTxVzte7itTD0tXBqak3lU9YFMGeWf$q3etsguZa7TssRCsR3n6tos5d" +
+		"OkHVuKn6W69DDg3#jrbcVwOPx3PKn#9$eMkV1FWRnYsb#5xacnDiBU5mQdx8x0ECteVsAbs" +
+		"V1lrlr8To1UvdldA5pQf9NHvmEYKiT0zoVamIcSZtHTlBu$OAMb46VXyYWN8ZqMPLHd$Mbi" +
+		"OPyAx3Tvj8TyI4#680ueCsQhrACOgpFIBv5gpdlYnyh1VbqA#tNuR4W3I0shFdYCiGqCGUn" +
+		"NOQo$C6AJ$Z3jbL1kwkA9THni1xnuXeIH1h6VXliQ$o5#mhT0C7VXiMYhwkextgGJ8F1bu5" +
+		"UaYAFmPEXYxOOdcN5lC7eFGJ1E4EieZ7aBppJrixp#zoEsSXSuoZyPtK6EkbyWPWyEO4xy8" +
+		"npOdeQVhaMTlJV4sdWUsXSvT9y3fgv8Nu3eTLreRDP0UPNXi1LbhCVm#bY$8Em4pJEJDZdc" +
+		"1p5I2ljM#4N8wuvnTa7$DQHR88YfeFQNYSVmV8VThnpvkV7ODTsWsT$31o5Hly0NuL$ZTSC" +
+		"u5odCBrtWza5KqFwhmMzmq9LMwaFiqK73nzJbrd3tTzdQehzVvAw7hJMnl7#V8tyWYHqpBf" +
+		"U1CFpUKkyZa4VZxUQCCRWQ6Tym#YuqVRURiN5M25wT2dUyJQeONmukZ$eeiRuFPu7WHgIha" +
+		"OA$3sUIu4k6nxiElR6E$5k6FvxnmRtQRsRiEIuiIz7#N7oT7sUyu0kkEfm7Wj#OV1D7$Kdn" +
+		"UloHbOPq6$Rl47phVy$m7E$bvZVxjL#Vix171Kr$Nc$mwVaPvUqN2ABF3GuVVcRIbOP$jad" +
+		"NG#ygrA#DxvyppsipPwd3VYLJjyLH1n#4i9Vcu5mPEXNbnaXFTxHhlcSP$jLSVbaPNmvTRk" +
+		"etcl9LNZmqqTNdH4U#lHaJ#rsegxjlCe5kJSDhdpx7nRS5NeUlsffshFjGdgjlKolD3SVER" +
+		"pdzaM$X7ITNdv#lC$smJ#LMZNAEwVXdMsaGmH8QfjUXySc32N3tDBh5oEEinXTRPTyfYNdc" +
+		"ObyDTJIyUiMt1VkYJJyZz1bYbh5$dsEixbvxWMM9nmbuT4szyK$mVUJx6RilcnHdv11y7Qe" +
+		"F7tZUMnmuLflqLklTWSpPbxvpwKLZtZm3WnLD$KB8xfWUjt3apHarW7S6VirXIyV5fzRv8l" +
+		"IZ5rEu2UeFkkknlpYUBO669fsYpv39#1aSEBFxtjSsBGcNCZZiTGVR7#cpcmi7n$A#kFCqz" +
+		"7SvzB8SkFwJW4#z19ZmdkZlvh1$brV7X$EmlwgLz$U1B7QrtmmEdkTKOX#4syRomUm4xPqJ" +
+		"zmjUuaoDxgZOsIheEeVvlt3PRMobWSMEEkSpn8qZuLn6prYEVY6oBnLHazNzvBfKRxclKsl" +
+		"KMhLUhL8hKLgXbgjbKl#2mfk5miwcfYYS2zMTKZjLBLLBr6Ba49$g9$MTsYUp$OrwK3qGsQ" +
+		"q#YtmK#K0qZpMZr5NbLO4gfuvH#GfdOLMaZbSdIaiTjLtLGtg2EaVXXAlEKjNZy9sfyCwWp" +
+		"f2y#KP4v0y8tYWYFqT#ZFmWxNZNKQUAJZN8AQOldX2gYkGgA#nwIhwheiptGzHeTRiQhl1c" +
+		"hR2g5Kw#gg8zwfMHpoFxJBwXt2j0JfBSDGfFCNLrP6$a4t1j5FbGLLTvqf9hzyyHdBjDgRG" +
+		"wNzBpv7wkQYzf6zKMT$lRBwgLQgbkb9nyhqMra7jpoBMgjYfM5wkBr8Ng0bLBrLGrz4bFbT" +
+		"8ZgEp8bv4lZ6TqEIko9$AnNSgKUqRasyWtfYPiqb3awyXNPkm01EydaOZI$NuojNu8JWsHF" +
+		"oCgiZ#ot$J3yrwDKdUeeKY7G0QBxW2vzrVOnTH06Vtxo7UgiTGUfShYVhGgOtF5Uung1Xac" +
+		"fKgHpoAVgYlK9P5V38$V8JWlHmv43ghZrBVgUsZXZAh0KtskVb1uTrUl6biVgbtg5OMTIxs" +
+		"jtb1l8NrTlQOGVsgdqS1Rg$h4eVsUvDvHxwgzSV7xjT71suIQhoQg2Mg1UeRYBeKt1lM4e$" +
+		"muv57rc7fIBPJoK#eHt6UfcMg6cYurq#J#i9fjUZod9gdxr7xnr5VAV7D4zOBqKDYhL3y8d" +
+		"ekgZ#efBUFKM7MFkXUvko1ZrTrgV1oY3ggRwgBmHgEwguwu$wv#KxzAYtXJ7PJxpmghXYiI" +
+		"TaW8qtRoqtAao#Npqomo0tKpA4WpAK1wPeQX3ki2mdIlY8#mLY1CZr4cFKuPD0jr0no2zGJ" +
+		"nwTz0GHZYbszZTqV#MQJF8jNVfH#953iaX6ai3gcRaMw6xcpqrOAtOWZRPVr9nd4eZuFEQB" +
+		"IDHduW#lL4$LEaVzl3#ZTr42QyxKEOC8yGfXKYFj9p#GpoIoY7Na9vFFAMnF8hHNJPRzVDH" +
+		"HvlYn2crI8#VLg7CCq1XZdmrnharw1UVtDeBV8JvLD78Pg4$2Jq7uHqa7pYrqzTaE#2V5Ua" +
+		"NL7MCW7b#v5g6OvwBSyRMMLaZ95r8dxv1ji3o4#MJnlwQPvyjeaXVkg1j8TyJjKdtuJJ$nM" +
+		"Y6#gYqWdbJi1jYIxxHJeYtn5jDo7V6J8OvS7oYKijVlDmONfGn4ylenvlon2cASXlGtuRyb" +
+		"lGjXxfUgHJaKwLps0ouLa2OUG3f7yJ$8h9bo3kTBe1vGtodHHB5iBc2EYDG3rM1uJf2VXr4" +
+		"VABv9DlGKWOaa4lekr5z9a6kHjj7L3kWBp#hljToBU4$HP8qybr8dv8aAv5tXAVISCGFoHe" +
+		"qe39XsWJnjaaEW4fM$K#e#UZvcXhZhGLqbRGQONwwv6$Nhu$nHuP8kAZwKYdGqV$ZQ8zokq" +
+		"b7u848M5NFjFe1QaTqdQIwk$TX1rf1kd$qzW6xMtGhZzNtmRriJH3FfVV2#FsmbYjaMhPQA" +
+		"IVaJkDt66alv5bHfupijY8VjRTWFH64H$j#3yCXdmc");
 
 /*******************************************************
  *  Inject code for custom error handling in the parser class.
@@ -1498,7 +1498,7 @@ public class CalParser extends Parser {
 					final ArrayList n = (ArrayList) _symbol_n.value;
 					 return _symbol_n;
 			}
-			case 191: // method_invocation = indexing_expression.function LPAREN opt$expression_list.args RPAREN
+			case 191: // method_invocation = simple_expression.function LPAREN opt$expression_list.args RPAREN
 			{
 					final Symbol _symbol_function = _symbols[offset + 1];
 					final Expression function = (Expression) _symbol_function.value;
@@ -1563,14 +1563,14 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return new ParenthesSymbol(_symbol_e);
 			}
-			case 203: // primary = LPAREN.LPAREN expression.e DOUBLECOLON type.t RPAREN
+			case 203: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN
 			{
-					final Symbol LPAREN = _symbols[offset + 1];
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_t = _symbols[offset + 4];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
-					 parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(LPAREN.getStart()) + ", " + Symbol.getColumn(LPAREN.getStart()));
+					 parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(start.getStart()) + ", " + Symbol.getColumn(start.getStart()));
 			}
 			case 204: // simple_expression = primary.p
 			{
@@ -1588,7 +1588,13 @@ public class CalParser extends Parser {
 					final Symbol id = _symbols[offset + 2];
 					 return new Symbol(new ExprVariable((String)id.value));
 			}
-			case 207: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
+			case 207: // simple_expression = method_invocation.m
+			{
+					final Symbol _symbol_m = _symbols[offset + 1];
+					final ExprApplication m = (ExprApplication) _symbol_m.value;
+					 return _symbol_m;
+			}
+			case 208: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
 			{
 					final Symbol _symbol_c = _symbols[offset + 2];
 					final Expression c = (Expression) _symbol_c.value;
@@ -1598,13 +1604,13 @@ public class CalParser extends Parser {
 					final Expression e2 = (Expression) _symbol_e2.value;
 					 return new Symbol(new ExprIf(c, e1, e2));
 			}
-			case 208: // simple_expression = LBRACE expression_list_opt.e RBRACE
+			case 209: // simple_expression = LBRACE expression_list_opt.e RBRACE
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
 					 return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()])));
 			}
-			case 209: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
+			case 210: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
@@ -1612,13 +1618,13 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
 			}
-			case 210: // simple_expression = LBRACK expression_list_opt.e RBRACK
+			case 211: // simple_expression = LBRACK expression_list_opt.e RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
 					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()])));
 			}
-			case 211: // simple_expression = LBRACK expression_list_opt.e tail.tail RBRACK
+			case 212: // simple_expression = LBRACK expression_list_opt.e tail.tail RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
@@ -1626,7 +1632,7 @@ public class CalParser extends Parser {
 					final Expression tail = (Expression) _symbol_tail.value;
 					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()])));
 			}
-			case 212: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
+			case 213: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
@@ -1634,7 +1640,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
 			}
-			case 213: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK
+			case 214: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
@@ -1644,14 +1650,14 @@ public class CalParser extends Parser {
 					final Expression tail = (Expression) _symbol_tail.value;
 					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
 			}
-			case 216: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
+			case 217: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final ArrayList m = (ArrayList) _symbol_m.value;
 					 return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
                                                                                                               (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()])));
 			}
-			case 217: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
+			case 218: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final ArrayList m = (ArrayList) _symbol_m.value;
@@ -1661,7 +1667,7 @@ public class CalParser extends Parser {
                                                                                                               (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()]), 
                                                                                                               (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()])));
 			}
-			case 218: // simple_expression = LET decl_list.l COLON expression.e end_let
+			case 219: // simple_expression = LET decl_list.l COLON expression.e end_let
 			{
 					final Symbol _symbol_l = _symbols[offset + 2];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1669,31 +1675,31 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return new Symbol(new ExprLet(new DeclType[0], (DeclVar[])l.toArray(new DeclVar[l.size()]), e));
 			}
-			case 219: // simple_expression = LAMBDA lambda_expr_body.lambda
+			case 220: // simple_expression = LAMBDA lambda_expr_body.lambda
 			{
 					final Symbol _symbol_lambda = _symbols[offset + 2];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return _symbol_lambda;
 			}
-			case 220: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
+			case 221: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
 			{
 					final Symbol _symbol_lambda = _symbols[offset + 3];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return _symbol_lambda;
 			}
-			case 221: // simple_expression = PROC procedure_expr_body.p
+			case 222: // simple_expression = PROC procedure_expr_body.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 2];
 					final ExprProc p = (ExprProc) _symbol_p.value;
 					 return _symbol_p;
 			}
-			case 222: // unary_expression = simple_expression.e
+			case 223: // unary_expression = simple_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 223: // unary_expression = operator.operator unary_expression.expr
+			case 224: // unary_expression = operator.operator unary_expression.expr
 			{
 					final Symbol _symbol_operator = _symbols[offset + 1];
 					final String operator = (String) _symbol_operator.value;
@@ -1701,13 +1707,13 @@ public class CalParser extends Parser {
 					final Expression expr = (Expression) _symbol_expr.value;
 					 return new Symbol(new ExprUnaryOp(operator, expr));
 			}
-			case 224: // indexing_expression = unary_expression.e
+			case 225: // indexing_expression = unary_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 225: // indexing_expression = indexing_expression.p LBRACK expression_list.l RBRACK
+			case 226: // indexing_expression = indexing_expression.p LBRACK expression_list.l RBRACK
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Expression p = (Expression) _symbol_p.value;
@@ -1715,18 +1721,12 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 return new Symbol(new ExprIndexer(p, (Expression[])l.toArray(new Expression[l.size()])));
 			}
-			case 226: // indexing_expression = indexing_expression.p DOT IDENTIFIER.id
+			case 227: // indexing_expression = indexing_expression.p DOT IDENTIFIER.id
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Expression p = (Expression) _symbol_p.value;
 					final Symbol id = _symbols[offset + 3];
 					 return new Symbol(new ExprEntry((String)id.value, p));
-			}
-			case 227: // indexing_expression = method_invocation.m
-			{
-					final Symbol _symbol_m = _symbols[offset + 1];
-					final ExprApplication m = (ExprApplication) _symbol_m.value;
-					 return _symbol_m;
 			}
 			case 228: // expression = indexing_expression.e
 			{
@@ -2141,7 +2141,7 @@ public class CalParser extends Parser {
 			case 163: // opt$type_attribute_list = 
 			case 173: // opt$formal_parameter_list = 
 			case 175: // opt$decl_block = 
-			case 214: // opt$map_list = 
+			case 215: // opt$map_list = 
 			{
 				return new Symbol(null);
 			}
@@ -2177,7 +2177,7 @@ public class CalParser extends Parser {
 			case 164: // opt$type_attribute_list = type_attribute_list
 			case 174: // opt$formal_parameter_list = formal_parameter_list
 			case 176: // opt$decl_block = decl_block
-			case 215: // opt$map_list = map_list
+			case 216: // opt$map_list = map_list
 			case 269: // for_foreach = FOREACH.FOREACH
 			case 270: // for_foreach = FOR.FOR
 			case 271: // do_begin = BEGIN.BEGIN

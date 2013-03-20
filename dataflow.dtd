@@ -23,7 +23,7 @@
 <!ELEMENT ExprEntry (%expression;)>
 <!ATTLIST ExprEntry field CDATA #REQUIRED>
 <!ELEMENT ExprIf (Condition, TrueExpr, ElseExpr)>
-<!ELEMENT ExprIndexer (Structure, Locations)>
+<!ELEMENT ExprIndexer (Structure, Location)>
 <!ELEMENT ExprInput > <!-- TODO -->
 <!ELEMENT ExprLambda (ValueParameters? ReturnType? VarDeclarations? BodyExpr)>
 <!ELEMENT ExprLet (VarDeclarations? BodyExpr)>
@@ -48,7 +48,7 @@
 <!ELEMENT TrueExpr (%expression;)>
 <!ELEMENT ElseExpr (%expression;)>
 <!ELEMENT Structure (%expression;)>
-<!ELEMENT Locations (%expression;+)
+<!ELEMENT Location (%expression;+)
 <!ELEMENT ReturnType (TypeExpr)>
 <!ELEMENT BodyExpr (%expression;)>
 <!ELEMENT Elements (%expression;*)>
@@ -61,7 +61,8 @@
 <!ELEMENT MapValue (%expression;)>
 
 <!ENTITY % stateent "StmtAssignment, StmtBlock, StmtCall, visitStmtConsume, StmtForeach, StmtIf, StmtOutput, StmtWhile">
-<!ELEMENT StmtAssignment>
+<!ELEMENT StmtAssignment ((Fied|Location)? Value)>
+<!ATTLIST StmtAssignment variable CDATA #REQUIRED>
 <!ELEMENT StmtBlock>
 <!ELEMENT StmtCall>
 <!ELEMENT visitStmtConsume>
@@ -69,4 +70,8 @@
 <!ELEMENT StmtIf>
 <!ELEMENT StmtOutput>
 <!ELEMENT StmtWhile>
+
+<!ELEMENT Field>
+<!ATTLIST Field name CDATA #REQUIRED>
+<!ELEMENT Value (%expression;)>
  ]>

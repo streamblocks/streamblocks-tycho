@@ -571,10 +571,10 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		top.appendChild(struct);
 		e.getStructure().accept(this, struct);
 		// location
-		Element locations = doc.createElement("Locations");
-		top.appendChild(locations);
+		Element location = doc.createElement("Location");
+		top.appendChild(location);
 		for(Expression arg : e.getLocation()){
-			arg.accept(this, locations);
+			arg.accept(this, location);
 		}
 		return null;
 	}
@@ -692,12 +692,6 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		}
 	}
 	@Override
-	public Void visitStmtAssignment(StmtAssignment s, Element p) {
-		Element top = doc.createElement("StmtAssignment");
-		p.appendChild(top);
-		return null;
-	}
-	@Override
 	public Void visitStmtBlock(StmtBlock s, Element p) {
 		Element top = doc.createElement("StmtBlock");
 		p.appendChild(top);
@@ -734,19 +728,25 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		// TODO Auto-generated method stub
 		return null;
 	}
-	public Void visitStmtAssignment(StmtAssignment s, Void p) {
-		out.append(s.getVar());
+	@Override
+	public Void visitStmtAssignment(StmtAssignment s, Element p) {
+		Element top = doc.createElement("StmtAssignment");
+		p.appendChild(top);
+		top.setAttribute("variable", s.getVar());
 		if(s.getField() != null){
-			out.append(".");
-			out.append(s.getField());
-		} else if(s.getLocation() != null){
-			out.append("[");
-			print(s.getLocation());
-			out.append("]");
+			Element field = doc.createElement("Field");
+			top.appendChild(field);
+			field.setAttribute("name", s.getField());
+		} else if(s.getLocation() != null && s.getLocation().length>0){
+			Element location = doc.createElement("Locations");
+			top.appendChild(location);
+			for(Expression arg : s.getLocation()){
+				arg.accept(this, location);
+			}
 		}
-		out.append(" := ");
-		s.getVal().accept(this, null);
-		out.append(";");
+		Element val = doc.createElement("Value");
+		top.appendChild(val);
+		s.getVal().accept(this, val);
 		return null;
 	}
 	public Void visitStmtBlock(StmtBlock s, Void p) {
