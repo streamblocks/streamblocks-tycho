@@ -1581,12 +1581,12 @@ public class CalParser extends Parser {
 			case 205: // simple_expression = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new ExprVariable((String)id.value));
+					 return new Symbol(new ExprVariable(new Variable((String)id.value)));
 			}
 			case 206: // simple_expression = OLD IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 2];
-					 return new Symbol(new ExprVariable((String)id.value));
+					 return new Symbol(new ExprVariable(new Variable((String)id.value)));
 			}
 			case 207: // simple_expression = method_invocation.m
 			{
@@ -1818,20 +1818,20 @@ public class CalParser extends Parser {
 					final Symbol _symbol_value = _symbols[offset + 3];
 					final Expression value = (Expression) _symbol_value.value;
 					 if(lhs instanceof ExprVariable){
-                                                           return new Symbol(new StmtAssignment(((ExprVariable)lhs).getName(), value)); 
+                                                           return new Symbol(new StmtAssignment(new Variable(((ExprVariable)lhs).getVariable().getName()), value)); 
                                                          } else if(lhs instanceof ExprIndexer){
                                                              ExprIndexer indexer = (ExprIndexer)lhs;
                                                              if(indexer.getStructure() instanceof ExprVariable){
-                                                               return new Symbol(new StmtAssignment(((ExprVariable)indexer.getStructure()).getName(), value, indexer.getLocation())); 
+                                                               return new Symbol(new StmtAssignment(new Variable(((ExprVariable)indexer.getStructure()).getVariable().getName()), value, indexer.getLocation())); 
                                                              }
                                                          } else if(lhs instanceof ExprEntry){
                                                              ExprEntry field = (ExprEntry)lhs;
                                                              if(field.getEnclosingExpr() instanceof ExprVariable){
-                                                               return new Symbol(new StmtAssignment(((ExprVariable)field.getEnclosingExpr()).getName(), value, field.getName())); 
+                                                               return new Symbol(new StmtAssignment(new Variable(((ExprVariable)field.getEnclosingExpr()).getVariable().getName()), value, field.getName())); 
                                                              }
                                                          }
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
-                                                         return new Symbol(new StmtAssignment("illegal", value));
+                                                         return new Symbol(new StmtAssignment(new Variable("illegal"), value));
 			}
 			case 240: // statement = method_invocation.m SEMICOLON
 			{

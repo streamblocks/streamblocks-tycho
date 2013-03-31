@@ -677,7 +677,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	@Override
 	public Void visitExprVariable(ExprVariable e, Element p) {
 		Element var = doc.createElement("ExprVariable");
-		var.setAttribute("name", e.getName());
+		var.setAttribute("name", e.getVariable().getName());
 		p.appendChild(var);
 		return null;
 	}
@@ -732,7 +732,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitStmtAssignment(StmtAssignment s, Element p) {
 		Element top = doc.createElement("StmtAssignment");
 		p.appendChild(top);
-		top.setAttribute("variable", s.getVar());
+		top.setAttribute("variable", s.getVar().getName());
 		if(s.getField() != null){
 			Element field = doc.createElement("Field");
 			top.appendChild(field);

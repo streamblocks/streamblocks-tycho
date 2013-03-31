@@ -35,68 +35,54 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
-
-
 public class StmtAssignment extends Statement {
 
-    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
-        return v.visitStmtAssignment(this, p);
-    }
+	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
+		return v.visitStmtAssignment(this, p);
+	}
 
-    public StmtAssignment(String var, Expression val) {
-        this(var, val, null, null);
-    }
+	public StmtAssignment(Variable var, Expression val) {
+		this(var, val, null, null);
+	}
 
-    public StmtAssignment(String var, Expression val, Expression [] location) {
-    	this(var, val, location, null);
-    }
+	public StmtAssignment(Variable var, Expression val, Expression[] location) {
+		this(var, val, location, null);
+	}
 
-    protected StmtAssignment(String var, Expression val, Expression [] location, String field) {
-        this.var = var.intern();
-        this.val = val;
-        this.field = field;
-        this.location = location;
-    }
-    
-    public StmtAssignment(String var, Expression val, String field) {
-    	this(var, val, null, field);
-    }
+	protected StmtAssignment(Variable var, Expression val, Expression[] location, String field) {
+		this.var = var;
+		this.val = val;
+		this.field = field;
+		this.location = location;
+	}
 
-    public String getVar() {
-        return var;
-    }
+	public StmtAssignment(Variable var, Expression val, String field) {
+		this(var, val, null, field);
+	}
 
-    public Expression getVal() {
-        return val;
-    }
+	public Variable getVar() {
+		return var;
+	}
 
-    public Expression[] getLocation() {
-        return location;
-    }
-    
-    public String  getField() {
-    	return field;
-    }
+	public Expression getVal() {
+		return val;
+	}
 
-    private String      var;
-    private Expression  val;
-    private Expression [] location;
-    private String field;
-    
-    
-    public long  getVariableLocation() {
-    	return variableLocation;
-    }
-    
-    public void  setVariableLocation(long location) {
-    	variableLocation = location;
-    }
-    
-    private long variableLocation = -1;
+	public Expression[] getLocation() {
+		return location;
+	}
 
+	public String getField() {
+		return field;
+	}
+
+	private Variable var;
+	private Expression val;
+	private Expression[] location;
+	private String field;
 
 }
