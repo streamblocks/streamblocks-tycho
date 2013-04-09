@@ -146,6 +146,23 @@
      }
   }
    
+  private LValue expressionToLValue(Expression expression) {
+    if (expression instanceof ExprVariable) {
+      return new LValueVariable(((ExprVariable) expression).getVariable());
+    } else if (expression instanceof ExprIndexer) {
+      ExprIndexer exprIndexer = (ExprIndexer) expression;
+      LValue structure = expressionToLValue(exprIndexer.getStructure());
+      if (structure == null) return null;
+      return new LValueIndexer(structure, exprIndexer.getIndex());
+    } else if (expression instanceof ExprField) {
+      ExprField exprField = (ExprField) expression;
+      LValue structure = expressionToLValue(exprField.getStructure());
+      if (structure == null) return null;
+      return new LValueField(structure, exprField.getField());
+    } else {
+      return null;
+    }
+  }
 :};
 // common terminals
 %terminals ARROW;
@@ -225,6 +242,8 @@
 %typeof actor_parameter = "ParDeclValue";
 %typeof actor_parameter_init_expression = "Expression";
 %typeof qual_id = "ArrayList";
+%typeof variable = "Variable";
+%typeof field = "Field";
 %typeof decl_list = "ArrayList";
 %typeof decl_block = "ArrayList";
 %typeof decl_block_opt = "ArrayList";
@@ -260,6 +279,7 @@
 %typeof simple_expression = "Expression";
 %typeof unary_expression = "Expression";
 %typeof indexing_expression = "Expression";
+%typeof indexer_start = "Expression";
 %typeof expression = "Expression";
 %typeof operator = "String";
 %typeof formal_parameter = "ParDeclValue";

@@ -71,38 +71,38 @@ public class CalParser extends Parser {
 		static public final short FUNCTION = 37;
 		static public final short PROCEDURE = 38;
 		static public final short MULTI = 39;
-		static public final short OLD = 40;
-		static public final short LET = 41;
-		static public final short CONST = 42;
-		static public final short LAMBDA = 43;
-		static public final short COLONEQ = 44;
-		static public final short WHILE = 45;
-		static public final short GUARD = 46;
-		static public final short DELAY = 47;
-		static public final short AT = 48;
-		static public final short ATSTAR = 49;
-		static public final short ANY = 50;
-		static public final short REPEAT = 51;
-		static public final short TIME = 52;
-		static public final short INVARIANT = 53;
-		static public final short FSM = 54;
-		static public final short MULT = 55;
-		static public final short GT = 56;
-		static public final short ENDACTION = 57;
-		static public final short ENDACTOR = 58;
-		static public final short ENDINVARIANT = 59;
-		static public final short ENDSCHEDULE = 60;
-		static public final short LT = 61;
-		static public final short ARROW = 62;
-		static public final short INTEGER_LITERAL = 63;
-		static public final short LONG_LITERAL = 64;
-		static public final short FLOATING_POINT_LITERAL = 65;
-		static public final short DOUBLE_LITERAL = 66;
-		static public final short TRUE_LITERAL = 67;
-		static public final short FALSE_LITERAL = 68;
-		static public final short CHARACTER_LITERAL = 69;
-		static public final short STRING_LITERAL = 70;
-		static public final short NULL_LITERAL = 71;
+		static public final short LET = 40;
+		static public final short CONST = 41;
+		static public final short LAMBDA = 42;
+		static public final short COLONEQ = 43;
+		static public final short WHILE = 44;
+		static public final short GUARD = 45;
+		static public final short DELAY = 46;
+		static public final short AT = 47;
+		static public final short ATSTAR = 48;
+		static public final short ANY = 49;
+		static public final short REPEAT = 50;
+		static public final short TIME = 51;
+		static public final short INVARIANT = 52;
+		static public final short FSM = 53;
+		static public final short MULT = 54;
+		static public final short GT = 55;
+		static public final short ENDACTION = 56;
+		static public final short ENDACTOR = 57;
+		static public final short ENDINVARIANT = 58;
+		static public final short ENDSCHEDULE = 59;
+		static public final short LT = 60;
+		static public final short ARROW = 61;
+		static public final short INTEGER_LITERAL = 62;
+		static public final short LONG_LITERAL = 63;
+		static public final short FLOATING_POINT_LITERAL = 64;
+		static public final short DOUBLE_LITERAL = 65;
+		static public final short TRUE_LITERAL = 66;
+		static public final short FALSE_LITERAL = 67;
+		static public final short CHARACTER_LITERAL = 68;
+		static public final short STRING_LITERAL = 69;
+		static public final short NULL_LITERAL = 70;
+		static public final short OLD = 71;
 		static public final short PROC = 72;
 		static public final short OPERATOR = 73;
 		static public final short FOREACH = 74;
@@ -156,7 +156,6 @@ public class CalParser extends Parser {
 			"FUNCTION",
 			"PROCEDURE",
 			"MULTI",
-			"OLD",
 			"LET",
 			"CONST",
 			"LAMBDA",
@@ -188,6 +187,7 @@ public class CalParser extends Parser {
 			"CHARACTER_LITERAL",
 			"STRING_LITERAL",
 			"NULL_LITERAL",
+			"OLD",
 			"PROC",
 			"OPERATOR",
 			"FOREACH",
@@ -203,125 +203,124 @@ public class CalParser extends Parser {
 	}
 
 	static final ParsingTables PARSING_TABLES = new ParsingTables(
-		"U9pjN0UO54NJhjfuWRj3vEJmpaHKJ1W1mu42AeWY80WUIG79KJ8g4XG3IKH1IQ82AYWYA3a" +
-		"BA0X#c0Cg8eevWXYt$xThUcTdPpQ0Zy$tVFWxzzHqggv#t#hgdfwxtIFA$ODQq8lKZAwYHh" +
-		"IHcbChgatrQPLIv8$ifblf1gf3IsWf1RaqNSPtK4CUJdtZz1jGK$KcTURhw6IwZkwXH#a1w" +
-		"a7xtJfqALr1b$Dele47y23r9hUWJsWlVKgVqJxwdBwWB#ahcaFrg3VriJ5TQ$LNrsXCl8TE" +
-		"LPi5qqcqX2zK8mLJDReHkFe2L$o83$CIsidFsvX2Nanyas2gJSVp13gBPbAJr9Xu6e$YZjo" +
-		"5d#HvF4jZeZ1LDtxA1gPtgB76H06kILkzVaAFpjoUsaOnSHlQpr$nvM3n8UsadQgTQa$lQ4" +
-		"oKH$VnTZwRp#DFq$Xf6x#XUwX5F0KszDmTK0VeEC5q7p1f6nfJFJgJ9temrUKjr9bwyGjHJ" +
-		"EfFhv$KYpB2cvG5J9lvchHpzpMDDRES4XFletxyMc9Ct8uoxRbxFq4ylIj#6iW5yFKmpkNy" +
-		"D9YsqitSZR#aKggTXObxqJc86ZUcaSmSG3pT2AspASSpRdJkAW9J7UxE9t8UrUUFg0mrfEd" +
-		"Y9yoXo1XuFNKyrUMTgYbmR0EERO8fo6keYiR4FR7kT7HgJ9ju5UN2JyN0vCPJZvVQVfe1J4" +
-		"tStXGhRzDMBgTwqpJaKcFgnNs0fhIEHtfBOdmdtyuZnKzlmq$lyIJ1L8$VGzaRuz$HZznTx" +
-		"R4nNUAPkp5ycSnT3V2lgPhIqJGrpTmTIple5RuPEynEQ#vGVethUEQk7jMadxpnHCkvFm#X" +
-		"iJQcEpsOwXfC9t05hic$OeTv8ZKcjPL$uz#bLDd4qn#y9W4cFNST4#oPUgLtu7LsF7LAi3$" +
-		"T7eqdn7XbHCbBQUPk3VpUcJf1Sx7nKsLUYV7TUq5NBaydUZ2Lg9UWlvRNsvXMU32rCNlcFL" +
-		"G9VlgQ7#CDQJ3LvfPwpwIdg8BnavwBTpoOkc3tVDg3gHrt4qlRR4ptUp1rm#wfvwuYrcnd6" +
-		"aJ3wAWqyQJJmT0TIIEmUrf#MekLfp4z0qmhw7QDIPNmSdZFZUaMqTx0Bzhnj2j1Z5SMFzt4" +
-		"5rCn5yDBnMdyj1Nx$pNS236alLMVhgTBWUXdsGk00i#vsOW2AvwgU33TBRmgyqRRJyt5nax" +
-		"Unik4ruyQjVZfCi5V21lpas2AsjZ0Hz52eFYGDwZMD9g6Hsq8ehVrCpWjhmrg1DV2gXoBkv" +
-		"x$woNo9mclqsayJQ29s4akuzEeAjthuJLPjBTHDTlNyUsFOA##7tkxvhMLgt4sdGBjhMamN" +
-		"Gs$bC4QsCcr#A3b9$gDcyPXoXLCjMYP1zDghgoQS823IJ2jv#$e8pv3$7G9VSp7oKZVf5id" +
-		"Y9Dwz3jV0Knv6XDNvxfOzGvCTAx6X6V4gHvCc$XIyByIF19ZsiFNStbhF#5#F8Q7qNdyEBH" +
-		"Jxt4xr1w#bnVH#S0qL33TWcV1tN5#6Yz#2l957am7i0jfA$QpW6VmBH81k$7472jHELrz57" +
-		"tAgNay7x7PDmccuiJC#6WWUffdYXKvEwcvi9Ci0lGggGT4DNW$$uI8d26pNvdVWY#Sh4gBf" +
-		"v$XpcvMVBpF9$ErpyPJ30zfApMfldhPiDfaFxl$e2kJi#BTILYToU$p7ew85INt7$bZ$YGL" +
-		"A$riv2zuhyrgg#fCLxjPqJZUIzTuM9qbDdRYb6wp4XijCLFV2wVswYRKMVj7CNx0IUr8lN#" +
-		"uncX8sa9FiT5VxWDeIDBzm#8qb6wZEsYKZAZn5DCKUb3mF4Ipa7#C7WUIUJINdlHmQYppL8" +
-		"qMs7WMYuqNS2yM6yMqqi7f9Pcdbm#BKnDwbRRJVyJ6wt9$Wzwazr9o#f0#eDqOxrlwGV0Sf" +
-		"5$fJy4JOM8$Pt8OSLE5Sw3ZvbGYd8xX8djD7IlhibAK4v$4LVaKczDOuPJCnuavTULp#5pu" +
-		"LaVT#M9f7jVW2r9nulfy5JV0IgY42D9uMY7VLl1qGCrOb7g0Ks##DG6dWSAfhsE5orohZn5" +
-		"x8xGDjOtlv74M9xuBDi29xpiiJeEf5a$c1yH6K9Wzo5FvePIS7kRPF1to23zgTecvF4SuFS" +
-		"5FyGAK5mBFiqYVyt2wJJYjLi$Qy$Io#ELLjP5V5qwh#Kr#rt3QnHzel$3dXyNfC$vKRL6TX" +
-		"CstlY1sY1$uPpwGd1F$gS#iFgBAFlRvXHCkNq1YBuEYrsKcxKk#Q1N$8edsYxwYUCZOg0$H" +
-		"DYYo2pahzYnBVN5FpScwreaDmhknTMaRJakfrXFPDg9uA8h7jXJZvBwYDjoSd3QSIEYGEP7" +
-		"XH34RScAYj9pYhx#FKtrApEdGvycoqTh9YGvtdlutESKk9wVkHoodU5OnJXQUlyx9lHRkIi" +
-		"29ul3ylVEq9W6d8pFsDjYSOjUHpYcA9WadBliFv7J2Fv1JwtyU9od$zpavRVpLSqJyPI69N" +
-		"N$z765TgJdHlvmEbHFUlFLzHym6thpBKo4LfU3alCvmdF2VemPqCUewSnRkVz0Yzj65Oly$" +
-		"YRKufBNe0hgGNp7sob41dKQdkpnGDiae#TB$MOoI0WKzdwPzXQTzRLpxDsdwVv#c$PSqxIf" +
-		"rEsUaQI$bRSUyQl$kaFQJzIpOy#gsLD#sT15jbj#MMlDw6TvbL#YzIK6u6S#8YrGhqewXBR" +
-		"p14w#nUAI4ywfRhDKZiSGp4$Ik5ssDNdmjtktyG7yjaBT07BV46sKsbKBJyvH7fUaei3iQa" +
-		"P81LELm2gv0FL4JhtyzVD2Qsk2TxMGwXQhHgTG1cDmw1LI3Qj9O#AewdKLdGwSsrQ5Bw5Ag" +
-		"2qprmLtZRq0DwKeFff1Wyj442WYc#mLJlc0gYvDdTs3gwHdnFjHEj37b9S1KLZ3rffN05QI" +
-		"Rqs9Q2XPdq9auUwwbrOBf0dhI#6a#C9NGQC7K1zg#17xA5Z$bnlbf2or4Zy7Grd6aHz6ORg" +
-		"UAo5UcAkYJ6bCXFIWzV7GiyXhJyNG2dIYOAWAJjg4nDP1wBwRp1DD9DYPAuAUGZ51UM9sFK" +
-		"Ze$FGm$MRES6bC9vkxSf9ZOnhGX0QPN15E8sc74JCn1Eam#U7S0JKOkR31rnpxVquDf8EOd" +
-		"3nhtGcwX1PvnevZQ0LCXZSEuLy7QEdeQQoFFp8HV90HhwJ2zX8YsejV2r0Yhg89W6WXCsfh" +
-		"6r8MwGa$xoUkh1ZJ8njGOc3fuD2nCFY0EKd#agJ5rHmptXAOLZnfJ8Ue72gOIOAeAhrXpLn" +
-		"NYnQEzDmxrgVQ28O8fJr05uASHQJ1bq5HwY4R1DuN6JxeyFK4yrQAh4s3AfzbuFXVOcAObn" +
-		"JH1ukaUx33fC37De9ccP67A0Zul9ZrteGIOj8qoZhbBv2UV8vxqAEbYNFj7hvn2oLbxfXxV" +
-		"ZKa$D$8IOBBYDc1ZoaowP#gvq8WcGL9ZwerPqNlcpPX52vEU2xy7Ko$e9S8qG2p5ukdM19W" +
-		"62wQQMBEQVIPspzIOT5eakY7idfQVjFSqfYR0b8cPqPW2uht4SwTNHnHJGTAvAmjhpH1$sa" +
-		"PgJ9fx27jJM$6MnbI0V5$1f56KbRLhnLE599XyZdYQPjRkXJH6REJPpvPoajDhTr4IJ54RX" +
-		"PYLZMQc0pWlRx9jQ1G#UGQdurK8dHAioW8PCUhhZeAf8tMYcwWpTf9or0tZz4ZgwzZPmjsU" +
-		"1vlHTQBnr9JzAZMcIj3HQw0GcAOOF#NHiZXCUO8fFmcc0DeR9SMqNaui6bC1KckaRMdNIJE" +
-		"WQOfrKY9Fb58usUbLxyHqcs1gb13J4EZsTwmJTxj6OVbf9CxsvMcuF55IOz8Qcz6l3p2TBP" +
-		"WUGVt8E4m#mPIH45DRCtknCzWZOaK$LmfCL1RPJxaChBjoIJ4rIyhCXrte8h5I8dTj9ra4Q" +
-		"3mDPBPVfgtGRsmYKf#$dAoE4LQ1XApAc$KJmrCWLchXpePLm6QL9HvAngeW1IiVc6WhsIQw" +
-		"9#CDCpMhGcZCSx0gCljiFAjvvYoHQ9qvyLWsd3FLpEmVpV1JJdR0rFk7UumouYjjuswv5o5" +
-		"DjdzOd8emSe7qi$0qG#rGmQFF3NwCCHH8$FH4KavbyKOMnPCXDlIEqKniD4C#ngb4E0KEar" +
-		"C1C5fn5pOnM9JKXiN9X$Dn2UpSWH#D9vyMctq#d$h9JpwGzAOx4vxtj8q2xCjHF3vxdYnE1" +
-		"UXzfysfG3Wbyt7os1jgzdbhnz3#JRsYV60KWXsVMGkzP6oDPm3I0Xl9EKav5SMjS6jFpePD" +
-		"wnsqq20f1xrpn5BmC3dbO$SSRlO7VUz3BwJX548w1Z8H9Sl7FionnfE1Tqk$bCf9RTiad6h" +
-		"W7iMpIco4y5CYDaBsVgpFhJxnIp8yoJXbOmo$MKdteFSKMBeu1QUsScQrTfQs6e$2XRp6yv" +
-		"Go5vKpQI4jiUkMonqs93Lua1CRb0s13TotGuIJPOaASK$9oTW$JTj0cclAi15dASKysHXFY" +
-		"#AHak2nBTcSbEkAsd1pSjfm8h5i70edoo#EaQppO7uKJN9EBeH$6wVOFCLpElHvCZPod9mE" +
-		"Tvx#Dpd5prFK4XKSgPpYMSKuMNZ#EYVtMg1YBoVS6$mRU#auKOPxbevyJh5vIipfo5rF$t8" +
-		"wqZb9#R$EoMd3lNSU#bxkvUGe$#LpX2cbv2JflvmEBVPAvDxMOSEyUIVd58TjcFk4ZxhMr0" +
-		"RtTjIURg0RHMjyOYsyGnejccNiwKz5pw6vBWyyawJ$2hj$6XJ$tzhnLcNzVTEU1VitAWd$m" +
-		"cSi1UnO6uOTB9ioPNyhWkHHdZDIpTuqdexpnciibd1FCAyIPLQhn19TbA1tWsYhNNCDaIzq" +
-		"k$mDs3SDjqwGR2BEq7LHGRaHf2oHtuzq02gQoUSEY7$G$P7#32c5lFv4mZRJ9p$UXg#Xgpm" +
-		"Byasix3$TrBzcoiiWUwrye3fakxE$LKzlGxyqqk58zL$3kq5lAF9d40KBNRgx3AugLffHZY" +
-		"ZK44uuWBG7AegGBe7qTezZ#es2pOMnSl1hI1RaPrF#3dtVXRmLto#K4yk7ZoVAp45Q1uNvI" +
-		"Ez2Uz2qFGNS2umFcgE#al63hly4xJ#Yxo2Kzw3jHF0yBNwS3CmFjp9ZLZ1zmv3sfkuSezUQ" +
-		"A7SwohMHlmtjGumkV1ogOtHheMspbS$4U1cVO$owA3o9COw6jFFwn$y6CBM0FknaV0KRpOt" +
-		"VLY7V4ktha9$Yyirrq6yAtrKtvNCX9IRVplZY8kJRGu3RFmDImpKlVHpsUkaKSnf1lflfVp" +
-		"6a3JAJKDV7S7gOAEjAz5q1hE2Q2OnPpyViP0NWeoUjV42FFTfmh8aRvYDqXnaFynVeO73qG" +
-		"tacKinJQ5mynW1YD3JNsBW7#QMcVWwaYncp2d0qT$ircO3JiIO5Ll#dyMrPlS3hCOop0ErN" +
-		"Oum1BZo8sz0Yj4q5tc5M7Pv256WIhnTw7ZgO$y0uqmzpvJzDVrx4PGzs0jWxiYPY#pW1yta" +
-		"w#cv0Ei1XwqEJVWnTxVzte7itTD0tXBqak3lU9YFMGeWf$q3etsguZa7TssRCsR3n6tos5d" +
-		"OkHVuKn6W69DDg3#jrbcVwOPx3PKn#9$eMkV1FWRnYsb#5xacnDiBU5mQdx8x0ECteVsAbs" +
-		"V1lrlr8To1UvdldA5pQf9NHvmEYKiT0zoVamIcSZtHTlBu$OAMb46VXyYWN8ZqMPLHd$Mbi" +
-		"OPyAx3Tvj8TyI4#680ueCsQhrACOgpFIBv5gpdlYnyh1VbqA#tNuR4W3I0shFdYCiGqCGUn" +
-		"NOQo$C6AJ$Z3jbL1kwkA9THni1xnuXeIH1h6VXliQ$o5#mhT0C7VXiMYhwkextgGJ8F1bu5" +
-		"UaYAFmPEXYxOOdcN5lC7eFGJ1E4EieZ7aBppJrixp#zoEsSXSuoZyPtK6EkbyWPWyEO4xy8" +
-		"npOdeQVhaMTlJV4sdWUsXSvT9y3fgv8Nu3eTLreRDP0UPNXi1LbhCVm#bY$8Em4pJEJDZdc" +
-		"1p5I2ljM#4N8wuvnTa7$DQHR88YfeFQNYSVmV8VThnpvkV7ODTsWsT$31o5Hly0NuL$ZTSC" +
-		"u5odCBrtWza5KqFwhmMzmq9LMwaFiqK73nzJbrd3tTzdQehzVvAw7hJMnl7#V8tyWYHqpBf" +
-		"U1CFpUKkyZa4VZxUQCCRWQ6Tym#YuqVRURiN5M25wT2dUyJQeONmukZ$eeiRuFPu7WHgIha" +
-		"OA$3sUIu4k6nxiElR6E$5k6FvxnmRtQRsRiEIuiIz7#N7oT7sUyu0kkEfm7Wj#OV1D7$Kdn" +
-		"UloHbOPq6$Rl47phVy$m7E$bvZVxjL#Vix171Kr$Nc$mwVaPvUqN2ABF3GuVVcRIbOP$jad" +
-		"NG#ygrA#DxvyppsipPwd3VYLJjyLH1n#4i9Vcu5mPEXNbnaXFTxHhlcSP$jLSVbaPNmvTRk" +
-		"etcl9LNZmqqTNdH4U#lHaJ#rsegxjlCe5kJSDhdpx7nRS5NeUlsffshFjGdgjlKolD3SVER" +
-		"pdzaM$X7ITNdv#lC$smJ#LMZNAEwVXdMsaGmH8QfjUXySc32N3tDBh5oEEinXTRPTyfYNdc" +
-		"ObyDTJIyUiMt1VkYJJyZz1bYbh5$dsEixbvxWMM9nmbuT4szyK$mVUJx6RilcnHdv11y7Qe" +
-		"F7tZUMnmuLflqLklTWSpPbxvpwKLZtZm3WnLD$KB8xfWUjt3apHarW7S6VirXIyV5fzRv8l" +
-		"IZ5rEu2UeFkkknlpYUBO669fsYpv39#1aSEBFxtjSsBGcNCZZiTGVR7#cpcmi7n$A#kFCqz" +
-		"7SvzB8SkFwJW4#z19ZmdkZlvh1$brV7X$EmlwgLz$U1B7QrtmmEdkTKOX#4syRomUm4xPqJ" +
-		"zmjUuaoDxgZOsIheEeVvlt3PRMobWSMEEkSpn8qZuLn6prYEVY6oBnLHazNzvBfKRxclKsl" +
-		"KMhLUhL8hKLgXbgjbKl#2mfk5miwcfYYS2zMTKZjLBLLBr6Ba49$g9$MTsYUp$OrwK3qGsQ" +
-		"q#YtmK#K0qZpMZr5NbLO4gfuvH#GfdOLMaZbSdIaiTjLtLGtg2EaVXXAlEKjNZy9sfyCwWp" +
-		"f2y#KP4v0y8tYWYFqT#ZFmWxNZNKQUAJZN8AQOldX2gYkGgA#nwIhwheiptGzHeTRiQhl1c" +
-		"hR2g5Kw#gg8zwfMHpoFxJBwXt2j0JfBSDGfFCNLrP6$a4t1j5FbGLLTvqf9hzyyHdBjDgRG" +
-		"wNzBpv7wkQYzf6zKMT$lRBwgLQgbkb9nyhqMra7jpoBMgjYfM5wkBr8Ng0bLBrLGrz4bFbT" +
-		"8ZgEp8bv4lZ6TqEIko9$AnNSgKUqRasyWtfYPiqb3awyXNPkm01EydaOZI$NuojNu8JWsHF" +
-		"oCgiZ#ot$J3yrwDKdUeeKY7G0QBxW2vzrVOnTH06Vtxo7UgiTGUfShYVhGgOtF5Uung1Xac" +
-		"fKgHpoAVgYlK9P5V38$V8JWlHmv43ghZrBVgUsZXZAh0KtskVb1uTrUl6biVgbtg5OMTIxs" +
-		"jtb1l8NrTlQOGVsgdqS1Rg$h4eVsUvDvHxwgzSV7xjT71suIQhoQg2Mg1UeRYBeKt1lM4e$" +
-		"muv57rc7fIBPJoK#eHt6UfcMg6cYurq#J#i9fjUZod9gdxr7xnr5VAV7D4zOBqKDYhL3y8d" +
-		"ekgZ#efBUFKM7MFkXUvko1ZrTrgV1oY3ggRwgBmHgEwguwu$wv#KxzAYtXJ7PJxpmghXYiI" +
-		"TaW8qtRoqtAao#Npqomo0tKpA4WpAK1wPeQX3ki2mdIlY8#mLY1CZr4cFKuPD0jr0no2zGJ" +
-		"nwTz0GHZYbszZTqV#MQJF8jNVfH#953iaX6ai3gcRaMw6xcpqrOAtOWZRPVr9nd4eZuFEQB" +
-		"IDHduW#lL4$LEaVzl3#ZTr42QyxKEOC8yGfXKYFj9p#GpoIoY7Na9vFFAMnF8hHNJPRzVDH" +
-		"HvlYn2crI8#VLg7CCq1XZdmrnharw1UVtDeBV8JvLD78Pg4$2Jq7uHqa7pYrqzTaE#2V5Ua" +
-		"NL7MCW7b#v5g6OvwBSyRMMLaZ95r8dxv1ji3o4#MJnlwQPvyjeaXVkg1j8TyJjKdtuJJ$nM" +
-		"Y6#gYqWdbJi1jYIxxHJeYtn5jDo7V6J8OvS7oYKijVlDmONfGn4ylenvlon2cASXlGtuRyb" +
-		"lGjXxfUgHJaKwLps0ouLa2OUG3f7yJ$8h9bo3kTBe1vGtodHHB5iBc2EYDG3rM1uJf2VXr4" +
-		"VABv9DlGKWOaa4lekr5z9a6kHjj7L3kWBp#hljToBU4$HP8qybr8dv8aAv5tXAVISCGFoHe" +
-		"qe39XsWJnjaaEW4fM$K#e#UZvcXhZhGLqbRGQONwwv6$Nhu$nHuP8kAZwKYdGqV$ZQ8zokq" +
-		"b7u848M5NFjFe1QaTqdQIwk$TX1rf1kd$qzW6xMtGhZzNtmRriJH3FfVV2#FsmbYjaMhPQA" +
-		"IVaJkDt66alv5bHfupijY8VjRTWFH64H$j#3yCXdmc");
+		"U9pjN0TqL5NpdtdRKaYY21995CKkYeWLIx1hW2He510a442mq0H4YlGc20ZIcrIHOWChYj9" +
+		"K54N4WWqKUnSRri#zt#$EczsytMIpENpdVuw7F#kPDxVCdVkRkNFdtiTk9ChwcwwZbwcOMj" +
+		"3bT0szHDTIQoga3To4DuK$eE7KcPlG6bfBsxWc5V4Mtc3QKb#LlrJbhwOET1aVmMlfRhgVP" +
+		"dCp#fE2j8EQS3DkJEaqZz#arNGLDQS7UHIVJeTH3kNIL$GrVKFVqdVqFVr0U#X7Qaahg83w" +
+		"q6qM4r$EFzALLDzymfUJpsAYa2cXNHQJ6KDh#28pL33j8ZyTMZ4cQaQlAwRjmFGe7KUrA9j" +
+		"EfbEudp7ygSLatkQxQIVdKO2oac8Qm7T0lZyFvlTWd$KJogwVQ3emdSFd2QOyleLJ4$c9Jd" +
+		"0ncIt0z2Pjv#lDFxI3R#9k3bDr5nDDvvrMc#bMHKmx#3z0r4KmfL4ztYIOZiBQRUEF5DDpl" +
+		"24P9ae3fXscBLzFdm7Jhno47LzOJFmiB3n2BFmv6IOQI3$HQJIKJkLfTBjW6aTrU6GKqqxU" +
+		"fPZkf7u9uobDr#vmODhDOxasfGBJfpoEjq6NZQSFWUbWYucQ9lNJ9ZeMg$OclSENyLI9fuT" +
+		"vFJnYCHqfVdhTnKI$qky9$TH0CPre$KGVy76K1qozgHgFv5l4Jr$ITFEY#AbNKanOSxe4Uc" +
+		"nzWM2wa7VI7xBlyccDQMvUSZ59v2V2j4FNRWVzoJzH9ZMncEXrh7jZnPGFJCt5JpEgWeblG" +
+		"mmyJsVJKbcxftaJhn5Ceu09IAAvuBe4#suylw0n$Wdyz3fzR5PHLxgPpk7lU06$8p5kzIpX" +
+		"D$WXVY0ffcUmTiz3po4yrzrtPg$PIuUNstUlaC5Qz4LqtCMRwHKxYlVmgrJ8Oq3hr4yDuQT" +
+		"5L9jkeYAw0NGGrQLE4a#lObG6tSWzwTYac3wJ4PQwSnrPE$JmOl4J8PxitC244KU34kGdxg" +
+		"7nb0jCcn4BfoDEkz8TCik5ejtgmSxbC7T9XiaKid48UhhI65XWr#uIhDsbWgb16IQxTbml8" +
+		"QQN5DC95XFmF6TpBKs6vu$1xh3nPF7ib1KiIPeBTY0FTECMDDh6fFWfBvB7QIOmZNBp4mt2" +
+		"3DiIndWaZr#3U3gEFkMRJMi#0$jq1pVWWyHFkp1w6oB$4MIiP9WUuwEmFyu2eXtgfrfOmpp" +
+		"1z3VYwH2k9tuwb8z6Uo9CVoYcLi1K22HRaR4MOknLvcKpH31DfY9JnEsv3Z9xidYwWfjW$Q" +
+		"xc6iXFFQ2l3HUA3hjsCx6J6$1uxECYvAcl#7R4#EaqXQRID4H50Tt3LugE6hH8CNtDawmEe" +
+		"BBhPi$CZx2VxTeD0wRx#H5#2dObmkJkaugYuthHCGgHD1JFStXAKhkMyN8dX5Dy23T6DW0c" +
+		"iniZZnUxr0Ow4Rvko4$Gf0GnMOAHYJ6r5pzjuubcAUnw59Obm$ITUG6pOUrnFpb9V3qC6Q5" +
+		"H3AOp1DFdz6m2J1rvTIMOUeYVTlENl1XdtG$yHL9CNzEPlDT69FpKIJ3zpX$WLkB1vFWi9i" +
+		"VFfoN0DCpSK0ccyOBfJ$w3pk8t4EqN9yqdhs57NKHNK5FDksrYycw#d2XvY4cRLru4fkke5" +
+		"V2lGnl#GzwrUosFRb5CUTn6Oh8NSl5cqR6G#Wick$y7q60yayNa4EWRGUFeJdSE6aiZQQwi" +
+		"$nnvtajBQ5b27HPF0UJjQR8SQxz8$BoE7g2LNZ$Btcz83$75s6SDQ1KzXJpuCZqZUSlgM8#" +
+		"PtNts3KhM9llCKvksHcrw3NahkKqLhTL4iUODURv5RzExIMnwZzwdZv0NrIRwX3vtySJPz0" +
+		"jtJH0xi#YtIl3S9qZ#Gs5ssEUaSQ0oFDoRKt0VicTHDSuK7v$CrN46M$$aSGwby0mRDtmad" +
+		"yHrgI$YB8ySFfvFuLDfClyZEdf6V8mHZSIckOYRSqL7APzlyOJVWNSVu0lsqSSRPPtabEMc" +
+		"NCn5INoS1xJjSDFCOtT$teZoPBNfLkx3mxalaBXnsTTypAFDAsYxY#$X2JnTT3JYMHetix6" +
+		"phOuvi6cUhDEzF5#GB8LV5jhdFjdqekYGrUBx4UShAhU9L$A3$32lWkJZWkSnb9uKF1lD8$" +
+		"mQlsKs0S#xvbb#7tlXG$wOFu6rt$CtPhFfAElq2slS85$zBJh#eaB7iJgSW1Dqxp1KvAGug" +
+		"VjeqnRHGVgqdyhNoVknSUD#x3gLVOgKzwNuZzLXFowUCXs57XqkaYBLj2ysVRaVslJN$cSJ" +
+		"P##7DXsp7zfqvdveqzdxeKtDzqERhjqFRMgv7zfKkX$QrFrVOPDNXzScsYUR1dgiIMvJxEV" +
+		"VQjEW$T2c4VkXJT$#dzeKEsDZkJN7sbJ#KrKyNjrFwety0iXtvImYPdg2GtHUPLASRgNetC" +
+		"gbN5tqU9MadgwIrBe4Ki$7IFrS9LrxgoJrJrMas5ybgOmgIHsSI8eRY#$V5AdwaABeDwJ9j" +
+		"9ulyL0$mRzEMxcsaQ3Xj#dM2j$PvaSbjcj1lo6DYy8QV9cM5iUqrwnaTiyUu8u9lf#57FLE" +
+		"q5S87JTGEpan2xd0ShxExYVvFg8G#wgjxAqYaI18HdQRMtyXklCeMkyPtK#HRsyYTPabMYj" +
+		"GYGBv1gSeKZUNS6lfBQJDj4b65EXifBCNA0S#FYnc1g89WlxOw7oHJu5dnYBk43VA#t4nnO" +
+		"wAxo$V6lyf88TyyFery7SBv8zMo6RfL8rAg9Iow20w6AL3g0Qa3aKyt88r2Y4YO#LR8zjTZ" +
+		"nKOG2VGYNGItO6eoO9KPvHAw24QARhEehDHSgWBtKWtqSsKXwnt8Lr45zCbME$BiEfNq9MK" +
+		"JqsegM2QJw$G61eCFVFfAS7KIDejfg1WgYcOIX0ranDYob5CYu3fAgfBIv5Vbz5o6WtR1mg" +
+		"cmr0kWUOK6f4KqwdKW4wZ9NGVpO9cYycMNJyT3Kp7qd62oG6wh8IOIXKJ0zCScYidH0xsMN" +
+		"rAeqSKqz7GORK5geZfLPmQENINO6f6zs0EYsawC3bql6AogvSCamDCDkDqXezpa7SpOKUwO" +
+		"1e7JCy9fcr9CGLf7f2dqX5KHp5r1wQUKKmb#C$5b8sv4c5gffWw09Fz5hapF9Q3LUiEJ3q5" +
+		"q#l0D48mPIV5L8hdBF5tB#YocFgAHoocBF7JkOefivArUy23oVLJCNXtwE#9DRUO763o2wR" +
+		"#IJ7PDS$1VxP#ks2gY$P2mUG0anyoBYOhdIp6SmIJNp7bODrBoc7gKYLCOp0w22#ucAR0Tr" +
+		"EZc1p5P7tdJveBN4pP6DMEsjCvGFGqdQwOVBGUpmsqCIccezJ#8DNMVMSZwyXo##vCOEuEY" +
+		"PvqhtZ2Zff1Ps14Vr2gOXeY#Ia5skm9LmkHceALj9WEnwY7gJfDmiXac3R924jMYyLaUyuJ" +
+		"J5Tx$9GFYVo4VkeN4qyvD1I#jfwokkf6$MHzFO4cLc7VBQ25q68rE8Bf4EYhAPXgnAsTatJ" +
+		"jN4nslCsrsL9s19CxtcehIOef1tw$5SY2Of$5L1pDu#d0L5tpKwv4IR8OFmQOx1xfZDLDbt" +
+		"rgiLbCFa5KJ8#XDHcc5u4xX#e98jTFTWsB1LCVOChIy#vMQK#4gL0nFGDCwNBUDSD8ksjOC" +
+		"TdeyekEjAIOie4fYDEr0Fcfd#OdgyDY6Yex#L78sLmmaqPXjiWvEX4wkk6ajJhi$SJ5j8As" +
+		"Y8uSmMzrvEePl1WwKh0cfMXFXCdLKR7LRamwEACSxEVa#sGQF61liQU9poscNBIxvrF41hk" +
+		"7kW5fZwJhNnccKMAN7xgJOIg1LBQilRtdM4oBuPsQCPY69SKqhKf#EWzppAGPIJ6jmBjYja" +
+		"Ha2JnaCJauwr9YCAK8flHACEKcnRILNiEDoP5Tc0oJpQ0lIsnMb7VT4wLOOj8dPu63MUr#B" +
+		"vR$pj2xPVKefdj5HxRi5lVS7I#OtFq$7izaCMdVXGw6XkewnsQyAVX4no1v#h67Jagem#B9" +
+		"bqpXWtm9Tel5auhQoXW$7of#zekVQ#0DDqNE#YmPPoaBCxjuqb5oSrgwveyiw8tOP7sItAR" +
+		"4QvMhMQG4UQ5ocspC#2MUNPlceLHSWKrtLX8xToR5KnDlp7tmd42tLOgdE$fxobbK4oMBfn" +
+		"UDnHbiyHJ3dWTn1XVhlUPMVSDz4kqr8PLDQqN7fAYFYpL7#$0Sf3vspw7jq67Nxd$niQDFc" +
+		"tqhzt6neCqM2ooUVk3PKPjog27igALncIEt5TjcTqKkxXXMHqra5HVFSCIKrT4RppLwjmeg" +
+		"abguQpl$aqrJeYTYihYnxprJzUoqU4BHt7mMIklatAubledaIqVNmwTx8HTl7f5tXnBHSJw" +
+		"UfMfJIjIcKibU#soJCUxJVYgtoNW#5e#MWCVJNajvZedxM1t21K#P3aelqw5uQhcQ3jXqmA" +
+		"O3DXsmwO1D1smwODC1c$x$sUJLuRN9wjXtcpppLc9J7C83DXsmwLzhKqKpnjfK$bDbF1LQ0" +
+		"$bsr1xF3jIHEj4DbKdXpRuAKbNJTK2ggb9uPxQ#Bur8GJxoBpP9jKey3AvSJgDcidmhLA6S" +
+		"IYnIhj#GnaNXAkgbfRunxSzMPNRK4iukrbVicNJfovGJCvrM2y#IazB#ctywU8RTM#3fCaT" +
+		"cPBTflLvavoc6Ul8lyRgVej$UHEhkB95QlahaopSujQBrN6fkUo6PGXao8j#TBRBNtJFMOe" +
+		"hCvZcRBv2UxCXyqL7vdXdBZOhF1f5JF38glhzyQpaj#KHE#b3t5m1hGRcWEq0RRLk4YFXQK" +
+		"03qAcW1Q2deCtHimNZ8yulWGL1pq0Nk6F#ViJgSFd7riHZNsrCVeFmRb$lE1WrMNUcWExpZ" +
+		"5TT1U9m9VZp6rK1v1kHweXu6tnmhIpjrp74kpsf25BmIzViW#tUyRbSca0bA0nscEFx2c4c" +
+		"WnokMTrQYRtMSZcDYwq7eoBgAA0HVPxK4xuIsfcvVQ3HqT2cJ3Rs6#ksAknzqrT5veCCPX$" +
+		"uVeQCT$FG9#eu2lfDZvqev1#EEKHmdwDWsaDTou3oLQmqz0r67Fr8MeR##oWv3MxxANeo#v" +
+		"zLt$ObIgs7#EgX0ncT$6xIil3zyDK6dGxO#PB7UWHAr1N4Jw8Y#zQ2PSVxg0Fc#uATglJ6e" +
+		"hvQ7w7ZO7R3w47lEJZJ4#PXxUlIDinp1ZfW8Z7RRw6UC#m$uFMYxosrBdGcxiBRyD3XiJTq" +
+		"DFhLCJvg3CJUfNPTYt0ejb#Bn0#ghTRurQEkeynoCkjqpmy5VYlDDAxHzh7wkZV9dYXtxoD" +
+		"T9vqICXdw9zsiYmjY1giyF7KMnVMbTOS$bY3L6Vo6eLMo$0$y4CSwPQNz9flWH3pGlLYu8h" +
+		"0xYpTTQxMW6EXaqCCu#h8yFSwOzXdcdmpx8116ZWJvbCYbjqNQ#whq0yeZnj1sGNmWvZ0aY" +
+		"hW8Vnjcu7UsdGHOnufkbRUUZhO7EUpLH#X7GlHdyGgmZP8F8Iy6hTPxhG6tLvaDHrXp3s7k" +
+		"#wN4sF01wIsNFXUmmZxzsepu4Szm9Z8h3jyFbwIimxnnmn5dMbUNNAJXK#LICcKrK3RahQn" +
+		"NsBsmA8bRywptsJdPvjUlH1upyElWOr0V3Lm7LSnV6P6iPVWyU1q9#2FP6WoUVL4EUJki1$" +
+		"XNuUnZZYyMLqG2OBy6uoQ3xGLFSTd#Ewfw6yk7WTcq6eM6LslqkwW$7sVWGP6t##G1bhAVl" +
+		"2$37r7TsJJQ2re60oNzRtDYNbNy3#WxzY8CWC0V$WHxuDFY7uj9y4ZJO9uXhFt9f2FMGuxQ" +
+		"7WkLzxo3tEbqzTTt7mHsUDkJTm95Q$XNbVcLz8Pn56OWnRbfUDsul54hroEBiy2EVXJAW7$" +
+		"d6LrlzbOEs6cg3ZJ7uANHesJZ$xQ07tNB0auCo42lf3q8s6tIGPvx38FyAEFPl2FlJ3z#7Z" +
+		"bQxlY#J2sIKbNtBOx7xhOxNL1$sQkXuBICcGgV4oWOc89$E1lqGxuC8eM#uAyllgMzqJMWN" +
+		"g9PRpkoWijiJwT4no9Mqg7oxytXPsVU#nvOw2VHygvZi#Nc5tYiGx$uniN8PInIVtadyoz6" +
+		"cETr$HIKsnzyvaF$zMokHZzip$ZTZwpwSHVvtmFU2Ou$viRv#zQSVvw9$bsUkDcLbVjlZem" +
+		"qgZvplHzxEdAYsVHo7rTw37erjSsv6sveuZFRSrRpZd#cHlIjMZhUwF90AwkxUetplg5qn#" +
+		"rtb9wayyax0hikNwYFT1vcubt11#N619z0#muFFA7zNn#kvp4WC3iuY$yxOyHbFbjUPiSMZ" +
+		"xoXjy$WwUAHxLygmzv02DzS6cdlwRSxGyoOGaoUet5t5FGyfUZyDZ2gFXoR6ZIdqb7KzGoK" +
+		"epuuVcuWWsyFbcJwK1yNsXLx26cb#oiGP6IYD6xj4#qv4UQbRpfXirwByF9aucmFFwBWDg1" +
+		"U1huoLyHtkyfI6wFiSXJrktIajambyxIblK$cvA6CDk97An#ZrO40E3ZpdblstnFQbuhuLG" +
+		"3v8nNj38ApwFRca8fi22VABhqk2zfOwr$ieDtJBGNqFIRiKPTmtqv2pdIyg6XyhduxS7yGz" +
+		"BbFtL#OUZyonweUzYdEiZi6T8bXK9iTdUCeZ5EErs2jxozhJSUu6yTvNhGLuY$9uggr7Uyl" +
+		"oxVI2n#wwodT3TuNlM6MoWRNktIru5gWHg9dQbEB1YZjFyC8ulxGiA$lcnFRn48zSjxAoFy" +
+		"Khf$tbtb#06UzpDCwZxv3outXLv9qD$6vGN4xtDVRwld8VkFSZnLXSGV#QYiVvStMkYyhQC" +
+		"awoToljhnqhJqtYz8vHkNgUjfVAoiuLSV9Rl7LFUzpvvQHJz6F2PggPGd4VqqsUwyrpPftP" +
+		"ODQQPr1xsgmnJqdx4#PnF6U1PXZSUSreQPrfdZIFcKTHGgumlvWzvajPhU$DT3Cj$87v8ln" +
+		"##5sHnFkdgMr6ccoJQtBC4TAMPxRYUP6fOGunrSt1vY2336SEDwSPt7JCgMQKgH#3KFxknH" +
+		"ncQfaBmK#MMZstB$mx26Tp#AVmz#7lf1zUDoUAp0cWurK7xkFc62aTROx5K$vonboglSFDO" +
+		"3F8u5tMu1tS300T5PqzF$nf#1CjNodF8q5rf5HeckBPBFnH#4DOtIJydgblqgGdDJe#HN1#" +
+		"eBLqSuRmq#NPq9G8RsFmRc7QHSUqD2rCUocrakSryYm6NMqkCEURyyovff4vnvnjpZ9d6kG" +
+		"84x8pc63uy$1dwXbR3uHtXNT6Qtvv#i9VXx$I5aSvXxyCVw7ZS9CFuvOV$ZFyjq5M3F#WxN" +
+		"Wx3UC67VuZ$5TuJtYFZhIuXfaH1k#D1dTc8tyZQ7hBivUv3Sy#ClhRy3T6$WB6L3DPU6QQZ" +
+		"AYrk0SQl1EO$bAh6$uulDjSRXg7Vz6PVmFXF0$$6FxP$61msXYybPYlGL#PdmpUHimsrVIX" +
+		"sMbUDHRNE#OjW$TOywPvm#2#Q$GlgGpUtSod7kdtfVIkUSzy5XF9twaCxlfcfPbaxZOFc8S" +
+		"evcDmNpFBFFKbe4LciLbk7fRw2hC0p$dcNZFFp9MMEVASRHRgYDNc7ZFP$2f##jPir5Qyiv" +
+		"kRpQruuaGqU5iqtSqjqZF1Z3VZ3Dur3TvvKHvh9iOWAZKtciwc2qet6Pouvc$pb$bJUlwGv" +
+		"#$o$CrW7Va4iglKcvYsau$MWjjV#qq0jxG0RGieG0l9JyZv82QyQuEO9WevccQObb8gtKyf" +
+		"j0Xj$JmqZEo$JJc4zoiGW#pl4Gd4XDm1OXe5FWhSvfNHu7TJaBQ0Ru7i4eor13#3E5fV39g" +
+		"4#YJ882U1cFfZN4#qOxr0J7Qj7WAtA$4m#2FWZu0$A#GGpWmGqvEKGQ#YFXbbbyhApmdPkY" +
+		"$QjXpbDMJ$Nu9CwuKSmZi2Y6aPC2o3lpQWl07jTZqteZn5VjaNf6aeJyFu0U03q3z0$fw0G" +
+		"Gvr1U#AkgLxK9yERcausYqzfRHEQPpI9Y4VpSHSCr6UWR4pv3VCzjU33FBXdPZfPL0F8H$r" +
+		"Gf$TbNt0kw4jGZUYVYFmksJhFg4kA7T1tqqetmmQYFf0#Ksq9H#DWAuHQ9ibvAEjQCVxEuX" +
+		"fDifsTsv3#HNqFG$#FFWSy3do#syckpVcWjlVWcD$Wjno2UBFyXTGVm6oyvHMG#T8o8r4ky" +
+		"qtVS5Nmhzujm0vD0ZZ1b48b4ARqRSPO#u5ZIT7$dAfCyhOGo2cww2$9NWoQYNa0mNeMfHTS" +
+		"fI7G3vGGBbVoq72FHx4sXRKTaVb76g1lXRWhS5Tyj7re3PeQmFU5crjvRVRN8xk479eFlXy" +
+		"o7J471rHxoZb82W02iMLKrKkG1t0EmWFWa8UdW9AfVReRu$#zcXlZ$OodWAoVql281#r0xV" +
+		"qej9jIcELxbIwNUaPfSULdb3g15zr0hz1oA4t$WkwXRK4");
 
 /*******************************************************
  *  Inject code for custom error handling in the parser class.
@@ -444,6 +443,24 @@ public class CalParser extends Parser {
      ParenthesSymbol(Symbol s){
        super(s.getId(), s.getStart(), s.getEnd(), s.value);
      }
+  }
+  
+  private LValue expressionToLValue(Expression expression) {
+    if (expression instanceof ExprVariable) {
+      return new LValueVariable(((ExprVariable) expression).getVariable());
+    } else if (expression instanceof ExprIndexer) {
+      ExprIndexer exprIndexer = (ExprIndexer) expression;
+      LValue structure = expressionToLValue(exprIndexer.getStructure());
+      if (structure == null) return null;
+      return new LValueIndexer(structure, exprIndexer.getIndex());
+    } else if (expression instanceof ExprField) {
+      ExprField exprField = (ExprField) expression;
+      LValue structure = expressionToLValue(exprField.getStructure());
+      if (structure == null) return null;
+      return new LValueField(structure, exprField.getField());
+    } else {
+      return null;
+    }
   }
 
 	public CalParser() {
@@ -1078,13 +1095,23 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, id.value); return _symbol_l;
 			}
-			case 122: // decl_list = decl.d
+			case 122: // variable = IDENTIFIER.id
+			{
+					final Symbol id = _symbols[offset + 1];
+					 return new Symbol(new Variable((String) id.value));
+			}
+			case 123: // field = IDENTIFIER.id
+			{
+					final Symbol id = _symbols[offset + 1];
+					 return new Symbol(new Field((String) id.value));
+			}
+			case 124: // decl_list = decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
 					final DeclVar d = (DeclVar) _symbol_d.value;
 					 ArrayList l = new ArrayList(); l.add(d); return new Symbol(l);
 			}
-			case 123: // decl_list = decl_list.l COMMA decl.d
+			case 125: // decl_list = decl_list.l COMMA decl.d
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1092,47 +1119,47 @@ public class CalParser extends Parser {
 					final DeclVar d = (DeclVar) _symbol_d.value;
 					 l.add(d); return _symbol_l;
 			}
-			case 124: // decl_block = VAR decl_list.d
+			case 126: // decl_block = VAR decl_list.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 2];
 					final ArrayList d = (ArrayList) _symbol_d.value;
 					 return _symbol_d;
 			}
-			case 125: // decl_block_opt = 
+			case 127: // decl_block_opt = 
 			{
 					 return new Symbol(new ArrayList());
 			}
-			case 126: // decl_block_opt = VAR decl_list.d
+			case 128: // decl_block_opt = VAR decl_list.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 2];
 					final ArrayList d = (ArrayList) _symbol_d.value;
 					 return _symbol_d;
 			}
-			case 127: // decl = var_decl.d
+			case 129: // decl = var_decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
 					final DeclVar d = (DeclVar) _symbol_d.value;
 					 return _symbol_d;
 			}
-			case 128: // decl = fun_decl.d
+			case 130: // decl = fun_decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
 					final DeclVar d = (DeclVar) _symbol_d.value;
 					 return _symbol_d;
 			}
-			case 129: // decl = proc_decl.d
+			case 131: // decl = proc_decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
 					final DeclVar d = (DeclVar) _symbol_d.value;
 					 return _symbol_d;
 			}
-			case 130: // var_decl = MUTABLE var_name_type.v
+			case 132: // var_decl = MUTABLE var_name_type.v
 			{
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final DeclVar v = (DeclVar) _symbol_v.value;
 					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, null, true));
 			}
-			case 131: // var_decl = MUTABLE var_name_type.v EQ expression.init
+			case 133: // var_decl = MUTABLE var_name_type.v EQ expression.init
 			{
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final DeclVar v = (DeclVar) _symbol_v.value;
@@ -1140,7 +1167,7 @@ public class CalParser extends Parser {
 					final Expression init = (Expression) _symbol_init.value;
 					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, false));
 			}
-			case 132: // var_decl = MUTABLE var_name_type.v EQCOLON expression.init
+			case 134: // var_decl = MUTABLE var_name_type.v EQCOLON expression.init
 			{
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final DeclVar v = (DeclVar) _symbol_v.value;
@@ -1148,13 +1175,13 @@ public class CalParser extends Parser {
 					final Expression init = (Expression) _symbol_init.value;
 					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, true));
 			}
-			case 133: // var_decl = var_name_type.v
+			case 135: // var_decl = var_name_type.v
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
 					final DeclVar v = (DeclVar) _symbol_v.value;
 					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, null, true));
 			}
-			case 134: // var_decl = var_name_type.v EQ expression.init
+			case 136: // var_decl = var_name_type.v EQ expression.init
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
 					final DeclVar v = (DeclVar) _symbol_v.value;
@@ -1162,7 +1189,7 @@ public class CalParser extends Parser {
 					final Expression init = (Expression) _symbol_init.value;
 					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, false));
 			}
-			case 135: // var_decl = var_name_type.v COLONEQ expression.init
+			case 137: // var_decl = var_name_type.v COLONEQ expression.init
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
 					final DeclVar v = (DeclVar) _symbol_v.value;
@@ -1170,73 +1197,73 @@ public class CalParser extends Parser {
 					final Expression init = (Expression) _symbol_init.value;
 					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, true));
 			}
-			case 136: // var_name_type = IDENTIFIER.id
+			case 138: // var_name_type = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(new DeclVar(null, (String)id.value, null));
 			}
-			case 137: // var_name_type = type.type IDENTIFIER.id
+			case 139: // var_name_type = type.type IDENTIFIER.id
 			{
 					final Symbol _symbol_type = _symbols[offset + 1];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 2];
 					 return new Symbol(new DeclVar(type, (String)id.value, null));
 			}
-			case 138: // fun_decl = FUNCTION IDENTIFIER.id lambda_expr_body.lambda
+			case 140: // fun_decl = FUNCTION IDENTIFIER.id lambda_expr_body.lambda
 			{
 					final Symbol id = _symbols[offset + 2];
 					final Symbol _symbol_lambda = _symbols[offset + 3];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return new Symbol(new DeclVar(null, (String)id.value, null, lambda, false));
 			}
-			case 139: // proc_decl = PROCEDURE IDENTIFIER.id procedure_expr_body.body
+			case 141: // proc_decl = PROCEDURE IDENTIFIER.id procedure_expr_body.body
 			{
 					final Symbol id = _symbols[offset + 2];
 					final Symbol _symbol_body = _symbols[offset + 3];
 					final ExprProc body = (ExprProc) _symbol_body.value;
 					 return new Symbol(new DeclVar(null, (String)id.value, null, body, false));
 			}
-			case 140: // port_decl = IDENTIFIER.id
+			case 142: // port_decl = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(new AtomicPortDecl((String)id.value, null));
 			}
-			case 141: // port_decl = type.type IDENTIFIER.id
+			case 143: // port_decl = type.type IDENTIFIER.id
 			{
 					final Symbol _symbol_type = _symbols[offset + 1];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 2];
 					 return new Symbol(new AtomicPortDecl((String)id.value, type));
 			}
-			case 142: // port_decl = MULTI IDENTIFIER.id
+			case 144: // port_decl = MULTI IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 2];
 					 return new Symbol(new AtomicPortDecl((String)id.value, null));
 			}
-			case 143: // port_decl = MULTI type.type IDENTIFIER.id
+			case 145: // port_decl = MULTI type.type IDENTIFIER.id
 			{
 					final Symbol _symbol_type = _symbols[offset + 2];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 3];
 					 return new Symbol(new AtomicPortDecl((String)id.value, type));
 			}
-			case 144: // port_decl_list_opt = 
+			case 146: // port_decl_list_opt = 
 			{
 					 return new Symbol(new CompositePortDecl());
 			}
-			case 145: // port_decl_list_opt = port_decl_list.l
+			case 147: // port_decl_list_opt = port_decl_list.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final CompositePortDecl l = (CompositePortDecl) _symbol_l.value;
 					 return _symbol_l;
 			}
-			case 146: // port_decl_list = port_decl.port_decl
+			case 148: // port_decl_list = port_decl.port_decl
 			{
 					final Symbol _symbol_port_decl = _symbols[offset + 1];
 					final PortDecl port_decl = (PortDecl) _symbol_port_decl.value;
 					 CompositePortDecl l = new CompositePortDecl(); l.addChild(port_decl); return new Symbol(l);
 			}
-			case 147: // port_decl_list = port_decl_list.l COMMA port_decl.d
+			case 149: // port_decl_list = port_decl_list.l COMMA port_decl.d
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final CompositePortDecl l = (CompositePortDecl) _symbol_l.value;
@@ -1244,42 +1271,42 @@ public class CalParser extends Parser {
 					final PortDecl d = (PortDecl) _symbol_d.value;
 					 l.addChild(d); return _symbol_l;
 			}
-			case 148: // type_bound = LT type.type
+			case 150: // type_bound = LT type.type
 			{
 					final Symbol _symbol_type = _symbols[offset + 2];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					 return _symbol_type;
 			}
-			case 149: // type_bound_opt = 
+			case 151: // type_bound_opt = 
 			{
 					 return new Symbol(null);
 			}
-			case 150: // type_bound_opt = type_bound.n
+			case 152: // type_bound_opt = type_bound.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final TypeExpr n = (TypeExpr) _symbol_n.value;
 					 return _symbol_n;
 			}
-			case 151: // type_parameter = IDENTIFIER.id type_bound_opt.type_bound
+			case 153: // type_parameter = IDENTIFIER.id type_bound_opt.type_bound
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_type_bound = _symbols[offset + 2];
 					final TypeExpr type_bound = (TypeExpr) _symbol_type_bound.value;
 					 return new Symbol(new ParDeclType((String)id.value));
 			}
-			case 154: // type_parameter_block = LBRACK opt$type_parameter_list.l RBRACK
+			case 156: // type_parameter_block = LBRACK opt$type_parameter_list.l RBRACK
 			{
 					final Symbol _symbol_l = _symbols[offset + 2];
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 return _symbol_l;
 			}
-			case 155: // type_parameter_list = type_parameter.tp
+			case 157: // type_parameter_list = type_parameter.tp
 			{
 					final Symbol _symbol_tp = _symbols[offset + 1];
 					final ParDeclType tp = (ParDeclType) _symbol_tp.value;
 					 ArrayList l = new ArrayList(); l.add(tp); return new Symbol(l);
 			}
-			case 156: // type_parameter_list = type_parameter_list.l COMMA type_parameter.tp
+			case 158: // type_parameter_list = type_parameter_list.l COMMA type_parameter.tp
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1287,13 +1314,13 @@ public class CalParser extends Parser {
 					final ParDeclType tp = (ParDeclType) _symbol_tp.value;
 					 l.add(tp); return _symbol_l;
 			}
-			case 157: // type_list = type.t
+			case 159: // type_list = type.t
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 ArrayList l = new ArrayList(); l.add(t); return new Symbol(l);
 			}
-			case 158: // type_list = type_list.l COMMA type.t
+			case 160: // type_list = type_list.l COMMA type.t
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1301,19 +1328,19 @@ public class CalParser extends Parser {
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 l.add(t); return _symbol_l;
 			}
-			case 159: // type = IDENTIFIER.id
+			case 161: // type = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(new TypeExpr((String)id.value));
 			}
-			case 162: // type = IDENTIFIER.id LBRACK opt$type_list.t RBRACK
+			case 164: // type = IDENTIFIER.id LBRACK opt$type_list.t RBRACK
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 3];
 					final ArrayList t = (ArrayList) _symbol_t.value;
 					 return new Symbol(t==null ? new TypeExpr((String)id.value) : new TypeExpr((String)id.value, (TypeExpr[])t.toArray(new TypeExpr[t.size()])));
 			}
-			case 165: // type = IDENTIFIER.id LPAREN opt$type_attribute_list.attributes RPAREN
+			case 167: // type = IDENTIFIER.id LPAREN opt$type_attribute_list.attributes RPAREN
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_attributes = _symbols[offset + 3];
@@ -1329,7 +1356,7 @@ public class CalParser extends Parser {
                                                                    }
                                                                    return new Symbol(new TypeExpr((String)id.value, typeParameters, valueParameters));
 			}
-			case 166: // type = LBRACK opt$type_list.param EDGE type.result_type RBRACK
+			case 168: // type = LBRACK opt$type_list.param EDGE type.result_type RBRACK
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ArrayList param = (ArrayList) _symbol_param.value;
@@ -1337,19 +1364,19 @@ public class CalParser extends Parser {
 					final TypeExpr result_type = (TypeExpr) _symbol_result_type.value;
 					 return new Symbol(null);
 			}
-			case 167: // type = LBRACK opt$type_list.param EDGE RBRACK
+			case 169: // type = LBRACK opt$type_list.param EDGE RBRACK
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ArrayList param = (ArrayList) _symbol_param.value;
 					 return new Symbol(null);
 			}
-			case 168: // type_attribute_list = type_attribute.t
+			case 170: // type_attribute_list = type_attribute.t
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final Map.Entry t = (Map.Entry) _symbol_t.value;
 					 ArrayList l = new ArrayList(); l.add(t); return new Symbol(l);
 			}
-			case 169: // type_attribute_list = type_attribute_list.l COMMA type_attribute.t
+			case 171: // type_attribute_list = type_attribute_list.l COMMA type_attribute.t
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1357,27 +1384,27 @@ public class CalParser extends Parser {
 					final Map.Entry t = (Map.Entry) _symbol_t.value;
 					 l.add(t); return _symbol_l;
 			}
-			case 170: // type_attribute = IDENTIFIER.id COLON type.type
+			case 172: // type_attribute = IDENTIFIER.id COLON type.type
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_type = _symbols[offset + 3];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					 return new Symbol(new AbstractMap.SimpleEntry((String)id.value, type));
 			}
-			case 171: // type_attribute = IDENTIFIER.id EQ expression.e
+			case 173: // type_attribute = IDENTIFIER.id EQ expression.e
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 3];
 					final Expression e = (Expression) _symbol_e.value;
 					 return new Symbol(new AbstractMap.SimpleEntry((String)id.value, e));
 			}
-			case 172: // edge_type = EDGE type.t
+			case 174: // edge_type = EDGE type.t
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 return _symbol_t;
 			}
-			case 177: // procedure_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl stmt_block_opt.body end_proc
+			case 179: // procedure_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl stmt_block_opt.body end_proc
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ArrayList param = (ArrayList) _symbol_param.value;
@@ -1391,17 +1418,17 @@ public class CalParser extends Parser {
                                                                                                                     decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
                                                                                                                     (Statement[])body.toArray(new Statement[body.size()])));
 			}
-			case 178: // stmt_block_opt = 
+			case 180: // stmt_block_opt = 
 			{
 					 return new Symbol(new ArrayList());
 			}
-			case 179: // stmt_block_opt = do_begin statement_list_opt.s
+			case 181: // stmt_block_opt = do_begin statement_list_opt.s
 			{
 					final Symbol _symbol_s = _symbols[offset + 2];
 					final ArrayList s = (ArrayList) _symbol_s.value;
 					 return _symbol_s;
 			}
-			case 180: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN expression.body end_lambda
+			case 182: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN expression.body end_lambda
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ArrayList param = (ArrayList) _symbol_param.value;
@@ -1414,7 +1441,7 @@ public class CalParser extends Parser {
                                              body,
                                              null));
 			}
-			case 181: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl COLON expression.body end_lambda
+			case 183: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl COLON expression.body end_lambda
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ArrayList param = (ArrayList) _symbol_param.value;
@@ -1429,7 +1456,7 @@ public class CalParser extends Parser {
                                              body,
                                              null));
 			}
-			case 182: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN edge_type.t opt$decl_block.decl COLON expression.body end_lambda
+			case 184: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN edge_type.t opt$decl_block.decl COLON expression.body end_lambda
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ArrayList param = (ArrayList) _symbol_param.value;
@@ -1446,13 +1473,13 @@ public class CalParser extends Parser {
                                              body,
                                              t));
 			}
-			case 183: // map_list = map_entry.m
+			case 185: // map_list = map_entry.m
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final Map.Entry m = (Map.Entry) _symbol_m.value;
 					 ArrayList l = new ArrayList(); l.add(m); return new Symbol(l);
 			}
-			case 184: // map_list = map_list.l COMMA map_entry.m
+			case 186: // map_list = map_list.l COMMA map_entry.m
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1460,7 +1487,7 @@ public class CalParser extends Parser {
 					final Map.Entry m = (Map.Entry) _symbol_m.value;
 					 l.add(m); return _symbol_l;
 			}
-			case 185: // map_entry = expression.e1 ARROW expression.e2
+			case 187: // map_entry = expression.e1 ARROW expression.e2
 			{
 					final Symbol _symbol_e1 = _symbols[offset + 1];
 					final Expression e1 = (Expression) _symbol_e1.value;
@@ -1468,19 +1495,19 @@ public class CalParser extends Parser {
 					final Expression e2 = (Expression) _symbol_e2.value;
 					 return new Symbol(new AbstractMap.SimpleEntry(e1, e2));
 			}
-			case 186: // tail = BAR expression.e
+			case 188: // tail = BAR expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 187: // expression_list = expression.e
+			case 189: // expression_list = expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 ArrayList l = new ArrayList(); l.add(e); return new Symbol(l);
 			}
-			case 188: // expression_list = expression_list.l COMMA expression.e
+			case 190: // expression_list = expression_list.l COMMA expression.e
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1488,17 +1515,17 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 l.add(e); return _symbol_l;
 			}
-			case 189: // expression_list_opt = 
+			case 191: // expression_list_opt = 
 			{
 					 return new Symbol(new ArrayList());
 			}
-			case 190: // expression_list_opt = expression_list.n
+			case 192: // expression_list_opt = expression_list.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final ArrayList n = (ArrayList) _symbol_n.value;
 					 return _symbol_n;
 			}
-			case 191: // method_invocation = simple_expression.function LPAREN opt$expression_list.args RPAREN
+			case 193: // method_invocation = simple_expression.function LPAREN opt$expression_list.args RPAREN
 			{
 					final Symbol _symbol_function = _symbols[offset + 1];
 					final Expression function = (Expression) _symbol_function.value;
@@ -1506,64 +1533,64 @@ public class CalParser extends Parser {
 					final ArrayList args = (ArrayList) _symbol_args.value;
 					 return new Symbol(new ExprApplication(function, args==null ? new Expression[0] : (Expression[])args.toArray(new Expression[args.size()])));
 			}
-			case 192: // literal = INTEGER_LITERAL.txt
+			case 194: // literal = INTEGER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
 			}
-			case 193: // literal = LONG_LITERAL.txt
+			case 195: // literal = LONG_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
 			}
-			case 194: // literal = FLOATING_POINT_LITERAL.txt
+			case 196: // literal = FLOATING_POINT_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
 			}
-			case 195: // literal = DOUBLE_LITERAL.txt
+			case 197: // literal = DOUBLE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litReal, ((String)txt.value)));
 			}
-			case 196: // literal = TRUE_LITERAL.txt
+			case 198: // literal = TRUE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litTrue, ((String)txt.value)));
 			}
-			case 197: // literal = FALSE_LITERAL.txt
+			case 199: // literal = FALSE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litFalse, ((String)txt.value)));
 			}
-			case 198: // literal = CHARACTER_LITERAL.txt
+			case 200: // literal = CHARACTER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litChar, ((String)txt.value)));
 			}
-			case 199: // literal = STRING_LITERAL.txt
+			case 201: // literal = STRING_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litString, ((String)txt.value)));
 			}
-			case 200: // literal = NULL_LITERAL.txt
+			case 202: // literal = NULL_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.litNull, ((String)txt.value)));
 			}
-			case 201: // primary = literal.l
+			case 203: // primary = literal.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ExprLiteral l = (ExprLiteral) _symbol_l.value;
 					 return _symbol_l;
 			}
-			case 202: // primary = LPAREN expression.e RPAREN
+			case 204: // primary = LPAREN expression.e RPAREN
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					 return new ParenthesSymbol(_symbol_e);
 			}
-			case 203: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN
+			case 205: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
@@ -1572,29 +1599,31 @@ public class CalParser extends Parser {
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(start.getStart()) + ", " + Symbol.getColumn(start.getStart()));
 			}
-			case 204: // simple_expression = primary.p
+			case 206: // simple_expression = primary.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Expression p = (Expression) _symbol_p.value;
 					 return _symbol_p;
 			}
-			case 205: // simple_expression = IDENTIFIER.id
+			case 207: // simple_expression = variable.v
 			{
-					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new ExprVariable(new Variable((String)id.value)));
+					final Symbol _symbol_v = _symbols[offset + 1];
+					final Variable v = (Variable) _symbol_v.value;
+					 return new Symbol(new ExprVariable(v));
 			}
-			case 206: // simple_expression = OLD IDENTIFIER.id
+			case 208: // simple_expression = OLD variable.v
 			{
-					final Symbol id = _symbols[offset + 2];
-					 return new Symbol(new ExprVariable(new Variable((String)id.value)));
+					final Symbol _symbol_v = _symbols[offset + 2];
+					final Variable v = (Variable) _symbol_v.value;
+					 return new Symbol(new ExprVariable(v));
 			}
-			case 207: // simple_expression = method_invocation.m
+			case 209: // simple_expression = method_invocation.m
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
 					 return _symbol_m;
 			}
-			case 208: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
+			case 210: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
 			{
 					final Symbol _symbol_c = _symbols[offset + 2];
 					final Expression c = (Expression) _symbol_c.value;
@@ -1604,13 +1633,13 @@ public class CalParser extends Parser {
 					final Expression e2 = (Expression) _symbol_e2.value;
 					 return new Symbol(new ExprIf(c, e1, e2));
 			}
-			case 209: // simple_expression = LBRACE expression_list_opt.e RBRACE
+			case 211: // simple_expression = LBRACE expression_list_opt.e RBRACE
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
 					 return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()])));
 			}
-			case 210: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
+			case 212: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
@@ -1618,13 +1647,13 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
 			}
-			case 211: // simple_expression = LBRACK expression_list_opt.e RBRACK
+			case 213: // simple_expression = LBRACK expression_list_opt.e RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
 					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()])));
 			}
-			case 212: // simple_expression = LBRACK expression_list_opt.e tail.tail RBRACK
+			case 214: // simple_expression = LBRACK expression_list_opt.e tail.tail RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
@@ -1632,7 +1661,7 @@ public class CalParser extends Parser {
 					final Expression tail = (Expression) _symbol_tail.value;
 					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()])));
 			}
-			case 213: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
+			case 215: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
@@ -1640,7 +1669,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
 			}
-			case 214: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK
+			case 216: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ArrayList e = (ArrayList) _symbol_e.value;
@@ -1650,14 +1679,14 @@ public class CalParser extends Parser {
 					final Expression tail = (Expression) _symbol_tail.value;
 					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
 			}
-			case 217: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
+			case 219: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final ArrayList m = (ArrayList) _symbol_m.value;
 					 return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
                                                                                                               (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()])));
 			}
-			case 218: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
+			case 220: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final ArrayList m = (ArrayList) _symbol_m.value;
@@ -1667,7 +1696,7 @@ public class CalParser extends Parser {
                                                                                                               (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()]), 
                                                                                                               (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()])));
 			}
-			case 219: // simple_expression = LET decl_list.l COLON expression.e end_let
+			case 221: // simple_expression = LET decl_list.l COLON expression.e end_let
 			{
 					final Symbol _symbol_l = _symbols[offset + 2];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1675,31 +1704,31 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return new Symbol(new ExprLet(new DeclType[0], (DeclVar[])l.toArray(new DeclVar[l.size()]), e));
 			}
-			case 220: // simple_expression = LAMBDA lambda_expr_body.lambda
+			case 222: // simple_expression = LAMBDA lambda_expr_body.lambda
 			{
 					final Symbol _symbol_lambda = _symbols[offset + 2];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return _symbol_lambda;
 			}
-			case 221: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
+			case 223: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
 			{
 					final Symbol _symbol_lambda = _symbols[offset + 3];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return _symbol_lambda;
 			}
-			case 222: // simple_expression = PROC procedure_expr_body.p
+			case 224: // simple_expression = PROC procedure_expr_body.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 2];
 					final ExprProc p = (ExprProc) _symbol_p.value;
 					 return _symbol_p;
 			}
-			case 223: // unary_expression = simple_expression.e
+			case 225: // unary_expression = simple_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 224: // unary_expression = operator.operator unary_expression.expr
+			case 226: // unary_expression = operator.operator unary_expression.expr
 			{
 					final Symbol _symbol_operator = _symbols[offset + 1];
 					final String operator = (String) _symbol_operator.value;
@@ -1707,34 +1736,54 @@ public class CalParser extends Parser {
 					final Expression expr = (Expression) _symbol_expr.value;
 					 return new Symbol(new ExprUnaryOp(operator, expr));
 			}
-			case 225: // indexing_expression = unary_expression.e
+			case 227: // indexing_expression = unary_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 226: // indexing_expression = indexing_expression.p LBRACK expression_list.l RBRACK
+			case 228: // indexing_expression = indexer.i
+			{
+					final Symbol i = _symbols[offset + 1];
+					 return i;
+			}
+			case 229: // indexing_expression = indexing_expression.p DOT field.f
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Expression p = (Expression) _symbol_p.value;
-					final Symbol _symbol_l = _symbols[offset + 3];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 return new Symbol(new ExprIndexer(p, (Expression[])l.toArray(new Expression[l.size()])));
+					final Symbol _symbol_f = _symbols[offset + 3];
+					final Field f = (Field) _symbol_f.value;
+					 return new Symbol(new ExprField(p, f));
 			}
-			case 227: // indexing_expression = indexing_expression.p DOT IDENTIFIER.id
+			case 230: // indexer = indexer_start.s expression.i RBRACK
 			{
-					final Symbol _symbol_p = _symbols[offset + 1];
-					final Expression p = (Expression) _symbol_p.value;
-					final Symbol id = _symbols[offset + 3];
-					 return new Symbol(new ExprEntry((String)id.value, p));
+					final Symbol _symbol_s = _symbols[offset + 1];
+					final Expression s = (Expression) _symbol_s.value;
+					final Symbol _symbol_i = _symbols[offset + 2];
+					final Expression i = (Expression) _symbol_i.value;
+					 return new Symbol(new ExprIndexer(s, i));
 			}
-			case 228: // expression = indexing_expression.e
+			case 231: // indexer_start = indexing_expression.e LBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 229: // expression = expression.arg1 operator.operator indexing_expression.arg2
+			case 232: // indexer_start = indexer_start.s expression.i COMMA
+			{
+					final Symbol _symbol_s = _symbols[offset + 1];
+					final Expression s = (Expression) _symbol_s.value;
+					final Symbol _symbol_i = _symbols[offset + 2];
+					final Expression i = (Expression) _symbol_i.value;
+					 return new Symbol(new ExprIndexer(s, i));
+			}
+			case 233: // expression = indexing_expression.e
+			{
+					final Symbol _symbol_e = _symbols[offset + 1];
+					final Expression e = (Expression) _symbol_e.value;
+					 return _symbol_e;
+			}
+			case 234: // expression = expression.arg1 operator.operator indexing_expression.arg2
 			{
 					final Symbol _symbol_arg1 = _symbols[offset + 1];
 					final Expression arg1 = (Expression) _symbol_arg1.value;
@@ -1760,50 +1809,50 @@ public class CalParser extends Parser {
                                                                }
                                                                return new Symbol(new ExprBinaryOp(operators, operands));
 			}
-			case 230: // operator = OPERATOR.op
+			case 235: // operator = OPERATOR.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 231: // operator = EQ.op
+			case 236: // operator = EQ.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 232: // operator = IN.op
+			case 237: // operator = IN.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 233: // operator = GT.op
+			case 238: // operator = GT.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 234: // operator = MULT.op
+			case 239: // operator = MULT.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 235: // formal_parameter = IDENTIFIER.id
+			case 240: // formal_parameter = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(new ParDeclValue((String)id.value, null));
 			}
-			case 236: // formal_parameter = type.t IDENTIFIER.id
+			case 241: // formal_parameter = type.t IDENTIFIER.id
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol id = _symbols[offset + 2];
 					 return new Symbol(new ParDeclValue((String)id.value, t));
 			}
-			case 237: // formal_parameter_list = formal_parameter.p
+			case 242: // formal_parameter_list = formal_parameter.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 ArrayList l = new ArrayList(); l.add(p); return new Symbol(l);
 			}
-			case 238: // formal_parameter_list = formal_parameter_list.l COMMA formal_parameter.p
+			case 243: // formal_parameter_list = formal_parameter_list.l COMMA formal_parameter.p
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1811,41 +1860,30 @@ public class CalParser extends Parser {
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 l.add(p);  return _symbol_l;
 			}
-			case 239: // statement = expression.lhs COLONEQ expression.value SEMICOLON
+			case 244: // statement = expression.lhs COLONEQ expression.value SEMICOLON
 			{
 					final Symbol _symbol_lhs = _symbols[offset + 1];
 					final Expression lhs = (Expression) _symbol_lhs.value;
 					final Symbol _symbol_value = _symbols[offset + 3];
 					final Expression value = (Expression) _symbol_value.value;
-					 if(lhs instanceof ExprVariable){
-                                                           return new Symbol(new StmtAssignment(new Variable(((ExprVariable)lhs).getVariable().getName()), value)); 
-                                                         } else if(lhs instanceof ExprIndexer){
-                                                             ExprIndexer indexer = (ExprIndexer)lhs;
-                                                             if(indexer.getStructure() instanceof ExprVariable){
-                                                               return new Symbol(new StmtAssignment(new Variable(((ExprVariable)indexer.getStructure()).getVariable().getName()), value, indexer.getLocation())); 
-                                                             }
-                                                         } else if(lhs instanceof ExprEntry){
-                                                             ExprEntry field = (ExprEntry)lhs;
-                                                             if(field.getEnclosingExpr() instanceof ExprVariable){
-                                                               return new Symbol(new StmtAssignment(new Variable(((ExprVariable)field.getEnclosingExpr()).getVariable().getName()), value, field.getName())); 
-                                                             }
-                                                         }
+					 LValue lvalue = expressionToLValue(lhs);
+                                                         if (lvalue != null) return new Symbol(new StmtAssignment(lvalue, value));
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
-                                                         return new Symbol(new StmtAssignment(new Variable("illegal"), value));
+                                                         return new Symbol(new StmtAssignment(new LValueVariable(new Variable("$illegal")), value));
 			}
-			case 240: // statement = method_invocation.m SEMICOLON
+			case 245: // statement = method_invocation.m SEMICOLON
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
 					 return new Symbol(new StmtCall(m.getFunction(), m.getArgs()));
 			}
-			case 241: // statement = BEGIN statement_list_opt.s END
+			case 246: // statement = BEGIN statement_list_opt.s END
 			{
 					final Symbol _symbol_s = _symbols[offset + 2];
 					final ArrayList s = (ArrayList) _symbol_s.value;
 					 return new Symbol(new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()])));
 			}
-			case 242: // statement = BEGIN VAR decl_list.d DO statement_list_opt.s END
+			case 247: // statement = BEGIN VAR decl_list.d DO statement_list_opt.s END
 			{
 					final Symbol _symbol_d = _symbols[offset + 3];
 					final ArrayList d = (ArrayList) _symbol_d.value;
@@ -1853,7 +1891,7 @@ public class CalParser extends Parser {
 					final ArrayList s = (ArrayList) _symbol_s.value;
 					 return new Symbol(new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()])));
 			}
-			case 243: // statement = IF expression.e THEN statement_list_opt.s end_if
+			case 248: // statement = IF expression.e THEN statement_list_opt.s end_if
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
@@ -1861,7 +1899,7 @@ public class CalParser extends Parser {
 					final ArrayList s = (ArrayList) _symbol_s.value;
 					 return new Symbol(new StmtIf(e, new StmtBlock(null, null, (Statement[])s.toArray(new Statement[s.size()])), null));
 			}
-			case 244: // statement = IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if
+			case 249: // statement = IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
@@ -1873,7 +1911,7 @@ public class CalParser extends Parser {
                                                                                                                  new StmtBlock(null, null, (Statement[])s1.toArray(new Statement[s1.size()])),
                                                                                                                  new StmtBlock(null, null, (Statement[])s2.toArray(new Statement[s2.size()]))));
 			}
-			case 245: // statement = WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while
+			case 250: // statement = WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
@@ -1885,7 +1923,7 @@ public class CalParser extends Parser {
                                                                                                                               (DeclVar[])d.toArray(new DeclVar[d.size()]),
                                                                                                                               (Statement[])s.toArray(new Statement[s.size()]))));
 			}
-			case 249: // statement = for_generator_list.g DO statement_list_opt.s end_foreach
+			case 254: // statement = for_generator_list.g DO statement_list_opt.s end_foreach
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
 					final ArrayList g = (ArrayList) _symbol_g.value;
@@ -1894,7 +1932,7 @@ public class CalParser extends Parser {
 					 return new Symbol(new StmtForeach((GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]),
                                                                                                                new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()]))));
 			}
-			case 250: // statement = for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach
+			case 255: // statement = for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
 					final ArrayList g = (ArrayList) _symbol_g.value;
@@ -1905,7 +1943,7 @@ public class CalParser extends Parser {
 					 return new Symbol(new StmtForeach((GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]),
                                                                                                                new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()]))));
 			}
-			case 251: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e
+			case 256: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ArrayList vars = (ArrayList) _symbol_vars.value;
@@ -1913,7 +1951,7 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, null)); return new Symbol(l);
 			}
-			case 252: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e
+			case 257: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -1923,7 +1961,7 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, null)); return new Symbol(l);
 			}
-			case 253: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 258: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ArrayList vars = (ArrayList) _symbol_vars.value;
@@ -1933,7 +1971,7 @@ public class CalParser extends Parser {
 					final ArrayList filters = (ArrayList) _symbol_filters.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, filters)); return new Symbol(l);
 			}
-			case 254: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 259: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -1945,7 +1983,7 @@ public class CalParser extends Parser {
 					final ArrayList filters = (ArrayList) _symbol_filters.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, filters)); return new Symbol(l);
 			}
-			case 255: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 260: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ArrayList vars = (ArrayList) _symbol_vars.value;
@@ -1955,7 +1993,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(null, vars, e, null)); return _symbol_l;
 			}
-			case 256: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 261: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -1967,7 +2005,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(t, vars, e, null)); return _symbol_l;
 			}
-			case 257: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
+			case 262: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ArrayList vars = (ArrayList) _symbol_vars.value;
@@ -1979,7 +2017,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(null, vars, e, filters)); return _symbol_l;
 			}
-			case 258: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
+			case 263: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -1993,7 +2031,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(t, vars, e, filters)); return _symbol_l;
 			}
-			case 259: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e
+			case 264: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ArrayList vars = (ArrayList) _symbol_vars.value;
@@ -2001,7 +2039,7 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, null)); return new Symbol(l);
 			}
-			case 260: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e
+			case 265: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2011,7 +2049,7 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, null)); return new Symbol(l);
 			}
-			case 261: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 266: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ArrayList vars = (ArrayList) _symbol_vars.value;
@@ -2021,7 +2059,7 @@ public class CalParser extends Parser {
 					final ArrayList filters = (ArrayList) _symbol_filters.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, filters)); return new Symbol(l);
 			}
-			case 262: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 267: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2033,7 +2071,7 @@ public class CalParser extends Parser {
 					final ArrayList filters = (ArrayList) _symbol_filters.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, filters)); return new Symbol(l);
 			}
-			case 263: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 268: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA for_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ArrayList vars = (ArrayList) _symbol_vars.value;
@@ -2043,7 +2081,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(null, vars, e, null)); return _symbol_l;
 			}
-			case 264: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 269: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2055,7 +2093,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(t, vars, e, null)); return _symbol_l;
 			}
-			case 265: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 270: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ArrayList vars = (ArrayList) _symbol_vars.value;
@@ -2067,7 +2105,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(null, vars, e, filters)); return _symbol_l;
 			}
-			case 266: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 271: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2081,35 +2119,35 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(t, vars, e, filters)); return _symbol_l;
 			}
-			case 267: // generator_variable_list = IDENTIFIER.id
+			case 272: // generator_variable_list = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 ArrayList l = new ArrayList(); l.add(id); return new Symbol(l);
 			}
-			case 268: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
+			case 273: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					final Symbol id = _symbols[offset + 3];
 					 l.add(id); return _symbol_l;
 			}
-			case 287: // statement_list_opt = 
+			case 292: // statement_list_opt = 
 			{
 					 return new Symbol(new ArrayList());
 			}
-			case 288: // statement_list_opt = statement_list.l
+			case 293: // statement_list_opt = statement_list.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 return _symbol_l;
 			}
-			case 289: // statement_list = statement.n
+			case 294: // statement_list = statement.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final Statement n = (Statement) _symbol_n.value;
 					 ArrayList l = new ArrayList(); l.add(n); return new Symbol(l);
 			}
-			case 290: // statement_list = statement_list.l statement.n
+			case 295: // statement_list = statement_list.l statement.n
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -2136,12 +2174,12 @@ public class CalParser extends Parser {
 			case 82: // opt$lst$fsm_state_transitions = 
 			case 88: // opt$lst$fsm_state_target = 
 			case 115: // opt$actor_parameter_init_expression = 
-			case 152: // opt$type_parameter_list = 
-			case 160: // opt$type_list = 
-			case 163: // opt$type_attribute_list = 
-			case 173: // opt$formal_parameter_list = 
-			case 175: // opt$decl_block = 
-			case 215: // opt$map_list = 
+			case 154: // opt$type_parameter_list = 
+			case 162: // opt$type_list = 
+			case 165: // opt$type_attribute_list = 
+			case 175: // opt$formal_parameter_list = 
+			case 177: // opt$decl_block = 
+			case 217: // opt$map_list = 
 			{
 				return new Symbol(null);
 			}
@@ -2172,42 +2210,42 @@ public class CalParser extends Parser {
 			case 111: // end_schedule = END
 			case 112: // end_schedule = ENDSCHEDULE
 			case 116: // opt$actor_parameter_init_expression = actor_parameter_init_expression
-			case 153: // opt$type_parameter_list = type_parameter_list
-			case 161: // opt$type_list = type_list
-			case 164: // opt$type_attribute_list = type_attribute_list
-			case 174: // opt$formal_parameter_list = formal_parameter_list
-			case 176: // opt$decl_block = decl_block
-			case 216: // opt$map_list = map_list
-			case 269: // for_foreach = FOREACH.FOREACH
-			case 270: // for_foreach = FOR.FOR
-			case 271: // do_begin = BEGIN.BEGIN
-			case 272: // do_begin = DO.DO
-			case 273: // end_choose = END.END
-			case 274: // end_choose = ENDCHOOSE.ENDCHOOSE
-			case 275: // end_foreach = END.END
-			case 276: // end_foreach = ENDFOREACH.ENDFOREACH
-			case 277: // end_if = END.END
-			case 278: // end_if = ENDIF.ENDIF
-			case 279: // end_lambda = END.END
-			case 280: // end_lambda = ENDLAMBDA.ENDLAMBDA
-			case 281: // end_let = END.END
-			case 282: // end_let = ENDLET.ENDLET
-			case 283: // end_proc = END.END
-			case 284: // end_proc = ENDPROC.ENDPROC
-			case 285: // end_while = END.END
-			case 286: // end_while = ENDWHILE.ENDWHILE
+			case 155: // opt$type_parameter_list = type_parameter_list
+			case 163: // opt$type_list = type_list
+			case 166: // opt$type_attribute_list = type_attribute_list
+			case 176: // opt$formal_parameter_list = formal_parameter_list
+			case 178: // opt$decl_block = decl_block
+			case 218: // opt$map_list = map_list
+			case 274: // for_foreach = FOREACH.FOREACH
+			case 275: // for_foreach = FOR.FOR
+			case 276: // do_begin = BEGIN.BEGIN
+			case 277: // do_begin = DO.DO
+			case 278: // end_choose = END.END
+			case 279: // end_choose = ENDCHOOSE.ENDCHOOSE
+			case 280: // end_foreach = END.END
+			case 281: // end_foreach = ENDFOREACH.ENDFOREACH
+			case 282: // end_if = END.END
+			case 283: // end_if = ENDIF.ENDIF
+			case 284: // end_lambda = END.END
+			case 285: // end_lambda = ENDLAMBDA.ENDLAMBDA
+			case 286: // end_let = END.END
+			case 287: // end_let = ENDLET.ENDLET
+			case 288: // end_proc = END.END
+			case 289: // end_proc = ENDPROC.ENDPROC
+			case 290: // end_while = END.END
+			case 291: // end_while = ENDWHILE.ENDWHILE
 			{
 				return _symbols[offset + 1];
 			}
-			case 246: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
+			case 251: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
 			{
 				return _symbols[offset + 4];
 			}
-			case 247: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
+			case 252: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
 			{
 				return _symbols[offset + 6];
 			}
-			case 248: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
+			case 253: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
 			{
 				return _symbols[offset + 8];
 			}
