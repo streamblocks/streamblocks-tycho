@@ -41,19 +41,19 @@ package net.opendf.ir.cal;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Expression;
-import net.opendf.ir.common.PortName;
+import net.opendf.ir.common.Port;
 
 public class OutputExpression extends AbstractIRNode{
 
 
-    public OutputExpression(PortName portname, Expression [] values, Expression repeatExpr) {
-        this.portname = portname;
+    public OutputExpression(Port port, Expression [] values, Expression repeatExpr) {
+        this.port = port;
         this.values = values;
         this.repeatExpr = repeatExpr;
     }
 
-    public PortName getPortname() {
-        return portname;
+    public Port getPort() {
+        return port;
     }
 
     public Expression[] getExpressions() {
@@ -64,7 +64,7 @@ public class OutputExpression extends AbstractIRNode{
         return repeatExpr;
     }
 
-    private PortName 		portname;
+    private Port 		port;
     private Expression []   values;
     private Expression 		repeatExpr;
 

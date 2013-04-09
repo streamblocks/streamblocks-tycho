@@ -85,8 +85,8 @@
     } else {
       name = file.getName();
     }
-    return new Actor(name, null, new ParDeclType[0], new ParDeclValue[0], new DeclType[0], new DeclVar[0], new CompositePortDecl(), 
-                     new CompositePortDecl(), new Action[0], new Action[0], null, new java.util.List[0], new Expression[0]);   
+    return new Actor(name, null, new ParDeclType[0], new ParDeclValue[0], new DeclType[0], new DeclVar[0], new PortDecl[0], 
+                     new PortDecl[0], new Action[0], new Action[0], null, new java.util.List[0], new Expression[0]);   
   }
   
   public net.opendf.ir.cal.Actor parse(String path, String fileName){
@@ -266,8 +266,8 @@
 %typeof fun_decl = "DeclVar";
 %typeof proc_decl = "DeclVar";
 %typeof port_decl = "PortDecl";
-%typeof port_decl_list = "CompositePortDecl";
-%typeof port_decl_list_opt = "CompositePortDecl";
+%typeof port_decl_list = "ArrayList";
+%typeof port_decl_list_opt = "ArrayList";
 %typeof type_bound = "TypeExpr";
 %typeof type_bound_opt = "TypeExpr";
 %typeof type_parameter = "ParDeclType";
@@ -339,7 +339,7 @@
 %typeof import_part = "String";
 %typeof import_single = "String";
 %typeof invariant = "ArrayList";
-%typeof port_name_colon = "PortName";
+%typeof port_name_colon = "Port";
 %typeof pri_inequality = "ArrayList";        //<QID>
 %typeof pri_inequality_list = "ArrayList";   //<QID>
 %typeof regexpr = "AbstractIRNode";
@@ -504,7 +504,7 @@ action_output_expression =
                                                 values==null ? new Expression[0] : (Expression[])values.toArray(new Expression[values.size()]), r)); :}
   ;
 port_name_colon =
-    IDENTIFIER.IDENTIFIER COLON {: return new Symbol(new PortName((String)IDENTIFIER.value));:}
+    IDENTIFIER.IDENTIFIER COLON {: return new Symbol(new Port((String)IDENTIFIER.value));:}
   ;
 //=== Actor ===================================================================
 actor_decl =
@@ -557,8 +557,8 @@ actor_decl =
                          valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
                          new DeclType[0],      // typeDecls, NOTE, can not be expressed in CAL
                          (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
-                         in,                   // CompositePortDecl inputPorts,
-                         out,                  // CompositePortDecl outputPorts,
+                         (PortDecl[])in.toArray(new PortDecl[in.size()]),
+                         (PortDecl[])out.toArray(new PortDecl[out.size()]),
                          (Action[])initializers.toArray(new Action[initializers.size()]),
                          (Action[])actions.toArray(new Action[actions.size()]),
                          scheduleFSM,

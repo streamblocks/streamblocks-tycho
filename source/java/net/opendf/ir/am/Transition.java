@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.opendf.ir.AbstractIRNode;
-import net.opendf.ir.common.PortName;
+import net.opendf.ir.common.Port;
 import net.opendf.ir.common.Statement;
 
 /**
@@ -21,11 +21,11 @@ import net.opendf.ir.common.Statement;
 
 public class Transition extends AbstractIRNode {
 
-	public Map<PortName, Integer> getInputRates() {
+	public Map<Port, Integer> getInputRates() {
 		return inputRates;
 	}
 
-	public int getInputRate(PortName p) {
+	public int getInputRate(Port p) {
 		if (inputRates.containsKey(p)) {
 			return inputRates.get(p);
 		} else {
@@ -33,11 +33,11 @@ public class Transition extends AbstractIRNode {
 		}
 	}
 
-	public Map<PortName, Integer> getOutputRates() {
+	public Map<Port, Integer> getOutputRates() {
 		return outputRates;
 	}
 
-	public int getOutputRate(PortName p) {
+	public int getOutputRate(Port p) {
 		if (outputRates.containsKey(p)) {
 			return outputRates.get(p);
 		} else {
@@ -57,7 +57,7 @@ public class Transition extends AbstractIRNode {
 		return body;
 	}
 
-	public Transition(Map<PortName, Integer> inputRates, Map<PortName, Integer> outputRates, List<Integer> required,
+	public Transition(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates, List<Integer> required,
 			List<Integer> killed, Statement[] body) {
 		this.inputRates = inputRates;
 		this.outputRates = outputRates;
@@ -69,6 +69,6 @@ public class Transition extends AbstractIRNode {
 	private List<Integer> required;
 	private List<Integer> killed;
 	private Statement[] body;
-	private Map<PortName, Integer> inputRates;
-	private Map<PortName, Integer> outputRates;
+	private Map<Port, Integer> inputRates;
+	private Map<Port, Integer> outputRates;
 }

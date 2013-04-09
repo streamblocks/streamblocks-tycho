@@ -240,8 +240,8 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append(portSep);
 			portSep = ", ";
 			// port name
-			if(p.getPortname() != null){
-				out.append(p.getPortname().toString());
+			if(p.getPort() != null){
+				out.append(p.getPort().getName());
 				out.append(":");
 			}
 			// sequence of token names
@@ -260,8 +260,8 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append(portSep);
 			portSep = ", ";
 			// port name
-			if(p.getPortname() != null){
-				out.append(p.getPortname().toString());
+			if(p.getPort() != null){
+				out.append(p.getPort().getName());
 				out.append(":");
 			}
 			// sequence of token names
@@ -274,22 +274,16 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("]");
 		}
 	}
-	public void print(PortDecl portDecl) {
-		if(portDecl instanceof CompositePortDecl){
-			CompositePortDecl cpd = (CompositePortDecl)portDecl;
-			String sep = "";
-			for(PortDecl p : cpd.getChildren()){
-				out.append(sep);
-				sep = ", ";
-				print(p);
-			}
-		} else {
-			AtomicPortDecl port = (AtomicPortDecl)portDecl;
-			if(port.getType() != null){
-				print(port.getType());
+	public void print(List<PortDecl> portDecls) {
+		String sep = "";
+		for(PortDecl p : portDecls){
+			out.append(sep);
+			sep = ", ";
+			if(p.getType() != null){
+				print(p.getType());
 				out.append(" ");
 			}
-			out.append(port.getLocalName());
+			out.append(p.getName());
 		}
 	}
 	public void print(DeclVar var){

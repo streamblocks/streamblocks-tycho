@@ -253,8 +253,8 @@
 %typeof fun_decl = "DeclVar";
 %typeof proc_decl = "DeclVar";
 %typeof port_decl = "PortDecl";
-%typeof port_decl_list = "CompositePortDecl";
-%typeof port_decl_list_opt = "CompositePortDecl";
+%typeof port_decl_list = "ArrayList";
+%typeof port_decl_list_opt = "ArrayList";
 %typeof type_bound = "TypeExpr";
 %typeof type_bound_opt = "TypeExpr";
 %typeof type_parameter = "ParDeclType";
@@ -373,7 +373,8 @@ network =
                           valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
                           new DeclType[0],      // typeDecls, NOTE, can not be expressed in NL
                           (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
-                          inputPorts, outputPorts,
+                          (PortDecl[])inputPorts.toArray(new PortDecl[inputPorts.size()]),
+                          (PortDecl[])outputPorts.toArray(new PortDecl[outputPorts.size()]),
                           (Map.Entry<String,EntityExpr>[])entities.toArray(new Map.Entry[entities.size()]), // entities
                           (StructureStatement[])structure.toArray(new StructureStatement[structure.size()]), // structure
                           (ToolAttribute[])toolAttributes.toArray(new ToolAttribute[toolAttributes.size()])

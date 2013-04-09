@@ -7,7 +7,7 @@ public class StmtOutput extends Statement {
 		return v.visitStmtOutput(this, p);
 	}
 
-	public PortName  getPort() { return port; }
+	public Port  getPort() { return port; }
 	
 	public boolean  hasRepeat() { return hasRepeat; }
 	
@@ -20,15 +20,15 @@ public class StmtOutput extends Statement {
 	//  Ctor
 	//
 	
-	public StmtOutput(Expression[] values, PortName port) {
+	public StmtOutput(Expression[] values, Port port) {
 		this(values, port, false, 0);
 	}
 	
-	public StmtOutput(Expression[] values, PortName port, int repeat) {
+	public StmtOutput(Expression[] values, Port port, int repeat) {
 		this(values, port, true, repeat);
 	}
 	
-	private StmtOutput(Expression[] values, PortName port, boolean hasRepeat, int repeat) {
+	private StmtOutput(Expression[] values, Port port, boolean hasRepeat, int repeat) {
 		this.values = values;
 		this.port = port;
 		this.hasRepeat = hasRepeat;
@@ -38,6 +38,6 @@ public class StmtOutput extends Statement {
 	private Expression[]	values;
 	
 	private boolean			hasRepeat;
-	private PortName		port;
+	private Port			port;
 	private int				repeat;
 }
