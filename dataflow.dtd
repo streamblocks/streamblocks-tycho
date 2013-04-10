@@ -1,22 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- NOTE the XML export is currently incomplete. It only exports expressions. -->
+<!-- NOTE the XML export is currently incomplete. It only exports expressions and some statements. -->
 
 <!DOCTYPE dataflow [
  <!ELEMENT Network (VarDeclarations?)>
  <!ELEMENT Actor (VarDeclarations?)>
 
- <!ELEMENT DeclVarList (VarDecl*)>
- <!ELEMENT DeclVar (InitialValue?)>
- <!ATTLIST DeclVar name CDATA #REQUIRED>
+<!-- Declarations -->
+<!ELEMENT DeclTypeList (DeclType*)>
+<!ELEMENT DeclType >
+<!ATTLIST DeclType name CDATA #REQUIRED>
  
- <!ELEMENT InitialValue (%expression;)>
+<!ELEMENT DeclVarList (DeclVar*)>
+<!ELEMENT DeclVar (InitialValue?)>
+<!ATTLIST DeclVar name CDATA #REQUIRED>
 
+<!ELEMENT InitialValue (%expression;)>
+
+<!ELEMENT PortName >
+<!ATTLIST PortName name CDATA #REQUIRED>
+
+<!-- Parameters -->
 <!ELEMENT ValueParameters (ParDeclValue*)>
 <!ELEMENT ParDeclValue (TypeExpr?)>
 <!ATTLIST ParDeclValue name CDATA #REQUIRED>
 
 <!ELEMENT TypeExpr> <!-- TODO -->
 
+<!-- Expression -->
 <!ENTITY % expression "ExprApplication, ExprBinaryOp, ExprEntry, ExprIf, ExprIndexer, ExprInput, ExprLambda, ExprLet, ExprList, ExprLiteral, ExprMap, ExprProc, ExprSet, ExprUnaryOp, ExprVariable">
 <!ELEMENT ExprApplication (Function, Arguments)>
 <!ELEMENT ExprBinaryOp (Operations, Operands)>
@@ -25,14 +35,14 @@
 <!ELEMENT ExprIf (Condition, TrueExpr, ElseExpr)>
 <!ELEMENT ExprIndexer (Structure, Location)>
 <!ELEMENT ExprInput > <!-- TODO -->
-<!ELEMENT ExprLambda (ValueParameters? ReturnType? VarDeclarations? BodyExpr)>
-<!ELEMENT ExprLet (VarDeclarations? BodyExpr)>
-<!ELEMENT ExprList (Elements? GeneratorFilters?)>
+<!ELEMENT ExprLambda (ValueParameters? ReturnType? DeclVarList? BodyExpr)>
+<!ELEMENT ExprLet (DeclVarList? BodyExpr)>
+<!ELEMENT ExprList (Elements? GeneratorFilterList?)>
 <!ELEMENT ExprLiteral >
 <!ATTLIST ExprLiteral text CDATA #REQUIRED>
-<!ELEMENT ExprMap (Maps? GeneratorFilters?)>
-<!ELEMENT ExprProc (ValueParameters? VarDeclarations? BodyStmt)>
-<!ELEMENT ExprSet (Elements? GeneratorFilters?)>
+<!ELEMENT ExprMap (Maps? GeneratorFilterList?)>
+<!ELEMENT ExprProc (ValueParameters? DeclVarList? StatementList)>
+<!ELEMENT ExprSet (Elements? GeneratorFilterList?)>
 <!ELEMENT ExprUnaryOp (%expression;)>
 <!ATTLIST ExprVariable operation CDATA #REQUIRED>
 <!ELEMENT ExprVariable >
@@ -52,26 +62,38 @@
 <!ELEMENT ReturnType (TypeExpr)>
 <!ELEMENT BodyExpr (%expression;)>
 <!ELEMENT Elements (%expression;*)>
-<!ELEMENT GeneratorFilters (GeneratorFilter*)>
-<!ELEMENT GeneratorFilter (VarDecls?, CollectionExpr, Filters?)>
+<!ELEMENT GeneratorFilterList (GeneratorFilter*)>
+<!ELEMENT GeneratorFilter (DeclVarList?, CollectionExpr, Filters?)>
 <!ELEMENT CollectionExpr (%expression;)>
 <!ELEMENT Filters (Exrtessions?)>
 <!ELEMENT Maps (MapKey, MapValue)>
 <!ELEMENT MapKey (%expression;)>
 <!ELEMENT MapValue (%expression;)>
+<!ELEMENT StatementList (%statement)*>
 
-<!ENTITY % stateent "StmtAssignment, StmtBlock, StmtCall, visitStmtConsume, StmtForeach, StmtIf, StmtOutput, StmtWhile">
+<!-- Statement -->
+<!ENTITY % statement "StmtAssignment, StmtBlock, StmtCall, StmtConsume, StmtForeach, StmtIf, StmtOutput, StmtWhile">
 <!ELEMENT StmtAssignment ((Fied|Location)? Value)>
 <!ATTLIST StmtAssignment variable CDATA #REQUIRED>
-<!ELEMENT StmtBlock>
-<!ELEMENT StmtCall>
-<!ELEMENT visitStmtConsume>
-<!ELEMENT StmtForeach>
-<!ELEMENT StmtIf>
-<!ELEMENT StmtOutput>
-<!ELEMENT StmtWhile>
+<!ELEMENT StmtBlock DeclVarList? DeclVarList? StatementList>
+<!ELEMENT StmtCall Procedure Arguments?>
+<!ELEMENT StmtConsume PortName>
+<!ATTLIST StmtConsume numberOfTokens CDATA #REQUIRED>
+<!ELEMENT StmtForeach Body GeneratorFilterList>
+<!ELEMENT StmtIf Condition ThenBranch ElseBranch?>
+<!ELEMENT StmtOutput PortName Values>
+<!ATTLIST StmtOutput hasRepeat (true|false) #REQUIRED>
+<!ATTLIST StmtOutput repeat CDATA #IMPLIED>
+<!ELEMENT StmtWhile Condition Body>
 
 <!ELEMENT Field>
 <!ATTLIST Field name CDATA #REQUIRED>
 <!ELEMENT Value (%expression;)>
+<!ELEMENT Condition (%statement;)>
+<!ELEMENT ThenBranch (%statement;)>
+<!ELEMENT ElseBranch (%statement;)>
+<!ELEMENT Procedure (%expression;)>
+<!ELEMENT Arguments (%expression;*)>
+<!ELEMENT Values (%expression;*)
+<!ELEMENT Body (%statement;)>
  ]>

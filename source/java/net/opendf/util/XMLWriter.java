@@ -237,21 +237,34 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		out.append(" : ");
 	}
 
-	public void generateXML(DeclVar[] varDecls, Element parent){
-		Element declElements = doc.createElement("DeclVarList");
-		for(DeclVar v : varDecls){
-			Element varDeclElem = doc.createElement("DeclVar");
-			varDeclElem.setAttribute("name", v.getName());
-			if(v.getInitialValue() != null){
-				Element initElem = doc.createElement("InitialValue");
-				v.getInitialValue().accept(this, initElem);
-				varDeclElem.appendChild(initElem);
+	public void generateXML(DeclType[] typeDecls, Element parent){
+		if(typeDecls != null){
+			Element declElements = doc.createElement("DeclTypeList");
+			for(DeclType typeDecl : typeDecls){
+				Element typeDeclElem = doc.createElement("DeclType");
+				typeDeclElem.setAttribute("name", typeDecl.getName());
+				declElements.appendChild(typeDeclElem);
 			}
-			declElements.appendChild(varDeclElem);
+			parent.appendChild(declElements);
 		}
-		parent.appendChild(declElements);
 	}
-
+	public void generateXML(DeclVar[] varDecls, Element parent){
+		if(varDecls != null){
+			Element declElements = doc.createElement("DeclVarList");
+			for(DeclVar v : varDecls){
+				Element varDeclElem = doc.createElement("DeclVar");
+				varDeclElem.setAttribute("name", v.getName());
+				if(v.getInitialValue() != null){
+					Element initElem = doc.createElement("InitialValue");
+					v.getInitialValue().accept(this, initElem);
+					varDeclElem.appendChild(initElem);
+				}
+				declElements.appendChild(varDeclElem);
+			}
+			parent.appendChild(declElements);
+		}
+	}
+	
 	public void print(Action a){
 		print(a, "action");
 	}
@@ -400,6 +413,11 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		}
 		out.append(param.getName());
 	}
+	private void generateXML(PortName port, Element p) {
+		Element e = doc.createElement("PortName");
+		p.appendChild(e);
+		e.setAttribute("name", port.toString());
+	}
 	private void generateXML(ParDeclValue[] valueParameters, Element p) {
 		if(valueParameters != null && valueParameters.length >0){
 			Element top = doc.createElement("ValueParameters");
@@ -470,7 +488,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	}
 	private void generateXML(GeneratorFilter[] generators, Element p) {
 		if(generators != null && generators.length>0){
-			Element top = doc.createElement("GeneratorFilters");
+			Element top = doc.createElement("GeneratorFilterList");
 			p.appendChild(top);
 			for(GeneratorFilter gen : generators){
 				generateXML(gen, top);
@@ -692,43 +710,6 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		}
 	}
 	@Override
-	public Void visitStmtBlock(StmtBlock s, Element p) {
-		Element top = doc.createElement("StmtBlock");
-		p.appendChild(top);
-		return null;
-	}
-	@Override
-	public Void visitStmtIf(StmtIf s, Element p) {
-		Element top = doc.createElement("StmtIf");
-		p.appendChild(top);
-		return null;
-	}
-	@Override
-	public Void visitStmtCall(StmtCall s, Element p) {
-		Element top = doc.createElement("StmtCall");
-		p.appendChild(top);
-		return null;
-	}
-	@Override
-	public Void visitStmtOutput(StmtOutput s, Element p) {
-		Element top = doc.createElement("StmtOutput");
-		p.appendChild(top);
-		return null;
-	}
-	@Override
-	public Void visitStmtWhile(StmtWhile s, Element p) {
-		Element top = doc.createElement("StmtWhile");
-		p.appendChild(top);
-		return null;
-	}
-	@Override
-	public Void visitStmtForeach(StmtForeach s, Element p) {
-		Element top = doc.createElement("StmtForeach");
-		p.appendChild(top);
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
 	public Void visitStmtAssignment(StmtAssignment s, Element p) {
 		Element top = doc.createElement("StmtAssignment");
 		p.appendChild(top);
@@ -749,90 +730,95 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		s.getVal().accept(this, val);
 		return null;
 	}
-	public Void visitStmtBlock(StmtBlock s, Void p) {
-		out.append("begin");
-		incIndent();
-		if(s.getVarDecls() != null && s.getVarDecls().length>0){
-			decIndent();
-			indent();
-			out.append("var");
-			incIndent();
-			indent();
-			print(s.getVarDecls());
-			decIndent();
-			indent();
-			out.append("do");
-			incIndent();
+	@Override
+	public Void visitStmtBlock(StmtBlock s, Element p) {
+		Element top = doc.createElement("StmtBlock");
+		p.appendChild(top);
+		generateXML(s.getTypeDecls(), top);
+		generateXML(s.getVarDecls(), top);
+		Element stmtElement = doc.createElement("StatementList");
+		top.appendChild(stmtElement);
+		for(Statement stmt : s.getStatements()){
+			stmt.accept(this, stmtElement);
 		}
-		//TODO type declarations
-//		print(s.getStatements());
-		decIndent();
-		indent();
-		out.append("end");
 		return null;
 	}
-	public Void visitStmtIf(StmtIf s, Void p) {
-		out.append("if ");
-		s.getCondition().accept(this, null);
-		out.append(" then");
-		incIndent();
-		indent();
-//		s.getThenBranch().accept(this);
-		if(s.getElseBranch() != null){
-			decIndent();
-			indent();
-			out.append("else");
-			incIndent();
-			indent();
-//			s.getThenBranch().accept(this);
-		}
-		decIndent();
-		indent();
-		out.append("end");
-		return null;
-	}
-	public Void visitStmtCall(StmtCall s, Void p) {
-		s.getProcedure().accept(this, null);
-		out.append("(");
-		String sep = "";
-		for(Expression arg : s.getArgs()){
-			out.append(sep);
-			sep = ", ";
-			arg.accept(this, null);
-		}
-		out.append(");");
+	@Override
+	public Void visitStmtCall(StmtCall s, Element p) {
+		Element top = doc.createElement("StmtCall");
+		p.appendChild(top);
+		Element proc = doc.createElement("Procedure");
+		top.appendChild(proc);
+		s.getProcedure().accept(this, proc);
+		generateXML(s.getArgs(), top, "Arguments");
 		return null;
 	}
 	@Override
 	public Void visitStmtConsume(StmtConsume s, Element p) {
-		// TODO Auto-generated method stub
+		Element top = doc.createElement("StmtConsume");
+		p.appendChild(top);
+		top.setAttribute("numberOfTokens", Integer.toString(s.getNumberOfTokens()));
+		generateXML(s.getPort(), top);
 		return null;
 	}
-	public Void visitStmtOutput(StmtOutput s, Void p) {
-		out.append("output;");
-		// TODO output statement
-		return null;
-	}
-	public Void visitStmtWhile(StmtWhile s, Void p) {
-		out.append("while ");
-		s.getCondition().accept(this, null);
-		indent();
-//		s.getBody().accept(this);
-		indent();
-		out.append("endwhile");
-		return null;
-	}
-	public Void visitStmtForeach(StmtForeach s, Void p) {
-		if(s.getGenerators() != null && s.getGenerators().length>0){
-//			print(s.getGenerators(), "foreach");
+	@Override
+	public Void visitStmtIf(StmtIf s, Element p) {
+		Element top = doc.createElement("StmtIf");
+		p.appendChild(top);
+		//-- condition
+		Element cond = doc.createElement("Condition");
+		top.appendChild(cond);
+		s.getCondition().accept(this, cond);
+		//-- then branch
+		Element thenElement = doc.createElement("ThenBranch");
+		top.appendChild(thenElement);
+		s.getThenBranch().accept(this, thenElement);
+		//-- else branch
+		if(s.getElseBranch() != null){
+			Element elseElement = doc.createElement("ElseBranch");
+			top.appendChild(elseElement);
+			s.getElseBranch().accept(this, elseElement);
 		}
-		out.append(" do");
-		indent();
-//		s.getBody().accept(this);
-		indent();
-		out.append("endforeach");
 		return null;
 	}
+	@Override
+	public Void visitStmtForeach(StmtForeach s, Element p) {
+		Element top = doc.createElement("StmtForeach");
+		p.appendChild(top);
+		//-- body
+		Element bodyElement = doc.createElement("Body");
+		top.appendChild(bodyElement);
+		s.getBody().accept(this, bodyElement);
+		generateXML(s.getGenerators(), top);
+		return null;
+	}
+	@Override
+	public Void visitStmtOutput(StmtOutput s, Element p) {
+		Element top = doc.createElement("StmtOutput");
+		p.appendChild(top);
+		top.setAttribute("hasRepeat", s.hasRepeat() ? "true" : "false");
+		if(s.hasRepeat()){
+			top.setAttribute("repeat", Integer.toString(s.getRepeat()));
+		}
+		generateXML(s.getPort(), top);
+		generateXML(s.getValues(), top, "Values");
+		return null;
+	}
+	@Override
+	public Void visitStmtWhile(StmtWhile s, Element p) {
+		Element top = doc.createElement("StmtWhile");
+		p.appendChild(top);
+		//-- condition
+		Element cond = doc.createElement("Condition");
+		top.appendChild(cond);
+		s.getCondition().accept(this, cond);
+		//-- body
+		Element bodyElement = doc.createElement("Body");
+		top.appendChild(bodyElement);
+		s.getBody().accept(this, bodyElement);
+		return null;
+	}
+	
 /******************************************************************************
  * EntityExpr (Network)
  */
