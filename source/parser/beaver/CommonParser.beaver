@@ -209,9 +209,9 @@ primary =
   ;
 simple_expression =
     primary.p                                                       {: return _symbol_p; :}
-  | IDENTIFIER.id                                                   {: return new Symbol(new ExprVariable((String)id.value)); :}
+  | IDENTIFIER.id                                                   {: return new Symbol(new ExprVariable(new Variable((String)id.value))); :}
 //TODO, old is ignored
-  | OLD IDENTIFIER.id                                               {: return new Symbol(new ExprVariable((String)id.value)); :}
+  | OLD IDENTIFIER.id                                               {: return new Symbol(new ExprVariable(new Variable((String)id.value))); :}
   | method_invocation.m                                             {: return _symbol_m; :}
   | IF expression.c THEN expression.e1 ELSE expression.e2 END       {: return new Symbol(new ExprIf(c, e1, e2)); :}
   | LBRACE expression_list_opt.e RBRACE                             {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]))); :}
@@ -287,20 +287,20 @@ statement =
     // NOTE lhs must be an expression to avoid a shift reduce conflict with method calls.
 //TODO, FIXME introduce lvalue to allow a richer left hand side of assignments.
     expression.lhs COLONEQ expression.value SEMICOLON {: if(lhs instanceof ExprVariable){
-                                                           return new Symbol(new StmtAssignment(((ExprVariable)lhs).getName(), value)); 
+                                                           return new Symbol(new StmtAssignment(new Variable(((ExprVariable)lhs).getVariable().getName()), value)); 
                                                          } else if(lhs instanceof ExprIndexer){
                                                              ExprIndexer indexer = (ExprIndexer)lhs;
                                                              if(indexer.getStructure() instanceof ExprVariable){
-                                                               return new Symbol(new StmtAssignment(((ExprVariable)indexer.getStructure()).getName(), value, indexer.getLocation())); 
+                                                               return new Symbol(new StmtAssignment(new Variable(((ExprVariable)indexer.getStructure()).getVariable().getName()), value, indexer.getLocation())); 
                                                              }
                                                          } else if(lhs instanceof ExprEntry){
                                                              ExprEntry field = (ExprEntry)lhs;
                                                              if(field.getEnclosingExpr() instanceof ExprVariable){
-                                                               return new Symbol(new StmtAssignment(((ExprVariable)field.getEnclosingExpr()).getName(), value, field.getName())); 
+                                                               return new Symbol(new StmtAssignment(new Variable(((ExprVariable)field.getEnclosingExpr()).getVariable().getName()), value, field.getName())); 
                                                              }
                                                          }
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
-                                                         return new Symbol(new StmtAssignment("illegal", value));
+                                                         return new Symbol(new StmtAssignment(new Variable("illegal"), value));
                                                        :}
   | method_invocation.m SEMICOLON    {: return new Symbol(new StmtCall(m.getFunction(), m.getArgs())); :}
   | BEGIN statement_list_opt.s END   {: return new Symbol(new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()]))); :}
