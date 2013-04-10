@@ -626,14 +626,14 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		return null;
 	}
 	public Void visitExprVariable(ExprVariable e, Void p) {
-		out.append(e.getName());
+		out.append(e.getVariable().getName());
 		return null;
 	}
 /******************************************************************************
  * Statement
  */
 	public Void visitStmtAssignment(StmtAssignment s, Void p) {
-		out.append(s.getVar());
+		out.append(s.getVar().getName());
 		if(s.getField() != null){
 			out.append(".");
 			out.append(s.getField());

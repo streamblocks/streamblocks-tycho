@@ -5,12 +5,14 @@ import java.util.List;
 import net.opendf.ir.common.Expression;
 
 /**
- * A predicate condition represents the {@link Condition condition} that a boolean expression evaluates to <tt>true</tt>. 
+ * A predicate condition represents the {@link Condition condition} that a
+ * boolean expression evaluates to <tt>true</tt>.
  * 
- * It contains the expression itself, as well as the id of the local scope which the expression is to be evaluated in.
+ * It contains the expression itself, as well as a list of actor machine
+ * variables that are required by the expression.
  * 
  * @author Jorn W. Janneck <jwj@acm.org>
- *
+ * 
  */
 
 public class PredicateCondition extends Condition {
@@ -19,30 +21,25 @@ public class PredicateCondition extends Condition {
 	public ConditionKind kind() {
 		return ConditionKind.predicate;
 	}
-	
+
 	@Override
-	public <R,P> R accept(ConditionVisitor<R,P> v, P p) {
+	public <R, P> R accept(ConditionVisitor<R, P> v, P p) {
 		return v.visitPredicateCondition(this, p);
 	}
-	
 
 	public Expression getExpression() {
 		return expression;
 	}
 
-	public List<Scope> getScope() {
-		return scope;
+	public List<Integer> getRequiredVars() {
+		return required;
 	}
-	
-	//
-	//  Ctor
-	//
-	
-	public PredicateCondition(Expression expression, List<Scope> scope) {
+
+	public PredicateCondition(Expression expression, List<Integer> required) {
 		this.expression = expression;
-		this.scope = scope;
+		this.required = required;
 	}
-		
-	private Expression  expression;
-	private List<Scope>	scope;
+
+	private Expression expression;
+	private List<Integer> required;
 }

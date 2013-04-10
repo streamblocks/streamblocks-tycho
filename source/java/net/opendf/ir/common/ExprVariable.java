@@ -35,35 +35,23 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
-
-
 public class ExprVariable extends Expression {
 
+	private final Variable var;
 
-    public <R,P> R accept(ExpressionVisitor<R,P> visitor, P p) {
-        return visitor.visitExprVariable(this, p);
-    }
+	public ExprVariable(Variable var) {
+		this.var = var;
+	}
 
+	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
+		return visitor.visitExprVariable(this, p);
+	}
 
-    public ExprVariable(String name) {
-        this.name = name.intern();
-    }
-
-    public String getName() {
-        return name;
-    }
-    
-
-    private String      name;
-    
-
-    public String toString() {
-        return "Variable: " + this.name;
-    }
-    
-    
+	public Variable getVariable() {
+		return var;
+	}
 }
