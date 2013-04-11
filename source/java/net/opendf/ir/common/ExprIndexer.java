@@ -35,37 +35,35 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
 /**
- *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class ExprIndexer extends Expression {
 
+	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
+		return visitor.visitExprIndexer(this, p);
+	}
 
-    public <R,P> R accept(ExpressionVisitor<R,P> visitor, P p) {
-        return visitor.visitExprIndexer(this, p);
-    }
+	public ExprIndexer(Expression structure, Expression index) {
+		this.structure = structure;
+		this.index = index;
+	}
 
-    public ExprIndexer(Expression structure, Expression [] location) {
-        this.structure = structure;
-        this.location = location;
-    }
+	public Expression getStructure() {
+		return structure;
+	}
 
-    public Expression getStructure() {
-        return structure;
-    }
+	public Expression getIndex() {
+		return index;
+	}
 
-    public Expression[] getLocation() {
-        return location;
-    }
+	private Expression structure;
 
-    private Expression      structure;
-
-    /* null if the function takes no arguments */
-    private Expression []   location;
+	private Expression index;
 
 }

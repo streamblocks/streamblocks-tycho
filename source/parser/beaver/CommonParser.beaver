@@ -23,6 +23,9 @@ qual_id =
   | IDENTIFIER.id DOT qual_id.l       {: l.add(0, id.value); return _symbol_l; :}
   ;
 
+variable = IDENTIFIER.id {: return new Symbol(new Variable((String) id.value)); :} ;
+field = IDENTIFIER.id {: return new Symbol(new Field((String) id.value)); :} ;
+
 //=== Declaration =============================================================
 decl_list =
     decl.d                   {: ArrayList l = new ArrayList(); l.add(d); return new Symbol(l); :}
@@ -209,9 +212,9 @@ primary =
   ;
 simple_expression =
     primary.p                                                       {: return _symbol_p; :}
-  | IDENTIFIER.id                                                   {: return new Symbol(new ExprVariable(new Variable((String)id.value))); :}
+  | variable.v                                                      {: return new Symbol(new ExprVariable(v)); :}
 //TODO, old is ignored
-  | OLD IDENTIFIER.id                                               {: return new Symbol(new ExprVariable(new Variable((String)id.value))); :}
+  | OLD variable.v                                                  {: return new Symbol(new ExprVariable(v)); :}
   | method_invocation.m                                             {: return _symbol_m; :}
   | IF expression.c THEN expression.e1 ELSE expression.e2 END       {: return new Symbol(new ExprIf(c, e1, e2)); :}
   | LBRACE expression_list_opt.e RBRACE                             {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]))); :}
@@ -238,9 +241,14 @@ unary_expression =
   | operator.operator unary_expression.expr {: return new Symbol(new ExprUnaryOp(operator, expr)); :}
   ;
 indexing_expression =
-    unary_expression.e                                    {: return _symbol_e; :}
-  | indexing_expression.p LBRACK expression_list.l RBRACK {: return new Symbol(new ExprIndexer(p, (Expression[])l.toArray(new Expression[l.size()]))); :}
-  | indexing_expression.p DOT IDENTIFIER.id               {: return new Symbol(new ExprEntry((String)id.value, p)); :}
+    unary_expression.e                        {: return _symbol_e; :}
+  | indexer.i                                 {: return i; :}
+  | indexing_expression.p DOT field.f         {: return new Symbol(new ExprField(p, f)); :}
+  ;
+indexer = indexer_start.s expression.i RBRACK {: return new Symbol(new ExprIndexer(s, i)); :} ;
+indexer_start =
+    indexing_expression.e LBRACK              {: return _symbol_e; :}
+  | indexer_start.s expression.i COMMA        {: return new Symbol(new ExprIndexer(s, i)); :}
   ;
 
 //used by NlParser
@@ -286,21 +294,10 @@ formal_parameter_list =
 statement =
     // NOTE lhs must be an expression to avoid a shift reduce conflict with method calls.
 //TODO, FIXME introduce lvalue to allow a richer left hand side of assignments.
-    expression.lhs COLONEQ expression.value SEMICOLON {: if(lhs instanceof ExprVariable){
-                                                           return new Symbol(new StmtAssignment(new Variable(((ExprVariable)lhs).getVariable().getName()), value)); 
-                                                         } else if(lhs instanceof ExprIndexer){
-                                                             ExprIndexer indexer = (ExprIndexer)lhs;
-                                                             if(indexer.getStructure() instanceof ExprVariable){
-                                                               return new Symbol(new StmtAssignment(new Variable(((ExprVariable)indexer.getStructure()).getVariable().getName()), value, indexer.getLocation())); 
-                                                             }
-                                                         } else if(lhs instanceof ExprEntry){
-                                                             ExprEntry field = (ExprEntry)lhs;
-                                                             if(field.getEnclosingExpr() instanceof ExprVariable){
-                                                               return new Symbol(new StmtAssignment(new Variable(((ExprVariable)field.getEnclosingExpr()).getVariable().getName()), value, field.getName())); 
-                                                             }
-                                                         }
+    expression.lhs COLONEQ expression.value SEMICOLON {: LValue lvalue = expressionToLValue(lhs);
+                                                         if (lvalue != null) return new Symbol(new StmtAssignment(lvalue, value));
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
-                                                         return new Symbol(new StmtAssignment(new Variable("illegal"), value));
+                                                         return new Symbol(new StmtAssignment(new LValueVariable(new Variable("$illegal")), value));
                                                        :}
   | method_invocation.m SEMICOLON    {: return new Symbol(new StmtCall(m.getFunction(), m.getArgs())); :}
   | BEGIN statement_list_opt.s END   {: return new Symbol(new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()]))); :}

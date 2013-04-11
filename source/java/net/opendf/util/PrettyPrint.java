@@ -20,7 +20,7 @@ import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
 
-public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisitor<Void, Void>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>{
+public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisitor<Void, Void>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Void> {
 	private java.io.PrintStream out = System.out;
 	private int indentDepth = 0;
 
@@ -467,10 +467,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		}
 		return null;
 	}
-	public Void visitExprEntry(ExprEntry e, Void p) {
-		e.getEnclosingExpr().accept(this, null);
+	public Void visitExprField(ExprField e, Void p) {
+		e.getStructure().accept(this, null);
 		out.append(".");
-		out.append(e.getName());
+		out.append(e.getField().getName());
 		return null;
 	}
 	public Void visitExprIf(ExprIf e, Void p) {
@@ -488,12 +488,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	public Void visitExprIndexer(ExprIndexer e, Void p) {
 		e.getStructure().accept(this, null);
 		out.append("[");
-		String sep = "";
-		for(Expression arg : e.getLocation()){
-			out.append(sep);
-			sep = ", ";
-			arg.accept(this, null);
-		}
+		e.getIndex().accept(this, null);
 		out.append("]");
 		return null;
 	}
@@ -633,17 +628,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
  * Statement
  */
 	public Void visitStmtAssignment(StmtAssignment s, Void p) {
-		out.append(s.getVar().getName());
-		if(s.getField() != null){
-			out.append(".");
-			out.append(s.getField());
-		} else if(s.getLocation() != null){
-			out.append("[");
-			print(s.getLocation());
-			out.append("]");
-		}
+		s.getLValue().accept(this, null);
 		out.append(" := ");
-		s.getVal().accept(this, null);
+		s.getExpression().accept(this, null);
 		out.append(";");
 		return null;
 	}
@@ -732,6 +719,34 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append("endforeach");
 		return null;
 	}
+	
+/******************************************************************************
+ * LValue
+ */
+
+	@Override
+	public Void visitLValueVariable(LValueVariable lvalue, Void parameter) {
+		out.append(lvalue.getVariable().getName());
+		return null;
+	}
+
+	@Override
+	public Void visitLValueIndexer(LValueIndexer lvalue, Void parameter) {
+		lvalue.getStructure().accept(this, null);
+		out.append("[");
+		lvalue.getIndex().accept(this, null);
+		out.append("]");
+		return null;
+	}
+
+	@Override
+	public Void visitLValueField(LValueField lvalue, Void parameter) {
+		lvalue.getStructure().accept(this, null);
+		out.append(".");
+		out.append(lvalue.getField().getName());
+		return null;
+	}
+
 /******************************************************************************
  * EntityExpr (Network)
  */
