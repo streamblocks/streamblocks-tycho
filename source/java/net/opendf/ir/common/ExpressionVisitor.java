@@ -46,7 +46,7 @@ package net.opendf.ir.common;
 public interface ExpressionVisitor<R,P> {
     public R visitExprApplication(ExprApplication e, P p);
     public R visitExprBinaryOp(ExprBinaryOp e, P p);
-    public R visitExprEntry(ExprEntry e, P p);
+    public R visitExprField(ExprField e, P p);
     public R visitExprIf(ExprIf e, P p);
     public R visitExprIndexer(ExprIndexer e, P p);
     public R visitExprInput(ExprInput e, P p);

@@ -555,11 +555,11 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		return null;
 	}
 	@Override
-	public Void visitExprEntry(ExprEntry e, Element p) {
+	public Void visitExprField(ExprField e, Element p) {
 		Element elem = doc.createElement("ExprEntry");
 		p.appendChild(elem);
-		elem.setAttribute("field", e.getName());
-		e.getEnclosingExpr().accept(this, elem);
+		elem.setAttribute("field", e.getField().getName());
+		e.getStructure().accept(this, elem);
 		return null;
 	}
 	@Override
@@ -591,9 +591,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		// location
 		Element location = doc.createElement("Location");
 		top.appendChild(location);
-		for(Expression arg : e.getLocation()){
-			arg.accept(this, location);
-		}
+		e.getIndex().accept(this, location);
 		return null;
 	}
 	@Override
@@ -713,21 +711,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitStmtAssignment(StmtAssignment s, Element p) {
 		Element top = doc.createElement("StmtAssignment");
 		p.appendChild(top);
-		top.setAttribute("variable", s.getVar().getName());
-		if(s.getField() != null){
-			Element field = doc.createElement("Field");
-			top.appendChild(field);
-			field.setAttribute("name", s.getField());
-		} else if(s.getLocation() != null && s.getLocation().length>0){
-			Element location = doc.createElement("Locations");
-			top.appendChild(location);
-			for(Expression arg : s.getLocation()){
-				arg.accept(this, location);
-			}
-		}
-		Element val = doc.createElement("Value");
-		top.appendChild(val);
-		s.getVal().accept(this, val);
+		// TODO implement lvalues
 		return null;
 	}
 	@Override

@@ -6,9 +6,9 @@ import net.opendf.ir.AbstractIRNode;
  * Variable node that refers to a variable either by name or by location. The
  * location is either a location of a static or a dynamic variable.
  * 
- * The variable number is the number in the order of declarations in the scope
- * where the variable is declared. The first declared variable in a scope has
- * variable number 0.
+ * The offset is the number of declarations between the first declaration in the
+ * scope where the variable is declared and the declaration of the referenced
+ * variable. The first declared variable in a scope has offset 0.
  * 
  * The level is the distance to the lexical scope where the variable is
  * declared. Variables declared in the current scope are at level 0 and
@@ -17,7 +17,7 @@ import net.opendf.ir.AbstractIRNode;
 public class Variable extends AbstractIRNode {
 	private final String name;
 	private final int level;
-	private final int number;
+	private final int offset;
 
 	/**
 	 * Constructs a variable with a name.
@@ -30,31 +30,31 @@ public class Variable extends AbstractIRNode {
 	}
 
 	/**
-	 * Constructs a static variable with a name and its variable number.
+	 * Constructs a static variable with a name and its offset.
 	 * 
 	 * @param name
 	 *            the variable name
-	 * @param number
-	 *            the variable number in the static scope
+	 * @param offset
+	 *            the offset
 	 */
-	public Variable(String name, int number) {
-		this(name, -1, number);
+	public Variable(String name, int offset) {
+		this(name, -1, offset);
 	}
 
 	/**
-	 * Constructs a dynamic variable with a name, level and variable number.
+	 * Constructs a dynamic variable with a name, level and offset.
 	 * 
 	 * @param name
 	 *            the variable name
 	 * @param level
 	 *            the lexical scope distance
-	 * @param number
-	 *            the variable number in the scope where it is declared
+	 * @param offset
+	 *            the offset
 	 */
-	public Variable(String name, int level, int number) {
+	public Variable(String name, int level, int offset) {
 		this.name = name.intern();
 		this.level = level;
-		this.number = number;
+		this.offset = offset;
 	}
 
 	/**
@@ -83,7 +83,7 @@ public class Variable extends AbstractIRNode {
 	 * @return true if the variable is specified with a location
 	 */
 	public boolean hasLocation() {
-		return number >= 0;
+		return offset >= 0;
 	}
 
 	/**
@@ -106,11 +106,11 @@ public class Variable extends AbstractIRNode {
 	}
 
 	/**
-	 * Returns the variable number if the variable is specified with a location.
+	 * Returns the offset if the variable is specified with a location.
 	 * 
-	 * @return the variable number
+	 * @return the offset
 	 */
-	public int getNumber() {
-		return number;
+	public int getOffset() {
+		return offset;
 	}
 }
