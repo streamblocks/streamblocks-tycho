@@ -41,7 +41,6 @@ package net.opendf.ir.cal;
 
 import java.util.List;
 
-import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
@@ -49,6 +48,7 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
+import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.QID;
 
 
@@ -57,7 +57,7 @@ public class Actor extends DeclEntity  {
 	    
 	public Actor(String name, NamespaceDecl namespace,
 			ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls,
-        CompositePortDecl inputPorts, CompositePortDecl outputPorts,
+        PortDecl [] inputPorts, PortDecl [] outputPorts,
         Action [] initializers, Action [] actions, 
         ScheduleFSM scheduleFSM, List<QID> [] priorities, Expression [] invariants)
     {

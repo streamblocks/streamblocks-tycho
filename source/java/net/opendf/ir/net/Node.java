@@ -1,11 +1,13 @@
 package net.opendf.ir.net;
 
+import java.util.List;
+
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
-import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.PortContainer;
+import net.opendf.ir.common.PortDecl;
 
 /**
  * A Node is a basic element in a network. It can contain ports, and it also may contain some other {@link AbstractIRNode} as payload. Usually,
@@ -22,11 +24,11 @@ public class Node extends AbstractIRNode implements PortContainer {
 	
 	// PortContainer
 	
-	public CompositePortDecl getInputPorts() {
+	public List<PortDecl> getInputPorts() {
 		return inputPorts;
 	}
 	
-	public CompositePortDecl getOutputPorts() {
+	public List<PortDecl> getOutputPorts() {
 		return outputPorts;
 	}
 	
@@ -39,15 +41,12 @@ public class Node extends AbstractIRNode implements PortContainer {
 		super ();
 		
 		this.content = content;
-		this.inputPorts = inputPorts;
-		this.inputPorts.setContainer(this);
-
-		this.outputPorts = outputPorts;
-		this.outputPorts.setContainer(this);
+		this.inputPorts = inputPorts; //FIXME
+		this.outputPorts = outputPorts; //FIXME
 	}
 	
 	private IRNode content;
 
-	private CompositePortDecl  inputPorts;
-	private CompositePortDecl  outputPorts;
+	private List<PortDecl>  inputPorts;
+	private List<PortDecl>  outputPorts;
 }

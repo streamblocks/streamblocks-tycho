@@ -3,9 +3,9 @@ package net.opendf.ir.am;
 import java.util.List;
 
 import net.opendf.ir.AbstractIRNode;
-import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.PortContainer;
+import net.opendf.ir.common.PortDecl;
 
 /**
  * This class contains a description of an actor machine. The central structure
@@ -48,15 +48,15 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 		return varDecls;
 	}
 
-	public CompositePortDecl getInputPorts() {
+	public List<PortDecl> getInputPorts() {
 		return inputPorts;
 	}
 
-	public CompositePortDecl getOutputPorts() {
+	public List<PortDecl> getOutputPorts() {
 		return outputPorts;
 	}
 
-	public ActorMachine(CompositePortDecl inputPorts, CompositePortDecl outputPorts, List<DeclVar> varDecls,
+	public ActorMachine(List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<DeclVar> varDecls,
 			List<List<Instruction>> controller) {
 		this.varDecls = varDecls;
 		this.controller = controller;
@@ -66,6 +66,6 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 
 	private List<DeclVar> varDecls;
 	private List<List<Instruction>> controller;
-	private CompositePortDecl inputPorts;
-	private CompositePortDecl outputPorts;
+	private List<PortDecl> inputPorts;
+	private List<PortDecl> outputPorts;
 }

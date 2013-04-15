@@ -1,7 +1,7 @@
 package net.opendf.ir.common;
 
 public class StmtConsume extends Statement {
-	private PortName port;
+	private Port port;
 	private int tokens;
 
 	@Override
@@ -9,7 +9,7 @@ public class StmtConsume extends Statement {
 		return v.visitStmtConsume(this, p);
 	}
 
-	public PortName getPort() {
+	public Port getPort() {
 		return port;
 	}
 
@@ -17,7 +17,7 @@ public class StmtConsume extends Statement {
 		return tokens;
 	}
 
-	public StmtConsume(PortName port, int tokens) {
+	public StmtConsume(Port port, int tokens) {
 		this.port = port;
 		this.tokens = tokens;
 	}

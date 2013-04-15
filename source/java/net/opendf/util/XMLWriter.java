@@ -230,10 +230,10 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			print(param);
 		}
 		out.append(") ");
-		print(entity.getInputPorts());
+		// FIXME print(entity.getInputPorts());
 		out.append(" ==> ");
 		//--- CompositePortDecl outputPorts
-		print(entity.getOutputPorts());
+		// FIXME print(entity.getOutputPorts());
 		out.append(" : ");
 	}
 
@@ -300,8 +300,8 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			out.append(portSep);
 			portSep = ", ";
 			// port name
-			if(p.getPortname() != null){
-				out.append(p.getPortname().toString());
+			if(p.getPort() != null){
+				out.append(p.getPort().getName());
 				out.append(":");
 			}
 			// sequence of token names
@@ -320,8 +320,8 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			out.append(portSep);
 			portSep = ", ";
 			// port name
-			if(p.getPortname() != null){
-				out.append(p.getPortname().toString());
+			if(p.getPort() != null){
+				out.append(p.getPort().toString());
 				out.append(":");
 			}
 			// sequence of token names
@@ -335,22 +335,23 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		}
 	}
 	public void print(PortDecl portDecl) {
-		if(portDecl instanceof CompositePortDecl){
-			CompositePortDecl cpd = (CompositePortDecl)portDecl;
-			String sep = "";
-			for(PortDecl p : cpd.getChildren()){
-				out.append(sep);
-				sep = ", ";
-				print(p);
-			}
-		} else {
-			AtomicPortDecl port = (AtomicPortDecl)portDecl;
-			if(port.getType() != null){
-				print(port.getType());
-				out.append(" ");
-			}
-			out.append(port.getLocalName());
-		}
+//		FIXME
+//		if(portDecl instanceof CompositePortDecl){
+//			CompositePortDecl cpd = (CompositePortDecl)portDecl;
+//			String sep = "";
+//			for(PortDecl p : cpd.getChildren()){
+//				out.append(sep);
+//				sep = ", ";
+//				print(p);
+//			}
+//		} else {
+//			AtomicPortDecl port = (AtomicPortDecl)portDecl;
+//			if(port.getType() != null){
+//				print(port.getType());
+//				out.append(" ");
+//			}
+//			out.append(port.getLocalName());
+//		}
 	}
 	public void print(DeclVar var){
 		if(var.getType() != null){

@@ -1,20 +1,9 @@
 package net.opendf.ir.net;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import net.opendf.ir.AbstractIRNode;
-import net.opendf.ir.common.CompositePortDecl;
-import net.opendf.ir.common.Decl;
-import net.opendf.ir.common.DeclType;
-import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.NamespaceDecl;
-import net.opendf.ir.common.ParDecl;
 import net.opendf.ir.common.DeclEntity;
-import net.opendf.ir.common.ParDeclType;
-import net.opendf.ir.common.ParDeclValue;
-import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
 
 
@@ -45,21 +34,21 @@ public class Network {
 		getConnections().add(c);
 	}
 	
-	public CompositePortDecl getInputPorts() { return inputPorts; }
+	public List<PortDecl> getInputPorts() { return inputPorts; }
 	
-	public CompositePortDecl getOutputPorts() { return outputPorts; }
+	public List<PortDecl> getOutputPorts() { return outputPorts; }
 
 	//
 	// Ctor
 	// 
 		
-	public Network (CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
+	public Network (List<PortDecl> inputPorts, List<PortDecl> outputPorts) {
         this.inputPorts = inputPorts;
         this.outputPorts = outputPorts;
 	}
 
-	private List<Node>  		nodes = new ArrayList<Node>();
-	private List<Connection> 	connections = new ArrayList<Connection>();
-	private CompositePortDecl inputPorts;
-	private CompositePortDecl outputPorts;
+	private List<Node>			nodes = new ArrayList<Node>();
+	private List<Connection>	connections = new ArrayList<Connection>();
+	private List<PortDecl>		inputPorts;
+	private List<PortDecl>		outputPorts;
 }

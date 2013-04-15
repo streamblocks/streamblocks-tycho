@@ -1,11 +1,11 @@
 package net.opendf.ir.net.ast;
 
-import net.opendf.ir.common.CompositePortDecl;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
+import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.net.ToolAttribute;
 
 /**
@@ -25,8 +25,8 @@ public class NetworkDefinition extends net.opendf.ir.common.DeclEntity{
 			               ParDeclValue[] valuePars,
 			               DeclType[] typeDecls,
 			               DeclVar[] varDecls,
-			               CompositePortDecl inputPorts,
-			               CompositePortDecl outputPorts,
+			               PortDecl [] inputPorts,
+			               PortDecl [] outputPorts,
 			               java.util.Map.Entry<String,EntityExpr>[] entities,
 			               StructureStatement[] structure,
 			               ToolAttribute[] toolAttributes){	
