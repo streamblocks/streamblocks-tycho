@@ -2,8 +2,8 @@
 <!-- NOTE the XML export is currently incomplete. It only exports expressions and some statements. -->
 
 <!DOCTYPE dataflow [
- <!ELEMENT Network (VarDeclarations?)>
- <!ELEMENT Actor (VarDeclarations?)>
+ <!ELEMENT Network (DeclVarList?)>
+ <!ELEMENT Actor (DeclVarList?)>
 
 <!-- Declarations -->
 <!ELEMENT DeclTypeList (DeclType*)>
@@ -27,11 +27,10 @@
 <!ELEMENT TypeExpr> <!-- TODO -->
 
 <!-- Expression -->
-<!ENTITY % expression "ExprApplication, ExprBinaryOp, ExprEntry, ExprIf, ExprIndexer, ExprInput, ExprLambda, ExprLet, ExprList, ExprLiteral, ExprMap, ExprProc, ExprSet, ExprUnaryOp, ExprVariable">
-<!ELEMENT ExprApplication (Function, Arguments)>
+<!ENTITY % expression "ExprApplication, ExprBinaryOp, ExprField, ExprIf, ExprIndexer, ExprInput, ExprLambda, ExprLet, ExprList, ExprLiteral, ExprMap, ExprProc, ExprSet, ExprUnaryOp, ExprVariable">
+<!ELEMENT ExprApplication (Function, ArgumentList)>
 <!ELEMENT ExprBinaryOp (Operations, Operands)>
-<!ELEMENT ExprEntry (%expression;)>
-<!ATTLIST ExprEntry field CDATA #REQUIRED>
+<!ELEMENT ExprField (%expression;) Field>
 <!ELEMENT ExprIf (Condition, TrueExpr, ElseExpr)>
 <!ELEMENT ExprIndexer (Structure, Location)>
 <!ELEMENT ExprInput > <!-- TODO -->
@@ -48,52 +47,62 @@
 <!ELEMENT ExprVariable >
 <!ATTLIST ExprVariable text CDATA #REQUIRED>
 
+<!ELEMENT ArgumentList (%expression;*)>
+<!ELEMENT BodyExpr (%expression;)>
+<!ELEMENT CollectionExpr (%expression;)>
+<!ELEMENT Condition (%expression;)>
+<!ELEMENT Elements (%expression;*)>
+<!ELEMENT ElseExpr (%expression;)>
+<!ELEMENT Field>
+<!ATTLIST Field name CDATA #REQUIRED>
+<!ATTLIST Field offset CDATA #IMPLIED>
+<!ELEMENT Filters (Exrtessions?)>
 <!ELEMENT Function (%expression;)>
-<!ELEMENT Arguments (%expression;*)>
+<!ELEMENT GeneratorFilter (DeclVarList?, CollectionExpr, Filters?)>
+<!ELEMENT GeneratorFilterList (GeneratorFilter*)>
+<!ELEMENT Location (%expression;+)
+<!ELEMENT Maps (MapKey, MapValue)>
+<!ELEMENT MapKey (%expression;)>
+<!ELEMENT MapValue (%expression;)>
 <!ELEMENT Operations (Operation*)>
 <!ELEMENT Operation >
 <!ATTLIST Operation operation CDATA #REQUIRED>
 <!ELEMENT Operands (%expression;*)
-<!ELEMENT Condition (%expression;)>
-<!ELEMENT TrueExpr (%expression;)>
-<!ELEMENT ElseExpr (%expression;)>
-<!ELEMENT Structure (%expression;)>
-<!ELEMENT Location (%expression;+)
 <!ELEMENT ReturnType (TypeExpr)>
-<!ELEMENT BodyExpr (%expression;)>
-<!ELEMENT Elements (%expression;*)>
-<!ELEMENT GeneratorFilterList (GeneratorFilter*)>
-<!ELEMENT GeneratorFilter (DeclVarList?, CollectionExpr, Filters?)>
-<!ELEMENT CollectionExpr (%expression;)>
-<!ELEMENT Filters (Exrtessions?)>
-<!ELEMENT Maps (MapKey, MapValue)>
-<!ELEMENT MapKey (%expression;)>
-<!ELEMENT MapValue (%expression;)>
 <!ELEMENT StatementList (%statement)*>
+<!ELEMENT Structure (%expression;)>
+<!ELEMENT TrueExpr (%expression;)>
 
 <!-- Statement -->
 <!ENTITY % statement "StmtAssignment, StmtBlock, StmtCall, StmtConsume, StmtForeach, StmtIf, StmtOutput, StmtWhile">
-<!ELEMENT StmtAssignment ((Fied|Location)? Value)>
+<!ELEMENT StmtAssignment %lvalue; Value)>
 <!ATTLIST StmtAssignment variable CDATA #REQUIRED>
 <!ELEMENT StmtBlock DeclVarList? DeclVarList? StatementList>
-<!ELEMENT StmtCall Procedure Arguments?>
+<!ELEMENT StmtCall Procedure ArgumentList?>
 <!ELEMENT StmtConsume PortName>
 <!ATTLIST StmtConsume numberOfTokens CDATA #REQUIRED>
 <!ELEMENT StmtForeach Body GeneratorFilterList>
 <!ELEMENT StmtIf Condition ThenBranch ElseBranch?>
-<!ELEMENT StmtOutput PortName Values>
+<!ELEMENT StmtOutput PortName ValueList>
 <!ATTLIST StmtOutput hasRepeat (true|false) #REQUIRED>
 <!ATTLIST StmtOutput repeat CDATA #IMPLIED>
 <!ELEMENT StmtWhile Condition Body>
 
-<!ELEMENT Field>
-<!ATTLIST Field name CDATA #REQUIRED>
 <!ELEMENT Value (%expression;)>
 <!ELEMENT Condition (%statement;)>
 <!ELEMENT ThenBranch (%statement;)>
 <!ELEMENT ElseBranch (%statement;)>
 <!ELEMENT Procedure (%expression;)>
-<!ELEMENT Arguments (%expression;*)>
-<!ELEMENT Values (%expression;*)
+<!ELEMENT ValueList (%expression;*)
 <!ELEMENT Body (%statement;)>
+
+<!ENTITY % lvalue "LValueVariable, LValueIndexer, LValueField">
+<!ELEMENT LValueVariable Variable>
+<!ELEMENT LValueIndexer %lvalue; Location>
+<!ELEMENT LValueField %lvalue; Field>
+
+<!ELEMENT Variable>
+<!ATTLIST Variable name CDATA #REQUIRED>
+<!ATTLIST Variable level CDATA #IMPLIED>
+<!ATTLIST Variable offset CDATA #IMPLIED>
  ]>

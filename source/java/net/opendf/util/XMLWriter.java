@@ -39,7 +39,7 @@ import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
 
-public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisitor<Void, Element>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>{
+public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisitor<Void, Element>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Element>{
 	private java.io.PrintStream out = System.out;
 	Document doc;
 
@@ -238,7 +238,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	}
 
 	public void generateXML(DeclType[] typeDecls, Element parent){
-		if(typeDecls != null){
+		if(typeDecls != null && typeDecls.length>0){
 			Element declElements = doc.createElement("DeclTypeList");
 			for(DeclType typeDecl : typeDecls){
 				Element typeDeclElem = doc.createElement("DeclType");
@@ -249,7 +249,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		}
 	}
 	public void generateXML(DeclVar[] varDecls, Element parent){
-		if(varDecls != null){
+		if(varDecls != null && varDecls.length>0){
 			Element declElements = doc.createElement("DeclVarList");
 			for(DeclVar v : varDecls){
 				Element varDeclElem = doc.createElement("DeclVar");
@@ -505,6 +505,25 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		gen.getCollectionExpr().accept(this, collExpr);
 		generateXML(gen.getFilters(), top, "Filters");
 	}
+	private void generateXML(Variable var, Element p){
+		Element varElem = doc.createElement("Variable");
+		p.appendChild(varElem);
+		varElem.setAttribute("name", var.getName());
+		if(var.isDynamic()){
+			varElem.setAttribute("level", Integer.toString(var.getLevel()));
+		}
+		if(var.hasLocation()){
+			varElem.setAttribute("offset", Integer.toString(var.getOffset()));
+		}
+	}
+	private void generateXML(Field f, Element p){
+		Element fieldElem = doc.createElement("Field");
+		p.appendChild(fieldElem);
+		fieldElem.setAttribute("name", f.getName());
+		if(f.hasOffset()){
+			fieldElem.setAttribute("offset", Integer.toString(f.getOffset()));
+		}
+	}
 /******************************************************************************
  * Expression
  */
@@ -525,13 +544,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		e.getFunction().accept(this, fun);
 		appl.appendChild(fun);
 		//--- arguments
-		Element args = doc.createElement("Arguments");
-		if(e.getArgs() != null && e.getArgs().length<0){
-			appl.appendChild(args);
-			for(Expression arg : e.getArgs()){
-				arg.accept(this, args);
-			}
-		}
+		generateXML(e.getArgs(), appl, "ArgumentList");
 		return null;
 	}
 	@Override
@@ -556,10 +569,10 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	}
 	@Override
 	public Void visitExprField(ExprField e, Element p) {
-		Element elem = doc.createElement("ExprEntry");
+		Element elem = doc.createElement("ExprField");
 		p.appendChild(elem);
-		elem.setAttribute("field", e.getField().getName());
 		e.getStructure().accept(this, elem);
+		generateXML(e.getField(), elem);
 		return null;
 	}
 	@Override
@@ -697,6 +710,39 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		p.appendChild(var);
 		return null;
 	}
+	
+/******************************************************************************
+ * LValue
+ */
+	@Override
+	public Void visitLValueVariable(LValueVariable lvalue, Element p) {
+		Element var = doc.createElement("LValueVariable");
+		p.appendChild(var);
+		generateXML(lvalue.getVariable(), var);
+		return null;
+	}
+	@Override
+	public Void visitLValueIndexer(LValueIndexer lvalue, Element p) {
+		Element top = doc.createElement("LValueIndexer");
+		p.appendChild(top);
+		//-- structure
+		lvalue.getStructure().accept(this, top);
+		//-- index
+		Element index = doc.createElement("Index");
+		top.appendChild(index);
+		lvalue.getIndex().accept(this, index);
+		return null;
+	}
+	@Override
+	public Void visitLValueField(LValueField lvalue, Element p) {
+		Element top = doc.createElement("LValueField");
+		p.appendChild(top);
+		//-- structure
+		lvalue.getStructure().accept(this, top);
+		//-- field
+		generateXML(lvalue.getField(), top);
+		return null;
+	}
 /******************************************************************************
  * Statement
  */
@@ -711,7 +757,10 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitStmtAssignment(StmtAssignment s, Element p) {
 		Element top = doc.createElement("StmtAssignment");
 		p.appendChild(top);
-		// TODO implement lvalues
+		s.getLValue().accept(this, top);
+		Element v = doc.createElement("Value");
+		top.appendChild(v);
+		s.getExpression().accept(this, v);
 		return null;
 	}
 	@Override
@@ -734,7 +783,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		Element proc = doc.createElement("Procedure");
 		top.appendChild(proc);
 		s.getProcedure().accept(this, proc);
-		generateXML(s.getArgs(), top, "Arguments");
+		generateXML(s.getArgs(), top, "ArgumentList");
 		return null;
 	}
 	@Override
@@ -785,7 +834,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			top.setAttribute("repeat", Integer.toString(s.getRepeat()));
 		}
 		generateXML(s.getPort(), top);
-		generateXML(s.getValues(), top, "Values");
+		generateXML(s.getValues(), top, "ValueList");
 		return null;
 	}
 	@Override
