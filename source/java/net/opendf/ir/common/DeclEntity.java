@@ -1,5 +1,8 @@
 package net.opendf.ir.common;
 
+import java.util.Arrays;
+import java.util.List;
+
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
 
@@ -43,11 +46,11 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	
 	// PortContainer
 
-	public CompositePortDecl getInputPorts() {
+	public List<PortDecl> getInputPorts() {
 		return inputPorts;
 	}
 	
-	public CompositePortDecl getOutputPorts() {
+	public List<PortDecl> getOutputPorts() {
 		return outputPorts;
 	}
 	
@@ -57,21 +60,18 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	//
 
 	public DeclEntity(String name, NamespaceDecl ns, ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls) {
-		this (name, ns, typePars, valuePars, typeDecls, varDecls, new CompositePortDecl(null, null), new CompositePortDecl(null, null));
+		this (name, ns, typePars, valuePars, typeDecls, varDecls, new PortDecl[0], new PortDecl[0]);
 	}
 
-	public DeclEntity(String name, NamespaceDecl ns, ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls, CompositePortDecl inputPorts, CompositePortDecl outputPorts) {
+	public DeclEntity(String name, NamespaceDecl ns, ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls, PortDecl [] inputPorts, PortDecl [] outputPorts) {
 		super (name, ns);
 		this.typePars = typePars;
 		this.valuePars = valuePars;
 		this.typeDecls = typeDecls;
 		this.varDecls = varDecls;
 
-		this.inputPorts = inputPorts != null ? inputPorts : new CompositePortDecl();
-		this.inputPorts.setContainer(this);
-
-		this.outputPorts = outputPorts != null ? outputPorts : new CompositePortDecl();
-		this.outputPorts.setContainer(this);
+		this.inputPorts = Arrays.asList(inputPorts);
+		this.outputPorts = Arrays.asList(outputPorts);
 	}
 	
 
@@ -80,7 +80,7 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	private DeclType [] 	typeDecls;
 	private DeclVar []		varDecls;
 	
-	private CompositePortDecl  inputPorts;
-	private CompositePortDecl  outputPorts;
+	private List<PortDecl>  inputPorts;
+	private List<PortDecl>  outputPorts;
 
 }

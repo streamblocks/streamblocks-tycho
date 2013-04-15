@@ -385,8 +385,8 @@ public class CalParser extends Parser {
     } else {
       name = file.getName();
     }
-    return new Actor(name, null, new ParDeclType[0], new ParDeclValue[0], new DeclType[0], new DeclVar[0], new CompositePortDecl(), 
-                     new CompositePortDecl(), new Action[0], new Action[0], null, new java.util.List[0], new Expression[0]);   
+    return new Actor(name, null, new ParDeclType[0], new ParDeclValue[0], new DeclType[0], new DeclVar[0], new PortDecl[0], 
+                     new PortDecl[0], new Action[0], new Action[0], null, new java.util.List[0], new Expression[0]);   
   }
   
   public net.opendf.ir.cal.Actor parse(String path, String fileName){
@@ -673,7 +673,7 @@ public class CalParser extends Parser {
 			case 37: // action_in_pattern = opt$port_name_colon.actor_port_name LBRACK opt$token_name_list.tokens RBRACK opt$repeat.r opt$channel_selector.c
 			{
 					final Symbol _symbol_actor_port_name = _symbols[offset + 1];
-					final PortName actor_port_name = (PortName) _symbol_actor_port_name.value;
+					final Port actor_port_name = (Port) _symbol_actor_port_name.value;
 					final Symbol _symbol_tokens = _symbols[offset + 3];
 					final ArrayList tokens = (ArrayList) _symbol_tokens.value;
 					final Symbol _symbol_r = _symbols[offset + 5];
@@ -737,7 +737,7 @@ public class CalParser extends Parser {
 			case 51: // action_output_expression = opt$port_name_colon.actor_port_name LBRACK opt$expression_list.values RBRACK opt$repeat.r opt$channel_selector.c
 			{
 					final Symbol _symbol_actor_port_name = _symbols[offset + 1];
-					final PortName actor_port_name = (PortName) _symbol_actor_port_name.value;
+					final Port actor_port_name = (Port) _symbol_actor_port_name.value;
 					final Symbol _symbol_values = _symbols[offset + 3];
 					final ArrayList values = (ArrayList) _symbol_values.value;
 					final Symbol _symbol_r = _symbols[offset + 5];
@@ -750,7 +750,7 @@ public class CalParser extends Parser {
 			case 52: // port_name_colon = IDENTIFIER.IDENTIFIER COLON
 			{
 					final Symbol IDENTIFIER = _symbols[offset + 1];
-					 return new Symbol(new PortName((String)IDENTIFIER.value));
+					 return new Symbol(new Port((String)IDENTIFIER.value));
 			}
 			case 61: // lst$actor_body = actor_body
 			{
@@ -770,9 +770,9 @@ public class CalParser extends Parser {
 					final Symbol _symbol_valuePars = _symbols[offset + 6];
 					final ArrayList valuePars = (ArrayList) _symbol_valuePars.value;
 					final Symbol _symbol_in = _symbols[offset + 8];
-					final CompositePortDecl in = (CompositePortDecl) _symbol_in.value;
+					final ArrayList in = (ArrayList) _symbol_in.value;
 					final Symbol _symbol_out = _symbols[offset + 10];
-					final CompositePortDecl out = (CompositePortDecl) _symbol_out.value;
+					final ArrayList out = (ArrayList) _symbol_out.value;
 					final Symbol _symbol_t = _symbols[offset + 11];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_body = _symbols[offset + 13];
@@ -813,8 +813,8 @@ public class CalParser extends Parser {
                          valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
                          new DeclType[0],      // typeDecls, NOTE, can not be expressed in CAL
                          (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
-                         in,                   // CompositePortDecl inputPorts,
-                         out,                  // CompositePortDecl outputPorts,
+                         (PortDecl[])in.toArray(new PortDecl[in.size()]),
+                         (PortDecl[])out.toArray(new PortDecl[out.size()]),
                          (Action[])initializers.toArray(new Action[initializers.size()]),
                          (Action[])actions.toArray(new Action[actions.size()]),
                          scheduleFSM,
@@ -1226,50 +1226,50 @@ public class CalParser extends Parser {
 			case 142: // port_decl = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new AtomicPortDecl((String)id.value, null));
+					 return new Symbol(new PortDecl((String)id.value, null));
 			}
 			case 143: // port_decl = type.type IDENTIFIER.id
 			{
 					final Symbol _symbol_type = _symbols[offset + 1];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 2];
-					 return new Symbol(new AtomicPortDecl((String)id.value, type));
+					 return new Symbol(new PortDecl((String)id.value, type));
 			}
 			case 144: // port_decl = MULTI IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 2];
-					 return new Symbol(new AtomicPortDecl((String)id.value, null));
+					 return new Symbol(new PortDecl((String)id.value, null));
 			}
 			case 145: // port_decl = MULTI type.type IDENTIFIER.id
 			{
 					final Symbol _symbol_type = _symbols[offset + 2];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 3];
-					 return new Symbol(new AtomicPortDecl((String)id.value, type));
+					 return new Symbol(new PortDecl((String)id.value, type));
 			}
 			case 146: // port_decl_list_opt = 
 			{
-					 return new Symbol(new CompositePortDecl());
+					 return new Symbol(new ArrayList<PortDecl>());
 			}
 			case 147: // port_decl_list_opt = port_decl_list.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final CompositePortDecl l = (CompositePortDecl) _symbol_l.value;
+					final ArrayList l = (ArrayList) _symbol_l.value;
 					 return _symbol_l;
 			}
 			case 148: // port_decl_list = port_decl.port_decl
 			{
 					final Symbol _symbol_port_decl = _symbols[offset + 1];
 					final PortDecl port_decl = (PortDecl) _symbol_port_decl.value;
-					 CompositePortDecl l = new CompositePortDecl(); l.addChild(port_decl); return new Symbol(l);
+					 ArrayList<PortDecl> l = new ArrayList<PortDecl>(); l.add(port_decl); return new Symbol(l);
 			}
 			case 149: // port_decl_list = port_decl_list.l COMMA port_decl.d
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final CompositePortDecl l = (CompositePortDecl) _symbol_l.value;
+					final ArrayList l = (ArrayList) _symbol_l.value;
 					final Symbol _symbol_d = _symbols[offset + 3];
 					final PortDecl d = (PortDecl) _symbol_d.value;
-					 l.addChild(d); return _symbol_l;
+					 l.add(d); return _symbol_l;
 			}
 			case 150: // type_bound = LT type.type
 			{

@@ -7,7 +7,7 @@ public class ExprInput extends Expression {
 		return v.visitExprInput(this, p);
 	}
 	
-	public PortName  getPort() { return port; }
+	public Port  getPort() { return port; }
 	
 	public int  getOffset() { return offset; }
 	
@@ -22,15 +22,15 @@ public class ExprInput extends Expression {
 	//  Ctor
 	//
 	
-	public ExprInput(PortName port, int offset) {
+	public ExprInput(Port port, int offset) {
 		this (port, offset, false, -1, -1);
 	}
 	
-	public ExprInput(PortName port, int offset, int repeat, int patternLength) {
+	public ExprInput(Port port, int offset, int repeat, int patternLength) {
 		this (port, offset, true, repeat, -1);
 	}
 	
-	private ExprInput(PortName port, int offset, boolean hasRepeat, int repeat, int patternLength) {
+	private ExprInput(Port port, int offset, boolean hasRepeat, int repeat, int patternLength) {
 		this.port = port;
 		this.offset = offset;
 		this.hasRepeat = hasRepeat;
@@ -40,7 +40,7 @@ public class ExprInput extends Expression {
 	
 	
 	private boolean		hasRepeat;
-	private PortName	port;
+	private Port		port;
 	private int			offset;
 	private int			repeat;
 	private int			patternLength;

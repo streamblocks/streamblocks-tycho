@@ -67,18 +67,18 @@ proc_decl =
   ;
 port_decl =
 //TODO, the keyword multi is ignored
-    IDENTIFIER.id                 {: return new Symbol(new AtomicPortDecl((String)id.value, null)); :}
-  | type.type IDENTIFIER.id       {: return new Symbol(new AtomicPortDecl((String)id.value, type)); :}
-  | MULTI IDENTIFIER.id           {: return new Symbol(new AtomicPortDecl((String)id.value, null)); :}
-  | MULTI type.type IDENTIFIER.id {: return new Symbol(new AtomicPortDecl((String)id.value, type)); :}
+    IDENTIFIER.id                 {: return new Symbol(new PortDecl((String)id.value, null)); :}
+  | type.type IDENTIFIER.id       {: return new Symbol(new PortDecl((String)id.value, type)); :}
+  | MULTI IDENTIFIER.id           {: return new Symbol(new PortDecl((String)id.value, null)); :}
+  | MULTI type.type IDENTIFIER.id {: return new Symbol(new PortDecl((String)id.value, type)); :}
   ;
 port_decl_list_opt =
-                     {: return new Symbol(new CompositePortDecl()); :}
+                     {: return new Symbol(new ArrayList<PortDecl>()); :}
   | port_decl_list.l {: return _symbol_l; :}
   ;
 port_decl_list =
-    port_decl.port_decl                {: CompositePortDecl l = new CompositePortDecl(); l.addChild(port_decl); return new Symbol(l); :}
-  | port_decl_list.l COMMA port_decl.d {: l.addChild(d); return _symbol_l; :}
+    port_decl.port_decl                {: ArrayList<PortDecl> l = new ArrayList<PortDecl>(); l.add(port_decl); return new Symbol(l); :}
+  | port_decl_list.l COMMA port_decl.d {: l.add(d); return _symbol_l; :}
   ;
 
 //=== type ====================================================================

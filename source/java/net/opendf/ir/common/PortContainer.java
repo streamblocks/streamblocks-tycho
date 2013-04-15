@@ -1,9 +1,10 @@
 package net.opendf.ir.common;
 
+import java.util.List;
 
 public interface PortContainer {
 
-	public CompositePortDecl getInputPorts();
+	public List<PortDecl> getInputPorts();
 	
-	public CompositePortDecl getOutputPorts();
+	public List<PortDecl> getOutputPorts();
 }
