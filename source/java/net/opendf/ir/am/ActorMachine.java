@@ -55,17 +55,37 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 	public List<PortDecl> getOutputPorts() {
 		return outputPorts;
 	}
+	
+	public List<Transition> getTransitions() {
+		return transitions;
+	}
+	
+	public Transition getTransition(int i) {
+		return transitions.get(i);
+	}
+	
+	public List<Condition> getConditions() {
+		return conditions;
+	}
+	
+	public Condition getCondition(int i) {
+		return conditions.get(i);
+	}
 
 	public ActorMachine(List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<DeclVar> varDecls,
-			List<List<Instruction>> controller) {
+			List<List<Instruction>> controller, List<Transition> transitions, List<Condition> conditions) {
 		this.varDecls = varDecls;
 		this.controller = controller;
 		this.inputPorts = inputPorts;
 		this.outputPorts = outputPorts;
+		this.transitions = transitions;
+		this.conditions = conditions;
 	}
 
 	private List<DeclVar> varDecls;
 	private List<List<Instruction>> controller;
 	private List<PortDecl> inputPorts;
 	private List<PortDecl> outputPorts;
+	private List<Transition> transitions;
+	private List<Condition> conditions;
 }
