@@ -55,10 +55,6 @@ public class StmtBlock extends Statement {
         this.statements = statements;
     }
 
-    public boolean hasLocalVarDecls() {
-        return varDecls != null && varDecls.length > 0;
-    }
-
     public DeclType [] getTypeDecls() {
         return typeDecls;
     }
