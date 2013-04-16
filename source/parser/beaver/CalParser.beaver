@@ -12,6 +12,8 @@
  :} ;
 %package "net.opendf.parser.lth";
 %import "net.opendf.ir.*";
+%import "net.opendf.ir.util.ImmutableList";
+%import "net.opendf.ir.util.Pair";
 %import "net.opendf.ir.common.*";
 %import "net.opendf.ir.cal.*";
 %import "net.opendf.ir.cal.Action";
@@ -21,6 +23,7 @@
 %import "java.util.Map";
 %import "java.util.AbstractMap";
 %import "java.util.Arrays";
+%import "java.util.Collection";
 %embed {:
 /*******************************************************
  *  Inject code for custom error handling in the parser class.
@@ -85,8 +88,7 @@
     } else {
       name = file.getName();
     }
-    return new Actor(name, null, new ParDeclType[0], new ParDeclValue[0], new DeclType[0], new DeclVar[0], new PortDecl[0], 
-                     new PortDecl[0], new Action[0], new Action[0], null, new java.util.List[0], new Expression[0]);   
+    return new Actor(name, null, null, null, null, null, null, null, null, null, null, null, null);   
   }
   
   public net.opendf.ir.cal.Actor parse(String path, String fileName){
@@ -130,14 +132,12 @@
    * Needed by CommonParser.beaver
    * Repeated in both NlParser.beaver and CalParser.beaver
    ***************************************************************************/
-  private GeneratorFilter makeGeneratorFilter(TypeExpr type, ArrayList varList, Expression e, ArrayList filterList){
-    DeclVar[] vars = new DeclVar[varList.size()];
-    for(int i = 0; i<varList.size(); i++){
-      Symbol symbol = (Symbol)varList.get(i);
-      vars[i] = new DeclVar(type, (String)symbol.value, null);
+  private GeneratorFilter makeGeneratorFilter(TypeExpr type, ImmutableList<String> varList, Expression e, ImmutableList<Expression> filterList){
+    ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
+    for(String var : varList){
+      vars.add(new DeclVar(type, var, null));
     }
-    Expression[] filters = filterList == null ? new Expression[0] : (Expression[])filterList.toArray(new Expression[filterList.size()]);
-    return new GeneratorFilter(vars, e, filters);
+    return new GeneratorFilter(vars.build(), e, filterList);
   }
   class ParenthesSymbol extends Symbol{ // used by the parser to wrap subexpressions that are enclosed by parentheses, i.e. do not add them to a ExprBinaryOp sequence.
      ParenthesSymbol(Symbol s){
@@ -251,41 +251,41 @@
 %terminals TIME;
 
 //--- rules from CommonParser.beaver 
-%typeof actor_parameter_list = "ArrayList";
+%typeof actor_parameter_list = "ImmutableList.Builder";
 %typeof actor_parameter = "ParDeclValue";
 %typeof actor_parameter_init_expression = "Expression";
 %typeof qual_id = "ArrayList";
 %typeof variable = "Variable";
 %typeof field = "Field";
-%typeof decl_list = "ArrayList";
-%typeof decl_block = "ArrayList";
-%typeof decl_block_opt = "ArrayList";
+%typeof decl_list = "ImmutableList.Builder";
+%typeof decl_block = "ImmutableList";
+%typeof decl_block_opt = "ImmutableList";
 %typeof decl = "DeclVar";
 %typeof var_decl = "DeclVar";
 %typeof var_name_type = "DeclVar";
 %typeof fun_decl = "DeclVar";
 %typeof proc_decl = "DeclVar";
 %typeof port_decl = "PortDecl";
-%typeof port_decl_list = "ArrayList";
-%typeof port_decl_list_opt = "ArrayList";
+%typeof port_decl_list = "ImmutableList.Builder";
+%typeof port_decl_list_opt = "ImmutableList";
 %typeof type_bound = "TypeExpr";
 %typeof type_bound_opt = "TypeExpr";
 %typeof type_parameter = "ParDeclType";
-%typeof type_parameter_block = "ArrayList";
-%typeof type_parameter_list = "ArrayList";
-%typeof type_list = "ArrayList";
+%typeof type_parameter_block = "ImmutableList";
+%typeof type_parameter_list = "ImmutableList.Builder";
+%typeof type_list = "ImmutableList.Builder";
 %typeof type = "TypeExpr";
 %typeof type_attribute = "Map.Entry";
 %typeof type_attribute_list = "ArrayList";
 %typeof edge_type = "TypeExpr";
 %typeof procedure_expr_body = "ExprProc";
-%typeof stmt_block_opt = "ArrayList";
+%typeof stmt_block_opt = "ImmutableList";
 %typeof lambda_expr_body = "ExprLambda";
-%typeof map_list = "ArrayList";
+%typeof map_list = "ImmutableList.Builder";
 %typeof map_entry = "Map.Entry";
 %typeof tail = "Expression";
-%typeof expression_list = "ArrayList";
-%typeof expression_list_opt = "ArrayList";
+%typeof expression_list = "ImmutableList.Builder";
+%typeof expression_list_opt = "ImmutableList";
 %typeof method_invocation = "ExprApplication";
 %typeof literal = "ExprLiteral";
 %typeof primary = "Expression";
@@ -296,11 +296,11 @@
 %typeof expression = "Expression";
 %typeof operator = "String";
 %typeof formal_parameter = "ParDeclValue";
-%typeof formal_parameter_list = "ArrayList";
+%typeof formal_parameter_list = "ImmutableList.Builder";
 %typeof statement = "Statement";
 %typeof choose_generator_list = "ArrayList";
-%typeof for_generator_list = "ArrayList";
-%typeof generator_variable_list = "ArrayList";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
+%typeof for_generator_list = "ImmutableList.Builder";
+%typeof generator_variable_list = "ImmutableList.Builder";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
 %typeof for_foreach = "String";
 %typeof do_begin = "String";
 %typeof end_choose = "String";
@@ -310,20 +310,20 @@
 %typeof end_let = "String";
 %typeof end_proc = "String";
 %typeof end_while = "String";
-%typeof statement_list = "ArrayList";
-%typeof statement_list_opt = "ArrayList";
+%typeof statement_list = "ImmutableList.Builder";
+%typeof statement_list_opt = "ImmutableList";
 
 //--- CAL specific
 %typeof goal = "Actor";
 %typeof action_decl = "Action";
 %typeof action_head = "Map.Entry";
 %typeof action_in_pattern = "InputPattern";
-%typeof action_in_pattern_list = "ArrayList";
+%typeof action_in_pattern_list = "ImmutableList.Builder";
 %typeof action_output_expression = "OutputExpression";
-%typeof action_output_expression_list = "ArrayList";
-%typeof action_statement_body = "ArrayList";
+%typeof action_output_expression_list = "ImmutableList.Builder";
+%typeof action_statement_body = "ImmutableList";
 %typeof action_tag = "QID";
-%typeof action_tag_list = "ArrayList";
+%typeof action_tag_list = "ImmutableList.Builder";
 %typeof actor_body = "Map.Entry";
 %typeof actor_decl = "Actor";
 %typeof channel_selector = "String";
@@ -332,13 +332,13 @@
 %typeof end_invariant = "String";
 %typeof end_schedule = "String";
 %typeof init_action_decl = "Action";
-%typeof fsm_state_transitions = "ArrayList";
+%typeof fsm_state_transitions = "ImmutableList.Builder";
 %typeof fsm_state_target = "Transition";
 %typeof import_group = "String";
 %typeof import_list = "ArrayList";
 %typeof import_part = "String";
 %typeof import_single = "String";
-%typeof invariant = "ArrayList";
+%typeof invariant = "ImmutableList";
 %typeof port_name_colon = "Port";
 %typeof pri_inequality = "ArrayList";        //<QID>
 %typeof pri_inequality_list = "ArrayList";   //<QID>
@@ -348,7 +348,7 @@
 %typeof repeat = "Expression";
 %typeof schedule = "ScheduleFSM";
 %typeof time = "TypeExpr";
-%typeof token_name_list = "ArrayList";
+%typeof token_name_list = "ImmutableList.Builder";
 
 %goal goal;
 goal =
@@ -386,16 +386,16 @@ action_decl =
    **/
         {:
            // split the action head to it's parts
-           ArrayList<Expression> guardList = new ArrayList<Expression>();
+           ImmutableList.Builder<Expression> guardList = ImmutableList.builder();
            Expression delay = null;
-           ArrayList<DeclVar> declVarList = new ArrayList<DeclVar>();
+           ImmutableList.Builder<DeclVar> declVarList = ImmutableList.builder();
            for(Map.Entry part : head){
              switch((ActionPartKind)part.getKey()){
                case GUARD:
-                 guardList.addAll((ArrayList)part.getValue());
+                 guardList.addAll((Iterable)part.getValue());
                  break;
                case DECL_LIST:
-                 declVarList.addAll((ArrayList<DeclVar>)part.getValue());
+                 declVarList.addAll((Iterable)part.getValue());
                  break;
                case DELAY:
                  if(delay != null){ parseProblems.add("multiple delays is not allowed in action, at " + Symbol.getLine(ACTION.getStart()) + ", " + Symbol.getColumn(ACTION.getStart())); }
@@ -403,17 +403,17 @@ action_decl =
                  break;
              }
            }
-            Action a = new Action(-1,                        // id
-                                  tag,                       // tag
-                                  (InputPattern[])in_pattern_list.toArray(new InputPattern[in_pattern_list.size()]), //inputPatterns
-                                  out_expr_list==null ? new OutputExpression[0] : (OutputExpression[])out_expr_list.toArray(new OutputExpression[out_expr_list.size()]),  //outputExpressions
-                                  new DeclType[0],                                              // typeDecls
-                                  declVarList.toArray(new DeclVar[declVarList.size()]),         // varDecls
-                                  guardList.toArray(new Expression[guardList.size()]),              // guards 
-                                  (Statement[])body.toArray(new Statement[body.size()]),        // body
-                                  delay,                      // delay
-                                  new Expression[0],         // preconditions  NOTE, can not be expressed in CAL
-                                  new Expression[0]);        // postconditions NOTE, can not be expressed in CAL
+            Action a = new Action(-1,              // id
+                                  tag,             // tag
+                                  in_pattern_list.build(), //inputPatterns
+                                  out_expr_list == null ? null : out_expr_list.build(),   //outputExpressions
+                                  null,            // typeDecls
+                                  declVarList.build(),     // varDecls
+                                  guardList.build(),       // guards 
+                                  body,            // body
+                                  delay,           // delay
+                                  null,            // preconditions  NOTE, can not be expressed in CAL
+                                  null);           // postconditions NOTE, can not be expressed in CAL
             return new Symbol(a);
         :}
 
@@ -426,9 +426,9 @@ init_action_decl =
   SEMICOLON?
         {: 
            // split the action head to it's parts
-           ArrayList<Expression> guardList = new ArrayList<Expression>();
+           ImmutableList.Builder<Expression> guardList = ImmutableList.builder();
            Expression delay = null;
-           ArrayList<DeclVar> declVarList = new ArrayList<DeclVar>();
+           ImmutableList.Builder<DeclVar> declVarList = ImmutableList.builder();
            for(Map.Entry part : head){
              switch((ActionPartKind)part.getKey()){
                case GUARD:
@@ -445,15 +445,15 @@ init_action_decl =
            }
             Action a = new Action(-1,                        // id
                                   tag,                       // tag
-                                  new InputPattern[0],       //inputPatterns
-                                  out_expr_list==null ? new OutputExpression[0] : (OutputExpression[])out_expr_list.toArray(new OutputExpression[out_expr_list.size()]),  //outputExpressions
-                                  new DeclType[0],                                              // typeDecls
-                                  declVarList.toArray(new DeclVar[declVarList.size()]),         // varDecls
-                                  guardList.toArray(new Expression[guardList.size()]),          // guards 
-                                  (Statement[])body.toArray(new Statement[body.size()]),        // body
+                                  null,       //inputPatterns
+                                  out_expr_list==null ? null : out_expr_list.build(),  //outputExpressions
+                                  null,                                              // typeDecls
+                                  declVarList.build(),         // varDecls
+                                  guardList.build(),          // guards 
+                                  body,        // body
                                   delay,                      // delay
-                                  new Expression[0],         // preconditions  NOTE, can not be expressed in CAL
-                                  new Expression[0]);        // postconditions NOTE, can not be expressed in CAL
+                                  null,         // preconditions  NOTE, can not be expressed in CAL
+                                  null);        // postconditions NOTE, can not be expressed in CAL
             return new Symbol(a);
         :}
   ;
@@ -461,27 +461,27 @@ action_tag =
     qual_id.n COLON                    {: return new Symbol(new QID((String[])n.toArray(new String[n.size()]))); :}
   ;
 action_head =
-    GUARD expression_list.l       {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.GUARD, l)); :}
-  | VAR decl_list.d               {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DECL_LIST, d)); :}
+    GUARD expression_list.l       {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.GUARD, l.build())); :}
+  | VAR decl_list.d               {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DECL_LIST, d.build())); :}
   | DELAY expression.e            {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DELAY, e)); :}
   ;
 action_statement_body =
-                            {: return new Symbol(new ArrayList()); :}
+                            {: return new Symbol(ImmutableList.empty()); :}
   | DO statement_list_opt.s {: return new Symbol(s); :}
   ;
 action_in_pattern_list =
-                                                       {: return new Symbol(new ArrayList()); :}
-  | action_in_pattern.p                                {: ArrayList l = new ArrayList(); l.add(p); return new Symbol(l); :}
+                                                       {: return new Symbol(ImmutableList.builder()); :}
+  | action_in_pattern.p                                {: return new Symbol(ImmutableList.builder().add(p)); :}
   | action_in_pattern_list.l COMMA action_in_pattern.p {: l.add(p); return _symbol_l;:}
   ;
 action_in_pattern =
 //TODO channels are ignored
   port_name_colon.actor_port_name? LBRACK token_name_list.tokens? RBRACK repeat.r? channel_selector.c? 
-     {: return new Symbol(new InputPattern(actor_port_name, tokens==null ? new String[0] : (String[])tokens.toArray(new String[tokens.size()]), r)); :}
+     {: return new Symbol(new InputPattern(actor_port_name, tokens==null ? null : tokens.build(), r)); :}
   ;
 token_name_list =
 //TODO, the position of the names are not saved
-    IDENTIFIER.ID                           {: ArrayList l = new ArrayList(); l.add(ID.value); return new Symbol(l); :}
+    IDENTIFIER.ID                           {: return new Symbol(ImmutableList.builder().add(ID.value)); :}
   | token_name_list.l COMMA IDENTIFIER.ID   {: l.add(ID.value); return _symbol_l; :}
   ;
 channel_selector =
@@ -494,14 +494,13 @@ repeat =
     REPEAT expression.e {: return _symbol_e; :}
   ;
 action_output_expression_list =
-    action_output_expression.e                                       {: ArrayList l = new ArrayList(); l.add(e); return new Symbol(l); :}
+    action_output_expression.e                                       {: return new Symbol(ImmutableList.builder().add(e)); :}
   | action_output_expression_list.l COMMA action_output_expression.e {: l.add(e); return _symbol_l; :}
   ;
 action_output_expression =
 //TODO channels are ignored
   port_name_colon.actor_port_name? LBRACK expression_list.values? RBRACK repeat.r? channel_selector.c? 
-      {: return new Symbol(new OutputExpression(actor_port_name, 
-                                                values==null ? new Expression[0] : (Expression[])values.toArray(new Expression[values.size()]), r)); :}
+      {: return new Symbol(new OutputExpression(actor_port_name, values == null ? null : values.build(), r)); :}
   ;
 port_name_colon =
     IDENTIFIER.IDENTIFIER COLON {: return new Symbol(new Port((String)IDENTIFIER.value));:}
@@ -523,12 +522,12 @@ actor_decl =
    * When the Actor object is created this list is traversed and each element is added to the right attribute (Actor.VariableList, Actor.ActionList, ...)
    **/
   {:
-    ArrayList varDecls = new ArrayList();
-    ArrayList initializers = new ArrayList();
-    ArrayList actions = new ArrayList();
+    ImmutableList.Builder varDecls = ImmutableList.builder();
+    ImmutableList.Builder initializers = ImmutableList.builder();
+    ImmutableList.Builder actions = ImmutableList.builder();
     ScheduleFSM scheduleFSM = null;
-    ArrayList priorities = new ArrayList();
-    ArrayList invariants = new ArrayList();
+    ImmutableList.Builder priorities = ImmutableList.builder();
+    ImmutableList.Builder invariants = ImmutableList.builder();
     for(Map.Entry part : body){
       switch((ActorPartKind)part.getKey()){
         case DECL_VAR:
@@ -544,26 +543,26 @@ actor_decl =
           scheduleFSM = (ScheduleFSM)part.getValue();
           break;
         case PRIORITY:
-          priorities.addAll((ArrayList)part.getValue());
+          priorities.addAll((Collection)part.getValue());
           break;
         case INVARIANT_LIST:
-          invariants.addAll((ArrayList)part.getValue());
+          invariants.addAll((Collection)part.getValue());
           break;
       }
     }
     Actor a = new Actor((String)name.value,
                          null,                 // NamespaceDecl namespace,
-                         typePars == null ? new ParDeclType[0] : (ParDeclType[])typePars.toArray(new ParDeclType[typePars.size()]),     // typePars,
-                         valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
-                         new DeclType[0],      // typeDecls, NOTE, can not be expressed in CAL
-                         (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
-                         (PortDecl[])in.toArray(new PortDecl[in.size()]),
-                         (PortDecl[])out.toArray(new PortDecl[out.size()]),
-                         (Action[])initializers.toArray(new Action[initializers.size()]),
-                         (Action[])actions.toArray(new Action[actions.size()]),
+                         typePars,     // typePars,
+                         valuePars == null ? null : valuePars.build(), // valuePars,
+                         null,      // typeDecls, NOTE, can not be expressed in CAL
+                         varDecls.build(),             // varDecls
+                         in,
+                         out,
+                         initializers.build(),
+                         actions.build(),
                          scheduleFSM,
-                         (java.util.List<QID>[])priorities.toArray(new java.util.List[priorities.size()]),
-                         (Expression[])invariants.toArray(new Expression[invariants.size()])
+                         priorities.build(),
+                         invariants.build()
                         );
      
     return new Symbol(a);
@@ -584,26 +583,26 @@ actor_body =
   | invariant.i                                 {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.INVARIANT_LIST, i)); :}
   ;
 invariant =
-    INVARIANT expression_list.l end_invariant   {: return _symbol_l; :}
+    INVARIANT expression_list.l end_invariant   {: return new Symbol(l.build()); :}
   ;
 //--- Schedule ----------------------------------------------------------------
 schedule =
     SCHEDULE FSM? IDENTIFIER.ID COLON fsm_state_transitions.trans* end_schedule 
-      {:  ArrayList tl = trans[0];
+      {:  ImmutableList.Builder tl = trans[0];
           for(int i=1; i<trans.length; i++){
-            tl.addAll(trans[i]);
+            tl.addAll(trans[i].build());
           }
-          return new Symbol(new ScheduleFSM((Transition[])tl.toArray(new Transition[tl.size()]), (String)ID.value)); :}
+          return new Symbol(new ScheduleFSM(tl.build(), (String)ID.value)); :}
   | SCHEDULE.SCHEDULE REGEXP regexpr.r end_schedule
     {: parseProblems.add("Regular expression schedules are not supported, at " + Symbol.getLine(SCHEDULE.getStart()) + ", " + Symbol.getColumn(SCHEDULE.getStart())); return new Symbol(null); :}
   ;
 fsm_state_transitions =
     IDENTIFIER.Src_state LPAREN action_tag_list.tags RPAREN EDGE IDENTIFIER.Dst_state fsm_state_target.more* SEMICOLON 
-       {: ArrayList result = new ArrayList();
+       {: ImmutableList.Builder result = ImmutableList.builder();
           String startState = (String)Src_state.value;
           result.add(new Transition(startState,
                                     (String)Dst_state.value,
-                                    (QID[])tags.toArray(new QID[tags.size()]))); 
+                                    tags.build())); 
           for(Transition t : more){
             result.add(new Transition(startState, t.getDestinationState(), t.getActionTags()));
           }
@@ -613,10 +612,10 @@ fsm_state_target =
   BAR LPAREN action_tag_list.tags RPAREN EDGE IDENTIFIER.Dst_state
        {: return new Symbol(new Transition(null,  // the start state is unknown. This is filled in later.
                                            (String)Dst_state.value,
-                                           (QID[])tags.toArray(new QID[tags.size()]))); :}
+                                           tags.build())); :}
   ;
 action_tag_list =
-    qual_id.id                         {: ArrayList l = new ArrayList(); l.add(new QID((String[])id.toArray(new String[id.size()]))); return new Symbol(l); :}
+    qual_id.id                         {: return new Symbol(ImmutableList.builder().add(new QID((String[])id.toArray(new String[id.size()])))); :}
   | action_tag_list.l COMMA qual_id.id {: l.add(new QID((String[])id.toArray(new String[id.size()]))); return _symbol_l; :}
   ;
 //TODO, reg expr schedules

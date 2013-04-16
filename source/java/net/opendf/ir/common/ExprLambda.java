@@ -35,54 +35,44 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import net.opendf.ir.util.ImmutableList;
 
 public class ExprLambda extends Expression {
 
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprLambda(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprLambda(this, p);
+	}
 
-    public ExprLambda(ParDeclType [] typeParams, ParDeclValue [] valueParams, DeclType [] typeDecls, DeclVar [] varDecls, Expression body, TypeExpr returnTypeExpr) {
-    	this.typeParameters = typeParams;
-    	this.valueParameters = valueParams;
-    	this.typeDecls = typeDecls;
-    	this.varDecls = varDecls;
-        this.body = body;
-        this.returnTypeExpr = returnTypeExpr;
-    }
+	public ExprLambda(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Expression body,
+			TypeExpr returnTypeExpr) {
+		this.typeParameters = ImmutableList.copyOf(typeParams);
+		this.valueParameters = ImmutableList.copyOf(valueParams);
+		this.body = body;
+		this.returnTypeExpr = returnTypeExpr;
+	}
 
-    public ParDeclType []  getTypeParameters() {
-    	return typeParameters;
-    }
-    
-    public ParDeclValue [] getValueParameters() {
-        return valueParameters;
-    }
+	public ImmutableList<ParDeclType> getTypeParameters() {
+		return typeParameters;
+	}
 
-    public DeclType[] getTypeDecls() {
-        return typeDecls;
-    }
+	public ImmutableList<ParDeclValue> getValueParameters() {
+		return valueParameters;
+	}
 
-    public DeclVar[] getVarDecls() {
-        return varDecls;
-    }
+	public Expression getBody() {
+		return body;
+	}
 
-    public Expression getBody() {
-        return body;
-    }
+	public TypeExpr getReturnType() {
+		return returnTypeExpr;
+	}
 
-    public TypeExpr getReturnType() {
-    	return returnTypeExpr;
-    }
-
-    private ParDeclType [] 	typeParameters;
-    private ParDeclValue [] valueParameters;
-    private DeclType []		typeDecls;
-    private DeclVar [] 		varDecls;
-    private Expression      body;
-    private TypeExpr		returnTypeExpr;
+	private ImmutableList<ParDeclType> typeParameters;
+	private ImmutableList<ParDeclValue> valueParameters;
+	private Expression body;
+	private TypeExpr returnTypeExpr;
 }

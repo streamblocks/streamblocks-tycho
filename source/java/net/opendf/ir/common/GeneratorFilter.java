@@ -34,34 +34,35 @@ BEGINCOPYRIGHT X
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.util.ImmutableList;
 
 public class GeneratorFilter extends AbstractIRNode {
 
-	public DeclVar [] getVariables() {
+	public ImmutableList<DeclVar> getVariables() {
 		return variables;
 	}
-	
+
 	public Expression getCollectionExpr() {
 		return collectionExpr;
 	}
-	
-	public Expression [] getFilters() {
+
+	public ImmutableList<Expression> getFilters() {
 		return filters;
 	}
-	
-	public  GeneratorFilter(DeclVar [] variables, Expression collectionExpr, Expression [] filters) {
-		this.variables = variables;
+
+	public GeneratorFilter(ImmutableList<DeclVar> variables, Expression collectionExpr,
+			ImmutableList<Expression> filters) {
+		this.variables = ImmutableList.copyOf(variables);
 		this.collectionExpr = collectionExpr;
-		this.filters = filters;
+		this.filters = ImmutableList.copyOf(filters);
 	}
-	
-	
-	private DeclVar [] 	variables;
-	private Expression	collectionExpr;
-	private Expression [] filters;
+
+	private ImmutableList<DeclVar> variables;
+	private Expression collectionExpr;
+	private ImmutableList<Expression> filters;
 }

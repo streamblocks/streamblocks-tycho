@@ -42,13 +42,14 @@ package net.opendf.ir.cal;
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Port;
+import net.opendf.ir.util.ImmutableList;
 
 public class OutputExpression extends AbstractIRNode{
 
 
-    public OutputExpression(Port port, Expression [] values, Expression repeatExpr) {
+    public OutputExpression(Port port, ImmutableList<Expression> values, Expression repeatExpr) {
         this.port = port;
-        this.values = values;
+        this.values = ImmutableList.copyOf(values);
         this.repeatExpr = repeatExpr;
     }
 
@@ -56,7 +57,7 @@ public class OutputExpression extends AbstractIRNode{
         return port;
     }
 
-    public Expression[] getExpressions() {
+    public ImmutableList<Expression> getExpressions() {
         return values;
     }
 
@@ -65,7 +66,7 @@ public class OutputExpression extends AbstractIRNode{
     }
 
     private Port 		port;
-    private Expression []   values;
+    private ImmutableList<Expression>   values;
     private Expression 		repeatExpr;
 
 }

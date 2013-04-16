@@ -7,27 +7,28 @@
 
 package net.opendf.ir.common;
 
-
+import net.opendf.ir.util.ImmutableList;
 
 public class ExprBinaryOp extends Expression {
 
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprBinaryOp(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprBinaryOp(this, p);
+	}
 
-    public ExprBinaryOp(java.lang.String[] operations, Expression[] operands) {
-    	assert(operations.length == operands.length-1);
-    	this.operations = operations;
-    	this.operands = operands;
-    }
-    public java.lang.String[] getOperations(){
-    	return operations;
-    }
-    
-    public Expression[] getOperands(){
-    	return operands;
-    }
+	public ExprBinaryOp(ImmutableList<String> operations, ImmutableList<Expression> operands) {
+		assert (operations.size() == operands.size() - 1);
+		this.operations = operations;
+		this.operands = operands;
+	}
 
-    private java.lang.String[] operations;
-    private Expression[] operands;
+	public ImmutableList<String> getOperations() {
+		return operations;
+	}
+
+	public ImmutableList<Expression> getOperands() {
+		return operands;
+	}
+
+	private ImmutableList<String> operations;
+	private ImmutableList<Expression> operands;
 }

@@ -35,35 +35,35 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.cal;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.util.ImmutableList;
 
 /**
  * 
  * @author jornj
  */
 
-public class ScheduleFSM extends AbstractIRNode{
+public class ScheduleFSM extends AbstractIRNode {
 
-	public ScheduleFSM(Transition[] transitions, String initialState) {
+	public ScheduleFSM(ImmutableList<Transition> transitions, String initialState) {
 		super();
-		this.transitions = transitions;
+		this.transitions = ImmutableList.copyOf(transitions);
 		this.initialState = initialState;
 	}
-	
+
 	public String getInitialState() {
 		return initialState;
 	}
 
-	public Transition[] getTransitions() {
+	public ImmutableList<Transition> getTransitions() {
 		return transitions;
 	}
-	
-	
-	private Transition []  transitions;
-	private String		   initialState;
+
+	private ImmutableList<Transition> transitions;
+	private String initialState;
 
 }

@@ -35,12 +35,13 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.cal;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.QID;
+import net.opendf.ir.util.ImmutableList;
 
 /**
  * 
@@ -48,21 +49,18 @@ import net.opendf.ir.common.QID;
  */
 public class Transition extends AbstractIRNode {
 
-
-	public Transition(
-		String sourceState,
-		String destinationState,
-		QID[] actionTags) {
+	public Transition(String sourceState, String destinationState, ImmutableList<QID> actionTags) {
 
 		super();
 		this.sourceState = sourceState;
 		this.destinationState = destinationState;
-		this.actionTags = actionTags;
+		this.actionTags = ImmutableList.copyOf(actionTags);
 	}
+
 	/**
 	 * @return Returns the actionTags.
 	 */
-	public QID[] getActionTags() {
+	public ImmutableList<QID> getActionTags() {
 		return actionTags;
 	}
 
@@ -80,9 +78,7 @@ public class Transition extends AbstractIRNode {
 		return sourceState;
 	}
 
-	
-	
 	private String sourceState;
 	private String destinationState;
-	private QID []  actionTags;
+	private ImmutableList<QID> actionTags;
 }

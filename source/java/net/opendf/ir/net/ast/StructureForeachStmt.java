@@ -1,21 +1,22 @@
 package net.opendf.ir.net.ast;
 
 import net.opendf.ir.common.GeneratorFilter;
+import net.opendf.ir.util.ImmutableList;
 
 public class StructureForeachStmt extends StructureStatement {
-	public StructureForeachStmt(GeneratorFilter[] generators, StructureStatement[] statements){
-		this.generators = generators;
-		this.statements = statements;
+	public StructureForeachStmt(ImmutableList<GeneratorFilter> generators, ImmutableList<StructureStatement> statements){
+		this.generators = ImmutableList.copyOf(generators);
+		this.statements = ImmutableList.copyOf(statements);
 	}
-	public StructureStatement[] getStatements(){
+	public ImmutableList<StructureStatement> getStatements(){
 		return statements;
 	}
-	public GeneratorFilter[] getGenerators(){
+	public ImmutableList<GeneratorFilter> getGenerators(){
 		return generators;
 	}
 
-	private StructureStatement[] statements;
-	private GeneratorFilter[] generators;
+	private ImmutableList<StructureStatement> statements;
+	private ImmutableList<GeneratorFilter> generators;
 
 	@Override
 	public <R, P> R accept(StructureStmtVisitor<R, P> v, P p) {

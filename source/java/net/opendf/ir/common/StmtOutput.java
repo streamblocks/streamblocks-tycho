@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import net.opendf.ir.util.ImmutableList;
+
 public class StmtOutput extends Statement {
 
 	@Override
@@ -13,29 +15,29 @@ public class StmtOutput extends Statement {
 	
 	public int  getRepeat() { return repeat; }
 	
-	public Expression[]  getValues() { return values; }
+	public ImmutableList<Expression>  getValues() { return values; }
 
 
 	//
 	//  Ctor
 	//
 	
-	public StmtOutput(Expression[] values, Port port) {
+	public StmtOutput(ImmutableList<Expression> values, Port port) {
 		this(values, port, false, 0);
 	}
 	
-	public StmtOutput(Expression[] values, Port port, int repeat) {
+	public StmtOutput(ImmutableList<Expression> values, Port port, int repeat) {
 		this(values, port, true, repeat);
 	}
 	
-	private StmtOutput(Expression[] values, Port port, boolean hasRepeat, int repeat) {
-		this.values = values;
+	private StmtOutput(ImmutableList<Expression> values, Port port, boolean hasRepeat, int repeat) {
+		this.values = ImmutableList.copyOf(values);
 		this.port = port;
 		this.hasRepeat = hasRepeat;
 		this.repeat = repeat;
 	}
 	
-	private Expression[]	values;
+	private ImmutableList<Expression>	values;
 	
 	private boolean			hasRepeat;
 	private Port			port;

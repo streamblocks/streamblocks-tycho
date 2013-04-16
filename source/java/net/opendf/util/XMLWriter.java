@@ -9,6 +9,7 @@ package net.opendf.util;
  **/
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,6 +39,7 @@ import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
+import net.opendf.ir.util.Pair;
 
 public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisitor<Void, Element>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>{
 	private java.io.PrintStream out = System.out;
@@ -71,7 +73,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			printEntityDecl(network);
 		//--- variable declaration
 		incIndent();  // actor body
-		if(network.getVarDecls().length>0){
+		if(!network.getVarDecls().isEmpty()){
 			indent();
 			out.append("var");
 			incIndent();
@@ -95,7 +97,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			}
 			decIndent();
 		}
-		if(network.getStructure() != null && network.getStructure().length>0){
+		if(network.getStructure() != null && !network.getStructure().isEmpty()){
 			indent();
 			out.append("structure");
 			incIndent();
@@ -105,7 +107,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			}
 			decIndent();
 		}
-		print(network.getToolAttributes());
+		printToolAttributes(network.getToolAttributes());
 		decIndent();  // actor body
 		indent();
 		out.append("end network\n");
@@ -127,7 +129,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			printEntityDecl(actor);
 			//TODO DeclType[] typeDecls
 			//--- variable declaration
-			generateXML(actor.getVarDecls(), actorElement);
+			generateXMLForDeclVars(actor.getVarDecls(), actorElement);
 		//--- initializers
 		for(Action a : actor.getInitializers()){
 			print(a, "initialize");
@@ -161,7 +163,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			indent();
 			out.append("endschedule");
 		}
-		if(actor.getPriorities() != null && actor.getPriorities().length>0){
+		if(actor.getPriorities() != null && !actor.getPriorities().isEmpty()){
 			indent();
 			out.append("priority");
 			incIndent();
@@ -179,10 +181,10 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			indent();
 			out.append("end");
 		}
-		if(actor.getInvariants() != null && actor.getInvariants().length>0){
+		if(actor.getInvariants() != null && !actor.getInvariants().isEmpty()){
 			indent();
 			out.append("invariant ");
-			print(actor.getInvariants());
+			printExpressions(actor.getInvariants());
 			out.append(" endinvariant");
 		}
 		decIndent();
@@ -193,8 +195,8 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			pce.printStackTrace();
 		}
 	}
-	public void print(ToolAttribute[] toolAttributes){
-		if(toolAttributes != null && toolAttributes.length>0){
+	public void printToolAttributes(Collection<ToolAttribute> toolAttributes){
+		if(toolAttributes != null && !toolAttributes.isEmpty()){
 			indent();
 			out.append("{");
 			incIndent();
@@ -211,7 +213,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public void printEntityDecl(DeclEntity entity){
 		out.append("name=" + entity.getName());
 		//--- type parameters
-		if(entity.getTypeParameters().length>0){
+		if(!entity.getTypeParameters().isEmpty()){
 			String sep = "";
 			out.append(" [");
 			for(ParDeclType param : entity.getTypeParameters()){
@@ -237,7 +239,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		out.append(" : ");
 	}
 
-	public void generateXML(DeclVar[] varDecls, Element parent){
+	public void generateXMLForDeclVars(Iterable<DeclVar> varDecls, Element parent){
 		Element declElements = doc.createElement("DeclVarList");
 		for(DeclVar v : varDecls){
 			Element varDeclElem = doc.createElement("DeclVar");
@@ -263,18 +265,18 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		}
 		out.append(kind);
 		incIndent();
-		print(a.getInputPatterns());
+		printInputPatterns(a.getInputPatterns());
 		out.append(" ==> ");
-		print(a.getOutputExpressions()); 
-		if(a.getGuards() != null && a.getGuards().length>0){
+		printOutputExpressions(a.getOutputExpressions()); 
+		if(a.getGuards() != null && !a.getGuards().isEmpty()){
 			indent();
 			out.append("guard ");
-			print(a.getGuards());
+			printExpressions(a.getGuards());
 		}
-		if(a.getVarDecls() != null && a.getVarDecls().length>0){
+		if(a.getVarDecls() != null && !a.getVarDecls().isEmpty()){
 			indent();
 			out.append("var ");
-			print(a.getVarDecls());
+			printDeclVars(a.getVarDecls());
 		}
 		//TODO DeclType[] typeDecls
 		//TODO Expression[] preconditions, Expression[] postconditions) 
@@ -283,7 +285,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			out.append("delay ");
 			a.getDelay().accept(this, null);
 		}
-		if(a.getBody() != null && a.getBody().length>0){
+		if(a.getBody() != null && !a.getBody().isEmpty()){
 			indent();
 			out.append("do");
 			incIndent();
@@ -294,7 +296,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		indent();
 		out.append("endaction");
 	}
-	private void print(OutputExpression[] outputExpressions) {
+	private void printOutputExpressions(Iterable<OutputExpression> outputExpressions) {
 		String portSep = " ";
 		for(OutputExpression p : outputExpressions){
 			out.append(portSep);
@@ -314,7 +316,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			out.append("]");
 		}
 	}
-	private void print(InputPattern[] inputPatterns) {
+	private void printInputPatterns(Iterable<InputPattern> inputPatterns) {
 		String portSep = " ";
 		for(InputPattern p : inputPatterns){
 			out.append(portSep);
@@ -368,7 +370,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			var.getInitialValue().accept(this, null);
 		}
 	}
-	public void print(DeclVar[] varDecls) { // comma separated list
+	public void printDeclVars(Iterable<DeclVar> varDecls) { // comma separated list
 		String sep = "";
 		for(DeclVar v : varDecls){
 			out.append(sep);
@@ -380,7 +382,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public void print(Expression e){
 		e.accept(this, null);
 	}
-	public void print(Expression[] expressions) {  // comma separated expressions
+	public void printExpressions(Iterable<Expression> expressions) {  // comma separated expressions
 		if(expressions != null){
 			String sep = "";
 			for(Expression e : expressions){
@@ -401,8 +403,8 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		}
 		out.append(param.getName());
 	}
-	private void generateXML(ParDeclValue[] valueParameters, Element p) {
-		if(valueParameters != null && valueParameters.length >0){
+	private void generateXMLForParDeclValues(Collection<ParDeclValue> valueParameters, Element p) {
+		if(valueParameters != null && !valueParameters.isEmpty()){
 			Element top = doc.createElement("ValueParameters");
 			p.appendChild(top);
 			for(ParDeclValue param : valueParameters){
@@ -426,32 +428,23 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	}
 	public void print(TypeExpr type){
 		out.append(type.getName());
-		if(type.getParameters() != null && type.getParameters().length>0){
-			out.append("[");
-			String sep = "";
-			for(TypeExpr t : type.getParameters()){
-				out.append(sep);
-				sep = ", ";
-				print(t);
-			}
-			out.append("]");
-		} else if((type.getTypeParameters() != null && !type.getTypeParameters().isEmpty()) || 
+		if((type.getTypeParameters() != null && !type.getTypeParameters().isEmpty()) || 
    				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
 			out.append("(");
 			String sep = "";
-			for(Map.Entry<String, Expression>par : type.getValueParameters().entrySet()){
+			for(Pair<String, Expression>par : type.getValueParameters()){
 				out.append(sep);
 				sep = ", ";
-				out.append(par.getKey());
+				out.append(par.getFirst());
 				out.append("=");
-				par.getValue().accept(this, null);
+				par.getSecond().accept(this, null);
 			}
-			for(Map.Entry<String, TypeExpr>par : type.getTypeParameters().entrySet()){
+			for(Pair<String, TypeExpr>par : type.getTypeParameters()){
 				out.append(sep);
 				sep = ", ";
-				out.append(par.getKey());
+				out.append(par.getFirst());
 				out.append(":");
-				print(par.getValue());
+				print(par.getSecond());
 			}
 			out.append(")");
 		}
@@ -469,8 +462,8 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			out.append("  ");
 		}
 	}
-	private void generateXML(GeneratorFilter[] generators, Element p) {
-		if(generators != null && generators.length>0){
+	private void generateXMLForGeneratorFilters(Collection<GeneratorFilter> generators, Element p) {
+		if(generators != null && !generators.isEmpty()){
 			Element top = doc.createElement("GeneratorFilters");
 			p.appendChild(top);
 			for(GeneratorFilter gen : generators){
@@ -482,17 +475,17 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	private void generateXML(GeneratorFilter gen, Element p) {
 		Element top = doc.createElement("GenertatorFilter");
 		p.appendChild(top);
-		generateXML(gen.getVariables(), top);
+		generateXMLForDeclVars(gen.getVariables(), top);
 		Element collExpr = doc.createElement("CollectionExpression");
 		top.appendChild(collExpr);
 		gen.getCollectionExpr().accept(this, collExpr);
-		generateXML(gen.getFilters(), top, "Filters");
+		generateXMLForExpressions(gen.getFilters(), top, "Filters");
 	}
 /******************************************************************************
  * Expression
  */
-	public void generateXML(Expression[] exprVector, Element p, String lablel){
-		if(exprVector != null && exprVector.length>0){
+	public void generateXMLForExpressions(Collection<Expression> exprVector, Element p, String lablel){
+		if(exprVector != null && !exprVector.isEmpty()){
 			Element top = doc.createElement(lablel);
 			p.appendChild(top);
 			for(Expression e : exprVector){
@@ -509,7 +502,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		appl.appendChild(fun);
 		//--- arguments
 		Element args = doc.createElement("Arguments");
-		if(e.getArgs() != null && e.getArgs().length<0){
+		if(e.getArgs() != null && !e.getArgs().isEmpty()){
 			appl.appendChild(args);
 			for(Expression arg : e.getArgs()){
 				arg.accept(this, args);
@@ -587,14 +580,13 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		//TODO out.append("const ");
 		Element top = doc.createElement("ExprLambda");
 		p.appendChild(top);
-		generateXML(e.getValueParameters(), top);
+		generateXMLForParDeclValues(e.getValueParameters(), top);
 		//TODO type parameters
 		if(e.getReturnType() != null){
 			Element rt = doc.createElement("ReturnType");
 			top.appendChild(rt);
 			generateXML(e.getReturnType(), rt);
 		}
-		generateXML(e.getVarDecls(), top);
 		Element body = doc.createElement("BodyExpr");
 		top.appendChild(body);
 		e.getBody().accept(this, body);
@@ -604,7 +596,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitExprLet(ExprLet e, Element p) {
 		Element top = doc.createElement("ExprLet");
 		p.appendChild(top);
-		generateXML(e.getVarDecls(), top);
+		generateXMLForDeclVars(e.getVarDecls(), top);
 		//TODO type declarations
 		Element body = doc.createElement("BodyExpr");
 		top.appendChild(body);
@@ -616,8 +608,8 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitExprList(ExprList e, Element p) {
 		Element top = doc.createElement("ExprList");
 		p.appendChild(top);
-		generateXML(e.getElements(), top, "Elements");
-		generateXML(e.getGenerators(), top);
+		generateXMLForExpressions(e.getElements(), top, "Elements");
+		generateXMLForGeneratorFilters(e.getGenerators(), top);
 		//TODO tail
 		return null;
 	}
@@ -644,25 +636,24 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			map.appendChild(value);
 			body.getValue().accept(this, value);
 		}
-		generateXML(e.getGenerators(), top);
+		generateXMLForGeneratorFilters(e.getGenerators(), top);
 		return null;
 	}
 	@Override
 	public Void visitExprProc(ExprProc e, Element p) {
 		Element top = doc.createElement("ExprProc");
 		p.appendChild(top);
-		generateXML(e.getValueParameters(), top);
+		generateXMLForParDeclValues(e.getValueParameters(), top);
 		//TODO type parameters
-		generateXML(e.getVarDecls(), top);
-		generateXML(e.getBody(), top, "BodyStmt");
+		e.getBody().accept(this, top);
 		return null;
 	}
 	@Override
 	public Void visitExprSet(ExprSet e, Element p) {
 		Element top = doc.createElement("ExprSet");
 		p.appendChild(top);
-		generateXML(e.getElements(), top, "Elements");
-		generateXML(e.getGenerators(), top);
+		generateXMLForExpressions(e.getElements(), top, "Elements");
+		generateXMLForGeneratorFilters(e.getGenerators(), top);
 		return null;
 	}
 	@Override
@@ -683,7 +674,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 /******************************************************************************
  * Statement
  */
-	void generateXML(Statement[] body, Element p, String label) {
+	void generateXMLForStatements(Iterable<Statement> body, Element p, String label) {
 		Element top = doc.createElement(label);
 		p.appendChild(top);
 		for(Statement s : body){
@@ -737,13 +728,13 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitStmtBlock(StmtBlock s, Void p) {
 		out.append("begin");
 		incIndent();
-		if(s.getVarDecls() != null && s.getVarDecls().length>0){
+		if(s.getVarDecls() != null && !s.getVarDecls().isEmpty()){
 			decIndent();
 			indent();
 			out.append("var");
 			incIndent();
 			indent();
-			print(s.getVarDecls());
+			printDeclVars(s.getVarDecls());
 			decIndent();
 			indent();
 			out.append("do");
@@ -808,7 +799,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		return null;
 	}
 	public Void visitStmtForeach(StmtForeach s, Void p) {
-		if(s.getGenerators() != null && s.getGenerators().length>0){
+		if(s.getGenerators() != null && !s.getGenerators().isEmpty()){
 //			print(s.getGenerators(), "foreach");
 		}
 		out.append(" do");
@@ -836,7 +827,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			sep = ", ";
 		}
 		out.append(")");
-		print(e.getToolAttributes());
+		printToolAttributes(e.getToolAttributes());
 		return null;
 	}
 	public Void visitEntityIfExpr(EntityIfExpr e, Void p) {
@@ -857,7 +848,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			sep = ", ";
 			print(entity);
 		}
-		if(e.getGenerators() != null && e.getGenerators().length>0){
+		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
 			out.append(" : ");
 //			print(e.getGenerators(), "for");
 		}
@@ -870,7 +861,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public void print(StructureStatement structure){
 		structure.accept(this, null);
 	}
-	public void print(StructureStatement[] structure){
+	public void printStructureStatements(Iterable<StructureStatement> structure){
 		incIndent();
 		for(StructureStatement s : structure){
 			indent();
@@ -882,7 +873,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		print(stmt.getSrc());
 		out.append(" --> ");
 		print(stmt.getDst());
-		print(stmt.getToolAttributes());
+		printToolAttributes(stmt.getToolAttributes());
 		out.append(';');
 		return null;
 	}
@@ -890,11 +881,11 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		out.append("if ");
 		print(stmt.getCondition());
 		out.append(" then");
-		print(stmt.getTrueStmt());
+		printStructureStatements(stmt.getTrueStmt());
 		if(stmt.getFalseStmt() != null){
 			indent();
 			out.append("else");
-			print(stmt.getFalseStmt());
+			printStructureStatements(stmt.getFalseStmt());
 		}
 		indent();
 		out.append("end");
@@ -903,7 +894,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitStructureForeachStmt(StructureForeachStmt stmt, Void p) {
 //		print(stmt.getGenerators(), "foreach");
 		out.append(" do ");
-		print(stmt.getStatements());
+		printStructureStatements(stmt.getStatements());
 		indent();
 		out.append("end");
 		return null;

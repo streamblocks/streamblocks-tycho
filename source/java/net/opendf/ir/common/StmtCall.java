@@ -35,29 +35,31 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import net.opendf.ir.util.ImmutableList;
+
 public class StmtCall extends Statement {
 
-    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
-        return v.visitStmtCall(this, p);
-    }
+	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
+		return v.visitStmtCall(this, p);
+	}
 
-    public StmtCall(Expression procedure, Expression[] args) {
-        this.procedure = procedure;
-        this.args = args;
-    }
+	public StmtCall(Expression procedure, ImmutableList<Expression> args) {
+		this.procedure = procedure;
+		this.args = ImmutableList.copyOf(args);
+	}
 
-    public Expression getProcedure() {
-        return procedure;
-    }
+	public Expression getProcedure() {
+		return procedure;
+	}
 
-    public Expression[] getArgs() {
-        return args;
-    }
+	public ImmutableList<Expression> getArgs() {
+		return args;
+	}
 
-    private Expression      procedure;
-    private Expression []   args;
+	private Expression procedure;
+	private ImmutableList<Expression> args;
 }

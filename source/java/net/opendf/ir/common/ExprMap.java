@@ -35,38 +35,40 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
-import java.util.Map;
+import java.util.Map.Entry;
+
+import net.opendf.ir.util.ImmutableList;
 
 /**
  * @author Jorn W. Janneck <jwj@acm.org>
  */
 
 public class ExprMap extends Expression {
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprMap(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprMap(this, p);
+	}
 
-    public ExprMap(java.util.Map.Entry<Expression,Expression>[] mappings, GeneratorFilter [] generators) {
-        this.mappings = mappings;
-        this.generators = generators;
-    }
+	public ExprMap(ImmutableList<Entry<Expression, Expression>> mappings, ImmutableList<GeneratorFilter> generators) {
+		this.mappings = ImmutableList.copyOf(mappings);
+		this.generators = ImmutableList.copyOf(generators);
+	}
 
-    public ExprMap(java.util.Map.Entry<Expression,Expression>[] mappings) {
-        this(mappings, null);
-    }
+	public ExprMap(ImmutableList<Entry<Expression, Expression>> mappings) {
+		this(mappings, null);
+	}
 
-    public java.util.Map.Entry<Expression,Expression>[] getMappings() {
-        return mappings;
-    }
-    
-    public GeneratorFilter []  getGenerators() {
-    	return generators;
-    }
+	public ImmutableList<Entry<Expression, Expression>> getMappings() {
+		return mappings;
+	}
 
-    private java.util.Map.Entry<Expression,Expression>[] mappings;
-    private GeneratorFilter [] generators;
+	public ImmutableList<GeneratorFilter> getGenerators() {
+		return generators;
+	}
+
+	private ImmutableList<Entry<Expression, Expression>> mappings;
+	private ImmutableList<GeneratorFilter> generators;
 }

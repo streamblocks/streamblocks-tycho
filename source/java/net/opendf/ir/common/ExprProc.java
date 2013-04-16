@@ -35,47 +35,37 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import net.opendf.ir.util.ImmutableList;
+
 public class ExprProc extends Expression {
 
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprProc(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprProc(this, p);
+	}
 
-    public ExprProc(ParDeclType [] typeParams, ParDeclValue [] valueParams, DeclType [] typeDecls, DeclVar [] varDecls, Statement[] body) {
-    	this.typeParameters = typeParams;
-    	this.valueParameters = valueParams;
-    	this.typeDecls = typeDecls;
-    	this.varDecls = varDecls;
-        this.body = body;
-    }
+	public ExprProc(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+		this.typeParameters = ImmutableList.copyOf(typeParams);
+		this.valueParameters = ImmutableList.copyOf(valueParams);
+		this.body = body;
+	}
 
-    public ParDeclType []  getTypeParameters() {
-    	return typeParameters;
-    }
-    
-    public ParDeclValue [] getValueParameters() {
-        return valueParameters;
-    }
+	public ImmutableList<ParDeclType> getTypeParameters() {
+		return typeParameters;
+	}
 
-    public DeclType[] getTypeDecls() {
-        return typeDecls;
-    }
+	public ImmutableList<ParDeclValue> getValueParameters() {
+		return valueParameters;
+	}
 
-    public DeclVar[] getVarDecls() {
-        return varDecls;
-    }
+	public Statement getBody() {
+		return body;
+	}
 
-    public Statement[] getBody() {
-        return body;
-    }
-
-    private ParDeclType [] 	typeParameters;
-    private ParDeclValue [] valueParameters;
-    private DeclType []		typeDecls;
-    private DeclVar [] 		varDecls;
-    private Statement []    body;
+	private ImmutableList<ParDeclType> typeParameters;
+	private ImmutableList<ParDeclValue> valueParameters;
+	private Statement body;
 }

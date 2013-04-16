@@ -1,6 +1,7 @@
 package net.opendf.ir.net.ast;
 
 import net.opendf.ir.net.ToolAttribute;
+import net.opendf.ir.util.ImmutableList;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
@@ -9,10 +10,10 @@ import net.opendf.ir.net.ToolAttribute;
 
 public class StructureConnectionStmt extends StructureStatement {
 
-	public StructureConnectionStmt(PortReference src, PortReference dst, ToolAttribute[] toolAttributes){
+	public StructureConnectionStmt(PortReference src, PortReference dst, ImmutableList<ToolAttribute> toolAttributes){
 		this.src = src;
 		this.dst = dst;
-		this.toolAttributes = toolAttributes;
+		this.toolAttributes = ImmutableList.copyOf(toolAttributes);
 	}
 
 	public PortReference getSrc(){
@@ -21,7 +22,7 @@ public class StructureConnectionStmt extends StructureStatement {
 	public PortReference getDst(){
 		return dst;
 	}
-	public ToolAttribute[] getToolAttributes(){
+	public ImmutableList<ToolAttribute> getToolAttributes(){
 		return toolAttributes;
 	}
 
@@ -34,5 +35,5 @@ public class StructureConnectionStmt extends StructureStatement {
 		return v.visitStructureConnectionStmt(this, p);
 	}
 	private PortReference src, dst;
-	protected ToolAttribute[] toolAttributes;
+	protected ImmutableList<ToolAttribute> toolAttributes;
 }

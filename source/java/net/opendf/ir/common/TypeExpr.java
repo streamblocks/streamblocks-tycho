@@ -35,13 +35,13 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
-import java.util.Map;
-
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Pair;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -49,42 +49,30 @@ import net.opendf.ir.AbstractIRNode;
  */
 
 public class TypeExpr extends AbstractIRNode {
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public TypeExpr[] getParameters() {
-        return parameters;
-    }
-    
-    public Map<String, TypeExpr>  getTypeParameters() {
-    	return typeParameters;
-    }
-    
-    public Map<String, Expression>  getValueParameters() {
-    	return valueParameters;
-    }
+	public ImmutableList<Pair<String, TypeExpr>> getTypeParameters() {
+		return typeParameters;
+	}
 
+	public ImmutableList<Pair<String, Expression>> getValueParameters() {
+		return valueParameters;
+	}
 
-    public TypeExpr(String _name, TypeExpr[] _parameters) {
-        this.name = _name;
-        this.parameters = _parameters;
-    }
-    
-    public TypeExpr(String name) {
-    	this.name = name;
-    }
-    
-    public TypeExpr(String name, Map<String, TypeExpr> typeParameters, Map<String, Expression> valueParameters) {
-    	this.name = name;
-    	this.typeParameters = typeParameters;
-    	this.valueParameters = valueParameters;
-    }
-    
+	public TypeExpr(String name) {
+		this.name = name;
+	}
 
-    private String name;
-    private TypeExpr [] parameters;
-    private Map<String, TypeExpr>  typeParameters;
-    private Map<String, Expression>  valueParameters;
-    
+	public TypeExpr(String name, ImmutableList<Pair<String, TypeExpr>> typeParameters,
+			ImmutableList<Pair<String, Expression>> valueParameters) {
+		this.typeParameters = ImmutableList.copyOf(typeParameters);
+		this.valueParameters = ImmutableList.copyOf(valueParameters);
+	}
+
+	private String name;
+	private ImmutableList<Pair<String, TypeExpr>> typeParameters;
+	private ImmutableList<Pair<String, Expression>> valueParameters;
+
 }

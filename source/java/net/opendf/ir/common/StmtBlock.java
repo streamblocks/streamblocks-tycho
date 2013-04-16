@@ -35,39 +35,42 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import net.opendf.ir.util.ImmutableList;
+
 /**
- *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class StmtBlock extends Statement {
 
-    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
-        return v.visitStmtBlock(this, p);
-    }
+	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
+		return v.visitStmtBlock(this, p);
+	}
 
-    public StmtBlock(DeclType [] typeDecls, DeclVar [] varDecls, Statement[] statements) {
-    	this.typeDecls = typeDecls;
-    	this.varDecls = varDecls;
-        this.statements = statements;
-    }
+	public StmtBlock(ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<Statement> statements) {
+		this.typeDecls = ImmutableList.copyOf(typeDecls);
+		this.varDecls = ImmutableList.copyOf(varDecls);
+		this.statements = ImmutableList.copyOf(statements);
+	}
 
-    public DeclType [] getTypeDecls() {
-        return typeDecls;
-    }
+	public ImmutableList<DeclType> getTypeDecls() {
+		return typeDecls;
+	}
 
-    public DeclVar [] getVarDecls() {
-        return varDecls;
-    }
+	public ImmutableList<DeclVar> getVarDecls() {
+		return varDecls;
+	}
 
-    public Statement [] getStatements() {
-        return statements;
-    }
+	public ImmutableList<Statement> getStatements() {
+		return statements;
+	}
 
-    private DeclType []		typeDecls;
-    private DeclVar []      varDecls;
-    private Statement []    statements;
+	private ImmutableList<DeclType> typeDecls;
+	private ImmutableList<DeclVar> varDecls;
+	private ImmutableList<Statement> statements;
 }

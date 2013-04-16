@@ -12,6 +12,8 @@
  :} ;
 %package "net.opendf.parser.lth";
 %import "net.opendf.ir.common.*";
+%import "net.opendf.ir.util.ImmutableList";
+%import "net.opendf.ir.util.Pair";
 %import "net.opendf.ir.net.ast.NetworkDefinition";
 %import "net.opendf.ir.net.ast.EntityExpr";
 %import "net.opendf.ir.net.ast.EntityIfExpr";
@@ -131,14 +133,12 @@
  * Needed by CommonParser.beaver
  * Repeated in both NlParser.beaver and CalParser.beaver
  *****************************************************************************/
-   private GeneratorFilter makeGeneratorFilter(TypeExpr type, ArrayList varList, Expression e, ArrayList filterList){
-    DeclVar[] vars = new DeclVar[varList.size()];
-    for(int i = 0; i<varList.size(); i++){
-      Symbol symbol = (Symbol)varList.get(i);
-      vars[i] = new DeclVar(type, (String)symbol.value, null);
+  private GeneratorFilter makeGeneratorFilter(TypeExpr type, ImmutableList<String> varList, Expression e, ImmutableList<Expression> filterList){
+    ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
+    for(String var : varList){
+      vars.add(new DeclVar(type, var, null));
     }
-    Expression[] filters = filterList == null ? new Expression[0] : (Expression[])filterList.toArray(new Expression[filterList.size()]);
-    return new GeneratorFilter(vars, e, filters);
+    return new GeneratorFilter(vars.build(), e, filterList);
   }
   class ParenthesSymbol extends Symbol{ // used by the parser to wrap subexpressions that are enclosed by parentheses, i.e. do not add them to a ExprBinaryOp sequence.
      ParenthesSymbol(Symbol s){
@@ -238,41 +238,41 @@
 
 
 //--- rules from CommonParser.beaver 
-%typeof actor_parameter_list = "ArrayList";
+%typeof actor_parameter_list = "ImmutableList.Builder";
 %typeof actor_parameter = "ParDeclValue";
 %typeof actor_parameter_init_expression = "Expression";
 %typeof qual_id = "ArrayList";
 %typeof variable = "Variable";
 %typeof field = "Field";
-%typeof decl_list = "ArrayList";
-%typeof decl_block = "ArrayList";
-%typeof decl_block_opt = "ArrayList";
+%typeof decl_list = "ImmutableList.Builder";
+%typeof decl_block = "ImmutableList";
+%typeof decl_block_opt = "ImmutableList";
 %typeof decl = "DeclVar";
 %typeof var_decl = "DeclVar";
 %typeof var_name_type = "DeclVar";
 %typeof fun_decl = "DeclVar";
 %typeof proc_decl = "DeclVar";
 %typeof port_decl = "PortDecl";
-%typeof port_decl_list = "ArrayList";
-%typeof port_decl_list_opt = "ArrayList";
+%typeof port_decl_list = "ImmutableList.Builder";
+%typeof port_decl_list_opt = "ImmutableList";
 %typeof type_bound = "TypeExpr";
 %typeof type_bound_opt = "TypeExpr";
 %typeof type_parameter = "ParDeclType";
-%typeof type_parameter_block = "ArrayList";
-%typeof type_parameter_list = "ArrayList";
-%typeof type_list = "ArrayList";
+%typeof type_parameter_block = "ImmutableList";
+%typeof type_parameter_list = "ImmutableList.Builder";
+%typeof type_list = "ImmutableList.Builder";
 %typeof type = "TypeExpr";
 %typeof type_attribute = "Map.Entry";
 %typeof type_attribute_list = "ArrayList";
 %typeof edge_type = "TypeExpr";
 %typeof procedure_expr_body = "ExprProc";
-%typeof stmt_block_opt = "ArrayList";
+%typeof stmt_block_opt = "ImmutableList";
 %typeof lambda_expr_body = "ExprLambda";
-%typeof map_list = "ArrayList";
+%typeof map_list = "ImmutableList.Builder";
 %typeof map_entry = "Map.Entry";
 %typeof tail = "Expression";
-%typeof expression_list = "ArrayList";
-%typeof expression_list_opt = "ArrayList";
+%typeof expression_list = "ImmutableList.Builder";
+%typeof expression_list_opt = "ImmutableList";
 %typeof method_invocation = "ExprApplication";
 %typeof literal = "ExprLiteral";
 %typeof primary = "Expression";
@@ -283,11 +283,11 @@
 %typeof expression = "Expression";
 %typeof operator = "String";
 %typeof formal_parameter = "ParDeclValue";
-%typeof formal_parameter_list = "ArrayList";
+%typeof formal_parameter_list = "ImmutableList.Builder";
 %typeof statement = "Statement";
 %typeof choose_generator_list = "ArrayList";
-%typeof for_generator_list = "ArrayList";
-%typeof generator_variable_list = "ArrayList";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
+%typeof for_generator_list = "ImmutableList.Builder";
+%typeof generator_variable_list = "ImmutableList.Builder";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
 %typeof for_foreach = "String";
 %typeof do_begin = "String";
 %typeof end_choose = "String";
@@ -297,15 +297,15 @@
 %typeof end_let = "String";
 %typeof end_proc = "String";
 %typeof end_while = "String";
-%typeof statement_list = "ArrayList";
-%typeof statement_list_opt = "ArrayList";
+%typeof statement_list = "ImmutableList.Builder";
+%typeof statement_list_opt = "ImmutableList";
 
 //--- Network specific keywords
 %typeof end_network = "String";
 %typeof entities = "ArrayList";
 %typeof entity = "java.util.Map.Entry";
 %typeof entity_expr = "EntityExpr";
-%typeof entity_expr_list = "ArrayList";
+%typeof entity_expr_list = "ImmutableList.Builder";
 %typeof entity_indexing = "Expression";
 %typeof entity_port = "PortReference";
 %typeof entity_statement = "StructureStatement";
@@ -318,10 +318,10 @@
 %typeof network_decl = "DeclVar";
 %typeof network_decl_block = "ArrayList";
 %typeof param_assign = "Map.Entry";
-%typeof param_assign_list = "ArrayList";
+%typeof param_assign_list = "ImmutableList.Builder";
 %typeof structure = "ArrayList";
 %typeof tool_attribute = "ToolAttribute";
-%typeof tool_attribute_block = "ArrayList";
+%typeof tool_attribute_block = "ImmutableList";
 
 %goal network;
 
@@ -339,10 +339,10 @@ network =
     SEMICOLON?
     {:
         NamespaceDecl ns = null;
-        ArrayList varDecls = new ArrayList();
-        ArrayList structure = new ArrayList();
-        ArrayList<java.util.Map.Entry<String,EntityExpr>> entities = new ArrayList();
-        ArrayList<ToolAttribute> toolAttributes = new ArrayList();
+        ImmutableList.Builder varDecls = ImmutableList.builder();
+        ImmutableList.Builder structure = ImmutableList.builder();
+        ImmutableList.Builder<java.util.Map.Entry<String,EntityExpr>> entities = ImmutableList.builder();
+        ImmutableList.Builder<ToolAttribute> toolAttributes = ImmutableList.builder();
         for(Map.Entry part : body){
             ArrayList all = (ArrayList)part.getValue();
             if(all != null){  // entities and structure may be empty. Then the parser return null.
@@ -369,15 +369,15 @@ network =
         
         return new Symbol(new NetworkDefinition((String)name.value, 
                           ns, 
-                          typePars == null ? new ParDeclType[0] : (ParDeclType[])typePars.toArray(new ParDeclType[typePars.size()]),     // typePars,
-                          valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
-                          new DeclType[0],      // typeDecls, NOTE, can not be expressed in NL
-                          (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
-                          (PortDecl[])inputPorts.toArray(new PortDecl[inputPorts.size()]),
-                          (PortDecl[])outputPorts.toArray(new PortDecl[outputPorts.size()]),
-                          (Map.Entry<String,EntityExpr>[])entities.toArray(new Map.Entry[entities.size()]), // entities
-                          (StructureStatement[])structure.toArray(new StructureStatement[structure.size()]), // structure
-                          (ToolAttribute[])toolAttributes.toArray(new ToolAttribute[toolAttributes.size()])
+                          typePars,     // typePars,
+                          valuePars == null ? null : valuePars.build(), // valuePars,
+                          null,      // typeDecls, NOTE, can not be expressed in NL
+                          varDecls.build(),             // varDecls
+                          inputPorts,
+                          outputPorts,
+                          entities.build(), // entities
+                          structure.build(), // structure
+                          toolAttributes.build()
                           ));
     :}
   ;
@@ -409,20 +409,18 @@ entity =
   ;
 
 entity_expr =
-    IDENTIFIER.id LPAREN param_assign_list.l? RPAREN tool_attribute_block.a? {: return new Symbol(new EntityInstanceExpr((String)id.value, l == null ? new Map.Entry[0] : (Map.Entry[])l.toArray(new Map.Entry[l.size()]),
-                                                                                                                          (ToolAttribute[]) (a==null ? new ToolAttribute[0] : a.toArray(new ToolAttribute[a.size()]))
-                                                                                                                         ));
+    IDENTIFIER.id LPAREN param_assign_list.l? RPAREN tool_attribute_block.a? {: return new Symbol(new EntityInstanceExpr((String)id.value, l == null ? null : l.build(), a));
                                                                              :}
   | IF expression.e THEN entity_expr.t ELSE entity_expr.f end_if             {: return new Symbol(new EntityIfExpr(e, t, f)); :}
-  | LBRACK entity_expr_list.e? RBRACK                                        {: return new Symbol(new EntityListExpr((EntityExpr[])(e==null? new EntityExpr[0] : e.toArray(new EntityExpr[e.size()])), null)); :}
-  | LBRACK entity_expr_list.e COLON for_generator_list.g RBRACK              {: return new Symbol(new EntityListExpr((EntityExpr[])(e==null? new EntityExpr[0] : e.toArray(new EntityExpr[e.size()])), (GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]))); :}
+  | LBRACK entity_expr_list.e? RBRACK                                        {: return new Symbol(new EntityListExpr(e==null ? null : e.build(), null)); :}
+  | LBRACK entity_expr_list.e COLON for_generator_list.g RBRACK              {: return new Symbol(new EntityListExpr(e.build(), g.build())); :}
   ;
 param_assign_list =
-    param_assign.p                           {: ArrayList l = new ArrayList(); l.add(p); return new Symbol(l); :}
+    param_assign.p                           {: return new Symbol(ImmutableList.builder().add(p)); :}
   | param_assign_list.l COMMA param_assign.p {: l.add(p); return _symbol_l; :}
   ;
 entity_expr_list =
-    entity_expr.e                            {: ArrayList l = new ArrayList(); l.add(e); return new Symbol(l); :}
+    entity_expr.e                            {: return new Symbol(ImmutableList.builder().add(e)); :}
   | entity_expr_list.l COMMA entity_expr.e   {: l.add(e); return _symbol_l; :}
   ;
 param_assign =
@@ -433,16 +431,16 @@ structure =
     STRUCTURE entity_statement.l* {: return _symbol_l; :}
   ;
 entity_statement =
-    entity_port.src EDGE entity_port.dst tool_attribute_block.a? SEMICOLON          {: return new Symbol(new StructureConnectionStmt(src, dst, (ToolAttribute[])(a==null ? null : a.toArray(new ToolAttribute[a.size()])))); :}
-  | for_generator_list.g DO entity_statement.s* END                                 {: return new Symbol(new StructureForeachStmt((GeneratorFilter[])(g.toArray(new GeneratorFilter[g.size()])), s)); :}
-  | IF expression.e THEN entity_statement.t_stmt* END                               {: return new Symbol(new StructureIfStmt(e, t_stmt, null)); :}
-  | IF expression.e THEN entity_statement.t_stmt* ELSE entity_statement.f_stmt* END {: return new Symbol(new StructureIfStmt(e, t_stmt, f_stmt)); :}
+    entity_port.src EDGE entity_port.dst tool_attribute_block.a? SEMICOLON          {: return new Symbol(new StructureConnectionStmt(src, dst, a==null ? null : a)); :}
+  | for_generator_list.g DO entity_statement.s* END                                 {: return new Symbol(new StructureForeachStmt(g.build(), ImmutableList.copyOf(s))); :}
+  | IF expression.e THEN entity_statement.t_stmt* END                               {: return new Symbol(new StructureIfStmt(e, ImmutableList.copyOf(t_stmt), null)); :}
+  | IF expression.e THEN entity_statement.t_stmt* ELSE entity_statement.f_stmt* END {: return new Symbol(new StructureIfStmt(e, ImmutableList.copyOf(t_stmt), ImmutableList.copyOf(f_stmt))); :}
   ;
 
 entity_port =
 //TODO, port index is not supported
     IDENTIFIER.id_port entity_indexing.index_port*                                                        {: return new Symbol(new PortReference(null, null, (String)id_port.value)); :}
-  | IDENTIFIER.id_entity entity_indexing.index_entity* DOT IDENTIFIER.id_port entity_indexing.index_port* {: return new Symbol(new PortReference((String)id_entity.value, index_entity , (String)id_port.value)); :}
+  | IDENTIFIER.id_entity entity_indexing.index_entity* DOT IDENTIFIER.id_port entity_indexing.index_port* {: return new Symbol(new PortReference((String)id_entity.value, ImmutableList.copyOf(index_entity) , (String)id_port.value)); :}
   ;
 entity_indexing =
     LBRACK.LBRACK expression.e RBRACK.RBRACK {: return _symbol_e; :}
@@ -465,7 +463,7 @@ import_kind =
   | VAR.kind    {: return kind; :}
   ;
 tool_attribute_block =
-    LBRACE tool_attribute.a* RBRACE {: return _symbol_a; :}
+    LBRACE tool_attribute.a* RBRACE {: return new Symbol(ImmutableList.builder().addAll(a).build()); :}
   ;
 tool_attribute =
     IDENTIFIER.ID EQ expression.expression SEMICOLON {: return new Symbol(new ToolValueAttribute((String)ID.value, expression)); :}

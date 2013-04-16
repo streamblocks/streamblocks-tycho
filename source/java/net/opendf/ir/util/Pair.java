@@ -1,0 +1,65 @@
+package net.opendf.ir.util;
+
+import java.util.Map.Entry;
+
+public final class Pair<A, B> {
+	private final A fst;
+	private final B snd;
+
+	public Pair(A a, B b) {
+		fst = a;
+		snd = b;
+	}
+
+	public static <A, B> Pair<A, B> of(A a, B b) {
+		return new Pair<A, B>(a, b);
+	}
+
+	public static <A, B> Pair<A, B> copyOf(Entry<? extends A, ? extends B> entry) {
+		return new Pair<A, B>(entry.getKey(), entry.getValue());
+	}
+
+	public A getFirst() {
+		return fst;
+	}
+
+	public B getSecond() {
+		return snd;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((fst == null) ? 0 : fst.hashCode());
+		result = prime * result + ((snd == null) ? 0 : snd.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Pair))
+			return false;
+		Pair<?, ?> other = (Pair<?, ?>) obj;
+		if (fst == null) {
+			if (other.fst != null)
+				return false;
+		} else if (!fst.equals(other.fst))
+			return false;
+		if (snd == null) {
+			if (other.snd != null)
+				return false;
+		} else if (!snd.equals(other.snd))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "(" + fst + ", " + snd + ")";
+	}
+}

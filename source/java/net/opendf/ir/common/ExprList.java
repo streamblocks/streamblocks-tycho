@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import net.opendf.ir.util.ImmutableList;
+
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
  */
@@ -47,23 +49,23 @@ public class ExprList extends Expression {
         return v.visitExprList(this, p);
     }
 
-    public ExprList(Expression[] elements, GeneratorFilter [] generators) {
-        this.elements = elements;
-        this.generators = generators;
+    public ExprList(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
+        this.elements = ImmutableList.copyOf(elements);
+        this.generators = ImmutableList.copyOf(generators);
     }
     
-    public ExprList(Expression [] elements) {
+    public ExprList(ImmutableList<Expression> elements) {
     	this(elements, null);
     }
 
-    public Expression[] getElements() {
+    public ImmutableList<Expression> getElements() {
         return elements;
     }
     
-    public GeneratorFilter [] getGenerators() {
+    public ImmutableList<GeneratorFilter> getGenerators() {
     	return generators;
     }
 
-    private Expression [] elements;
-    private GeneratorFilter [] generators;
+    private ImmutableList<Expression> elements;
+    private ImmutableList<GeneratorFilter> generators;
 }

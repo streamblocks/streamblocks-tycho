@@ -6,17 +6,18 @@ package net.opendf.ir.net.ast;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Expression;
+import net.opendf.ir.util.ImmutableList;
 
 public class PortReference extends AbstractIRNode {
-	public PortReference(String entityName, Expression[] entityIndex, String portName){
+	public PortReference(String entityName, ImmutableList<Expression> entityIndex, String portName){
 		this.entityName = entityName;
-		this.entityIndex = entityIndex;
+		this.entityIndex = ImmutableList.copyOf(entityIndex);
 		this.portName = portName;
 	}
 	public String getEntityName(){
 		return entityName;
 	}
-	public Expression[] getEntityIndex(){
+	public ImmutableList<Expression> getEntityIndex(){
 		return entityIndex;
 	}
 	public String getPortName(){
@@ -40,5 +41,5 @@ public class PortReference extends AbstractIRNode {
 	}
 
 	private String entityName, portName;
-	private Expression entityIndex[];
+	private ImmutableList<Expression> entityIndex;
 }

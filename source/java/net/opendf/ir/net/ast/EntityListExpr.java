@@ -1,19 +1,20 @@
 package net.opendf.ir.net.ast;
 
 import net.opendf.ir.common.GeneratorFilter;
+import net.opendf.ir.util.ImmutableList;
 
 public class EntityListExpr extends EntityExpr {
 
-	public EntityListExpr(EntityExpr[] entityList, GeneratorFilter[] generators){
-		this.entityList = entityList;
-		this.generators = generators;
+	public EntityListExpr(ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {
+		this.entityList = ImmutableList.copyOf(entityList);
+		this.generators = ImmutableList.copyOf(generators);
 	}
 
-	public EntityExpr[] getEntityList(){
+	public ImmutableList<EntityExpr> getEntityList() {
 		return entityList;
 	}
 
-	public GeneratorFilter[] getGenerators(){
+	public ImmutableList<GeneratorFilter> getGenerators() {
 		return generators;
 	}
 
@@ -21,6 +22,7 @@ public class EntityListExpr extends EntityExpr {
 	public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
 		return v.visitEntityListExpr(this, p);
 	}
-	private EntityExpr[] entityList;
-	private GeneratorFilter[] generators;
+
+	private ImmutableList<EntityExpr> entityList;
+	private ImmutableList<GeneratorFilter> generators;
 }

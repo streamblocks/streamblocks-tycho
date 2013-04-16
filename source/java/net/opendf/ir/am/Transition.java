@@ -1,11 +1,13 @@
 package net.opendf.ir.am;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.Statement;
+import net.opendf.ir.util.ImmutableList;
 
 /**
  * Objects of this class contain the information necessary to execute the code
@@ -45,30 +47,30 @@ public class Transition extends AbstractIRNode {
 		}
 	}
 
-	public List<Integer> getRequiredVars() {
+	public ImmutableList<Integer> getRequiredVars() {
 		return required;
 	}
 
-	public List<Integer> getKilledVars() {
+	public ImmutableList<Integer> getKilledVars() {
 		return killed;
 	}
 
-	public Statement[] getBody() {
+	public Statement getBody() {
 		return body;
 	}
 
-	public Transition(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates, List<Integer> required,
-			List<Integer> killed, Statement[] body) {
-		this.inputRates = inputRates;
-		this.outputRates = outputRates;
-		this.required = required;
-		this.killed = killed;
+	public Transition(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates, ImmutableList<Integer> required,
+			ImmutableList<Integer> killed, Statement body) {
+		this.inputRates = Collections.unmodifiableMap(new HashMap<>(inputRates));
+		this.outputRates = Collections.unmodifiableMap(new HashMap<>(outputRates));
+		this.required = ImmutableList.copyOf(required);
+		this.killed = ImmutableList.copyOf(killed);
 		this.body = body;
 	}
 
-	private List<Integer> required;
-	private List<Integer> killed;
-	private Statement[] body;
+	private ImmutableList<Integer> required;
+	private ImmutableList<Integer> killed;
+	private Statement body;
 	private Map<Port, Integer> inputRates;
 	private Map<Port, Integer> outputRates;
 }

@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import net.opendf.ir.util.ImmutableList;
+
 
 
 
@@ -48,17 +50,17 @@ public class ExprLet extends Expression {
         return v.visitExprLet(this, p);
     }
 
-    public ExprLet(DeclType[] typeDecls, DeclVar [] varDecls, Expression body) {
+    public ExprLet(ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls, Expression body) {
         this.body = body;
-        this.typeDecls = typeDecls;
-        this.varDecls = varDecls;
+        this.typeDecls = ImmutableList.copyOf(typeDecls);
+        this.varDecls = ImmutableList.copyOf(varDecls);
     }
 
-    public DeclType [] getTypeDecls() {
+    public ImmutableList<DeclType> getTypeDecls() {
     	return typeDecls;
     }
     
-    public DeclVar[] getVarDecls() {
+    public ImmutableList<DeclVar> getVarDecls() {
         return varDecls;
     }
 
@@ -66,7 +68,7 @@ public class ExprLet extends Expression {
         return body;
     }
 
-    private DeclType []		typeDecls;
-    private DeclVar []      varDecls;
+    private ImmutableList<DeclType>		typeDecls;
+    private ImmutableList<DeclVar>      varDecls;
     private Expression      body;
 }

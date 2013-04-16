@@ -35,34 +35,32 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import net.opendf.ir.util.ImmutableList;
 
 public class ExprApplication extends Expression {
 
+	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
+		return visitor.visitExprApplication(this, p);
+	}
 
-    public <R,P> R accept(ExpressionVisitor<R,P> visitor, P p) {
-        return visitor.visitExprApplication(this, p);
-    }
+	public ExprApplication(Expression function, ImmutableList<Expression> args) {
+		this.function = function;
+		this.args = ImmutableList.copyOf(args);
+	}
 
-    public ExprApplication(Expression function, Expression [] args) {
-        this.function = function;
-        this.args = args;
-    }
+	public Expression getFunction() {
+		return function;
+	}
 
-    public Expression getFunction() {
-        return function;
-    }
+	public ImmutableList<Expression> getArgs() {
+		return args;
+	}
 
-    public Expression[] getArgs() {
-        return args;
-    }
-
-    private Expression      function;
-
-    /* null if the function takes no arguments */
-    private Expression []   args;
+	private Expression function;
+	private ImmutableList<Expression> args;
 
 }

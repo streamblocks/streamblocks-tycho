@@ -42,12 +42,13 @@ package net.opendf.ir.cal;
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Port;
+import net.opendf.ir.util.ImmutableList;
 
 public class InputPattern extends AbstractIRNode {
 
-    public InputPattern(Port port, String [] variables, Expression repexpression) {
+    public InputPattern(Port port, ImmutableList<String> variables, Expression repexpression) {
         this.port = port;
-        this.variables = variables;
+        this.variables = ImmutableList.copyOf(variables);
         this.repeatExpr = repexpression;
     }
 
@@ -55,7 +56,7 @@ public class InputPattern extends AbstractIRNode {
         return port;
     }
 
-    public String[] getVariables() {
+    public ImmutableList<String> getVariables() {
         return variables;
     }
 
@@ -64,7 +65,7 @@ public class InputPattern extends AbstractIRNode {
     }
 
     private Port 	port;
-    private String []   variables;
+    private ImmutableList<String>   variables;
     private Expression 	repeatExpr;
 
 }

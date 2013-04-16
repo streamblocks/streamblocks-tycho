@@ -1,8 +1,7 @@
 package net.opendf.ir.am;
 
-import java.util.List;
-
 import net.opendf.ir.common.Expression;
+import net.opendf.ir.util.ImmutableList;
 
 /**
  * A predicate condition represents the {@link Condition condition} that a
@@ -31,15 +30,15 @@ public class PredicateCondition extends Condition {
 		return expression;
 	}
 
-	public List<Integer> getRequiredVars() {
+	public ImmutableList<Integer> getRequiredVars() {
 		return required;
 	}
 
-	public PredicateCondition(Expression expression, List<Integer> required) {
+	public PredicateCondition(Expression expression, ImmutableList<Integer> required) {
 		this.expression = expression;
-		this.required = required;
+		this.required = ImmutableList.copyOf(required);
 	}
 
 	private Expression expression;
-	private List<Integer> required;
+	private ImmutableList<Integer> required;
 }

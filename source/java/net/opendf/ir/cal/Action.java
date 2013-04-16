@@ -45,52 +45,53 @@ import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.QID;
 import net.opendf.ir.common.Statement;
+import net.opendf.ir.util.ImmutableList;
 
 
 public class Action extends AbstractIRNode {
 
     public Action(int id, QID tag,
-                  InputPattern [] inputPatterns, OutputExpression [] outputExpressions,
-                  DeclType [] typeDecls, DeclVar[] varDecls, Expression [] guards, Statement [] body, Expression delay,
-                  Expression [] preconditions, Expression [] postconditions) {
+                  ImmutableList<InputPattern> inputPatterns, ImmutableList<OutputExpression> outputExpressions,
+                  ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body, Expression delay,
+                  ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
     	this.id = id;
         this.tag = tag;
-        this.inputPatterns = inputPatterns;
-        this.outputExpressions = outputExpressions;
-        this.typeDecls = typeDecls;
-        this.varDecls = varDecls;
-        this.guards = guards;
-        this.body = body;
+        this.inputPatterns = ImmutableList.copyOf(inputPatterns);
+        this.outputExpressions = ImmutableList.copyOf(outputExpressions);
+        this.typeDecls = ImmutableList.copyOf(typeDecls);
+        this.varDecls = ImmutableList.copyOf(varDecls);
+        this.guards = ImmutableList.copyOf(guards);
+        this.body = ImmutableList.copyOf(body);
         this.delay = delay;
-        this.preconditions = preconditions;
-        this.postconditions = postconditions;
+        this.preconditions = ImmutableList.copyOf(preconditions);
+        this.postconditions = ImmutableList.copyOf(postconditions);
     }
 
     public QID getTag() {
         return tag;
     }
 
-    public InputPattern[] getInputPatterns() {
+    public ImmutableList<InputPattern> getInputPatterns() {
         return inputPatterns;
     }
 
-    public OutputExpression[] getOutputExpressions() {
+    public ImmutableList<OutputExpression> getOutputExpressions() {
         return outputExpressions;
     }
 
-    public DeclType [] getTypeDecls() {
+    public ImmutableList<DeclType> getTypeDecls() {
         return typeDecls;
     }
 
-    public DeclVar [] getVarDecls() {
+    public ImmutableList<DeclVar> getVarDecls() {
         return varDecls;
     }
 
-    public Expression[] getGuards() {
+    public ImmutableList<Expression> getGuards() {
         return guards;
     }
 
-    public Statement[] getBody() {
+    public ImmutableList<Statement> getBody() {
         return body;
     }
     
@@ -102,25 +103,25 @@ public class Action extends AbstractIRNode {
     	return id;
     }
     
-    public Expression []  getPreconditions() {
+    public ImmutableList<Expression>  getPreconditions() {
     	return preconditions;
     }
     
-    public Expression []  getPostconditions() {
+    public ImmutableList<Expression>  getPostconditions() {
     	return postconditions;
     }
 
     private int                 id;
     private QID					tag;
-    private InputPattern []     inputPatterns;
-    private OutputExpression [] outputExpressions;
-    private DeclType []			typeDecls;
-    private DeclVar [] 			varDecls;
-    private Expression []       guards;
-    private Statement []        body;
-    private Expression          delay;
-    private Expression []       preconditions;
-    private Expression []       postconditions;
+    private ImmutableList<InputPattern>     inputPatterns;
+    private ImmutableList<OutputExpression> outputExpressions;
+    private ImmutableList<DeclType>			typeDecls;
+    private ImmutableList<DeclVar> 			varDecls;
+    private ImmutableList<Expression>       guards;
+    private ImmutableList<Statement>        body;
+    private Expression                      delay;
+    private ImmutableList<Expression>       preconditions;
+    private ImmutableList<Expression>       postconditions;
 
 
     public String toString() {
