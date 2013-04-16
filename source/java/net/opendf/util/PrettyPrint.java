@@ -663,7 +663,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("else");
 			incIndent();
 			indent();
-			s.getThenBranch().accept(this);
+			s.getElseBranch().accept(this);
 		}
 		decIndent();
 		indent();
