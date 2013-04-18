@@ -39,9 +39,12 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.cal;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.QID;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * 
@@ -50,11 +53,22 @@ import net.opendf.ir.util.ImmutableList;
 public class Transition extends AbstractIRNode {
 
 	public Transition(String sourceState, String destinationState, ImmutableList<QID> actionTags) {
+		this(null, sourceState, destinationState, actionTags);
+	}
 
-		super();
+	private Transition(Transition original, String sourceState, String destinationState, ImmutableList<QID> actionTags) {
+		super(original);
 		this.sourceState = sourceState;
 		this.destinationState = destinationState;
 		this.actionTags = ImmutableList.copyOf(actionTags);
+	}
+
+	public Transition copy(String sourceState, String destinationState, ImmutableList<QID> actionTags) {
+		if (Objects.equals(this.sourceState, sourceState) && Objects.equals(this.destinationState, destinationState)
+				& Lists.equals(this.actionTags, actionTags)) {
+			return this;
+		}
+		return new Transition(this, sourceState, destinationState, actionTags);
 	}
 
 	/**

@@ -1295,47 +1295,47 @@ public class NlParser extends Parser {
 			case 158: // literal = INTEGER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
 			case 159: // literal = LONG_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
 			case 160: // literal = FLOATING_POINT_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
 			case 161: // literal = DOUBLE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litReal, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Real, ((String)txt.value)));
 			}
 			case 162: // literal = TRUE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litTrue, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.True, ((String)txt.value)));
 			}
 			case 163: // literal = FALSE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litFalse, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.False, ((String)txt.value)));
 			}
 			case 164: // literal = CHARACTER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litChar, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Char, ((String)txt.value)));
 			}
 			case 165: // literal = STRING_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litString, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.String, ((String)txt.value)));
 			}
 			case 166: // literal = NULL_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litNull, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Null, ((String)txt.value)));
 			}
 			case 167: // primary = literal.l
 			{

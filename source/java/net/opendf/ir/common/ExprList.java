@@ -35,37 +35,50 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
  */
 public class ExprList extends Expression {
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprList(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprList(this, p);
+	}
 
-    public ExprList(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
-        this.elements = ImmutableList.copyOf(elements);
-        this.generators = ImmutableList.copyOf(generators);
-    }
-    
-    public ExprList(ImmutableList<Expression> elements) {
-    	this(elements, null);
-    }
+	public ExprList(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
+		this(null, elements, generators);
+	}
 
-    public ImmutableList<Expression> getElements() {
-        return elements;
-    }
-    
-    public ImmutableList<GeneratorFilter> getGenerators() {
-    	return generators;
-    }
+	public ExprList(ImmutableList<Expression> elements) {
+		this(null, elements, null);
+	}
 
-    private ImmutableList<Expression> elements;
-    private ImmutableList<GeneratorFilter> generators;
+	private ExprList(ExprList original, ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
+		super(original);
+		this.elements = ImmutableList.copyOf(elements);
+		this.generators = ImmutableList.copyOf(generators);
+	}
+
+	public ExprList copy(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
+		if (Lists.equals(this.elements, elements) && Lists.equals(this.generators, generators)) {
+			return this;
+		}
+		return new ExprList(this, elements, generators);
+	}
+
+	public ImmutableList<Expression> getElements() {
+		return elements;
+	}
+
+	public ImmutableList<GeneratorFilter> getGenerators() {
+		return generators;
+	}
+
+	private ImmutableList<Expression> elements;
+	private ImmutableList<GeneratorFilter> generators;
 }

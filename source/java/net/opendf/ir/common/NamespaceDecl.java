@@ -46,6 +46,7 @@ public class NamespaceDecl extends AbstractIRNode {
 	//
 	
 	public NamespaceDecl(Namespace namespace) {
+		super(null);
 		this.namespace = namespace;
 		namespace.addDecl(this);
 		decls = new ArrayList<Decl>();

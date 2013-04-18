@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 public class StmtConsume extends Statement {
 	private Port port;
 	private int tokens;
@@ -18,7 +20,19 @@ public class StmtConsume extends Statement {
 	}
 
 	public StmtConsume(Port port, int tokens) {
+		this(null, port, tokens);
+	}
+
+	private StmtConsume(StmtConsume original, Port port, int tokens) {
+		super(original);
 		this.port = port;
 		this.tokens = tokens;
+	}
+
+	public StmtConsume copy(Port port, int tokens) {
+		if (Objects.equals(this.port, port) && this.tokens == tokens) {
+			return this;
+		}
+		return new StmtConsume(this, port, tokens);
 	}
 }

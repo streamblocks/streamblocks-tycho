@@ -5,6 +5,7 @@ import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * This class contains a description of an actor machine. The central structure
@@ -54,31 +55,51 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 	public ImmutableList<PortDecl> getOutputPorts() {
 		return outputPorts;
 	}
-	
+
 	public ImmutableList<Transition> getTransitions() {
 		return transitions;
 	}
-	
+
 	public Transition getTransition(int i) {
 		return transitions.get(i);
 	}
-	
+
 	public ImmutableList<Condition> getConditions() {
 		return conditions;
 	}
-	
+
 	public Condition getCondition(int i) {
 		return conditions.get(i);
 	}
 
-	public ActorMachine(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts, ImmutableList<DeclVar> varDecls,
-			ImmutableList<ImmutableList<Instruction>> controller, ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
+	public ActorMachine(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<DeclVar> varDecls, ImmutableList<ImmutableList<Instruction>> controller,
+			ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
+		this(null, inputPorts, outputPorts, varDecls, controller, transitions, conditions);
+	}
+
+	private ActorMachine(ActorMachine original, ImmutableList<PortDecl> inputPorts,
+			ImmutableList<PortDecl> outputPorts, ImmutableList<DeclVar> varDecls,
+			ImmutableList<ImmutableList<Instruction>> controller, ImmutableList<Transition> transitions,
+			ImmutableList<Condition> conditions) {
+		super(original);
 		this.varDecls = ImmutableList.copyOf(varDecls);
 		this.controller = ImmutableList.copyOf(controller);
 		this.inputPorts = ImmutableList.copyOf(inputPorts);
 		this.outputPorts = ImmutableList.copyOf(outputPorts);
 		this.transitions = ImmutableList.copyOf(transitions);
 		this.conditions = ImmutableList.copyOf(conditions);
+	}
+
+	public ActorMachine copy(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<DeclVar> varDecls, ImmutableList<ImmutableList<Instruction>> controller,
+			ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
+		if (Lists.equals(this.inputPorts, inputPorts) && Lists.equals(this.outputPorts, outputPorts)
+				&& Lists.equals(this.varDecls, varDecls) && Lists.equals(this.controller, controller)
+				&& Lists.equals(this.transitions, transitions) && Lists.equals(this.conditions, conditions)) {
+			return this;
+		}
+		return new ActorMachine(this, inputPorts, outputPorts, varDecls, controller, transitions, conditions);
 	}
 
 	private ImmutableList<DeclVar> varDecls;

@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
@@ -50,8 +52,20 @@ public class ExprIndexer extends Expression {
 	}
 
 	public ExprIndexer(Expression structure, Expression index) {
+		this(null, structure, index);
+	}
+
+	private ExprIndexer(ExprIndexer original, Expression structure, Expression index) {
+		super(original);
 		this.structure = structure;
 		this.index = index;
+	}
+
+	public ExprIndexer copy(Expression structure, Expression index) {
+		if (Objects.equals(this.structure, structure) && Objects.equals(this.index, index)) {
+			return this;
+		}
+		return new ExprIndexer(this, structure, index);
 	}
 
 	public Expression getStructure() {

@@ -39,8 +39,11 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 import net.opendf.ir.util.Pair;
 
 /**
@@ -62,13 +65,32 @@ public class TypeExpr extends AbstractIRNode {
 	}
 
 	public TypeExpr(String name) {
-		this.name = name;
+		this(null, name, null, null);
 	}
 
 	public TypeExpr(String name, ImmutableList<Pair<String, TypeExpr>> typeParameters,
 			ImmutableList<Pair<String, Expression>> valueParameters) {
+		this(null, name, typeParameters, valueParameters);
+	}
+
+	private TypeExpr(TypeExpr original, String name, ImmutableList<Pair<String, TypeExpr>> typeParameters,
+			ImmutableList<Pair<String, Expression>> valueParameters) {
+		super(original);
 		this.typeParameters = ImmutableList.copyOf(typeParameters);
 		this.valueParameters = ImmutableList.copyOf(valueParameters);
+	}
+
+	public TypeExpr copy(String name) {
+		return copy(name, null, null);
+	}
+
+	public TypeExpr copy(String name, ImmutableList<Pair<String, TypeExpr>> typeParameters,
+			ImmutableList<Pair<String, Expression>> valueParameters) {
+		if (Objects.equals(this.name, name) && Lists.equals(this.typeParameters, typeParameters)
+				&& Lists.equals(this.valueParameters, valueParameters)) {
+			return this;
+		}
+		return new TypeExpr(this, name, typeParameters, valueParameters);
 	}
 
 	private String name;

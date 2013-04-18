@@ -42,6 +42,7 @@ package net.opendf.ir.common;
 import java.util.Map.Entry;
 
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * @author Jorn W. Janneck <jwj@acm.org>
@@ -53,9 +54,22 @@ public class ExprMap extends Expression {
 	}
 
 	public ExprMap(ImmutableList<Entry<Expression, Expression>> mappings, ImmutableList<GeneratorFilter> generators) {
+		this(null, mappings, generators);
+	}
+	
+	private ExprMap(ExprMap original, ImmutableList<Entry<Expression, Expression>> mappings, ImmutableList<GeneratorFilter> generators) {
+		super(original);
 		this.mappings = ImmutableList.copyOf(mappings);
 		this.generators = ImmutableList.copyOf(generators);
 	}
+	
+	public ExprMap copy(ImmutableList<Entry<Expression, Expression>> mappings, ImmutableList<GeneratorFilter> generators) {
+		if (Lists.equals(this.mappings, mappings) && Lists.equals(this.generators, generators)) {
+			return this;
+		}
+		return new ExprMap(this, mappings, generators);
+	}
+
 
 	public ExprMap(ImmutableList<Entry<Expression, Expression>> mappings) {
 		this(mappings, null);

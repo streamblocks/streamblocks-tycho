@@ -39,7 +39,10 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 public class ExprLambda extends Expression {
 
@@ -49,10 +52,25 @@ public class ExprLambda extends Expression {
 
 	public ExprLambda(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Expression body,
 			TypeExpr returnTypeExpr) {
+		this(null, typeParams, valueParams, body, returnTypeExpr);
+	}
+
+	private ExprLambda(ExprLambda original, ImmutableList<ParDeclType> typeParams,
+			ImmutableList<ParDeclValue> valueParams, Expression body, TypeExpr returnTypeExpr) {
+		super(original);
 		this.typeParameters = ImmutableList.copyOf(typeParams);
 		this.valueParameters = ImmutableList.copyOf(valueParams);
 		this.body = body;
 		this.returnTypeExpr = returnTypeExpr;
+	}
+
+	public ExprLambda copy(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams,
+			Expression body, TypeExpr returnTypeExpr) {
+		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams)
+				&& Objects.equals(this.body, body) && Objects.equals(this.returnTypeExpr, returnTypeExpr)) {
+			return this;
+		}
+		return new ExprLambda(this, typeParams, valueParams, body, returnTypeExpr);
 	}
 
 	public ImmutableList<ParDeclType> getTypeParameters() {

@@ -31,8 +31,20 @@ public class ICall extends Instruction {
 	//
 
 	public ICall(int t, int s) {
+		this(null, t, s);
+	}
+	
+	private ICall(ICall original, int t, int s) {
+		super(original);
 		this.t = t;
 		this.s = s;
+	}
+	
+	public ICall copy(int t, int s) {
+		if (this.t == t && this.s == s) {
+			return this;
+		}
+		return new ICall(this, t, s);
 	}
 
 	private int t;

@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
 
 /**
@@ -16,7 +18,7 @@ public class PortDecl extends AbstractIRNode {
 	 *            the port name
 	 */
 	public PortDecl(String name) {
-		this(name, null);
+		this(null, name, null);
 	}
 
 	/**
@@ -28,8 +30,20 @@ public class PortDecl extends AbstractIRNode {
 	 *            the type of the tokens
 	 */
 	public PortDecl(String name, TypeExpr type) {
+		this(null, name, type);
+	}
+	
+	private PortDecl(PortDecl original, String name, TypeExpr type) {
+		super(original);
 		this.name = name;
 		this.type = type;
+	}
+	
+	public PortDecl copy(String name, TypeExpr type) {
+		if (Objects.equals(this.name, name) && Objects.equals(this.type, type)) {
+			return this;
+		}
+		return new PortDecl(this, name, type);
 	}
 
 	/**

@@ -39,7 +39,10 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 public class ExprApplication extends Expression {
 
@@ -48,9 +51,22 @@ public class ExprApplication extends Expression {
 	}
 
 	public ExprApplication(Expression function, ImmutableList<Expression> args) {
+		this(null, function, args);
+	}
+	
+	private ExprApplication(ExprApplication original, Expression function, ImmutableList<Expression> args) {
+		super(original);
 		this.function = function;
 		this.args = ImmutableList.copyOf(args);
 	}
+	
+	public ExprApplication copy(Expression function, ImmutableList<Expression> args) {
+		if (Objects.equals(this.function, function) && Lists.equals(this.args, args)) {
+			return this;
+		}
+		return new ExprApplication(this, function, args);
+	}
+
 
 	public Expression getFunction() {
 		return function;

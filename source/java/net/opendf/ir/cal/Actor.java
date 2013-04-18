@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.cal;
 
+import java.util.Objects;
+
 import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
@@ -49,6 +51,7 @@ import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.QID;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 public class Actor extends DeclEntity {
 
@@ -57,13 +60,40 @@ public class Actor extends DeclEntity {
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
-		super(name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
+		this(null, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
+				actions, scheduleFSM, priorities, invariants);
+	}
+
+	private Actor(Actor original, String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
+			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+		super(original, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
 
 		this.initializers = initializers;
 		this.actions = actions;
 		this.scheduleFSM = scheduleFSM;
 		this.priorities = priorities;
 		this.invariants = invariants;
+	}
+
+	public Actor copy(String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
+			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+		if (Objects.equals(getName(), name) && Objects.equals(getNamespaceDecl(), namespace)
+				&& Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
+				&& Lists.equals(getTypeDecls(), typeDecls) && Lists.equals(getVarDecls(), varDecls)
+				&& Lists.equals(getInputPorts(), inputPorts) && Lists.equals(getOutputPorts(), outputPorts)
+				&& Lists.equals(this.initializers, initializers) && Lists.equals(this.actions, actions)
+				&& Objects.equals(this.scheduleFSM, scheduleFSM) && Lists.equals(this.priorities, priorities)
+				&& Lists.equals(this.invariants, invariants)) {
+			return this;
+		}
+		return new Actor(this, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
+				initializers, actions, scheduleFSM, priorities, invariants);
 	}
 
 	public ImmutableList<Action> getActions() {

@@ -37,7 +37,7 @@ public class Node extends AbstractIRNode implements PortContainer {
 	//
 	
 	public Node(IRNode content) {
-		super ();
+		super (null);
 		
 		this.content = content;
 		this.inputPorts = inputPorts; //FIXME

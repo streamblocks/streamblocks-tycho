@@ -11,4 +11,8 @@ public abstract class LValue extends AbstractIRNode {
 	public <R> R accept(LValueVisitor<R, Void> visitor) {
 		return accept(visitor, null);
 	}
+	
+	public LValue(LValue original) {
+		super(original);
+	}
 }

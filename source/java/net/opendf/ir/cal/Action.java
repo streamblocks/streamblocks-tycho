@@ -35,9 +35,11 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.cal;
+
+import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.DeclType;
@@ -46,92 +48,117 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.QID;
 import net.opendf.ir.common.Statement;
 import net.opendf.ir.util.ImmutableList;
-
+import net.opendf.ir.util.Lists;
 
 public class Action extends AbstractIRNode {
 
-    public Action(int id, QID tag,
-                  ImmutableList<InputPattern> inputPatterns, ImmutableList<OutputExpression> outputExpressions,
-                  ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body, Expression delay,
-                  ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
-    	this.id = id;
-        this.tag = tag;
-        this.inputPatterns = ImmutableList.copyOf(inputPatterns);
-        this.outputExpressions = ImmutableList.copyOf(outputExpressions);
-        this.typeDecls = ImmutableList.copyOf(typeDecls);
-        this.varDecls = ImmutableList.copyOf(varDecls);
-        this.guards = ImmutableList.copyOf(guards);
-        this.body = ImmutableList.copyOf(body);
-        this.delay = delay;
-        this.preconditions = ImmutableList.copyOf(preconditions);
-        this.postconditions = ImmutableList.copyOf(postconditions);
-    }
+	public Action(int id, QID tag, ImmutableList<InputPattern> inputPatterns,
+			ImmutableList<OutputExpression> outputExpressions, ImmutableList<DeclType> typeDecls,
+			ImmutableList<DeclVar> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
+		this(null, id, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions,
+				postconditions);
+	}
 
-    public QID getTag() {
-        return tag;
-    }
+	private Action(Action original, int id, QID tag, ImmutableList<InputPattern> inputPatterns,
+			ImmutableList<OutputExpression> outputExpressions, ImmutableList<DeclType> typeDecls,
+			ImmutableList<DeclVar> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
+		super(original);
+		this.id = id;
+		this.tag = tag;
+		this.inputPatterns = ImmutableList.copyOf(inputPatterns);
+		this.outputExpressions = ImmutableList.copyOf(outputExpressions);
+		this.typeDecls = ImmutableList.copyOf(typeDecls);
+		this.varDecls = ImmutableList.copyOf(varDecls);
+		this.guards = ImmutableList.copyOf(guards);
+		this.body = ImmutableList.copyOf(body);
+		this.delay = delay;
+		this.preconditions = ImmutableList.copyOf(preconditions);
+		this.postconditions = ImmutableList.copyOf(postconditions);
+	}
 
-    public ImmutableList<InputPattern> getInputPatterns() {
-        return inputPatterns;
-    }
+	public Action copy(int id, QID tag, ImmutableList<InputPattern> inputPatterns,
+			ImmutableList<OutputExpression> outputExpressions, ImmutableList<DeclType> typeDecls,
+			ImmutableList<DeclVar> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
+		if (this.id == id && Objects.equals(this.tag, tag) && Lists.equals(this.inputPatterns, inputPatterns)
+				&& Lists.equals(this.outputExpressions, outputExpressions) && Lists.equals(this.typeDecls, typeDecls)
+				&& Lists.equals(this.varDecls, varDecls) && Lists.equals(this.guards, guards)
+				&& Lists.equals(this.body, body) && Objects.equals(this.delay, delay)
+				&& Lists.equals(this.preconditions, preconditions) && Lists.equals(this.postconditions, postconditions)) {
+			return this;
+		}
+		return new Action(this, id, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay,
+				preconditions, postconditions);
+	}
 
-    public ImmutableList<OutputExpression> getOutputExpressions() {
-        return outputExpressions;
-    }
+	public QID getTag() {
+		return tag;
+	}
 
-    public ImmutableList<DeclType> getTypeDecls() {
-        return typeDecls;
-    }
+	public ImmutableList<InputPattern> getInputPatterns() {
+		return inputPatterns;
+	}
 
-    public ImmutableList<DeclVar> getVarDecls() {
-        return varDecls;
-    }
+	public ImmutableList<OutputExpression> getOutputExpressions() {
+		return outputExpressions;
+	}
 
-    public ImmutableList<Expression> getGuards() {
-        return guards;
-    }
+	public ImmutableList<DeclType> getTypeDecls() {
+		return typeDecls;
+	}
 
-    public ImmutableList<Statement> getBody() {
-        return body;
-    }
-    
-    public Expression  getDelay() {
-    	return delay;
-    }
-    
-    public int  getID() {
-    	return id;
-    }
-    
-    public ImmutableList<Expression>  getPreconditions() {
-    	return preconditions;
-    }
-    
-    public ImmutableList<Expression>  getPostconditions() {
-    	return postconditions;
-    }
+	public ImmutableList<DeclVar> getVarDecls() {
+		return varDecls;
+	}
 
-    private int                 id;
-    private QID					tag;
-    private ImmutableList<InputPattern>     inputPatterns;
-    private ImmutableList<OutputExpression> outputExpressions;
-    private ImmutableList<DeclType>			typeDecls;
-    private ImmutableList<DeclVar> 			varDecls;
-    private ImmutableList<Expression>       guards;
-    private ImmutableList<Statement>        body;
-    private Expression                      delay;
-    private ImmutableList<Expression>       preconditions;
-    private ImmutableList<Expression>       postconditions;
+	public ImmutableList<Expression> getGuards() {
+		return guards;
+	}
 
+	public ImmutableList<Statement> getBody() {
+		return body;
+	}
 
-    public String toString() {
-    	return "(Action " + tag + ")";
-//        Utility.increaseTabDepth(2);
-//        String tabs = Utility.getHeadingTabs();
-//        String result =  "Action " + this.tag + ":\n" + tabs + "inputPatterns:\n" +
-//                Utility.arrayToString(this.inputPatterns) + "\n" + tabs + "outputExpressions:\n" +
-//                Utility.arrayToString(this.outputExpressions);
-//        Utility.decreaseTabDepth(2);
-//        return result;
-    }
+	public Expression getDelay() {
+		return delay;
+	}
+
+	public int getID() {
+		return id;
+	}
+
+	public ImmutableList<Expression> getPreconditions() {
+		return preconditions;
+	}
+
+	public ImmutableList<Expression> getPostconditions() {
+		return postconditions;
+	}
+
+	private int id;
+	private QID tag;
+	private ImmutableList<InputPattern> inputPatterns;
+	private ImmutableList<OutputExpression> outputExpressions;
+	private ImmutableList<DeclType> typeDecls;
+	private ImmutableList<DeclVar> varDecls;
+	private ImmutableList<Expression> guards;
+	private ImmutableList<Statement> body;
+	private Expression delay;
+	private ImmutableList<Expression> preconditions;
+	private ImmutableList<Expression> postconditions;
+
+	public String toString() {
+		return "(Action " + tag + ")";
+		// Utility.increaseTabDepth(2);
+		// String tabs = Utility.getHeadingTabs();
+		// String result = "Action " + this.tag + ":\n" + tabs +
+		// "inputPatterns:\n" +
+		// Utility.arrayToString(this.inputPatterns) + "\n" + tabs +
+		// "outputExpressions:\n" +
+		// Utility.arrayToString(this.outputExpressions);
+		// Utility.decreaseTabDepth(2);
+		// return result;
+	}
 }

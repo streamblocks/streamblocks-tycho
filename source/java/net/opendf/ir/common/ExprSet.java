@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package net.opendf.ir.common;
 
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -50,12 +51,24 @@ public class ExprSet extends Expression {
 	}
 
 	public ExprSet(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
+		this(null, elements, generators);
+	}
+
+	public ExprSet(ImmutableList<Expression> elements) {
+		this(null, elements, null);
+	}
+
+	private ExprSet(ExprSet original, ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
+		super(original);
 		this.elements = ImmutableList.copyOf(elements);
 		this.generators = ImmutableList.copyOf(generators);
 	}
 
-	public ExprSet(ImmutableList<Expression> elements) {
-		this(elements, null);
+	public ExprSet copy(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
+		if (Lists.equals(this.elements, elements) && Lists.equals(this.generators, generators)) {
+			return this;
+		}
+		return new ExprSet(this, elements, generators);
 	}
 
 	public ImmutableList<Expression> getElements() {

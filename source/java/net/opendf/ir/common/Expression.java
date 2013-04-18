@@ -48,4 +48,8 @@ public abstract class Expression extends AbstractIRNode {
 	public <R> R accept(ExpressionVisitor<R, Void> v) {
 		return accept(v, null);
 	}
+	
+	public Expression(Expression original) {
+		super(original);
+	}
 }

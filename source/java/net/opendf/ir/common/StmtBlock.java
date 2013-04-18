@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package net.opendf.ir.common;
 
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
@@ -53,9 +54,24 @@ public class StmtBlock extends Statement {
 
 	public StmtBlock(ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
 			ImmutableList<Statement> statements) {
+		this(null, typeDecls, varDecls, statements);
+	}
+	
+	private StmtBlock(StmtBlock original, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<Statement> statements) {
+		super(original);
 		this.typeDecls = ImmutableList.copyOf(typeDecls);
 		this.varDecls = ImmutableList.copyOf(varDecls);
 		this.statements = ImmutableList.copyOf(statements);
+	}
+
+	public StmtBlock copy(ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<Statement> statements) {
+		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
+				&& Lists.equals(this.statements, statements)) {
+			return this;
+		}
+		return new StmtBlock(this, typeDecls, varDecls, statements);
 	}
 
 	public ImmutableList<DeclType> getTypeDecls() {

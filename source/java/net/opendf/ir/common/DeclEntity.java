@@ -57,15 +57,15 @@ abstract public class DeclEntity extends Decl implements PortContainer {
 	// Ctor
 	//
 
-	public DeclEntity(String name, NamespaceDecl ns, ImmutableList<ParDeclType> typePars,
+	public DeclEntity(DeclEntity original, String name, NamespaceDecl ns, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls) {
-		this(name, ns, typePars, valuePars, typeDecls, varDecls, null, null);
+		this(original, name, ns, typePars, valuePars, typeDecls, varDecls, null, null);
 	}
 
-	public DeclEntity(String name, NamespaceDecl ns, ImmutableList<ParDeclType> typePars,
+	public DeclEntity(DeclEntity original, String name, NamespaceDecl ns, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) {
-		super(name, ns);
+		super(original, name, ns);
 		this.typePars = ImmutableList.copyOf(typePars);
 		this.valuePars = ImmutableList.copyOf(valuePars);
 		this.typeDecls = ImmutableList.copyOf(typeDecls);

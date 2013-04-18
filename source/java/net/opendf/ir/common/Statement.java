@@ -35,31 +35,35 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
 import net.opendf.ir.AbstractIRNode;
 
-
-
 /**
- *  Statements, such as assignments, procedure calls, or loops, may cause side effects in the environment
- *  they are run in by changing the variable values in it.
- *  Statements support the visitor pattern.
- *
+ * Statements, such as assignments, procedure calls, or loops, may cause side
+ * effects in the environment they are run in by changing the variable values in
+ * it. Statements support the visitor pattern.
+ * 
  * @see StatementVisitor
  */
 
 public abstract class Statement extends AbstractIRNode {
 
-    /**
-     * This is the accept method of the visitor pattern.
-     * @param v The visitor.
-     */
-    public abstract <R,P> R accept(StatementVisitor<R,P> v, P p);
+	/**
+	 * This is the accept method of the visitor pattern.
+	 * 
+	 * @param v
+	 *            The visitor.
+	 */
+	public abstract <R, P> R accept(StatementVisitor<R, P> v, P p);
 
-    public <R> R accept(StatementVisitor<R,Void> v) {
-        return accept(v, null);
-    }
+	public <R> R accept(StatementVisitor<R, Void> v) {
+		return accept(v, null);
+	}
+
+	public Statement(Statement original) {
+		super(original);
+	}
 }

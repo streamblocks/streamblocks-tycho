@@ -39,7 +39,10 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 public class ExprProc extends Expression {
 
@@ -48,10 +51,23 @@ public class ExprProc extends Expression {
 	}
 
 	public ExprProc(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+		this(null, typeParams, valueParams, body);
+	}
+	
+	private ExprProc(ExprProc original, ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+		super(original);
 		this.typeParameters = ImmutableList.copyOf(typeParams);
 		this.valueParameters = ImmutableList.copyOf(valueParams);
 		this.body = body;
 	}
+	
+	public ExprProc copy(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams) && Objects.equals(this.body, body)) {
+			return this;
+		}
+		return new ExprProc(this, typeParams, valueParams, body);
+	}
+
 
 	public ImmutableList<ParDeclType> getTypeParameters() {
 		return typeParameters;

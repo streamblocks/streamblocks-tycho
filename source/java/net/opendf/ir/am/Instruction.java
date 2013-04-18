@@ -19,5 +19,9 @@ public abstract class Instruction extends AbstractIRNode {
 	public <R> R accept(InstructionVisitor<R,Void> v) {
 		return accept(v,null);
 	}
+	
+	public Instruction(Instruction original) {
+		super(original);
+	}
 
 }

@@ -39,7 +39,10 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 public class StmtCall extends Statement {
 
@@ -48,8 +51,20 @@ public class StmtCall extends Statement {
 	}
 
 	public StmtCall(Expression procedure, ImmutableList<Expression> args) {
+		this(null, procedure, args);
+	}
+
+	private StmtCall(StmtCall original, Expression procedure, ImmutableList<Expression> args) {
+		super(original);
 		this.procedure = procedure;
 		this.args = ImmutableList.copyOf(args);
+	}
+
+	public StmtCall copy(Expression procedure, ImmutableList<Expression> args) {
+		if (Objects.equals(this.procedure, procedure) && Lists.equals(this.args, args)) {
+			return this;
+		}
+		return new StmtCall(this, procedure, args);
 	}
 
 	public Expression getProcedure() {

@@ -38,8 +38,11 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 public class GeneratorFilter extends AbstractIRNode {
 
@@ -57,9 +60,24 @@ public class GeneratorFilter extends AbstractIRNode {
 
 	public GeneratorFilter(ImmutableList<DeclVar> variables, Expression collectionExpr,
 			ImmutableList<Expression> filters) {
+		this(null, variables, collectionExpr, filters);
+	}
+
+	private GeneratorFilter(GeneratorFilter original, ImmutableList<DeclVar> variables, Expression collectionExpr,
+			ImmutableList<Expression> filters) {
+		super(original);
 		this.variables = ImmutableList.copyOf(variables);
 		this.collectionExpr = collectionExpr;
 		this.filters = ImmutableList.copyOf(filters);
+	}
+
+	public GeneratorFilter copy(ImmutableList<DeclVar> variables, Expression collectionExpr,
+			ImmutableList<Expression> filters) {
+		if (Lists.equals(this.variables, variables) && Objects.equals(this.collectionExpr, collectionExpr)
+				&& Lists.equals(this.filters, filters)) {
+			return this;
+		}
+		return new GeneratorFilter(this, variables, collectionExpr, filters);
 	}
 
 	private ImmutableList<DeclVar> variables;

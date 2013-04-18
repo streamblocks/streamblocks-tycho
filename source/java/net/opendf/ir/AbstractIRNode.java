@@ -50,10 +50,6 @@ public abstract class AbstractIRNode implements IRNode {
 		return identifier;
 	}
 
-	public AbstractIRNode() {
-		identifier = new Object();
-	}
-
 	public AbstractIRNode(IRNode original) {
 		Object id = original.getIdentifier();
 		if (id == null) {

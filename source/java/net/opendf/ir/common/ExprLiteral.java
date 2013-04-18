@@ -35,70 +35,93 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 public class ExprLiteral extends Expression {
 
-    public <R,P> R accept(ExpressionVisitor<R,P> visitor, P p) {
-        return visitor.visitExprLiteral(this, p);
-    }
-    
-    public int getKind() {
+	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
+		return visitor.visitExprLiteral(this, p);
+	}
+
+	public Kind getKind() {
 		return kind;
 	}
-    
-    public String getText() {
+
+	public String getText() {
 		return text;
 	}
 
-    public ExprLiteral(int kind) {
-        this(kind, "");
-    }
+	public ExprLiteral(Kind kind) {
+		this(null, kind, kind.getFixedText());
+		assert kind.hasFixedText();
+	}
 
-    /* FIXME: add some error checking here? */
-    public ExprLiteral(int kind, String text) {
-        this.kind = kind;
-        this.text = text;
-    }
-    
-    /**
-     * Literal type.
-     *
-     * This will be any of the litXYZ constants defined below.
-     */
-    private int          kind;
+	public ExprLiteral(Kind kind, String text) {
+		this(null, kind, text);
+		assert !kind.hasFixedText();
+	}
 
+	/* FIXME: add some error checking here? */
+	private ExprLiteral(ExprLiteral original, Kind kind, String text) {
+		super(original);
+		this.kind = kind;
+		this.text = text.intern();
+	}
 
-    public final static int  litNull = 1;
-    public final static int  litTrue = 2;
-    public final static int  litFalse = 3;
-    public final static int  litChar = 4;
-    public final static int  litInteger = 5;
-    public final static int  litReal = 6;
-    public final static int  litString = 7;
+	public ExprLiteral copy(Kind kind, String text) {
+		assert !kind.hasFixedText();
+		if (this.kind == kind && Objects.equals(this.text, text)) {
+			return this;
+		}
+		return new ExprLiteral(this, kind, text);
+	}
 
-    /**
-     * Literal text (includes delimiters).
-     *
-     * This will be non-null only for litChar, litInteger, litFloat, and
-     * litString literals.
-     */
-    private String       text;
+	public ExprLiteral copy(Kind kind) {
+		assert kind.hasFixedText();
+		if (this.kind == kind) {
+			return this;
+		}
+		return new ExprLiteral(this, kind, kind.getFixedText());
+	}
 
-    public String toString() {
-        String text;
-        switch(this.kind) {
-            case litNull:
-                text = "Null"; break;
-            case litTrue:
-                text = "True"; break;
-            case litFalse:
-                text = "False"; break;
-            default:
-                text = this.text;
-        }
-        return "Literal: " + text;
-    }
+	/**
+	 * Literal type.
+	 * 
+	 * This will be any of the litXYZ constants defined below.
+	 */
+	private Kind kind;
+
+	public static enum Kind {
+		Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), String(null);
+
+		private final String fixedText;
+		
+		private String getFixedText() {
+			return fixedText;
+		}
+		
+		private boolean hasFixedText() {
+			return fixedText != null;
+		}
+
+		Kind(String fixedText) {
+			this.fixedText = fixedText;
+		}
+	}
+
+	/**
+	 * Literal text (includes delimiters).
+	 * 
+	 * This will be non-null only for litChar, litInteger, litFloat, and
+	 * litString literals.
+	 */
+	private String text;
+
+	public String toString() {
+		return "Literal: " + text;
+	}
 }

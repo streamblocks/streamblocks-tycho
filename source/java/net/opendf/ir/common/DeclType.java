@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 
 /**
  * 
@@ -20,6 +22,17 @@ public class DeclType extends Decl {
 	}
 
 	public DeclType(String name, NamespaceDecl namespace) {
-		super(name, namespace);
+		this(null, name, namespace);
+	}
+	
+	private DeclType(DeclType original, String name, NamespaceDecl namespace) {
+		super(original, name, namespace);
+	}
+	
+	public DeclType copy(String name, NamespaceDecl namespace) {
+		if (Objects.equals(getName(), name) && Objects.equals(getNamespaceDecl(), namespace)) {
+			return this;
+		}
+		return new DeclType(this, name, namespace);
 	}
 }
