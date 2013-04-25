@@ -11,7 +11,6 @@ package net.opendf.util;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,25 +24,20 @@ import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
-import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ast.EntityExprVisitor;
 import net.opendf.ir.net.ast.EntityIfExpr;
 import net.opendf.ir.net.ast.EntityInstanceExpr;
 import net.opendf.ir.net.ast.EntityListExpr;
 import net.opendf.ir.net.ast.NetworkDefinition;
-import net.opendf.ir.net.ast.PortReference;
 import net.opendf.ir.net.ast.StructureConnectionStmt;
 import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.net.ast.StructureIfStmt;
-import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
 
 public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisitor<Void, Element>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Element>{
 	private java.io.PrintStream out = System.out;
 	Document doc;
-
-	private int indentDepth = 0;
 
 	public Document getDocument(){ return doc; }
 	public void print(){
@@ -64,52 +58,12 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 			doc = docBuilder.newDocument();
 			
-			Element actorElement = doc.createElement("NetworkDefinition");
-			doc.appendChild(actorElement);
-			actorElement.setAttribute("name", network.getName());
-
-			printEntityDecl(network);
-		//--- variable declaration
-		incIndent();  // actor body
-		if(network.getVarDecls().length>0){
-			indent();
-			out.append("var");
-			incIndent();
-			for(DeclVar v : network.getVarDecls()){
-				indent();
-				print(v);
-				out.append(";");
-			}
-			decIndent();
-		}
-		if(network.getEntities() != null){
-			indent();
-			out.append("entities");
-			incIndent();
-			for(Entry<String, EntityExpr> entity : network.getEntities()){
-				indent();
-				out.append(entity.getKey());
-				out.append(" = ");
-				print((EntityExpr)entity.getValue());
-				out.append(";");
-			}
-			decIndent();
-		}
-		if(network.getStructure() != null && network.getStructure().length>0){
-			indent();
-			out.append("structure");
-			incIndent();
-			for(StructureStatement structure : network.getStructure()){
-				indent();
-				print(structure);
-			}
-			decIndent();
-		}
-		print(network.getToolAttributes());
-		decIndent();  // actor body
-		indent();
-		out.append("end network\n");
-		
+			Element networkElement = doc.createElement("NetworkDefinition");
+			doc.appendChild(networkElement);
+			networkElement.setAttribute("name", network.getName());
+			//-- type/value parameters, in/out ports, type/value declarations
+			generateEntityXML(network, networkElement);
+			
 		}catch(ParserConfigurationException pce){
 			pce.printStackTrace();
 		}
@@ -123,134 +77,61 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			Element actorElement = doc.createElement("Actor");
 			doc.appendChild(actorElement);
 			actorElement.setAttribute("name", actor.getName());
+			//-- type/value parameters, in/out ports, type/value declarations
+			generateEntityXML(actor, actorElement);
 
-			printEntityDecl(actor);
-			//TODO DeclType[] typeDecls
-			//--- variable declaration
-			generateXML(actor.getVarDecls(), actorElement);
 		//--- initializers
-		for(Action a : actor.getInitializers()){
-			print(a, "initialize");
-		}
 		//--- action
-		for(Action a : actor.getActions()){
-			print(a);
-		}
-
-		if(actor.getScheduleFSM() != null){
-			indent();
-			out.append("schedule fsm ");
-			out.append(actor.getScheduleFSM().getInitialState());
-			out.append(" : ");
-			incIndent();
-			for(Transition t : actor.getScheduleFSM().getTransitions()){
-				indent();
-				out.append(t.getSourceState());
-				out.append("(");
-				String sep = "";
-				for(QID tag : t.getActionTags()){
-					out.append(sep);
-					sep = ", ";
-					out.append(tag.toString());
-				}
-				out.append(") --> ");
-				out.append(t.getDestinationState());
-				out.append(";");
-			}
-			decIndent();
-			indent();
-			out.append("endschedule");
-		}
-		if(actor.getPriorities() != null && actor.getPriorities().length>0){
-			indent();
-			out.append("priority");
-			incIndent();
-			for(List<QID> priority : actor.getPriorities()){
-				indent();
-				String sep = "";
-				for(QID qid : priority){
-					out.append(sep);
-					sep = " > ";
-					out.append(qid.toString());
-				}
-				out.append(";");
-			}
-			decIndent();
-			indent();
-			out.append("end");
-		}
-		if(actor.getInvariants() != null && actor.getInvariants().length>0){
-			indent();
-			out.append("invariant ");
-			print(actor.getInvariants());
-			out.append(" endinvariant");
-		}
-		decIndent();
-		indent();
-		out.append("endactor\n");
-
+		//--- schedule
+		//--- priorities
+		//--- invariants
 		}catch(ParserConfigurationException pce){
 			pce.printStackTrace();
 		}
 	}
-	public void print(ToolAttribute[] toolAttributes){
-		if(toolAttributes != null && toolAttributes.length>0){
-			indent();
-			out.append("{");
-			incIndent();
-			for(ToolAttribute a : toolAttributes){
-				indent();
-				a.print(out);
-				out.append(";");
+	//-- type/value parameters, in/out ports, type/value declarations
+	public void generateEntityXML(DeclEntity entity, Element top){
+		//-- type parameters 
+		//TODO
+		//-- value parameters 
+		generateXML(entity.getValueParameters(), top);
+		//-- input ports 
+		generateXML(entity.getInputPorts(), top, "InputPortList");
+		//-- output ports 
+		generateXML(entity.getInputPorts(), top, "OutputPortList");
+		//--- type declaration
+		generateXML(entity.getTypeDecls(), top);
+		//--- variable declaration
+		generateXML(entity.getVarDecls(), top);
+	}
+	public void generateXML(List<PortDecl> ports, Element parent, String kind){
+		if(ports != null && !ports.isEmpty()){
+			Element top = doc.createElement(kind);
+			parent.appendChild(top);
+			for(PortDecl port : ports){
+				Element elem = doc.createElement("PortDecl");
+				top.appendChild(elem);
+				elem.setAttribute("name", port.getName());
+				if(port.getType() != null){
+					generateXML(port.getType(), elem);
+				}
 			}
-			decIndent();
-			indent();
-			out.append("}");
 		}
 	}
-	public void printEntityDecl(DeclEntity entity){
-		out.append("name=" + entity.getName());
-		//--- type parameters
-		if(entity.getTypeParameters().length>0){
-			String sep = "";
-			out.append(" [");
-			for(ParDeclType param : entity.getTypeParameters()){
-				out.append(sep);
-				sep = ", ";
-				print(param);
-			}
-			out.append("]");
-		}
-		//--- value parameters
-		out.append(" (");
-		String sep = "";
-		for(ParDeclValue param : entity.getValueParameters()){
-			out.append(sep);
-			sep = ", ";
-			print(param);
-		}
-		out.append(") ");
-		// FIXME print(entity.getInputPorts());
-		out.append(" ==> ");
-		//--- CompositePortDecl outputPorts
-		// FIXME print(entity.getOutputPorts());
-		out.append(" : ");
-	}
-
 	public void generateXML(DeclType[] typeDecls, Element parent){
 		if(typeDecls != null && typeDecls.length>0){
-			Element declElements = doc.createElement("DeclTypeList");
+			Element declTypeList = doc.createElement("DeclTypeList");
 			for(DeclType typeDecl : typeDecls){
 				Element typeDeclElem = doc.createElement("DeclType");
 				typeDeclElem.setAttribute("name", typeDecl.getName());
-				declElements.appendChild(typeDeclElem);
+				declTypeList.appendChild(typeDeclElem);
 			}
-			parent.appendChild(declElements);
+			parent.appendChild(declTypeList);
 		}
 	}
 	public void generateXML(DeclVar[] varDecls, Element parent){
 		if(varDecls != null && varDecls.length>0){
-			Element declElements = doc.createElement("DeclVarList");
+			Element declVarList = doc.createElement("DeclVarList");
 			for(DeclVar v : varDecls){
 				Element varDeclElem = doc.createElement("DeclVar");
 				varDeclElem.setAttribute("name", v.getName());
@@ -259,169 +140,23 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 					v.getInitialValue().accept(this, initElem);
 					varDeclElem.appendChild(initElem);
 				}
-				declElements.appendChild(varDeclElem);
+				declVarList.appendChild(varDeclElem);
 			}
-			parent.appendChild(declElements);
+			parent.appendChild(declVarList);
 		}
 	}
 	
-	public void print(Action a){
-		print(a, "action");
-	}
-	private void print(Action a, String kind) {
-		indent();
-		if(a.getTag() != null){
-			out.append(a.getTag().toString());
-			out.append(" : ");
-		}
-		out.append(kind);
-		incIndent();
-		print(a.getInputPatterns());
-		out.append(" ==> ");
-		print(a.getOutputExpressions()); 
-		if(a.getGuards() != null && a.getGuards().length>0){
-			indent();
-			out.append("guard ");
-			print(a.getGuards());
-		}
-		if(a.getVarDecls() != null && a.getVarDecls().length>0){
-			indent();
-			out.append("var ");
-			print(a.getVarDecls());
-		}
-		//TODO DeclType[] typeDecls
-		//TODO Expression[] preconditions, Expression[] postconditions) 
-		if(a.getDelay() != null){
-			indent();
-			out.append("delay ");
-			a.getDelay().accept(this, null);
-		}
-		if(a.getBody() != null && a.getBody().length>0){
-			indent();
-			out.append("do");
-			incIndent();
-//			print(a.getBody());
-			decIndent();
-		}
-		decIndent();
-		indent();
-		out.append("endaction");
-	}
-	private void print(OutputExpression[] outputExpressions) {
-		String portSep = " ";
-		for(OutputExpression p : outputExpressions){
-			out.append(portSep);
-			portSep = ", ";
-			// port name
-			if(p.getPort() != null){
-				out.append(p.getPort().getName());
-				out.append(":");
-			}
-			// sequence of token names
-			String varSep = "[";
-			for(Expression expression : p.getExpressions()){
-				out.append(varSep);
-				varSep = ", ";
-				expression.accept(this, null);
-			}
-			out.append("]");
-		}
-	}
-	private void print(InputPattern[] inputPatterns) {
-		String portSep = " ";
-		for(InputPattern p : inputPatterns){
-			out.append(portSep);
-			portSep = ", ";
-			// port name
-			if(p.getPort() != null){
-				out.append(p.getPort().toString());
-				out.append(":");
-			}
-			// sequence of token names
-			String varSep = "[";
-			for(String var : p.getVariables()){
-				out.append(varSep);
-				varSep = ", ";
-				out.append(var);
-			}
-			out.append("]");
-		}
-	}
-	public void print(PortDecl portDecl) {
-//		FIXME
-//		if(portDecl instanceof CompositePortDecl){
-//			CompositePortDecl cpd = (CompositePortDecl)portDecl;
-//			String sep = "";
-//			for(PortDecl p : cpd.getChildren()){
-//				out.append(sep);
-//				sep = ", ";
-//				print(p);
-//			}
-//		} else {
-//			AtomicPortDecl port = (AtomicPortDecl)portDecl;
-//			if(port.getType() != null){
-//				print(port.getType());
-//				out.append(" ");
-//			}
-//			out.append(port.getLocalName());
-//		}
-	}
-	public void print(DeclVar var){
-		if(var.getType() != null){
-			print(var.getType());
-			out.append(" ");
-		}
-		out.append(var.getName());
-		if(var.getInitialValue() != null){
-			if(var.isAssignable()){
-				out.append(" := ");
-			} else {
-				out.append(" = ");
-			}
-			var.getInitialValue().accept(this, null);
-		}
-	}
-	public void print(DeclVar[] varDecls) { // comma separated list
-		String sep = "";
-		for(DeclVar v : varDecls){
-			out.append(sep);
-			sep = ", ";
-			print(v);
-		}
-	}
-
-	public void print(Expression e){
-		e.accept(this, null);
-	}
-	public void print(Expression[] expressions) {  // comma separated expressions
-		if(expressions != null){
-			String sep = "";
-			for(Expression e : expressions){
-				out.append(sep);
-				sep = ", ";
-				e.accept(this, null);
-			}
-		}
-	}
-
-	public void print(ParDeclType param){
-		out.append(param.getName());
-	}
-	public void print(ParDeclValue param){
-		if(param.getType() != null){
-			print(param.getType());
-			out.append(" ");
-		}
-		out.append(param.getName());
-	}
-	private void generateXML(PortName port, Element p) {
-		Element e = doc.createElement("PortName");
+	private void generateXML(Port port, Element p) {
+		Element e = doc.createElement("Port");
 		p.appendChild(e);
 		e.setAttribute("name", port.toString());
+		if(port.hasLocation()){
+			e.setAttribute("offset", Integer.toString(port.getOffset()));
+		}
 	}
 	private void generateXML(ParDeclValue[] valueParameters, Element p) {
-		if(valueParameters != null && valueParameters.length >0){
-			Element top = doc.createElement("ValueParameters");
+		if(valueParameters != null && valueParameters.length > 0){
+			Element top = doc.createElement("ValueParameterList");
 			p.appendChild(top);
 			for(ParDeclValue param : valueParameters){
 				generateXML(param, top);
@@ -440,51 +175,6 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			parent.appendChild(top);
 			top.setAttribute("TODO", "Types are not supported by XML writer");
 			//TODO
-		}
-	}
-	public void print(TypeExpr type){
-		out.append(type.getName());
-		if(type.getParameters() != null && type.getParameters().length>0){
-			out.append("[");
-			String sep = "";
-			for(TypeExpr t : type.getParameters()){
-				out.append(sep);
-				sep = ", ";
-				print(t);
-			}
-			out.append("]");
-		} else if((type.getTypeParameters() != null && !type.getTypeParameters().isEmpty()) || 
-   				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
-			out.append("(");
-			String sep = "";
-			for(Map.Entry<String, Expression>par : type.getValueParameters().entrySet()){
-				out.append(sep);
-				sep = ", ";
-				out.append(par.getKey());
-				out.append("=");
-				par.getValue().accept(this, null);
-			}
-			for(Map.Entry<String, TypeExpr>par : type.getTypeParameters().entrySet()){
-				out.append(sep);
-				sep = ", ";
-				out.append(par.getKey());
-				out.append(":");
-				print(par.getValue());
-			}
-			out.append(")");
-		}
-	}
-
-	private void incIndent(){ 
-		indentDepth++;
-	}
-	private void decIndent(){ 
-		indentDepth--;
-	}
-	private void indent(){
-		out.append("\n");
-		for(int i=0; i<indentDepth; i++){
-			out.append("  ");
 		}
 	}
 	private void generateXML(GeneratorFilter[] generators, Element p) {
@@ -553,7 +243,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		Element binOp = doc.createElement("ExprBinaryOp");
 		p.appendChild(binOp);
 		//--- operations
-		Element allOperations = doc.createElement("Operations");
+		Element allOperations = doc.createElement("OperationList");
 		binOp.appendChild(allOperations);
 		for(String opString : e.getOperations()){
 			Element operationElement = doc.createElement("Operation");
@@ -561,7 +251,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			allOperations.appendChild(operationElement);
 		}
 		//--- operands
-		Element allOperands = doc.createElement("Operands");
+		Element allOperands = doc.createElement("OperandList");
 		binOp.appendChild(allOperands);
 		for(Expression operand : e.getOperands()){
 			operand.accept(this, allOperands);
@@ -610,7 +300,15 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	}
 	@Override
 	public Void visitExprInput(ExprInput e, Element p) {
-		// TODO Auto-generated method stub
+		Element top = doc.createElement("ExprInput");
+		p.appendChild(top);
+		top.setAttribute("offset", Integer.toString(e.getOffset()));
+		top.setAttribute("hasRepeat", e.hasRepeat() ? "true" : "false");
+		if(e.hasRepeat()){
+			top.setAttribute("repeat", Integer.toString(e.getRepeat()));
+			top.setAttribute("patternLength", Integer.toString(e.getPatternLength()));
+		}
+		generateXML(e.getPort(), top);
 		return null;
 	}
 	@Override
@@ -647,7 +345,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitExprList(ExprList e, Element p) {
 		Element top = doc.createElement("ExprList");
 		p.appendChild(top);
-		generateXML(e.getElements(), top, "Elements");
+		generateXML(e.getElements(), top, "ElementList");
 		generateXML(e.getGenerators(), top);
 		//TODO tail
 		return null;
@@ -692,7 +390,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public Void visitExprSet(ExprSet e, Element p) {
 		Element top = doc.createElement("ExprSet");
 		p.appendChild(top);
-		generateXML(e.getElements(), top, "Elements");
+		generateXML(e.getElements(), top, "ElementList");
 		generateXML(e.getGenerators(), top);
 		return null;
 	}
@@ -860,101 +558,24 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		entity.accept(this, null);
 	}
 	public Void visitEntityInstanceExpr(EntityInstanceExpr e, Void p) {
-		out.append(e.getEntityName());
-		out.append("(");
-		String sep = "";
-		for(java.util.Map.Entry<String, Expression> param : e.getParameterAssignments()){
-			out.append(sep);
-			out.append(param.getKey());
-			out.append(" = ");
-			print(param.getValue());
-			sep = ", ";
-		}
-		out.append(")");
-		print(e.getToolAttributes());
 		return null;
 	}
 	public Void visitEntityIfExpr(EntityIfExpr e, Void p) {
-		out.append("if ");
-		print(e.getCondition());
-		out.append(" then ");
-		print(e.getTrueEntity());
-		out.append(" else ");
-		print(e.getFalseEntity());
-		out.append(" end");
 		return null;
 	}
 	public Void visitEntityListExpr(EntityListExpr e, Void p) {
-		out.append("[");
-		String sep = "";
-		for(EntityExpr entity : e.getEntityList()){
-			out.append(sep);
-			sep = ", ";
-			print(entity);
-		}
-		if(e.getGenerators() != null && e.getGenerators().length>0){
-			out.append(" : ");
-//			print(e.getGenerators(), "for");
-		}
-		out.append("]");
 		return null;
 	}
 /******************************************************************************
  * Structure Statement (Network)
  */
-	public void print(StructureStatement structure){
-		structure.accept(this, null);
-	}
-	public void print(StructureStatement[] structure){
-		incIndent();
-		for(StructureStatement s : structure){
-			indent();
-			s.accept(this, null);
-		}
-		decIndent();
-	}
 	public Void visitStructureConnectionStmt(StructureConnectionStmt stmt, Void p) {
-		print(stmt.getSrc());
-		out.append(" --> ");
-		print(stmt.getDst());
-		print(stmt.getToolAttributes());
-		out.append(';');
 		return null;
 	}
 	public Void visitStructureIfStmt(StructureIfStmt stmt, Void p) {
-		out.append("if ");
-		print(stmt.getCondition());
-		out.append(" then");
-		print(stmt.getTrueStmt());
-		if(stmt.getFalseStmt() != null){
-			indent();
-			out.append("else");
-			print(stmt.getFalseStmt());
-		}
-		indent();
-		out.append("end");
 		return null;
 	}
 	public Void visitStructureForeachStmt(StructureForeachStmt stmt, Void p) {
-//		print(stmt.getGenerators(), "foreach");
-		out.append(" do ");
-		print(stmt.getStatements());
-		indent();
-		out.append("end");
 		return null;
-	}
-	public void print(PortReference port){
-		if(port.getEntityName() != null){
-			out.append(port.getEntityName());
-			if(port.getEntityIndex() != null){
-				for(Expression e : port.getEntityIndex()){
-					out.append('[');
-					print(e);
-					out.append(']');
-				}
-			}
-			out.append('.');
-		}
-		out.append(port.getPortName());
 	}
 }

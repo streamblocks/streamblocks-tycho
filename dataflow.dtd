@@ -2,8 +2,14 @@
 <!-- NOTE the XML export is currently incomplete. It only exports expressions and some statements. -->
 
 <!DOCTYPE dataflow [
- <!ELEMENT Network (DeclVarList?)>
- <!ELEMENT Actor (DeclVarList?)>
+ <!ELEMENT NetworkDefinition (ValueParameterList? InputPortList? OutputPortList? DeclVarList?)>
+ <!ELEMENT Actor (ValueParameterList? InputPortList? OutputPortList? DeclVarList?)>
+
+<!-- Ports -->
+<!ELEMENT InputPortList (PortDecl*)>
+<!ELEMENT OutputPortTypeList (PortDecl*)>
+<!ELEMENT PortDecl (TypeExpr?)>
+<!ATTLIST PortDecl name CDATA #REQUIRED>
 
 <!-- Declarations -->
 <!ELEMENT DeclTypeList (DeclType*)>
@@ -16,11 +22,12 @@
 
 <!ELEMENT InitialValue (%expression;)>
 
-<!ELEMENT PortName >
-<!ATTLIST PortName name CDATA #REQUIRED>
+<!ELEMENT Port >
+<!ATTLIST Port name CDATA #REQUIRED>
+<!ATTLIST Port offset CDATA #IMPLIED>
 
 <!-- Parameters -->
-<!ELEMENT ValueParameters (ParDeclValue*)>
+<!ELEMENT ValueParameterList (ParDeclValue*)>
 <!ELEMENT ParDeclValue (TypeExpr?)>
 <!ATTLIST ParDeclValue name CDATA #REQUIRED>
 
@@ -29,19 +36,22 @@
 <!-- Expression -->
 <!ENTITY % expression "ExprApplication, ExprBinaryOp, ExprField, ExprIf, ExprIndexer, ExprInput, ExprLambda, ExprLet, ExprList, ExprLiteral, ExprMap, ExprProc, ExprSet, ExprUnaryOp, ExprVariable">
 <!ELEMENT ExprApplication (Function, ArgumentList)>
-<!ELEMENT ExprBinaryOp (Operations, Operands)>
+<!ELEMENT ExprBinaryOp (OperationList, OperandList)>
 <!ELEMENT ExprField (%expression;) Field>
 <!ELEMENT ExprIf (Condition, TrueExpr, ElseExpr)>
 <!ELEMENT ExprIndexer (Structure, Location)>
-<!ELEMENT ExprInput > <!-- TODO -->
-<!ELEMENT ExprLambda (ValueParameters? ReturnType? DeclVarList? BodyExpr)>
+<!ELEMENT ExprInput PortName>
+<!ATTLIST ExprInput offset CDATA #REQUIRED>
+<!ATTLIST ExprInput hasRepeat (true|false) #REQUIRED>
+<!ATTLIST ExprInput repeat CDATA #IMPLIED>
+<!ATTLIST ExprInput patternLength CDATA #IMPLIED>
+<!ELEMENT ExprLambda (ValueParameterList? ReturnType? DeclVarList? BodyExpr)>
 <!ELEMENT ExprLet (DeclVarList? BodyExpr)>
-<!ELEMENT ExprList (Elements? GeneratorFilterList?)>
+<!ELEMENT ExprList (ElementList? GeneratorFilterList?)>
 <!ELEMENT ExprLiteral >
 <!ATTLIST ExprLiteral text CDATA #REQUIRED>
 <!ELEMENT ExprMap (Maps? GeneratorFilterList?)>
-<!ELEMENT ExprProc (ValueParameters? DeclVarList? StatementList)>
-<!ELEMENT ExprSet (Elements? GeneratorFilterList?)>
+<!ELEMENT ExprProc (ValueParameterList? DeclVarList? StatementList)>
 <!ELEMENT ExprUnaryOp (%expression;)>
 <!ATTLIST ExprVariable operation CDATA #REQUIRED>
 <!ELEMENT ExprVariable >
@@ -51,7 +61,7 @@
 <!ELEMENT BodyExpr (%expression;)>
 <!ELEMENT CollectionExpr (%expression;)>
 <!ELEMENT Condition (%expression;)>
-<!ELEMENT Elements (%expression;*)>
+<!ELEMENT ElementList (%expression;*)>
 <!ELEMENT ElseExpr (%expression;)>
 <!ELEMENT Field>
 <!ATTLIST Field name CDATA #REQUIRED>
@@ -64,10 +74,10 @@
 <!ELEMENT Maps (MapKey, MapValue)>
 <!ELEMENT MapKey (%expression;)>
 <!ELEMENT MapValue (%expression;)>
-<!ELEMENT Operations (Operation*)>
+<!ELEMENT OperationList (Operation*)>
 <!ELEMENT Operation >
 <!ATTLIST Operation operation CDATA #REQUIRED>
-<!ELEMENT Operands (%expression;*)
+<!ELEMENT OperandList (%expression;*)
 <!ELEMENT ReturnType (TypeExpr)>
 <!ELEMENT StatementList (%statement)*>
 <!ELEMENT Structure (%expression;)>

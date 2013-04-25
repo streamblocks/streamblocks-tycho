@@ -8,7 +8,6 @@ import net.opendf.ir.net.Node;
 
 /**
  * PortContainer is the common base class of things that contain input and output ports, viz. {@link Network}s and {@link Node}s. 
- * Each collection of ports is represented by a top-level {@link CompositePortDecl}. 
  * 
  * @author Jorn W. Janneck <jwj@acm.org>
  *
