@@ -39,8 +39,7 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
-import java.util.Map.Entry;
-
+import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
@@ -53,29 +52,31 @@ public class ExprMap extends Expression {
 		return v.visitExprMap(this, p);
 	}
 
-	public ExprMap(ImmutableList<Entry<Expression, Expression>> mappings, ImmutableList<GeneratorFilter> generators) {
+	public ExprMap(ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
+			ImmutableList<GeneratorFilter> generators) {
 		this(null, mappings, generators);
 	}
-	
-	private ExprMap(ExprMap original, ImmutableList<Entry<Expression, Expression>> mappings, ImmutableList<GeneratorFilter> generators) {
+
+	private ExprMap(ExprMap original, ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
+			ImmutableList<GeneratorFilter> generators) {
 		super(original);
 		this.mappings = ImmutableList.copyOf(mappings);
 		this.generators = ImmutableList.copyOf(generators);
 	}
-	
-	public ExprMap copy(ImmutableList<Entry<Expression, Expression>> mappings, ImmutableList<GeneratorFilter> generators) {
+
+	public ExprMap copy(ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
+			ImmutableList<GeneratorFilter> generators) {
 		if (Lists.equals(this.mappings, mappings) && Lists.equals(this.generators, generators)) {
 			return this;
 		}
 		return new ExprMap(this, mappings, generators);
 	}
 
-
-	public ExprMap(ImmutableList<Entry<Expression, Expression>> mappings) {
+	public ExprMap(ImmutableList<ImmutableEntry<Expression, Expression>> mappings) {
 		this(mappings, null);
 	}
 
-	public ImmutableList<Entry<Expression, Expression>> getMappings() {
+	public ImmutableList<ImmutableEntry<Expression, Expression>> getMappings() {
 		return mappings;
 	}
 
@@ -83,6 +84,6 @@ public class ExprMap extends Expression {
 		return generators;
 	}
 
-	private ImmutableList<Entry<Expression, Expression>> mappings;
+	private ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
 	private ImmutableList<GeneratorFilter> generators;
 }

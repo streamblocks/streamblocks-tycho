@@ -13,7 +13,7 @@
 %package "net.opendf.parser.lth";
 %import "net.opendf.ir.common.*";
 %import "net.opendf.ir.util.ImmutableList";
-%import "net.opendf.ir.util.Pair";
+%import "net.opendf.ir.util.ImmutableEntry";
 %import "net.opendf.ir.net.ast.NetworkDefinition";
 %import "net.opendf.ir.net.ast.EntityExpr";
 %import "net.opendf.ir.net.ast.EntityIfExpr";

@@ -42,9 +42,9 @@ package net.opendf.ir.common;
 import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
-import net.opendf.ir.util.Pair;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -56,11 +56,11 @@ public class TypeExpr extends AbstractIRNode {
 		return name;
 	}
 
-	public ImmutableList<Pair<String, TypeExpr>> getTypeParameters() {
+	public ImmutableList<ImmutableEntry<String, TypeExpr>> getTypeParameters() {
 		return typeParameters;
 	}
 
-	public ImmutableList<Pair<String, Expression>> getValueParameters() {
+	public ImmutableList<ImmutableEntry<String, Expression>> getValueParameters() {
 		return valueParameters;
 	}
 
@@ -68,13 +68,13 @@ public class TypeExpr extends AbstractIRNode {
 		this(null, name, null, null);
 	}
 
-	public TypeExpr(String name, ImmutableList<Pair<String, TypeExpr>> typeParameters,
-			ImmutableList<Pair<String, Expression>> valueParameters) {
+	public TypeExpr(String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
+			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
 		this(null, name, typeParameters, valueParameters);
 	}
 
-	private TypeExpr(TypeExpr original, String name, ImmutableList<Pair<String, TypeExpr>> typeParameters,
-			ImmutableList<Pair<String, Expression>> valueParameters) {
+	private TypeExpr(TypeExpr original, String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
+			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
 		super(original);
 		this.typeParameters = ImmutableList.copyOf(typeParameters);
 		this.valueParameters = ImmutableList.copyOf(valueParameters);
@@ -84,8 +84,8 @@ public class TypeExpr extends AbstractIRNode {
 		return copy(name, null, null);
 	}
 
-	public TypeExpr copy(String name, ImmutableList<Pair<String, TypeExpr>> typeParameters,
-			ImmutableList<Pair<String, Expression>> valueParameters) {
+	public TypeExpr copy(String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
+			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
 		if (Objects.equals(this.name, name) && Lists.equals(this.typeParameters, typeParameters)
 				&& Lists.equals(this.valueParameters, valueParameters)) {
 			return this;
@@ -94,7 +94,7 @@ public class TypeExpr extends AbstractIRNode {
 	}
 
 	private String name;
-	private ImmutableList<Pair<String, TypeExpr>> typeParameters;
-	private ImmutableList<Pair<String, Expression>> valueParameters;
+	private ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters;
+	private ImmutableList<ImmutableEntry<String, Expression>> valueParameters;
 
 }

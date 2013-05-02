@@ -13,7 +13,7 @@
 %package "net.opendf.parser.lth";
 %import "net.opendf.ir.*";
 %import "net.opendf.ir.util.ImmutableList";
-%import "net.opendf.ir.util.Pair";
+%import "net.opendf.ir.util.ImmutableEntry";
 %import "net.opendf.ir.common.*";
 %import "net.opendf.ir.cal.*";
 %import "net.opendf.ir.cal.Action";

@@ -39,7 +39,7 @@ import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
-import net.opendf.ir.util.Pair;
+import net.opendf.ir.util.ImmutableEntry;
 
 public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisitor<Void, Element>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>{
 	private java.io.PrintStream out = System.out;
@@ -432,19 +432,19 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
    				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
 			out.append("(");
 			String sep = "";
-			for(Pair<String, Expression>par : type.getValueParameters()){
+			for(ImmutableEntry<String, Expression>par : type.getValueParameters()){
 				out.append(sep);
 				sep = ", ";
-				out.append(par.getFirst());
+				out.append(par.getKey());
 				out.append("=");
-				par.getSecond().accept(this, null);
+				par.getValue().accept(this, null);
 			}
-			for(Pair<String, TypeExpr>par : type.getTypeParameters()){
+			for(ImmutableEntry<String, TypeExpr>par : type.getTypeParameters()){
 				out.append(sep);
 				sep = ", ";
-				out.append(par.getFirst());
+				out.append(par.getKey());
 				out.append(":");
-				print(par.getSecond());
+				print(par.getValue());
 			}
 			out.append(")");
 		}

@@ -21,8 +21,8 @@ import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
+import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.util.ImmutableList;
-import net.opendf.ir.util.Pair;
 
 public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisitor<Void, Void>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Void> {
 	private java.io.PrintStream out = System.out;
@@ -357,19 +357,19 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
    				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
 			out.append("(");
 			String sep = "";
-			for(Pair<String, Expression>par : type.getValueParameters()){
+			for(ImmutableEntry<String, Expression>par : type.getValueParameters()){
 				out.append(sep);
 				sep = ", ";
-				out.append(par.getFirst());
+				out.append(par.getKey());
 				out.append("=");
-				par.getSecond().accept(this, null);
+				par.getValue().accept(this, null);
 			}
-			for(Pair<String, TypeExpr>par : type.getTypeParameters()){
+			for(ImmutableEntry<String, TypeExpr>par : type.getTypeParameters()){
 				out.append(sep);
 				sep = ", ";
-				out.append(par.getFirst());
+				out.append(par.getKey());
 				out.append(":");
-				print(par.getSecond());
+				print(par.getValue());
 			}
 			out.append(")");
 		}
