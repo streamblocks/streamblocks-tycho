@@ -35,37 +35,50 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
-
+import java.util.Objects;
 
 public class ExprIf extends Expression {
 
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprIf(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprIf(this, p);
+	}
 
-    public ExprIf(Expression condition, Expression thenExpr, Expression elseExpr) {
-        this.condition = condition;
-        this.thenExpr = thenExpr;
-        this.elseExpr = elseExpr;
-    }
+	public ExprIf(Expression condition, Expression thenExpr, Expression elseExpr) {
+		this(null, condition, thenExpr, elseExpr);
+	}
 
-    public Expression getCondition() {
-        return condition;
-    }
+	private ExprIf(ExprIf original, Expression condition, Expression thenExpr, Expression elseExpr) {
+		super(original);
+		this.condition = condition;
+		this.thenExpr = thenExpr;
+		this.elseExpr = elseExpr;
+	}
 
-    public Expression getElseExpr() {
-        return elseExpr;
-    }
+	public ExprIf copy(Expression condition, Expression thenExpr, Expression elseExpr) {
+		if (Objects.equals(this.condition, condition) && Objects.equals(this.thenExpr, thenExpr)
+				&& Objects.equals(this.elseExpr, elseExpr)) {
+			return this;
+		}
+		return new ExprIf(this, condition, thenExpr, elseExpr);
+	}
 
-    public Expression getThenExpr() {
-        return thenExpr;
-    }
+	public Expression getCondition() {
+		return condition;
+	}
 
-    private Expression  condition;
-    private Expression  thenExpr;
-    private Expression  elseExpr;
+	public Expression getElseExpr() {
+		return elseExpr;
+	}
+
+	public Expression getThenExpr() {
+		return thenExpr;
+	}
+
+	private Expression condition;
+	private Expression thenExpr;
+	private Expression elseExpr;
 }

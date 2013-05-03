@@ -1,6 +1,5 @@
 package net.opendf.ir.net;
 import net.opendf.ir.common.Expression;
-import net.opendf.ir.net.ToolAttribute.Kind;
 import net.opendf.util.PrettyPrint;
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>

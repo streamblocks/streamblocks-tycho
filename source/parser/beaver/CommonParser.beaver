@@ -4,7 +4,7 @@
  *****************************************************************************/
 //--- actor parameter ---
 actor_parameter_list =
-    actor_parameter.p                              {: ArrayList result = new ArrayList(); result.add(p); return new Symbol(result); :}
+    actor_parameter.p                              {: return new Symbol(ImmutableList.builder().add(p)); :}
   | actor_parameter_list.l COMMA actor_parameter.p {: l.add(p); return _symbol_l; :}
   ;
 actor_parameter =
@@ -28,14 +28,14 @@ field = IDENTIFIER.id {: return new Symbol(new Field((String) id.value)); :} ;
 
 //=== Declaration =============================================================
 decl_list =
-    decl.d                   {: ArrayList l = new ArrayList(); l.add(d); return new Symbol(l); :}
+    decl.d                   {: return new Symbol(ImmutableList.builder().add(d)); :}
   | decl_list.l COMMA decl.d {: l.add(d); return _symbol_l; :}
   ;
 decl_block =
-    VAR decl_list.d          {: return _symbol_d; :}
+    VAR decl_list.d          {: return new Symbol(d.build()); :}
   ;
 decl_block_opt =
-                             {: return new Symbol(new ArrayList()); :}
+                             {: return new Symbol(ImmutableList.empty()); :}
   | VAR decl_list.d          {: return _symbol_d; :}
   ;
 decl =
@@ -73,11 +73,11 @@ port_decl =
   | MULTI type.type IDENTIFIER.id {: return new Symbol(new PortDecl((String)id.value, type)); :}
   ;
 port_decl_list_opt =
-                     {: return new Symbol(new ArrayList<PortDecl>()); :}
-  | port_decl_list.l {: return _symbol_l; :}
+                     {: return new Symbol(null); :}
+  | port_decl_list.l {: return new Symbol(l.build()); :}
   ;
 port_decl_list =
-    port_decl.port_decl                {: ArrayList<PortDecl> l = new ArrayList<PortDecl>(); l.add(port_decl); return new Symbol(l); :}
+    port_decl.port_decl                {: return new Symbol(ImmutableList.builder().add(port_decl)); :}
   | port_decl_list.l COMMA port_decl.d {: l.add(d); return _symbol_l; :}
   ;
 
@@ -94,32 +94,30 @@ type_parameter =
     IDENTIFIER.id type_bound_opt.type_bound {: return new Symbol(new ParDeclType((String)id.value)); :}
   ;
 type_parameter_block =
-  LBRACK type_parameter_list.l? RBRACK {: return _symbol_l; :}
+  LBRACK type_parameter_list.l? RBRACK {: return new Symbol(l == null ? null : l.build()); :}
   ;
 type_parameter_list =
-    type_parameter.tp                             {: ArrayList l = new ArrayList(); l.add(tp); return new Symbol(l); :}
+    type_parameter.tp                             {: return new Symbol(ImmutableList.builder().add(tp)); :}
   | type_parameter_list.l COMMA type_parameter.tp {: l.add(tp); return _symbol_l; :}
   ;
 type_list =
-    type.t                   {: ArrayList l = new ArrayList(); l.add(t); return new Symbol(l); :}
+    type.t                   {: return new Symbol(ImmutableList.builder().add(t)); :}
   | type_list.l COMMA type.t {: l.add(t); return _symbol_l; :}
   ;
 
 //used by NlParser
 type =
     IDENTIFIER.id                                               {: return new Symbol(new TypeExpr((String)id.value)); :}
-//TODO, according to the grammar in CLR "MyType[a<int, b<float]" is a valid type. The rule below should include a type_par_list. This can not be represented in the IR, so I use a type_list.
-  | IDENTIFIER.id LBRACK type_list.t? RBRACK                    {: return new Symbol(t==null ? new TypeExpr((String)id.value) : new TypeExpr((String)id.value, (TypeExpr[])t.toArray(new TypeExpr[t.size()]))); :}
-  | IDENTIFIER.id LPAREN type_attribute_list.attributes? RPAREN {: Map<String,Expression> valueParameters = new java.util.HashMap();
-                                                                   Map<String,TypeExpr> typeParameters = new java.util.HashMap();
+  | IDENTIFIER.id LPAREN type_attribute_list.attributes? RPAREN {: ImmutableList.Builder valueParameters = ImmutableList.builder();
+                                                                   ImmutableList.Builder typeParameters = ImmutableList.builder();
                                                                    for(Map.Entry map : (ArrayList<Map.Entry>)attributes){
                                                                      if(map.getValue() instanceof Expression){
-                                                                       valueParameters.put((String)map.getKey(), (Expression)map.getValue());
+                                                                       valueParameters.add(ImmutableEntry.of(map.getKey(), map.getValue()));
                                                                      } else {
-                                                                       typeParameters.put((String)map.getKey(), (TypeExpr)map.getValue());
+                                                                       typeParameters.add(ImmutableEntry.of(map.getKey(), map.getValue()));
                                                                      }
                                                                    }
-                                                                   return new Symbol(new TypeExpr((String)id.value, typeParameters, valueParameters));
+                                                                   return new Symbol(new TypeExpr((String)id.value, typeParameters.build(), valueParameters.build()));
                                                                 :}
 //TODO, types involving '->' can not be represented in the internal representation
   | LBRACK type_list.param? EDGE type.result_type RBRACK     {: return new Symbol(null); :}
@@ -139,41 +137,38 @@ edge_type =
 
 //=== Expression ==============================================================
 procedure_expr_body =
-    LPAREN formal_parameter_list.param? RPAREN decl_block.decl? stmt_block_opt.body end_proc {: return new Symbol(new ExprProc(new ParDeclType[0], 
-                                                                                                                    param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
-                                                                                                                    new DeclType[0],
-                                                                                                                    decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
-                                                                                                                    (Statement[])body.toArray(new Statement[body.size()]))); :}
+    LPAREN formal_parameter_list.param? RPAREN decl_block.decl? stmt_block_opt.body end_proc
+      {:  return new Symbol(
+            new ExprProc(
+              null, 
+              param==null ? ImmutableList.empty() : param.build(),
+              new StmtBlock(null, decl, body)
+            )
+          ); :}
   ;
 stmt_block_opt =
-                                  {: return new Symbol(new ArrayList()); :}
+                                  {: return new Symbol(ImmutableList.empty()); :}
   | do_begin statement_list_opt.s {: return _symbol_s; :}
   ;
 lambda_expr_body =
     LPAREN formal_parameter_list.param? RPAREN expression.body end_lambda
-         {: return new Symbol(new ExprLambda(new ParDeclType[0],
-                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
-                                             new DeclType[0], 
-                                             new DeclVar[0],
+         {: return new Symbol(new ExprLambda(null,
+                                             param==null ? null : param.build(),
                                              body,
                                              null)); :}
   | LPAREN formal_parameter_list.param? RPAREN decl_block.decl? COLON expression.body end_lambda
-         {: return new Symbol(new ExprLambda(new ParDeclType[0],
-                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
-                                             new DeclType[0],
-                                             decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
-                                             body,
+         {: return new Symbol(new ExprLambda(null,
+                                             param==null ? null : param.build(),
+                                             new ExprLet(null, decl, body),
                                              null)); :}
   | LPAREN formal_parameter_list.param? RPAREN edge_type.t decl_block.decl? COLON expression.body end_lambda
-         {: return new Symbol(new ExprLambda(new ParDeclType[0],
-                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
-                                             new DeclType[0],
-                                             decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
-                                             body,
+         {: return new Symbol(new ExprLambda(null,
+                                             param==null ? null : param.build(),
+                                             new ExprLet(null, decl, body),
                                              t)); :}
   ;
 map_list =
-    map_entry.m                  {: ArrayList l = new ArrayList(); l.add(m); return new Symbol(l); :}
+    map_entry.m                  {: return new Symbol(ImmutableList.builder().add(m)); :}
   | map_list.l COMMA map_entry.m {: l.add(m); return _symbol_l; :}
   ;
 map_entry =
@@ -183,26 +178,26 @@ tail =
     BAR expression.e {: return _symbol_e; :}
   ;
 expression_list =
-    expression.e                         {: ArrayList l = new ArrayList(); l.add(e); return new Symbol(l); :}
+    expression.e                         {: return new Symbol(ImmutableList.builder().add(e)); :}
   | expression_list.l COMMA expression.e {: l.add(e); return _symbol_l; :}
   ;
 expression_list_opt =
-                      {: return new Symbol(new ArrayList()); :}
-  | expression_list.n {: return _symbol_n; :}
+                      {: return new Symbol(ImmutableList.empty()); :}
+  | expression_list.n {: return new Symbol(n.build()); :}
   ;
 method_invocation =
-    simple_expression.function LPAREN expression_list.args? RPAREN {: return new Symbol(new ExprApplication(function, args==null ? new Expression[0] : (Expression[])args.toArray(new Expression[args.size()]))); :}
+    simple_expression.function LPAREN expression_list_opt.args RPAREN {: return new Symbol(new ExprApplication(function, args)); :}
   ;
 literal =
-    INTEGER_LITERAL.txt        {: return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value))); :}
-  | LONG_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value))); :}
-  | FLOATING_POINT_LITERAL.txt {: return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value))); :}
-  | DOUBLE_LITERAL.txt         {: return new Symbol(new ExprLiteral(ExprLiteral.litReal, ((String)txt.value))); :}
-  | TRUE_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.litTrue, ((String)txt.value))); :}
-  | FALSE_LITERAL.txt          {: return new Symbol(new ExprLiteral(ExprLiteral.litFalse, ((String)txt.value))); :}
-  | CHARACTER_LITERAL.txt      {: return new Symbol(new ExprLiteral(ExprLiteral.litChar, ((String)txt.value))); :}
-  | STRING_LITERAL.txt         {: return new Symbol(new ExprLiteral(ExprLiteral.litString, ((String)txt.value))); :}
-  | NULL_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.litNull, ((String)txt.value))); :}
+    INTEGER_LITERAL.txt        {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value))); :}
+  | LONG_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value))); :}
+  | FLOATING_POINT_LITERAL.txt {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value))); :}
+  | DOUBLE_LITERAL.txt         {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.Real, ((String)txt.value))); :}
+  | TRUE_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.True, ((String)txt.value))); :}
+  | FALSE_LITERAL.txt          {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.False, ((String)txt.value))); :}
+  | CHARACTER_LITERAL.txt      {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.Char, ((String)txt.value))); :}
+  | STRING_LITERAL.txt         {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.String, ((String)txt.value))); :}
+  | NULL_LITERAL.txt           {: return new Symbol(new ExprLiteral(ExprLiteral.Kind.Null, ((String)txt.value))); :}
   ;
 primary =
     literal.l                                            {: return _symbol_l; :}
@@ -217,20 +212,17 @@ simple_expression =
   | OLD variable.v                                                  {: return new Symbol(new ExprVariable(v)); :}
   | method_invocation.m                                             {: return _symbol_m; :}
   | IF expression.c THEN expression.e1 ELSE expression.e2 END       {: return new Symbol(new ExprIf(c, e1, e2)); :}
-  | LBRACE expression_list_opt.e RBRACE                             {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]))); :}
-  | LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE  {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
-  | LBRACK expression_list_opt.e RBRACK                             {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]))); :}
+  | LBRACE expression_list_opt.e RBRACE                             {: return new Symbol(new ExprSet(e)); :}
+  | LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE  {: return new Symbol(new ExprSet(e, l.build())); :}
+  | LBRACK expression_list_opt.e RBRACK                             {: return new Symbol(new ExprList(e)); :}
 //TODO, tail is ignored
-  | LBRACK expression_list_opt.e tail.tail RBRACK                   {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]))); :}
-  | LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK  {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
+  | LBRACK expression_list_opt.e tail.tail RBRACK                   {: return new Symbol(new ExprList(e)); :}
+  | LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK  {: return new Symbol(new ExprList(e, l.build())); :}
 //TODO, tail is ignored
-  | LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK {: return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
-  | MAP LBRACE map_list.m? RBRACE                                            {: return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
-                                                                                                              (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()]))); :}
-  | MAP LBRACE map_list.m? COLON for_generator_list.generators RBRACE        {: return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
-                                                                                                              (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()]), 
-                                                                                                              (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()]))); :}
-  | LET decl_list.l COLON expression.e end_let                               {: return new Symbol(new ExprLet(new DeclType[0], (DeclVar[])l.toArray(new DeclVar[l.size()]), e)); :}
+  | LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK {: return new Symbol(new ExprList(e, l.build())); :}
+  | MAP LBRACE map_list.m? RBRACE                                            {: return new Symbol(new ExprMap(m==null? null : m.build())); :}
+  | MAP LBRACE map_list.m? COLON for_generator_list.generators RBRACE        {: return new Symbol(new ExprMap(m==null? null : m.build(), generators.build())); :}
+  | LET decl_list.l COLON expression.e end_let                               {: return new Symbol(new ExprLet(null, l.build(), e)); :}
   | LAMBDA lambda_expr_body.lambda                                           {: return _symbol_lambda; :}
 //TODO, const is ignored
   | CONST LAMBDA lambda_expr_body.lambda                                     {: return _symbol_lambda;:}
@@ -254,21 +246,16 @@ indexer_start =
 //used by NlParser
 expression =
     indexing_expression.e {: return _symbol_e; :}
-  | expression.arg1 operator.operator indexing_expression.arg2 {: String[] operators;
-                                                               Expression[] operands;
+  | expression.arg1 operator.operator indexing_expression.arg2 {: ImmutableList<String> operators;
+                                                               ImmutableList<Expression> operands;
                                                                boolean arg1IsPar = _symbol_arg1 instanceof ParenthesSymbol;
                                                                if((arg1 instanceof ExprBinaryOp) && !(arg1IsPar)){
                                                                  ExprBinaryOp expr = (ExprBinaryOp)arg1;
-                                                                 operators = Arrays.copyOf(expr.getOperations(), expr.getOperations().length + 1);
-                                                                 operators[operators.length-1] = operator;
-                                                                 operands = Arrays.copyOf(expr.getOperands(), expr.getOperands().length + 1);
-                                                                 operands[operands.length-1] = arg2;
+                                                                 operators = ImmutableList.<String>builder().addAll(expr.getOperations()).add(operator).build();
+                                                                 operands = ImmutableList.<Expression>builder().addAll(expr.getOperands()).add(arg2).build();
                                                                } else {
-                                                                 operators = new String[1];
-                                                                 operators[0] = operator;
-                                                                 operands = new Expression[2];
-                                                                 operands[0] = arg1;
-                                                                 operands[1] = arg2;
+                                                                 operators = ImmutableList.of(operator);
+                                                                 operands = ImmutableList.of(arg1, arg2);
                                                                }
                                                                return new Symbol(new ExprBinaryOp(operators, operands));
                                                             :}
@@ -287,7 +274,7 @@ formal_parameter =
   | type.t IDENTIFIER.id {: return new Symbol(new ParDeclValue((String)id.value, t)); :}
   ;
 formal_parameter_list =
-    formal_parameter.p                               {: ArrayList l = new ArrayList(); l.add(p); return new Symbol(l); :}
+    formal_parameter.p                               {: return new Symbol(ImmutableList.builder().add(p)); :}
   | formal_parameter_list.l COMMA formal_parameter.p {: l.add(p);  return _symbol_l; :}
   ;
 //=== Statement ===============================================================
@@ -300,49 +287,45 @@ statement =
                                                          return new Symbol(new StmtAssignment(new LValueVariable(new Variable("$illegal")), value));
                                                        :}
   | method_invocation.m SEMICOLON    {: return new Symbol(new StmtCall(m.getFunction(), m.getArgs())); :}
-  | BEGIN statement_list_opt.s END   {: return new Symbol(new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()]))); :}
-  | BEGIN VAR decl_list.d DO statement_list_opt.s END {: return new Symbol(new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()]))); :}
-  | IF expression.e THEN statement_list_opt.s end_if  {: return new Symbol(new StmtIf(e, new StmtBlock(null, null, (Statement[])s.toArray(new Statement[s.size()])), null)); :}
+  | BEGIN statement_list_opt.s END   {: return new Symbol(new StmtBlock(null, null, s)); :}
+  | BEGIN VAR decl_list.d DO statement_list_opt.s END {: return new Symbol(new StmtBlock(null, d.build(), s)); :}
+  | IF expression.e THEN statement_list_opt.s end_if  {: return new Symbol(new StmtIf(e, new StmtBlock(null, null, s), null)); :}
   | IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if {: return new Symbol(new StmtIf(e, 
-                                                                                                                 new StmtBlock(null, null, (Statement[])s1.toArray(new Statement[s1.size()])),
-                                                                                                                 new StmtBlock(null, null, (Statement[])s2.toArray(new Statement[s2.size()])))); :}
-  | WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while {: return new Symbol(new StmtWhile(e, new StmtBlock(new DeclType[0],
-                                                                                                                              (DeclVar[])d.toArray(new DeclVar[d.size()]),
-                                                                                                                              (Statement[])s.toArray(new Statement[s.size()])))); :}
+                                                                                                                 new StmtBlock(null, null, s1),
+                                                                                                                 new StmtBlock(null, null, s2))); :}
+  | WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while {: return new Symbol(new StmtWhile(e, new StmtBlock(null, d, s))); :}
 //TODO choose statements are ignored
   | choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
   | choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
   | choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
 
-  | for_generator_list.g DO statement_list_opt.s end_foreach              {: return new Symbol(new StmtForeach((GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]),
-                                                                                                               new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()])))); :}
-  | for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach {: return new Symbol(new StmtForeach((GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]),
-                                                                                                               new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()])))); :}
+  | for_generator_list.g DO statement_list_opt.s end_foreach              {: return new Symbol(new StmtForeach(g.build(), new StmtBlock(null, null, s))); :}
+  | for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach {: return new Symbol(new StmtForeach(g.build(), new StmtBlock(null, d, s))); :}
   ;
 // note, using the normal left recursion will cause an ambiguity between "COMMA expression" and "COMMA generator"
 choose_generator_list =
-    CHOOSE        generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, null)); return new Symbol(l); :}
-  | CHOOSE type.t generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, null)); return new Symbol(l); :}
-  | CHOOSE        generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, filters)); return new Symbol(l); :}
-  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, filters)); return new Symbol(l); :}
-  | CHOOSE        generator_variable_list.vars IN expression.e COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars, e, null)); return _symbol_l; :}
-  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars, e, null)); return _symbol_l; :}
-  | CHOOSE        generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars, e, filters)); return _symbol_l; :}
-  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars, e, filters)); return _symbol_l; :}
+    CHOOSE        generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars.build(), e, null)); return new Symbol(l); :}
+  | CHOOSE type.t generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars.build(), e, null)); return new Symbol(l); :}
+  | CHOOSE        generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars.build(), e, filters.build())); return new Symbol(l); :}
+  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars.build(), e, filters.build())); return new Symbol(l); :}
+  | CHOOSE        generator_variable_list.vars IN expression.e COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars.build(), e, null)); return _symbol_l; :}
+  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars.build(), e, null)); return _symbol_l; :}
+  | CHOOSE        generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars.build(), e, filters.build())); return _symbol_l; :}
+  | CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars.build(), e, filters.build())); return _symbol_l; :}
   ;
 // note, using the normal left recursion will cause an ambiguity between "COMMA expression" and "COMMA generator"
 for_generator_list =
-    for_foreach        generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, null)); return new Symbol(l); :}
-  | for_foreach type.t generator_variable_list.vars IN expression.e {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, null)); return new Symbol(l); :}
-  | for_foreach        generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, filters)); return new Symbol(l); :}
-  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters {: ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, filters)); return new Symbol(l); :}
-  | for_foreach        generator_variable_list.vars IN expression.e COMMA for_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars, e, null)); return _symbol_l; :}
-  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars, e, null)); return _symbol_l; :}
-  | for_foreach        generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l {: l.add(0, makeGeneratorFilter(null, vars, e, filters)); return _symbol_l; :}
-  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l {: l.add(0, makeGeneratorFilter(t, vars, e, filters)); return _symbol_l; :}
+    for_foreach        generator_variable_list.vars IN expression.e {: return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, null))); :}
+  | for_foreach type.t generator_variable_list.vars IN expression.e {: return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, null))); :}
+  | for_foreach        generator_variable_list.vars IN expression.e COMMA expression_list.filters {: return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, filters.build()))); :}
+  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters {: return new Symbol(ImmutableList.builder().add((makeGeneratorFilter(t, vars.build(), e, filters.build())))); :}
+  | for_foreach        generator_variable_list.vars IN expression.e COMMA for_generator_list.l {: return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, null)).addAll(l.build())); :}
+  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l {: return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, null)).addAll(l.build())); :}
+  | for_foreach        generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l {: return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, filters.build())).addAll(l.build())); :}
+  | for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l {: return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, filters.build())).addAll(l.build())); :}
   ;
 generator_variable_list =
-    IDENTIFIER.id                                 {: ArrayList l = new ArrayList(); l.add(id); return new Symbol(l); :}
+    IDENTIFIER.id                                 {: return new Symbol(ImmutableList.builder().add(id.value)); :}
   | generator_variable_list.l COMMA IDENTIFIER.id {: l.add(id); return _symbol_l; :}
   ;
 for_foreach =
@@ -375,10 +358,10 @@ end_while =
   | ENDWHILE.ENDWHILE   ;
 
 statement_list_opt =
-                       {: return new Symbol(new ArrayList()); :}
-  | statement_list.l   {: return _symbol_l; :}
+                       {: return new Symbol(ImmutableList.empty()); :}
+  | statement_list.l   {: return new Symbol(l.build()); :}
   ;
 statement_list =
-    statement.n                  {: ArrayList l = new ArrayList(); l.add(n); return new Symbol(l); :}
+    statement.n                  {: return new Symbol(ImmutableList.builder().add(n)); :}
   | statement_list.l statement.n {: l.add(n); return _symbol_l; :}
   ;

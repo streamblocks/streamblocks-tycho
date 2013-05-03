@@ -35,11 +35,11 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.cal;
 
-import java.util.List;
+import java.util.Objects;
 
 import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.DeclType;
@@ -50,55 +50,76 @@ import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.QID;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
+public class Actor extends DeclEntity {
 
-public class Actor extends DeclEntity  {
+	public Actor(String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
+			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+		this(null, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
+				actions, scheduleFSM, priorities, invariants);
+	}
 
-	    
-	public Actor(String name, NamespaceDecl namespace,
-			ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls,
-        PortDecl [] inputPorts, PortDecl [] outputPorts,
-        Action [] initializers, Action [] actions, 
-        ScheduleFSM scheduleFSM, List<QID> [] priorities, Expression [] invariants)
-    {
-		super(name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
-        
-        this.initializers = initializers;
-        this.actions = actions;
-        this.scheduleFSM = scheduleFSM;
-        this.priorities = priorities;
-        this.invariants = invariants;
-    }
-		
+	private Actor(Actor original, String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
+			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+		super(original, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
 
-	
+		this.initializers = initializers;
+		this.actions = actions;
+		this.scheduleFSM = scheduleFSM;
+		this.priorities = priorities;
+		this.invariants = invariants;
+	}
 
-    public Action [] getActions() {
-        return actions;
-    }
+	public Actor copy(String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
+			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+		if (Objects.equals(getName(), name) && Objects.equals(getNamespaceDecl(), namespace)
+				&& Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
+				&& Lists.equals(getTypeDecls(), typeDecls) && Lists.equals(getVarDecls(), varDecls)
+				&& Lists.equals(getInputPorts(), inputPorts) && Lists.equals(getOutputPorts(), outputPorts)
+				&& Lists.equals(this.initializers, initializers) && Lists.equals(this.actions, actions)
+				&& Objects.equals(this.scheduleFSM, scheduleFSM) && Lists.equals(this.priorities, priorities)
+				&& Lists.equals(this.invariants, invariants)) {
+			return this;
+		}
+		return new Actor(this, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
+				initializers, actions, scheduleFSM, priorities, invariants);
+	}
 
-    public Action [] getInitializers() {
-        return initializers;
-    }
+	public ImmutableList<Action> getActions() {
+		return actions;
+	}
 
-    public Expression [] getInvariants() {
-        return invariants;
-    }
+	public ImmutableList<Action> getInitializers() {
+		return initializers;
+	}
 
-    public ScheduleFSM getScheduleFSM() {
-    	return scheduleFSM;
-    }
+	public ImmutableList<Expression> getInvariants() {
+		return invariants;
+	}
 
-    public List<QID> [] getPriorities() {
-    	return priorities;
-    }
+	public ScheduleFSM getScheduleFSM() {
+		return scheduleFSM;
+	}
 
- 
-    private Action []       actions;
-    private ScheduleFSM     scheduleFSM;
-    private List<QID> [] 	priorities;
-    private Expression []   invariants;
+	public ImmutableList<ImmutableList<QID>> getPriorities() {
+		return priorities;
+	}
 
+	private ImmutableList<Action> actions;
+	private ScheduleFSM scheduleFSM;
+	private ImmutableList<ImmutableList<QID>> priorities;
+	private ImmutableList<Expression> invariants;
 
-    private Action []       initializers;
+	private ImmutableList<Action> initializers;
 }

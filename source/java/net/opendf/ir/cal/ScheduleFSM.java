@@ -35,35 +35,50 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.cal;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * 
  * @author jornj
  */
 
-public class ScheduleFSM extends AbstractIRNode{
+public class ScheduleFSM extends AbstractIRNode {
 
-	public ScheduleFSM(Transition[] transitions, String initialState) {
-		super();
-		this.transitions = transitions;
+	public ScheduleFSM(ImmutableList<Transition> transitions, String initialState) {
+		this(null, transitions, initialState);
+	}
+
+	private ScheduleFSM(ScheduleFSM original, ImmutableList<Transition> transitions, String initialState) {
+		super(original);
+		this.transitions = ImmutableList.copyOf(transitions);
 		this.initialState = initialState;
 	}
 	
+	public ScheduleFSM copy(ImmutableList<Transition> transitions, String initialState) {
+		if (Lists.equals(this.transitions, transitions) && Objects.equals(this.initialState, initialState)) {
+			return this;
+		}
+		return new ScheduleFSM(this, transitions, initialState);
+	}
+
+
 	public String getInitialState() {
 		return initialState;
 	}
 
-	public Transition[] getTransitions() {
+	public ImmutableList<Transition> getTransitions() {
 		return transitions;
 	}
-	
-	
-	private Transition []  transitions;
-	private String		   initialState;
+
+	private ImmutableList<Transition> transitions;
+	private String initialState;
 
 }

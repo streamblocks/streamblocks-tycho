@@ -22,7 +22,8 @@ public abstract class ParDecl extends AbstractIRNode {
 	//  Ctor
 	//
 	
-	public ParDecl(String name) {
+	public ParDecl(ParDecl original, String name) {
+		super(original);
 		this.name = name;
 	}
 	

@@ -1,27 +1,52 @@
 package net.opendf.ir.net.ast;
 
+import java.util.Map.Entry;
+import java.util.Objects;
+
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.net.ToolAttribute;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
- *
+ * 
  */
 
 public class EntityInstanceExpr extends net.opendf.ir.net.ast.EntityExpr {
 
-	public EntityInstanceExpr(String entityName, java.util.Map.Entry<String, Expression>[] parameterAssignments, ToolAttribute[] toolAttributes){
-		this.entityName = entityName;
-		this.parameterAssignments = parameterAssignments;
-		this.toolAttributes = toolAttributes;
+	public EntityInstanceExpr(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments,
+			ImmutableList<ToolAttribute> toolAttributes) {
+		this(null, entityName, parameterAssignments, toolAttributes);
 	}
-	public String getEntityName(){
+
+	private EntityInstanceExpr(EntityInstanceExpr original, String entityName,
+			ImmutableList<Entry<String, Expression>> parameterAssignments, ImmutableList<ToolAttribute> toolAttributes) {
+		super(original);
+		this.entityName = entityName;
+		this.parameterAssignments = ImmutableList.copyOf(parameterAssignments);
+		this.toolAttributes = ImmutableList.copyOf(toolAttributes);
+	}
+
+	public EntityInstanceExpr copy(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments,
+			ImmutableList<ToolAttribute> toolAttributes) {
+		if (Objects.equals(this.entityName, entityName)
+				&& Lists.equals(this.parameterAssignments, parameterAssignments)
+				&& Lists.equals(this.toolAttributes, toolAttributes)) {
+			return this;
+		}
+		return new EntityInstanceExpr(this, entityName, parameterAssignments, toolAttributes);
+	}
+
+	public String getEntityName() {
 		return entityName;
 	}
-	public java.util.Map.Entry<String, Expression>[] getParameterAssignments(){
+
+	public ImmutableList<Entry<String, Expression>> getParameterAssignments() {
 		return parameterAssignments;
 	}
-	public ToolAttribute[] getToolAttributes(){
+
+	public ImmutableList<ToolAttribute> getToolAttributes() {
 		return toolAttributes;
 	}
 
@@ -30,7 +55,7 @@ public class EntityInstanceExpr extends net.opendf.ir.net.ast.EntityExpr {
 		return v.visitEntityInstanceExpr(this, p);
 	}
 
-	private String entityName;  // the name of the actor/network
-	private java.util.Map.Entry<String, Expression>[] parameterAssignments;
-	private ToolAttribute[] toolAttributes;
+	private String entityName; // the name of the actor/network
+	private ImmutableList<Entry<String, Expression>> parameterAssignments;
+	private ImmutableList<ToolAttribute> toolAttributes;
 }

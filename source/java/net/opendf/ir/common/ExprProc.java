@@ -35,47 +35,53 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
+
 public class ExprProc extends Expression {
 
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprProc(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprProc(this, p);
+	}
 
-    public ExprProc(ParDeclType [] typeParams, ParDeclValue [] valueParams, DeclType [] typeDecls, DeclVar [] varDecls, Statement[] body) {
-    	this.typeParameters = typeParams;
-    	this.valueParameters = valueParams;
-    	this.typeDecls = typeDecls;
-    	this.varDecls = varDecls;
-        this.body = body;
-    }
+	public ExprProc(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+		this(null, typeParams, valueParams, body);
+	}
+	
+	private ExprProc(ExprProc original, ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+		super(original);
+		this.typeParameters = ImmutableList.copyOf(typeParams);
+		this.valueParameters = ImmutableList.copyOf(valueParams);
+		this.body = body;
+	}
+	
+	public ExprProc copy(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams) && Objects.equals(this.body, body)) {
+			return this;
+		}
+		return new ExprProc(this, typeParams, valueParams, body);
+	}
 
-    public ParDeclType []  getTypeParameters() {
-    	return typeParameters;
-    }
-    
-    public ParDeclValue [] getValueParameters() {
-        return valueParameters;
-    }
 
-    public DeclType[] getTypeDecls() {
-        return typeDecls;
-    }
+	public ImmutableList<ParDeclType> getTypeParameters() {
+		return typeParameters;
+	}
 
-    public DeclVar[] getVarDecls() {
-        return varDecls;
-    }
+	public ImmutableList<ParDeclValue> getValueParameters() {
+		return valueParameters;
+	}
 
-    public Statement[] getBody() {
-        return body;
-    }
+	public Statement getBody() {
+		return body;
+	}
 
-    private ParDeclType [] 	typeParameters;
-    private ParDeclValue [] valueParameters;
-    private DeclType []		typeDecls;
-    private DeclVar [] 		varDecls;
-    private Statement []    body;
+	private ImmutableList<ParDeclType> typeParameters;
+	private ImmutableList<ParDeclValue> valueParameters;
+	private Statement body;
 }

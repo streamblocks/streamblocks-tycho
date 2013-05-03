@@ -37,9 +37,21 @@ public class ITest extends Instruction {
 	//
 
 	public ITest(int c, int s1, int s0) {
+		this(null, c, s1, s0);
+	}
+
+	private ITest(ITest original, int c, int s1, int s0) {
+		super(original);
 		this.c = c;
 		this.s1 = s1;
 		this.s0 = s0;
+	}
+
+	public ITest copy(int c, int s1, int s0) {
+		if (this.c == c && this.s1 == s1 && this.s0 == s0) {
+			return this;
+		}
+		return new ITest(this, c, s1, s0);
 	}
 
 	private int c;

@@ -4,26 +4,39 @@
 
 package net.opendf.ir.common;
 
-
+import java.util.Objects;
 
 public class ExprUnaryOp extends Expression {
 
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprUnaryOp(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprUnaryOp(this, p);
+	}
 
-    public ExprUnaryOp(java.lang.String operation, Expression operand) {
-    	this.operation = operation;
-    	this.operand = operand;
-    }
-    public java.lang.String getOperation(){
-    	return operation;
-    }
-    
-    public Expression getOperand(){
-    	return operand;
-    }
+	public ExprUnaryOp(String operation, Expression operand) {
+		this(null, operation, operand);
+	}
 
-    private java.lang.String operation;
-    private Expression operand;
+	private ExprUnaryOp(ExprUnaryOp original, String operation, Expression operand) {
+		super(original);
+		this.operation = operation;
+		this.operand = operand;
+	}
+
+	public ExprUnaryOp copy(String operation, Expression operand) {
+		if (Objects.equals(this.operation, operation) && Objects.equals(this.operand, operand)) {
+			return this;
+		}
+		return new ExprUnaryOp(this, operation, operand);
+	}
+
+	public String getOperation() {
+		return operation;
+	}
+
+	public Expression getOperand() {
+		return operand;
+	}
+
+	private String operation;
+	private Expression operand;
 }

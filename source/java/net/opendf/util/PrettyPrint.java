@@ -1,5 +1,7 @@
 package net.opendf.util;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,6 +21,8 @@ import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
+import net.opendf.ir.util.ImmutableEntry;
+import net.opendf.ir.util.ImmutableList;
 
 public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisitor<Void, Void>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Void> {
 	private java.io.PrintStream out = System.out;
@@ -33,7 +37,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		printEntityDecl(network);
 		//--- variable declaration
 		incIndent();  // actor body
-		if(network.getVarDecls().length>0){
+		if(!network.getVarDecls().isEmpty()){
 			indent();
 			out.append("var");
 			incIndent();
@@ -57,7 +61,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			}
 			decIndent();
 		}
-		if(network.getStructure() != null && network.getStructure().length>0){
+		if(network.getStructure() != null && !network.getStructure().isEmpty()){
 			indent();
 			out.append("structure");
 			incIndent();
@@ -67,13 +71,13 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			}
 			decIndent();
 		}
-		print(network.getToolAttributes());
+		printToolAttributes(network.getToolAttributes());
 		decIndent();  // actor body
 		indent();
 		out.append("end network\n");
 	}
-	public void print(ToolAttribute[] toolAttributes){
-		if(toolAttributes != null && toolAttributes.length>0){
+	public void printToolAttributes(Collection<ToolAttribute> toolAttributes){
+		if(toolAttributes != null && !toolAttributes.isEmpty()){
 			indent();
 			out.append("{");
 			incIndent();
@@ -90,7 +94,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	public void printEntityDecl(DeclEntity entity){
 		out.append(entity.getName());
 		//--- type parameters
-		if(entity.getTypeParameters().length>0){
+		if(!entity.getTypeParameters().isEmpty()){
 			String sep = "";
 			out.append(" [");
 			for(ParDeclType param : entity.getTypeParameters()){
@@ -164,7 +168,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			indent();
 			out.append("endschedule");
 		}
-		if(actor.getPriorities() != null && actor.getPriorities().length>0){
+		if(actor.getPriorities() != null && !actor.getPriorities().isEmpty()){
 			indent();
 			out.append("priority");
 			incIndent();
@@ -182,10 +186,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			indent();
 			out.append("end");
 		}
-		if(actor.getInvariants() != null && actor.getInvariants().length>0){
+		if(actor.getInvariants() != null && !actor.getInvariants().isEmpty()){
 			indent();
 			out.append("invariant ");
-			print(actor.getInvariants());
+			printExpressions(actor.getInvariants());
 			out.append(" endinvariant");
 		}
 		decIndent();
@@ -203,18 +207,18 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		}
 		out.append(kind);
 		incIndent();
-		print(a.getInputPatterns());
+		printInputPatterns(a.getInputPatterns());
 		out.append(" ==> ");
-		print(a.getOutputExpressions()); 
-		if(a.getGuards() != null && a.getGuards().length>0){
+		printOutputExpressions(a.getOutputExpressions()); 
+		if(a.getGuards() != null && !a.getGuards().isEmpty()){
 			indent();
 			out.append("guard ");
-			print(a.getGuards());
+			printExpressions(a.getGuards());
 		}
-		if(a.getVarDecls() != null && a.getVarDecls().length>0){
+		if(a.getVarDecls() != null && !a.getVarDecls().isEmpty()){
 			indent();
 			out.append("var ");
-			print(a.getVarDecls());
+			printVarDecls(a.getVarDecls());
 		}
 		//TODO DeclType[] typeDecls
 		//TODO Expression[] preconditions, Expression[] postconditions) 
@@ -223,18 +227,18 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("delay ");
 			a.getDelay().accept(this, null);
 		}
-		if(a.getBody() != null && a.getBody().length>0){
+		if(a.getBody() != null && !a.getBody().isEmpty()){
 			indent();
 			out.append("do");
 			incIndent();
-			print(a.getBody());
+			printStatements(a.getBody());
 			decIndent();
 		}
 		decIndent();
 		indent();
 		out.append("endaction");
 	}
-	private void print(OutputExpression[] outputExpressions) {
+	private void printOutputExpressions(Iterable<OutputExpression> outputExpressions) {
 		String portSep = " ";
 		for(OutputExpression p : outputExpressions){
 			out.append(portSep);
@@ -254,7 +258,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("]");
 		}
 	}
-	private void print(InputPattern[] inputPatterns) {
+	private void printInputPatterns(Iterable<InputPattern> inputPatterns) {
 		String portSep = " ";
 		for(InputPattern p : inputPatterns){
 			out.append(portSep);
@@ -301,7 +305,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			var.getInitialValue().accept(this, null);
 		}
 	}
-	public void print(DeclVar[] varDecls) { // comma separated list
+	public void printVarDecls(Iterable<DeclVar> varDecls) { // comma separated list
 		String sep = "";
 		for(DeclVar v : varDecls){
 			out.append(sep);
@@ -313,7 +317,11 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	public void print(Expression e){
 		e.accept(this, null);
 	}
-	public void print(Expression[] expressions) {  // comma separated expressions
+	
+	public void printExpressions(Expression[] expressions) {
+		printExpressions(Arrays.asList(expressions));
+	}
+	public void printExpressions(Iterable<Expression> expressions) {  // comma separated expressions
 		if(expressions != null){
 			String sep = "";
 			for(Expression e : expressions){
@@ -337,7 +345,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	public void print(Statement s) {
 		s.accept(this);
 	}
-	public void print(Statement[] list) {
+	public void printStatements(Iterable<Statement> list) {
 		for(Statement stmt : list){
 			indent();
 			stmt.accept(this);
@@ -345,27 +353,18 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	}
 	public void print(TypeExpr type){
 		out.append(type.getName());
-		if(type.getParameters() != null && type.getParameters().length>0){
-			out.append("[");
-			String sep = "";
-			for(TypeExpr t : type.getParameters()){
-				out.append(sep);
-				sep = ", ";
-				print(t);
-			}
-			out.append("]");
-		} else if((type.getTypeParameters() != null && !type.getTypeParameters().isEmpty()) || 
+		if((type.getTypeParameters() != null && !type.getTypeParameters().isEmpty()) || 
    				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
 			out.append("(");
 			String sep = "";
-			for(Map.Entry<String, Expression>par : type.getValueParameters().entrySet()){
+			for(ImmutableEntry<String, Expression>par : type.getValueParameters()){
 				out.append(sep);
 				sep = ", ";
 				out.append(par.getKey());
 				out.append("=");
 				par.getValue().accept(this, null);
 			}
-			for(Map.Entry<String, TypeExpr>par : type.getTypeParameters().entrySet()){
+			for(ImmutableEntry<String, TypeExpr>par : type.getTypeParameters()){
 				out.append(sep);
 				sep = ", ";
 				out.append(par.getKey());
@@ -391,11 +390,11 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	public void print(GeneratorFilter gen, String label) {
 		out.append(label + " ");
 		// type
-		if(gen.getVariables()[0].getType() != null){
-			print(gen.getVariables()[0].getType());
+		if(gen.getVariables().get(0).getType() != null){
+			print(gen.getVariables().get(0).getType());
 			out.append(' ');
 		}
-		print(gen.getVariables());
+		printVarDecls(gen.getVariables());
 		out.append(" in ");
 		gen.getCollectionExpr().accept(this, null);
 		for(Expression filter : gen.getFilters()){
@@ -403,8 +402,8 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			filter.accept(this, null);
 		}
 	}
-	public void print(GeneratorFilter[] generators, String prefix){  // prefix is "for" in expressions, "foreach" in statements
-		if(generators != null && generators.length>0){
+	public void printGenerators(Collection<GeneratorFilter> generators, String prefix){  // prefix is "for" in expressions, "foreach" in statements
+		if(generators != null && !generators.isEmpty()){
 			String sep = "";
 			for(GeneratorFilter gen : generators){
 				out.append(sep);
@@ -412,6 +411,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 				print(gen, prefix);
 			}
 		}
+	}
+	public void printGenerators(GeneratorFilter[] generators, String prefix) {
+		printGenerators(Arrays.asList(generators), prefix);
 	}
 
 /******************************************************************************
@@ -430,18 +432,18 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		return null;
 	}
 	public Void visitExprBinaryOp(ExprBinaryOp e, Void p) {
-		String[] operations = e.getOperations();
-		Expression[] operands = e.getOperands();
-		boolean parentheses = operands[0] instanceof ExprBinaryOp;
+		ImmutableList<String> operations = e.getOperations();
+		ImmutableList<Expression> operands = e.getOperands();
+		boolean parentheses = operands.get(0) instanceof ExprBinaryOp;
 		if(parentheses){
 			out.append("(");
 		}
-		operands[0].accept(this, null);
+		operands.get(0).accept(this, null);
 		if(parentheses){
 			out.append(")");
 		}
-		for(int i=0; i<operations.length; i++){
-			String operation = operations[i];
+		for(int i=0; i<operations.size(); i++){
+			String operation = operations.get(i);
 			boolean useSpace = Character.isJavaIdentifierPart(operation.charAt(0)) || Character.isJavaIdentifierPart(operation.charAt(operation.length()-1));
 			if(useSpace){
 				out.append(' ');
@@ -450,11 +452,11 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			if(useSpace){
 				out.append(' ');
 			}
-			parentheses = operands[i+1] instanceof ExprBinaryOp;
+			parentheses = operands.get(i+1) instanceof ExprBinaryOp;
 			if(parentheses){
 				out.append("(");
 			}
-			operands[i+1].accept(this, null);
+			operands.get(i+1).accept(this, null);
 			if(parentheses){
 				out.append(")");
 			}
@@ -506,12 +508,6 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append(" --> ");
 			print(e.getReturnType());
 		}
-		sep = " var ";
-		for(DeclVar v : e.getVarDecls()){
-			out.append(sep);
-			sep = ", ";
-			print(v);
-		}
 		out.append(" : ");
 		e.getBody().accept(this, null);
 		out.append(" endlambda");
@@ -519,7 +515,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	}
 	public Void visitExprLet(ExprLet e, Void p) {
 		out.append("let ");
-		print(e.getVarDecls());
+		printVarDecls(e.getVarDecls());
 		//TODO type declarations
 		out.append(" : ");
 		e.getBody().accept(this, null);
@@ -534,9 +530,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			sep = ", ";
 			body.accept(this, null);
 		}
-		if(e.getGenerators() != null && e.getGenerators().length>0){
+		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
 			out.append(" : ");
-			print(e.getGenerators(), "for");
+			printGenerators(e.getGenerators(), "for");
 		}
 		//TODO tail
 		out.append("]");
@@ -556,9 +552,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("->");
 			body.getValue().accept(this, null);
 		}
-		if(e.getGenerators() != null && e.getGenerators().length>0){
+		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
 			out.append(" : ");
-			print(e.getGenerators(), "for");
+			printGenerators(e.getGenerators(), "for");
 		}
 		out.append("}");
 		return null;
@@ -573,18 +569,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		}
 		//TODO type parameters
 		out.append(")");
-		sep = " var ";
-		for(DeclVar v : e.getVarDecls()){
-			out.append(sep);
-			sep = ", ";
-			print(v);
-		}
 		out.append(" begin ");
 		incIndent();
-		for(Statement s : e.getBody()){
-			indent();
-			print(s);
-		}
+		indent();
+		print(e.getBody());
 		decIndent();
 		indent();
 		out.append("endproc");
@@ -598,9 +586,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			sep = ", ";
 			body.accept(this, null);
 		}
-		if(e.getGenerators() != null && e.getGenerators().length>0){
+		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
 			out.append(" : ");
-			print(e.getGenerators(), "for");
+			printGenerators(e.getGenerators(), "for");
 		}
 		out.append("}");
 		return null;
@@ -631,20 +619,20 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	public Void visitStmtBlock(StmtBlock s, Void p) {
 		out.append("begin");
 		incIndent();
-		if(s.getVarDecls() != null && s.getVarDecls().length>0){
+		if(s.getVarDecls() != null && !s.getVarDecls().isEmpty()){
 			decIndent();
 			indent();
 			out.append("var");
 			incIndent();
 			indent();
-			print(s.getVarDecls());
+			printVarDecls(s.getVarDecls());
 			decIndent();
 			indent();
 			out.append("do");
 			incIndent();
 		}
 		//TODO type declarations
-		print(s.getStatements());
+		printStatements(s.getStatements());
 		decIndent();
 		indent();
 		out.append("end");
@@ -703,8 +691,8 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		return null;
 	}
 	public Void visitStmtForeach(StmtForeach s, Void p) {
-		if(s.getGenerators() != null && s.getGenerators().length>0){
-			print(s.getGenerators(), "foreach");
+		if(s.getGenerators() != null && !s.getGenerators().isEmpty()){
+			printGenerators(s.getGenerators(), "foreach");
 		}
 		out.append(" do");
 		indent();
@@ -759,7 +747,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			sep = ", ";
 		}
 		out.append(")");
-		print(e.getToolAttributes());
+		printToolAttributes(e.getToolAttributes());
 		return null;
 	}
 	public Void visitEntityIfExpr(EntityIfExpr e, Void p) {
@@ -780,9 +768,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			sep = ", ";
 			print(entity);
 		}
-		if(e.getGenerators() != null && e.getGenerators().length>0){
+		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
 			out.append(" : ");
-			print(e.getGenerators(), "for");
+			printGenerators(e.getGenerators(), "for");
 		}
 		out.append("]");
 		return null;
@@ -793,7 +781,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	public void print(StructureStatement structure){
 		structure.accept(this, null);
 	}
-	public void print(StructureStatement[] structure){
+	public void printStructureStatements(Iterable<StructureStatement> structure){
 		incIndent();
 		for(StructureStatement s : structure){
 			indent();
@@ -805,7 +793,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		print(stmt.getSrc());
 		out.append(" --> ");
 		print(stmt.getDst());
-		print(stmt.getToolAttributes());
+		printToolAttributes(stmt.getToolAttributes());
 		out.append(';');
 		return null;
 	}
@@ -813,20 +801,20 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append("if ");
 		print(stmt.getCondition());
 		out.append(" then");
-		print(stmt.getTrueStmt());
+		printStructureStatements(stmt.getTrueStmt());
 		if(stmt.getFalseStmt() != null){
 			indent();
 			out.append("else");
-			print(stmt.getFalseStmt());
+			printStructureStatements(stmt.getFalseStmt());
 		}
 		indent();
 		out.append("end");
 		return null;
 	}
 	public Void visitStructureForeachStmt(StructureForeachStmt stmt, Void p) {
-		print(stmt.getGenerators(), "foreach");
+		printGenerators(stmt.getGenerators(), "foreach");
 		out.append(" do ");
-		print(stmt.getStatements());
+		printStructureStatements(stmt.getStatements());
 		indent();
 		out.append("end");
 		return null;

@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 /**
  * An LValue for assigning to a field of a structure.
  */
@@ -16,8 +18,20 @@ public class LValueField extends LValue {
 	 *            the field of the structure
 	 */
 	public LValueField(LValue structure, Field field) {
+		this(null, structure, field);
+	}
+
+	private LValueField(LValueField original, LValue structure, Field field) {
+		super(original);
 		this.structure = structure;
 		this.field = field;
+	}
+
+	public LValueField copy(LValue structure, Field field) {
+		if (Objects.equals(this.structure, structure) && Objects.equals(this.field, field)) {
+			return this;
+		}
+		return new LValueField(this, structure, field);
 	}
 
 	/**

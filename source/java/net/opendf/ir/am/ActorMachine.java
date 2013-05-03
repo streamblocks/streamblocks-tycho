@@ -1,11 +1,11 @@
 package net.opendf.ir.am;
 
-import java.util.List;
-
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * This class contains a description of an actor machine. The central structure
@@ -36,56 +36,76 @@ import net.opendf.ir.common.PortDecl;
 
 public class ActorMachine extends AbstractIRNode implements PortContainer {
 
-	public List<List<Instruction>> getController() {
+	public ImmutableList<ImmutableList<Instruction>> getController() {
 		return controller;
 	}
 
-	public List<Instruction> getInstructions(int n) {
+	public ImmutableList<Instruction> getInstructions(int n) {
 		return controller.get(n);
 	}
 
-	public List<DeclVar> getVarDecls() {
+	public ImmutableList<DeclVar> getVarDecls() {
 		return varDecls;
 	}
 
-	public List<PortDecl> getInputPorts() {
+	public ImmutableList<PortDecl> getInputPorts() {
 		return inputPorts;
 	}
 
-	public List<PortDecl> getOutputPorts() {
+	public ImmutableList<PortDecl> getOutputPorts() {
 		return outputPorts;
 	}
-	
-	public List<Transition> getTransitions() {
+
+	public ImmutableList<Transition> getTransitions() {
 		return transitions;
 	}
-	
+
 	public Transition getTransition(int i) {
 		return transitions.get(i);
 	}
-	
-	public List<Condition> getConditions() {
+
+	public ImmutableList<Condition> getConditions() {
 		return conditions;
 	}
-	
+
 	public Condition getCondition(int i) {
 		return conditions.get(i);
 	}
 
-	public ActorMachine(List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<DeclVar> varDecls,
-			List<List<Instruction>> controller, List<Transition> transitions, List<Condition> conditions) {
-		this.varDecls = varDecls;
-		this.controller = controller;
-		this.inputPorts = inputPorts;
-		this.outputPorts = outputPorts;
-		this.transitions = transitions;
-		this.conditions = conditions;
+	public ActorMachine(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<DeclVar> varDecls, ImmutableList<ImmutableList<Instruction>> controller,
+			ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
+		this(null, inputPorts, outputPorts, varDecls, controller, transitions, conditions);
 	}
 
-	private List<DeclVar> varDecls;
-	private List<List<Instruction>> controller;
-	private List<PortDecl> inputPorts;
-	private List<PortDecl> outputPorts;
-	private List<Transition> transitions;
-	private List<Condition> conditions;
+	private ActorMachine(ActorMachine original, ImmutableList<PortDecl> inputPorts,
+			ImmutableList<PortDecl> outputPorts, ImmutableList<DeclVar> varDecls,
+			ImmutableList<ImmutableList<Instruction>> controller, ImmutableList<Transition> transitions,
+			ImmutableList<Condition> conditions) {
+		super(original);
+		this.varDecls = ImmutableList.copyOf(varDecls);
+		this.controller = ImmutableList.copyOf(controller);
+		this.inputPorts = ImmutableList.copyOf(inputPorts);
+		this.outputPorts = ImmutableList.copyOf(outputPorts);
+		this.transitions = ImmutableList.copyOf(transitions);
+		this.conditions = ImmutableList.copyOf(conditions);
+	}
+
+	public ActorMachine copy(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+			ImmutableList<DeclVar> varDecls, ImmutableList<ImmutableList<Instruction>> controller,
+			ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
+		if (Lists.equals(this.inputPorts, inputPorts) && Lists.equals(this.outputPorts, outputPorts)
+				&& Lists.equals(this.varDecls, varDecls) && Lists.equals(this.controller, controller)
+				&& Lists.equals(this.transitions, transitions) && Lists.equals(this.conditions, conditions)) {
+			return this;
+		}
+		return new ActorMachine(this, inputPorts, outputPorts, varDecls, controller, transitions, conditions);
+	}
+
+	private ImmutableList<DeclVar> varDecls;
+	private ImmutableList<ImmutableList<Instruction>> controller;
+	private ImmutableList<PortDecl> inputPorts;
+	private ImmutableList<PortDecl> outputPorts;
+	private ImmutableList<Transition> transitions;
+	private ImmutableList<Condition> conditions;
 }

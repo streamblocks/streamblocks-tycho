@@ -21,6 +21,7 @@ public class Connection extends AbstractIRNode {
 	// 
 	
 	public Connection(PortDecl a, PortDecl b) {
+		super(null);
 		this.a = a;
 		this.b = b;
 	}

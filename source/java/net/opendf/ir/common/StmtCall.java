@@ -35,29 +35,46 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
+
 public class StmtCall extends Statement {
 
-    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
-        return v.visitStmtCall(this, p);
-    }
+	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
+		return v.visitStmtCall(this, p);
+	}
 
-    public StmtCall(Expression procedure, Expression[] args) {
-        this.procedure = procedure;
-        this.args = args;
-    }
+	public StmtCall(Expression procedure, ImmutableList<Expression> args) {
+		this(null, procedure, args);
+	}
 
-    public Expression getProcedure() {
-        return procedure;
-    }
+	private StmtCall(StmtCall original, Expression procedure, ImmutableList<Expression> args) {
+		super(original);
+		this.procedure = procedure;
+		this.args = ImmutableList.copyOf(args);
+	}
 
-    public Expression[] getArgs() {
-        return args;
-    }
+	public StmtCall copy(Expression procedure, ImmutableList<Expression> args) {
+		if (Objects.equals(this.procedure, procedure) && Lists.equals(this.args, args)) {
+			return this;
+		}
+		return new StmtCall(this, procedure, args);
+	}
 
-    private Expression      procedure;
-    private Expression []   args;
+	public Expression getProcedure() {
+		return procedure;
+	}
+
+	public ImmutableList<Expression> getArgs() {
+		return args;
+	}
+
+	private Expression procedure;
+	private ImmutableList<Expression> args;
 }

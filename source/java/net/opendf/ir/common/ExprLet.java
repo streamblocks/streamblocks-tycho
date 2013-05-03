@@ -35,38 +35,54 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
 
-
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 public class ExprLet extends Expression {
 
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprLet(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprLet(this, p);
+	}
 
-    public ExprLet(DeclType[] typeDecls, DeclVar [] varDecls, Expression body) {
-        this.body = body;
-        this.typeDecls = typeDecls;
-        this.varDecls = varDecls;
-    }
+	public ExprLet(ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls, Expression body) {
+		this(null, typeDecls, varDecls, body);
+	}
 
-    public DeclType [] getTypeDecls() {
-    	return typeDecls;
-    }
-    
-    public DeclVar[] getVarDecls() {
-        return varDecls;
-    }
+	private ExprLet(ExprLet original, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			Expression body) {
+		super(original);
+		this.body = body;
+		this.typeDecls = ImmutableList.copyOf(typeDecls);
+		this.varDecls = ImmutableList.copyOf(varDecls);
+	}
 
-    public Expression getBody() {
-        return body;
-    }
+	public ExprLet copy(ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls, Expression body) {
+		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
+				&& Objects.equals(this.body, body)) {
+			return this;
+		}
+		return new ExprLet(this, typeDecls, varDecls, body);
+	}
 
-    private DeclType []		typeDecls;
-    private DeclVar []      varDecls;
-    private Expression      body;
+	public ImmutableList<DeclType> getTypeDecls() {
+		return typeDecls;
+	}
+
+	public ImmutableList<DeclVar> getVarDecls() {
+		return varDecls;
+	}
+
+	public Expression getBody() {
+		return body;
+	}
+
+	private ImmutableList<DeclType> typeDecls;
+	private ImmutableList<DeclVar> varDecls;
+	private Expression body;
 }

@@ -35,44 +35,66 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 /**
- *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class StmtIf extends Statement {
 
-    public <R,P> R accept(StatementVisitor<R,P> v, P p) {
-        return v.visitStmtIf(this, p);
-    }
+	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
+		return v.visitStmtIf(this, p);
+	}
 
-    public StmtIf(Expression condition, Statement thenBranch, Statement elseBranch) {
-        this.condition = condition;
-        this.thenBranch = thenBranch;
-        this.elseBranch = elseBranch;
-    }
+	public StmtIf(Expression condition, Statement thenBranch, Statement elseBranch) {
+		this(null, condition, thenBranch, elseBranch);
+	}
 
-    public StmtIf(Expression condition, Statement thenBranch) {
-        this(condition, thenBranch, null);
-    }
+	public StmtIf(Expression condition, Statement thenBranch) {
+		this(condition, thenBranch, null);
+	}
 
-    public Expression getCondition() {
-        return condition;
-    }
+	private StmtIf(StmtIf original, Expression condition, Statement thenBranch, Statement elseBranch) {
+		super(original);
+		this.condition = condition;
+		this.thenBranch = thenBranch;
+		this.elseBranch = elseBranch;
+	}
 
-    public Statement getThenBranch() {
-        return thenBranch;
-    }
+	public StmtIf copy(Expression condition, Statement thenBranch, Statement elseBranch) {
+		if (Objects.equals(this.condition, condition) && Objects.equals(this.thenBranch, thenBranch)
+				&& Objects.equals(this.elseBranch, elseBranch)) {
+			return this;
+		}
+		return new StmtIf(this, condition, thenBranch, elseBranch);
+	}
 
-    public Statement getElseBranch() {
-        return elseBranch;
-    }
+	public StmtIf copy(Expression condition, Statement thenBranch) {
+		if (Objects.equals(this.condition, condition) && Objects.equals(this.thenBranch, thenBranch)
+				&& this.elseBranch == null) {
+			return this;
+		}
+		return new StmtIf(this, condition, thenBranch, null);
+	}
 
+	public Expression getCondition() {
+		return condition;
+	}
 
-    private Expression  condition;
-    private Statement   thenBranch;
-    private Statement   elseBranch;
+	public Statement getThenBranch() {
+		return thenBranch;
+	}
+
+	public Statement getElseBranch() {
+		return elseBranch;
+	}
+
+	private Expression condition;
+	private Statement thenBranch;
+	private Statement elseBranch;
 }

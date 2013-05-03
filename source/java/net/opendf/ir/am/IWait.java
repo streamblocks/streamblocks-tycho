@@ -27,7 +27,19 @@ public class IWait extends Instruction {
 	//
 
 	public IWait(int s) {
+		this(null, s);
+	}
+	
+	private IWait(IWait original, int s) {
+		super(original);
 		this.s = s;
+	}
+	
+	public IWait copy(int s) {
+		if (this.s == s) {
+			return this;
+		}
+		return new IWait(this, s);
 	}
 
 	private int s;
