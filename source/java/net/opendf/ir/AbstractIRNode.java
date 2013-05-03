@@ -51,11 +51,10 @@ public abstract class AbstractIRNode implements IRNode {
 	}
 
 	public AbstractIRNode(IRNode original) {
-		Object id = original.getIdentifier();
-		if (id == null) {
+		if (original == null) {
 			identifier = new Object();
 		} else {
-			identifier = id;
+			identifier = original.getIdentifier();
 		}
 	}
 
