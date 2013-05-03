@@ -191,7 +191,7 @@ expression_list_opt =
   | expression_list.n {: return _symbol_n; :}
   ;
 method_invocation =
-    simple_expression.function LPAREN expression_list.args? RPAREN {: return new Symbol(new ExprApplication(function, args==null ? new Expression[0] : (Expression[])args.toArray(new Expression[args.size()]))); :}
+    indexing_expression.function LPAREN expression_list.args? RPAREN {: return new Symbol(new ExprApplication(function, args==null ? new Expression[0] : (Expression[])args.toArray(new Expression[args.size()]))); :}
   ;
 literal =
     INTEGER_LITERAL.txt        {: return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value))); :}
@@ -215,7 +215,6 @@ simple_expression =
   | variable.v                                                      {: return new Symbol(new ExprVariable(v)); :}
 //TODO, old is ignored
   | OLD variable.v                                                  {: return new Symbol(new ExprVariable(v)); :}
-  | method_invocation.m                                             {: return _symbol_m; :}
   | IF expression.c THEN expression.e1 ELSE expression.e2 END       {: return new Symbol(new ExprIf(c, e1, e2)); :}
   | LBRACE expression_list_opt.e RBRACE                             {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]))); :}
   | LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE  {: return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()]))); :}
@@ -236,14 +235,11 @@ simple_expression =
   | CONST LAMBDA lambda_expr_body.lambda                                     {: return _symbol_lambda;:}
   | PROC procedure_expr_body.p                                               {: return _symbol_p; :}
   ;
-unary_expression =
-    simple_expression.e                     {: return _symbol_e; :}
-  | operator.operator unary_expression.expr {: return new Symbol(new ExprUnaryOp(operator, expr)); :}
-  ;
 indexing_expression =
-    unary_expression.e                        {: return _symbol_e; :}
+    simple_expression.e                        {: return _symbol_e; :}
   | indexer.i                                 {: return i; :}
   | indexing_expression.p DOT field.f         {: return new Symbol(new ExprField(p, f)); :}
+  | method_invocation.m                                             {: return _symbol_m; :}
   ;
 indexer = indexer_start.s expression.i RBRACK {: return new Symbol(new ExprIndexer(s, i)); :} ;
 indexer_start =
@@ -251,10 +247,14 @@ indexer_start =
   | indexer_start.s expression.i COMMA        {: return new Symbol(new ExprIndexer(s, i)); :}
   ;
 
-//used by NlParser
+unary_expression =
+    indexing_expression.e                     {: return _symbol_e; :}
+  | operator.operator unary_expression.expr {: return new Symbol(new ExprUnaryOp(operator, expr)); :}
+  ;
 expression =
-    indexing_expression.e {: return _symbol_e; :}
-  | expression.arg1 operator.operator indexing_expression.arg2 {: String[] operators;
+    unary_expression.e {: return _symbol_e; :}
+  // binary expression
+  | expression.arg1 operator.operator unary_expression.arg2 {: String[] operators;
                                                                Expression[] operands;
                                                                boolean arg1IsPar = _symbol_arg1 instanceof ParenthesSymbol;
                                                                if((arg1 instanceof ExprBinaryOp) && !(arg1IsPar)){
