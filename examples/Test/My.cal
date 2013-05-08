@@ -4,7 +4,7 @@ actor Empty (a, b) in1, in2, in3 ==> out1, out2:
 	c = not a.b;
 	d = not a.b().c;
 	e = a[i1].b()[i2];
-	e = 1 .. #a;
+	e = 1 -|= a;
 /*  hepp = a[1, 2];
   a = a.field+b-c()*d;
   b = if a then b else c end;

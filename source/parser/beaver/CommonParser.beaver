@@ -174,9 +174,9 @@ map_list =
 map_entry =
     expression.e1 ARROW expression.e2 {: return new Symbol(new AbstractMap.SimpleEntry(e1, e2)); :}
   ;
-tail =
-    BAR expression.e {: return _symbol_e; :}
-  ;
+//tail =
+//    BAR expression.e {: return _symbol_e; :}
+//  ;
 expression_list =
     expression.e                         {: return new Symbol(ImmutableList.builder().add(e)); :}
   | expression_list.l COMMA expression.e {: l.add(e); return _symbol_l; :}
@@ -215,10 +215,10 @@ simple_expression =
   | LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE  {: return new Symbol(new ExprSet(e, l.build())); :}
   | LBRACK expression_list_opt.e RBRACK                             {: return new Symbol(new ExprList(e)); :}
 //TODO, tail is ignored
-  | LBRACK expression_list_opt.e tail.tail RBRACK                   {: return new Symbol(new ExprList(e)); :}
+//  | LBRACK expression_list_opt.e tail.tail RBRACK                   {: return new Symbol(new ExprList(e)); :}
   | LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK  {: return new Symbol(new ExprList(e, l.build())); :}
 //TODO, tail is ignored
-  | LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK {: return new Symbol(new ExprList(e, l.build())); :}
+//  | LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK {: return new Symbol(new ExprList(e, l.build())); :}
   | MAP LBRACE map_list.m? RBRACE                                            {: return new Symbol(new ExprMap(m==null? null : m.build())); :}
   | MAP LBRACE map_list.m? COLON for_generator_list.generators RBRACE        {: return new Symbol(new ExprMap(m==null? null : m.build(), generators.build())); :}
   | LET decl_list.l COLON expression.e end_let                               {: return new Symbol(new ExprLet(null, l.build(), e)); :}
@@ -266,7 +266,7 @@ operator =
   | IN.op       {: return op; :}
   | GT.op       {: return op; :}
   | MULT.op     {: return op; :}
-//  | BAR.op      {: return op; :}  //TODO, ambiguous with list comprehension. Is it indicating a list tail, or binary operation (c|d): [a, b, c | d]
+  | BAR.op      {: return op; :}  //TODO, update 2013-05-08 BAR is treated as an operator, ambiguous with list comprehension. Is it indicating a list tail, or binary operation (c|d): [a, b, c | d]
   ;
 //--- formal parameter
 formal_parameter =

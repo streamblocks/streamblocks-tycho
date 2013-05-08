@@ -206,124 +206,125 @@ public class CalParser extends Parser {
 	}
 
 	static final ParsingTables PARSING_TABLES = new ParsingTables(
-		"U9pjN0kOZLNtN#jzppapOvWf6JD5AgAaT1EwJQNwc6xIb6vCxYftkIIXa48kbUHM548N8QA" +
-		"BIoL4ANsVlaXIwQwIxgcp$x#rtdtEUS#PS#RCNprFt#DnF6jVrrxxjzPUU#tzdZaleeFEe9" +
-		"Rq6jrYrdCFkfNlf1FvVcf6prCXXyFRw3OguU6qa1RpLiwX8Zg56r5FwawNKZ5TGkVIAbfDL" +
-		"r1pkfnQS3vtfRjfEjtFLMaFVKK$yY6cXDwWpRp3t4tRwMAwY3lpbpIMSlbaRa0VqSVq2Usa" +
-		"J#ap#fo#e2$fIdgCcb9NwgQOZkLtgGvtv9jK2Z3ntVGM40gcpsaXds7k44n0zAPPbnBJBek" +
-		"f9ktX4UJo4LG8HDzIDjMZ3OA9ZgAnvZf5L2ajfitSXTwdT$aZ$eOcgPrEvItMJZjfeLb3DJ" +
-		"nCt9xxfC94cprCoFU8PBv3C560jt5VlaqmcSqqbhS89jCj7IRknxUQpRoKduECHzHEFJ2$P" +
-		"wScmDG2SWNJtTmThKanqN0$9dwO6c7#NZ8$FyfFyZnTk$k0wZnOsx2JraurBQfsT18aYfqQ" +
-		"0zCDWWdhlr0bYpzzGxjfM0fC$ufWuZpQOmol0YPNrwaMDwQWOdgHLt0J7cfQqBYqc4Bmg1x" +
-		"cJzXWi$bOxVG2VG#friVXuUUhdIRmSbwH2bFKnu#2dGef0rIPvl0ERieNqX7gJnlWKGVpK7" +
-		"gGpq#xTk$olwa2zDpAvtYOg2BLvfSLquNOToYhdRAuCyrEwUEhBQQzmBIQp#9EV3QV8pk7x" +
-		"wKdl7r7lwgiF$ZFj9ZWWzn5Hw#6TGJJE$oWQQsOZeQTnEQ2IUIrJuN9hFRv#9EyYjURXS3v" +
-		"6xz17QXTTEssy6zq8RTCktPpUHbrf4vSW1tu7yKaFS#fFuq4fZSz7wUdU1r$dtBjlhEOQWD" +
-		"JM#3eGpaqM2Lre26wTaTI6tZuoNGh3Kfhfxkehsd5pI5jC$rRCHr4u#b3nRG1QxU1DYYctK" +
-		"3uTWfCr$2bFZjjXdOIrUfo5dpHeKFKJWvNvAD1Xvbhqzff6#VoGLp0vq7MOOhfUwuEgydQd" +
-		"O1OW4Wgc3HlaWBJTUnQVtBXJvNC4Aw4#3IIJyI#aKWiTYga3UPolWOptPBMJkVoT5vYcWDH" +
-		"RRv8zzqWx8wZrKwDi7P3eQ$ikzjvF8zCWQaLTeTdfmiH2pxciUPD7iWpp8Tc1u$XqMgdeJp" +
-		"R8SIPnnrEY#bBO7WMSfPWrxSGJ6OEFsrUZwoTUPoVLanX$e0NfC3KcT$phLqpo1FhJBPMgg" +
-		"DsEWQsVesVuK$unxIOFkPFJNE#cB#6dNO2qzMceygGjTl3ZM6bpqm7OFgCV#QVg3iVJwFfN" +
-		"XhZ121Z5338#jUcAHPJNPGXWuwZqwc1wYLnnOjFHNGQluG8sZqb9c$zL$CQQgZdPMCw7$lq" +
-		"RPHRgeohCFkXL8sgeoMTJnRYNtkgZ$HcwgMO#b5lwg#O2caW3IKv$ugegd8cj$K0tcZrogS" +
-		"2EfvEe0dq04sa6SYdqQEAQHRDfCUvBiqh1wO5z2mja$cWMQ5YAgJNQRtQsjeLQrZ4zMWZtP" +
-		"C2qmXwns9ArdkVOjf4$w7$qdkqXJueXvrsqNVq4$q2J7iLqnyKPlPZug1WuWnQaWBJmrox3" +
-		"4mlw3x9XjPL#2saXwR3PCxZMbmDd4VoP3t7hpO$cP$eSEySvpfwZg#oPy6hyCbZ4UiA#ILU" +
-		"YnEqa5zNlpw5JxMO9l1fgjSiVXvdWUZLa4zNJBBNBk1cV4awdqogrmel9l5RG8kLv5OfPGY" +
-		"Ujjo6Eu2hPpATuENsRiAz4VC6GwTkwfU5vYESOiCydSm6liVk4T4KCdWK8i1WbJ6PnqLrUe" +
-		"1VWNNsHITlhthMcSWFORUMeHCrvKayXQVoDFZE5CKpan$XcN6#awE#ynWVby9trl2iCl3iK" +
-		"3orUGxFvIVuAIUZJ1lF1oVk6ho85tfnY1VpIhD0yMoWJDx4gyohmBFPBEVtgRlPoFybHsp9" +
-		"s$b3$jtR3xZbUpR#2j5JPBn6pSnQQ#FTUazkJqNXz$Y7VRJn3shTNpJzbOsJ#bwhDdPSgkq" +
-		"4YI8sTa8a7t$C88qPn6S2J#97PCZ7moCVsGkIgWngZLni31dQkqywyS5MXfVAfqoT8k2WKm" +
-		"HFAfrkt0UTw6$HwV1zqyc7Xtnuo2BnFl#KJlNtGvrEsWzrAjeFTRfiFzJfylrGfsltGvrkt" +
-		"WzrwhyVwZHWFzHfo7weqnVxWKxd9DpBwNz29xyClqvKBfqkIw5Jx5EMJl6V$uLryZxBhGoY" +
-		"wtqoOfBAiqxBa#eKiKxPEZLDefFVBl#$TOhPDw8LyHNwD7Y6kSFAAThdTH8iYNYyZtmJ5$a" +
-		"qvPTYU7Wwg3X1gk1PxQkdmbCwEZn3PuE$0sVo3FgTvZFHcMLo1OIBpYYR2wbmFLqkhaNbub" +
-		"gQWkkbEAwlooNhst9n$LmkhZ$BmyMXSd5LICM59s#n$TlATGouAFhTQZgfPrcFg9$Yxup2U" +
-		"PLwzJlATrFol$tnHYidyjrg$ATAqb4FeIUlZ7cZSOeBsOiLKwdKXwzCAI7#Sq4v#9eed$Uv" +
-		"asw7z7#LdX6V6rByjH6egSjVmGCPpQ1vQrghqQI7fjTgMaIlaiI78de5aRE8cfaBD2fuKQU" +
-		"8rbcvHNIZpQNdHIslr2WYTSaJdqUBegMcjkJbJLMwf7VPteY4fbJ4bMsVIkGQFisA#Bg44v" +
-		"KIwl7dMAfQ$9Z4caCkXOWH4REe9zMW8oYRAiAY5IYN3gA34JyFWT#LK5Nuv1tWhexzK8muT" +
-		"nMYxjLq3Qnw7UpOYbhJE3gMwj9nr0wUEuNwK2ULNGth7yBuXjH8vTIYuLIRwb2XtZNEWw#S" +
-		"ZpMy42lML5T58hMCQqkJg2PsG7sj2QRkYF8z5LEsOifJJ0wzhRCanpJHXsaiFGTCnU2jHa$" +
-		"IVHWfc1u4eWn5z5HQJDLe0BndDRrC6wY$OheJxPwTv6#40SH93zCOd2EfC5MpcAe1aqZsCD" +
-		"r2nz2ZE3q4qw70v2YcO5fC9z99T39Eh0SWex#rasFjv64wHZ5rnqhsB1UcPT2eblp56$ElW" +
-		"C#lKanZWSg5n1pqfiEKQL5LetaWmTGOxJKLKorW4ic2IMHDJOj9rexW3xMmosLa8tXHfcBg" +
-		"GbqXru6EdTDYoeK4EVLxwleBfb6u6RQD#dX9rCT5Qdbyl3UT3dgQ#i73#z4WU9HWSk1Hmv7" +
-		"UfNzJAnlJ97e3kPmlqomcLzi5qo1Wah9WOdZxNMdjT2ymLSEeJjWPqtJdt0sjlNsNgx8Ufa" +
-		"VIOX8V7A2Zgy4wWic1bmUY$YJMyNpSXPUdmXJo#LCBoEcaUbu173TG6z$QJSOvbzvEY#Wew" +
-		"gLdOZKwLJ59JvvYAW2cCwoFhw7J4DLJONhBOdA0AQGu0iX5KWHJBbL6Rn2Hi79QJ0LODHal" +
-		"UeKKKn1fTjHEufU2AHUS1Ian7Uspa$YbH3MX4emBMKov6cDA4ANIO$AiD0YICXNJPLgFnCo" +
-		"8FpdgPwamNM8nNG9CbzgRHG7L0x#C4qp5kkT4yeXoO9AT5zBHNdoQWPAtxt8LKnN5T2XA2z" +
-		"BwU87QIMn$CkvdrV5lFJ1u#su2T6uCNDbfCPK0Gu7wTmazhvWoiUOSNJkf2QOAgcSgJBVxr" +
-		"YuRyhmeurcffc9g2na1u9g8jlHsUWXMoa0gdYEOggiCpyTBOAKvQCb7#YPjn2oTSJ#vYMw6" +
-		"tOgecvtLmUt7mzJ8ocYBzHjgzNAjdV9f6FJBn9XKc29wLSUf96TJ2RGeWAnYUsPU6PszEAr" +
-		"UnVXNcOQe3urMJADrtGHJiUfM6Na#ZLVELBQURZ7Df5aqcnw7tC70T9pUNGOh9fVcegKAFL" +
-		"iEJ9cwgsI#4f1ttocnCIwYcGjCtT3M8oKcns9AtYkOfkYkBO6swMDSCTs3Vtcq6Bnz55CUz" +
-		"SK$FwOynTIt34ozqs8QgIlXw5gcmnH0salv3xFdazmFZxJdU9wUncrjF95zCXASnV0jYUt5" +
-		"rC3wv62BoRK#wT90y8gCkTQVl9WajyHqFfbQhsBTDnxQL38yFA$ZV1DFIwPJGVHkKXtbKpJ" +
-		"M55lFb2ZMmDu38$58DFNsQZQulPWMqoa8JVF$WavvcWx5ViqiKwSYxDEbreBDxPaz2kJtdQ" +
-		"hgE$UNuJjkMZmElDa1bWTmroWBZrXPxXeUlnU76beyo#a9u1HRvWDjoDv$2cY9sh84zHViV" +
-		"iYEdjUUZ858NMlZwdRFvzCct27#YetFqhG4Y5Bl1y$6cN9k6HErSQR1nszZr61ZfB2nIVY8" +
-		"3CqLZvOWGr8h8nSva8WCxVqBEaKagPmoTOgYAudW#JjrqfP$JASOdeXEllPycn$GwO1E1tG" +
-		"weDC1dGxeT42d0peTqEaVroagun$LoI$3hvF8s7UTVFEMeLC2ml#1TR9owtaoaERuP4GbbM" +
-		"UTH4PfdIBMALidaV7thLFClX6ja4U#By#p6kNlwpgfd0GyyQkZvIBAYk7HPy3B4wIA79yrK" +
-		"k996Xt0Bzzjdqdjg3rre8vbSlKf3nVI0rn$8nULgEtRHhZ07$jkDOrKwn53okP4FbxJJgc#" +
-		"MxLox7Uh2VutFwNq5zFDg#DxKoVD#oNkQBHDJIKXWIy5yZYUMuNFbjVIEgJFb9vH#ChS0ty" +
-		"93oA0zrUbR9r7qagQvbE1nWVvLZ47QRPyan#DfVbqk9MhV9hhM2rxV#dCjf4WF$viZDGrad" +
-		"WzcckapDRqRDiRaL2aVxVn#Zo91JxDf2$kH9MnSRMuSonLBM5CGet8oRp3#$s1GyGTlLzQS" +
-		"NzfYn3gcq0hI7ubGlghgyV0VXlozSXd87y4UMtGMgB0RzwOOFju6SxEXBgCwU#RewQNkwVQ" +
-		"V2Hefoql1dtb7oy41Rx4E61oXYEVXwQQu7iV#LxaFyRFHzliF7MylEBNHA5cjkqGuAq0xBb" +
-		"slZ$GDvueuuZ4EMFoGejIzmNoV7o$4#N2NXdLaJ#1l0FQbdXz6IE0lQ$5rnVZZhIsgG8gHF" +
-		"z6Z7a6U3v6t#6Wu#FdoTWD6$nXvwnXnnuCkjEs7U7bcOqXPphgzL6#3lq3B6z3j9reUOz5t" +
-		"sDUEVTPbB7E6LW3oWFVPEGbfVLq1FzKegoAuFq1Cgwnkkn2#LhWNWMQb60Rp9y57C79jju0" +
-		"rCgMszhrA46v7KXySJDeHxmCxkcJrrjos26CSbSx$rpWab$st8#sRbvRLZ$e1Jpy0b6bIgX" +
-		"FGdsTxTk1yjJuEIfWF#JEjdf2NY1YKzZ4oKK#slPDGNcgBKy3FM4n34GxV98VHpxHPpEigV" +
-		"EaRvwBOElMYRPDHP1tafKJ03sQWBahT8EUWKNekmoyE#Fx7QnhO1bowCuLB4xOoLaUpnTu6" +
-		"MtmEUTbEsu9rl5uvAyao7iRXDXG0Vip5$n1y0GaxnFZoPIOiDSh1s5tPmlutmK$zcvm8lgm" +
-		"FuBR4#J#YBPCp0bTdDKMvnTei$lJmTZi6bYtav6VYnm#61IVEiNE0vyADhIylw9yjhMT#FB" +
-		"U#BdS0hJzRilOTy4clhuJK3y7Szo3FNknRJlKoxEnboi4aU#1pMzDlbP1x7KtX5W3kRcxeI" +
-		"lq2RP0lih7qoz#3A$qyegjqDS3zLEG8pPK78pvUjWnjq9kOrjk2snraFS4OGmjZCcgk0PZO" +
-		"E#Ai5ts#HXJBtwkIYUX$McqGyVW011YNd28rRFGoaVcOcpmRj0jQB3nncs2#fm4VU7lBlOj" +
-		"RqVvUPHFHBx1heFeyGbe1mZhvzPC6FkrbuUmxqAmbojnyY1GLPInbq87stc7MhvZG7LHlnS" +
-		"vObVeUDjUl$GwCEnGQQcl$eQTC#nhmpe68$7tCCZT4#iBdOhnLw3zsDAovHTHeGO#NiHK5t" +
-		"4nT3ge7iQSPN7FHDtQr1q3ceFwlsBZtAT0DXvHyrXx9SINYldWRGxo#MReIl0lH8wr2rsFC" +
-		"k9Qw7BRTu5Fxi##yl1ux2xsfbjYnmm3ZR7b2Q07utc3un1ZLw7G8j464KB$spRVOdDxpZ7y" +
-		"atxmoZdjxDoBKycnOt4#SvN4TjXpgm$$fRxos6Hoy1bXvI7M46A6YptbzWTDY#UhDClYkyt" +
-		"AMuwziIlMdxChdj$1chYlfiAFDMkPkizTuvE3$Uk#8MS2yW#G$uHykzUNw$VXBRxo9rOErj" +
-		"xz2DZ6MVuwyVFa8WwwJyQtERX7kFCJyCYSTl$bpFJnrehd8tiUkjyXXidSs3E1esnRtz9wH" +
-		"c9506UH#qDCBpx6pYLtojgbnyaPIpry#2BwBhVZczjSti2UWVObyUDZUztNjjudlujj#y3N" +
-		"XZCnW5XJIUBqSV1tdA#1UbvVi3lA9yJB2sB$1knP78YpEtpjlWHzglZABIpFPbilJgB$LRv" +
-		"vdaEzLo9FAWAlFUjoN9GBu$j2HsBUPRQ$gX#N7TlIzjML#vkrqNroPoizJyvPQEzWn#5yoa" +
-		"5y2lI8vt7wsNb7eK#UPjTwTVhED#SyNtcwvSVv7n3Vi36VJq#kQuxS4H#sTXePtvSXTqZS7" +
-		"JFM8TzYvJ$hcsjYQNcXCvFFutHBtiudU7acpZR7djk1BsmRxe91tCMpGl9Sb7nyu6SlpvAp" +
-		"6tUJ77jMvZRpyIo87nDaE$SmYzdkoQojw3isnaS3VUNhhHvoZwyTQwzm0SRWEQF2VBddbCQ" +
-		"NZRjHyDnasB6Md$liCz7cUFRYpiduOxpobWR3fuBDBVMqUfqGuv4tmuBj4lJkw9jlKtnVx4" +
-		"oIUqgix1vUUlxWEwNR0Yl9dayMOuqaun1B#MbRtYhFn0bwlOdsWOdZajiWkCE7yQWa$Lyc7" +
-		"#TMjtdzM5lsKF3RPsxtv0HCZoV8jVSBjsAiBUJp1xusdZyK5$zzxGtZwqucHJycR2QO1oZX" +
-		"OxffkigiC2lDo#Obyo9gBvZdpJ9jVyxW2SF0Eyr31lTCCq9R9vcbPh71Culv5FI3#Svyhfx" +
-		"tZPbe7WnlCv#5tmzlKSwgvb3Dpp7d8crYyamLSuYfR0usEALDWJdI764EDwSOF2#OaynTSS" +
-		"XEDESXhQzb#vPF6CyCuPz1UyBVXh$HVjpoJ3tbmTbWwjgnk7UQEbggRN0VDVfkZRdGzWurW" +
-		"yqWSpjAkB#Qsq2rehDU5DuP$iIMzKquKnDqb9QQcqkGNXhU4VuGMbuStWhisTfJ8Je#It5k" +
-		"ixMAcbOtXvdJjDH0qrEDlczaz4qZe#yycIkZ4gun#bwUkS6qGLfi2itPvYnpfZd3d6uQcqQ" +
-		"ceMc9zaoPmsI4Fmj$QcqZzL1uU$Y3Q2seQI3yLVXBs#BQt0b$4VxSpYVSU4OF$nx#m#1v8l" +
-		"oTbOUEy9#Wty9xmxl3k#r81jrfXXaywHZSram$bN6BfhqDpXlJHqVl2dzjBjFMIWPF2oRNv" +
-		"4Grn9EjmQtT3D3QqU6Fmn#Pfk4VxRo$W73l2NyVnit4r333JJNphS7yvYiGD35VcEyDRZZc" +
-		"BIjlkzbctZ28SUQ$vZy6px3ct#OT0pkOJT4vyKHiFl7nRzNIUsQBsHddmxii3vw#p9Dcl1b" +
-		"ddZBpAUvZPeFc#kgpG8#PcMQUUKRhJvWPIAURHyp3PfgswDjaPefvr8vOPEutzvaVrLvVcr" +
-		"TiQrVGpQONKfmx1lTXqzrqqPunvbupoen62K#yA8yqO#CGjJKtcawcCqet6PozPg$vtVocF" +
-		"Rzg#ekcFvi$v8v7ibgt4DCcSka5vF9hmdkH2psixq04wH4Aq13m3K7R7IG1XMcCahph8E#i" +
-		"CSsaB9f5cJGTRGDyXCW7SaY##Pi7ldcGAU#LT4Tv0V85o2MIZ42Eg09Y6aiXMezylRvVuIW" +
-		"zHlAD9aVhygluSQYF0m#Ui43o$us5g2VQyTGFOi9j7SI4fpOG4zOHnFIYaaEoblDHNaALzC" +
-		"sIyIXx52k$f2HrDzeclwTUYh5BKLwXv934o6KepmQ6sR3NIfHNedqLsbUXVB$#3ZH44r2Ue" +
-		"B$fPP03SgaBobrGxegyA#f2yhxLWyY5Xg5Tw3bBoosDilIoagjlDZw4iln#VYBgS$JD0GQv" +
-		"T2Norq4zb5pgZJxPdNsGTqDRX6v4$KRWzqZghb9db3kZxoQKvTVUjwD#E#eUkJGSieQZRPA" +
-		"IIs#YNTxEt8ZwP9HbVxw5yWRqlOBy5UIl8dzLtozWmfu4iVwkV3NAgxKSrFfhABy6lYcMdY" +
-		"57tmsy2#qIS$eXdmlRBa9vaVw2EWZA06NIMlIjnPYfeD7ewuHw9vGHiq1ChI3$6kJfw5eb5" +
-		"nIawr3so05bW5nGqEO1Mmxfkv7hb2#WTQ$TiNmEjKIVHwxcroE$6krN8xyAzQjGResyjVw#" +
-		"bqlH82M7fY6V1fxscASzwksr7085GHa9vIpB5wHsoDjf7W9b#F9CK9R#RQOD#jkWlGtQOta" +
-		"cA8jwOTvUcEi6v49hBFMrDDBIFPRwMthUqhEM5blgGF8cArD79OVU#JzlU30A");
+		"U9pjN7TybCNJdtdkBiaHKcWc64IbML2m8Q221JL4Gz7O00czgFGclOC2Ag2224XlAaqiY4g" +
+		"L8aKHbHyA2eBO4HjMvFRzxZpxt3rtkSl5yiVxoOS7vvajixFVcPsTPv$SdKJfn#bksgZowI" +
+		"rAe9hyAEKgHGtfPJx27mGEKZzgHJvQHYjf6vUW7BwC5gZcr9qQqntKYAwZDsW3vL5Jkerkf" +
+		"xwqXqRH37gCIzDnMa9xE8qIqPRC#qJ$hNIBUeZ6yr6#Y6joVVg43j8X#fGEqn7wZ8xIvtGd" +
+		"pQ9iwahTD2P#dSxNPVwASgcQngGsyokyHcFYwsWPrrB3RKpSbYR7miHV6andqN5#cJny9by" +
+		"5PAsvFLMdqXeJdGjCkpKcIec7IUtWZkIbB$XZokLtn4z$qEMsd$WGBLDRgQB1b4$xO$gfge" +
+		"q9lZbE7QWT3wBwAE#asdGERTEOu9tnQgzWsXuF4qR#ZtjoRxKNVdfIC5r7bUXwMRiwyDCGc" +
+		"clMxciw5WFJS6vf$7GL7LT7k3bt4KoTk0pje$TaxVO2qrk2gNBSjRFn$C1V0zFv6XFjnlpV" +
+		"2QO36XD$e36fhZGCgnSTqyt1U2gbCQ4sNfsIsD6hvnS$TQUpUHyqNufLZ8VfVXxEWxa7zmM" +
+		"cFOBf1B$EzmccyS2aDMi$RU8rV5iiJFoImLG1QzUHw$98gi#3QJwTf02L44prk9wwJTt6Us" +
+		"bHN4mZ44#$0CqUO9ekQ$S2J#83WgaaC3t4UpKcIkFyc7xgIyfWGZnf#xWDjLKly07nqsB1T" +
+		"3OluWLKYjhmXBYOzl0gVX5xf3PYl8xikq#n5rS9fZ781LNvZQ2VteovxzOQJDE0QJsbyXRu" +
+		"UYRqw1rTN$QTrlCgTEWz7G$JDkoJthoURm6cQsJjReAkTC4K2CS4ZB7MReF1zAl6n2VuBHi" +
+		"FT0z233cOW8T$uz#BiEyKNmxR1cBjwilQ7UCFQ89WEWPC0wYNhDqZo9tVnC3Kp8bnwebuUe" +
+		"TlKYsfDZU4z$Vf$2QOoj0sTI$oGe2JucBQnLNOXtss9nZZP$BPo08wFoKXdafo6V5J1fTHp" +
+		"M9WQX74z27sdSxS2dxny$cwh8O9fZ6wpEMelceQT#sIUJf6NyqNujdIH31LvNfKHVoq3Nwg" +
+		"XbsaCLNX6v2hecDg6SIaOpmFMQagh#GPl1TvuJpk9Z7#8Dr45q13LVLsN4pz#NtkfnRp4c0" +
+		"w8ckNosFvfFZfB$XfD8yJJ7FKePYOEdD$WoaNQzUG7rRRaGscy61rH2s2Petf3#YOool5Y$" +
+		"4mBUT7L1E#cU0dgWjCzz0LuckDwNb4MXKyDxP1tuUYhJkVHm$HmpIEBe6EiVoShOEcEfXOY" +
+		"OuzL0kaVOtO5ao7eECehrPRO5SiJFO#MSyRoSUVOFoLcFz7$e5tydU2QPjgZ$dBKnPLY6lN" +
+		"ftoGlu2E6cQVt4CDi5Br1TFTT1SVvk$vCFR96MYh7yFN8tcxiIk3CkaYkbXrW6nxq0FKX#n" +
+		"yyY0DfS6Y8#xPWYRHH7gSdW7FfMc2QIRDeTc2QHuylP2MqWfWUgaGJ8#YnyOKhVTfmQH7Rw" +
+		"6jMAztuc9wctRGk$G1wUVu#uBf8up#IZ1zIp$Ip$GR$GbCf#XtvXYONc5F8PXUa$K$XnFnp" +
+		"4hdibmnxddd1iQgS1QVYtYgB9Z6Y4qw9Y$c6dm$JSBJBuSluKlXl#wIFzVnCBw2h#K6l5hi" +
+		"keopW$j4rfyhykr6HoVaJur9xxLx#Mvk4IycezgrLdIqGbG17NUsh9WwT3m#m0DqVkUkmNY" +
+		"4HUgmu1bAIMedZn8yOo0t7lliCUn6YoVpuzWBJ$0lecCAX$RPKsBJB7wQPucEPtYsOrDWFp" +
+		"moxn$Pj4bqpEU5l9YVXPPbXTgq518h#3Mr4dYs2fvTwar#L#DHQ$az$Xz$93RjXty#Zn4x7" +
+		"$EHGl1yBsV0RVojQeVzUfn$AXJFp$mdd#80CbQkHHgFnQGl7Sku43UauuRigxjwHrg7aNDf" +
+		"7HF1dRWH7QPFuWPSxoyAwVZxFkOKeoDq5MAJIwe07bTV24$avUY8OPFmVszJPZ6qwO9YQ5F" +
+		"rOcZJZSNGffnYQDEjnT2cEugXJHsAeKszYg5DVOgXJGEBeKsV5GERhequbrCniAb9CRF9ZS" +
+		"Q#faJObFElR78q5MvJjikcgV#vJVUwTFmzczRyHpRzL#iKUHKrzWfccEUf7kGxi1VtN#av#" +
+		"ekkBaoARQch2fSokfujajJo8acz64FgrJ2fBukawviYIVrK9Aa$YYB5Lf6a4c99yUNY#vqY" +
+		"LGbI5FnBPc5hjGForvY8g17ZSnWjsHJwtWOzINleVYBrY$g5pf9Huz6gFsFQRhIOlsI60eq" +
+		"turOs#kTpw2aNjUU9Gh0qS#c#Y#kQubCnHuHVDygu9aMIla6aet$gSZrre2vXqgr1GwX$OP" +
+		"hXxn2Ew9yEQWkT$M$xcwX7qD#vy7T3#RJoJNBobdsVWlomtlXx7Tfof2V7oTNSY3RBPo$XF" +
+		"Ss3U7H#i3DC3ZdPmhwxisEsjAqnFTaYcorzKyF6s6tPhh6vt5ZcpSOzN$hDEoWYrvdtFeFL" +
+		"#Gm0VLmDigDTA#xqwRyZLaF32w9bH1ZMN5gD##jcDhlDmPh3gPZHoQOvN3vyHk2i1WzNfSZ" +
+		"Bze#3s6shUppiqeZvIi6IBRQBBu9ZR3GvV6U1ETj1lpF6kPpLaZ51RsfDpWewJmNt6trESF" +
+		"PGcpDxjcYYYDMohOiSOsDtnZZOt2kS8v#$XDPoTMWaJu$mdj77wmkqkdgZNDdXd6UGHHwXD" +
+		"Af8PvCVZSbK4cIX9PrAKHALGSQnw0na8miHaeWyc8VTTYVTXUVjFTGCSTy2qTmIxUVJ1NGX" +
+		"jKNEse9QHwgB#tDqdkY$acfJ0bL6l5QbQhZNbtFgzSWB3R1$Ry9kjJrp2opGyctmJvTt05C" +
+		"bmPH03o1BQ4n315CvWwaiZOc9QOeBqtXw6PXcGFPYvET9j5GmFGbCbmkcv#DYOcIatlGqSe" +
+		"oVTWgc4jWjjfyiOF9YdzYO7e65iJ1P1bCMCBL2fki8kIpQ33rfwDEOye6fl63Q7HUJVYhLf" +
+		"4leKc1wK30DmPfv15CTOBBW7HjJAlJ7MxiPm9G5VwyKJFhvimdPKMCg3qmUmLGxBYORJnze" +
+		"y6CLxRMpaACrfcJ1PCUJZwPZzOeIJrduLncngUVNgyU2wI6ieeuk7rOn7gPkiAK7pQ6vm9G" +
+		"bcDA0RO1WgWnCMhF6f6CizjeDT67gIRsWDGzQ#ublxRNJjddnBnyjyJ0zYdYwNMnprkvnnD" +
+		"CWmUG1feUWHMCQZNYAxQTSW#afODBsTHHl3n8$tMOmhSFpR3ILHYaUfgTeCfsBkSe0Kpd1L" +
+		"05#AYUOCcNjF44$rOhhfzMoTbvWQaDhpOxEDvWyeaDJF4nfia#oO9SVqQqnPKANJp2bHM3A" +
+		"Z8jfWc2QXbErZKVhji8mpQHdYh3lSYLEDAOymRGHxPs2c4gZHsFIcVITk35U0PWin80NOwk" +
+		"WzJp9RtRErF5aINQ8XobJHZMMUB9ZF0djTOAOz7xMc3IFdySp1PC7TbeuMoLBsSQKAULyZF" +
+		"V6nTGJCpV2YEh0b22Oz0vf4yoPbR2BDAQos4LMN4mwPsR8$6rmBjV#RqDZJNxADBklGbnCi" +
+		"x4xBeLl$44$lGejIS7yjCBuwGdeYerfji7a1wPasewSr0ssze2yrgmnbO0EBn3gEUEltQFm" +
+		"JoAadNqtKdHeJ3gRb1NRCkIkewyJTSOPxtvQ0XrTWTJMqII8gRpeoC9xR9RnjSV4U0Qq#Q4" +
+		"pAoOcnzSLO8dUJxqnOXUz3MoPHaU5uFpnx9gAP$1Kw1WMt2TUQCapcEwWHRWl0gQ9QCkBwU" +
+		"jP1jCycayBQ27cpyCEouCcNTAOT7OgBJhoucBoq52W60hknEI5A2yslYvBgs1t6Z2b5Oefp" +
+		"s2AtginwT7vqEWfGjvzMbOv7$Ru4GKQazvV3mkcXn4HB#9vsXUO#g9SBYQcld4nzS8fEKzs" +
+		"K7nCNknUBLiEcCQPl9iNNBkXY7SFubt7v6A9INlC0D6jywAk3uSTJapccVtVq#Xu36Cq9lj" +
+		"yaablnOt9s7Rrn$XCGJiXfWvxvrmc#Rr248#znXfF0ZqhJsEDfmBazDxtmVgNi1T78IPwus" +
+		"rDwtWbU8OBvRJn8ArZijbdMiUxQ4ly5pPPcFDnYPxOQwNn94e#l19tFzw0xVDM0lnkswJNE" +
+		"j$uEA#GV9OS5uy7Nj5efj4rXUB9bvoN97Ziyr#ImgNn2Ey6GjmekNIU4Jv0cSkE6t3ZOvIW" +
+		"m$H9t8033#uX7V$Gnyfr5MQJIwe07bTV48#Ak1mTiMmIVjgcqpQTjkcqJQTjEctJQPjEstJ" +
+		"QfjCs5MgJe#EqJVz$R7AZCUMqS9kqfdzkawEfS9ie9sGJDVclRQBKa8w$PvF#E#1$OTD$jK" +
+		"u5vYbgx4NDC91lHQrnRqljg3rrA4oA#XH5gcYwJaiLLOhonVTj72d8Et$9B6ojB2rl8c9Od" +
+		"FadWixKdt#2wyzKpv5HbK7wCwPPHelvIwOhqgu0BOkf#xMOVuKi14jGTqVgPKhzOes8s0ST" +
+		"vJwzAD8qM6oDZczvE18j3TfAsmhJJ9OBUH4irFuM7CRVo7cLaH#qlxt1B6hVzTzrCsr$ozy" +
+		"0zISqSZUQqkWi#HGbh8TItFd1pZ2IyUoCOzzTsH7vGSjLDpqv8fiZVKt2njXjEQwnVcegy#" +
+		"O8LftnCenilZElZJyKkTBN5IEwkxpiHBN6qHNrxbAgvyQAML9mJpApsMq6gtpAakzaqw3FG" +
+		"ZFwCMEoUqQtVuA8NRQ6eT9s6SJsx45Vv8SXr2WAp8bMCoOugrajCyPuKx0uA#Wy5J9SQ3AS" +
+		"sLrjPdPfZLpX76DTn1WRkpCcQ8zxXJFiPs3GC$xGI7qwS7ilg2#hGAkhj#3bj0RvrKIMPxZ" +
+		"zHOyfQFW5F4b$pqktEOHwSz1yK1cG$kRPF8ohWN9TSFtjgHAW9YZl84gTR8z9omdNONqPNl" +
+		"UauxOwLASZfhssuHL1pKov9gYZUxmcuFqIx3Xmj0JLGRaHv5u6VuN8cnW#7triRAbcy8qYI" +
+		"cXe#huYyi46Rosxxgs4lab4wMKYvmpNcR0gTf$t6fVSdvXlB55Y1V2PuEt1rzjzYMZdemQ7" +
+		"5$$TQd3#WDjlw7y7ifjWrn7qPOCk2fyd4NBMOZFcE$JVQ9VJ6w2SX#M4NwpfTfjL2srt67p" +
+		"mLL9puulNKCQQfgCDcOsifk3v1MsoHe0MGdOpP6#7ZWVDl8jGxW#C6q3J8lmmaCXVagZaV5" +
+		"Dl1XfaoYFC#CKeZmRrHVaFqAnm7Tp3fM#KvbZx0Cf3ZD#MG0PrUXnjm#msF#8pxIUqmxQK5" +
+		"DJxeVw7wPk6SjlmEVoVegsBiNC5z2mpyw5ilGc#qVHXFRml65mNexxRO2Y5TlqjmItWIrq#" +
+		"mvwozeJg9IpuhdcaRsCHhY#D7iI6DIEyhyGjm0oxlElGrnXukeNtMw#Y3sjbmLwUOlGrHFs" +
+		"sS3alC5k8BskB6VS#rl4YyAqH#h3Nh4EOjmlcXLq#o7W$0#$ZqlMduISXYxuIBq7sByXCHH" +
+		"lMrdSmNAS7Q#Cz1GuxhCyDHgoRLvb#FtJy3px37az6JaXl0nrdWYhO$RvpGESQMUGdt$bcR" +
+		"Iv3tOgOAmjKnvJBG$O2Lzybg5V37DS1xtscxHgR9p#CUJk1FuU#0T7NoLSRyZT01jZJiUUy" +
+		"iCU7#F1kSCdS43w6Bx9vIUmv7$OUjmB7EfQy5phCtl9XBtfkD6Nu804OVQr1#ljvBuPqbHo" +
+		"ACIF1ju9FnfXRm#SgYHoNZjpZmJo#pY0q#xeQEpiO$Ts0GQzh3r0BD9mq$RrHVoJ2tWbeVm" +
+		"po6r0UZBLR0$weiUjhb9y6JGVDXLobYB4c5$YGDtpBqByK$5dGBfIH0tpRpBppZ1psdEzTr" +
+		"3K$0DfZsWyNN0Vh3DYvobM$oiYkSBLf$rKnPUGTpqykR4UHBn0BLeE2kad7oESksIymzWFm" +
+		"Rq0VOSm2WtibwZ#OCcBNim$r4w5ndjz1lngTBlqfoAdfSo3xA#ZFK7i2ujfxBTgmfnBAOQm" +
+		"2pp0O3eNal9ckEHQ4O$VeFMtoPSA5eAgcZ3sSK3rSrdiG#LN$rg9gf0ySGlzOm$VROxYnuJ" +
+		"tHPjOdzKmpzyknz1WTny1sHxR3d$jTPUMofLCqFQ6zxON$SSh77W1r1SqEbqkvr#2xp8n3d" +
+		"aeU6UfFNHI18mCoNnLc0yOVYztd#TQbgusED$3dmN#sdmzUlvbtRKYEMeVAJfxm80QyoP3B" +
+		"DlBlXS#J#erhZ2lUlAcclwyBHyIUf8L65hd8ep4Xpj9C3lBqTSkQyTSPUOq9UyvpIjUnbf#" +
+		"OkP2Bg7l1SLxzd6hayesJvmyQ75qScw6h8ze$31#V4aLdYcljqiQOjYckESVfynZQS4xmrW" +
+		"FXUUYznUxpuRdgRH6kJ#T1huaHx#qHVegqfxghtDd8cBtWlI#A$Tr3PTzYvonK5DBdFsFRw" +
+		"mv#bowSUMcDwTTdb7CZnhOnVOTTvHoKsnMS9#K4sdkPSJYVfYQ2zmYNiSpvDU4Sz2t6MfcS" +
+		"JTz7mJtBo8v7UIqAfUmwrurkPogUxzu9TZbjPNXVmWdxl9AO3xxLw9yTwlSEBgWlxTtey$2" +
+		"1wEtEcIxnBPIR6BtlsppfCllCauHdgRKp#dZlTflx4r36SpVLF1TJ0owPeH5ZZXbCempcRu" +
+		"mE$ImkwyAS42fJ2uCNpqJQ5shtxyUOwZWttGXUeo2#4ilHNZE6Jovr#U60uJXRStOq#P2iV" +
+		"dOppYI#KeOg6xkEkdJtrsUtY74PhlbEHc2fvPAh7ofxcaQPVrGKMyv2NBfoBxyVHUO5q5vJ" +
+		"rcVMioBwtzRdtC9iTs6OwC8OhNzAz76UcOPF3xKbPq9#WRlVXUbeXDwHHgwXgssNI$vuXFo" +
+		"E6FXtXzSj3mKl5L1FgYSeub9TvRv1hLFhrKRrXa9cKg#fDUfLQNz5uMrSuIIedb8FuJvMMg" +
+		"UfrUebzI9AduD#Lj$hztYir7TggfeIEAY#27mIE22IvLK5uTUfwt5le39LXZf3bLDbLHc57" +
+		"A6oL6LLIPsZBbVObUfIDIOCsoKAvt5LKyerxBO0tiG3E7q5JWH#27ml$VBRENMHmbvHs3Fg" +
+		"0gcVht16KZTB#IQZRwGQgeOed7NL813UQrMru5ot1Bu8V6xAyXiXLHLKHKfDL2xkZG970eT" +
+		"XtQs1Zu4uHNfA1iSd2xg3ffOgzxFLMUfAATMI#nKgNtWBkTyfzpk26kvHTmjlfLhZdgUkLV" +
+		"LLFNMDkbfTfUggEggskWlj9VGSoX$uAl2byOYk9mK#3HmArXBbdX0u5lZMjFWCzmQ#2Nnjv" +
+		"iDxhD8Z$WeWEmH#DAsCCfe39mEd0Zy5VZBZ44TgX1gbiF$LWw1#8jjRxhqKJlogZyn#FF2T" +
+		"QYojQQeqxgLKUj0#lBSgd8$L0AcT5pWQ#4nb1turLk3DCl0RwES0pYxgN3LQLLJ7rGyeuso" +
+		"kW5bzfNvKmADs6tq7rSTgbqASgNtg0uLJkdfVlQS#0TyJd1Fl7Eepb$n#ANseFb97moBtc9" +
+		"71kunwNarI4zLIjPp2BhKGjCHLNm2Qf#QhPzKAgJ#dvk0#MyrIpwYPqZ93xjFLN3DYbNfSJ" +
+		"LOdn5$Vgasc5U$YwdxL4tSyALHtK3VrWFGygXvHunNUqnJUNr4Ufy9#hQpQgCwgey9xhRfF" +
+		"jSNzfFfJ$I4zlylzDxd$gl3spbL9hrPlOdeNgMqDkFwUwmHmJJFHDfDyz0nvIV$$juQXRJZ" +
+		"fDCBqY9158r0VWV8yyjDyIg9PQEll8drU70ckVRG4Sala5pa4Oj8UMW6kyyTOSEGI4CltuV" +
+		"MtwhT3TWx6QjBUceisfpuRz1ZgZq56lnUiH7a0nlL0EzuvGKnuhmSnuKmEOiBxA8ZfDI6Bi" +
+		"AuWffSeXNQYFX5bcqBbruLqtHDiMoZV1DP$ZsHQAsIH$itUQfGN0CC2#6iToklGhd#djnxb" +
+		"oVADtWHw0kKdC7uW#43q3vHVdZ38eYxWNL3ND0dr9y4rZKAxffSDlM5elA4DGleRz$eNf4n" +
+		"JC7OAwelasy4Cyj0Tu6#H$dy3Ql9GB$JftTa7l2lQ7EgCUcVWjqdNFKATKEw4lljGlXyq2F" +
+		"L1P1dooAzBHwFjAI4FxK8xdh4WfccaVmb38AOTwDi8lX5y4$Wc#TOmazw$ky7rj#RrtzlUb" +
+		"B9FwfjHtYpVbBTfEUdVjX68IUUSVk2BuLiyyq7w##a#K28eYRQYRol6J0TrHBaZE78zYEbU" +
+		"wBu7F1ur4$A0VDGSPPiiK2B80$85#JRetYRzNb22wRDClqLteSycZ$0Mu7UZ$MxmEr6$4#M" +
+		"Mu2rHpmEFHaE4B9e1FWDoxJ1NEzJRIJa1v0CbHfJzHiv7RS7R2ay09Rfu4iXFhT7V6lsjqT" +
+		"uQxI6U1F9JJypR4tEr0jUqnL1VG#CCFMpeGKEl6bfbw4L3xU6pzk0TX2pQyt$UaJIy");
 
 /*******************************************************
  *  Inject code for custom error handling in the parser class.
@@ -1483,19 +1484,13 @@ public class CalParser extends Parser {
 					final Expression e2 = (Expression) _symbol_e2.value;
 					 return new Symbol(new AbstractMap.SimpleEntry(e1, e2));
 			}
-			case 187: // tail = BAR expression.e
-			{
-					final Symbol _symbol_e = _symbols[offset + 2];
-					final Expression e = (Expression) _symbol_e.value;
-					 return _symbol_e;
-			}
-			case 188: // expression_list = expression.e
+			case 187: // expression_list = expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return new Symbol(ImmutableList.builder().add(e));
 			}
-			case 189: // expression_list = expression_list.l COMMA expression.e
+			case 188: // expression_list = expression_list.l COMMA expression.e
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -1503,17 +1498,17 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 l.add(e); return _symbol_l;
 			}
-			case 190: // expression_list_opt = 
+			case 189: // expression_list_opt = 
 			{
 					 return new Symbol(ImmutableList.empty());
 			}
-			case 191: // expression_list_opt = expression_list.n
+			case 190: // expression_list_opt = expression_list.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final ImmutableList.Builder n = (ImmutableList.Builder) _symbol_n.value;
 					 return new Symbol(n.build());
 			}
-			case 192: // method_invocation = indexing_expression.function LPAREN expression_list_opt.args RPAREN
+			case 191: // method_invocation = indexing_expression.function LPAREN expression_list_opt.args RPAREN
 			{
 					final Symbol _symbol_function = _symbols[offset + 1];
 					final Expression function = (Expression) _symbol_function.value;
@@ -1521,64 +1516,64 @@ public class CalParser extends Parser {
 					final ImmutableList args = (ImmutableList) _symbol_args.value;
 					 return new Symbol(new ExprApplication(function, args));
 			}
-			case 193: // literal = INTEGER_LITERAL.txt
+			case 192: // literal = INTEGER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
-			case 194: // literal = LONG_LITERAL.txt
+			case 193: // literal = LONG_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
-			case 195: // literal = FLOATING_POINT_LITERAL.txt
+			case 194: // literal = FLOATING_POINT_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
-			case 196: // literal = DOUBLE_LITERAL.txt
+			case 195: // literal = DOUBLE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Real, ((String)txt.value)));
 			}
-			case 197: // literal = TRUE_LITERAL.txt
+			case 196: // literal = TRUE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.True, ((String)txt.value)));
 			}
-			case 198: // literal = FALSE_LITERAL.txt
+			case 197: // literal = FALSE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.False, ((String)txt.value)));
 			}
-			case 199: // literal = CHARACTER_LITERAL.txt
+			case 198: // literal = CHARACTER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Char, ((String)txt.value)));
 			}
-			case 200: // literal = STRING_LITERAL.txt
+			case 199: // literal = STRING_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.String, ((String)txt.value)));
 			}
-			case 201: // literal = NULL_LITERAL.txt
+			case 200: // literal = NULL_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
 					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Null, ((String)txt.value)));
 			}
-			case 202: // primary = literal.l
+			case 201: // primary = literal.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ExprLiteral l = (ExprLiteral) _symbol_l.value;
 					 return _symbol_l;
 			}
-			case 203: // primary = LPAREN expression.e RPAREN
+			case 202: // primary = LPAREN expression.e RPAREN
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					 return new ParenthesSymbol(_symbol_e);
 			}
-			case 204: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN
+			case 203: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
@@ -1587,25 +1582,25 @@ public class CalParser extends Parser {
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(start.getStart()) + ", " + Symbol.getColumn(start.getStart()));
 			}
-			case 205: // simple_expression = primary.p
+			case 204: // simple_expression = primary.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Expression p = (Expression) _symbol_p.value;
 					 return _symbol_p;
 			}
-			case 206: // simple_expression = variable.v
+			case 205: // simple_expression = variable.v
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
 					final Variable v = (Variable) _symbol_v.value;
 					 return new Symbol(new ExprVariable(v));
 			}
-			case 207: // simple_expression = OLD variable.v
+			case 206: // simple_expression = OLD variable.v
 			{
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final Variable v = (Variable) _symbol_v.value;
 					 return new Symbol(new ExprVariable(v));
 			}
-			case 208: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
+			case 207: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
 			{
 					final Symbol _symbol_c = _symbols[offset + 2];
 					final Expression c = (Expression) _symbol_c.value;
@@ -1615,13 +1610,13 @@ public class CalParser extends Parser {
 					final Expression e2 = (Expression) _symbol_e2.value;
 					 return new Symbol(new ExprIf(c, e1, e2));
 			}
-			case 209: // simple_expression = LBRACE expression_list_opt.e RBRACE
+			case 208: // simple_expression = LBRACE expression_list_opt.e RBRACE
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ImmutableList e = (ImmutableList) _symbol_e.value;
 					 return new Symbol(new ExprSet(e));
 			}
-			case 210: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
+			case 209: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ImmutableList e = (ImmutableList) _symbol_e.value;
@@ -1629,21 +1624,13 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return new Symbol(new ExprSet(e, l.build()));
 			}
-			case 211: // simple_expression = LBRACK expression_list_opt.e RBRACK
+			case 210: // simple_expression = LBRACK expression_list_opt.e RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ImmutableList e = (ImmutableList) _symbol_e.value;
 					 return new Symbol(new ExprList(e));
 			}
-			case 212: // simple_expression = LBRACK expression_list_opt.e tail.tail RBRACK
-			{
-					final Symbol _symbol_e = _symbols[offset + 2];
-					final ImmutableList e = (ImmutableList) _symbol_e.value;
-					final Symbol _symbol_tail = _symbols[offset + 3];
-					final Expression tail = (Expression) _symbol_tail.value;
-					 return new Symbol(new ExprList(e));
-			}
-			case 213: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
+			case 211: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ImmutableList e = (ImmutableList) _symbol_e.value;
@@ -1651,23 +1638,13 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return new Symbol(new ExprList(e, l.build()));
 			}
-			case 214: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK
-			{
-					final Symbol _symbol_e = _symbols[offset + 2];
-					final ImmutableList e = (ImmutableList) _symbol_e.value;
-					final Symbol _symbol_l = _symbols[offset + 4];
-					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
-					final Symbol _symbol_tail = _symbols[offset + 5];
-					final Expression tail = (Expression) _symbol_tail.value;
-					 return new Symbol(new ExprList(e, l.build()));
-			}
-			case 217: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
+			case 214: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final ImmutableList.Builder m = (ImmutableList.Builder) _symbol_m.value;
 					 return new Symbol(new ExprMap(m==null? null : m.build()));
 			}
-			case 218: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
+			case 215: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final ImmutableList.Builder m = (ImmutableList.Builder) _symbol_m.value;
@@ -1675,7 +1652,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder generators = (ImmutableList.Builder) _symbol_generators.value;
 					 return new Symbol(new ExprMap(m==null? null : m.build(), generators.build()));
 			}
-			case 219: // simple_expression = LET decl_list.l COLON expression.e end_let
+			case 216: // simple_expression = LET decl_list.l COLON expression.e end_let
 			{
 					final Symbol _symbol_l = _symbols[offset + 2];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -1683,36 +1660,36 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return new Symbol(new ExprLet(null, l.build(), e));
 			}
-			case 220: // simple_expression = LAMBDA lambda_expr_body.lambda
+			case 217: // simple_expression = LAMBDA lambda_expr_body.lambda
 			{
 					final Symbol _symbol_lambda = _symbols[offset + 2];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return _symbol_lambda;
 			}
-			case 221: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
+			case 218: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
 			{
 					final Symbol _symbol_lambda = _symbols[offset + 3];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return _symbol_lambda;
 			}
-			case 222: // simple_expression = PROC procedure_expr_body.p
+			case 219: // simple_expression = PROC procedure_expr_body.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 2];
 					final ExprProc p = (ExprProc) _symbol_p.value;
 					 return _symbol_p;
 			}
-			case 223: // indexing_expression = simple_expression.e
+			case 220: // indexing_expression = simple_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 224: // indexing_expression = indexer.i
+			case 221: // indexing_expression = indexer.i
 			{
 					final Symbol i = _symbols[offset + 1];
 					 return i;
 			}
-			case 225: // indexing_expression = indexing_expression.p DOT field.f
+			case 222: // indexing_expression = indexing_expression.p DOT field.f
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Expression p = (Expression) _symbol_p.value;
@@ -1720,13 +1697,13 @@ public class CalParser extends Parser {
 					final Field f = (Field) _symbol_f.value;
 					 return new Symbol(new ExprField(p, f));
 			}
-			case 226: // indexing_expression = method_invocation.m
+			case 223: // indexing_expression = method_invocation.m
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
 					 return _symbol_m;
 			}
-			case 227: // indexer = indexer_start.s expression.i RBRACK
+			case 224: // indexer = indexer_start.s expression.i RBRACK
 			{
 					final Symbol _symbol_s = _symbols[offset + 1];
 					final Expression s = (Expression) _symbol_s.value;
@@ -1734,13 +1711,13 @@ public class CalParser extends Parser {
 					final Expression i = (Expression) _symbol_i.value;
 					 return new Symbol(new ExprIndexer(s, i));
 			}
-			case 228: // indexer_start = indexing_expression.e LBRACK
+			case 225: // indexer_start = indexing_expression.e LBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 229: // indexer_start = indexer_start.s expression.i COMMA
+			case 226: // indexer_start = indexer_start.s expression.i COMMA
 			{
 					final Symbol _symbol_s = _symbols[offset + 1];
 					final Expression s = (Expression) _symbol_s.value;
@@ -1748,13 +1725,13 @@ public class CalParser extends Parser {
 					final Expression i = (Expression) _symbol_i.value;
 					 return new Symbol(new ExprIndexer(s, i));
 			}
-			case 230: // unary_expression = indexing_expression.e
+			case 227: // unary_expression = indexing_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 231: // unary_expression = operator.operator unary_expression.expr
+			case 228: // unary_expression = operator.operator unary_expression.expr
 			{
 					final Symbol _symbol_operator = _symbols[offset + 1];
 					final String operator = (String) _symbol_operator.value;
@@ -1762,13 +1739,13 @@ public class CalParser extends Parser {
 					final Expression expr = (Expression) _symbol_expr.value;
 					 return new Symbol(new ExprUnaryOp(operator, expr));
 			}
-			case 232: // expression = unary_expression.e
+			case 229: // expression = unary_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 233: // expression = expression.arg1 operator.operator unary_expression.arg2
+			case 230: // expression = expression.arg1 operator.operator unary_expression.arg2
 			{
 					final Symbol _symbol_arg1 = _symbols[offset + 1];
 					final Expression arg1 = (Expression) _symbol_arg1.value;
@@ -1789,50 +1766,55 @@ public class CalParser extends Parser {
                                                                }
                                                                return new Symbol(new ExprBinaryOp(operators, operands));
 			}
-			case 234: // operator = OPERATOR.op
+			case 231: // operator = OPERATOR.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 235: // operator = EQ.op
+			case 232: // operator = EQ.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 236: // operator = IN.op
+			case 233: // operator = IN.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 237: // operator = GT.op
+			case 234: // operator = GT.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 238: // operator = MULT.op
+			case 235: // operator = MULT.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 239: // formal_parameter = IDENTIFIER.id
+			case 236: // operator = BAR.op
+			{
+					final Symbol op = _symbols[offset + 1];
+					 return op;
+			}
+			case 237: // formal_parameter = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(new ParDeclValue((String)id.value, null));
 			}
-			case 240: // formal_parameter = type.t IDENTIFIER.id
+			case 238: // formal_parameter = type.t IDENTIFIER.id
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol id = _symbols[offset + 2];
 					 return new Symbol(new ParDeclValue((String)id.value, t));
 			}
-			case 241: // formal_parameter_list = formal_parameter.p
+			case 239: // formal_parameter_list = formal_parameter.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 return new Symbol(ImmutableList.builder().add(p));
 			}
-			case 242: // formal_parameter_list = formal_parameter_list.l COMMA formal_parameter.p
+			case 240: // formal_parameter_list = formal_parameter_list.l COMMA formal_parameter.p
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -1840,7 +1822,7 @@ public class CalParser extends Parser {
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 l.add(p);  return _symbol_l;
 			}
-			case 243: // statement = expression.lhs COLONEQ expression.value SEMICOLON
+			case 241: // statement = expression.lhs COLONEQ expression.value SEMICOLON
 			{
 					final Symbol _symbol_lhs = _symbols[offset + 1];
 					final Expression lhs = (Expression) _symbol_lhs.value;
@@ -1851,19 +1833,19 @@ public class CalParser extends Parser {
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
                                                          return new Symbol(new StmtAssignment(new LValueVariable(new Variable("$illegal")), value));
 			}
-			case 244: // statement = method_invocation.m SEMICOLON
+			case 242: // statement = method_invocation.m SEMICOLON
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
 					 return new Symbol(new StmtCall(m.getFunction(), m.getArgs()));
 			}
-			case 245: // statement = BEGIN statement_list_opt.s END
+			case 243: // statement = BEGIN statement_list_opt.s END
 			{
 					final Symbol _symbol_s = _symbols[offset + 2];
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
 					 return new Symbol(new StmtBlock(null, null, s));
 			}
-			case 246: // statement = BEGIN VAR decl_list.d DO statement_list_opt.s END
+			case 244: // statement = BEGIN VAR decl_list.d DO statement_list_opt.s END
 			{
 					final Symbol _symbol_d = _symbols[offset + 3];
 					final ImmutableList.Builder d = (ImmutableList.Builder) _symbol_d.value;
@@ -1871,7 +1853,7 @@ public class CalParser extends Parser {
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
 					 return new Symbol(new StmtBlock(null, d.build(), s));
 			}
-			case 247: // statement = IF expression.e THEN statement_list_opt.s end_if
+			case 245: // statement = IF expression.e THEN statement_list_opt.s end_if
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
@@ -1879,7 +1861,7 @@ public class CalParser extends Parser {
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
 					 return new Symbol(new StmtIf(e, new StmtBlock(null, null, s), null));
 			}
-			case 248: // statement = IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if
+			case 246: // statement = IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
@@ -1891,7 +1873,7 @@ public class CalParser extends Parser {
                                                                                                                  new StmtBlock(null, null, s1),
                                                                                                                  new StmtBlock(null, null, s2)));
 			}
-			case 249: // statement = WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while
+			case 247: // statement = WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
@@ -1901,7 +1883,7 @@ public class CalParser extends Parser {
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
 					 return new Symbol(new StmtWhile(e, new StmtBlock(null, d, s)));
 			}
-			case 253: // statement = for_generator_list.g DO statement_list_opt.s end_foreach
+			case 251: // statement = for_generator_list.g DO statement_list_opt.s end_foreach
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
 					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
@@ -1909,7 +1891,7 @@ public class CalParser extends Parser {
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
 					 return new Symbol(new StmtForeach(g.build(), new StmtBlock(null, null, s)));
 			}
-			case 254: // statement = for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach
+			case 252: // statement = for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
 					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
@@ -1919,7 +1901,7 @@ public class CalParser extends Parser {
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
 					 return new Symbol(new StmtForeach(g.build(), new StmtBlock(null, d, s)));
 			}
-			case 255: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e
+			case 253: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
@@ -1927,7 +1909,7 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars.build(), e, null)); return new Symbol(l);
 			}
-			case 256: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e
+			case 254: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -1937,7 +1919,7 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars.build(), e, null)); return new Symbol(l);
 			}
-			case 257: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 255: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
@@ -1947,7 +1929,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars.build(), e, filters.build())); return new Symbol(l);
 			}
-			case 258: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 256: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -1959,7 +1941,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars.build(), e, filters.build())); return new Symbol(l);
 			}
-			case 259: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 257: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
@@ -1969,7 +1951,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(null, vars.build(), e, null)); return _symbol_l;
 			}
-			case 260: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 258: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -1981,7 +1963,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(t, vars.build(), e, null)); return _symbol_l;
 			}
-			case 261: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
+			case 259: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
@@ -1993,7 +1975,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(null, vars.build(), e, filters.build())); return _symbol_l;
 			}
-			case 262: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
+			case 260: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2007,7 +1989,7 @@ public class CalParser extends Parser {
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					 l.add(0, makeGeneratorFilter(t, vars.build(), e, filters.build())); return _symbol_l;
 			}
-			case 263: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e
+			case 261: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
@@ -2015,7 +1997,7 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, null)));
 			}
-			case 264: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e
+			case 262: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2025,7 +2007,7 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, null)));
 			}
-			case 265: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 263: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
@@ -2035,7 +2017,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, filters.build())));
 			}
-			case 266: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 264: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2047,7 +2029,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					 return new Symbol(ImmutableList.builder().add((makeGeneratorFilter(t, vars.build(), e, filters.build()))));
 			}
-			case 267: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 265: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA for_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
@@ -2057,7 +2039,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, null)).addAll(l.build()));
 			}
-			case 268: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 266: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2069,7 +2051,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, null)).addAll(l.build()));
 			}
-			case 269: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 267: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
@@ -2081,7 +2063,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, filters.build())).addAll(l.build()));
 			}
-			case 270: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 268: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
@@ -2095,35 +2077,35 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, filters.build())).addAll(l.build()));
 			}
-			case 271: // generator_variable_list = IDENTIFIER.id
+			case 269: // generator_variable_list = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(ImmutableList.builder().add(id.value));
 			}
-			case 272: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
+			case 270: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol id = _symbols[offset + 3];
 					 l.add(id.value); return _symbol_l;
 			}
-			case 291: // statement_list_opt = 
+			case 289: // statement_list_opt = 
 			{
 					 return new Symbol(ImmutableList.empty());
 			}
-			case 292: // statement_list_opt = statement_list.l
+			case 290: // statement_list_opt = statement_list.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return new Symbol(l.build());
 			}
-			case 293: // statement_list = statement.n
+			case 291: // statement_list = statement.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final Statement n = (Statement) _symbol_n.value;
 					 return new Symbol(ImmutableList.builder().add(n));
 			}
-			case 294: // statement_list = statement_list.l statement.n
+			case 292: // statement_list = statement_list.l statement.n
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -2155,7 +2137,7 @@ public class CalParser extends Parser {
 			case 165: // opt$type_list = 
 			case 174: // opt$formal_parameter_list = 
 			case 176: // opt$decl_block = 
-			case 215: // opt$map_list = 
+			case 212: // opt$map_list = 
 			{
 				return new Symbol(null);
 			}
@@ -2191,37 +2173,37 @@ public class CalParser extends Parser {
 			case 166: // opt$type_list = type_list
 			case 175: // opt$formal_parameter_list = formal_parameter_list
 			case 177: // opt$decl_block = decl_block
-			case 216: // opt$map_list = map_list
-			case 273: // for_foreach = FOREACH.FOREACH
-			case 274: // for_foreach = FOR.FOR
-			case 275: // do_begin = BEGIN.BEGIN
-			case 276: // do_begin = DO.DO
-			case 277: // end_choose = END.END
-			case 278: // end_choose = ENDCHOOSE.ENDCHOOSE
-			case 279: // end_foreach = END.END
-			case 280: // end_foreach = ENDFOREACH.ENDFOREACH
-			case 281: // end_if = END.END
-			case 282: // end_if = ENDIF.ENDIF
-			case 283: // end_lambda = END.END
-			case 284: // end_lambda = ENDLAMBDA.ENDLAMBDA
-			case 285: // end_let = END.END
-			case 286: // end_let = ENDLET.ENDLET
-			case 287: // end_proc = END.END
-			case 288: // end_proc = ENDPROC.ENDPROC
-			case 289: // end_while = END.END
-			case 290: // end_while = ENDWHILE.ENDWHILE
+			case 213: // opt$map_list = map_list
+			case 271: // for_foreach = FOREACH.FOREACH
+			case 272: // for_foreach = FOR.FOR
+			case 273: // do_begin = BEGIN.BEGIN
+			case 274: // do_begin = DO.DO
+			case 275: // end_choose = END.END
+			case 276: // end_choose = ENDCHOOSE.ENDCHOOSE
+			case 277: // end_foreach = END.END
+			case 278: // end_foreach = ENDFOREACH.ENDFOREACH
+			case 279: // end_if = END.END
+			case 280: // end_if = ENDIF.ENDIF
+			case 281: // end_lambda = END.END
+			case 282: // end_lambda = ENDLAMBDA.ENDLAMBDA
+			case 283: // end_let = END.END
+			case 284: // end_let = ENDLET.ENDLET
+			case 285: // end_proc = END.END
+			case 286: // end_proc = ENDPROC.ENDPROC
+			case 287: // end_while = END.END
+			case 288: // end_while = ENDWHILE.ENDWHILE
 			{
 				return _symbols[offset + 1];
 			}
-			case 250: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
+			case 248: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
 			{
 				return _symbols[offset + 4];
 			}
-			case 251: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
+			case 249: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
 			{
 				return _symbols[offset + 6];
 			}
-			case 252: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
+			case 250: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
 			{
 				return _symbols[offset + 8];
 			}
