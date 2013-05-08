@@ -1,0 +1,113 @@
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2004-2005, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+*/
+
+// Filter7.cal
+//
+// Author: David B. Parlour (dave.parlour@xilinx.com)
+//
+
+actor Filter7 ( int PIXSZ, int DATASZ, int COEFFSZ, int GUARDBITS )
+
+      int(size=PIXSZ) X0, int(size=PIXSZ) X1, int(size=PIXSZ) X2,
+      int(size=PIXSZ) X3, int(size=PIXSZ) X4, int(size=PIXSZ) X5, int(size=PIXSZ) X6,
+      int(size=COEFFSZ) C0, int(size=COEFFSZ) C1, int(size=COEFFSZ) C2,
+      int(size=COEFFSZ) C3, int(size=COEFFSZ) C4, int(size=COEFFSZ) C5, 
+      int(size=COEFFSZ) C6 ==> 
+      int(size=DATASZ) OUT : 
+
+  function MASK( p ) :
+    p & ( ( 1 << DATASZ ) - 1 )
+  end
+  
+  int SHIFT = (COEFFSZ + PIXSZ + GUARDBITS) - DATASZ;
+
+  int ABSZ = 18;
+  int PSZ = 48;
+  
+  int(size=ABSZ) lastX;
+  int(size=PSZ) sum;
+    
+  s0: action X6:[ p ] ==>
+  do
+    lastX := p; 
+  end
+
+  s1: action X0:[ p ], C0:[ c ] ==>
+  do
+    sum := p * c;
+  end
+
+  s2: action X1:[ p ], C1:[ c ] ==>
+  do
+    sum := sum + p * c;
+  end
+
+  s3: action X2:[ p ], C2:[ c ] ==>
+  do
+    sum := sum + p * c;
+  end
+
+  s4: action X3:[ p ], C3:[ c ] ==>
+  do
+    sum := sum + p * c;
+  end
+
+  s5: action X4:[ p ], C4:[ c ] ==>
+  do
+    sum := sum + p * c;
+  end
+
+  s6: action X5:[ p ], C5:[ c ] ==>
+  do
+    sum := sum + p * c;
+  end
+
+  s7: action C6:[ c ] ==> OUT:[ MASK((  sum + (lastX * c) ) >> SHIFT ) ] end
+
+  schedule fsm s0 :
+    s0( s0 ) --> s1;
+    s1( s1 ) --> s2;
+    s2( s2 ) --> s3;
+    s3( s3 ) --> s4;  
+    s4( s4 ) --> s5;  
+    s5( s5 ) --> s6;  
+    s6( s6 ) --> s7;  
+    s7( s7 ) --> s0;  
+  end
+  
+end

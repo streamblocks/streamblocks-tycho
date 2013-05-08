@@ -1,0 +1,161 @@
+<!--Actor Z-->
+<design name=Z>
+	<actor-port dir="in" name="In" size="0" typeName="unknown"/>
+	<actor-port dir="out" name="Out" size="0" typeName="unknown"/>
+	<!--Action A-->
+	<module autostart="false" kind="action" name="A">
+		<operation kind="pinWrite" name="Out" style="">
+			<port dir="in" source="$tokens"/>
+		</operation>
+	</module>
+	<!--Action B-->
+	<module autostart="false" kind="action" name="B">
+		<operation kind="pinRead" name="In" removable="" style="">
+			<port dir="out" size="0" source="$B$In" typeName="unknown"/>
+		</operation>
+		<operation kind="pinWrite" name="Out" style="">
+			<port dir="in" source="$B$In"/>
+		</operation>
+	</module>
+	<!--FiniteStateMachine-->
+	<stateVar name="curr_state">
+		<initValue size="32" typeName="int" value="1"/>
+	</stateVar>
+	<module autostart="true" kind="action-scheduler" name="action-scheduler" sourceName="action-scheduler">
+		<operation kind="$literal_integer" value="1">
+			<port dir="out" size="1" source="$sched_true" typeName="bool"/>
+		</operation>
+		<!--FSM adding state s0-->
+		<operation kind="$literal_integer" value="1">
+			<port dir="out" size="32" source="$fsm$s0" typeName="int"/>
+		</operation>
+		<!--FSM adding state s1-->
+		<operation kind="$literal_integer" value="2">
+			<port dir="out" size="32" source="$fsm$s1" typeName="int"/>
+		</operation>
+		<module kind="loop">
+			<module decision="$sched$true$loop" kind="test">
+				<operation kind="noop">
+					<port dir="in" source="$sched$true"/>
+					<port dir="out" source="$sched$true$loop" typeName="bool"/>
+				</operation>
+			</module>
+		</module>
+		<module kind="body">
+		<!--Guard for action A-->
+		<operation kind="$and">
+			<port dir="out" size="1" source="$A$guard" typeName="bool"/>
+		</operation>
+		<!--PinAvailable on port Out in action A-->
+		<operation kind="pinAvail" portName="Out">
+			<port dir="out" size="0" source="$A$Out$status" typeName="unknown"/>
+		</operation>
+		<operation kind="$literal_integer" value="1">
+			<port dir="out" size="32" source="$A$Out$exprCount" typeName="int"/>
+		</operation>
+		<operation kind="$ge">
+			<port dir="in" source="$A$Out$status"/>
+			<port dir="in" source="$A$Out$exprCount"/>
+			<port dir="out" size="1" source="$A$Out" typeName="bool"/>
+		</operation>
+		<operation kind="$literal_integer" value="1">
+			<port dir="out" size="1" source="$A$true" typeName="bool"/>
+		</operation>
+		<operation kind="$and">
+			<port dir="in" source="$A$true"/>
+			<port dir="in" source="$A$Out"/>
+			<port dir="out" size="1" source="$A$fireable" typeName="bool"/>
+		</operation>
+		<!--PinAvailable on port In in action B-->
+		<operation kind="pinAvail" portName="In">
+			<port dir="out" size="0" source="$B$In$pinAvail" typeName="unknown"/>
+		</operation>
+		<operation kind="$literal_integer" value="1">
+			<port dir="out" size="32" source="$B$In$tokenCount" typeName="int"/>
+		</operation>
+		<operation kind="$ge">
+			<port dir="in" source="$B$In$pinAvail"/>
+			<port dir="in" source="$B$In$tokenCount"/>
+			<port dir="out" size="1" source="$B$In$ready" typeName="bool"/>
+		</operation>
+		<!--Guard for action B-->
+		<operation kind="$and">
+			<port dir="in" source="$B$In$ready"/>
+			<port dir="out" size="1" source="$B$guard" typeName="bool"/>
+		</operation>
+		<!--PinAvailable on port Out in action B-->
+		<operation kind="pinAvail" portName="Out">
+			<port dir="out" size="0" source="$B$Out$status" typeName="unknown"/>
+		</operation>
+		<operation kind="$literal_integer" value="1">
+			<port dir="out" size="32" source="$B$Out$exprCount" typeName="int"/>
+		</operation>
+		<operation kind="$ge">
+			<port dir="in" source="$B$Out$status"/>
+			<port dir="in" source="$B$Out$exprCount"/>
+			<port dir="out" size="1" source="$B$Out" typeName="bool"/>
+		</operation>
+		<operation kind="$literal_integer" value="1">
+			<port dir="out" size="1" source="$B$true" typeName="bool"/>
+		</operation>
+		<operation kind="$and">
+			<port dir="in" source="$B$true"/>
+			<port dir="in" source="$B$Out"/>
+			<port dir="out" size="1" source="$B$fireable" typeName="bool"/>
+		</operation>
+		</module>
+		<!--Schedulation-->
+		<module kind="if">
+			<module decision="$fsm$s0$enabled" kind="test">
+				<operation kind="$eq">
+					<port dir="in" source="$fsm$s0"/>
+					<port dir="in" source="curr_state"/>
+					<port dir="out" size="1" source="$fsm$s0$enabled" typeName="bool"/>
+				</operation>
+			</module>
+			<module kind="then">
+				<module kind="if">
+					<module decision="$A$guard"/>
+					<module kind="then">
+						<module kind="if">
+							<module decision="$A$fireable"/>
+							<module kind="then">
+								<operation kind="taskCall" target="A"/>
+								<operation kind="assign" target="curr_state">
+									<port dir="in" source="$fsm$A"/>
+								</operation>
+							</module>
+						</module>
+					</module>
+				</module>
+			</module>
+			<module kind="else">
+				<module kind="if">
+					<module decision="$fsm$s1$enabled" kind="test">
+						<operation kind="$eq">
+							<port dir="in" source="$fsm$s1"/>
+							<port dir="in" source="curr_state"/>
+							<port dir="out" size="1" source="$fsm$s1$enabled" typeName="bool"/>
+						</operation>
+					</module>
+					<module kind="then">
+						<module kind="if">
+							<module decision="$B$guard"/>
+							<module kind="then">
+								<module kind="if">
+									<module decision="$B$fireable"/>
+									<module kind="then">
+										<operation kind="taskCall" target="B"/>
+										<operation kind="assign" target="curr_state">
+											<port dir="in" source="$fsm$B"/>
+										</operation>
+									</module>
+								</module>
+							</module>
+						</module>
+					</module>
+				</module>
+			</module>
+		</module>
+	</module>
+</design>

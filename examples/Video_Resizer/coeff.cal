@@ -1,0 +1,105 @@
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2004-2005, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+*/
+
+// coeff.cal
+//
+// Author: David B. Parlour (dave.parlour@xilinx.com)
+//
+
+actor coeff ( int PHASESZ, int COEFFSZ )
+
+      int(size=PHASESZ) RA, int(size=PHASESZ+2) WA, int(size=2*COEFFSZ ) WD ==>
+      int(size=COEFFSZ ) C0,
+      int(size=COEFFSZ ) C1, 
+      int(size=COEFFSZ ) C2, 
+      int(size=COEFFSZ ) C3, 
+      int(size=COEFFSZ ) C4, 
+      int(size=COEFFSZ ) C5, 
+      int(size=COEFFSZ ) C6 : 
+  
+  function lower( d ) :
+    d & ( ( 1 << COEFFSZ ) - 1 )
+  end
+  
+  function upper( d ) :
+    lower( d >> COEFFSZ  )
+  end
+
+  int HALFSEL = 1 << PHASESZ;
+  int BANKSEL = HALFSEL * 2;
+  int MEMSZ   = BANKSEL;
+ 
+  list( type:int(size=2*COEFFSZ), size=MEMSZ) c0123  :=  [ (1 << ((2*COEFFSZ)-1)) - 1 : for i in 1 .. MEMSZ ];
+  list( type:int(size=2*COEFFSZ), size=MEMSZ) c456   :=  [ (1 << ((2*COEFFSZ)-1)) - 1 : for i in 1 .. MEMSZ ];
+
+  function AMASK( a ) :
+    a & ( MEMSZ - 1 )
+  end
+
+  write.upper: action WA:[ a ], WD:[ d ] ==>
+  guard (a & BANKSEL) != 0
+  do
+    c456[ AMASK( a ) ] := d;
+  end
+
+  write.lower: action WA:[ a ], WD:[ d ] ==>
+  do
+    c0123[ AMASK( a ) ] := d;
+  end
+
+  read: action RA:[ a ] ==> C0:[ c0 ], C1:[ c1 ], C2:[ c2 ], C3:[ c3 ], C4:[ c4 ], C5:[ c5 ], C6:[ c6 ]
+  var
+    int(size=COEFFSZ*2) c01   = c0123[ AMASK( a ) ],
+    int(size=COEFFSZ*2) c23   = c0123[ bitor( AMASK( a ), HALFSEL ) ],
+    int(size=COEFFSZ*2) c45   = c456 [ AMASK( a ) ],
+    int(size=COEFFSZ*2) c67   = c456 [ bitor( AMASK( a ), HALFSEL ) ],
+    int(size=COEFFSZ) c0 = lower( c01 ),
+    int(size=COEFFSZ) c1 = upper( c01 ),
+    int(size=COEFFSZ) c2 = lower( c23 ),
+    int(size=COEFFSZ) c3 = upper( c23 ),
+    int(size=COEFFSZ) c4 = lower( c45 ),
+    int(size=COEFFSZ) c5 = upper( c45 ),
+    int(size=COEFFSZ) c6 = lower( c67 )
+  end
+
+  priority
+    write.upper > write.lower;
+    read > write;
+  end
+
+end

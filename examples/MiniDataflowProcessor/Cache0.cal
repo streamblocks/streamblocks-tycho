@@ -1,0 +1,16 @@
+
+actor Cache0 ()  int Addr, int W, int DataIn, int MemDataOut 
+             ==> int MemAddr, int MemW, int MemDataIn, int DataOut :
+
+	Read:	action Addr: [addr], W: [w] ==> MemAddr: [addr], MemW: [w]
+			guard not w
+			end
+			
+	Write:	action Addr: [addr], W: [w], DataIn: [d] ==> MemAddr: [addr], MemW: [w], MemDataIn: [d]
+			guard w
+			end
+	
+	Data:	action MemDataOut: [d] ==> DataOut: [d]
+			end
+             
+end

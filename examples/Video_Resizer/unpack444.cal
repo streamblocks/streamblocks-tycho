@@ -1,0 +1,81 @@
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2004-2005, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+*/
+
+// unpack444.cal
+//
+// Author: David B. Parlour (dave.parlour@xilinx.com)
+//
+
+actor unpack444 ( int PIXSZ ) int(size=3*PIXSZ) IN, bool SOF, bool USE ==> int(size=2*PIXSZ) OUT : 
+
+  // int(size=PIXSZ) chroma := 0;
+  bool u := true;
+ 
+  function MASK( p ) :
+    p & ( ( 1 << PIXSZ ) - 1 )
+  end
+
+  /* r: */ action IN:[ p ], SOF:[ sof ], USE:[ use ] ==> OUT:[ ( MASK( p >> (2*PIXSZ) ) << PIXSZ ) or MASK( chroma ) ]
+  var
+    int(size=PIXSZ) chroma = if u then p >> PIXSZ else p end
+  do
+  //if use then
+ // if u and MASK( rshift(p, 2*PIXSZ) ) != 0 or (not u) and MASK( rshift(p, 2*PIXSZ) ) != 128 then
+  //println("Got luma " + MASK( rshift(p, 2*PIXSZ) ) + " in unpack444 " );
+  //end
+  //end
+    // chroma := if u then p >> PIXSZ else p end;
+    u := sof or if use then (not u) else u end;
+  end
+  
+/*
+  w: action ==> OUT:[ MASK( chroma ) ]
+ // do
+ // if MASK( chroma ) != 15 then
+ // println("Got chroma " + MASK( chroma ) + " in unpack444 " );
+ // end
+  
+   end
+    
+  schedule fsm r :
+    r ( r ) --> w;
+    w ( w ) --> r;
+  end
+*/
+
+end

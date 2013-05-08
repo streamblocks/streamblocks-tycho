@@ -1,0 +1,14 @@
+<!--Actor Sine-->
+<design name=Sine>
+	<actor-port dir="in" name="Trigger" size="0" typeName="unknown"/>
+	<actor-port dir="out" name="Out" size="0" typeName="unknown"/>
+	<!--Action  -->
+	<module autostart="true" kind="action" name=" ">
+		<operation kind="pinRead" name="Trigger" removable="" style="">
+			<port dir="out" size="0" source="$ $Trigger" typeName="unknown"/>
+		</operation>
+		<operation kind="pinWrite" name="Out" style="">
+			<port dir="in" source="$ "/>
+		</operation>
+	</module>
+</design>

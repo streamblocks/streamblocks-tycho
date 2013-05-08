@@ -1,0 +1,6 @@
+
+actor Edge ()  ==> Out:
+
+	action ==> [0] end
+	
+end

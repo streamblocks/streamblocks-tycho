@@ -1,0 +1,177 @@
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2004-2005, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+*/
+
+// cropper.cal
+//
+// Author: David B. Parlour (dave.parlour@xilinx.com)
+//
+
+actor cropper
+  (
+    // Size of a pixel component (R, G or B)
+    int PIXSZ, 
+    
+    // Size of a coordinate (signed)  
+    int COORDSZ,
+
+    // Input image size
+    int IWIDTH,
+    int IHEIGHT
+
+   )
+
+      int(size=2*PIXSZ+1) IN ==> int(size=2*PIXSZ ) OUT : 
+  
+  // Input pixel position
+  // (initialize to unviewable location)
+  int(size=COORDSZ) x := IWIDTH;
+  int(size=COORDSZ) y := IHEIGHT;
+ 
+  // Start of viewable window in input image
+  // (received as an input parameter)
+  int(size=COORDSZ) win_start_x;
+  int(size=COORDSZ) win_start_y;
+  
+  // End location of viewable window in input image
+  // (recomputed each time a parameter is changed)
+  int(size=COORDSZ) win_end_x;
+  int(size=COORDSZ) win_end_y;
+
+  // Pick off the start-of-frame bit
+  int FRAME_BIT = 1 << ( 2*PIXSZ );
+  function isFrameBit( p ) :
+    ( p & FRAME_BIT ) != 0
+  end
+
+  bool crop;
+  bool crop_row;
+  
+  sof: action IN:[ p ] ==> OUT:[ 0 ]
+  guard isFrameBit( p )
+  do
+    x := 0;
+    y := 0;
+    // println("SOF in cropper");
+  end
+   
+  ignore: action IN:[ p ] ==> end
+
+  // Process commands
+  c1: action IN:[ p ] ==>
+  do
+    win_start_x := p;
+  end
+ 
+  c2: action IN:[ p ] ==>
+  do
+    win_start_y := p;
+  end
+  
+  c3: action IN:[ p ] ==>
+  do
+    win_end_x := win_start_x + p;
+  end
+  
+  c4: action IN:[ p ] ==>
+  do
+    win_end_y := win_start_y + p;
+    
+    crop_row := win_start_y != 0;
+    crop := crop_row or win_start_x != 0;
+  end
+  
+  eof: action ==>
+  guard y >= IHEIGHT
+  end
+
+  eol: action ==>
+  guard x >= IWIDTH
+  do
+    x := 0;
+    y := y + 1;
+    crop_row := y < win_start_y or y >= win_end_y;
+    crop := crop_row or win_start_x != 0;
+  end
+    
+  // Just consume the input when x,y is outside the displayed region
+  pixel.crop: action IN:[ p ] ==>
+  guard
+    crop
+  do
+    x := x + 1;
+    crop := crop_row or x < win_start_x or x >= win_end_x;
+  end
+  
+  //junk := 0;
+  // Consume and produce inside the display region
+  pixel.active : action IN:[ p ] ==> OUT:[ if p = 0 then 1 else p end ]
+  do
+    x := x + 1;
+    crop := x >= win_end_x;
+    //junk := junk + 1;
+  end
+  
+  schedule fsm sof :
+  
+    // Wait for a start of frame at power-up, or
+    // after receipt of a full frame. Suppress
+    // excess pixels in a long frame.
+    sof       ( sof            ) --> c1;
+    sof       ( ignore         ) --> sof;
+ 
+    c1        ( c1             ) --> c2;
+    c2        ( c2             ) --> c3;
+    c3        ( c3             ) --> c4;
+    c4        ( c4             ) --> data;
+
+    // Crop the data. In the event of a short frame
+    // go straight to receiving commands for processing
+    // of the next frame.       
+    data      ( eof            ) --> sof;
+    data      ( sof            ) --> c1;    
+    data      ( eol            ) --> data;
+    data      ( pixel          ) --> data; 
+  end
+  
+  priority
+    sof > ignore;
+    eof > eol > sof > pixel;
+    pixel.crop > pixel.active;
+  end
+  
+end

@@ -1,0 +1,137 @@
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2004-2005, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+*/
+
+// fifoArbiter.cal
+//
+// Author: David B. Parlour (dave.parlour@xilinx.com)
+//
+
+actor fifoArbiter
+( 
+  int ADDRSZ,      // number of address bits
+  int DATASZ,      // size of the data token in bytes (1,2 or 4)
+  int BURSTSZ,     // burst size in data tokens - DATASZ * BURSTSZ must be divisible by 16
+  int BUFSZ,       // number of 32-bit words allocated for buffer
+  int BUFSTART     // buffer start address in units of 32-bit words
+) 
+   bool RREQ,      // output process needs more data tokens
+   bool RACK,      // memory has provided BURSTSZ more data tokens to the output process
+   bool WREQ,      // input process has sent BURSTSZ more data tokens to the memory
+   bool WACK       // memory has committed BURSTSZ data tokens
+   ==> 
+   int(size=ADDRSZ) RADDR, 
+   int(size=ADDRSZ) WADDR : 
+
+  int MAX_PENDING = 2;
+  
+  int(size=3) readsPending  := 0;
+  int(size=3) writesPending := 0;
+
+  int BURSTSZ_IN_WORDS   = (BURSTSZ * DATASZ) / 4;
+  int BUFSTART_IN_BURSTS = (BUFSTART + BURSTSZ_IN_WORDS - 1) / BURSTSZ_IN_WORDS;
+
+  int PTRSZ = 12;
+
+  // All address pointers are maintained in units of bursts  
+  int(size=PTRSZ) raddr_next  := BUFSTART_IN_BURSTS;    // next read starts here
+  int(size=PTRSZ) raddr_acked := BUFSTART_IN_BURSTS;    // this will be the next read address ack'd
+
+  int(size=PTRSZ) waddr_next  := BUFSTART_IN_BURSTS;    // next write starts here
+  int(size=PTRSZ) waddr_acked := BUFSTART_IN_BURSTS;    // this will be the next write address ack'd
+    
+  bool full  := false;
+  bool empty := true;
+
+  // wrapped increment of any address pointer
+  function inc_addr( a )
+  var
+    int TOOFAR             = (BUFSTART + BUFSZ) / BURSTSZ_IN_WORDS,
+    int BUFSZ_IN_BURSTS    = TOOFAR - BUFSTART_IN_BURSTS,
+    int(size=PTRSZ+1) next = a + 1 :
+    
+    next - if next >= TOOFAR then BUFSZ_IN_BURSTS else 0 end
+    
+  end
+
+  // Memory controller ACKs a read burst  
+  action RACK:[ ack ] ==>
+  guard 
+    readsPending > 0  // for defensive purposes
+  do
+    readsPending := readsPending - 1;
+    raddr_acked  := inc_addr( raddr_acked );
+    full         := false;
+  end
+
+  // Memory controller ACKs a write burst  
+  action WACK:[ ack ] ==>
+  guard 
+    writesPending > 0  // for defensive purposes
+  do
+    writesPending := writesPending - 1;
+    waddr_acked   := inc_addr( waddr_acked );
+    empty         := false;
+  end
+
+  // Output process needs more data  
+  action RREQ:[ req ] ==> RADDR:[ a ]
+  guard
+    readsPending < MAX_PENDING,
+    not empty
+  var
+    int(size=ADDRSZ+1) a = raddr_next * BURSTSZ_IN_WORDS
+  do
+    readsPending := readsPending + 1;
+    raddr_next   := inc_addr( raddr_next );
+    empty        := raddr_next = waddr_acked;
+  end
+
+  // Input process wants to write more data  
+  action WREQ:[ req ] ==> WADDR:[ a  ]
+  guard
+    writesPending < MAX_PENDING,
+    not full
+  var
+    int(size=ADDRSZ+1) a = waddr_next * BURSTSZ_IN_WORDS
+  do
+    writesPending := writesPending + 1;
+    waddr_next    := inc_addr( waddr_next );
+    full          := waddr_next = raddr_acked;
+  end
+    
+end

@@ -1,0 +1,8 @@
+
+actor Print () S, Y ==> :
+
+	action S: [s], Y: [y] ==>
+	do
+		println("S: " + s + ", Y: " + y);
+	end
+end

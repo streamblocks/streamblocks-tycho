@@ -1,0 +1,84 @@
+actor Expression[TypeA, TypeB] (ParamA, ParamB) inA, inB ==> outA, outB:
+  a = 1;
+  b = a;
+  c = -a;
+  d = a+b-c;
+  e = (a+b)*c/d;
+  e = a*(b+c)*d/e;
+  f = a[1];
+  g = a[1, 2, 1+2];
+  h = foo();
+  h = foo(a, b, c);
+  i = a.b;
+  j = a[1](b).c;
+  k = -a[1](b).c;
+  l = foo() + if a then b else c end - bar();
+  m = a+b();
+  n = lambda(a, b) var int d := 3 : a+b+c+d end;
+  o = let a=3 : a + b endlet;
+  p = [a, b, c];
+  q = [a : for a in [1, 2, 3], a<b];
+  r = [a : for a in [1, 2, 3], a>0, for b in [4, 5, 6], a>0, b>1, a<b];
+  s = map{x->x*x, x->x+2, a->-|b : for x in [1, 2, 3]};
+  t = {a : for a in [1, 2, 3], a>0, for b in {4, 5, 6}, a>0, b>1, a<b};
+  u = proc(a, b) begin
+        d := a+b;
+        f := n();
+        begin
+        var
+         hepp := 32,
+         hepp2 := 33
+        do
+          a := hepp;
+          a := hepp2;
+        end
+        if a<b then
+          a := b;
+        else
+          a := 32;
+        end
+        if c=d then
+          c := d;
+        end
+        foo();
+        bar(foo(), 3, 4);
+        while i<32
+        var
+          step = 1
+        do
+          i := i+step;
+        end
+        foreach i in [1, 2, 3], foreach j in [4, 5, 6] do
+          a := i+j;
+        end
+      end;
+  priority
+    a.b.c > b.c.d > c;
+    c>d;
+  end
+  schedule fsm s0 :
+    s0(a)-->s1;
+    s1(a.b)-->s2 | (b)-->s0 | (c.c)-->s1;
+  endschedule
+  invariant
+    a>0, b>1, c>3 
+  endinvariant
+  
+  init: initialize ==> [1,2,3] end
+  
+  act1: action [a], portA:[b, c] ==> out:[a-b+c], [3]
+  guard a>3, b>2
+  var
+    int hepp := 3,
+    bar = 42 -->- 3,
+    int(a:int, b:float, s=34, t=-1) hepp2
+  do
+    a.c := foo();
+    d[4] := bar();
+    foo.a();
+    bar[3]();
+  endaction
+  act2: action [a], [b, c] ==> [a-b+c]
+    delay 32
+  endaction
+end

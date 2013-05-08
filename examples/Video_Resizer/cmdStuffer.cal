@@ -1,0 +1,470 @@
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2004-2005, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+*/
+
+// cmdStuffer.cal
+//
+// Author: David B. Parlour (dave.parlour@xilinx.com)
+//
+
+actor cmdStuffer
+(
+  int PIXSZ,
+  int COORDSZ,
+  int COEFFSZ,
+  int PHASESZ,
+    
+  int IWIDTH,
+  int IHEIGHT,
+  int CROP_WIDTH,
+  int CROP_HEIGHT,
+  int START_INDEX 
+
+  )
+
+      int(size=3*PIXSZ+1) IN ==>
+      int(size=2*PIXSZ+1) OUT, int(size=COORDSZ) PAD, int(size=COORDSZ) X, int(size=COORDSZ) Y,
+      int(size=2*COEFFSZ) WD, int(size=PHASESZ+2) WA,  bool ZOOM : 
+
+  // int CROP_WIDTH = 1278; // 936;
+  // int CROP_HEIGHT = 1020; // 768;
+  // int START_INDEX = 5;
+
+  int MEMSZ = 124;
+  
+  list( type:int(size=2*COEFFSZ), size=MEMSZ+1 ) coeff = 
+  [
+  115999120, 585700710, 359015145, 1770,
+  
+  108789760, 848830520, 108798008, 0,
+  
+  -48824488, 921439314, 206714604, 64790,
+  -84213632, 1341197157, -94097467, 65286,
+  -94044410, 1341206469, -84210843, 128,
+  17956926, 1260909480, -207074521, 274,
+  -24706877, 1581382186, -217304274, 528,
+  -91356829, 1761609623, -165799067, 503,
+  -165805577, 1761614693, -91355241, 355,
+  -217316848, 1581331246, -24643030, 195,
+  32767, 0, 0, 0,
+  71565076, 1534258582, -247578827, 815,
+  68943678, 1911549748, -144367002, 440,
+  32767911, 2120415311, -41809476, 118,
+  -41811850, 2120354236, 32766031, 65447,
+  -144375368, 1911497318, 68939572, 65342, 
+  -247594193, 1534213941, 71560598, 65300,
+  69336850, 1305079437, -292729399, 1057,
+  58720091, 2040525453, -94300813, 294,
+  -94306010, 2040468851, 58716813, 65371,
+  60030794, 1911549891, -134077942, 357,
+  -134086299, 1911497226, 60026819,65354,
+  68681510, 1739845097, -192270237, 570,
+  0, 2147418112, 0, 0,
+  -192282054, 1739796579, 68677097, 65318,
+  71565076, 1534258582, -247578827, 815,
+  68943678, 1911549748, -144367002, 440,
+  32767911, 2120415311, -41809476, 118,
+  -41811850, 2120354236, 32766031, 65447,
+  -144375368, 1911497318, 68939572, 65342, 
+  -247594193, 1534213941, 71560598, 65300,
+  /* dummy */ 2147483647 ];
+
+  // Predefined list of image sizes
+  int NSIZES = 11;
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) xSizes =
+  [ CROP_WIDTH/6,
+    CROP_WIDTH/3, 
+    CROP_WIDTH/2, 
+    (CROP_WIDTH*2)/3, 
+    (CROP_WIDTH*5)/6, 
+    CROP_WIDTH, 
+    CROP_WIDTH,
+    CROP_WIDTH,
+    CROP_WIDTH,
+    CROP_WIDTH,
+    CROP_WIDTH,
+    2047 ];
+  
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) ySizes = 
+  [ CROP_HEIGHT/6, 
+    CROP_HEIGHT/3, 
+    CROP_HEIGHT/2, 
+    (CROP_HEIGHT*2)/3, 
+    (CROP_HEIGHT*5)/6, 
+    CROP_HEIGHT, 
+    CROP_HEIGHT,
+    CROP_HEIGHT,
+    CROP_HEIGHT,
+    CROP_HEIGHT,
+    CROP_HEIGHT,
+    2047 ];
+
+  // Constants for resizing
+
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) upsamplingFactor =
+  [ 1, 1, 1, 2, 5, 1,
+    6, 3, 2, 3, 6,
+    2047 ];
+    
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) integralIncrement = 
+  [ 6, 3, 2, 1, 1, 1, 
+    0, 0, 0, 0, 0,
+    2047 ];
+  
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) fractionalIncrement = 
+  [ 0, 0, 0, 1, 1, 0, 
+    5, 2, 1, 1, 1,
+    2047 ];
+  
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) integralPhase = 
+  [ 6, 4, 4, 3, 3, 0,
+    3, 3, 3, 3, 3,
+    2047 ];
+  
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) fractionalPhase = 
+  [ 0, 0, 0, 1, 3, 0,
+    2, 1, 0, 0, 0,
+    2047 ];
+
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) startAddress = 
+  [ 0, 1, 2, 3, 5, 10,
+    11, 17, 20, 22, 25,
+    2047 ];
+
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) crop_w =
+  [ CROP_WIDTH, CROP_WIDTH, CROP_WIDTH, CROP_WIDTH, CROP_WIDTH, CROP_WIDTH, 
+    (CROP_WIDTH*5)/6, (CROP_WIDTH*2)/3, CROP_WIDTH/2, CROP_WIDTH/3, CROP_WIDTH/6,
+    2047 ];
+
+  list( type:int(size=COORDSZ), size=NSIZES+1 ) crop_h =
+  [ CROP_HEIGHT, CROP_HEIGHT, CROP_HEIGHT, CROP_HEIGHT, CROP_HEIGHT, CROP_HEIGHT,
+    (CROP_HEIGHT*5)/6, (CROP_HEIGHT*2)/3, CROP_HEIGHT/2, CROP_HEIGHT/3, CROP_HEIGHT/6,
+    2047 ];
+
+  function even( x ) :
+    bitand( x, bitnot(1) )
+  end
+  
+  // Zoom factor selection
+  int(size=6) index;
+  int(size=COORDSZ) win_start_x;
+  int(size=COORDSZ) win_start_y;
+
+  int FRAME_BIT3 = 1 << (3*PIXSZ );
+  int FRAME_BIT2 = 1 << (2*PIXSZ );
+  
+  // Pick off the start-of-frame bit
+  function isFrameBit3( p ) :
+    ( p & FRAME_BIT3 ) != 0
+  end
+  
+  // ML402 buttons
+  int RIGHT  = 1;
+  int CENTER = 2;
+  int LEFT   = 4;
+  int DOWN   = 8;
+  int UP     = 16;
+  
+  bool zoom := true;
+
+  int(size=5) buttons;
+
+  int(size=8) cIndex := 0;
+  
+  coeff.done: action ==>
+  guard cIndex >= MEMSZ
+  do
+    index := START_INDEX;
+    ch := crop_h[ START_INDEX ];
+    cw := crop_w[ START_INDEX ];
+  end
+  
+  coeff.write: action ==> WA:[ a ], WD:[ coeff[ i ] ]
+  var
+    int(size=8) i = cIndex,
+    int(size=10) a = ( ( cIndex & 3 ) << 8 ) + ( cIndex >> 2 )
+  do
+    cIndex := cIndex + 1;
+  end
+  
+  init: action ==>
+  do
+    win_start_x := even( (IWIDTH - cw) >> 1 );
+    win_start_y := even( (IHEIGHT - ch) >> 1 );
+  end
+  
+  // First issue commands on side-channels
+  p1: action ==> PAD:[ w ]
+  var int(size=COORDSZ) w = xSizes[ index ]
+  end
+  
+  p2: action ==> PAD:[ h ]
+  var int(size=COORDSZ) h = ySizes[ index ]
+  end
+
+  sof: action IN:[ p ] ==> ZOOM:[ zoom ]
+  guard isFrameBit3( p )
+  do
+  // println("SOF in cmdStuffer");
+    buttons := p;
+  end
+  
+  pixel: action IN:[ p ] ==> OUT:[ p ] end 
+  
+  ignore: action IN:[ p ] ==> end 
+
+  // Resizer commands  
+ 
+ 
+  // First issue commands on side-channels
+  y0: action ==> X:[ cw - 1 ], Y:[ w - 1 ]
+  var
+    int(size=COORDSZ) w = xSizes[ index ]
+  end
+  
+  y1: action ==> X:[ ch ], Y:[ ch ]
+  end
+  
+  y2: action ==> X:[ w ], Y:[ h ]
+  var
+    int(size=COORDSZ) w = xSizes[ index ],
+    int(size=COORDSZ) h = ySizes[ index ]
+  end
+  y3: action ==> X:[ v ], Y:[ v ] var int(size=COORDSZ) v = upsamplingFactor   [index] end
+  y4: action ==> X:[ v ], Y:[ v ] var int(size=COORDSZ) v = integralPhase      [index] end
+  y5: action ==> X:[ v ], Y:[ v ] var int(size=COORDSZ) v = fractionalPhase    [index] end
+  y6: action ==> X:[ v ], Y:[ v ] var int(size=COORDSZ) v = integralIncrement  [index] end
+  y7: action ==> X:[ v ], Y:[ v ] var int(size=COORDSZ) v = fractionalIncrement[index] end
+  y8: action ==> X:[ v ], Y:[ v ] var int(size=COORDSZ) v = startAddress       [index] end
+
+  // Cropper commands
+  c0: action ==> OUT:[ FRAME_BIT2 ]
+//do
+//println("Sending cropper cmds from cmdStuffer - startx="+win_start_x+", starty="+win_start_y);
+ end
+  c1: action ==> OUT:[ win_start_x ] end
+  
+  c2: action ==> OUT:[ win_start_y ] end
+  
+  c3: action ==> OUT:[ cw  ]
+  end 
+  
+  c4: action ==> OUT:[ ch ]
+  end
+
+  // Detect zoom with no transition or pan with transition 
+  do_zoom: action ==>
+  guard ( (zoom and ( buttons & CENTER ) = 0 ) or ( (not zoom) and ( buttons & CENTER ) != 0 ) )
+  do
+    zoom := true;
+    index := index + if ( buttons & UP ) != 0 then 1 else
+                      if ( buttons & DOWN ) != 0 then -1 else 0 end
+                     end;
+                     
+    index:= if index < 0 then 0 else
+              if index >= NSIZES then NSIZES-1 else index end
+            end;
+  end
+
+  int(size=COORDSZ) oldcw;
+  int(size=COORDSZ) cw;
+  int(size=COORDSZ) max_xstart;
+  int(size=COORDSZ) oldch;
+  int(size=COORDSZ) ch;
+  int(size=COORDSZ) max_ystart;
+  
+  getcw: action ==>
+  do
+    oldcw := cw;
+    cw := crop_w[ index ];
+  end
+
+  getch: action ==>
+  do
+    oldch := ch;
+    ch := crop_h[ index ];
+  end
+  
+  maxes: action ==>
+  do
+    max_xstart := even(IWIDTH - cw);
+    max_ystart := even(IHEIGHT - ch);
+    win_start_x := even( win_start_x + ( (oldcw - cw) >> 1 ) );
+    win_start_y := even( win_start_y + ( (oldch - ch) >> 1 ) );
+  end
+
+  int JOG = 10;
+  
+  do_pan: action ==>
+  do
+    zoom := false;
+    win_start_x := even( win_start_x + if ( buttons & LEFT ) != 0 and not left_sat then -JOG else
+                                   if ( buttons & RIGHT ) != 0 and not right_sat then JOG else 0 end
+                                 end );
+    win_start_y := even( win_start_y + if ( buttons & UP ) != 0 and not top_sat then -JOG else
+                                   if ( buttons & DOWN ) != 0 and not bottom_sat then JOG else 0 end
+                                 end );
+  end
+
+  // This is any over/under hang from previous pans that would have
+  // taken us outside the screen. It is added back in each time to
+  // keep us on the same grid when we pan back in to the viewable
+  // area.
+  int(size=COORDSZ) delta_x := 0;
+  int(size=COORDSZ) delta_y := 0;
+
+  bool left_sat   := false;
+  bool right_sat  := false;
+  bool top_sat    := false;
+  bool bottom_sat := false;
+  
+  delta: action ==>
+  do
+    win_start_x := win_start_x + delta_x;
+    win_start_y := win_start_y + delta_y;
+    delta_x     := 0;
+    delta_y     := 0;
+    left_sat    := false;
+    right_sat   := false;
+    top_sat     := false;
+    bottom_sat  := false;
+  end
+  
+  clipStart.x1: action ==>
+  guard d > 0
+  var int(size=COORDSZ) d = win_start_x - max_xstart
+  do
+    delta_x := d;
+    win_start_x := max_xstart;
+    right_sat := true;
+  end
+  
+  clipStart.x2: action==>
+  guard win_start_x < 0 
+  do
+    delta_x := win_start_x;
+    win_start_x := 0;
+    left_sat := true;
+  end
+  
+  clipStart.y1: action ==>
+  guard d > 0
+  var int(size=COORDSZ) d = win_start_y - max_ystart
+  do
+    delta_y := d;
+    win_start_y := max_ystart;
+    bottom_sat := true;
+  end
+  
+  clipStart.y2: action ==>
+  guard win_start_y < 0 
+  do
+    delta_y := win_start_y;
+    win_start_y := 0;
+    top_sat := true;
+  end
+  
+  clipDone: action ==> end
+ 
+  schedule fsm coeff :
+  
+    coeff ( coeff.done  ) --> init;
+    coeff ( coeff.write ) --> coeff;
+    
+    init  ( init        ) --> por;
+  
+    // Wait for a new frame at power up
+    por    ( sof    ) --> por1;
+    por    ( ignore ) --> por;
+    
+    // Get the pad actor started
+    por1   ( p1       ) --> por2;
+    por2   ( p2       ) --> por3;
+
+    // Wait for second frame before starting processing
+    por3   ( sof     ) --> loop;
+    por3   ( ignore  ) --> por3;
+
+    // Start the regular processing loop
+    // First start the resizers
+    loop    ( y0            ) --> y1;
+    y1      ( y1            ) --> y2;
+    y2      ( y2            ) --> y3;
+    y3      ( y3            ) --> y4;
+    y4      ( y4            ) --> y5;
+    y5      ( y5            ) --> y6;
+    y6      ( y6            ) --> y7;
+    y7      ( y7            ) --> y8;
+    y8      ( y8            ) --> c0;
+    // Now start the cropper
+    c0      ( c0            ) --> c1;
+    c1      ( c1            ) --> c2;
+    c2      ( c2            ) --> c3;
+    c3      ( c3            ) --> c4;
+    c4      ( c4            ) --> buttons;
+    
+    // Now update the zoom/pan with user input
+    buttons ( do_zoom       ) --> crop;
+    buttons ( do_pan        ) --> delta;
+    
+    crop    ( getcw        ) --> crop1;
+    crop1   ( getch        ) --> crop2;
+    crop2   ( maxes        ) --> delta;
+    
+    // Check bounds on user input
+    delta   ( delta         ) --> pan;
+    pan     ( clipStart     ) --> pan;
+    pan     ( clipDone      ) --> p1;
+    
+    // Send next command to the pad actor so it can run ahead
+    p1      ( p1            ) --> p2;
+    p2      ( p2            ) --> frame;
+    
+    // Now pass the frame data through
+    frame    ( sof           ) --> loop;
+    frame    ( pixel         ) --> frame;
+  end
+  
+  priority
+    sof > pixel;
+    sof > ignore;
+    do_zoom > do_pan;
+    clipStart > clipDone;
+    coeff.done > coeff.write;
+  end
+  
+end

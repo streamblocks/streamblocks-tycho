@@ -1,0 +1,11 @@
+
+actor InitialTokens (tokens) In ==> Out:
+  A: action ==> [tokens] repeat #tokens end
+
+  B: action [a] ==> [a] end
+  
+  schedule fsm s0: 
+  	s0 (A) --> s1;
+  	s1 (B) --> s1;
+  end
+end

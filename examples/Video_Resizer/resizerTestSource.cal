@@ -1,0 +1,330 @@
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2004-2005, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+*/
+
+// resizerTestSource.cal
+//
+// Author: David B. Parlour (dave.parlour@xilinx.com)
+//
+
+import net.sf.opendf.mvi.Image;
+import java.lang.Math;
+
+actor resizerTestSource (  ) ==>  WA, WD, HPARAM, VPARAM, OUT, DPARAM: 
+
+  realFilters =[
+  // 1:6
+  [ 0.012192,  0.054001,  0.167160,  0.272736,  0.272736,  0.167160,  0.054001 ],
+ 
+  // 1:3
+  [ 0.000000,  0.050674,  0.251694,  0.395264,  0.251694,  0.050674,  0.000000 ],
+
+  // 1:2 
+  [-0.005142, -0.022766,  0.096252,  0.429077,  0.429077,  0.096252, -0.022766 ],
+ 
+  // 2:3
+  [ 0.003906, -0.039215,  0.089020,  0.624542,  0.373199, -0.043823, -0.007629 ],
+  [-0.007629, -0.043823,  0.373199,  0.624542,  0.089020, -0.039215,  0.003906 ],
+
+  // 5:6
+  [ 0.001892,  0.008331, -0.096222,  0.585907,  0.585907, -0.096222,  0.008331 ],
+  [ 0.005951, -0.011505, -0.045593,  0.736572,  0.399963, -0.101227,  0.016113 ],
+  [ 0.010834, -0.042572,  0.059326,  0.820923,  0.214172, -0.077271,  0.015350 ],
+  [ 0.015350, -0.077271,  0.214172,  0.820923,  0.059326, -0.042572,  0.010834 ],
+  [ 0.016113, -0.101227,  0.399963,  0.736572, -0.045593, -0.011505,  0.005951 ],
+
+  // 1:1
+  [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+  
+  // 6:5
+  [-0.007202,  0.033264, -0.143768,  0.713898,  0.493439, -0.115204,  0.024841 ],
+  [-0.005920,  0.032074, -0.131226,  0.890167,  0.268768, -0.067230,  0.013428 ],
+  [-0.002716,  0.015228, -0.060120,  0.988098,  0.076111, -0.019470,  0.003601 ],
+  [ 0.003601, -0.019470,  0.076111,  0.988098, -0.060120,  0.015228, -0.002716 ],
+  [ 0.013428, -0.067230,  0.268768,  0.890167, -0.131226,  0.032074, -0.005920 ],
+  [ 0.024841, -0.115204,  0.493439,  0.713898, -0.143768,  0.033264, -0.007202 ],
+
+  // 3:2
+  [-0.007263,  0.032257, -0.136322,  0.607697,  0.607697, -0.136322,  0.032257 ],
+  [-0.005035,  0.027313, -0.105072,  0.950165,  0.167572, -0.043915,  0.008972 ],
+  [ 0.008972, -0.043915,  0.167572,  0.950165, -0.105072,  0.027313, -0.005035 ],
+
+  // 2:1
+  [-0.005554,  0.027924, -0.126862,  0.890106,  0.265930, -0.062439,  0.010895 ],
+  [ 0.010895, -0.062439,  0.265930,  0.890106, -0.126862,  0.027924, -0.005554 ],
+  
+  // 3:1
+  [-0.006653,  0.031921, -0.141235,  0.809570,  0.377747, -0.089478,  0.017395 ],
+  [ 0.000000,  0.000000,  0.000000,  1.001465,  0.000000,  0.000000,  0.000000 ],
+  [ 0.017395, -0.089478,  0.377747,  0.809570, -0.141235,  0.031921, -0.006653 ],
+  
+  // 6:1
+  [-0.007202,  0.033264, -0.143768,  0.713898,  0.493439, -0.115204,  0.024841 ],
+  [-0.005920,  0.032074, -0.131226,  0.890167,  0.268768, -0.067230,  0.013428 ],
+  [-0.002716,  0.015228, -0.060120,  0.988098,  0.076111, -0.019470,  0.003601 ],
+  [ 0.003601, -0.019470,  0.076111,  0.988098, -0.060120,  0.015228, -0.002716 ],
+  [ 0.013428, -0.067230,  0.268768,  0.890167, -0.131226,  0.032074, -0.005920 ],
+  [ 0.024841, -0.115204,  0.493439,  0.713898, -0.143768,  0.033264, -0.007202 ]
+  
+  ];
+
+  // Phase counter parameters
+  //                        1:6  1:3  1:2  2:3  5:6  6:6  6:5  3:2  2:1  3:1  6:1  
+  upsamplingFactor      = [  1,   1,   1,   2,   5,   1,   6,   3,   2,   3,   6 ];
+  integralIncrement     = [  6,   3,   2,   1,   1,   1,   0,   0,   0,   0,   0 ];
+  fractionalIncrement   = [  0,   0,   0,   1,   1,   0,   5,   2,   1,   1,   1 ];
+  integralPhase         = [  6,   4,   4,   3,   3,   0,   3,   3,   3,   3,   3 ];
+  fractionalPhase       = [  0,   0,   0,   1,   3,   0,   2,   1,   0,   0,   0 ];
+  startAddress          = [  0,   1,   2,   3,   5,  10,  11,  17,  20,  22,  25 ];
+
+  // Scale factors for 16 bit versions    
+  coeffUnity = 32768;
+  coeffMin   = -32768;
+  coeffMax   = 32767;
+  
+  function sat( x ) :
+    if x < coeffMin then coeffMin else if x > coeffMax then coeffMax else x end end
+  end
+  
+  function gain( x ) :
+    x[0] + x[1] + x[2] + x[3] + x[4] + x[5] + x[6]
+  end
+  
+  realGains = [ gain( realFilters[i] ) : for i in 0 .. (#realFilters - 1) ];
+
+  intFilters = [  [ sat( Math.round( (realFilters[i,j] * coeffUnity ) / realGains[i] ) ) :
+                       for j in 0 .. ( #(realFilters[i]) - 1 )] :
+                       for i in 0 .. ( #realFilters - 1 ) ];
+
+  function packCoeffs( lower, upper ) 
+  var
+    int bits = 16,
+    function mask( x ) : x & ((1<<bits) -1 ) end :
+    
+    mask(lower) + ( mask(upper) << bits )
+  end
+    
+  coeffROM = [ packCoeffs( intFilters[i,0], intFilters[i,1] ),
+               packCoeffs( intFilters[i,2], intFilters[i,3] ),
+               packCoeffs( intFilters[i,4], intFilters[i,5] ),
+               packCoeffs( intFilters[i,6], 0 )
+         : for i in 0 .. (#intFilters - 1) ];
+  
+  
+  test = [
+
+     // 1 : 6
+     map {
+     "f"  -> "./data/input/apollo_936x768.rgb",
+     "iw" -> 936,
+     "ih" -> 768,
+     "ow" -> 936 / 6,
+     "oh" -> 768 / 6,
+     "index" -> 0
+    }
+    /*,
+  
+     // 5 : 6
+     map {
+     "f"  -> "../data/input/apollo_936x768.rgb",
+     "iw" -> 936,
+     "ih" -> 768,
+     "ow" -> 780,
+     "oh" -> 640,
+     "ss" -> 3,
+     "sp" -> 3,
+     "ii" -> 1,
+     "fi" -> 1,  
+     "up" -> 5,
+     "sa" -> 5
+    },
+  
+     // 2 : 3
+     map {
+     "f"  -> "../data/input/apollo_936x768.rgb",
+     "iw" -> 936,
+     "ih" -> 768,
+     "ow" -> 624,
+     "oh" -> 412,
+     "ss" -> 3,
+     "sp" -> 1,
+     "ii" -> 1,
+     "fi" -> 1,  
+     "up" -> 2,
+     "sa" -> 3
+    },
+
+    // 1 : 2
+     map {
+     "f"  -> "../data/input/apollo_936x768.rgb",
+     "iw" -> 936,
+     "ih" -> 768,
+     "ow" -> 468,
+     "oh" -> 384,
+     "ss" -> 4,
+     "sp" -> 0,
+     "ii" -> 2,
+     "fi" -> 0,
+     "up" -> 1,
+     "sa" -> 2
+    },
+    
+     // 1: 3  
+     map {
+     "f"  -> "../data/input/apollo_936x768.rgb",
+     "iw" -> 936,
+     "ih" -> 768,
+     "ow" -> 312,
+     "oh" -> 256,
+     "ss" -> 4,
+     "sp" -> 0,
+     "ii" -> 3,
+     "fi" -> 0,
+     "up" -> 1,
+     "sa" -> 1
+    },
+    
+    // 1:6
+    map {
+     "f"  -> "../data/input/apollo_1280x1024.rgb",
+     "sourcew" -> 1280,
+     "sourceh" -> 1024,
+     "iw" -> 438,
+     "ih" -> 384,
+     "ow" -> 73,
+     "oh" -> 64,
+     "ss" -> 6,
+     "sp" -> 0,
+     "ii" -> 6,
+     "fi" -> 0,     
+     "up" -> 1,
+     "sa" -> 0
+    }
+ */
+  ];
+
+  SOF = 256*256;
+  
+  index := 0;
+  
+  initCoeffs: action ==> WA:[ wa ] repeat #wa, WD:[ coeffROM ] repeat #coeffROM
+  var
+    wa  = [ i * 256 + j : for j in 0 .. (#intFilters - 1), for i in 0 .. 3 ]
+  end
+  
+
+  startFrame: action ==>
+    OUT:[ SOF ], DPARAM:[ test[index]["ow"], test[index]["oh"] ], 
+    HPARAM:[ test[index]["iw"] - 1,  // Note: "last X"
+             test[index]["ih"],
+             test[index]["ow"],
+             upsamplingFactor    [ test[index]["index"] ],
+             integralPhase       [ test[index]["index"] ],
+             fractionalPhase     [ test[index]["index"] ],
+             integralIncrement   [ test[index]["index"] ],
+             fractionalIncrement [ test[index]["index"] ],
+             startAddress        [ test[index]["index"] ]   ],
+    VPARAM:[ test[index]["ow"] - 1,  // Note: "last X"
+             test[index]["ih"],
+             test[index]["oh"],
+             upsamplingFactor    [ test[index]["index"] ],
+             integralPhase       [ test[index]["index"] ],
+             fractionalPhase     [ test[index]["index"] ],
+             integralIncrement   [ test[index]["index"] ],
+             fractionalIncrement [ test[index]["index"] ],
+             startAddress        [ test[index]["index"] ]   ]
+                    
+  delay 1
+  var
+    rgb = Image( Image.RGB, test[index]["iw"], test[index]["ih"], test[index]["f"]),
+    yuv = rgb.YUV422fromRGB444()
+  do
+    ydata := yuv.getPixels(0);
+    udata := yuv.getPixels(1);
+    vdata := yuv.getPixels(2);
+    loop  := 0;
+    count := test[index]["iw"] * test[index]["ih"];
+    println("Count is " + count );
+  end
+
+  count;
+  loop;
+  ydata;
+  udata;
+  vdata;
+  
+  done: action ==>
+  guard loop >= count
+  do
+    index := index + 1;
+  end
+
+  data: action ==> OUT:[ ydata[ l ]*256 + udata[ l2 ], ydata[ l+1 ]*256 + vdata[ l2 ]  ]
+  delay 1
+  var
+    l  = loop,
+    l2 = loop / 2
+  do
+    loop := loop + 2;
+  end
+  
+  over: action ==>
+  guard index >= #test
+  end
+  
+  next: action ==>
+  end
+
+  schedule fsm initCoeffs :
+  
+    initCoeffs  ( initCoeffs  ) --> startFrame;
+    
+    startFrame  ( startFrame  ) --> data;
+    
+    data        ( data        ) --> data;
+    data        ( done        ) --> done;
+    
+    done        ( next        ) --> startFrame;
+    done        ( over        ) --> over;
+  end
+  
+  priority
+    done > data;
+    over > next;
+  end
+
+end

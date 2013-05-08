@@ -1,0 +1,16 @@
+
+actor TwiddleGenerator (N) Trigger ==> W :
+
+	n := 0;
+	
+	action Trigger: [_1] ==> W: [twiddles[old n]]
+	do
+		n := n + 1;
+		if n >= N then
+			n := 0;
+		end
+	end
+
+	twiddles = [exp(complex(0, (MinusPI * k) / N)) : for k in 0 .. N - 1];
+	MinusPI = -3.1415926535;
+end
