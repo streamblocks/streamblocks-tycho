@@ -35,12 +35,16 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.cal;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.QID;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * 
@@ -48,21 +52,29 @@ import net.opendf.ir.common.QID;
  */
 public class Transition extends AbstractIRNode {
 
+	public Transition(String sourceState, String destinationState, ImmutableList<QID> actionTags) {
+		this(null, sourceState, destinationState, actionTags);
+	}
 
-	public Transition(
-		String sourceState,
-		String destinationState,
-		QID[] actionTags) {
-
-		super();
+	private Transition(Transition original, String sourceState, String destinationState, ImmutableList<QID> actionTags) {
+		super(original);
 		this.sourceState = sourceState;
 		this.destinationState = destinationState;
-		this.actionTags = actionTags;
+		this.actionTags = ImmutableList.copyOf(actionTags);
 	}
+
+	public Transition copy(String sourceState, String destinationState, ImmutableList<QID> actionTags) {
+		if (Objects.equals(this.sourceState, sourceState) && Objects.equals(this.destinationState, destinationState)
+				& Lists.equals(this.actionTags, actionTags)) {
+			return this;
+		}
+		return new Transition(this, sourceState, destinationState, actionTags);
+	}
+
 	/**
 	 * @return Returns the actionTags.
 	 */
-	public QID[] getActionTags() {
+	public ImmutableList<QID> getActionTags() {
 		return actionTags;
 	}
 
@@ -80,9 +92,7 @@ public class Transition extends AbstractIRNode {
 		return sourceState;
 	}
 
-	
-	
 	private String sourceState;
 	private String destinationState;
-	private QID []  actionTags;
+	private ImmutableList<QID> actionTags;
 }

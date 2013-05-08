@@ -35,9 +35,11 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
+
+import java.util.Arrays;
 
 import net.opendf.ir.AbstractIRNode;
 
@@ -46,34 +48,45 @@ import net.opendf.ir.AbstractIRNode;
  * @author jornj
  */
 public class QID extends AbstractIRNode {
-	
-	public  boolean isPrefixOf(QID q) {
+
+	public boolean isPrefixOf(QID q) {
 		if (q.ids.length < this.ids.length)
 			return false;
-		
+
 		for (int i = 0; i < this.ids.length; i++) {
 			if (!this.ids[i].equals(q.ids[i]))
 				return false;
 		}
 		return true;
 	}
-	
-	public  boolean isStrictPrefixOf(QID q) {
+
+	public boolean isStrictPrefixOf(QID q) {
 		return this.size() < q.size() && this.isPrefixOf(q);
 	}
-	
-	public int  size() {
+
+	public int size() {
 		return ids.length;
 	}
-	
+
 	public QID(String[] ids) {
-		super();
-		this.ids = ids;
+		this(null, ids);
 	}
 
-	private String []  ids;
-	
-	public String toString(){
+	private QID(QID original, String[] ids) {
+		super(original);
+		this.ids = Arrays.copyOf(ids, ids.length);
+	}
+
+	public QID copy(String[] ids) {
+		if (Arrays.equals(this.ids, ids)) {
+			return this;
+		}
+		return new QID(this, ids);
+	}
+
+	private String[] ids;
+
+	public String toString() {
 		if (ids.length == 0)
 			return "";
 		String s = ids[0];

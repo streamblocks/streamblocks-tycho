@@ -22,6 +22,8 @@ import java.util.AbstractMap;
 import java.io.PrintStream;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.net.ast.EntityListExpr;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.net.ast.StructureStatement;
 import java.util.TreeSet;
 import beaver.*;
@@ -184,109 +186,107 @@ public class NlParser extends Parser {
 	}
 
 	static final ParsingTables PARSING_TABLES = new ParsingTables(
-		"U9pjN7TuLSKIdxqj4D80IK0i86XKi0GxIb49Y0X4G48Na0vA9$JUcmKHK91UH0XT1LGKKL4" +
-		"HKR6B#knFdxs3Pjvlv#mzzvoRazoBlkzx$zpBDsTcPsVdjpCxk#USv0QYZ4dKW5RIsUHJW#" +
-		"aDkeNQ5lsfvb4E1UWsQgAMqI5wXO$GdrH7DQTykfokeNFfF5fAA#XgkfAkeheqY6RGQBMMF" +
-		"bA7L0VLHVLNpr1L$ekUegTfFpr31#XPUewUfuDKZsRJnNG9NQfn1BTGvQcfmCtG6dKsvQXp" +
-		"D6xHxtH8rU3L6fVPu5vH4YuzJkM1#pADfAhqP5ouvrkuwdBrc1KltnMELrMtuYK$vQkRg40" +
-		"rfM4qd4PG8GLLTLN5mgN1m2rGU#bCgavdyIJQ5G#kgaKRU2XmNnVD6SXpaiQbrSXpMRGqxe" +
-		"s8DmTepTLYj9RpJ7gGcaAoufs9F2#bDTIScgbfQhUQ7bUyLkiDAcUa7BLFSCleU5KxMT$9Y" +
-		"7S85L0dAruUh7QfANQyHn1lgXh5xwaiHD4UKSIrljHDjQ8t93#lgiSGrn31RGJSvwnurSqw" +
-		"NZNMnBj1rhtG7QyQJMbghxgVbfnSl6fSE5vU9RX39Dw3KbTT4Uz4Ak1tpVe2dtyBnwig0tS" +
-		"tNGZyQce6hQVqkDRt9IhaYS3TfweXskHmNT5EZGilUdr3mAs0sjbbrrKX$sBZrWJkKzWNUs" +
-		"cdgWrVXN75kvuUfeUiFFElGCfHvuVpJ3LDdgysTRL3BP8yLyUOBU4yOzq$ikQZxb7p4Nbyw" +
-		"nkkgsoxhXwLVRG8yLvZwhcnh6z3ixutKsyWt1rLpxse1MMh5JJn9DUtdOqhTQMkHBpJBLmU" +
-		"A$4#OE6gKQepzyBwkt5tgtxqWbgjEftaFjeLngN71BSR7P8Qr$5E4jnid2gF8CktKcsr378" +
-		"OTndol86#eU$fFVg0MgfGNBYVKsKUJ0tX9nplCi4jGvDLbbZLeOh0rQVeGNKfJeVEelsBVZ" +
-		"3h#o6TGfKeaxAe2fqgVQNXQimlg0losr1yLaD#SzH#gQbx9D8Sz9bOqTTDZKAhEVL1VNrWr" +
-		"rGDn7#gEXrzsUfjMeAOuyznmqXDqGA9zGXDHfsxSJ#akx2sf0whRAflu$v0Ts8UsS2zb$Qg" +
-		"ItZSIU6kjt4$bdZNqsI9#3hKr131nGc5hFy633qsnyOjH8GRr7be5s5TZsENnuDx1o8jnDh" +
-		"Mid6F2su3qtuB$jOBRZAyPglROFq3MjasxWbeBqOUKlWnd1pNnLTJt0sUJhZoV9FWIeiV1M" +
-		"OTwF8LviV$KdLLPs3s0aeZLTlKSc#zvceyCEUe7lmHLZv6JQa1wa9g3KpxN5PR8fXgX#pR3" +
-		"u7PHGrJ3waDwbnOh58hgOEDkGapU4CTfG$LTlKu$qctniHy6fZ8ByrJpw2E3y3ZYn5CwYXx" +
-		"5lbLhwfdUOPwLcFgCnbvwMhNSHsfu$ke1$HzgN$ClPCj$nhIM1f3usacF4vrO8uLJEIMPgd" +
-		"bD9Vcq7pCAWkwkp7AmjIhgtsifNMqaJRHvfYOMsaRRGVce$PwxdLWxh4ndu3Nbq27qNfTKD" +
-		"urcCVG#em#eN$JL$GV#ev#YedvYwf8VpXhIFaScDag2PahZzoMXPocJb6PiAYAKtYiEisiv" +
-		"nd0dAlEL6Uf2rIEkWoUOgrdUToLhzMOgZ7MinaytkZ2R0FCDi1ihMvHRLM#QW#BZgZHhggx" +
-		"UprXsqNrKNrHuR4mRrS3PJsprN1WZe370aVTZbHZu742C2UfUMgMcgtcmk9UODw5gxk6xbJ" +
-		"tgWNmioGcvWEmMeDpOPrQ3yoDKNlbORKP7hS2SuigLDlK8seFB9u0vfDs3OKnNr2lgEUuY4" +
-		"k$nsdCrzLhwarWlaMagX6XGiYHM$sf0ygdo4TR58hapcta4wk6h4z3VVb$ODeUep5pN9ZXU" +
-		"OGnYt$YnmplJmlJxJyQa$v7cEuu4vW9p0Hc0ZE1cS1CO2Om4vW9p0Hc0ZECgN$VSfdhzoql" +
-		"qcACQKw$qfTqbBwb#sm$thO$shOBOHlBtyjnsBnMWitR3fjtul3pVXmsdyPXytKSDZ$7OVD" +
-		"xR1jLAQRD8e$#kYge#rK3nwgtyhAZspsr4qhnUOFbJcM3SetloZIbn16MzKvLJuGBIh1p$e" +
-		"nQszV79KLTv9X$Fwf0FJrdUv7aeerOtL3wFEpvr2#sAsgLDb85Z5KxfKgrox0HKakUgsfo4" +
-		"cjXSg3yfVQcU$QUKyAO0PxwQpsrrtjgSpsrUPxQxfxQWPxQKPxQQPxQ#psroporgpor#por" +
-		"Rtfg$#MfPSzgAEUfhUEflS9JUvMdrdCjL0jFhUTUKOCyjKCzjGizjGzwQfzNrLsxgG0alo4" +
-		"lji$Y#gYMVs#SwtDwZFxJo4T#IY65gaj2JFKe6PeKcazfb0vDUPmuoN8odO6JAPSQuxvx0p" +
-		"Mb6waPtOGJfmMYgq4rgHpssGPw06EMONm52j25s6CNo##7z3trCcJi2bClLmkEnisYR3eNA" +
-		"CcYAG$SYeAxJN0h2gu$9cw8piUOB8ok08e7rszmpqRBYZTanvjdulN1OnQUAgfGU#f07I7x" +
-		"qNUhmRqDkFbOMwjF#um7L$iC0CKdcWBW1WGt0DmWMXet995aqSsuM#dxGMNyou1auNO2RXU" +
-		"ickxjZldqY0lNQYN1joMbu9pLk8CaNf$WTWPc4c8AcPX2k0EETCLxDomg8yS#NEDTtmjmGY" +
-		"M9N57od2cuPMMjhNWtIhnBJRnPikvPKV4#JFSWrzsnNdytNgkkCYNUFC4D02KJyLOsyMfyS" +
-		"iMRX$vEb0fy7wxnu8wJ32KXkpxy6mJSeE3cEV9y9snym9rWrrLM5EuAQAhBFAj2Yg#k9j5a" +
-		"asV2k1IwmyvplibpigchojHVyfmdOy9vpWUkDP$HD4Rg$6Jod1jLL$s1UvqBDy#kvv0WkDS" +
-		"tWxh2HtVgUvBhwxDnamGt1Do#1ZSWkAbsNVL4v9bHk9aq5azjtMdeIUBwRTnLWhiSkBe$4c" +
-		"yksbiXRJBxFOoR1Dmih4koaCv7FBZ9c7t88zuyFAzK4AjAD09#jQIhHiUivQvKt#0sfEbu4" +
-		"vf9i$2MCqVwIiFLc8sGBv#v9sYUWkhMcCdcZk6pOqt2BjSxLgDcILGMvkbedKdLvFoUYBsR" +
-		"$3Thwdh1NObOVL6u3UbUoU4MweOxH1YtFlKHp2nQ3Uk#SPvLnMkgb#3w1DTFPUoQqYUKTKh" +
-		"fiIasRfRCIzUOdfFEKpoujMMcJjnaWskrovXxKOfupHMvFbhTRDm6qFQHtWnPX$XgAe1h0r" +
-		"UUCmJNQcL8dbFahCg5xI9KeDvDsdkUmGtPQpvKxcIbhw$6pCIvb0dCmJQcpu5PGVPFAlob8" +
-		"sgDDWrNlK#6svYdmcApVAFXF8mDe2SUp2p1r6VoU7WSxy2iRD$hCsakMdC5Cqlgfx9TnvMa" +
-		"ZYlBKqP6ZFngp5pvfy#9WPXZJVlvmhAmpWcDCX1n#caUR7HLLQA566LXvgAbVUIXhxBaF1P" +
-		"cLTZeUq$0CxTJRCmyU4q59KkbQPH#1hCVwJVjYgZxYjGR$oh6nEoDAXpYgg5C1sQkr93EhJ" +
-		"xTC#5lYCmgK$9YOVha2M#Uh4r8vXOBKu$lAfYPCYg5rdjYZaHFPqJgbzhKwpOsQZrpvGHDZ" +
-		"R5FDUOeET4rPcUqouhd26O$vBqIA4jwgyepWrL3UXvkp2hGz8UVsBbDbZLAeWVnfkep9ry4" +
-		"CnNQIkBD9tAcMEIP$Uh6rCzhAVBK6pkt4waMCFEOoGTA0TcOZ0zL0cMn$H4BQRin7HOnC8r" +
-		"Labp$3vYsnoXClOBi#kXvX36vs2T#pF1UiJ3T$gCnJSy$ndJ7cS1CO2Om4vW9p0Hc0ZE1cS" +
-		"1CO2Om4vWsfjVlMrfYZFvfJsjge$#AnlRZQKkzdBRn#4lO$4ERKleTgzwkXFKw2QtJ9tNJF" +
-		"etSa$gKDC9OZA2ffSx2yJDgomvq5ormp7yDBQPriUP5mqgVHoGRnJHhInj9hGqVLb84RhkI" +
-		"8pNhTb9Pjpp$dTuIj5F$UIqaj0cjIvldsatv8FcjOl7xJpmVAlXxurm#biJeVuX8lJFH#ZQ" +
-		"43pIRz3UfYEu1POFsedyZ#3xGED3tfB$hHRXNafeEsW$wKeytFjg4vPA8o9zXyS0mYwifxd" +
-		"xr42RsAr7mLDXi1MzZV1TWxE#OvYPZDn9zys7pLSbOmOEbpEF5Y1n2xFwvuDV0xsVW8u1pZ" +
-		"kd376Y$bZ6l5s7tYy5$33R8N#WhyEhGby5SpW9lvCP9gWbRducvjyLzQq76Js2uiUi2NMUq" +
-		"Pq1U3BcEiNqIkfd6TWhwNZFplvUeJ0fqFo3EJh3h2dvVyJXHWrIcCVfgmVPXezi9UHF670O" +
-		"zwBOFR8OzHFyffZqFz8YHdp2nPq7MyzgEngMmJOl2t6xujsQkwV2v1rZThNQPdt7PxHvJza" +
-		"9SdZJsRU3xa8b$4V3kGdktcSFZw9zkvh43xHV0Fm8$xFRdlnswJusFFf2$DdFgYBxv1XFwO" +
-		"C$ed9L4yF6DvgY38iW$MhhW4U3hxpwXPW8$E#9P1Po3w3iVb8Cvx31pxWNz6L6nlm$zvHZ$" +
-		"2pZ6#Gww#$seYS1lwFi0VTjC77MXhnKrl#FenxxnBpNZPg7T5dnLbB#7GGk9aZF1cs5S7SH" +
-		"H7dn0n2Qu75JRo5WR$rEmpmD$1NRhe3i3$2EtNre1FVQ03#U7Vv#b2oL3LyFuGOp1AunS3r" +
-		"JVvEHJoDSQ#qPeTusQh$Qttv9zo4$mkaYV2g7T07F3sUNFC$P7B9vy07tlW6EzLB5p0dtN6" +
-		"wvpz3fHEPnh0NqMG1ri0lwumxQpUsov8PXhHTFNo$0#XdV3FB4dWwRUWxeMqy3l00rqnFKc" +
-		"sZsCVCBY0UojSjYRWRAchVCtD38cK0tj2SOlwgBSvvX7SwkTWhx0zV25So68FUFNPsXLguy" +
-		"OkjacPwXxVtUqvnhijkxOV1iDtsfmS0O4SMO5hWPVPdIed#238CmrkDZeLffvT83jE4VkDk" +
-		"2I1Bu$eal1#HLu51X7mPkOEKw0pG4JvoKWr4YWeV7nAkYmaR5MmQD6VXRqWNF#Hlyouhp4n" +
-		"8US1ZysVlN#Hsw2dpjogkSxrEJcOiSSSJw680Q$0ttXy8qpbt3#1zy5$OYnMDTGmFGTS$YT" +
-		"w9mJpeqbXeypMEUPkCrvfEfPFFKfNAQ2dYuUb##EQ5rnc$ItZD$6tlrgYSNJz5dJ2$DvDTA" +
-		"N#h7RDWtt0zyt9MDHQibzaNCEVdPR#pWDUzA$31pdY7#lmVpLuM#sOvwVcB78i$yGx9QRTg" +
-		"MeEPw3$cDkdMy9T5z5sNqMgRNK7GxRer5seomUw0aPppm1dDbqfPdJ9kzOqqxe#tkaNlql6" +
-		"1pS9zMnulRfEBSKHzg1bePVQhZV#C5vv7i9xHpt#9JtZFyxZVra#DHdkBatffyMVcvmOEAP" +
-		"BZ3Bs4zmzwdkxdPWYj6FDUs5nMDGVqMD6UIGDnXCt5i2EwF7nYB4zqr49dCEfR3R9bsV3uy" +
-		"W1pfkFAi65fcSr83yG9Jj3SXbjkc$3Fs3e#Q#slJXt0#iCNWuMm9hYyyjjRq#kymuh6zgV$" +
-		"12jutFxEdqrkWxXlemzvgqgGvCnxDpm3pNfUCvCF0jxFAD$GBl$AJYUJnmm9BLkL6n77B8k" +
-		"ugFLJsyVQfntdh$63Etlf2JZDzVZMuOpZpKQ3hERlzOh$76$hYnntqwYFCurUoFjFuEcptk" +
-		"CUdw7dEM9TDzniRnZ1KixxJ7EJR7qllI8pO#lyF$7mxVAp3UxEdWHSNd6wpYiCNpKj3iptJ" +
-		"KM$1cK5rZLp$oJ4FhtJxyXoDoiAcxZqnEhNkKiS6xbtzBfAtcEsJpF1LiOURnDEJXKJv$Sh" +
-		"VJSMO6PuRFKPEFCnruTKfw$eL#K5HxXBUTskCnjjXxYC4spmb#vpgy1VirHdyYodw7knsSO" +
-		"UmsENHx8h9wXpm$$8SjxU3j$3iVvv$v9$wHV#3lUJy$pT$mr$mVngxZh$ZV$2KudcmOToc#" +
-		"dA#ISRVAjGTVnfVo9Lo7S$WAjA$aXjo0wt4hHaLm7czmeRRast1j8N9peyFRC#Efcojm6gT" +
-		"A$qsWPj9t8wYfiSDfnOr5ocMSIDn7vDwcToslv1Myd1#0V3$eUXjp00VOR#J#ShqETAr8Wn" +
-		"dFAJoGgOYB$kJRYquKcRnmRRbUmtNv5f7aRwcuDKyIFfwnjtcoZJ6QH$4KaSR8jK2kUF$Xu" +
-		"To5EtCdxiWTk3stutnkooEHdrfYSRxjuRoYuveN$IcjSpNdR0wn#IigQPzJL5JqbzqwMwur" +
-		"EPdB6aqDmy$YCfna$5O3uRs4J#NJ6FTkJZVwCq6dWwfmLSxW33CIRssyXjU9XVnL8ozal7d" +
-		"p8f5Jk1mF4ka2lXZNY$X2U$xzG3ZtU8cq6h6F5VVbxdoAwSVvnfL0vRaYhlLvFUF9cPVoT$" +
-		"mPVyAVykV6xcF3F#HZ$858E5rujz7kakjEtYFyJRc#pc#HuyFlozNKFRyDEifly1TyX0$pA" +
-		"$ogRVSoFy#uc#5wW9$ZWw9xXbymlOVuDU5ub#MNH7gHdn3#b5ptoVL9teZhG$mux#KJV2Va" +
-		"UOodU5u0mfCTtytpnMuhR#7DN0W9voRaJRpDDUUfF8TdCUu3F9UdOTScaHutdnJ19qZHOY4" +
-		"VuJaTfEJdKVU0RwDKl6UhOhH4oAT$dWLID0DoWP0Ikb$8H$fdMHiXpuGyaWA4$GDID1HyA7" +
-		"Xd2eAI2FC6wRPVTCiWBuEy57ofV2VIJpqWzu0Vl4U15Cs2t0MsNU3Nuaaq6lhHqEjzCWPo9" +
-		"yYTqDSVuwUZhMasx6TJYEP0ZrC7f8IM2$a8xrSWHJqnPYniDTsDjgOLGduQ3vlnaCV1VXpQ" +
-		"Sy47e3q0ScFmzQ3RXFpK3NtwURON#AtGXQazsktXsoBTzWlbGyv7NmV87K6tewt$niCYF#a" +
-		"zCWYw2K9#sWoz$Z#Q2j6U27aBv2sGDw1l9VXAy4dWa#HlYXJfSsKokFwsh$vPsrOZvo4Vcg" +
-		"z2UnLifnXQ09#3OJSOUdqgzW6VX$oX4a4#6eXn0v5x$VtYDUXRWp5JGSFHrmxjTf2nTq6Ay" +
-		"4uBKjG2E3U2nw9cGdvGa6w2R94Fb0JoWuA61umS8ds#h1ExWBGjlS$O#UW6z5da5zuSl2dq" +
-		"JS6ReDq4SalmblBTQbMCxX3oqJJmQR1f0vmsQBSHEGGAWfAYvBB6BaYjmLiB3u6I7BmCg2o" +
-		"rGdyhzBU2lXNq4Lu6L9Qw0hShi6u6rxJQK6z3GmprCzJNq2932mtTPqZVWMu1Rolae#t$1G" +
-		"lhlJi=");
+		"U9pjMtTubDNIdtct98I4e84aI14LZ1HBK56n495Gb19gAA5ARz8HwG6HNWG4HAfK1I4YDkm" +
+		"5mKQnN1lsViLsxINp$Svvp#w#ktcJtLo$vxd$xEupxyoPCsT#PywPKpRP9QhScvhIPgfB5j" +
+		"UY4poo#CzYuVcKJNNeHch9Q#a8lIp7w7TgnAqfdnhJLNGUrQExQ1DTIPVJ5TI4HjDjT0jlf" +
+		"fDKcRjo3nxCJr9r#PiUfoVeINgAdgPdw5bwZfwdgsa1NKGNqoNKXRfgt29kmpFf17cqvZJW" +
+		"UXKk#UW8rvQx5Qw8mRsiLDoR#J1mZ$01gau9iU3onGOtax8GRntAveCQDn7nBaKlW4ijW9j" +
+		"DQVGrdK9f8nVH1enC8uEx5hXLg2gbKmPLepDePapnsgKJLD58sNIxngs0U6lHjphU6PJFDM" +
+		"aI5T1uca0JLLkknUasBeq1xYJQJMVIMNGsTQUYc71Jg1y$WFdjBCje1TL2lACqxjt0JJNnL" +
+		"bBnwb4lmcnFa7UfBQyCnliGS8jeg$pCS$W0p#QzvOcNxml4QyOvISVxgCQjZtYVeqcymewN" +
+		"Y#GNEXICznKwoVLu2I$WLdmUvyhusFAAxkNpw8ICvnUuWVoA2ATftEQOtrrslC3FfrJoKsq" +
+		"LB$3hcl6suqr7l0$H$LoL7#EpQIsVKwvu9sEqTwXrXF4swuXhsUk8bY7UgJH9tZ5uHNW$68" +
+		"YNpmBkIeosyhY3UlEW6EFjnvqHxpITBQE0EouGB$SoyLwkyxajtS0JK5g1d3gNUmRc5pbrq" +
+		"lGd2wEzcCQLAv#pWldygiOT2zmhJ5vTht7NcMpg8BDe9xKEvjKSpEyQVePdK4EUHNEvi5ou" +
+		"WuDvrKwFyrMOtq4ctZewd$lRk7m#jvN1r2uSbzgpXr$dE#Y2Sk86u#MNTRnPm5KsAjvP6dU" +
+		"wmkKNwIt2Eg9U4RXgbkhnNNnHZBXjQOYCfHnaLG2tWSPTJ8LS1HQpu3yRkE$nfNmpPzDzL2" +
+		"GpeRi6MMtFxodQomyX8yVoHEJLGMHaMRZ015uMyYe7UHN0r7i6y0hvNfJc1sDTQyPu0ds2F" +
+		"UnTHwmVc5XtyaQieVACSGbSzBfGspI3$ooTKm$JUv0#nLur5JmxcCj5T4hlOutGrv$GxjUO" +
+		"S4VXD4frYTTdogzZRzwYSSV2On7MoGH4cqr$1EEjHxzH9vJ#fZ#HLmdiYGLNhGViLJaSMaD" +
+		"PEbwxz1kFXiST2bUld29jFmobZuAurm3jHaHRGJv033suRqou0xWx7wKSp5SWtZuXNFcGkv" +
+		"cSsi7hk8yyBFDGQgFsJRxCu0vH#wOyPCwY7b7E8ZN6xsdq7FahY7c38zQUUlqepBPy2p#E$" +
+		"hs2E6y3PWxETdjk#w2qWTVpxNmRR#EjL3CgPWtUpmyZphvkuukJH#qLJrA#7jq16B#dx97c" +
+		"Gx2pCOUgZEEd#JWVG$tJc8recCDX$mGmYsWgpl8fm9pkY7EEZdCUufnAysaHBQGb68agi5u" +
+		"Un3m7lShWCr1MxssqFIhcJgpwUu2vX$O1Spym7t1W7j2OZm0pYmxJItWUqoDHHF#YTo8mFw" +
+		"IFwNFwWhwAYlaDVKy$8dShqo$0L6jG79XPx8L7t2lO3xaYfp5kU9m9pB68F0oJgt5rha6B#" +
+		"Cnec5oVB#16Y3EBAt5DlZfYFfjnItXKTxSipiExFNS0PaVCMoVk4e6PZxNIcmlGFXhc01w8" +
+		"DPV3GtcuYTE9EOR7mkCun3cU9$4KdgPEVhuLc7DvNWJcCbx4ItaXBukAkGmHh0BcQl2Ql0a" +
+		"UjpWmx#Rjy8XzWU$bNNmFxzPxyXvWtiyFHc0#me$2n$FyJDGzlvXVahd0FCgl0lCrU3pXc4" +
+		"$rQWJAfz0h6rIafV0S2hsYvP3zoWdp68cP7OOPw4S0i#GhTip0dc1ZXlkFnAJ$9ypmEEEOS" +
+		"SmuPXmpZXd7Z6F6CUEOSSmuPXppVucf$jzoQTZ$MrwWDMZJblv3dz5n#ZVT4VJZRljTq7OL" +
+		"RAFvUp46cwEbsBpXi7ap1Zzlns3pKGmsNyPWyqCCDZz7j#7JezgiTgblmfQgvoiTizxHpOv" +
+		"6kcfdbE6pkUsEwu2k3NgVNMeBPTiaQ7T#MNR1LmCwdnj6w8RHm1APtCgrznVgiUaS4rAK7Z" +
+		"4RgsvKNAPTIi0T9vNU9xwk77DmeV7djiv2jSckjUUMY99eH2b#tBJNkchTUv$hgirprVPtr" +
+		"TxagftightLLNkdgtQzgtQBg$OnL#rhhjhtNRL$kUP7eglMTTJPRVTjmerTjKrTjTUxQlkv" +
+		"QbtpWLtdWfUxQbr7dP#bJ9Vi2tlnlZ8gdVzR3xoI8snE9uiyq3BoB06Pie#Ie4d6ELY9Kg4" +
+		"v3HP9sbCjUCgb5ZWnMr5hkfvke3RO6zhHsNGErQ6AM2b9j1Pjrg7zwUIb2x0YBjB$KLAduQ" +
+		"M8y38plrSYrgirRWPbqNb0iRIcFd0NQLoFnatJk9wekCcq0sqo446ik7KDxa1uJg9#y31Au" +
+		"uu1xX2K56uIF2RJHAe0IOtZ3Co61Sd6JG3k7AoXkRWPpAFvD3GcNBkKG7uZ9SEtmlK1Du#k" +
+		"qRXUu5eOVpzrfnxKKxVDepu6zqRWvgCtTbqcR6F1NOgzsTBZxCFUCmcu2HhN2rpBnBjCnwj" +
+		"6FGEb3FZkW9Ck4EzPmCsW6iYO0lIcD#pA4s#zOBoXSSx3Ep2$UOXfX8bf1Z1cXSMRXxlN53" +
+		"qgrMBEgoqwNYzDmvweidwingq0tBqctZnOfT1Ya8et7#UkZM$ZzW7k9jmQRwGDQ5CNerA##" +
+		"RNqEnbIO1tbcNLqE$3IWPTfy3BqM3lZlHkZRNlCfAannclFRtMjIG2kDnZl#h1yLdEguXs1" +
+		"$gJJlS7vpGUktPzSFTfzoXLlRd1#qpHkEd2R6Lo$naqnsPIksrKEuXO0jpVgRqQF#sCL3VW" +
+		"lrz4QZPi7tCe6jryOxX3QXT7i6u6h#ZCJkEdbn0t5kr7ZvW9NsOJ6kPV6lK$l7ivrPEFQQp" +
+		"hsU9K7lrw$0ToRDEvOt2$K3gvsg6JWvi3gJcI11TaBNGjajOsRX9gpe4#dUtHU9fI9gp3zY" +
+		"2eZ3DFUCqu7fl9W1MDDC15ce7oDxaiWra4crZCGQzroZd4ahWLSPPC8$xaQDntnvb9poDN1" +
+		"auEugXzg7wkgdsfqOi5jg7UOahXvfgnmqmnkaZwJCX1jiYEdyl0vCrtdL81YmRKf0JCQmCt" +
+		"Lk7QfgSQrDAwzqctxP3s$Dgv2ykkdsijIKHSBhXUddy9D2k9Q3bmlZJSvPQ475bPL9agLzR" +
+		"wvok2cwtspijat9aGvYnHcZjcVl47CIGxCJBr#5ARAftJqBnsbJ1rPdi6SW99QKvdedrhTg" +
+		"wDYxiIPe#BCT1rV#moopBYgMyHqCzBJOMTZLjOPju1sqnxKBq1jDCnqs4y3PeQUgz71$TYs" +
+		"y6lCEhfsD6WXQjN9cq4hWfWrON4crKPPlVEYd7iAKo5vWJaBrXPMH39uvDZcwRnDmVYfUq#" +
+		"opk5XU8TZfj5AhDmq6XmLSx2sIi1UEmxbNBqsGfYvUezGOziNSZfiqlJOglFF4u4v6lg5Ee" +
+		"Pec1R6Bq$lmUg4xHind#aQSxkEKzNVZ7gr6wkpFXBJYrPJCRkvKJ7pqDhIz#Da4wSJinSoi" +
+		"gh668PnpeIarcTrb0lGBXnJvTa8t6EYhnKLGPfUdxbw3ql6PuCGvaWTPuhsDnAyciOSgSVM" +
+		"Yi3CqtssekmBTWvbWjGUE1EKXnODGfY25rK5PKZmHSc1SZYcmo8Afh5A2FCOWQds10bxgNu" +
+		"4CAN4AtRCm9vWOuRxZyGqDVyOCppEE6OSCuuPnunZnZ7Zc77CE6OSCuuPn$oVOhhzlwKzsg" +
+		"Y$otIYpkeNA44$hhOqo6aRYx#upJ#qAQFUCUlTIfclScYTFgcVyXdqFgIq5hgsC5el8Z9qE" +
+		"EoMH#YsqhOIcJoypB690IbQZwYJeqSns9Nbh$G#bUtvlwyDYxFmdyz$N1lNng0TM3Bx8d9n" +
+		"OXbrZl#j1tLB8cpk8E8tPjhVOr3V7ifHtmm2gU$qPP7wTX$HZwI#fKUy2$m1aFf6HNMKnu0" +
+		"oGArLU#EZSq0kZOYyznd#fSrvN7Wz7KR7VY7odG4RzCdNsTXTJUJv3TtCiSlM2DGjWSsqqh" +
+		"5yXqklipu8oNxWUFB0hmBEP#0JeImqTVjWMz$qOIdm$AQVnT0FHVtNu6UXVI9eEQXvE4v27" +
+		"JmEcPZFDzX3uEj1eoimThsXxuNo9CXh87SpjjEXcsLiLwBkX2rxkX4b9aFt4E8y6tOVWHUK" +
+		"Z1Cd7oMsWDqFeDqcZawGzwBDgw0DuVRU$R27QBrbokYBzw2H7pVjXq5#0dG$PAKw485vl#7" +
+		"VchwcmkUZy7ckNKxy2OzfuMqgN8377oRcN#7xgC54NDQNu1yRdyz1$iJOVGlV7KsVNeB#6F" +
+		"WzuE#6$7gGovvH3XoClQz1v3YLHl3rZUB8ISotztjRvyEwiQf0G9vuVtJutWAiHUX3VT18s" +
+		"6mtVHi4VQs8UD$3usUqHwwpQbSZlDxJ7NM$e#vz56upiJU1pw$2xNp80GjhnTFNj2j0kIlu" +
+		"u0X$Sq2hY9BImLV0ToEqFGryXCFNG5138sC#FAjXZtNXEGgxxT3L0lymmY$om7SEC6#7lCo" +
+		"qnJpuwXYvCUXo8pS3NMVQlGOvrvRzIIZF3lVBNq3tbB5z4xPT7PX#b973IGiWLp6wOpPFGd" +
+		"xuDe9ZllXhfqz7d3rX$p9HnSiH3zQy1sfV1$3773Q3mjjK70lTswPkkE4Z31y0h8$11vioR" +
+		"3rlWKy6tHJouVMWFDh8bKs$JyBtRenVVwEl19kvZZO9ADzk$2w4xUSOhpIxd5mRxG#3L9kr" +
+		"uDU3Vh7h26lCjzICvLRe$qJPp8ydwD$OhhIvzPF1mJxcsmcxjy6t6Dqcq6RGWw2jHdV0zAC" +
+		"7#dcTO#mEug7wVIYaIyRUvQq0dsfVppFzkXSsHuoiwd2sU3iO7##0ZXiPQy1dpYdVYw2FdV" +
+		"qt#XFe$#jcp0fH$iB8eq7pKFxUCQR8IUzC4tDZHn#n7$gnL$fmvlc#2kdzc3VFNz1z1zc7j" +
+		"iWRVwB1$TJXTxMpJzWpyWqt#oVzQ7XLmqtigI#GVTQEBnaNLOlKbRJn73QsXMxrm7$0hg#q" +
+		"0UFyBCh7GsrJmiOIDllLELGw5gMKNcVjTFZ1lk2f2dx4dlDAhmVsGBZu9MJ7sntjqqtR3s2" +
+		"R3xkDfbmpeeyDKByt0hilT96nu6psNc8mzpjiPqNOJR2vjnLajIUt8pCNwDzkzrXJbJtsTU" +
+		"#rneuD3kAc9Yxs5M5pCbJsjZUyiUcJsKkeDkpEXVxYyFR9xnh$Pash74$5NkvTOFpZ3k9T6" +
+		"87P4Bf50VlmEZlt7FqPx93N6fjJfho#P3nUnxobNgRk3P4sqGWndNBqvnkZauWOS6PuiUUa" +
+		"gBFg4T0TPXpEYLnliCNTrJ9h8ULIr4#CwFCsKzSoq7$WFQ$kK2NxbgBEtqTCkwTH7Ww#Bzp" +
+		"6asDmkwbp4RdJr2vNckd0$D8XcxjRAjQw5tUNIfsC$LBtyKcP1hjdR9aRHiJocaD#j6HR7k" +
+		"3kqzF5NMzLD7qR1RcBBVkIZ4wTOxZhfyvHzmZtzbunjhWZ#sgWxsPlg#JCg#V2swJU2Tiiq" +
+		"z#NZCsleNfVLQSzzgt59eOrZZWxEUmz3j$RKBxAw9kLxA#lfiDsN#XpHkf1TTS0DJTsBKD#" +
+		"h7RXFZo$E$or2QzZSqSbvvsY8zeuye7USjYRTUrhQ$fn2FAyS9$McU7brEEmmNtJwkcmSUp" +
+		"jlYj0evnj77NZ8ygJtUsy7fUscqknlT3m94SVSS$r1JxpLOg89zBlGfjx76Ulx$6Gp6#Gwq" +
+		"j#3qhxvNxvJVwGd#G$ygFy8D$BC$Aqd99$opU25ITVorU2JnE2ar3MWwwGgtIx$e8rAGFbS" +
+		"hbC6ikbSedWhYrNodNIJ7AaYtH6gPFi34FjA0FmxA3bFAF39sEf1gegfqbbNTyUr4xNONUI" +
+		"DiRk1b1hBRKItDfag9Q7cDfjibasoKPP1nbhH5e4CKTAWlYDF48$Sq7DjJHMRi9pj7Z4AXO" +
+		"PLLnS$9UnrB$GaQPojNJJalwDddILMPfFry#RzNDI46cAwD$hIQ7CndEYz9E#qaTwIoyfa9" +
+		"xIGxhBP8pC1Thc$62hXiL$AruikjH0SQal5IJHhjVbUi8IAfsddrcI8ib6SwxXTQMY91c$s" +
+		"Eq59vpKb3C5fwwSRlJuv2krGJMabgH9ccbP1xHLjciB$Hj1MINu72khjPmgbMICbYwIY$5i" +
+		"9Dd1$cENbmcWjRhKKdpYbM6IOMfnZn7SKQMAuEILQsM7N0D#btmddyadygbyRkm#Dlm3EId" +
+		"lQmadc3nYj0Vqym5vLFCtzVCr#HSvNlAUVhvjIlWi8Q$B6$A579DNvQWS3zgz8Yy8JZ0ydv" +
+		"D3SbZhdfKZflPbEQ4vFe$9IrfwKHxN$2dzV58$dn1yPfPTyfWSb3y5#xSi5jpM1PyI1P$gP" +
+		"BaiqNRxPA$iaViWuTuEURSKXVLvZYoK#OBFPB98RiLgzHBs9X3JOl35u7TeiaZvMm9v6VWo" +
+		"y7sKWi$IN89MQx98hRkTa6#5F4aJQrgZoIBrjwbTaEVgxojwIStUMfJ7Wuy7xqK#K08XJf0" +
+		"gUxHk7UHraEy4lnDyCcW0v07mqn#s$I7V1hatR7l3hyqJw1ReRu5#2cocG2w0N82w4MW$1s" +
+		"L5ys0$Z$mq7$gxO7SNT8hMQx88OmXY6eWsKs6hQ2dAYZPeKj#W9H3JDDXFGtc1$guYWppK0" +
+		"dmxw4PD7kg7EgmCa4Lze0jGTvIxmxTDgkpHb0yv7tKz8FS4ZK9PVS$N9W#f5J86kXcQFBGR" +
+		"#ZtGxK5PVRSHUG1Yse6wZU0RmJU1RzBVzcJQY$gz#bTHNltRuSrQzkdo5iXRO3VBq7BumsT" +
+		"c49FQ0uU0ByJO8Vj0wlk$Fb02A96secuhsXI29g2k6yhT86FbWfZQmV$ruD7e1aqUa8$QGB" +
+		"R90YM0F22VuLuZ#mbt2X0RdT$eBMDdKIlKsUJHl2ruQ#XRWxT4kINazk3jKSu5ZwIRD5aq6" +
+		"tmsR3e3fpFAdRNi1$b02H5o1MFdeqxWdJJtWn8SF15KWJgYlYFgrMyXEa8VuecW2jGNk7tr" +
+		"hoLOqzs61XiQPsYOeQ66LXbQOMYbeIwa$lx8r5MJHKN$1u2YRei=");
 
 /*******************************************************
  *  Inject code for custom error handling in the parser class.
@@ -388,14 +388,12 @@ public class NlParser extends Parser {
  * Needed by CommonParser.beaver
  * Repeated in both NlParser.beaver and CalParser.beaver
  *****************************************************************************/
-   private GeneratorFilter makeGeneratorFilter(TypeExpr type, ArrayList varList, Expression e, ArrayList filterList){
-    DeclVar[] vars = new DeclVar[varList.size()];
-    for(int i = 0; i<varList.size(); i++){
-      Symbol symbol = (Symbol)varList.get(i);
-      vars[i] = new DeclVar(type, (String)symbol.value, null);
+  private GeneratorFilter makeGeneratorFilter(TypeExpr type, ImmutableList<String> varList, Expression e, ImmutableList<Expression> filterList){
+    ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
+    for(String var : varList){
+      vars.add(new DeclVar(type, var, null));
     }
-    Expression[] filters = filterList == null ? new Expression[0] : (Expression[])filterList.toArray(new Expression[filterList.size()]);
-    return new GeneratorFilter(vars, e, filters);
+    return new GeneratorFilter(vars.build(), e, filterList);
   }
   class ParenthesSymbol extends Symbol{ // used by the parser to wrap subexpressions that are enclosed by parentheses, i.e. do not add them to a ExprBinaryOp sequence.
      ParenthesSymbol(Symbol s){
@@ -439,13 +437,13 @@ public class NlParser extends Parser {
 			{
 					final Symbol name = _symbols[offset + 2];
 					final Symbol _symbol_typePars = _symbols[offset + 3];
-					final ArrayList typePars = (ArrayList) _symbol_typePars.value;
+					final ImmutableList typePars = (ImmutableList) _symbol_typePars.value;
 					final Symbol _symbol_valuePars = _symbols[offset + 5];
-					final ArrayList valuePars = (ArrayList) _symbol_valuePars.value;
+					final ImmutableList.Builder valuePars = (ImmutableList.Builder) _symbol_valuePars.value;
 					final Symbol _symbol_inputPorts = _symbols[offset + 7];
-					final ArrayList inputPorts = (ArrayList) _symbol_inputPorts.value;
+					final ImmutableList inputPorts = (ImmutableList) _symbol_inputPorts.value;
 					final Symbol _symbol_outputPorts = _symbols[offset + 9];
-					final ArrayList outputPorts = (ArrayList) _symbol_outputPorts.value;
+					final ImmutableList outputPorts = (ImmutableList) _symbol_outputPorts.value;
 					final Symbol _symbol_body = _symbols[offset + 11];
 					final ArrayList _list_body = (ArrayList) _symbol_body.value;
 					final Map.Entry[] body = _list_body == null ? new Map.Entry[0] : (Map.Entry[]) _list_body.toArray(new Map.Entry[_list_body.size()]);
@@ -453,29 +451,29 @@ public class NlParser extends Parser {
 					final String end_network = (String) _symbol_end_network.value;
 					
         NamespaceDecl ns = null;
-        ArrayList varDecls = new ArrayList();
-        ArrayList structure = new ArrayList();
-        ArrayList<java.util.Map.Entry<String,EntityExpr>> entities = new ArrayList();
-        ArrayList<ToolAttribute> toolAttributes = new ArrayList();
+        ImmutableList.Builder varDecls = ImmutableList.builder();
+        ImmutableList.Builder structure = ImmutableList.builder();
+        ImmutableList.Builder<java.util.Map.Entry<String,EntityExpr>> entities = ImmutableList.builder();
+        ImmutableList.Builder<ToolAttribute> toolAttributes = ImmutableList.builder();
         for(Map.Entry part : body){
-            ArrayList all = (ArrayList)part.getValue();
-            if(all != null){  // entities and structure may be empty. Then the parser return null.
+            ImmutableList all;
+            if(part.getValue() != null){  // entities and structure may be empty. Then the parser return null.
                 switch((NetworkBodyPartKind)part.getKey()){
                 case IMPORT:
                      System.out.println("UNSUPPORTED, import is ignored.");
                      //TODO
                      break;
                 case VAR_DECL:
-                    varDecls.addAll(all);
+                    varDecls.addAll((ArrayList)part.getValue());
                     break;
                 case ENTITIES:
-                    entities.addAll(all);
+                    entities.addAll((ArrayList)part.getValue());
                     break;
                 case STRUCTURE:
-                    structure.addAll(all);
+                    structure.addAll((ArrayList)part.getValue());
                     break;
                 case TOOL_ATTRIBUTE:
-                    toolAttributes.addAll(all);
+                    toolAttributes.addAll((ImmutableList)part.getValue());
                     break;
                 }
             }
@@ -483,15 +481,15 @@ public class NlParser extends Parser {
         
         return new Symbol(new NetworkDefinition((String)name.value, 
                           ns, 
-                          typePars == null ? new ParDeclType[0] : (ParDeclType[])typePars.toArray(new ParDeclType[typePars.size()]),     // typePars,
-                          valuePars == null ? new ParDeclValue[0] : (ParDeclValue[])valuePars.toArray(new ParDeclValue[valuePars.size()]), // valuePars,
-                          new DeclType[0],      // typeDecls, NOTE, can not be expressed in NL
-                          (DeclVar[])varDecls.toArray(new DeclVar[varDecls.size()]),             // varDecls
-                          (PortDecl[])inputPorts.toArray(new PortDecl[inputPorts.size()]),
-                          (PortDecl[])outputPorts.toArray(new PortDecl[outputPorts.size()]),
-                          (Map.Entry<String,EntityExpr>[])entities.toArray(new Map.Entry[entities.size()]), // entities
-                          (StructureStatement[])structure.toArray(new StructureStatement[structure.size()]), // structure
-                          (ToolAttribute[])toolAttributes.toArray(new ToolAttribute[toolAttributes.size()])
+                          typePars,     // typePars,
+                          valuePars == null ? null : valuePars.build(), // valuePars,
+                          null,      // typeDecls, NOTE, can not be expressed in NL
+                          varDecls.build(),             // varDecls
+                          inputPorts,
+                          outputPorts,
+                          entities.build(), // entities
+                          structure.build(), // structure
+                          toolAttributes.build()
                           ));
 			}
 			case 11: // network_body_part = import_part.part
@@ -521,7 +519,7 @@ public class NlParser extends Parser {
 			case 15: // network_body_part = tool_attribute_block.part
 			{
 					final Symbol _symbol_part = _symbols[offset + 1];
-					final ArrayList part = (ArrayList) _symbol_part.value;
+					final ImmutableList part = (ImmutableList) _symbol_part.value;
 					 return new Symbol(new AbstractMap.SimpleEntry(NetworkBodyPartKind.TOOL_ATTRIBUTE, part));
 			}
 			case 16: // lst$network_decl = network_decl
@@ -583,12 +581,10 @@ public class NlParser extends Parser {
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_l = _symbols[offset + 3];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_a = _symbols[offset + 5];
-					final ArrayList a = (ArrayList) _symbol_a.value;
-					 return new Symbol(new EntityInstanceExpr((String)id.value, l == null ? new Map.Entry[0] : (Map.Entry[])l.toArray(new Map.Entry[l.size()]),
-                                                                                                                          (ToolAttribute[]) (a==null ? new ToolAttribute[0] : a.toArray(new ToolAttribute[a.size()]))
-                                                                                                                         ));
+					final ImmutableList a = (ImmutableList) _symbol_a.value;
+					 return new Symbol(new EntityInstanceExpr((String)id.value, l == null ? null : l.build(), a));
 			}
 			case 35: // entity_expr = IF expression.e THEN entity_expr.t ELSE entity_expr.f end_if
 			{
@@ -603,27 +599,27 @@ public class NlParser extends Parser {
 			case 38: // entity_expr = LBRACK opt$entity_expr_list.e RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
-					final ArrayList e = (ArrayList) _symbol_e.value;
-					 return new Symbol(new EntityListExpr((EntityExpr[])(e==null? new EntityExpr[0] : e.toArray(new EntityExpr[e.size()])), null));
+					final ImmutableList.Builder e = (ImmutableList.Builder) _symbol_e.value;
+					 return new Symbol(new EntityListExpr(e==null ? null : e.build(), null));
 			}
 			case 39: // entity_expr = LBRACK entity_expr_list.e COLON for_generator_list.g RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
-					final ArrayList e = (ArrayList) _symbol_e.value;
+					final ImmutableList.Builder e = (ImmutableList.Builder) _symbol_e.value;
 					final Symbol _symbol_g = _symbols[offset + 4];
-					final ArrayList g = (ArrayList) _symbol_g.value;
-					 return new Symbol(new EntityListExpr((EntityExpr[])(e==null? new EntityExpr[0] : e.toArray(new EntityExpr[e.size()])), (GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()])));
+					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
+					 return new Symbol(new EntityListExpr(e.build(), g.build()));
 			}
 			case 40: // param_assign_list = param_assign.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Map.Entry p = (Map.Entry) _symbol_p.value;
-					 ArrayList l = new ArrayList(); l.add(p); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(p));
 			}
 			case 41: // param_assign_list = param_assign_list.l COMMA param_assign.p
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_p = _symbols[offset + 3];
 					final Map.Entry p = (Map.Entry) _symbol_p.value;
 					 l.add(p); return _symbol_l;
@@ -632,12 +628,12 @@ public class NlParser extends Parser {
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final EntityExpr e = (EntityExpr) _symbol_e.value;
-					 ArrayList l = new ArrayList(); l.add(e); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(e));
 			}
 			case 43: // entity_expr_list = entity_expr_list.l COMMA entity_expr.e
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_e = _symbols[offset + 3];
 					final EntityExpr e = (EntityExpr) _symbol_e.value;
 					 l.add(e); return _symbol_l;
@@ -671,17 +667,17 @@ public class NlParser extends Parser {
 					final Symbol _symbol_dst = _symbols[offset + 3];
 					final PortReference dst = (PortReference) _symbol_dst.value;
 					final Symbol _symbol_a = _symbols[offset + 4];
-					final ArrayList a = (ArrayList) _symbol_a.value;
-					 return new Symbol(new StructureConnectionStmt(src, dst, (ToolAttribute[])(a==null ? null : a.toArray(new ToolAttribute[a.size()]))));
+					final ImmutableList a = (ImmutableList) _symbol_a.value;
+					 return new Symbol(new StructureConnectionStmt(src, dst, a==null ? null : a));
 			}
 			case 51: // entity_statement = for_generator_list.g DO opt$lst$entity_statement.s END
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
-					final ArrayList g = (ArrayList) _symbol_g.value;
+					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
 					final Symbol _symbol_s = _symbols[offset + 3];
 					final ArrayList _list_s = (ArrayList) _symbol_s.value;
 					final StructureStatement[] s = _list_s == null ? new StructureStatement[0] : (StructureStatement[]) _list_s.toArray(new StructureStatement[_list_s.size()]);
-					 return new Symbol(new StructureForeachStmt((GeneratorFilter[])(g.toArray(new GeneratorFilter[g.size()])), s));
+					 return new Symbol(new StructureForeachStmt(g.build(), ImmutableList.copyOf(s)));
 			}
 			case 52: // entity_statement = IF expression.e THEN opt$lst$entity_statement.t_stmt END
 			{
@@ -690,7 +686,7 @@ public class NlParser extends Parser {
 					final Symbol _symbol_t_stmt = _symbols[offset + 4];
 					final ArrayList _list_t_stmt = (ArrayList) _symbol_t_stmt.value;
 					final StructureStatement[] t_stmt = _list_t_stmt == null ? new StructureStatement[0] : (StructureStatement[]) _list_t_stmt.toArray(new StructureStatement[_list_t_stmt.size()]);
-					 return new Symbol(new StructureIfStmt(e, t_stmt, null));
+					 return new Symbol(new StructureIfStmt(e, ImmutableList.copyOf(t_stmt), null));
 			}
 			case 53: // entity_statement = IF expression.e THEN opt$lst$entity_statement.t_stmt ELSE opt$lst$entity_statement.f_stmt END
 			{
@@ -702,7 +698,7 @@ public class NlParser extends Parser {
 					final Symbol _symbol_f_stmt = _symbols[offset + 6];
 					final ArrayList _list_f_stmt = (ArrayList) _symbol_f_stmt.value;
 					final StructureStatement[] f_stmt = _list_f_stmt == null ? new StructureStatement[0] : (StructureStatement[]) _list_f_stmt.toArray(new StructureStatement[_list_f_stmt.size()]);
-					 return new Symbol(new StructureIfStmt(e, t_stmt, f_stmt));
+					 return new Symbol(new StructureIfStmt(e, ImmutableList.copyOf(t_stmt), ImmutableList.copyOf(f_stmt)));
 			}
 			case 54: // lst$entity_indexing = entity_indexing
 			{
@@ -730,7 +726,7 @@ public class NlParser extends Parser {
 					final Symbol _symbol_index_port = _symbols[offset + 5];
 					final ArrayList _list_index_port = (ArrayList) _symbol_index_port.value;
 					final Expression[] index_port = _list_index_port == null ? new Expression[0] : (Expression[]) _list_index_port.toArray(new Expression[_list_index_port.size()]);
-					 return new Symbol(new PortReference((String)id_entity.value, index_entity , (String)id_port.value));
+					 return new Symbol(new PortReference((String)id_entity.value, ImmutableList.copyOf(index_entity) , (String)id_port.value));
 			}
 			case 60: // entity_indexing = LBRACK.LBRACK expression.e RBRACK.RBRACK
 			{
@@ -804,7 +800,7 @@ public class NlParser extends Parser {
 					final Symbol _symbol_a = _symbols[offset + 2];
 					final ArrayList _list_a = (ArrayList) _symbol_a.value;
 					final ToolAttribute[] a = _list_a == null ? new ToolAttribute[0] : (ToolAttribute[]) _list_a.toArray(new ToolAttribute[_list_a.size()]);
-					 return _symbol_a;
+					 return new Symbol(ImmutableList.builder().addAll(a).build());
 			}
 			case 74: // tool_attribute = IDENTIFIER.ID EQ expression.expression SEMICOLON
 			{
@@ -824,12 +820,12 @@ public class NlParser extends Parser {
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
-					 ArrayList result = new ArrayList(); result.add(p); return new Symbol(result);
+					 return new Symbol(ImmutableList.builder().add(p));
 			}
 			case 79: // actor_parameter_list = actor_parameter_list.l COMMA actor_parameter.p
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_p = _symbols[offset + 3];
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 l.add(p); return _symbol_l;
@@ -882,12 +878,12 @@ public class NlParser extends Parser {
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
 					final DeclVar d = (DeclVar) _symbol_d.value;
-					 ArrayList l = new ArrayList(); l.add(d); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(d));
 			}
 			case 90: // decl_list = decl_list.l COMMA decl.d
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_d = _symbols[offset + 3];
 					final DeclVar d = (DeclVar) _symbol_d.value;
 					 l.add(d); return _symbol_l;
@@ -895,18 +891,18 @@ public class NlParser extends Parser {
 			case 91: // decl_block = VAR decl_list.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 2];
-					final ArrayList d = (ArrayList) _symbol_d.value;
-					 return _symbol_d;
+					final ImmutableList.Builder d = (ImmutableList.Builder) _symbol_d.value;
+					 return new Symbol(d.build());
 			}
 			case 92: // decl_block_opt = 
 			{
-					 return new Symbol(new ArrayList());
+					 return new Symbol(ImmutableList.empty());
 			}
 			case 93: // decl_block_opt = VAR decl_list.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 2];
-					final ArrayList d = (ArrayList) _symbol_d.value;
-					 return _symbol_d;
+					final ImmutableList.Builder d = (ImmutableList.Builder) _symbol_d.value;
+					 return new Symbol(d.build());
 			}
 			case 94: // decl = var_decl.d
 			{
@@ -1022,24 +1018,24 @@ public class NlParser extends Parser {
 			}
 			case 111: // port_decl_list_opt = 
 			{
-					 return new Symbol(new ArrayList<PortDecl>());
+					 return new Symbol(null);
 			}
 			case 112: // port_decl_list_opt = port_decl_list.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 return _symbol_l;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(l.build());
 			}
 			case 113: // port_decl_list = port_decl.port_decl
 			{
 					final Symbol _symbol_port_decl = _symbols[offset + 1];
 					final PortDecl port_decl = (PortDecl) _symbol_port_decl.value;
-					 ArrayList<PortDecl> l = new ArrayList<PortDecl>(); l.add(port_decl); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(port_decl));
 			}
 			case 114: // port_decl_list = port_decl_list.l COMMA port_decl.d
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_d = _symbols[offset + 3];
 					final PortDecl d = (PortDecl) _symbol_d.value;
 					 l.add(d); return _symbol_l;
@@ -1070,19 +1066,19 @@ public class NlParser extends Parser {
 			case 121: // type_parameter_block = LBRACK opt$type_parameter_list.l RBRACK
 			{
 					final Symbol _symbol_l = _symbols[offset + 2];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 return _symbol_l;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(l == null ? null : l.build());
 			}
 			case 122: // type_parameter_list = type_parameter.tp
 			{
 					final Symbol _symbol_tp = _symbols[offset + 1];
 					final ParDeclType tp = (ParDeclType) _symbol_tp.value;
-					 ArrayList l = new ArrayList(); l.add(tp); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(tp));
 			}
 			case 123: // type_parameter_list = type_parameter_list.l COMMA type_parameter.tp
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_tp = _symbols[offset + 3];
 					final ParDeclType tp = (ParDeclType) _symbol_tp.value;
 					 l.add(tp); return _symbol_l;
@@ -1091,12 +1087,12 @@ public class NlParser extends Parser {
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
-					 ArrayList l = new ArrayList(); l.add(t); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(t));
 			}
 			case 125: // type_list = type_list.l COMMA type.t
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_t = _symbols[offset + 3];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 l.add(t); return _symbol_l;
@@ -1106,50 +1102,43 @@ public class NlParser extends Parser {
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(new TypeExpr((String)id.value));
 			}
-			case 129: // type = IDENTIFIER.id LBRACK opt$type_list.t RBRACK
-			{
-					final Symbol id = _symbols[offset + 1];
-					final Symbol _symbol_t = _symbols[offset + 3];
-					final ArrayList t = (ArrayList) _symbol_t.value;
-					 return new Symbol(t==null ? new TypeExpr((String)id.value) : new TypeExpr((String)id.value, (TypeExpr[])t.toArray(new TypeExpr[t.size()])));
-			}
-			case 132: // type = IDENTIFIER.id LPAREN opt$type_attribute_list.attributes RPAREN
+			case 129: // type = IDENTIFIER.id LPAREN opt$type_attribute_list.attributes RPAREN
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_attributes = _symbols[offset + 3];
 					final ArrayList attributes = (ArrayList) _symbol_attributes.value;
-					 Map<String,Expression> valueParameters = new java.util.HashMap();
-                                                                   Map<String,TypeExpr> typeParameters = new java.util.HashMap();
+					 ImmutableList.Builder valueParameters = ImmutableList.builder();
+                                                                   ImmutableList.Builder typeParameters = ImmutableList.builder();
                                                                    for(Map.Entry map : (ArrayList<Map.Entry>)attributes){
                                                                      if(map.getValue() instanceof Expression){
-                                                                       valueParameters.put((String)map.getKey(), (Expression)map.getValue());
+                                                                       valueParameters.add(ImmutableEntry.of(map.getKey(), map.getValue()));
                                                                      } else {
-                                                                       typeParameters.put((String)map.getKey(), (TypeExpr)map.getValue());
+                                                                       typeParameters.add(ImmutableEntry.of(map.getKey(), map.getValue()));
                                                                      }
                                                                    }
-                                                                   return new Symbol(new TypeExpr((String)id.value, typeParameters, valueParameters));
+                                                                   return new Symbol(new TypeExpr((String)id.value, typeParameters.build(), valueParameters.build()));
 			}
-			case 133: // type = LBRACK opt$type_list.param EDGE type.result_type RBRACK
+			case 132: // type = LBRACK opt$type_list.param EDGE type.result_type RBRACK
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
-					final ArrayList param = (ArrayList) _symbol_param.value;
+					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_result_type = _symbols[offset + 4];
 					final TypeExpr result_type = (TypeExpr) _symbol_result_type.value;
 					 return new Symbol(null);
 			}
-			case 134: // type = LBRACK opt$type_list.param EDGE RBRACK
+			case 133: // type = LBRACK opt$type_list.param EDGE RBRACK
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
-					final ArrayList param = (ArrayList) _symbol_param.value;
+					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					 return new Symbol(null);
 			}
-			case 135: // type_attribute_list = type_attribute.t
+			case 134: // type_attribute_list = type_attribute.t
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final Map.Entry t = (Map.Entry) _symbol_t.value;
 					 ArrayList l = new ArrayList(); l.add(t); return new Symbol(l);
 			}
-			case 136: // type_attribute_list = type_attribute_list.l COMMA type_attribute.t
+			case 135: // type_attribute_list = type_attribute_list.l COMMA type_attribute.t
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
@@ -1157,110 +1146,106 @@ public class NlParser extends Parser {
 					final Map.Entry t = (Map.Entry) _symbol_t.value;
 					 l.add(t); return _symbol_l;
 			}
-			case 137: // type_attribute = IDENTIFIER.id COLON type.type
+			case 136: // type_attribute = IDENTIFIER.id COLON type.type
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_type = _symbols[offset + 3];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					 return new Symbol(new AbstractMap.SimpleEntry((String)id.value, type));
 			}
-			case 138: // type_attribute = IDENTIFIER.id EQ expression.e
+			case 137: // type_attribute = IDENTIFIER.id EQ expression.e
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 3];
 					final Expression e = (Expression) _symbol_e.value;
 					 return new Symbol(new AbstractMap.SimpleEntry((String)id.value, e));
 			}
-			case 139: // edge_type = EDGE type.t
+			case 138: // edge_type = EDGE type.t
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 return _symbol_t;
 			}
-			case 144: // procedure_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl stmt_block_opt.body end_proc
+			case 143: // procedure_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl stmt_block_opt.body end_proc
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
-					final ArrayList param = (ArrayList) _symbol_param.value;
+					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_decl = _symbols[offset + 4];
-					final ArrayList decl = (ArrayList) _symbol_decl.value;
+					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 5];
-					final ArrayList body = (ArrayList) _symbol_body.value;
-					 return new Symbol(new ExprProc(new ParDeclType[0], 
-                                                                                                                    param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
-                                                                                                                    new DeclType[0],
-                                                                                                                    decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
-                                                                                                                    (Statement[])body.toArray(new Statement[body.size()])));
+					final ImmutableList body = (ImmutableList) _symbol_body.value;
+					  return new Symbol(
+            new ExprProc(
+              null, 
+              param==null ? ImmutableList.empty() : param.build(),
+              new StmtBlock(null, decl, body)
+            )
+          );
 			}
-			case 145: // stmt_block_opt = 
+			case 144: // stmt_block_opt = 
 			{
-					 return new Symbol(new ArrayList());
+					 return new Symbol(ImmutableList.empty());
 			}
-			case 146: // stmt_block_opt = do_begin statement_list_opt.s
+			case 145: // stmt_block_opt = do_begin statement_list_opt.s
 			{
 					final Symbol _symbol_s = _symbols[offset + 2];
-					final ArrayList s = (ArrayList) _symbol_s.value;
+					final ImmutableList s = (ImmutableList) _symbol_s.value;
 					 return _symbol_s;
 			}
-			case 147: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN expression.body end_lambda
+			case 146: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN expression.body end_lambda
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
-					final ArrayList param = (ArrayList) _symbol_param.value;
+					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_body = _symbols[offset + 4];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(new ParDeclType[0],
-                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
-                                             new DeclType[0], 
-                                             new DeclVar[0],
+					 return new Symbol(new ExprLambda(null,
+                                             param==null ? null : param.build(),
                                              body,
                                              null));
 			}
-			case 148: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl COLON expression.body end_lambda
+			case 147: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl COLON expression.body end_lambda
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
-					final ArrayList param = (ArrayList) _symbol_param.value;
+					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_decl = _symbols[offset + 4];
-					final ArrayList decl = (ArrayList) _symbol_decl.value;
+					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 6];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(new ParDeclType[0],
-                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
-                                             new DeclType[0],
-                                             decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
-                                             body,
+					 return new Symbol(new ExprLambda(null,
+                                             param==null ? null : param.build(),
+                                             new ExprLet(null, decl, body),
                                              null));
 			}
-			case 149: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN edge_type.t opt$decl_block.decl COLON expression.body end_lambda
+			case 148: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN edge_type.t opt$decl_block.decl COLON expression.body end_lambda
 			{
 					final Symbol _symbol_param = _symbols[offset + 2];
-					final ArrayList param = (ArrayList) _symbol_param.value;
+					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_t = _symbols[offset + 4];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_decl = _symbols[offset + 5];
-					final ArrayList decl = (ArrayList) _symbol_decl.value;
+					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 7];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(new ParDeclType[0],
-                                             param==null ? new ParDeclValue[0] : (ParDeclValue[])param.toArray(new ParDeclValue[param.size()]),
-                                             new DeclType[0],
-                                             decl==null ? new DeclVar[0] : (DeclVar[])decl.toArray(new DeclVar[decl.size()]),
-                                             body,
+					 return new Symbol(new ExprLambda(null,
+                                             param==null ? null : param.build(),
+                                             new ExprLet(null, decl, body),
                                              t));
 			}
-			case 150: // map_list = map_entry.m
+			case 149: // map_list = map_entry.m
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final Map.Entry m = (Map.Entry) _symbol_m.value;
-					 ArrayList l = new ArrayList(); l.add(m); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(m));
 			}
-			case 151: // map_list = map_list.l COMMA map_entry.m
+			case 150: // map_list = map_list.l COMMA map_entry.m
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final Map.Entry m = (Map.Entry) _symbol_m.value;
 					 l.add(m); return _symbol_l;
 			}
-			case 152: // map_entry = expression.e1 ARROW expression.e2
+			case 151: // map_entry = expression.e1 ARROW expression.e2
 			{
 					final Symbol _symbol_e1 = _symbols[offset + 1];
 					final Expression e1 = (Expression) _symbol_e1.value;
@@ -1268,102 +1253,102 @@ public class NlParser extends Parser {
 					final Expression e2 = (Expression) _symbol_e2.value;
 					 return new Symbol(new AbstractMap.SimpleEntry(e1, e2));
 			}
-			case 153: // tail = BAR expression.e
+			case 152: // tail = BAR expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 154: // expression_list = expression.e
+			case 153: // expression_list = expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
-					 ArrayList l = new ArrayList(); l.add(e); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(e));
 			}
-			case 155: // expression_list = expression_list.l COMMA expression.e
+			case 154: // expression_list = expression_list.l COMMA expression.e
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_e = _symbols[offset + 3];
 					final Expression e = (Expression) _symbol_e.value;
 					 l.add(e); return _symbol_l;
 			}
-			case 156: // expression_list_opt = 
+			case 155: // expression_list_opt = 
 			{
-					 return new Symbol(new ArrayList());
+					 return new Symbol(ImmutableList.empty());
 			}
-			case 157: // expression_list_opt = expression_list.n
+			case 156: // expression_list_opt = expression_list.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
-					final ArrayList n = (ArrayList) _symbol_n.value;
-					 return _symbol_n;
+					final ImmutableList.Builder n = (ImmutableList.Builder) _symbol_n.value;
+					 return new Symbol(n.build());
 			}
-			case 160: // method_invocation = indexing_expression.function LPAREN opt$expression_list.args RPAREN
+			case 157: // method_invocation = indexing_expression.function LPAREN expression_list_opt.args RPAREN
 			{
 					final Symbol _symbol_function = _symbols[offset + 1];
 					final Expression function = (Expression) _symbol_function.value;
 					final Symbol _symbol_args = _symbols[offset + 3];
-					final ArrayList args = (ArrayList) _symbol_args.value;
-					 return new Symbol(new ExprApplication(function, args==null ? new Expression[0] : (Expression[])args.toArray(new Expression[args.size()])));
+					final ImmutableList args = (ImmutableList) _symbol_args.value;
+					 return new Symbol(new ExprApplication(function, args));
 			}
-			case 161: // literal = INTEGER_LITERAL.txt
+			case 158: // literal = INTEGER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
-			case 162: // literal = LONG_LITERAL.txt
+			case 159: // literal = LONG_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
-			case 163: // literal = FLOATING_POINT_LITERAL.txt
+			case 160: // literal = FLOATING_POINT_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litInteger, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
-			case 164: // literal = DOUBLE_LITERAL.txt
+			case 161: // literal = DOUBLE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litReal, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Real, ((String)txt.value)));
 			}
-			case 165: // literal = TRUE_LITERAL.txt
+			case 162: // literal = TRUE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litTrue, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.True, ((String)txt.value)));
 			}
-			case 166: // literal = FALSE_LITERAL.txt
+			case 163: // literal = FALSE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litFalse, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.False, ((String)txt.value)));
 			}
-			case 167: // literal = CHARACTER_LITERAL.txt
+			case 164: // literal = CHARACTER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litChar, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Char, ((String)txt.value)));
 			}
-			case 168: // literal = STRING_LITERAL.txt
+			case 165: // literal = STRING_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litString, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.String, ((String)txt.value)));
 			}
-			case 169: // literal = NULL_LITERAL.txt
+			case 166: // literal = NULL_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.litNull, ((String)txt.value)));
+					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Null, ((String)txt.value)));
 			}
-			case 170: // primary = literal.l
+			case 167: // primary = literal.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ExprLiteral l = (ExprLiteral) _symbol_l.value;
 					 return _symbol_l;
 			}
-			case 171: // primary = LPAREN expression.e RPAREN
+			case 168: // primary = LPAREN expression.e RPAREN
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					 return new ParenthesSymbol(_symbol_e);
 			}
-			case 172: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN
+			case 169: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
@@ -1372,25 +1357,25 @@ public class NlParser extends Parser {
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(start.getStart()) + ", " + Symbol.getColumn(start.getStart()));
 			}
-			case 173: // simple_expression = primary.p
+			case 170: // simple_expression = primary.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Expression p = (Expression) _symbol_p.value;
 					 return _symbol_p;
 			}
-			case 174: // simple_expression = variable.v
+			case 171: // simple_expression = variable.v
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
 					final Variable v = (Variable) _symbol_v.value;
 					 return new Symbol(new ExprVariable(v));
 			}
-			case 175: // simple_expression = OLD variable.v
+			case 172: // simple_expression = OLD variable.v
 			{
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final Variable v = (Variable) _symbol_v.value;
 					 return new Symbol(new ExprVariable(v));
 			}
-			case 176: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
+			case 173: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
 			{
 					final Symbol _symbol_c = _symbols[offset + 2];
 					final Expression c = (Expression) _symbol_c.value;
@@ -1400,107 +1385,104 @@ public class NlParser extends Parser {
 					final Expression e2 = (Expression) _symbol_e2.value;
 					 return new Symbol(new ExprIf(c, e1, e2));
 			}
-			case 177: // simple_expression = LBRACE expression_list_opt.e RBRACE
+			case 174: // simple_expression = LBRACE expression_list_opt.e RBRACE
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
-					final ArrayList e = (ArrayList) _symbol_e.value;
-					 return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()])));
+					final ImmutableList e = (ImmutableList) _symbol_e.value;
+					 return new Symbol(new ExprSet(e));
 			}
-			case 178: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
+			case 175: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
-					final ArrayList e = (ArrayList) _symbol_e.value;
+					final ImmutableList e = (ImmutableList) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 4];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 return new Symbol(new ExprSet((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(new ExprSet(e, l.build()));
 			}
-			case 179: // simple_expression = LBRACK expression_list_opt.e RBRACK
+			case 176: // simple_expression = LBRACK expression_list_opt.e RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
-					final ArrayList e = (ArrayList) _symbol_e.value;
-					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()])));
+					final ImmutableList e = (ImmutableList) _symbol_e.value;
+					 return new Symbol(new ExprList(e));
 			}
-			case 180: // simple_expression = LBRACK expression_list_opt.e tail.tail RBRACK
+			case 177: // simple_expression = LBRACK expression_list_opt.e tail.tail RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
-					final ArrayList e = (ArrayList) _symbol_e.value;
+					final ImmutableList e = (ImmutableList) _symbol_e.value;
 					final Symbol _symbol_tail = _symbols[offset + 3];
 					final Expression tail = (Expression) _symbol_tail.value;
-					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()])));
+					 return new Symbol(new ExprList(e));
 			}
-			case 181: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
+			case 178: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
-					final ArrayList e = (ArrayList) _symbol_e.value;
+					final ImmutableList e = (ImmutableList) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 4];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(new ExprList(e, l.build()));
 			}
-			case 182: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK
+			case 179: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l tail.tail RBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
-					final ArrayList e = (ArrayList) _symbol_e.value;
+					final ImmutableList e = (ImmutableList) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 4];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_tail = _symbols[offset + 5];
 					final Expression tail = (Expression) _symbol_tail.value;
-					 return new Symbol(new ExprList((Expression[])e.toArray(new Expression[e.size()]), (GeneratorFilter[])l.toArray(new GeneratorFilter[l.size()])));
+					 return new Symbol(new ExprList(e, l.build()));
 			}
-			case 185: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
+			case 182: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
-					final ArrayList m = (ArrayList) _symbol_m.value;
-					 return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
-                                                                                                              (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()])));
+					final ImmutableList.Builder m = (ImmutableList.Builder) _symbol_m.value;
+					 return new Symbol(new ExprMap(m==null? null : m.build()));
 			}
-			case 186: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
+			case 183: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
 			{
 					final Symbol _symbol_m = _symbols[offset + 3];
-					final ArrayList m = (ArrayList) _symbol_m.value;
+					final ImmutableList.Builder m = (ImmutableList.Builder) _symbol_m.value;
 					final Symbol _symbol_generators = _symbols[offset + 5];
-					final ArrayList generators = (ArrayList) _symbol_generators.value;
-					 return new Symbol(new ExprMap(m==null? new java.util.Map.Entry[0] : 
-                                                                                                              (java.util.Map.Entry<Expression,Expression>[])m.toArray(new java.util.Map.Entry[m.size()]), 
-                                                                                                              (GeneratorFilter[])generators.toArray(new GeneratorFilter[generators.size()])));
+					final ImmutableList.Builder generators = (ImmutableList.Builder) _symbol_generators.value;
+					 return new Symbol(new ExprMap(m==null? null : m.build(), generators.build()));
 			}
-			case 187: // simple_expression = LET decl_list.l COLON expression.e end_let
+			case 184: // simple_expression = LET decl_list.l COLON expression.e end_let
 			{
 					final Symbol _symbol_l = _symbols[offset + 2];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(new ExprLet(new DeclType[0], (DeclVar[])l.toArray(new DeclVar[l.size()]), e));
+					 return new Symbol(new ExprLet(null, l.build(), e));
 			}
-			case 188: // simple_expression = LAMBDA lambda_expr_body.lambda
+			case 185: // simple_expression = LAMBDA lambda_expr_body.lambda
 			{
 					final Symbol _symbol_lambda = _symbols[offset + 2];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return _symbol_lambda;
 			}
-			case 189: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
+			case 186: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
 			{
 					final Symbol _symbol_lambda = _symbols[offset + 3];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
 					 return _symbol_lambda;
 			}
-			case 190: // simple_expression = PROC procedure_expr_body.p
+			case 187: // simple_expression = PROC procedure_expr_body.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 2];
 					final ExprProc p = (ExprProc) _symbol_p.value;
 					 return _symbol_p;
 			}
-			case 191: // indexing_expression = simple_expression.e
+			case 188: // indexing_expression = simple_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 192: // indexing_expression = indexer.i
+			case 189: // indexing_expression = indexer.i
 			{
 					final Symbol i = _symbols[offset + 1];
 					 return i;
 			}
-			case 193: // indexing_expression = indexing_expression.p DOT field.f
+			case 190: // indexing_expression = indexing_expression.p DOT field.f
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final Expression p = (Expression) _symbol_p.value;
@@ -1508,13 +1490,13 @@ public class NlParser extends Parser {
 					final Field f = (Field) _symbol_f.value;
 					 return new Symbol(new ExprField(p, f));
 			}
-			case 194: // indexing_expression = method_invocation.m
+			case 191: // indexing_expression = method_invocation.m
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
 					 return _symbol_m;
 			}
-			case 195: // indexer = indexer_start.s expression.i RBRACK
+			case 192: // indexer = indexer_start.s expression.i RBRACK
 			{
 					final Symbol _symbol_s = _symbols[offset + 1];
 					final Expression s = (Expression) _symbol_s.value;
@@ -1522,13 +1504,13 @@ public class NlParser extends Parser {
 					final Expression i = (Expression) _symbol_i.value;
 					 return new Symbol(new ExprIndexer(s, i));
 			}
-			case 196: // indexer_start = indexing_expression.e LBRACK
+			case 193: // indexer_start = indexing_expression.e LBRACK
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 197: // indexer_start = indexer_start.s expression.i COMMA
+			case 194: // indexer_start = indexer_start.s expression.i COMMA
 			{
 					final Symbol _symbol_s = _symbols[offset + 1];
 					final Expression s = (Expression) _symbol_s.value;
@@ -1536,13 +1518,13 @@ public class NlParser extends Parser {
 					final Expression i = (Expression) _symbol_i.value;
 					 return new Symbol(new ExprIndexer(s, i));
 			}
-			case 198: // unary_expression = indexing_expression.e
+			case 195: // unary_expression = indexing_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 199: // unary_expression = operator.operator unary_expression.expr
+			case 196: // unary_expression = operator.operator unary_expression.expr
 			{
 					final Symbol _symbol_operator = _symbols[offset + 1];
 					final String operator = (String) _symbol_operator.value;
@@ -1550,13 +1532,13 @@ public class NlParser extends Parser {
 					final Expression expr = (Expression) _symbol_expr.value;
 					 return new Symbol(new ExprUnaryOp(operator, expr));
 			}
-			case 200: // expression = unary_expression.e
+			case 197: // expression = unary_expression.e
 			{
 					final Symbol _symbol_e = _symbols[offset + 1];
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 201: // expression = expression.arg1 operator.operator unary_expression.arg2
+			case 198: // expression = expression.arg1 operator.operator unary_expression.arg2
 			{
 					final Symbol _symbol_arg1 = _symbols[offset + 1];
 					final Expression arg1 = (Expression) _symbol_arg1.value;
@@ -1564,76 +1546,71 @@ public class NlParser extends Parser {
 					final String operator = (String) _symbol_operator.value;
 					final Symbol _symbol_arg2 = _symbols[offset + 3];
 					final Expression arg2 = (Expression) _symbol_arg2.value;
-					 String[] operators;
-                                                               Expression[] operands;
+					 ImmutableList<String> operators;
+                                                               ImmutableList<Expression> operands;
                                                                boolean arg1IsPar = _symbol_arg1 instanceof ParenthesSymbol;
                                                                if((arg1 instanceof ExprBinaryOp) && !(arg1IsPar)){
                                                                  ExprBinaryOp expr = (ExprBinaryOp)arg1;
-                                                                 operators = Arrays.copyOf(expr.getOperations(), expr.getOperations().length + 1);
-                                                                 operators[operators.length-1] = operator;
-                                                                 operands = Arrays.copyOf(expr.getOperands(), expr.getOperands().length + 1);
-                                                                 operands[operands.length-1] = arg2;
+                                                                 operators = ImmutableList.<String>builder().addAll(expr.getOperations()).add(operator).build();
+                                                                 operands = ImmutableList.<Expression>builder().addAll(expr.getOperands()).add(arg2).build();
                                                                } else {
-                                                                 operators = new String[1];
-                                                                 operators[0] = operator;
-                                                                 operands = new Expression[2];
-                                                                 operands[0] = arg1;
-                                                                 operands[1] = arg2;
+                                                                 operators = ImmutableList.of(operator);
+                                                                 operands = ImmutableList.of(arg1, arg2);
                                                                }
                                                                return new Symbol(new ExprBinaryOp(operators, operands));
 			}
-			case 202: // operator = OPERATOR.op
+			case 199: // operator = OPERATOR.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 203: // operator = EQ.op
+			case 200: // operator = EQ.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 204: // operator = IN.op
+			case 201: // operator = IN.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 205: // operator = GT.op
+			case 202: // operator = GT.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 206: // operator = MULT.op
+			case 203: // operator = MULT.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 207: // formal_parameter = IDENTIFIER.id
+			case 204: // formal_parameter = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(new ParDeclValue((String)id.value, null));
 			}
-			case 208: // formal_parameter = type.t IDENTIFIER.id
+			case 205: // formal_parameter = type.t IDENTIFIER.id
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol id = _symbols[offset + 2];
 					 return new Symbol(new ParDeclValue((String)id.value, t));
 			}
-			case 209: // formal_parameter_list = formal_parameter.p
+			case 206: // formal_parameter_list = formal_parameter.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
-					 ArrayList l = new ArrayList(); l.add(p); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(p));
 			}
-			case 210: // formal_parameter_list = formal_parameter_list.l COMMA formal_parameter.p
+			case 207: // formal_parameter_list = formal_parameter_list.l COMMA formal_parameter.p
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_p = _symbols[offset + 3];
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 l.add(p);  return _symbol_l;
 			}
-			case 211: // statement = expression.lhs COLONEQ expression.value SEMICOLON
+			case 208: // statement = expression.lhs COLONEQ expression.value SEMICOLON
 			{
 					final Symbol _symbol_lhs = _symbols[offset + 1];
 					final Expression lhs = (Expression) _symbol_lhs.value;
@@ -1644,286 +1621,282 @@ public class NlParser extends Parser {
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
                                                          return new Symbol(new StmtAssignment(new LValueVariable(new Variable("$illegal")), value));
 			}
-			case 212: // statement = method_invocation.m SEMICOLON
+			case 209: // statement = method_invocation.m SEMICOLON
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
 					 return new Symbol(new StmtCall(m.getFunction(), m.getArgs()));
 			}
-			case 213: // statement = BEGIN statement_list_opt.s END
+			case 210: // statement = BEGIN statement_list_opt.s END
 			{
 					final Symbol _symbol_s = _symbols[offset + 2];
-					final ArrayList s = (ArrayList) _symbol_s.value;
-					 return new Symbol(new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()])));
+					final ImmutableList s = (ImmutableList) _symbol_s.value;
+					 return new Symbol(new StmtBlock(null, null, s));
 			}
-			case 214: // statement = BEGIN VAR decl_list.d DO statement_list_opt.s END
+			case 211: // statement = BEGIN VAR decl_list.d DO statement_list_opt.s END
 			{
 					final Symbol _symbol_d = _symbols[offset + 3];
-					final ArrayList d = (ArrayList) _symbol_d.value;
+					final ImmutableList.Builder d = (ImmutableList.Builder) _symbol_d.value;
 					final Symbol _symbol_s = _symbols[offset + 5];
-					final ArrayList s = (ArrayList) _symbol_s.value;
-					 return new Symbol(new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()])));
+					final ImmutableList s = (ImmutableList) _symbol_s.value;
+					 return new Symbol(new StmtBlock(null, d.build(), s));
 			}
-			case 215: // statement = IF expression.e THEN statement_list_opt.s end_if
+			case 212: // statement = IF expression.e THEN statement_list_opt.s end_if
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_s = _symbols[offset + 4];
-					final ArrayList s = (ArrayList) _symbol_s.value;
-					 return new Symbol(new StmtIf(e, new StmtBlock(null, null, (Statement[])s.toArray(new Statement[s.size()])), null));
+					final ImmutableList s = (ImmutableList) _symbol_s.value;
+					 return new Symbol(new StmtIf(e, new StmtBlock(null, null, s), null));
 			}
-			case 216: // statement = IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if
+			case 213: // statement = IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_s1 = _symbols[offset + 4];
-					final ArrayList s1 = (ArrayList) _symbol_s1.value;
+					final ImmutableList s1 = (ImmutableList) _symbol_s1.value;
 					final Symbol _symbol_s2 = _symbols[offset + 6];
-					final ArrayList s2 = (ArrayList) _symbol_s2.value;
+					final ImmutableList s2 = (ImmutableList) _symbol_s2.value;
 					 return new Symbol(new StmtIf(e, 
-                                                                                                                 new StmtBlock(null, null, (Statement[])s1.toArray(new Statement[s1.size()])),
-                                                                                                                 new StmtBlock(null, null, (Statement[])s2.toArray(new Statement[s2.size()]))));
+                                                                                                                 new StmtBlock(null, null, s1),
+                                                                                                                 new StmtBlock(null, null, s2)));
 			}
-			case 217: // statement = WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while
+			case 214: // statement = WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while
 			{
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_d = _symbols[offset + 3];
-					final ArrayList d = (ArrayList) _symbol_d.value;
+					final ImmutableList d = (ImmutableList) _symbol_d.value;
 					final Symbol _symbol_s = _symbols[offset + 5];
-					final ArrayList s = (ArrayList) _symbol_s.value;
-					 return new Symbol(new StmtWhile(e, new StmtBlock(new DeclType[0],
-                                                                                                                              (DeclVar[])d.toArray(new DeclVar[d.size()]),
-                                                                                                                              (Statement[])s.toArray(new Statement[s.size()]))));
+					final ImmutableList s = (ImmutableList) _symbol_s.value;
+					 return new Symbol(new StmtWhile(e, new StmtBlock(null, d, s)));
 			}
-			case 221: // statement = for_generator_list.g DO statement_list_opt.s end_foreach
+			case 218: // statement = for_generator_list.g DO statement_list_opt.s end_foreach
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
-					final ArrayList g = (ArrayList) _symbol_g.value;
+					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
 					final Symbol _symbol_s = _symbols[offset + 3];
-					final ArrayList s = (ArrayList) _symbol_s.value;
-					 return new Symbol(new StmtForeach((GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]),
-                                                                                                               new StmtBlock(new DeclType[0], new DeclVar[0], (Statement[])s.toArray(new Statement[s.size()]))));
+					final ImmutableList s = (ImmutableList) _symbol_s.value;
+					 return new Symbol(new StmtForeach(g.build(), new StmtBlock(null, null, s)));
 			}
-			case 222: // statement = for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach
+			case 219: // statement = for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
-					final ArrayList g = (ArrayList) _symbol_g.value;
+					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
 					final Symbol _symbol_d = _symbols[offset + 2];
-					final ArrayList d = (ArrayList) _symbol_d.value;
+					final ImmutableList d = (ImmutableList) _symbol_d.value;
 					final Symbol _symbol_s = _symbols[offset + 4];
-					final ArrayList s = (ArrayList) _symbol_s.value;
-					 return new Symbol(new StmtForeach((GeneratorFilter[])g.toArray(new GeneratorFilter[g.size()]),
-                                                                                                               new StmtBlock(new DeclType[0], (DeclVar[])d.toArray(new DeclVar[d.size()]), (Statement[])s.toArray(new Statement[s.size()]))));
+					final ImmutableList s = (ImmutableList) _symbol_s.value;
+					 return new Symbol(new StmtForeach(g.build(), new StmtBlock(null, d, s)));
 			}
-			case 223: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e
+			case 220: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, null)); return new Symbol(l);
+					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars.build(), e, null)); return new Symbol(l);
 			}
-			case 224: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e
+			case 221: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, null)); return new Symbol(l);
+					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars.build(), e, null)); return new Symbol(l);
 			}
-			case 225: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 222: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 6];
-					final ArrayList filters = (ArrayList) _symbol_filters.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, filters)); return new Symbol(l);
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
+					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars.build(), e, filters.build())); return new Symbol(l);
 			}
-			case 226: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 223: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 7];
-					final ArrayList filters = (ArrayList) _symbol_filters.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, filters)); return new Symbol(l);
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
+					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars.build(), e, filters.build())); return new Symbol(l);
 			}
-			case 227: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 224: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 6];
 					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(null, vars, e, null)); return _symbol_l;
+					 l.add(0, makeGeneratorFilter(null, vars.build(), e, null)); return _symbol_l;
 			}
-			case 228: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 225: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 7];
 					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(t, vars, e, null)); return _symbol_l;
+					 l.add(0, makeGeneratorFilter(t, vars.build(), e, null)); return _symbol_l;
 			}
-			case 229: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
+			case 226: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 6];
-					final ArrayList filters = (ArrayList) _symbol_filters.value;
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					final Symbol _symbol_l = _symbols[offset + 8];
 					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(null, vars, e, filters)); return _symbol_l;
+					 l.add(0, makeGeneratorFilter(null, vars.build(), e, filters.build())); return _symbol_l;
 			}
-			case 230: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
+			case 227: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 7];
-					final ArrayList filters = (ArrayList) _symbol_filters.value;
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					final Symbol _symbol_l = _symbols[offset + 9];
 					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(t, vars, e, filters)); return _symbol_l;
+					 l.add(0, makeGeneratorFilter(t, vars.build(), e, filters.build())); return _symbol_l;
 			}
-			case 231: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e
+			case 228: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, null)); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, null)));
 			}
-			case 232: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e
+			case 229: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, null)); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, null)));
 			}
-			case 233: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 230: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 6];
-					final ArrayList filters = (ArrayList) _symbol_filters.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars, e, filters)); return new Symbol(l);
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
+					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, filters.build())));
 			}
-			case 234: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 231: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 7];
-					final ArrayList filters = (ArrayList) _symbol_filters.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars, e, filters)); return new Symbol(l);
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
+					 return new Symbol(ImmutableList.builder().add((makeGeneratorFilter(t, vars.build(), e, filters.build()))));
 			}
-			case 235: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 232: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA for_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 6];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(null, vars, e, null)); return _symbol_l;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, null)).addAll(l.build()));
 			}
-			case 236: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 233: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 7];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(t, vars, e, null)); return _symbol_l;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, null)).addAll(l.build()));
 			}
-			case 237: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 234: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
 			{
 					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 6];
-					final ArrayList filters = (ArrayList) _symbol_filters.value;
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					final Symbol _symbol_l = _symbols[offset + 8];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(null, vars, e, filters)); return _symbol_l;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, filters.build())).addAll(l.build()));
 			}
-			case 238: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 235: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
 			{
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ArrayList vars = (ArrayList) _symbol_vars.value;
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 7];
-					final ArrayList filters = (ArrayList) _symbol_filters.value;
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					final Symbol _symbol_l = _symbols[offset + 9];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(t, vars, e, filters)); return _symbol_l;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, filters.build())).addAll(l.build()));
 			}
-			case 239: // generator_variable_list = IDENTIFIER.id
+			case 236: // generator_variable_list = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 ArrayList l = new ArrayList(); l.add(id); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(id.value));
 			}
-			case 240: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
+			case 237: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol id = _symbols[offset + 3];
-					 l.add(id); return _symbol_l;
+					 l.add(id.value); return _symbol_l;
 			}
-			case 259: // statement_list_opt = 
+			case 256: // statement_list_opt = 
 			{
-					 return new Symbol(new ArrayList());
+					 return new Symbol(ImmutableList.empty());
 			}
-			case 260: // statement_list_opt = statement_list.l
+			case 257: // statement_list_opt = statement_list.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 return _symbol_l;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return new Symbol(l.build());
 			}
-			case 261: // statement_list = statement.n
+			case 258: // statement_list = statement.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final Statement n = (Statement) _symbol_n.value;
-					 ArrayList l = new ArrayList(); l.add(n); return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(n));
 			}
-			case 262: // statement_list = statement_list.l statement.n
+			case 259: // statement_list = statement_list.l statement.n
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_n = _symbols[offset + 2];
 					final Statement n = (Statement) _symbol_n.value;
 					 l.add(n); return _symbol_l;
@@ -1942,12 +1915,11 @@ public class NlParser extends Parser {
 			case 71: // opt$lst$tool_attribute = 
 			case 80: // opt$actor_parameter_init_expression = 
 			case 119: // opt$type_parameter_list = 
-			case 127: // opt$type_list = 
-			case 130: // opt$type_attribute_list = 
-			case 140: // opt$formal_parameter_list = 
-			case 142: // opt$decl_block = 
-			case 158: // opt$expression_list = 
-			case 183: // opt$map_list = 
+			case 127: // opt$type_attribute_list = 
+			case 130: // opt$type_list = 
+			case 139: // opt$formal_parameter_list = 
+			case 141: // opt$decl_block = 
+			case 180: // opt$map_list = 
 			{
 				return new Symbol(null);
 			}
@@ -1967,42 +1939,41 @@ public class NlParser extends Parser {
 			case 77: // end_network = ENDNETWORK
 			case 81: // opt$actor_parameter_init_expression = actor_parameter_init_expression
 			case 120: // opt$type_parameter_list = type_parameter_list
-			case 128: // opt$type_list = type_list
-			case 131: // opt$type_attribute_list = type_attribute_list
-			case 141: // opt$formal_parameter_list = formal_parameter_list
-			case 143: // opt$decl_block = decl_block
-			case 159: // opt$expression_list = expression_list
-			case 184: // opt$map_list = map_list
-			case 241: // for_foreach = FOREACH.FOREACH
-			case 242: // for_foreach = FOR.FOR
-			case 243: // do_begin = BEGIN.BEGIN
-			case 244: // do_begin = DO.DO
-			case 245: // end_choose = END.END
-			case 246: // end_choose = ENDCHOOSE.ENDCHOOSE
-			case 247: // end_foreach = END.END
-			case 248: // end_foreach = ENDFOREACH.ENDFOREACH
-			case 249: // end_if = END.END
-			case 250: // end_if = ENDIF.ENDIF
-			case 251: // end_lambda = END.END
-			case 252: // end_lambda = ENDLAMBDA.ENDLAMBDA
-			case 253: // end_let = END.END
-			case 254: // end_let = ENDLET.ENDLET
-			case 255: // end_proc = END.END
-			case 256: // end_proc = ENDPROC.ENDPROC
-			case 257: // end_while = END.END
-			case 258: // end_while = ENDWHILE.ENDWHILE
+			case 128: // opt$type_attribute_list = type_attribute_list
+			case 131: // opt$type_list = type_list
+			case 140: // opt$formal_parameter_list = formal_parameter_list
+			case 142: // opt$decl_block = decl_block
+			case 181: // opt$map_list = map_list
+			case 238: // for_foreach = FOREACH.FOREACH
+			case 239: // for_foreach = FOR.FOR
+			case 240: // do_begin = BEGIN.BEGIN
+			case 241: // do_begin = DO.DO
+			case 242: // end_choose = END.END
+			case 243: // end_choose = ENDCHOOSE.ENDCHOOSE
+			case 244: // end_foreach = END.END
+			case 245: // end_foreach = ENDFOREACH.ENDFOREACH
+			case 246: // end_if = END.END
+			case 247: // end_if = ENDIF.ENDIF
+			case 248: // end_lambda = END.END
+			case 249: // end_lambda = ENDLAMBDA.ENDLAMBDA
+			case 250: // end_let = END.END
+			case 251: // end_let = ENDLET.ENDLET
+			case 252: // end_proc = END.END
+			case 253: // end_proc = ENDPROC.ENDPROC
+			case 254: // end_while = END.END
+			case 255: // end_while = ENDWHILE.ENDWHILE
 			{
 				return _symbols[offset + 1];
 			}
-			case 218: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
+			case 215: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
 			{
 				return _symbols[offset + 4];
 			}
-			case 219: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
+			case 216: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
 			{
 				return _symbols[offset + 6];
 			}
-			case 220: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
+			case 217: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
 			{
 				return _symbols[offset + 8];
 			}

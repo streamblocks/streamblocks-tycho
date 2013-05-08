@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 /**
  * An LValue that is a variable.
  */
@@ -13,7 +15,19 @@ public class LValueVariable extends LValue {
 	 *            the variable.
 	 */
 	public LValueVariable(Variable variable) {
+		this(null, variable);
+	}
+
+	private LValueVariable(LValueVariable original, Variable variable) {
+		super(original);
 		this.variable = variable;
+	}
+
+	public LValueVariable copy(Variable variable) {
+		if (Objects.equals(this.variable, variable)) {
+			return this;
+		}
+		return new LValueVariable(this, variable);
 	}
 
 	/**

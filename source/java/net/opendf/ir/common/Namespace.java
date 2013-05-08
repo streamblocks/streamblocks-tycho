@@ -84,6 +84,7 @@ public class Namespace extends AbstractIRNode {
 	//
 	
 	public Namespace(Namespace parent, String relativeName) {
+		super(null);
 		this.parent = parent;
 		if (parent != null)
 			parent.addSubnamespace(this);

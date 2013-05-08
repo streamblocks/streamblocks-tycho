@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
 
 /**
@@ -26,7 +28,11 @@ public class Variable extends AbstractIRNode {
 	 *            the variable name
 	 */
 	public Variable(String name) {
-		this(name, -1, -1);
+		this(null, name, -1, -1);
+	}
+
+	public Variable copy(String name) {
+		return copy(name, -1, -1);
 	}
 
 	/**
@@ -38,7 +44,12 @@ public class Variable extends AbstractIRNode {
 	 *            the offset
 	 */
 	public Variable(String name, int offset) {
-		this(name, -1, offset);
+		this(null, name, -1, offset);
+		assert offset >= 0;
+	}
+	
+	public Variable copy(String name, int offset) {
+		return copy(name, -1, offset);
 	}
 
 	/**
@@ -52,6 +63,20 @@ public class Variable extends AbstractIRNode {
 	 *            the offset
 	 */
 	public Variable(String name, int level, int offset) {
+		this(null, name, level, offset);
+		assert level >= 0;
+		assert offset >= 0;
+	}
+	
+	public Variable copy(String name, int level, int offset) {
+		if (Objects.equals(this.name, name) && this.level == level && this.offset == offset) {
+			return this;
+		}
+		return new Variable(this, name, level, offset);
+	}
+	
+	private Variable(Variable original, String name, int level, int offset) {
+		super(original);
 		this.name = name.intern();
 		this.level = level;
 		this.offset = offset;

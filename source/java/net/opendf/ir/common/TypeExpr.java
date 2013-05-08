@@ -35,13 +35,16 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
-import java.util.Map;
+import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.util.ImmutableEntry;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -49,42 +52,49 @@ import net.opendf.ir.AbstractIRNode;
  */
 
 public class TypeExpr extends AbstractIRNode {
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public TypeExpr[] getParameters() {
-        return parameters;
-    }
-    
-    public Map<String, TypeExpr>  getTypeParameters() {
-    	return typeParameters;
-    }
-    
-    public Map<String, Expression>  getValueParameters() {
-    	return valueParameters;
-    }
+	public ImmutableList<ImmutableEntry<String, TypeExpr>> getTypeParameters() {
+		return typeParameters;
+	}
 
+	public ImmutableList<ImmutableEntry<String, Expression>> getValueParameters() {
+		return valueParameters;
+	}
 
-    public TypeExpr(String _name, TypeExpr[] _parameters) {
-        this.name = _name;
-        this.parameters = _parameters;
-    }
-    
-    public TypeExpr(String name) {
-    	this.name = name;
-    }
-    
-    public TypeExpr(String name, Map<String, TypeExpr> typeParameters, Map<String, Expression> valueParameters) {
-    	this.name = name;
-    	this.typeParameters = typeParameters;
-    	this.valueParameters = valueParameters;
-    }
-    
+	public TypeExpr(String name) {
+		this(null, name, null, null);
+	}
 
-    private String name;
-    private TypeExpr [] parameters;
-    private Map<String, TypeExpr>  typeParameters;
-    private Map<String, Expression>  valueParameters;
-    
+	public TypeExpr(String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
+			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
+		this(null, name, typeParameters, valueParameters);
+	}
+
+	private TypeExpr(TypeExpr original, String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
+			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
+		super(original);
+		this.typeParameters = ImmutableList.copyOf(typeParameters);
+		this.valueParameters = ImmutableList.copyOf(valueParameters);
+	}
+
+	public TypeExpr copy(String name) {
+		return copy(name, null, null);
+	}
+
+	public TypeExpr copy(String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
+			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
+		if (Objects.equals(this.name, name) && Lists.equals(this.typeParameters, typeParameters)
+				&& Lists.equals(this.valueParameters, valueParameters)) {
+			return this;
+		}
+		return new TypeExpr(this, name, typeParameters, valueParameters);
+	}
+
+	private String name;
+	private ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters;
+	private ImmutableList<ImmutableEntry<String, Expression>> valueParameters;
+
 }

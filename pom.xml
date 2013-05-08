@@ -130,7 +130,7 @@
           <bottom>Copyright &#169; {inceptionYear}-{currentYear}, &lt;a href=\"http://opendf.org\"&gt;opendf.org&lt;/a&gt;</bottom>
           <encoding>ISO8859-1</encoding>
           <links>
-            <link>http://docs.oracle.com/javase/1.4.2/docs/api</link>
+            <link>http://docs.oracle.com/javase/7/docs/api/</link>
           </links>
         </configuration>
       </plugin>

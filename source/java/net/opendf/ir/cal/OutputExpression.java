@@ -35,37 +35,54 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.cal;
+
+import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Port;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
-public class OutputExpression extends AbstractIRNode{
+public class OutputExpression extends AbstractIRNode {
 
+	public OutputExpression(Port port, ImmutableList<Expression> values, Expression repeatExpr) {
+		this(null, port, values, repeatExpr);
+	}
 
-    public OutputExpression(Port port, Expression [] values, Expression repeatExpr) {
-        this.port = port;
-        this.values = values;
-        this.repeatExpr = repeatExpr;
-    }
+	public OutputExpression(OutputExpression original, Port port, ImmutableList<Expression> values,
+			Expression repeatExpr) {
+		super(original);
+		this.port = port;
+		this.values = ImmutableList.copyOf(values);
+		this.repeatExpr = repeatExpr;
+	}
 
-    public Port getPort() {
-        return port;
-    }
+	public OutputExpression copy(Port port, ImmutableList<Expression> values, Expression repeatExpr) {
+		if (Objects.equals(this.port, port) && Lists.equals(this.values, values)
+				&& Objects.equals(this.repeatExpr, repeatExpr)) {
+			return this;
+		}
+		return new OutputExpression(this, port, values, repeatExpr);
+	}
 
-    public Expression[] getExpressions() {
-        return values;
-    }
+	public Port getPort() {
+		return port;
+	}
 
-    public Expression getRepeatExpr() {
-        return repeatExpr;
-    }
+	public ImmutableList<Expression> getExpressions() {
+		return values;
+	}
 
-    private Port 		port;
-    private Expression []   values;
-    private Expression 		repeatExpr;
+	public Expression getRepeatExpr() {
+		return repeatExpr;
+	}
+
+	private Port port;
+	private ImmutableList<Expression> values;
+	private Expression repeatExpr;
 
 }

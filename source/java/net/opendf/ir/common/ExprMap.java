@@ -35,38 +35,55 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
-import java.util.Map;
+import net.opendf.ir.util.ImmutableEntry;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 /**
  * @author Jorn W. Janneck <jwj@acm.org>
  */
 
 public class ExprMap extends Expression {
-    public <R,P> R accept(ExpressionVisitor<R,P> v, P p) {
-        return v.visitExprMap(this, p);
-    }
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprMap(this, p);
+	}
 
-    public ExprMap(java.util.Map.Entry<Expression,Expression>[] mappings, GeneratorFilter [] generators) {
-        this.mappings = mappings;
-        this.generators = generators;
-    }
+	public ExprMap(ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
+			ImmutableList<GeneratorFilter> generators) {
+		this(null, mappings, generators);
+	}
 
-    public ExprMap(java.util.Map.Entry<Expression,Expression>[] mappings) {
-        this(mappings, null);
-    }
+	private ExprMap(ExprMap original, ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
+			ImmutableList<GeneratorFilter> generators) {
+		super(original);
+		this.mappings = ImmutableList.copyOf(mappings);
+		this.generators = ImmutableList.copyOf(generators);
+	}
 
-    public java.util.Map.Entry<Expression,Expression>[] getMappings() {
-        return mappings;
-    }
-    
-    public GeneratorFilter []  getGenerators() {
-    	return generators;
-    }
+	public ExprMap copy(ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
+			ImmutableList<GeneratorFilter> generators) {
+		if (Lists.equals(this.mappings, mappings) && Lists.equals(this.generators, generators)) {
+			return this;
+		}
+		return new ExprMap(this, mappings, generators);
+	}
 
-    private java.util.Map.Entry<Expression,Expression>[] mappings;
-    private GeneratorFilter [] generators;
+	public ExprMap(ImmutableList<ImmutableEntry<Expression, Expression>> mappings) {
+		this(mappings, null);
+	}
+
+	public ImmutableList<ImmutableEntry<Expression, Expression>> getMappings() {
+		return mappings;
+	}
+
+	public ImmutableList<GeneratorFilter> getGenerators() {
+		return generators;
+	}
+
+	private ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
+	private ImmutableList<GeneratorFilter> generators;
 }

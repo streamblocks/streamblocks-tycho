@@ -1,5 +1,7 @@
 package net.opendf.ir.am;
 
+import java.util.Objects;
+
 import net.opendf.ir.common.Port;
 
 /**
@@ -48,13 +50,25 @@ public class PortCondition extends Condition {
 	//
 
 	public PortCondition(Port portName, int n) {
-		this(portName, n, true);
+		this(null, portName, n, true);
 	}
 
 	public PortCondition(Port port, int n, boolean isInputCondition) {
+		this(null, port, n, isInputCondition);
+	}
+
+	private PortCondition(PortCondition original, Port port, int n, boolean isInputCondition) {
+		super(original);
 		this.port = port;
 		this.n = n;
 		this.isInputCondition = isInputCondition;
+	}
+
+	public PortCondition copy(Port port, int n, boolean isInputCondition) {
+		if (Objects.equals(this.port, port) && this.n == n && this.isInputCondition == isInputCondition) {
+			return this;
+		}
+		return new PortCondition(this, port, n, isInputCondition);
 	}
 
 	private boolean isInputCondition;

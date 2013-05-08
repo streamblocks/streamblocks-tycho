@@ -1,85 +1,85 @@
 package net.opendf.ir.common;
 
-import java.util.Arrays;
-import java.util.List;
-
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
+import net.opendf.ir.util.ImmutableList;
 
 /**
- * PortContainer is the common base class of things that contain input and output ports, viz. {@link Network}s and {@link Node}s. 
+ * PortContainer is the common base class of things that contain input and
+ * output ports, viz. {@link Network}s and {@link Node}s. Each collection of
+ * ports is represented by a top-level {@link CompositePortDecl}.
  * 
  * @author Jorn W. Janneck <jwj@acm.org>
- *
+ * 
  */
 
 abstract public class DeclEntity extends Decl implements PortContainer {
 
-	
-	public ParDeclType []  getTypeParameters() {
+	public ImmutableList<ParDeclType> getTypeParameters() {
 		return typePars;
 	}
-	
-	public ParDeclValue []  getValueParameters() {
+
+	public ImmutableList<ParDeclValue> getValueParameters() {
 		return valuePars;
 	}
-	
-	public DeclType []  getTypeDecls() {
+
+	public ImmutableList<DeclType> getTypeDecls() {
 		return typeDecls;
 	}
-	
-	public DeclVar []  getVarDecls() {
+
+	public ImmutableList<DeclVar> getVarDecls() {
 		return varDecls;
 	}
-	
+
 	// Decl
 
 	@Override
-	public DeclKind  getKind() { return DeclKind.entity; };
+	public DeclKind getKind() {
+		return DeclKind.entity;
+	};
 
 	@Override
-	public <R,P> R accept(DeclVisitor<R,P> v, P p) {
+	public <R, P> R accept(DeclVisitor<R, P> v, P p) {
 		return v.visitDeclEntity(this, p);
 	}
-	
-	
+
 	// PortContainer
 
-	public List<PortDecl> getInputPorts() {
+	public ImmutableList<PortDecl> getInputPorts() {
 		return inputPorts;
 	}
-	
-	public List<PortDecl> getOutputPorts() {
+
+	public ImmutableList<PortDecl> getOutputPorts() {
 		return outputPorts;
 	}
-	
-	
+
 	//
 	// Ctor
 	//
 
-	public DeclEntity(String name, NamespaceDecl ns, ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls) {
-		this (name, ns, typePars, valuePars, typeDecls, varDecls, new PortDecl[0], new PortDecl[0]);
+	public DeclEntity(DeclEntity original, String name, NamespaceDecl ns, ImmutableList<ParDeclType> typePars,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls) {
+		this(original, name, ns, typePars, valuePars, typeDecls, varDecls, null, null);
 	}
 
-	public DeclEntity(String name, NamespaceDecl ns, ParDeclType [] typePars, ParDeclValue [] valuePars, DeclType [] typeDecls, DeclVar [] varDecls, PortDecl [] inputPorts, PortDecl [] outputPorts) {
-		super (name, ns);
-		this.typePars = typePars;
-		this.valuePars = valuePars;
-		this.typeDecls = typeDecls;
-		this.varDecls = varDecls;
-
-		this.inputPorts = Arrays.asList(inputPorts);
-		this.outputPorts = Arrays.asList(outputPorts);
+	public DeclEntity(DeclEntity original, String name, NamespaceDecl ns, ImmutableList<ParDeclType> typePars,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) {
+		super(original, name, ns);
+		this.typePars = ImmutableList.copyOf(typePars);
+		this.valuePars = ImmutableList.copyOf(valuePars);
+		this.typeDecls = ImmutableList.copyOf(typeDecls);
+		this.varDecls = ImmutableList.copyOf(varDecls);
+		this.inputPorts = ImmutableList.copyOf(inputPorts);
+		this.outputPorts = ImmutableList.copyOf(outputPorts);
 	}
-	
 
-	private ParDeclType [] 	typePars;
-	private ParDeclValue [] valuePars;
-	private DeclType [] 	typeDecls;
-	private DeclVar []		varDecls;
-	
-	private List<PortDecl>  inputPorts;
-	private List<PortDecl>  outputPorts;
+	private ImmutableList<ParDeclType> typePars;
+	private ImmutableList<ParDeclValue> valuePars;
+	private ImmutableList<DeclType> typeDecls;
+	private ImmutableList<DeclVar> varDecls;
+
+	private ImmutableList<PortDecl> inputPorts;
+	private ImmutableList<PortDecl> outputPorts;
 
 }

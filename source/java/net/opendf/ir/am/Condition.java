@@ -25,5 +25,9 @@ abstract public class Condition extends AbstractIRNode {
 	public <R> R accept(ConditionVisitor<R,Void> v) {
 		return accept(v, null);
 	}
+	
+	public Condition(Condition original) {
+		super(original);
+	}
 
 }

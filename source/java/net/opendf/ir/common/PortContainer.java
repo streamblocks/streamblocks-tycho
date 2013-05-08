@@ -1,10 +1,10 @@
 package net.opendf.ir.common;
 
-import java.util.List;
+import net.opendf.ir.util.ImmutableList;
 
 public interface PortContainer {
 
-	public List<PortDecl> getInputPorts();
+	public ImmutableList<PortDecl> getInputPorts();
 	
-	public List<PortDecl> getOutputPorts();
+	public ImmutableList<PortDecl> getOutputPorts();
 }

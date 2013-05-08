@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 /**
  * An LValue for assigning to an index referenced element of a structure. If
  * structure is a list, then index could be an integer expression.
@@ -17,8 +19,20 @@ public class LValueIndexer extends LValue {
 	 *            the location in the structure
 	 */
 	public LValueIndexer(LValue structure, Expression index) {
+		this(null, structure, index);
+	}
+
+	private LValueIndexer(LValueIndexer original, LValue structure, Expression index) {
+		super(original);
 		this.structure = structure;
 		this.index = index;
+	}
+
+	public LValueIndexer copy(LValue structure, Expression index) {
+		if (Objects.equals(this.structure, structure) && Objects.equals(this.index, index)) {
+			return this;
+		}
+		return new LValueIndexer(this, structure, index);
 	}
 
 	/**

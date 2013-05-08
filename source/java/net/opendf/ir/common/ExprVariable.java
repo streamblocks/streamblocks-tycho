@@ -39,12 +39,26 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 public class ExprVariable extends Expression {
 
 	private final Variable var;
 
 	public ExprVariable(Variable var) {
+		this(null, var);
+	}
+
+	private ExprVariable(ExprVariable original, Variable var) {
+		super(original);
 		this.var = var;
+	}
+
+	public ExprVariable copy(Variable var) {
+		if (Objects.equals(this.var, var)) {
+			return this;
+		}
+		return new ExprVariable(this, var);
 	}
 
 	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {

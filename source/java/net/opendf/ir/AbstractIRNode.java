@@ -35,12 +35,9 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -48,23 +45,18 @@ import java.util.Map;
  */
 public abstract class AbstractIRNode implements IRNode {
 
-    public void setAttribute(String key, Object value) {
-        if (this.attributes == null) {
-            this.attributes = new HashMap<String, Object>();
-        }
-        this.attributes.put(key, value);
-    }
+	@Override
+	public Object getIdentifier() {
+		return identifier;
+	}
 
-    public Object getAttribute(String key) {
-        if (this.attributes == null)
-            return null;
+	public AbstractIRNode(IRNode original) {
+		if (original == null) {
+			identifier = new Object();
+		} else {
+			identifier = original.getIdentifier();
+		}
+	}
 
-        return this.attributes.get(key);
-    }
-    
-    private Map<String, Object> attributes = null;
-    // NOTE: this used to be transient, which broke
-    //       storing attributes by serializing ASTs.
-    // There is a slim chance that this thing was made
-    // transient for a reason...
+	private final Object identifier;
 }

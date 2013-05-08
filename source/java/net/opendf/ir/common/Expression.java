@@ -35,38 +35,21 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
 import net.opendf.ir.AbstractIRNode;
 
-
-
 public abstract class Expression extends AbstractIRNode {
 
-    public abstract <R,P> R accept(ExpressionVisitor<R,P> v, P p);
-    
-    public <R> R accept(ExpressionVisitor<R,Void> v) {
-        return accept(v,null);
-    }
+	public abstract <R, P> R accept(ExpressionVisitor<R, P> v, P p);
 
-    public TypeExpr  getType() {
-    	return type;
-    }
-    
-    public void  setType(TypeExpr type) {
-    	this.type = type;
-    }
-    
-    
-    public Expression() {
-    	this(null);
-    }
-    
-    public Expression(TypeExpr type) {
-    	this.type = type;
-    }
-    
-    private  TypeExpr  	type;
+	public <R> R accept(ExpressionVisitor<R, Void> v) {
+		return accept(v, null);
+	}
+	
+	public Expression(Expression original) {
+		super(original);
+	}
 }

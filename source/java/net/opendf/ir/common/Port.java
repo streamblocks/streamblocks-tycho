@@ -1,5 +1,7 @@
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
 
 /**
@@ -17,7 +19,7 @@ public class Port extends AbstractIRNode {
 	 *            the name
 	 */
 	public Port(String name) {
-		this(name, -1);
+		this(null, name, -1);
 	}
 
 	/**
@@ -29,8 +31,25 @@ public class Port extends AbstractIRNode {
 	 *            the offset into the list of port declarations.
 	 */
 	public Port(String name, int offset) {
+		this(null, name, offset);
+		assert offset >= 0;
+	}
+
+	private Port(Port original, String name, int offset) {
+		super(original);
 		this.name = name;
 		this.offset = offset;
+	}
+	
+	public Port copy(String name) {
+		return copy(name, -1);
+	}
+	
+	public Port copy(String name, int offset) {
+		if (Objects.equals(this.name, name) && this.offset == offset) {
+			return this;
+		}
+		return new Port(this, name, offset);
 	}
 
 	/**

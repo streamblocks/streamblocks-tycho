@@ -34,34 +34,53 @@ BEGINCOPYRIGHT X
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.common;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 public class GeneratorFilter extends AbstractIRNode {
 
-	public DeclVar [] getVariables() {
+	public ImmutableList<DeclVar> getVariables() {
 		return variables;
 	}
-	
+
 	public Expression getCollectionExpr() {
 		return collectionExpr;
 	}
-	
-	public Expression [] getFilters() {
+
+	public ImmutableList<Expression> getFilters() {
 		return filters;
 	}
-	
-	public  GeneratorFilter(DeclVar [] variables, Expression collectionExpr, Expression [] filters) {
-		this.variables = variables;
-		this.collectionExpr = collectionExpr;
-		this.filters = filters;
+
+	public GeneratorFilter(ImmutableList<DeclVar> variables, Expression collectionExpr,
+			ImmutableList<Expression> filters) {
+		this(null, variables, collectionExpr, filters);
 	}
-	
-	
-	private DeclVar [] 	variables;
-	private Expression	collectionExpr;
-	private Expression [] filters;
+
+	private GeneratorFilter(GeneratorFilter original, ImmutableList<DeclVar> variables, Expression collectionExpr,
+			ImmutableList<Expression> filters) {
+		super(original);
+		this.variables = ImmutableList.copyOf(variables);
+		this.collectionExpr = collectionExpr;
+		this.filters = ImmutableList.copyOf(filters);
+	}
+
+	public GeneratorFilter copy(ImmutableList<DeclVar> variables, Expression collectionExpr,
+			ImmutableList<Expression> filters) {
+		if (Lists.equals(this.variables, variables) && Objects.equals(this.collectionExpr, collectionExpr)
+				&& Lists.equals(this.filters, filters)) {
+			return this;
+		}
+		return new GeneratorFilter(this, variables, collectionExpr, filters);
+	}
+
+	private ImmutableList<DeclVar> variables;
+	private Expression collectionExpr;
+	private ImmutableList<Expression> filters;
 }
