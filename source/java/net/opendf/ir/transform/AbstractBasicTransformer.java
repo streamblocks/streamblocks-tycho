@@ -66,6 +66,9 @@ public class AbstractBasicTransformer<P> implements
 	}
 
 	protected <T> ImmutableList<T> transformList(MethodHandle method, ImmutableList<T> list, P param) {
+		if (list == null) {
+			return null;
+		}
 		ImmutableList.Builder<T> builder = ImmutableList.builder();
 		try {
 			for (T element : list) {
