@@ -340,8 +340,8 @@
 %typeof import_single = "String";
 %typeof invariant = "ImmutableList";
 %typeof port_name_colon = "Port";
-%typeof pri_inequality = "ArrayList";        //<QID>
-%typeof pri_inequality_list = "ArrayList";   //<QID>
+%typeof pri_inequality = "ImmutableList.Builder";        //<QID>
+%typeof pri_inequality_list = "ImmutableList";   //<QID>
 %typeof regexpr = "AbstractIRNode";
 %typeof regexpr_simple = "AbstractIRNode";
 %typeof regexpr_kleene = "AbstractIRNode";
@@ -635,13 +635,10 @@ regexpr_simple =
   ;
 //--- priority ----------------------------------------------------------------
 pri_inequality_list =
-    pri_inequality.p SEMICOLON         {: return _symbol_p; :}
+    pri_inequality.p SEMICOLON         {: return new Symbol(p.build()); :}
   ;
 pri_inequality =
-    qual_id.high GT qual_id.low        {: ArrayList l = new ArrayList(); 
-                                          l.add(new QID((String[])high.toArray(new String[high.size()])));
-                                          l.add(new QID((String[])low.toArray(new String[low.size()])));
-                                          return new Symbol(l); :}
+    qual_id.high GT qual_id.low        {: return new Symbol(ImmutableList.builder().add(new QID((String[])high.toArray(new String[high.size()]))).add(new QID((String[])low.toArray(new String[low.size()])))); :}
   | pri_inequality.l GT qual_id.n      {: l.add(new QID((String[])n.toArray(new String[n.size()]))); return _symbol_l; :}
   ;
 //--- end ---------------------------------------------------------------------

@@ -872,7 +872,7 @@ public class CalParser extends Parser {
 			{
 					final Symbol _symbol_l = _symbols[offset + 2];
 					final ArrayList _list_l = (ArrayList) _symbol_l.value;
-					final ArrayList[] l = _list_l == null ? new ArrayList[0] : (ArrayList[]) _list_l.toArray(new ArrayList[_list_l.size()]);
+					final ImmutableList[] l = _list_l == null ? new ImmutableList[0] : (ImmutableList[]) _list_l.toArray(new ImmutableList[_list_l.size()]);
 					 return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.PRIORITY, _list_l));
 			}
 			case 75: // actor_body = schedule.s
@@ -1025,8 +1025,8 @@ public class CalParser extends Parser {
 			case 102: // pri_inequality_list = pri_inequality.p SEMICOLON
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
-					final ArrayList p = (ArrayList) _symbol_p.value;
-					 return _symbol_p;
+					final ImmutableList.Builder p = (ImmutableList.Builder) _symbol_p.value;
+					 return new Symbol(p.build());
 			}
 			case 103: // pri_inequality = qual_id.high GT qual_id.low
 			{
@@ -1034,15 +1034,12 @@ public class CalParser extends Parser {
 					final ArrayList high = (ArrayList) _symbol_high.value;
 					final Symbol _symbol_low = _symbols[offset + 3];
 					final ArrayList low = (ArrayList) _symbol_low.value;
-					 ArrayList l = new ArrayList(); 
-                                          l.add(new QID((String[])high.toArray(new String[high.size()])));
-                                          l.add(new QID((String[])low.toArray(new String[low.size()])));
-                                          return new Symbol(l);
+					 return new Symbol(ImmutableList.builder().add(new QID((String[])high.toArray(new String[high.size()]))).add(new QID((String[])low.toArray(new String[low.size()]))));
 			}
 			case 104: // pri_inequality = pri_inequality.l GT qual_id.n
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
-					final ArrayList l = (ArrayList) _symbol_l.value;
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_n = _symbols[offset + 3];
 					final ArrayList n = (ArrayList) _symbol_n.value;
 					 l.add(new QID((String[])n.toArray(new String[n.size()]))); return _symbol_l;

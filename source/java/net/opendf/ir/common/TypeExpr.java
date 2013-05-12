@@ -76,6 +76,7 @@ public class TypeExpr extends AbstractIRNode {
 	private TypeExpr(TypeExpr original, String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
 			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
 		super(original);
+		this.name = name;
 		this.typeParameters = ImmutableList.copyOf(typeParameters);
 		this.valueParameters = ImmutableList.copyOf(valueParameters);
 	}
@@ -93,8 +94,8 @@ public class TypeExpr extends AbstractIRNode {
 		return new TypeExpr(this, name, typeParameters, valueParameters);
 	}
 
-	private String name;
-	private ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters;
-	private ImmutableList<ImmutableEntry<String, Expression>> valueParameters;
+	private final String name;
+	private final ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters;
+	private final ImmutableList<ImmutableEntry<String, Expression>> valueParameters;
 
 }

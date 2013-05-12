@@ -1,5 +1,9 @@
 package net.opendf.ir.transform;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprApplication;
@@ -50,81 +54,62 @@ public class AbstractBasicTransformer<P> implements
 		ExpressionVisitor<Expression, P>,
 		LValueVisitor<LValue, P> {
 
-	private abstract class Transform<T> {
-		public abstract T transform(T type, P param);
+	private static final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-		public ImmutableList<T> transformList(ImmutableList<T> nodes, P param) {
-			if (nodes == null)
-				return null;
-			ImmutableList.Builder<T> builder = ImmutableList.builder();
-			for (T n : nodes) {
-				builder.add(transform(n, param));
-			}
-			return builder.build();
+	protected static MethodHandle methodHandle(Class<?> arg, String meth) {
+		MethodType type = MethodType.methodType(arg, arg, Object.class);
+		try {
+			return lookup.findVirtual(AbstractActorTransformer.class, meth, type);
+		} catch (NoSuchMethodException | IllegalAccessException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
-	private final Transform<Expression> exprTransform = new Transform<Expression>() {
-		public Expression transform(Expression expr, P param) {
-			return transformExpression(expr, param);
+	protected <T> ImmutableList<T> transformList(MethodHandle method, ImmutableList<T> list, P param) {
+		if (list == null) {
+			return null;
 		}
-	};
+		ImmutableList.Builder<T> builder = ImmutableList.builder();
+		try {
+			for (T element : list) {
+				builder.add((T) method.invoke(this, element, param));
+			}
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+		return builder.build();
+	}
 
-	private final Transform<Statement> stmtTransform = new Transform<Statement>() {
-		public Statement transform(Statement stmt, P param) {
-			return transformStatement(stmt, param);
-		}
-	};
-
-	private final Transform<DeclVar> varDeclTransform = new Transform<DeclVar>() {
-		public DeclVar transform(DeclVar decl, P param) {
-			return transformVarDecl(decl, param);
-		}
-	};
-	private final Transform<DeclType> typeDeclTransform = new Transform<DeclType>() {
-		public DeclType transform(DeclType decl, P param) {
-			return transformTypeDecl(decl, param);
-		}
-	};
-
-	private final Transform<ParDeclValue> valueParamTransform = new Transform<ParDeclValue>() {
-		public ParDeclValue transform(ParDeclValue valueParam, P param) {
-			return transformValueParameter(valueParam, param);
-		}
-	};
-
-	private final Transform<ParDeclType> typeParamTransform = new Transform<ParDeclType>() {
-		public ParDeclType transform(ParDeclType typeParam, P param) {
-			return transformTypeParameter(typeParam, param);
-		}
-	};
-
-	private final Transform<GeneratorFilter> generatorTransform = new Transform<GeneratorFilter>() {
-		public GeneratorFilter transform(GeneratorFilter generator, P param) {
-			return transformGenerator(generator, param);
-		}
-	};
+	private static final MethodHandle transExpr = methodHandle(Expression.class, "transformExpression");
+	private static final MethodHandle transStmt = methodHandle(Statement.class, "transformStatement");
+	private static final MethodHandle transVarDecl = methodHandle(DeclVar.class, "transformVarDecl");
+	private static final MethodHandle transTypeDecl = methodHandle(DeclType.class, "transformTypeDecl");
+	private static final MethodHandle transValueParam = methodHandle(ParDeclValue.class, "transformValueParameter");
+	private static final MethodHandle transTypeParam = methodHandle(ParDeclType.class, "transformTypeParameter");
+	private static final MethodHandle transGenerator = methodHandle(GeneratorFilter.class, "transformGenerator");
 
 	@Override
 	public Expression transformExpression(Expression expr, P param) {
-		if (expr == null) return null;
+		if (expr == null)
+			return null;
 		return expr.accept(this, param);
 	}
 
 	@Override
 	public ImmutableList<Expression> transformExpressions(ImmutableList<Expression> expr, P param) {
-		return exprTransform.transformList(expr, param);
+		return transformList(transExpr, expr, param);
 	}
 
 	@Override
 	public Statement transformStatement(Statement stmt, P param) {
-		if (stmt == null) return null;
+		if (stmt == null)
+			return null;
 		return stmt.accept(this, param);
 	}
 
 	@Override
 	public ImmutableList<Statement> transformStatements(ImmutableList<Statement> stmt, P param) {
-		return stmtTransform.transformList(stmt, param);
+		return transformList(transStmt, stmt, param);
 	}
 
 	@Override
@@ -144,7 +129,7 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public ImmutableList<DeclVar> transformVarDecls(ImmutableList<DeclVar> varDecl, P param) {
-		return varDeclTransform.transformList(varDecl, param);
+		return transformList(transVarDecl, varDecl, param);
 	}
 
 	@Override
@@ -154,7 +139,7 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public ImmutableList<DeclType> transformTypeDecls(ImmutableList<DeclType> typeDecl, P param) {
-		return typeDeclTransform.transformList(typeDecl, param);
+		return transformList(transTypeDecl, typeDecl, param);
 	}
 
 	@Override
@@ -166,7 +151,7 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public ImmutableList<ParDeclValue> transformValueParameters(ImmutableList<ParDeclValue> valueParam, P param) {
-		return valueParamTransform.transformList(valueParam, param);
+		return transformList(transValueParam, valueParam, param);
 	}
 
 	@Override
@@ -176,7 +161,7 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public ImmutableList<ParDeclType> transformTypeParameters(ImmutableList<ParDeclType> typeParam, P param) {
-		return typeParamTransform.transformList(typeParam, param);
+		return transformList(transTypeParam, typeParam, param);
 	}
 
 	@Override
@@ -189,7 +174,7 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public ImmutableList<GeneratorFilter> transformGenerators(ImmutableList<GeneratorFilter> generator, P param) {
-		return generatorTransform.transformList(generator, param);
+		return transformList(transGenerator, generator, param);
 	}
 
 	@Override
@@ -209,6 +194,9 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public TypeExpr transformTypeExpr(TypeExpr typeExpr, P param) {
+		if (typeExpr == null) {
+			return null;
+		}
 		ImmutableList.Builder<ImmutableEntry<String, TypeExpr>> typeParBuilder = ImmutableList.builder();
 		for (ImmutableEntry<String, TypeExpr> entry : typeExpr.getTypeParameters()) {
 			typeParBuilder.add(ImmutableEntry.of(
