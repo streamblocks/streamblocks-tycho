@@ -41,13 +41,26 @@ TraditionalComment = "/*" [^*] ~"*/" | "/*" "*"+ "/" | "/*" "*"+ [^/*] ~"*/"
 EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
 
 // 3.8 Identifiers
-TraditionalIdentifier = [:jletter:][:jletterdigit:]*  // any sequence of digits, letters, $ and _ is an identifier according to CLR, but $ is an potential operator. 
-EscapedIdentifier = "\\" [^\\]* "\\"
+/**
+ * Ambiguity between IDENTIFIER and OPERATOR. $ can be part of both operators and identifiers
+ * The scanner uses a greedy longest match approach to resolve this.
+ * $ is parsed as OPERATOR($)
+ * $id is parsed as IDENTIFIER($id)
+ * $-id is parsed as an OPERATOR($-), IDENTIFIER(id)
+ * id$name is parsed as IDENTIFIER(id$name)
+ * id$-name is parsed as IDENTIFIER(id$), OPERATOR(-), IDENTIFIER(name)
+ * id-$name is parsed as IDENTIFIER(id), OPERATOR(-$), IDENTIFIER(name)
+ **/
 
-Operator = [!@#$%\^&*/+\-<>?~][!@#$%\^&*/+\-=<>?~\|]*  // "$" will be parsed as an identifier. 
+TraditionalIdentifier = [:jletter:][:jletterdigit:]*  // any sequence of digits, letters, $ and _ is an identifier according to CLR, but $ is an potential operator. 
+EscapedIdentifier = "\\" [^\\]* "\\"                  // \#-|*\ is parsed as IDENTIFIER(#-|*)
+
+OperatorStart =[!@#$%\^&*/+\-Ñ<>?~\|]
+Operator = {OperatorStart} ({OperatorStart}|[=])*  // "$" will be parsed as an OPERATOR. 
                                                        // the operator string may not start with | or = which are parsed as BAR and EQ
-                                                         // "|" is needed in the FSM syntax: s1(a.b)-->s2 | (b)-->s0 | (c.c)-->s1; and in regular expressions
-                                                         // "a=-b" should be parsed as "a = - b". Therefore an operation may not start with '='. (longest match will give the tokens "a", "=-", "b")
+                                                       // "|" is needed in the FSM syntax: s1(a.b)-->s2 | (b)-->s0 | (c.c)-->s1; and in regular expressions
+                                                       // "a=-b" should be parsed as "a = - b". Therefore an operator may not start with '='. (longest match will give the tokens "a", "=-", "b")
+                                                       // ".." is parsed as an operator
 
 // 3.10.1 Integer Literals
 DecimalNumeral = 0 | {NonZeroDigit} {Digits}? 

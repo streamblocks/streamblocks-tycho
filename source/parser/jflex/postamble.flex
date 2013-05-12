@@ -133,6 +133,9 @@
                                      yypushback(str().length()-2);
                                      return sym(Terminals.ARROW, "->");
                                    }
+                                   if("|".equals(str())){
+                                     return sym(Terminals.BAR);
+                                   }
                                    return sym(Terminals.OPERATOR); 
                                  }
 //TODO, MULT is needed by regular expression schedules  
@@ -140,7 +143,7 @@
   ":="                           { return sym(Terminals.COLONEQ);}
 
   // regexp
-  "|"                            { return sym(Terminals.BAR); }
+//  | parsed as an expression "|"                            { return sym(Terminals.BAR); }
 }
 
 // 3.8 Identifiers located at end of current state due to rule priority disambiguation
