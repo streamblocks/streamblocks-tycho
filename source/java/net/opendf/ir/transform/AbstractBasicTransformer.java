@@ -48,6 +48,19 @@ import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.util.ImmutableList;
 
+/**
+ * BasicTransformer implementation that transforms the nodes by calling the
+ * copy-method on the node with its transformed children as arguments. The
+ * effect of this is that if no method is overloaded, the same tree is returned.
+ * 
+ * The nodes are transformed in a depth-first order. List elements are
+ * transformed in the list order. Declarations are transformed before its
+ * potential uses.
+ * 
+ * @author gustav
+ * 
+ * @param <P>
+ */
 public class AbstractBasicTransformer<P> implements
 		BasicTransformer<P>,
 		StatementVisitor<Statement, P>,
@@ -166,10 +179,10 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public GeneratorFilter transformGenerator(GeneratorFilter generator, P param) {
-		return generator.copy(
-				transformVarDecls(generator.getVariables(), param),
-				transformExpression(generator.getCollectionExpr(), param),
-				transformExpressions(generator.getFilters(), param));
+		Expression collection = transformExpression(generator.getCollectionExpr(), param);
+		ImmutableList<DeclVar> variables = transformVarDecls(generator.getVariables(), param);
+		ImmutableList<Expression> filters = transformExpressions(generator.getFilters(), param);
+		return generator.copy(variables, collection, filters);
 	}
 
 	@Override
@@ -295,9 +308,9 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public Expression visitExprList(ExprList e, P p) {
-		return e.copy(
-				transformExpressions(e.getElements(), p),
-				transformGenerators(e.getGenerators(), p));
+		ImmutableList<GeneratorFilter> generators = transformGenerators(e.getGenerators(), p);
+		ImmutableList<Expression> elements = transformExpressions(e.getElements(), p);
+		return e.copy(elements, generators);
 	}
 
 	@Override
@@ -307,13 +320,14 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public Expression visitExprMap(ExprMap e, P p) {
+		ImmutableList<GeneratorFilter> generators = transformGenerators(e.getGenerators(), p);
 		ImmutableList.Builder<ImmutableEntry<Expression, Expression>> builder = ImmutableList.builder();
 		for (ImmutableEntry<Expression, Expression> entry : e.getMappings()) {
 			builder.add(entry.copy(
 					transformExpression(entry.getKey(), p),
 					transformExpression(entry.getValue(), p)));
 		}
-		return e.copy(builder.build(), transformGenerators(e.getGenerators(), p));
+		return e.copy(builder.build(), generators);
 	}
 
 	@Override
@@ -326,9 +340,9 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public Expression visitExprSet(ExprSet e, P p) {
-		return e.copy(
-				transformExpressions(e.getElements(), p),
-				transformGenerators(e.getGenerators(), p));
+		ImmutableList<GeneratorFilter> generators = transformGenerators(e.getGenerators(), p);
+		ImmutableList<Expression> elements = transformExpressions(e.getElements(), p);
+		return e.copy(elements, generators);
 	}
 
 	@Override
