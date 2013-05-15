@@ -62,7 +62,6 @@ public class ExprLiteral extends Expression {
 
 	public ExprLiteral(Kind kind, String text) {
 		this(null, kind, text);
-		assert !kind.hasFixedText();
 	}
 
 	/* FIXME: add some error checking here? */
