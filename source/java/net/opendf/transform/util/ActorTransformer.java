@@ -1,4 +1,4 @@
-package net.opendf.ir.transform;
+package net.opendf.transform.util;
 
 import net.opendf.ir.cal.Transition;
 import net.opendf.ir.cal.Action;

@@ -1,4 +1,4 @@
-package net.opendf.ir.transform;
+package net.opendf.transform.util;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;

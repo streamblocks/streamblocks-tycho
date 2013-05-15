@@ -1,4 +1,4 @@
-package net.opendf.ir.transform;
+package net.opendf.transform.util;
 
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
