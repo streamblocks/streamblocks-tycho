@@ -28,10 +28,6 @@ public class ActorToActorMachine {
 		ActorToActorMachineHelper helper = new ActorToActorMachineHelper(actor);
 		StateHandler<State> stateHandler = getStateHandler(helper.getActorStateHandler());
 		ControllerGenerator<State> generator = ControllerGenerator.generate(stateHandler);
-		int s = 0;
-		for (State state : generator.getInterpretation()) {
-			System.out.println("[" + s++ + "] " + state);
-		}
 		return new ActorMachine(
 				helper.getInputPorts(),
 				helper.getOutputPorts(),
