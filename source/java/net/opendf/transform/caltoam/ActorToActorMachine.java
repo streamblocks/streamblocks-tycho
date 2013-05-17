@@ -31,7 +31,7 @@ public class ActorToActorMachine {
 		return new ActorMachine(
 				helper.getInputPorts(),
 				helper.getOutputPorts(),
-				helper.getVarDecls(),
+				helper.getScopes(),
 				generator.getController(),
 				helper.getTransitions(),
 				helper.getConditions());
