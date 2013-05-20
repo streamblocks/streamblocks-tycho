@@ -29,14 +29,14 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		Variables data = new Variables();
 		Actor resultActor = transformActor(actor, data);
 		ImmutableList<ImmutableList<DeclVar>> scopes = generateScopes(resultActor);
-		ImmutableList<ImmutableList<Integer>> actionScopes = generateActionScopes(resultActor);
-		return new Result(resultActor, scopes, actionScopes);
+		ImmutableList<Integer> transientScopes = transientScopes(resultActor);
+		return new Result(resultActor, scopes, transientScopes);
 	}
 
-	private ImmutableList<ImmutableList<Integer>> generateActionScopes(Actor resultActor) {
-		ImmutableList.Builder<ImmutableList<Integer>> builder = ImmutableList.builder();
-		for (int i = 1; i <= resultActor.getActions().size(); i++) {
-			builder.add(ImmutableList.of(i));
+	private ImmutableList<Integer> transientScopes(Actor actor) {
+		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
+		for (int i = 1; i < actor.getActions().size(); i++) {
+			builder.add(i);
 		}
 		return builder.build();
 	}
@@ -142,13 +142,13 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	public static class Result {
 		public final Actor actor;
 		public final ImmutableList<ImmutableList<DeclVar>> scopes;
-		public final ImmutableList<ImmutableList<Integer>> actionScopes;
+		public final ImmutableList<Integer> transientScopes;
 
 		public Result(Actor actor, ImmutableList<ImmutableList<DeclVar>> scopes,
-				ImmutableList<ImmutableList<Integer>> actionScopes) {
+				ImmutableList<Integer> persistentScopes) {
 			this.actor = actor;
 			this.scopes = scopes;
-			this.actionScopes = actionScopes;
+			this.transientScopes = persistentScopes;
 		}
 	}
 

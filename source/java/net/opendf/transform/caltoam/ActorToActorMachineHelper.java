@@ -97,7 +97,7 @@ class ActorToActorMachineHelper {
 			}
 			int firstPredCond = condNbr;
 			for (Expression guard : action.getGuards()) {
-				PredicateCondition c = new PredicateCondition(guard, getTransitions().get(actionNbr).getScopes());
+				PredicateCondition c = new PredicateCondition(guard);
 				handler.addCondition(actionNbr, condNbr);
 				conditions.add(c);
 				condNbr += 1;
@@ -141,7 +141,7 @@ class ActorToActorMachineHelper {
 	private Transition createTransition(int index, Action action) {
 		StmtBlock body = new StmtBlock(null, null, action.getBody());
 		return new Transition(getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()),
-				aveResult.actionScopes.get(index), body);
+				aveResult.transientScopes, body);
 	}
 
 	private Map<Port, Integer> getOutputRates(ImmutableList<OutputExpression> outputExpressions) {

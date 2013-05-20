@@ -33,6 +33,7 @@ class ConditionHandler {
 				break;
 			case False:
 				return TestResult.False;
+			case True:
 			}
 		}
 		return result;
@@ -55,6 +56,7 @@ class ConditionHandler {
 			case False:
 				conds.clear();
 				return conds;
+			case True:
 			}
 		}
 		dependencies.keepRoots(conds);
