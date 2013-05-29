@@ -222,6 +222,7 @@ public class ActorStates {
 						first = false;
 						sb.append(c).append("=").append("F");
 						break;
+					case Unknown:
 					}
 				}
 				c += 1;

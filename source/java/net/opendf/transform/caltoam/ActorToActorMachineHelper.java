@@ -59,8 +59,8 @@ class ActorToActorMachineHelper {
 		return getActor().getOutputPorts();
 	}
 	
-	public ImmutableList<DeclVar> getVarDecls() {
-		return aveResult.varDecls;
+	public ImmutableList<ImmutableList<DeclVar>> getScopes() {
+		return aveResult.scopes;
 	}
 	
 	public ImmutableList<Condition> getConditions() {
@@ -97,7 +97,7 @@ class ActorToActorMachineHelper {
 			}
 			int firstPredCond = condNbr;
 			for (Expression guard : action.getGuards()) {
-				PredicateCondition c = new PredicateCondition(guard, getTransitions().get(actionNbr).getRequiredVars());
+				PredicateCondition c = new PredicateCondition(guard);
 				handler.addCondition(actionNbr, condNbr);
 				conditions.add(c);
 				condNbr += 1;
@@ -139,14 +139,9 @@ class ActorToActorMachineHelper {
 	}
 
 	private Transition createTransition(int index, Action action) {
-		ImmutableList<Integer> required = ImmutableList.<Integer> builder()
-				.addAll(aveResult.actorVars)
-				.addAll(aveResult.actionVars.get(index))
-				.build();
-		ImmutableList<Integer> killed = aveResult.actionVars.get(index);
 		StmtBlock body = new StmtBlock(null, null, action.getBody());
 		return new Transition(getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()),
-				required, killed, body);
+				aveResult.transientScopes, body);
 	}
 
 	private Map<Port, Integer> getOutputRates(ImmutableList<OutputExpression> outputExpressions) {

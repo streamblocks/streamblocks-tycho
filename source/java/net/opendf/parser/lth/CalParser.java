@@ -1095,7 +1095,7 @@ public class CalParser extends Parser {
 			case 122: // variable = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new Variable((String) id.value));
+					 return new Symbol(Variable.namedVariable((String) id.value));
 			}
 			case 123: // field = IDENTIFIER.id
 			{
@@ -1828,7 +1828,7 @@ public class CalParser extends Parser {
 					 LValue lvalue = expressionToLValue(lhs);
                                                          if (lvalue != null) return new Symbol(new StmtAssignment(lvalue, value));
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
-                                                         return new Symbol(new StmtAssignment(new LValueVariable(new Variable("$illegal")), value));
+                                                         return new Symbol(new StmtAssignment(new LValueVariable(Variable.namedVariable("$illegal")), value));
 			}
 			case 242: // statement = method_invocation.m SEMICOLON
 			{

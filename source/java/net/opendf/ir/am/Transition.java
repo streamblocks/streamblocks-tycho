@@ -15,9 +15,8 @@ import net.opendf.ir.util.Lists;
  * Objects of this class contain the information necessary to execute the code
  * that needs to be run during a {@link ICall call instruction}. This
  * information includes the number of input tokens consumed and output tokens
- * produced at each port during the transition, a list of required actor machine
- * variables, a list of actor machine variables that are invalidated (killed) by
- * this transition, and the code.
+ * produced at each port during the transition, the code to be executed and a
+ * set of scopes that should be killed after the transition.
  * 
  * @author Jorn W. Janneck <jwj@acm.org>
  * 
@@ -49,45 +48,38 @@ public class Transition extends AbstractIRNode {
 		}
 	}
 
-	public ImmutableList<Integer> getRequiredVars() {
-		return required;
-	}
-
-	public ImmutableList<Integer> getKilledVars() {
-		return killed;
+	public ImmutableList<Integer> getScopesToKill() {
+		return kill;
 	}
 
 	public Statement getBody() {
 		return body;
 	}
 
-	public Transition(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates, ImmutableList<Integer> required,
-			ImmutableList<Integer> killed, Statement body) {
-		this(null, inputRates, outputRates, required, killed, body);
+	public Transition(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates, ImmutableList<Integer> kill,
+			Statement body) {
+		this(null, inputRates, outputRates, kill, body);
 	}
 
 	private Transition(Transition original, Map<Port, Integer> inputRates, Map<Port, Integer> outputRates,
-			ImmutableList<Integer> required, ImmutableList<Integer> killed, Statement body) {
+			ImmutableList<Integer> kill, Statement body) {
 		super(original);
 		this.inputRates = Collections.unmodifiableMap(new HashMap<>(inputRates));
 		this.outputRates = Collections.unmodifiableMap(new HashMap<>(outputRates));
-		this.required = ImmutableList.copyOf(required);
-		this.killed = ImmutableList.copyOf(killed);
+		this.kill = ImmutableList.copyOf(kill);
 		this.body = body;
 	}
 
 	public Transition copy(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates,
-			ImmutableList<Integer> required, ImmutableList<Integer> killed, Statement body) {
+			ImmutableList<Integer> kill, Statement body) {
 		if (Objects.equals(this.inputRates, inputRates) && Objects.equals(this.outputRates, outputRates)
-				&& Lists.equals(this.required, required) && Lists.equals(this.killed, killed)
-				&& Objects.equals(this.body, body)) {
+				&& Lists.equals(this.kill, kill) && Objects.equals(this.body, body)) {
 			return this;
 		}
-		return new Transition(this, inputRates, outputRates, required, killed, body);
+		return new Transition(this, inputRates, outputRates, kill, body);
 	}
 
-	private ImmutableList<Integer> required;
-	private ImmutableList<Integer> killed;
+	private ImmutableList<Integer> kill;
 	private Statement body;
 	private Map<Port, Integer> inputRates;
 	private Map<Port, Integer> outputRates;

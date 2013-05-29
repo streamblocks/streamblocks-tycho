@@ -23,12 +23,12 @@ import net.opendf.ir.util.Lists;
  * The actual code that is executed is contained with the {@link ICall call} and
  * {@link ITest test} instructions.
  * 
- * Along with the controller, an actor machine contains a list of
- * {@link DeclVar declarations}. Each of these declarations represents a set of
- * temporary variable declarations that are referred to by the
- * {@link PredicateCondition predicate conditions} and the {@link Transition
- * transition code}. These bindings are valid until a {@link ICall instruction}
- * clears them.
+ * Along with the controller, an actor machine contains a list of scopes, that
+ * in turn are lists of {@link DeclVar declarations}. Each of these scopes
+ * represents a set of temporary variable declarations that are referred to by
+ * the {@link PredicateCondition predicate conditions} and the
+ * {@link Transition transition code}. These bindings are valid until a
+ * {@link ICall instruction} clears them.
  * 
  * @author Jorn W. Janneck <jwj@acm.org>
  * 
@@ -44,8 +44,12 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 		return controller.get(n);
 	}
 
-	public ImmutableList<DeclVar> getVarDecls() {
-		return varDecls;
+	public ImmutableList<ImmutableList<DeclVar>> getScopes() {
+		return scopes;
+	}
+
+	public ImmutableList<DeclVar> getScope(int i) {
+		return scopes.get(i);
 	}
 
 	public ImmutableList<PortDecl> getInputPorts() {
@@ -73,17 +77,17 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 	}
 
 	public ActorMachine(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
-			ImmutableList<DeclVar> varDecls, ImmutableList<ImmutableList<Instruction>> controller,
+			ImmutableList<ImmutableList<DeclVar>> scopes, ImmutableList<ImmutableList<Instruction>> controller,
 			ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
-		this(null, inputPorts, outputPorts, varDecls, controller, transitions, conditions);
+		this(null, inputPorts, outputPorts, scopes, controller, transitions, conditions);
 	}
 
 	private ActorMachine(ActorMachine original, ImmutableList<PortDecl> inputPorts,
-			ImmutableList<PortDecl> outputPorts, ImmutableList<DeclVar> varDecls,
+			ImmutableList<PortDecl> outputPorts, ImmutableList<ImmutableList<DeclVar>> scopes,
 			ImmutableList<ImmutableList<Instruction>> controller, ImmutableList<Transition> transitions,
 			ImmutableList<Condition> conditions) {
 		super(original);
-		this.varDecls = ImmutableList.copyOf(varDecls);
+		this.scopes = ImmutableList.copyOf(scopes);
 		this.controller = ImmutableList.copyOf(controller);
 		this.inputPorts = ImmutableList.copyOf(inputPorts);
 		this.outputPorts = ImmutableList.copyOf(outputPorts);
@@ -92,17 +96,17 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 	}
 
 	public ActorMachine copy(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
-			ImmutableList<DeclVar> varDecls, ImmutableList<ImmutableList<Instruction>> controller,
+			ImmutableList<ImmutableList<DeclVar>> scopes, ImmutableList<ImmutableList<Instruction>> controller,
 			ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
 		if (Lists.equals(this.inputPorts, inputPorts) && Lists.equals(this.outputPorts, outputPorts)
-				&& Lists.equals(this.varDecls, varDecls) && Lists.equals(this.controller, controller)
+				&& Lists.equals(this.scopes, scopes) && Lists.equals(this.controller, controller)
 				&& Lists.equals(this.transitions, transitions) && Lists.equals(this.conditions, conditions)) {
 			return this;
 		}
-		return new ActorMachine(this, inputPorts, outputPorts, varDecls, controller, transitions, conditions);
+		return new ActorMachine(this, inputPorts, outputPorts, scopes, controller, transitions, conditions);
 	}
 
-	private ImmutableList<DeclVar> varDecls;
+	private ImmutableList<ImmutableList<DeclVar>> scopes;
 	private ImmutableList<ImmutableList<Instruction>> controller;
 	private ImmutableList<PortDecl> inputPorts;
 	private ImmutableList<PortDecl> outputPorts;

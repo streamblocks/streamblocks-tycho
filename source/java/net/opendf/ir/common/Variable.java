@@ -12,14 +12,17 @@ import net.opendf.ir.AbstractIRNode;
  * scope where the variable is declared and the declaration of the referenced
  * variable. The first declared variable in a scope has offset 0.
  * 
- * The level is the distance to the lexical scope where the variable is
- * declared. Variables declared in the current scope are at level 0 and
- * variables declared in the immediate enclosing scope are at level 1.
+ * Variables are either static or dynamic. For dynamic variables, the scope is
+ * the nesting distance to the lexical scope where the variable is declared.
+ * Variables declared in the current scope are at level 0 and variables declared
+ * in the immediate enclosing scope are at level 1. For static variables, the
+ * scope is the identifier of the scope where it is declared.
  */
 public class Variable extends AbstractIRNode {
 	private final String name;
-	private final int level;
+	private final int scope;
 	private final int offset;
+	private final boolean dynamic;
 
 	/**
 	 * Constructs a variable with a name.
@@ -27,59 +30,55 @@ public class Variable extends AbstractIRNode {
 	 * @param name
 	 *            the variable name
 	 */
-	public Variable(String name) {
-		this(null, name, -1, -1);
-	}
-
-	public Variable copy(String name) {
-		return copy(name, -1, -1);
+	public static Variable namedVariable(String name) {
+		return new Variable(null, name, -1, -1, false);
 	}
 
 	/**
-	 * Constructs a static variable with a name and its offset.
+	 * Constructs a static variable with a name, scope and offset.
 	 * 
 	 * @param name
 	 *            the variable name
+	 * @param scope
+	 *            the static scope number
 	 * @param offset
 	 *            the offset
 	 */
-	public Variable(String name, int offset) {
-		this(null, name, -1, offset);
+	public static Variable staticVariable(String name, int scope, int offset) {
+		assert scope >= 0;
 		assert offset >= 0;
-	}
-	
-	public Variable copy(String name, int offset) {
-		return copy(name, -1, offset);
+		return new Variable(null, name, scope, offset, false);
 	}
 
 	/**
-	 * Constructs a dynamic variable with a name, level and offset.
+	 * Constructs a dynamic variable with a name, scope and offset.
 	 * 
 	 * @param name
 	 *            the variable name
-	 * @param level
+	 * @param scope
 	 *            the lexical scope distance
 	 * @param offset
 	 *            the offset
 	 */
-	public Variable(String name, int level, int offset) {
-		this(null, name, level, offset);
-		assert level >= 0;
+	public static Variable dynamicVariable(String name, int scope, int offset) {
+		assert scope >= 0;
 		assert offset >= 0;
+		return new Variable(null, name, scope, offset, true);
 	}
-	
-	public Variable copy(String name, int level, int offset) {
-		if (Objects.equals(this.name, name) && this.level == level && this.offset == offset) {
+
+	public Variable copy(String name, int scope, int offset, boolean dynamic) {
+		if (Objects.equals(this.name, name) && this.scope == scope && this.offset == offset && this.dynamic == dynamic) {
 			return this;
 		}
-		return new Variable(this, name, level, offset);
+		return new Variable(this, name, scope, offset, dynamic);
 	}
-	
-	private Variable(Variable original, String name, int level, int offset) {
+
+	private Variable(Variable original, String name, int scope, int offset, boolean dynamic) {
 		super(original);
 		this.name = name.intern();
-		this.level = level;
+		this.scope = scope;
 		this.offset = offset;
+		this.dynamic = dynamic;
 	}
 
 	/**
@@ -89,7 +88,7 @@ public class Variable extends AbstractIRNode {
 	 * @return true if the variable is static
 	 */
 	public boolean isStatic() {
-		return hasLocation() && level < 0;
+		return hasLocation() && !dynamic;
 	}
 
 	/**
@@ -99,7 +98,7 @@ public class Variable extends AbstractIRNode {
 	 * @return true if the variable is static
 	 */
 	public boolean isDynamic() {
-		return hasLocation() && level >= 0;
+		return hasLocation() && dynamic;
 	}
 
 	/**
@@ -108,7 +107,7 @@ public class Variable extends AbstractIRNode {
 	 * @return true if the variable is specified with a location
 	 */
 	public boolean hasLocation() {
-		return offset >= 0;
+		return scope >= 0 && offset >= 0;
 	}
 
 	/**
@@ -121,13 +120,14 @@ public class Variable extends AbstractIRNode {
 	}
 
 	/**
-	 * Returns the level if the variable is dynamic and specified with a
-	 * location.
+	 * Returns the scope of the variable. For dynamic variables, this is the
+	 * static nesting distance and for static variables this is that static
+	 * scope number.
 	 * 
 	 * @return the level
 	 */
-	public int getLevel() {
-		return level;
+	public int getScope() {
+		return scope;
 	}
 
 	/**

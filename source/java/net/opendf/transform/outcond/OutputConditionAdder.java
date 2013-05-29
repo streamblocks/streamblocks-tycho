@@ -10,7 +10,7 @@ public class OutputConditionAdder {
 		return input.copy(
 				input.getInputPorts(),
 				input.getOutputPorts(),
-				input.getVarDecls(),
+				input.getScopes(),
 				generator.getController(),
 				input.getTransitions(),
 				stateHandler.getConditions());
