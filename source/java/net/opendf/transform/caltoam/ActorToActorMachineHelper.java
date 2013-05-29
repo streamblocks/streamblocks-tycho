@@ -21,8 +21,12 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.QID;
+import net.opendf.ir.common.Statement;
 import net.opendf.ir.common.StmtBlock;
+import net.opendf.ir.common.StmtConsume;
+import net.opendf.ir.common.StmtOutput;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.ImmutableList.Builder;
 import net.opendf.transform.caltoam.util.QIDMap;
 
 class ActorToActorMachineHelper {
@@ -139,9 +143,31 @@ class ActorToActorMachineHelper {
 	}
 
 	private Transition createTransition(int index, Action action) {
-		StmtBlock body = new StmtBlock(null, null, action.getBody());
+		ImmutableList.Builder<Statement> builder = ImmutableList.builder();
+		builder.addAll(action.getBody());
+		addOutputStmts(builder, action.getOutputExpressions());
+		addConsumeStmts(builder, action.getInputPatterns());
+		StmtBlock body = new StmtBlock(null, null, builder.build());
 		return new Transition(getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()),
 				aveResult.transientScopes, body);
+	}
+
+	private void addConsumeStmts(Builder<Statement> builder, ImmutableList<InputPattern> inputPatterns) {
+		for (InputPattern input : inputPatterns) {
+			Port port = input.getPort();
+			int tokens = input.getVariables().size() * getRepeatMultiplier(input.getRepeatExpr());
+			builder.add(new StmtConsume(port, tokens));
+		}
+	}
+
+	private void addOutputStmts(ImmutableList.Builder<Statement> builder, ImmutableList<OutputExpression> outputExpressions) {
+		for (OutputExpression output : outputExpressions) {
+			if (output.getRepeatExpr() != null) {
+				builder.add(new StmtOutput(output.getExpressions(), output.getPort(), getRepeatMultiplier(output.getRepeatExpr())));
+			} else {
+				builder.add(new StmtOutput(output.getExpressions(), output.getPort()));
+			}
+		}
 	}
 
 	private Map<Port, Integer> getOutputRates(ImmutableList<OutputExpression> outputExpressions) {
