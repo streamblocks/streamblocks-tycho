@@ -16,11 +16,12 @@ import net.opendf.ir.common.ExprLiteral;
 import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.ParDeclValue;
+import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.Statement;
 import net.opendf.ir.common.StmtBlock;
+import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
-import net.opendf.ir.util.ImmutableList.Builder;
 import net.opendf.transform.util.AbstractActorTransformer;
 
 class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtractor.Variables> {
@@ -35,7 +36,8 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 
 	private ImmutableList<Integer> transientScopes(Actor actor) {
 		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
-		for (int i = 1; i < actor.getActions().size(); i++) {
+		int nbrOfActions = actor.getActions().size() + actor.getInitializers().size();
+		for (int i = 1; i < nbrOfActions; i++) {
 			builder.add(i);
 		}
 		return builder.build();
@@ -44,16 +46,47 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	private ImmutableList<ImmutableList<DeclVar>> generateScopes(Actor actor) {
 		ImmutableList.Builder<ImmutableList<DeclVar>> result = ImmutableList.builder();
 		result.add(actor.getVarDecls());
-		for (Action a : actor.getActions()) {
+		ImmutableList<Action> actions = ImmutableList.<Action> builder()
+				.addAll(actor.getInitializers())
+				.addAll(actor.getActions())
+				.build();
+		for (Action a : actions) {
 			ImmutableList.Builder<DeclVar> builder = ImmutableList.builder();
-			for (InputPattern in : a.getInputPatterns()) addInputVarDecls(in, builder);
+			int port = 0;
+			for (InputPattern in : a.getInputPatterns()) {
+				PortDecl portDecl = getPortDecl(actor, port, in);
+				port += 1;
+				addInputVarDecls(portDecl, in, builder);
+			}
 			builder.addAll(a.getVarDecls());
 			result.add(builder.build());
 		}
 		return result.build();
 	}
 
-	private void addInputVarDecls(InputPattern input, Builder<DeclVar> builder) {
+	private PortDecl getPortDecl(Actor actor, int port, InputPattern in) {
+		if(in.getPort() != null) {
+			if (in.getPort().hasLocation()) {
+				return actor.getInputPorts().get(in.getPort().getOffset());
+			} else {
+				for (PortDecl d : actor.getInputPorts()) {
+					if (d.getName().equals(in.getPort().getName())) {
+						return d;
+					}
+				}
+			}
+		} else {
+			return actor.getInputPorts().get(port);
+		}
+		return null;
+	}
+
+	private void addInputVarDecls(PortDecl portDecl, InputPattern input, ImmutableList.Builder<DeclVar> builder) {
+		TypeExpr type = null;
+		if (portDecl != null) {
+			type = portDecl.getType();
+		}
+		
 		int offset = 0;
 		for (String var : input.getVariables()) {
 			Expression read;
@@ -62,7 +95,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 			} else {
 				read = new ExprInput(input.getPort(), offset, evalRepeat(input.getRepeatExpr()), input.getVariables().size());
 			}
-			builder.add(new DeclVar(null, var, null, read, false));
+			builder.add(new DeclVar(type, var, null, read, false));
 			offset += 1;
 		}
 	}
@@ -84,7 +117,8 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	public ImmutableList<Action> transformActions(ImmutableList<Action> actions, Variables vars) {
 		ImmutableList.Builder<Action> builder = ImmutableList.builder();
 		for (Action action : actions) {
-			builder.add(transformAction(action, vars.staticFrame()));
+			vars = vars.staticFrame();
+			builder.add(transformAction(action, vars));
 		}
 		return builder.build();
 	}
@@ -162,23 +196,30 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		}
 	}
 
+	private static class IntBox {
+		public int value;
+		public IntBox(int value) {
+			this.value = value;
+		}
+	}
+	
 	public static class Variables {
 		private final Map<String, Location> staticVarsMap;
 		private final Set<String> shaddowedVars;
 		private final boolean dynamic;
-		private final int scopeNumber;
+		private final IntBox scopeNumber;
 		private int variableOffset;
 
 		public Variables() {
 			staticVarsMap = new HashMap<>();
 			shaddowedVars = new HashSet<>();
 			dynamic = false;
-			scopeNumber = 0;
+			scopeNumber = new IntBox(0);
 			variableOffset = 0;
 		}
 
 		private Variables(Map<String, Location> staticVarMap, Set<String> shaddowedVars, boolean dynamic,
-				int scopeNumber) {
+				IntBox scopeNumber) {
 			this.staticVarsMap = new HashMap<>(staticVarMap);
 			this.shaddowedVars = new HashSet<>(shaddowedVars);
 			this.dynamic = dynamic;
@@ -187,7 +228,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		}
 
 		public void addStaticVar(String name) {
-			staticVarsMap.put(name, new Location(scopeNumber, variableOffset++));
+			staticVarsMap.put(name, new Location(scopeNumber.value, variableOffset++));
 		}
 
 		public void declare(String name) {
@@ -206,7 +247,8 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		}
 
 		public Variables staticFrame() {
-			return new Variables(staticVarsMap, shaddowedVars, false, scopeNumber + 1);
+			scopeNumber.value += 1;
+			return new Variables(staticVarsMap, shaddowedVars, false, scopeNumber);
 		}
 
 		public Variables dynamicFrame() {
