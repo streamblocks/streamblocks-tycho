@@ -114,7 +114,7 @@ public class ActorStates {
 					presentTokens = Arrays.copyOf(presentTokens, nbrOfPorts);
 					presentTokens[port.getOffset()] = tokens;
 				} else {
-					absentTokens = Arrays.copyOf(presentTokens, nbrOfPorts);
+					absentTokens = Arrays.copyOf(absentTokens, nbrOfPorts);
 					absentTokens[port.getOffset()] = tokens;
 				}
 				return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens);
