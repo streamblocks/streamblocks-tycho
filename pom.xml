@@ -127,7 +127,7 @@
         </configuration>
       </plugin>
 
- <!-- javadoc, run from teh terminal using: mvn javadoc:javadoc -->
+ <!-- javadoc, run from the terminal using: mvn javadoc:javadoc -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>

@@ -12,7 +12,7 @@ import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprApplication;
 import net.opendf.ir.common.ExprBinaryOp;
-import net.opendf.ir.common.ExprEntry;
+import net.opendf.ir.common.ExprField;
 import net.opendf.ir.common.ExprIf;
 import net.opendf.ir.common.ExprIndexer;
 import net.opendf.ir.common.ExprInput;
@@ -28,6 +28,7 @@ import net.opendf.ir.common.ExprVariable;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.ExpressionVisitor;
 import net.opendf.ir.common.GeneratorFilter;
+import net.opendf.ir.util.ImmutableList;
 
 public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environment> {
 
@@ -51,7 +52,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	public RefView visitExprApplication(ExprApplication expr, Environment env) {
 		RefView r = evaluate(expr.getFunction(), env);
 		Function f = converter.getFunction(r);
-		Expression[] argExprs = expr.getArgs();
+		ImmutableList<Expression> argExprs = expr.getArgs();
 		for (Expression arg : argExprs) {
 			stack.push(evaluate(arg, env));
 		}
@@ -64,8 +65,8 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprEntry(ExprEntry expr, Environment env) {
-		// TODO implement
+	public RefView visitExprField(ExprField e, Environment p) {
+		// TODO Auto-generated method stub
 		throw notImplemented();
 	}
 
