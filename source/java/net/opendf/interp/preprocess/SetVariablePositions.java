@@ -1,18 +1,17 @@
 package net.opendf.interp.preprocess;
 
 import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
-import net.opendf.ir.am.util.ActorMachineUtils;
 import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLambda;
 import net.opendf.ir.common.ExprLet;
 import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.ExpressionVisitor;
 import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.StmtBlock;
-import net.opendf.ir.transformers.AbstractTraverser;
+import net.opendf.ir.util.ImmutableList;
 
 public class SetVariablePositions {
 	private final MemAlloc memAlloc;
@@ -25,8 +24,8 @@ public class SetVariablePositions {
 
 	public int setVariablePositions(ActorMachine actorMachine) {
 		MemInfo memInfo = new MemInfo();
-		for (Scope s : actorMachine.getScopes()) {
-			for (Decl d : s.getDeclarations()) {
+		for (ImmutableList<DeclVar> s : actorMachine.getScopes()) {
+			for (Decl d : s) {
 				memAlloc.traverseDecl(d, memInfo);
 			}
 		}
@@ -40,6 +39,13 @@ public class SetVariablePositions {
 		return memInfo.size();
 	}
 
+	private abstract class AbstractTraverser<T> {
+		public Void visitDeclVar(DeclVar d, T info) {return null;}
+		public void traverseParDeclValue(ParDeclValue p, T info) {}
+		public Void visitExprProc(ExprProc proc, T info) {return null;}
+		public Void visitExprLambda(ExprLambda lambda, MemInfo info) {return null;}
+	}
+	
 	private class MemAlloc extends AbstractTraverser<MemInfo> {
 		@Override
 		public Void visitDeclVar(DeclVar d, MemInfo info) {

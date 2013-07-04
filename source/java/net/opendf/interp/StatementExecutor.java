@@ -17,6 +17,7 @@ import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.StmtIf;
 import net.opendf.ir.common.StmtOutput;
 import net.opendf.ir.common.StmtWhile;
+import net.opendf.ir.util.ImmutableList;
 
 public class StatementExecutor implements StatementVisitor<Void, Environment> {
 
@@ -88,7 +89,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 	public Void visitStmtCall(StmtCall stmt, Environment env) {
 		RefView r = interpreter.evaluate(stmt.getProcedure(), env);
 		Procedure p = conv.getProcedure(r);
-		Expression[] argExprs = stmt.getArgs();
+		ImmutableList<Expression> argExprs = stmt.getArgs();
 		for (Expression arg : argExprs) {
 			stack.push(interpreter.evaluate(arg, env));
 		}

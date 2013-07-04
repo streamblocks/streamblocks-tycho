@@ -6,6 +6,7 @@ import java.util.Map;
 
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.am.Condition;
 import net.opendf.ir.am.ConditionVisitor;
 import net.opendf.ir.am.ICall;
 import net.opendf.ir.am.ITest;
@@ -14,7 +15,7 @@ import net.opendf.ir.am.Instruction;
 import net.opendf.ir.am.InstructionVisitor;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
-import net.opendf.ir.am.Scope;
+import net.opendf.ir.am.Transition;
 import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Statement;
@@ -25,7 +26,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 	private final ActorMachine actorMachine;
 	private final Environment environment;
 	private final Interpreter interpreter;
-	private final Decl[] decls;
+//	private final Decl[] decls;
 	
 	private final TypeConverter converter;
 
@@ -36,12 +37,12 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		this.actorMachine = actorMachine;
 		this.environment = environment;
 		this.interpreter = interpreter;
-		this.decls = collectDecls(actorMachine);
+//		this.decls = collectDecls(actorMachine);
 		this.converter = TypeConverter.getInstance();
 		this.liveVariables = new BitSet();
 		this.state = 0;
 	}
-
+/*
 	private Decl[] collectDecls(ActorMachine actorMachine) {
 		HashMap<Integer, Decl> declMap = new HashMap<Integer, Decl>();
 		int max = 0;
@@ -62,7 +63,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		}
 		return d;
 	}
-
+*/
 	@Override
 	public void step() {
 		boolean done = false;
@@ -74,7 +75,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 			}
 		}
 	}
-
+/*
 	private void initVars(BitSet vars) {
 		BitSet s = new BitSet();
 		s.or(vars);
@@ -84,7 +85,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		}
 		liveVariables.or(s);
 	}
-
+*/
 	private void remVars(BitSet vars) {
 		liveVariables.andNot(vars);
 	}
@@ -96,30 +97,30 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 
 	@Override
 	public Integer visitTest(ITest i, Environment p) {
-		boolean cond = i.C().accept(this, p);
+		Condition condExpr = actorMachine.getCondition(i.C());
+		boolean cond = condExpr.accept(this, p);
 		return cond ? i.S1() : i.S0();
 	}
 
 	@Override
 	public Integer visitCall(ICall i, Environment p) {
-		initVars(i.T().getRequiredVariables());
-		for (Statement s : i.T().getBody()) {
-			interpreter.execute(s, p);
-		}
-		remVars(i.T().getInvalidatedVariables());
+//FIXME		initVars(i.T().getRequiredVariables());
+		Transition trans = actorMachine.getTransition(i.T());
+//FIXME		trans.getBody().execute(s, p);
+//FIXME		remVars(i.T().getInvalidatedVariables());
 		return i.S();
 	}
 
 	@Override
 	public Boolean visitInputCondition(PortCondition c, Environment p) {
-		int id = c.getChannelId();
+		int id = c.getPortName().getOffset();
 		Channel.OutputEnd channel = environment.getChannelOut(id);
 		return channel.tokens(c.N());
 	}
 
 	@Override
 	public Boolean visitOutputCondition(PortCondition c, Environment p) {
-		int id = c.getChannelId();
+		int id = c.getPortName().getOffset();
 		Channel.InputEnd channel = environment.getChannelIn(id);
 		return channel.space(c.N());
 	}

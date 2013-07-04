@@ -36,7 +36,7 @@ public class BasicEnvironment implements Environment {
 	public BasicEnvironment closure(int[] selectChannelIn, int[] selectChannelOut, int[] selectMemory, Ref[] addRefs) {
 		BasicMemory mem = memory.closure(selectMemory, addRefs);
 		Channel.InputEnd[] csi = new Channel.InputEnd[selectChannelIn.length];
-		Channel.OutputEnd[] cso = new Channel.OutputEnd[selectChannelIn.length];
+		Channel.OutputEnd[] cso = new Channel.OutputEnd[selectChannelOut.length];
 		for (int i = 0; i < selectChannelIn.length; i++) {
 			csi[i] = channelIn[selectChannelIn[i]];
 		}

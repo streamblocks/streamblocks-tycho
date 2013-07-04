@@ -22,6 +22,9 @@ import org.w3c.dom.Element;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
+import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.am.Condition;
+import net.opendf.ir.am.Instruction;
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
 import net.opendf.ir.net.ast.EntityExpr;
