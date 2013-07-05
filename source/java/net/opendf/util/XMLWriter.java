@@ -22,6 +22,16 @@ import org.w3c.dom.Element;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
+import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.am.Condition;
+import net.opendf.ir.am.ICall;
+import net.opendf.ir.am.ITest;
+import net.opendf.ir.am.IWait;
+import net.opendf.ir.am.Instruction;
+import net.opendf.ir.am.InstructionVisitor;
+import net.opendf.ir.am.PortCondition;
+import net.opendf.ir.am.PredicateCondition;
+import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
 import net.opendf.ir.net.ast.EntityExpr;
@@ -36,7 +46,7 @@ import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
 import net.opendf.ir.util.ImmutableList;
 
-public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisitor<Void, Element>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Element>{
+public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisitor<Void, Element>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Element>, InstructionVisitor<Void, Element>{
 	private java.io.PrintStream out = System.out;
 	Document doc;
 
@@ -105,6 +115,155 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		//--- variable declaration
 		generateXMLForDeclVarList(entity.getVarDecls(), top);
 	}
+	/******************************************************************************
+	 * Actor Machine
+	 */
+	public XMLWriter(ActorMachine am){
+		try{
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+			doc = docBuilder.newDocument();
+
+			Element amElement = doc.createElement("ActorMachine");
+			doc.appendChild(amElement);
+			generateXMLForConditionList(am.getConditions(), amElement);
+			generateXMLForAMController(am.getController(), amElement);
+			generateXMLForPortDeclList(am.getInputPorts(), amElement, "InputPortList");
+			generateXMLForPortDeclList(am.getOutputPorts(), amElement, "OutputPortList");
+			generateXMLForAMScopeList(am.getScopes(), amElement);
+			generateXMLForAMTransitionList(am.getTransitions(), amElement);
+		}catch(ParserConfigurationException pce){
+			pce.printStackTrace();
+		}
+	}
+	private void generateXMLForAMTransitionList(ImmutableList<Transition> transitions, Element p) {
+		if(transitions != null && !transitions.isEmpty()){
+			Element top = doc.createElement("TransitionList");
+			p.appendChild(top);
+			int index = 0;
+			for(Transition t : transitions){
+				Element transElem = doc.createElement("Transition");
+				top.appendChild(transElem);
+				transElem.setAttribute("index", Integer.toString(index));
+				t.getBody().accept(this, transElem);
+				if(!t.getInputRates().isEmpty()){
+					Element rates = doc.createElement("InputRateList");
+					transElem.appendChild(rates);
+					for(Map.Entry<Port,Integer> r : t.getInputRates().entrySet()){
+						Element rateElem = doc.createElement("InputRate");
+						rates.appendChild(rateElem);
+						rateElem.setAttribute("rate", r.getValue().toString());
+						generateXMLForPort(r.getKey(), rateElem);
+					}
+				} // end input rates
+				if(!t.getScopesToKill().isEmpty()){
+					Element killListElem = doc.createElement("ScopesToKill");
+					transElem.appendChild(killListElem);
+					for(Integer scopeIndex : t.getScopesToKill()){
+						Element scopeElem = doc.createElement("Scope");
+						killListElem.appendChild(scopeElem);
+						scopeElem.setAttribute("index", scopeIndex.toString());
+					}
+				} // end scopes to kill
+				if(!t.getOutputRates().isEmpty()){
+					Element rates = doc.createElement("OutputRateList");
+					transElem.appendChild(rates);
+					for(Map.Entry<Port,Integer> r : t.getOutputRates().entrySet()){
+						Element rateElem = doc.createElement("OutputRate");
+						rates.appendChild(rateElem);
+						rateElem.setAttribute("rate", r.getValue().toString());
+						generateXMLForPort(r.getKey(), rateElem);
+					}
+				} // output rates
+			index++;
+			}
+		}
+	}
+	private void generateXMLForAMScopeList(ImmutableList<ImmutableList<DeclVar>> scopes, Element p) {
+		if(scopes != null && !scopes.isEmpty()){
+			Element top = doc.createElement("ScopeList");
+			p.appendChild(top);
+			for(ImmutableList<DeclVar> scope : scopes){
+				generateXMLForDeclVarList(scope, top);
+			}
+		}		
+	}
+	private void generateXMLForAMController(ImmutableList<ImmutableList<Instruction>> controller, Element parent) {
+		if(controller != null && !controller.isEmpty()){
+			Element top = doc.createElement("Controller");
+			parent.appendChild(top);
+			int stateNbr = 0;
+			for(ImmutableList<Instruction> state : controller){
+				Element sElem = doc.createElement("ControllerState");
+				top.appendChild(sElem);
+				sElem.setAttribute("index", Integer.toString(stateNbr));
+				for(Instruction i : state){
+					i.accept(this, sElem);
+				}
+				stateNbr++;
+			}
+		}
+	}
+	@Override
+	public Void visitWait(IWait i, Element p) {
+		Element inst = doc.createElement("IWait");
+		p.appendChild(inst);
+		inst.setAttribute("nextState", Integer.toString(i.S()));
+		return null;
+	}
+	@Override
+	public Void visitTest(ITest i, Element p) {
+		Element inst = doc.createElement("ITest");
+		p.appendChild(inst);
+		inst.setAttribute("cond", Integer.toString(i.C()));
+		inst.setAttribute("trueState", Integer.toString(i.S1()));
+		inst.setAttribute("falseState", Integer.toString(i.S0()));
+		return null;
+	}
+	@Override
+	public Void visitCall(ICall i, Element p) {
+		Element inst = doc.createElement("ICal");
+		p.appendChild(inst);
+		inst.setAttribute("nextState", Integer.toString(i.S()));
+		inst.setAttribute("transition", Integer.toString(i.T()));
+		return null;
+	}
+
+	public void generateXMLForConditionList(ImmutableList<Condition> cl, Element parent){
+		if(cl != null && !cl.isEmpty()){
+			int index = 0;
+			Element top = doc.createElement("ConditionList");
+			parent.appendChild(top);
+			for(Condition cond : cl){
+				switch (cond.kind()){
+				case input:
+				case output:{
+					PortCondition c = (PortCondition)cond;
+					Element e = doc.createElement("PortCondition");
+					top.appendChild(e);
+					e.setAttribute("isInputCondition", Boolean.toString(c.isInputCondition()));
+					e.setAttribute("n", Integer.toString(c.N()));
+					e.setAttribute("index", Integer.toString(index));
+					generateXMLForPort(c.getPortName(), e);
+					break;
+					}
+				case predicate:{
+					Element e = doc.createElement("PredicateCondition");
+					top.appendChild(e);
+					e.setAttribute("index", Integer.toString(index));
+					PredicateCondition c = (PredicateCondition) cond;
+					((Expression)c.getExpression()).accept(this, e);
+					break;
+					}
+				}
+				index++;
+			}
+			
+		}
+	}
+	/******************************************************************************
+	 * Declaration
+	 */
 	public void generateXMLForPortDeclList(List<PortDecl> ports, Element parent, String kind){
 		if(ports != null && !ports.isEmpty()){
 			Element top = doc.createElement(kind);
@@ -150,7 +309,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	private void generateXMLForPort(Port port, Element p) {
 		Element e = doc.createElement("Port");
 		p.appendChild(e);
-		e.setAttribute("name", port.toString());
+		e.setAttribute("name", port.getName());
 		if(port.hasLocation()){
 			e.setAttribute("offset", Integer.toString(port.getOffset()));
 		}
@@ -404,7 +563,11 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	@Override
 	public Void visitExprVariable(ExprVariable e, Element p) {
 		Element var = doc.createElement("ExprVariable");
-		var.setAttribute("name", e.getVariable().getName());
+		Variable v = e.getVariable();
+		var.setAttribute("name", v.getName());
+		var.setAttribute("isDynamic", Boolean.toString(v.isDynamic()));
+		var.setAttribute("offset", Integer.toString(v.getOffset()));
+		var.setAttribute("scope", Integer.toString(v.getScope()));
 		p.appendChild(var);
 		return null;
 	}
