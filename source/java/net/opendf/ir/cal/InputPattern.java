@@ -35,13 +35,14 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.opendf.ir.cal;
 
 import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.util.ImmutableList;
@@ -49,39 +50,39 @@ import net.opendf.ir.util.Lists;
 
 public class InputPattern extends AbstractIRNode {
 
-    public InputPattern(Port port, ImmutableList<String> variables, Expression repeatExpr) {
-    	this(null, port, variables, repeatExpr);
-    }
-    
-    private InputPattern(InputPattern original, Port port, ImmutableList<String> variables, Expression repeatExpr) {
-    	super(original);
-        this.port = port;
-        this.variables = ImmutableList.copyOf(variables);
-        this.repeatExpr = repeatExpr;
-    }
-    
-    public InputPattern copy(Port port, ImmutableList<String> variables, Expression repeatExpr) {
-    	if (Objects.equals(this.port, port) && Lists.equals(this.variables, variables) && Objects.equals(this.repeatExpr, repeatExpr)) {
-    		return this;
-    	}
-    	return new InputPattern(this, port, variables, repeatExpr);
-    }
+	public InputPattern(Port port, ImmutableList<DeclVar> variables, Expression repeatExpr) {
+		this(null, port, variables, repeatExpr);
+	}
 
+	private InputPattern(InputPattern original, Port port, ImmutableList<DeclVar> variables, Expression repeatExpr) {
+		super(original);
+		this.port = port;
+		this.variables = ImmutableList.copyOf(variables);
+		this.repeatExpr = repeatExpr;
+	}
 
-    public Port getPort() {
-        return port;
-    }
+	public InputPattern copy(Port port, ImmutableList<DeclVar> variables, Expression repeatExpr) {
+		if (Objects.equals(this.port, port) && Lists.equals(this.variables, variables)
+				&& Objects.equals(this.repeatExpr, repeatExpr)) {
+			return this;
+		}
+		return new InputPattern(this, port, variables, repeatExpr);
+	}
 
-    public ImmutableList<String> getVariables() {
-        return variables;
-    }
+	public Port getPort() {
+		return port;
+	}
 
-    public Expression getRepeatExpr() {
-        return repeatExpr;
-    }
+	public ImmutableList<DeclVar> getVariables() {
+		return variables;
+	}
 
-    private Port 	port;
-    private ImmutableList<String>   variables;
-    private Expression 	repeatExpr;
+	public Expression getRepeatExpr() {
+		return repeatExpr;
+	}
+
+	private Port port;
+	private ImmutableList<DeclVar> variables;
+	private Expression repeatExpr;
 
 }

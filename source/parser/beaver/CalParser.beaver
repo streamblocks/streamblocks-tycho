@@ -481,8 +481,8 @@ action_in_pattern =
   ;
 token_name_list =
 //TODO, the position of the names are not saved
-    IDENTIFIER.ID                           {: return new Symbol(ImmutableList.builder().add(ID.value)); :}
-  | token_name_list.l COMMA IDENTIFIER.ID   {: l.add(ID.value); return _symbol_l; :}
+    IDENTIFIER.ID                           {: return new Symbol(ImmutableList.builder().add(new DeclVar(null, (String) ID.value, null))); :}
+  | token_name_list.l COMMA IDENTIFIER.ID   {: l.add(new DeclVar(null, (String) ID.value, null)); return _symbol_l; :}
   ;
 channel_selector =
     AT expression.e          {: return new Symbol(null); :} //TODO new SingleChannel(e); :}

@@ -88,14 +88,14 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		}
 		
 		int offset = 0;
-		for (String var : input.getVariables()) {
+		for (DeclVar var : input.getVariables()) {
 			Expression read;
 			if (input.getRepeatExpr() == null) {
 				read = new ExprInput(input.getPort(), offset);
 			} else {
 				read = new ExprInput(input.getPort(), offset, evalRepeat(input.getRepeatExpr()), input.getVariables().size());
 			}
-			builder.add(new DeclVar(type, var, null, read, false));
+			builder.add(var.copy(type, var.getName(), var.getNamespaceDecl(), read, false));
 			offset += 1;
 		}
 	}
@@ -126,8 +126,8 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	@Override
 	public Action transformAction(Action action, Variables vars) {
 		for (InputPattern input : action.getInputPatterns()) {
-			for (String var : input.getVariables()) {
-				vars.addStaticVar(var);
+			for (DeclVar var : input.getVariables()) {
+				vars.addStaticVar(var.getName());
 			}
 		}
 		for (DeclVar var : action.getVarDecls()) {
