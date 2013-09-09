@@ -69,10 +69,10 @@ public class AbstractBasicTransformer<P> implements
 
 	private static final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-	protected static MethodHandle methodHandle(Class<?> arg, String meth) {
+	protected static MethodHandle methodHandle(Class<?> target, Class<?> arg, String meth) {
 		MethodType type = MethodType.methodType(arg, arg, Object.class);
 		try {
-			return lookup.findVirtual(AbstractActorTransformer.class, meth, type);
+			return lookup.findVirtual(target, meth, type);
 		} catch (NoSuchMethodException | IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
@@ -93,13 +93,13 @@ public class AbstractBasicTransformer<P> implements
 		return builder.build();
 	}
 
-	private static final MethodHandle transExpr = methodHandle(Expression.class, "transformExpression");
-	private static final MethodHandle transStmt = methodHandle(Statement.class, "transformStatement");
-	private static final MethodHandle transVarDecl = methodHandle(DeclVar.class, "transformVarDecl");
-	private static final MethodHandle transTypeDecl = methodHandle(DeclType.class, "transformTypeDecl");
-	private static final MethodHandle transValueParam = methodHandle(ParDeclValue.class, "transformValueParameter");
-	private static final MethodHandle transTypeParam = methodHandle(ParDeclType.class, "transformTypeParameter");
-	private static final MethodHandle transGenerator = methodHandle(GeneratorFilter.class, "transformGenerator");
+	private static final MethodHandle transExpr = methodHandle(AbstractBasicTransformer.class, Expression.class, "transformExpression");
+	private static final MethodHandle transStmt = methodHandle(AbstractBasicTransformer.class, Statement.class, "transformStatement");
+	private static final MethodHandle transVarDecl = methodHandle(AbstractBasicTransformer.class, DeclVar.class, "transformVarDecl");
+	private static final MethodHandle transTypeDecl = methodHandle(AbstractBasicTransformer.class, DeclType.class, "transformTypeDecl");
+	private static final MethodHandle transValueParam = methodHandle(AbstractBasicTransformer.class, ParDeclValue.class, "transformValueParameter");
+	private static final MethodHandle transTypeParam = methodHandle(AbstractBasicTransformer.class, ParDeclType.class, "transformTypeParameter");
+	private static final MethodHandle transGenerator = methodHandle(AbstractBasicTransformer.class, GeneratorFilter.class, "transformGenerator");
 
 	@Override
 	public Expression transformExpression(Expression expr, P param) {

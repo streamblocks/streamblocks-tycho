@@ -14,14 +14,14 @@ import net.opendf.ir.util.ImmutableList;
 
 public class AbstractActorTransformer<P> extends AbstractBasicTransformer<P> implements ActorTransformer<P> {
 
-	private static final MethodHandle transAction = methodHandle(Action.class, "transformAction");
-	private static final MethodHandle transInputPattern = methodHandle(InputPattern.class, "transformInputPattern");
-	private static final MethodHandle transOutputExpression = methodHandle(OutputExpression.class,
-			"transformOutputExpression");
-	private static final MethodHandle transTransition = methodHandle(Transition.class, "transformScheduleTransition");
-	private static final MethodHandle transQID = methodHandle(QID.class, "transformTag");
-	private static final MethodHandle transInputPort = methodHandle(PortDecl.class, "transformInputPort");
-	private static final MethodHandle transOutputPort = methodHandle(PortDecl.class, "transformOutputPort");
+	private static final MethodHandle transAction = methodHandle(AbstractActorTransformer.class, Action.class, "transformAction");
+	private static final MethodHandle transInputPattern = methodHandle(AbstractActorTransformer.class, InputPattern.class, "transformInputPattern");
+	private static final MethodHandle transOutputExpression = methodHandle(AbstractActorTransformer.class,
+			OutputExpression.class, "transformOutputExpression");
+	private static final MethodHandle transTransition = methodHandle(AbstractActorTransformer.class, Transition.class, "transformScheduleTransition");
+	private static final MethodHandle transQID = methodHandle(AbstractActorTransformer.class, QID.class, "transformTag");
+	private static final MethodHandle transInputPort = methodHandle(AbstractActorTransformer.class, PortDecl.class, "transformInputPort");
+	private static final MethodHandle transOutputPort = methodHandle(AbstractActorTransformer.class, PortDecl.class, "transformOutputPort");
 
 	@Override
 	public Actor transformActor(Actor actor, P param) {
