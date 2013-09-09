@@ -77,4 +77,18 @@ public class BasicRef implements Ref {
 		type = null;
 	}
 
+	@Override
+	public String toString(){
+		if(type==null){return "null"; }
+		switch (type) {
+		case LONG:
+			return Long.toString(long_);
+		case VALUE:
+			return value.toString();
+		case DOUBLE:
+			return Double.toString(double_);
+		default:
+			return "unknown";	
+		}
+	}
 }

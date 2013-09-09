@@ -25,17 +25,19 @@ public class SetVariablePositions {
 	public int setVariablePositions(ActorMachine actorMachine) {
 		MemInfo memInfo = new MemInfo();
 		for (ImmutableList<DeclVar> s : actorMachine.getScopes()) {
-			for (Decl d : s) {
-				memAlloc.traverseDecl(d, memInfo);
+			//TODO this assumes that all scopes are live at the same time, i.e. memory is not shared among different scopes.
+			for (DeclVar d : s) {
+				memAlloc.visitDeclVar(d, memInfo);
 			}
 		}
-		for (Transition t : ActorMachineUtils.collectTransitions(actorMachine)) {
+/* TODO
+		for (Transition t : actorMachine.getTransitions()) {
 			memAlloc.traverseStatements(t.getBody(), memInfo);
 		}
 		for (Expression e : ActorMachineUtils.collectPredicateConditionExpressions(actorMachine)) {
 			memAlloc.traverseExpression(e, memInfo);
 		}
-
+*/
 		return memInfo.size();
 	}
 
@@ -49,7 +51,8 @@ public class SetVariablePositions {
 	private class MemAlloc extends AbstractTraverser<MemInfo> {
 		@Override
 		public Void visitDeclVar(DeclVar d, MemInfo info) {
-			d.setVariablePosition(info.next(), false);
+			int pos = info.next();
+			//TODO d.setVariablePosition(info.next(), false);
 			super.visitDeclVar(d, info);
 			return null;
 		}

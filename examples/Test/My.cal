@@ -1,11 +1,31 @@
-actor Empty (a, b) in1, in2, in3 ==> out1, out2:
+actor Empty (parA, parB) in1, in2 ==> out1:
+
+	actorA = 0;
+//    foo := lambda(x) x + actorA end;
+//    foo := lambda(y) var bar = lambda (barP) : barP + y + x end : x + y end;
+	
+	action [tokenA], [tokenB] ==> [tokenA + tokenB]
+	do
+//	  actorA := tokenA;
+	end
+/*
+
+	action [c] ==> [foo(c)]
+	end
+
+	action in2:[d] ==> [d+actorA]
+	end
+
+    actorA := 2;
+    function foo(x) : x end
+    
 	a = Math.sin(old x);
 	b = not a();
 	c = not a.b;
 	d = not a.b().c;
 	e = a[i1].b()[i2];
 	e = 1 -|= a;
-/*  hepp = a[1, 2];
+  hepp = a[1, 2];
   a = a.field+b-c()*d;
   b = if a then b else c end;
   c = (not foo)();

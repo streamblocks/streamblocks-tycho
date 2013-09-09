@@ -8,8 +8,11 @@ import net.opendf.interp.values.ConstRef;
 import net.opendf.interp.values.RefView;
 
 public class Predef {
+
 	private static Map<String, RefView> predef = new HashMap<String, RefView>();
 	static {
+		
+		
 		predef.put("+", ConstRef.of(new IntFunctions.Add()));
 		predef.put("-", ConstRef.of(new IntFunctions.Sub()));
 		predef.put("*", ConstRef.of(new IntFunctions.Mul()));

@@ -3,12 +3,41 @@ package net.opendf.interp.values.predef;
 import net.opendf.interp.Interpreter;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
+import net.opendf.interp.values.BasicRef;
 import net.opendf.interp.values.Function;
+import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.Value;
 
+
 public class IntFunctions {
+	public static class Undefined extends ArithOp {
+		protected final int op(int a, int b) {
+			throw new UnsupportedOperationException("Not implemented");
+		}
+	}
+
 	private static abstract class ArithOp implements Function {
+		public static Ref[] memory = new Ref[14];
+		static{
+			for(int i=0; i<memory.length; i++){
+				memory[i] = new BasicRef();
+			}
+			memory[0].setValue(new Add());	
+			memory[1].setValue(new Sub());	
+			memory[2].setValue(new Mul());	
+			memory[3].setValue(new BitAnd());	
+			memory[4].setValue(new BitOr());	
+			memory[5].setValue(new RightShiftSignExt());	
+			memory[6].setValue(new LeftShift());	
+			memory[7].setValue(new Truncate());	
+			memory[8].setValue(new LT());	
+			memory[9].setValue(new LE());	
+			memory[10].setValue(new EQ());	
+			memory[11].setValue(new NE());	
+			memory[12].setValue(new GE());	
+			memory[13].setValue(new GT());	
+		}
 
 		private TypeConverter conv = TypeConverter.getInstance();
 

@@ -1,20 +1,17 @@
 package net.opendf.interp;
 
 import net.opendf.interp.values.Ref;
+import net.opendf.ir.am.ActorMachine;
 
 public class BasicEnvironment implements Environment {
 	private final BasicMemory memory;
-	private final Channel.InputEnd[] channelIn;
-	private final Channel.OutputEnd[] channelOut;
+	private final Channel.InputEnd[] sinkChannelsEnd;
+	private final Channel.OutputEnd[] sourceChannelsEnd;
 
-	public BasicEnvironment(Channel.InputEnd[] channelIn, Channel.OutputEnd[] channelOut, int memorySize) {
-		this(channelIn, channelOut, new BasicMemory(memorySize));
-	}
-
-	private BasicEnvironment(Channel.InputEnd[] channelIn, Channel.OutputEnd[] channelOut, BasicMemory memory) {
-		this.memory = memory;
-		this.channelIn = channelIn;
-		this.channelOut = channelOut;
+	public BasicEnvironment(Channel.InputEnd[] sinkChannelsEnd, Channel.OutputEnd[] sourceChannelsEnd, ActorMachine actorMachine) {
+		this.memory = new BasicMemory(actorMachine);
+		this.sinkChannelsEnd = sinkChannelsEnd;
+		this.sourceChannelsEnd = sourceChannelsEnd;
 	}
 
 	@Override
@@ -23,13 +20,22 @@ public class BasicEnvironment implements Environment {
 	}
 
 	@Override
-	public Channel.InputEnd getChannelIn(int i) {
-		return channelIn[i];
+	public Channel.InputEnd getSinkChannelInputEnd(int i) {
+		return sinkChannelsEnd[i];
+	}
+	@Override
+	public Channel.InputEnd[] getSinkChannelInputEnds() {
+		return sinkChannelsEnd;
 	}
 
 	@Override
-	public Channel.OutputEnd getChannelOut(int i) {
-		return channelOut[i];
+	public Channel.OutputEnd getSourceChannelOutputEnd(int i) {
+		return sourceChannelsEnd[i];
+	}
+
+	@Override
+	public Channel.OutputEnd[] getSourceChannelOutputEnds() {
+		return sourceChannelsEnd;
 	}
 
 	@Override
@@ -38,10 +44,10 @@ public class BasicEnvironment implements Environment {
 		Channel.InputEnd[] csi = new Channel.InputEnd[selectChannelIn.length];
 		Channel.OutputEnd[] cso = new Channel.OutputEnd[selectChannelOut.length];
 		for (int i = 0; i < selectChannelIn.length; i++) {
-			csi[i] = channelIn[selectChannelIn[i]];
+			csi[i] = sinkChannelsEnd[selectChannelIn[i]];
 		}
 		for (int i = 0; i < selectChannelOut.length; i++) {
-			cso[i] = channelOut[selectChannelOut[i]];
+			cso[i] = sourceChannelsEnd[selectChannelOut[i]];
 		}
 		return new BasicEnvironment(csi, cso, mem);
 	}

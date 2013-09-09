@@ -4,6 +4,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.Condition;
@@ -16,9 +17,12 @@ import net.opendf.ir.am.InstructionVisitor;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
 import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.Statement;
+import net.opendf.ir.common.ExprVariable;
+import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.Variable;
+import net.opendf.ir.util.BasicExpressionTraverser;
+import net.opendf.ir.util.ImmutableList;
 
 public class BasicSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
 		ConditionVisitor<Boolean, Environment> {
@@ -26,68 +30,89 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 	private final ActorMachine actorMachine;
 	private final Environment environment;
 	private final Interpreter interpreter;
-//	private final Decl[] decls;
+	private final BitSet liveScopes;            // true if all variables in the scope is initialized, i.e. assigned to default values.
+	private final Map<Condition, BitSet> condRequiredScope;   // for each actor machine condition, which scopes are required
+	private final BitSet[] transRequiredScope;  // for each transition, which scopes are required
 	
 	private final TypeConverter converter;
 
-	private BitSet liveVariables;
 	private int state;
 
 	public BasicSimulator(ActorMachine actorMachine, Environment environment, Interpreter interpreter) {
 		this.actorMachine = actorMachine;
 		this.environment = environment;
 		this.interpreter = interpreter;
-//		this.decls = collectDecls(actorMachine);
 		this.converter = TypeConverter.getInstance();
-		this.liveVariables = new BitSet();
 		this.state = 0;
-	}
-/*
-	private Decl[] collectDecls(ActorMachine actorMachine) {
-		HashMap<Integer, Decl> declMap = new HashMap<Integer, Decl>();
-		int max = 0;
-		for (Scope s : actorMachine.getScopes()) {
-			for (Decl d : s.getDeclarations()) {
-				if (d instanceof DeclVar) {
-					DeclVar varDecl = (DeclVar) d;
-					assert !varDecl.isVariableOnStack();
-					int pos = varDecl.getVariablePosition();
-					declMap.put(pos, varDecl);
-					max = Math.max(max, pos);
-				}
+		ImmutableList<ImmutableList<DeclVar>> scopeList = actorMachine.getScopes();
+		int nbrScopes = scopeList.size();
+		this.liveScopes = new BitSet(nbrScopes);
+		// conditions, find the required scopes for each condition
+		condRequiredScope = new HashMap<Condition, BitSet>(actorMachine.getConditions().size());
+		FindRequiredScopes exprTraveler = new FindRequiredScopes();
+		for(Condition cond : actorMachine.getConditions()){
+			BitSet req = new BitSet(nbrScopes);
+			if(cond.kind() == Condition.ConditionKind.predicate){
+				Expression expr = ((PredicateCondition)cond).getExpression();
+				expr.accept(exprTraveler, req);
+				condRequiredScope.put(cond, req);
 			}
 		}
-		Decl[] d = new Decl[max + 1];
-		for (Map.Entry<Integer, Decl> declEntry : declMap.entrySet()) {
-			d[declEntry.getKey()] = declEntry.getValue();
+		// transitions, find the required scopes for each transition
+		transRequiredScope = new BitSet[actorMachine.getTransitions().size()];
+		for(int i=0; i<transRequiredScope.length; i++){
+			Transition trans = actorMachine.getTransition(i);
+			transRequiredScope[i] = new BitSet(nbrScopes);
+			trans.getBody().accept(exprTraveler, transRequiredScope[i]);
 		}
-		return d;
+		
+		// Check that all input and output ports are connected to channels
+		assert actorMachine.getInputPorts().size() == environment.getSourceChannelOutputEnds().length;
+		assert actorMachine.getOutputPorts().size() == environment.getSinkChannelInputEnds().length;
 	}
-*/
+	
 	@Override
-	public void step() {
+	public boolean step() {
 		boolean done = false;
+		Instruction i = null;
 		while (!done) {
-			Instruction i = actorMachine.getInstructions(state).get(0);
+			i = actorMachine.getInstructions(state).get(0);
 			state = i.accept(this, environment);
 			if (i instanceof ICall || i instanceof IWait) {
 				done = true;
 			}
 		}
+		return i instanceof ICall;
 	}
-/*
-	private void initVars(BitSet vars) {
-		BitSet s = new BitSet();
-		s.or(vars);
-		s.andNot(liveVariables);
-		for (int i = s.nextSetBit(0); i >= 0; i = s.nextSetBit(i + 1)) {
-			interpreter.declare(decls[i], environment);
+
+	private class FindRequiredScopes extends BasicExpressionTraverser<BitSet>{
+		@Override
+		public Void visitExprVariable(ExprVariable e, BitSet p) {
+			Variable var = e.getVariable();
+			if(var.isStatic() && var.getScope()>=0){
+				p.set(e.getVariable().getScope());
+			}
+			return null;		
 		}
-		liveVariables.or(s);
 	}
-*/
-	private void remVars(BitSet vars) {
-		liveVariables.andNot(vars);
+
+	
+	private void initScopes(BitSet required) {
+		ImmutableList<ImmutableList<DeclVar>> scopeList = actorMachine.getScopes();
+		int nbrScopes = scopeList.size();
+		//FIXME, scopes may depend on each other, ensure a correct evaluation order. The order 0..N is likely ok since the actor scope is initialized first.
+		//if the scopes are ordered Actor ..local this code works fine.
+		for(int scopeId=0; scopeId<nbrScopes; scopeId++){
+			if(required.get(scopeId) && !liveScopes.get(scopeId)){
+				ImmutableList<DeclVar> declList = scopeList.get(scopeId);
+				//FIXME, find a correct evaluation order, variables can be dependent on each other.
+				for(int declOffset=0; declOffset<declList.size() ; declOffset++){
+					Ref memCell = environment.getMemory().declare(scopeId, declOffset);
+					interpreter.evaluate(declList.get(declOffset).getInitialValue(), environment).assignTo(memCell);
+				}
+				liveScopes.set(scopeId);
+			}
+		}
 	}
 
 	@Override
@@ -104,32 +129,52 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 
 	@Override
 	public Integer visitCall(ICall i, Environment p) {
-//FIXME		initVars(i.T().getRequiredVariables());
 		Transition trans = actorMachine.getTransition(i.T());
-//FIXME		trans.getBody().execute(s, p);
-//FIXME		remVars(i.T().getInvalidatedVariables());
+		initScopes(transRequiredScope[i.T()]);
+		interpreter.execute(trans.getBody(), p);
+
+		//FIXME, kill only the scopes in transaction.kill
+		boolean actorScopeIsLive = liveScopes.get(0);
+		liveScopes.clear();
+		if(actorScopeIsLive) { liveScopes.set(0); }
 		return i.S();
 	}
 
 	@Override
 	public Boolean visitInputCondition(PortCondition c, Environment p) {
 		int id = c.getPortName().getOffset();
-		Channel.OutputEnd channel = environment.getChannelOut(id);
+		Channel.OutputEnd channel = environment.getSourceChannelOutputEnd(id);
 		return channel.tokens(c.N());
 	}
 
 	@Override
 	public Boolean visitOutputCondition(PortCondition c, Environment p) {
 		int id = c.getPortName().getOffset();
-		Channel.InputEnd channel = environment.getChannelIn(id);
+		Channel.InputEnd channel = environment.getSinkChannelInputEnd(id);
 		return channel.space(c.N());
 	}
 
 	@Override
 	public Boolean visitPredicateCondition(PredicateCondition c, Environment p) {
-		initVars(c.getRequiredVariables());
+		initScopes(condRequiredScope.get(c));
 		RefView cond = interpreter.evaluate(c.getExpression(), p);
 		return converter.getBoolean(cond);
+	}
+
+	public String scopesToString(){
+		StringBuffer s = new StringBuffer();
+		ImmutableList<ImmutableList<DeclVar>> scopeList = actorMachine.getScopes();
+		for(int scopeId=0; scopeId<scopeList.size(); scopeId++){
+			s.append("{\n");
+			ImmutableList<DeclVar> declList = scopeList.get(scopeId);
+			for(int declId=0; declId<declList.size(); declId++){
+				Variable var = Variable.staticVariable(declList.get(declId).getName(), scopeId, declId);
+				s.append("  " + var.getName() + " : ");
+				s.append(environment.getMemory().get(var).toString() + "\n");
+			}
+			s.append("}\n");
+		}
+		return s.toString();
 	}
 
 }

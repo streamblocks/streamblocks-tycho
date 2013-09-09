@@ -34,20 +34,20 @@ public class SetChannelIds {
 			setter.traverseExpression(c, channels);
 		}
 		for (PortCondition c : ActorMachineUtils.collectPortConditions(actorMachine)) {
-			c.setChannelId(channels.get(c.getPortName()));
+			c.setChannelId(channels.getBinFunction(c.getPortName()));
 		}
 	}
 
 	private static class ChannelIdSetter extends AbstractTraverser<Map<PortName, Integer>> {
 		@Override
 		public Void visitExprInput(ExprInput in, Map<PortName, Integer> channels) {
-			in.setChannelId(channels.get(in.getPort()));
+			in.setChannelId(channels.getBinFunction(in.getPort()));
 			return super.visitExprInput(in, channels);
 		}
 
 		@Override
 		public Void visitStmtOutput(StmtOutput out, Map<PortName, Integer> channels) {
-			out.setChannelId(channels.get(out.getPort()));
+			out.setChannelId(channels.getBinFunction(out.getPort()));
 			return super.visitStmtOutput(out, channels);
 		}
 	}

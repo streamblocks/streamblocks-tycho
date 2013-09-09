@@ -13,6 +13,7 @@ import net.opendf.ir.common.StatementVisitor;
 import net.opendf.ir.common.StmtAssignment;
 import net.opendf.ir.common.StmtBlock;
 import net.opendf.ir.common.StmtCall;
+import net.opendf.ir.common.StmtConsume;
 import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.StmtIf;
 import net.opendf.ir.common.StmtOutput;
@@ -39,7 +40,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 
 	@Override
 	public Void visitStmtAssignment(StmtAssignment stmt, Environment env) {
-		Ref ref = stmt.isVariableOnStack() ? stack.peek(stmt.getVariablePosition()) : env.getMemory().get(
+		Ref ref = stmt.isVariableOnStack() ? stack.peek(stmt.getVariablePosition()) : env.getMemory().getBinFunction(
 				stmt.getVariablePosition());
 		Expression[] loc = stmt.getLocation();
 		if (loc != null) {
@@ -99,22 +100,22 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 
 	@Override
 	public Void visitStmtOutput(StmtOutput stmt, Environment env) {
-		Channel.InputEnd channel = env.getChannelIn(stmt.getChannelId());
+		Channel.InputEnd channel = env.getSinkChannelInputEnd(stmt.getPort().getOffset());
 		if (stmt.hasRepeat()) {
-			Expression[] exprs = stmt.getValues();
-			BasicRef[] values = new BasicRef[exprs.length];
-			for (int i = 0; i < exprs.length; i++) {
+			ImmutableList<Expression> exprList = stmt.getValues();
+			BasicRef[] values = new BasicRef[exprList.size()];
+			for (int i = 0; i < exprList.size(); i++) {
 				values[i] = new BasicRef();
-				interpreter.evaluate(exprs[i], env).assignTo(values[i]);
+				interpreter.evaluate(exprList.get(i), env).assignTo(values[i]);
 			}
 			for (int r = 0; r < stmt.getRepeat(); r++) {
 				for (BasicRef v : values)
 					channel.write(v);
 			}
 		} else {
-			Expression[] exprs = stmt.getValues();
-			for (int i = 0; i < exprs.length; i++) {
-				channel.write(interpreter.evaluate(exprs[i], env));
+			ImmutableList<Expression> exprList = stmt.getValues();
+			for (Expression expr : exprList) {
+				channel.write(interpreter.evaluate(expr, env));
 			}
 		}
 		return null;
@@ -136,6 +137,13 @@ public class StatementExecutor implements StatementVisitor<Void, Environment> {
 			}
 		};
 		gen.generate(stmt.getGenerators(), execStmt, env);
+		return null;
+	}
+
+	@Override
+	public Void visitStmtConsume(StmtConsume s, Environment p) {
+		Channel.OutputEnd source = p.getSourceChannelOutputEnd(s.getPort().getOffset());
+		source.remove(s.getNumberOfTokens());
 		return null;
 	}
 

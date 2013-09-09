@@ -26,11 +26,12 @@ public class BasicStack implements Stack {
 
 	@Override
 	public Ref pop() {
+		next--;
 		if (closure.get(next)) {
 			stack[next] = new BasicRef();
 			closure.clear(next);
 		}
-		return stack[--next];
+		return stack[next];
 	}
 
 	@Override

@@ -70,7 +70,7 @@ public class BasicChannel implements Channel {
 		@Override
 		public void peek(int i, Ref r) {
 			assert i < length;
-			assert i > 0;
+			assert i >= 0;
 			int index = (head + i) % size;
 			buffer[index].assignTo(r);
 		}

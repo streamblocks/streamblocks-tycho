@@ -4,6 +4,46 @@
 <!DOCTYPE dataflow [
  <!ELEMENT NetworkDefinition (ValueParameterList? InputPortList? OutputPortList? DeclVarList?)>
  <!ELEMENT Actor (ValueParameterList? InputPortList? OutputPortList? DeclVarList?)>
+ <!ELEMENT ActorMachine (ConditionList? Controller? InputPortList? OutputPortList? ScopeList?)>
+
+<!-- ActorMachine -->
+<!ELEMENT ConditionList (%condition;*)>
+<!ENTITY % condition "PortCondition, PredicateCondition">
+<!ELEMENT PortCondition (Port)>
+<!ATTLIST PortCondition index CDATA #REQUIRED>
+<!ATTLIST PortCondition isInputCondition CDATA #REQUIRED>
+<!ATTLIST PortCondition n CDATA #REQUIRED>
+<!ELEMENT PredicateCondition (%epression;)>
+<!ATTLIST PredicateCondition index CDATA #REQUIRED>
+<!ELEMENT Controller (ControllerState+)>
+<!ELEMENT ControllerState (%instruction;+)>
+<!ATTLIST ControllerState index CDATA #REQUIRED>
+<!ENTITY % amInstruction "ICall, ITest, IWait">
+<!ELEMENT ICall ()>
+<!ATTLIST ICall nextState CDATA #REQUIRED>
+<!ATTLIST ICall transition CDATA #REQUIRED>
+<!ELEMENT ITest ()>
+<!ATTLIST ITest condition CDATA #REQUIRED>
+<!ATTLIST ITest trueState CDATA #REQUIRED>
+<!ATTLIST ITest falseState CDATA #REQUIRED>
+<!ELEMENT IWait ()>
+<!ATTLIST IWait nextState CDATA #REQUIRED>
+<!ELEMENT ScopeList (Scope)>
+<!ELEMENT Scope (DeclVar*)>
+<!ATTLIST Scope scopeID CDATA #REQUIRED>
+<!ELEMENT TransitionList (Transition)>
+<!ELEMENT Transition (%statement; InputRateList? ScopesToKill? OutputRatesList?)>
+<!ATTLIST Transition index CDATA #REQUIRED>
+<!ELEMENT InputRatesList (InputRate*)>
+<!ELEMENT ScopesToKill (Scope*)>
+<!ELEMENT OutputRatesList (OutputRate*)>
+
+<!ELEMENT Scope ()>
+<!ATTLIST Scope index CDATA #REQUIRED>
+<!ELEMENT InputRate (Port)>
+<!ATTLIST InputRate rate CDATA #REQUIRED>
+<!ELEMENT OutputRate (Port)>
+<!ATTLIST OutputRate rate CDATA #REQUIRED>
 
 <!-- Ports -->
 <!ELEMENT InputPortList (PortDecl*)>
@@ -37,7 +77,7 @@
 <!ENTITY % expression "ExprApplication, ExprBinaryOp, ExprField, ExprIf, ExprIndexer, ExprInput, ExprLambda, ExprLet, ExprList, ExprLiteral, ExprMap, ExprProc, ExprSet, ExprUnaryOp, ExprVariable">
 <!ELEMENT ExprApplication (Function, ArgumentList)>
 <!ELEMENT ExprBinaryOp (OperationList, OperandList)>
-<!ELEMENT ExprField (%expression;) Field>
+<!ELEMENT ExprField (%expression; Field)>
 <!ELEMENT ExprIf (Condition, TrueExpr, ElseExpr)>
 <!ELEMENT ExprIndexer (Structure, Location)>
 <!ELEMENT ExprInput PortName>
@@ -55,7 +95,10 @@
 <!ELEMENT ExprUnaryOp (%expression;)>
 <!ATTLIST ExprVariable operation CDATA #REQUIRED>
 <!ELEMENT ExprVariable >
-<!ATTLIST ExprVariable text CDATA #REQUIRED>
+<!ATTLIST ExprVariable name CDATA #REQUIRED>
+<!ATTLIST ExprVariable isDynamic CDATA #REQUIRED>
+<!ATTLIST ExprVariable offset CDATA #REQUIRED>
+<!ATTLIST ExprVariable scope CDATA #REQUIRED>
 
 <!ELEMENT ArgumentList (%expression;*)>
 <!ELEMENT BodyExpr (%expression;)>
