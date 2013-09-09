@@ -1,0 +1,40 @@
+package net.opendf.analyze.util;
+
+import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.am.Condition;
+import net.opendf.ir.am.Instruction;
+import net.opendf.ir.am.Transition;
+import net.opendf.ir.common.DeclVar;
+import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.util.ImmutableList;
+
+public interface ActorMachineTraverser<P> extends BasicTraverser<P> {
+	public void traverseActorMachine(ActorMachine actorMachine, P param);
+
+	public void traverseScopes(ImmutableList<ImmutableList<DeclVar>> scopes, P param);
+
+	public void traverseScope(ImmutableList<DeclVar> scope, P param);
+
+	public void traverseTransitions(ImmutableList<Transition> transitions, P param);
+
+	public void traverseTransition(Transition transition, P param);
+
+	public void traverseConditions(ImmutableList<Condition> conditions, P param);
+
+	public void traverseCondition(Condition condition, P param);
+
+	public void traverseController(ImmutableList<ImmutableList<Instruction>> controller, P param);
+
+	public void traverseControllerState(ImmutableList<Instruction> state, P param);
+
+	public void traverseInstruction(Instruction instr, P param);
+
+	public void traverseInputPorts(ImmutableList<PortDecl> inputPorts, P param);
+
+	public void traverseInputPort(PortDecl inputPort, P param);
+
+	public void traverseOutputPorts(ImmutableList<PortDecl> outputPorts, P param);
+
+	public void traverseOutputPort(PortDecl outputPort, P param);
+
+}
