@@ -686,14 +686,14 @@ public class CalParser extends Parser {
 			case 38: // token_name_list = IDENTIFIER.ID
 			{
 					final Symbol ID = _symbols[offset + 1];
-					 return new Symbol(ImmutableList.builder().add(ID.value));
+					 return new Symbol(ImmutableList.builder().add(new DeclVar(null, (String) ID.value, null)));
 			}
 			case 39: // token_name_list = token_name_list.l COMMA IDENTIFIER.ID
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol ID = _symbols[offset + 3];
-					 l.add(ID.value); return _symbol_l;
+					 l.add(new DeclVar(null, (String) ID.value, null)); return _symbol_l;
 			}
 			case 40: // channel_selector = AT expression.e
 			{
