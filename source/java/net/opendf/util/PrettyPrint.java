@@ -270,10 +270,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			}
 			// sequence of token names
 			String varSep = "[";
-			for(String var : p.getVariables()){
+			for(DeclVar var : p.getVariables()){
 				out.append(varSep);
 				varSep = ", ";
-				out.append(var);
+				out.append(var.getName());
 			}
 			out.append("]");
 		}

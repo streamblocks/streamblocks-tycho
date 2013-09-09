@@ -2,38 +2,32 @@ package net.opendf.transform.caltoam;
 
 import java.util.BitSet;
 
-import net.opendf.transform.caltoam.util.IntDAG;
+import net.opendf.util.DAG;
 
 class PriorityHandler {
-	private IntDAG priorities;
+	private DAG priorities;
 
-	private PriorityHandler(IntDAG priorities) {
+	private PriorityHandler(DAG priorities) {
 		this.priorities = priorities;
 	}
 
 	public void keepHighestPrio(BitSet actions) {
-		priorities.keepRoots(actions);
+		priorities.keepLeavesOf(actions);
 	}
 
 	public static class Builder {
-		private IntDAG priorities;
-		private boolean built;
+		private DAG.Builder priorities;
 
 		public Builder(int nbrOfActions) {
-			priorities = new IntDAG(nbrOfActions);
-			built = false;
+			priorities = new DAG.Builder(nbrOfActions);
 		}
 
 		public void addPriority(int high, int low) {
-			if (built) {
-				throw new IllegalStateException("Already built");
-			}
-			priorities.addEdge(high, low);
+			priorities.addArc(low, high);
 		}
 
 		public PriorityHandler build() {
-			built = true;
-			return new PriorityHandler(priorities);
+			return new PriorityHandler(priorities.build());
 		}
 	}
 }

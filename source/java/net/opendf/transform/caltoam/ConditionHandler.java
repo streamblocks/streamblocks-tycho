@@ -10,14 +10,14 @@ import java.util.Map;
 import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.transform.caltoam.ActorStates.State;
 import net.opendf.transform.caltoam.util.BitSets;
-import net.opendf.transform.caltoam.util.IntDAG;
 import net.opendf.transform.caltoam.util.TestResult;
+import net.opendf.util.DAG;
 
 class ConditionHandler {
-	private IntDAG dependencies;
+	private DAG dependencies;
 	private BitSet[] actionConditions;
 
-	private ConditionHandler(BitSet[] actionConditions, IntDAG dependencies) {
+	private ConditionHandler(BitSet[] actionConditions, DAG dependencies) {
 		this.actionConditions = actionConditions;
 		this.dependencies = dependencies;
 	}
@@ -59,7 +59,7 @@ class ConditionHandler {
 			case True:
 			}
 		}
-		dependencies.keepRoots(conds);
+		dependencies.keepLeavesOf(conds);
 		return conds;
 	}
 
@@ -138,7 +138,7 @@ class ConditionHandler {
 		}
 		
 		public void addDependency(int required, int condition) {
-			deps.add(ImmutableEntry.of(required, condition));
+			deps.add(ImmutableEntry.of(condition, required));
 		}
 		
 		public ConditionHandler build() {
@@ -150,11 +150,11 @@ class ConditionHandler {
 					actionConditions[i].or(c);
 				}
 			}
-			IntDAG dependencies = new IntDAG(nbrOfConds);
+			DAG.Builder dependencies = new DAG.Builder(nbrOfConds);
 			for (Map.Entry<Integer, Integer> entry : deps) {
-				dependencies.addEdge(entry.getKey(), entry.getValue());
+				dependencies.addArc(entry.getKey(), entry.getValue());
 			}
-			return new ConditionHandler(actionConditions, dependencies);
+			return new ConditionHandler(actionConditions, dependencies.build());
 		}
 	}
 
