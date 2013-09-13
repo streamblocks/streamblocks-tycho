@@ -49,7 +49,7 @@ public class ExprVariable extends Expression {
 		this(null, var);
 	}
 
-	private ExprVariable(ExprVariable original, Variable var) {
+	protected ExprVariable(ExprVariable original, Variable var) {
 		super(original);
 		this.var = var;
 	}

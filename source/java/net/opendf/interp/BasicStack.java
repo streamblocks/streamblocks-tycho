@@ -31,6 +31,7 @@ public class BasicStack implements Stack {
 			stack[next] = new BasicRef();
 			closure.clear(next);
 		}
+//        System.out.println("pop " + stack[next]);
 		return stack[next];
 	}
 
@@ -45,6 +46,7 @@ public class BasicStack implements Stack {
 
 	@Override
 	public void push(RefView r) {
+//		System.out.println("push " + r);
 		r.assignTo(stack[next++]);
 	}
 
@@ -61,6 +63,11 @@ public class BasicStack implements Stack {
 	@Override
 	public Ref peek(int i) {
 		return stack[next - i - 1];
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return next==0;
 	}
 
 	@Override

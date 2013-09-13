@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import beaver.Scanner;
-
-import net.opendf.interp.preprocess.SetVariablePositions;
+import net.opendf.interp.BasicSimulator;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.net.ast.EntityNameBinding;
@@ -105,7 +104,6 @@ public class Parse{
 				// replace BinOp and Unary Op with function calls
 				ActorOpTransformer transformer = new ActorOpTransformer();
 				actor = transformer.transformActor(actor);
-
 				if(am){
 					// chose policy for selecting Actor Machine instructions
 					List<InstructionFilterFactory<State>> filters = new ArrayList<InstructionFilterFactory<State>>();
@@ -115,14 +113,28 @@ public class Parse{
 					filters.add(f);
 					ActorToActorMachine trans = new ActorToActorMachine(filters);
 					ActorMachine theAM = trans.translate(actor);
-					// calculate the stack and heap sizes
-					SetVariablePositions setVarPos = new SetVariablePositions();
-					int memPos = setVarPos.setVariablePositions(theAM);
 
+					theAM = BasicSimulator.prepareActorMachine(theAM);
 					
 					if(xml){
 						XMLWriter doc = new XMLWriter(theAM);
-						doc.print();
+						String xmlString = doc.toString();
+
+						System.out.println(xmlString);
+				        
+				        // convert to JSON
+						// JSON package from http://www.json.org https://github.com/douglascrockford/JSON-java
+						/*
+						try {
+				        	int PRETTY_PRINT_INDENT_FACTOR = 2;
+				        	org.json.JSONObject xmlJSONObj = org.json.XML.toJSONObject(xmlString);
+				            String jsonPrettyPrintString = xmlJSONObj.toString(PRETTY_PRINT_INDENT_FACTOR);
+				            System.out.println(jsonPrettyPrintString);
+				        } catch (org.json.JSONException je) {
+				            System.out.println(je.toString());
+				        }
+				        */
+				        
 					}
 				}
 				else if(xml){

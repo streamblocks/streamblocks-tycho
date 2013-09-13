@@ -13,27 +13,27 @@ public class Predef {
 	static {
 		
 		
-		predef.put("+", ConstRef.of(new IntFunctions.Add()));
-		predef.put("-", ConstRef.of(new IntFunctions.Sub()));
-		predef.put("*", ConstRef.of(new IntFunctions.Mul()));
+		predef.put("$BinaryOperation.+", ConstRef.of(new IntFunctions.Add()));
+		predef.put("$BinaryOperation.-", ConstRef.of(new IntFunctions.Sub()));
+		predef.put("$BinaryOperation.*", ConstRef.of(new IntFunctions.Mul()));
 
-		predef.put("bitor", ConstRef.of(new IntFunctions.BitOr()));
-		predef.put("bitand", ConstRef.of(new IntFunctions.BitAnd()));
-		predef.put("rshift", ConstRef.of(new IntFunctions.RightShiftSignExt()));
-		predef.put("lshift", ConstRef.of(new IntFunctions.LeftShift()));
+		predef.put("$BinaryOperation.bitor", ConstRef.of(new IntFunctions.BitOr()));
+		predef.put("$BinaryOperation.bitand", ConstRef.of(new IntFunctions.BitAnd()));
+		predef.put("$BinaryOperation.rshift", ConstRef.of(new IntFunctions.RightShiftSignExt()));
+		predef.put("$BinaryOperation.lshift", ConstRef.of(new IntFunctions.LeftShift()));
 
-		predef.put("<", ConstRef.of(new IntFunctions.LT()));
-		predef.put("<=", ConstRef.of(new IntFunctions.LE()));
-		predef.put(">", ConstRef.of(new IntFunctions.GT()));
-		predef.put(">=", ConstRef.of(new IntFunctions.GE()));
-		predef.put("=", ConstRef.of(new IntFunctions.EQ()));
-		predef.put("!=", ConstRef.of(new IntFunctions.NE()));
+		predef.put("$BinaryOperation.<", ConstRef.of(new IntFunctions.LT()));
+		predef.put("$BinaryOperation.<=", ConstRef.of(new IntFunctions.LE()));
+		predef.put("$BinaryOperation.>", ConstRef.of(new IntFunctions.GT()));
+		predef.put("$BinaryOperation.>=", ConstRef.of(new IntFunctions.GE()));
+		predef.put("$BinaryOperation.=", ConstRef.of(new IntFunctions.EQ()));
+		predef.put("$BinaryOperation.!=", ConstRef.of(new IntFunctions.NE()));
 
-		predef.put("and", ConstRef.of(new BoolFunctions.And()));
-		predef.put("or", ConstRef.of(new BoolFunctions.Or()));
-		predef.put("not", ConstRef.of(new BoolFunctions.Not()));
+		predef.put("$BinaryOperation.and", ConstRef.of(new BoolFunctions.And()));
+		predef.put("$BinaryOperation.or", ConstRef.of(new BoolFunctions.Or()));
+		predef.put("$BinaryOperation.not", ConstRef.of(new BoolFunctions.Not()));
 		
-		predef.put("Integers", ConstRef.of(new CollFunctions.IntegerRange()));
+		predef.put("$BinaryOperation...", ConstRef.of(new CollFunctions.IntegerRange()));
 		
 		predef = Collections.unmodifiableMap(predef);
 	}

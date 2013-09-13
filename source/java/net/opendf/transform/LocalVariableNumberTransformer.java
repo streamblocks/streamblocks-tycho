@@ -3,6 +3,7 @@ package net.opendf.transform;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLambda;
 import net.opendf.ir.common.ExprLet;
@@ -12,10 +13,14 @@ import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.Statement;
 import net.opendf.ir.common.StmtBlock;
 import net.opendf.ir.common.Variable;
-import net.opendf.transform.util.AbstractBasicTransformer;
+import net.opendf.transform.util.AbstractActorMachineTransformer;
 
 public class LocalVariableNumberTransformer extends
-		AbstractBasicTransformer<LocalVariableNumberTransformer.LookupTable> {
+AbstractActorMachineTransformer<LocalVariableNumberTransformer.LookupTable> {
+
+	public ActorMachine transformActorMachine(ActorMachine actorMachine){
+		return transformActorMachine(actorMachine, new LocalVariableNumberTransformer.LookupTable());
+	}
 
 	public LookupTable lookupTable() {
 		return new LookupTable();

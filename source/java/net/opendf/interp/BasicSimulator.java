@@ -4,6 +4,9 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.opendf.analyze.util.AbstractBasicTraverser;
+import net.opendf.interp.preprocess.EvaluateLiteralsTransformer;
+import net.opendf.interp.preprocess.MemoryLayoutTransformer;
 import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.am.ActorMachine;
@@ -21,7 +24,6 @@ import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprVariable;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.util.BasicExpressionTraverser;
 import net.opendf.ir.util.ImmutableList;
 
 public class BasicSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
@@ -38,6 +40,17 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 
 	private int state;
 
+	public static ActorMachine prepareActorMachine(ActorMachine actorMachine){
+		// memory layout (stack offset)
+		MemoryLayoutTransformer t = new MemoryLayoutTransformer();
+		actorMachine = t.transformActorMachine(actorMachine);
+		
+		EvaluateLiteralsTransformer t2 = new EvaluateLiteralsTransformer();
+		actorMachine = t2.transformActorMachine(actorMachine);
+
+		return actorMachine;
+	}
+	
 	public BasicSimulator(ActorMachine actorMachine, Environment environment, Interpreter interpreter) {
 		this.actorMachine = actorMachine;
 		this.environment = environment;
@@ -78,6 +91,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		while (!done) {
 			i = actorMachine.getInstructions(state).get(0);
 			state = i.accept(this, environment);
+			assert interpreter.getStack().isEmpty();
 			if (i instanceof ICall || i instanceof IWait) {
 				done = true;
 			}
@@ -85,7 +99,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		return i instanceof ICall;
 	}
 
-	private class FindRequiredScopes extends BasicExpressionTraverser<BitSet>{
+	private class FindRequiredScopes extends AbstractBasicTraverser<BitSet>{
 		@Override
 		public Void visitExprVariable(ExprVariable e, BitSet p) {
 			Variable var = e.getVariable();

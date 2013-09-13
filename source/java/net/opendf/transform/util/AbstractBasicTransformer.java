@@ -62,10 +62,10 @@ import net.opendf.ir.util.ImmutableList;
  * @param <P>
  */
 public class AbstractBasicTransformer<P> implements
-		BasicTransformer<P>,
-		StatementVisitor<Statement, P>,
-		ExpressionVisitor<Expression, P>,
-		LValueVisitor<LValue, P> {
+BasicTransformer<P>,
+StatementVisitor<Statement, P>,
+ExpressionVisitor<Expression, P>,
+LValueVisitor<LValue, P> {
 
 	private static final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
@@ -282,11 +282,18 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public Expression visitExprInput(ExprInput e, P p) {
-		return e.copy(
-				transformPort(e.getPort(), p),
-				e.getOffset(),
-				e.getRepeat(),
-				e.getPatternLength());
+		if(e.hasRepeat()){
+			return e.copy(
+					transformPort(e.getPort(), p),
+					e.getOffset(),
+					e.getRepeat(),
+					e.getPatternLength());
+
+		} else {
+			return e.copy(
+					transformPort(e.getPort(), p),
+					e.getOffset());
+		}
 	}
 
 	@Override
@@ -383,7 +390,11 @@ public class AbstractBasicTransformer<P> implements
 
 	@Override
 	public Statement visitStmtOutput(StmtOutput s, P p) {
-		return s.copy(transformExpressions(s.getValues(), p), transformPort(s.getPort(), p), s.getRepeat());
+		if(s.hasRepeat()){
+			return s.copy(transformExpressions(s.getValues(), p), transformPort(s.getPort(), p), s.getRepeat());
+		} else {
+			return s.copy(transformExpressions(s.getValues(), p), transformPort(s.getPort(), p));			
+		}
 	}
 
 	@Override

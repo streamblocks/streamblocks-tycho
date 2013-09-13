@@ -33,10 +33,16 @@ public class ExprInput extends Expression {
 	// Ctor
 	//
 
+	/**
+	 * Create a port with hasRepeat==false
+	 */
 	public ExprInput(Port port, int offset) {
 		this(null, port, offset, false, -1, -1);
 	}
 
+	/**
+	 * Create a port with hasRepeat==true
+	 */
 	public ExprInput(Port port, int offset, int repeat, int patternLength) {
 		this(null, port, offset, true, repeat, patternLength);
 	}
@@ -50,6 +56,9 @@ public class ExprInput extends Expression {
 		this.patternLength = patternLength;
 	}
 
+	/**
+	 * Create a port with hasRepeat==false
+	 */
 	public ExprInput copy(Port port, int offset) {
 		if (!hasRepeat() && Objects.equals(this.port, port) && this.offset == offset) {
 			return this;
@@ -57,6 +66,9 @@ public class ExprInput extends Expression {
 		return new ExprInput(this, port, offset, false, -1, -1);
 	}
 
+	/**
+	 * Create a port with hasRepeat==true
+	 */
 	public ExprInput copy(Port port, int offset, int repeat, int patternLength) {
 		if (hasRepeat() && Objects.equals(this.port, port) && this.offset == offset && this.repeat == repeat
 				&& this.patternLength == patternLength) {

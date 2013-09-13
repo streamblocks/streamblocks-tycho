@@ -8,6 +8,7 @@ package net.opendf.util;
  *  Currently only expressions are exported.
  **/
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	public void print(){
         try {
         	OutputFormat format = new OutputFormat(doc);
-        	format.setLineWidth(65);
+        	format.setLineWidth(80);
         	format.setIndenting(true);
         	format.setIndent(2);
         	XMLSerializer serializer = new XMLSerializer(out, format);
@@ -62,6 +63,20 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
         } catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	public String toString(){
+    	ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+        	OutputFormat format = new OutputFormat(doc);
+        	format.setLineWidth(80);
+        	format.setIndenting(true);
+        	format.setIndent(2);
+        	XMLSerializer serializer = new XMLSerializer(out, format);
+        	serializer.serialize(doc);
+        } catch (IOException e) {
+			e.printStackTrace();
+		}
+        return out.toString();
 	}
 	public XMLWriter(NetworkDefinition network){
 		try{
@@ -504,7 +519,6 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		Element body = doc.createElement("BodyExpr");
 		top.appendChild(body);
 		e.getBody().accept(this, body);
-		out.append(" endlet");
 		return null;
 	}
 	@Override
@@ -519,6 +533,11 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	@Override
 	public Void visitExprLiteral(ExprLiteral e, Element p) {
 		Element litteralElement = doc.createElement("ExprLiteral");
+		if(e instanceof net.opendf.interp.values.ExprValue){
+			litteralElement = doc.createElement("ExprValue");
+		} else {
+			litteralElement = doc.createElement("ExprLiteral");
+		}
 		litteralElement.setAttribute("text", e.getText());
 		p.appendChild(litteralElement);
 		return null;

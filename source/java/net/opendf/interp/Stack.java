@@ -14,8 +14,14 @@ public interface Stack {
 	
 	public void alloca(int n);
 
+/**
+ * @param i , 0 = top of stack
+ * @return
+ */
 	public Ref peek(int i);
 
 	public Ref[] closure(int[] select);
+
+	public boolean isEmpty();
 
 }

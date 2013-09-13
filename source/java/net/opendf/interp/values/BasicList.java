@@ -16,6 +16,9 @@ public class BasicList implements List {
 
 	@Override
 	public void get(int i, Ref r) {
+		if(i>=0 || i<list.size()){
+			throw new RuntimeException("CAL runtime exception: net.opendf.interp.values.BasicList IndexOutOfBoundsException: Index=" + i + ", Size=" + list.size());
+		}
 		list.get(i).assignTo(r);
 	}
 
@@ -36,6 +39,18 @@ public class BasicList implements List {
 		return b.build();
 	}
 	
+	@Override
+	public String toString(){
+		StringBuffer sb = new StringBuffer("[");
+		String sep = "";
+		for(BasicRef v : list){
+			sb.append(sep);
+			sep = ", ";
+			sb.append(v.toString());
+		}
+		sb.append("]");
+		return sb.toString();
+	}
 	private class Iterator implements net.opendf.interp.values.Iterator {
 		private int index = 0;
 

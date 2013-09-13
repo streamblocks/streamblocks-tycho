@@ -19,6 +19,11 @@ public class Range implements Collection {
 		return new RangeIterator();
 	}
 	
+	@Override
+	public String toString(){
+		return from + ".." + to;
+	}
+
 	private class RangeIterator implements Iterator {
 		private long next;
 		
@@ -60,6 +65,11 @@ public class Range implements Collection {
 		@Override
 		public void advance() {
 			next += 1;
+		}
+		
+		@Override
+		public String toString(){
+			return Long.toString(next);
 		}
 		
 	}

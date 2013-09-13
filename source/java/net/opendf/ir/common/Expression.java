@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package net.opendf.ir.common;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.IRNode;
 
 public abstract class Expression extends AbstractIRNode {
 
@@ -49,7 +50,7 @@ public abstract class Expression extends AbstractIRNode {
 		return accept(v, null);
 	}
 	
-	public Expression(Expression original) {
+	public Expression(IRNode original) {
 		super(original);
 	}
 }

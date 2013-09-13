@@ -41,6 +41,8 @@ package net.opendf.ir.common;
 
 import java.util.Objects;
 
+import net.opendf.ir.IRNode;
+
 public class ExprLiteral extends Expression {
 
 	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
@@ -65,7 +67,7 @@ public class ExprLiteral extends Expression {
 	}
 
 	/* FIXME: add some error checking here? */
-	private ExprLiteral(ExprLiteral original, Kind kind, String text) {
+	protected ExprLiteral(IRNode original, Kind kind, String text) {
 		super(original);
 		this.kind = kind;
 		this.text = text.intern();
@@ -95,7 +97,7 @@ public class ExprLiteral extends Expression {
 	private Kind kind;
 
 	public static enum Kind {
-		Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), String(null);
+		Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), String(null), Function(null);
 
 		private final String fixedText;
 		
