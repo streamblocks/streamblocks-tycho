@@ -49,7 +49,8 @@ public class BasicEnvironment implements Environment {
 		for (int i = 0; i < selectChannelOut.length; i++) {
 			cso[i] = sourceChannelsEnd[selectChannelOut[i]];
 		}
-		return new BasicEnvironment(csi, cso, mem);
+		//FIXME, closure
+		return this; //new BasicEnvironment(csi, cso, mem);
 	}
 
 }

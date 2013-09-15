@@ -67,7 +67,7 @@ public class Test {
 
 		Channel channelSource1 = new BasicChannel(3);
 		Channel channelSource2 = new BasicChannel(3);
-		Channel channelResult = new BasicChannel(3);
+		Channel channelResult = new BasicChannel(30);
 		Channel.InputEnd[] sinkChannelInputEnd = { channelResult.getInputEnd() };
 		Channel.OutputEnd sinkChannelOutputEnd = channelResult.createOutputEnd();
 		Channel.OutputEnd[] sourceChannelOutputEnd = { channelSource1.createOutputEnd(), channelSource2.createOutputEnd() };

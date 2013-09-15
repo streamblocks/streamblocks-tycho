@@ -101,10 +101,10 @@ public class Parse{
 					pp.print(actor);
 				}
 
-				// replace BinOp and Unary Op with function calls
-				ActorOpTransformer transformer = new ActorOpTransformer();
-				actor = transformer.transformActor(actor);
 				if(am){
+					ActorOpTransformer opT = new ActorOpTransformer();
+					actor = opT.transformActor(actor);
+
 					// chose policy for selecting Actor Machine instructions
 					List<InstructionFilterFactory<State>> filters = new ArrayList<InstructionFilterFactory<State>>();
 					InstructionFilterFactory<State> f = PrioritizeCallInstructions.getFactory();

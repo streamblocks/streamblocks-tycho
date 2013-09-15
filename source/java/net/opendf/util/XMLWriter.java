@@ -383,7 +383,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		p.appendChild(varElem);
 		varElem.setAttribute("name", var.getName());
 		if(var.isDynamic()){
-			varElem.setAttribute("level", Integer.toString(var.getScope()));
+			varElem.setAttribute("scope", Integer.toString(var.getScope()));
 		}
 		if(var.hasLocation()){
 			varElem.setAttribute("offset", Integer.toString(var.getOffset()));

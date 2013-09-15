@@ -2,9 +2,7 @@ package net.opendf.interp.preprocess;
 
 import java.util.Stack;
 
-import net.opendf.interp.Environment;
-import net.opendf.interp.values.BasicList;
-import net.opendf.interp.values.RefView;
+import net.opendf.interp.GeneratorFilterHelper;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprApplication;
@@ -17,6 +15,7 @@ import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.Statement;
 import net.opendf.ir.common.StmtBlock;
+import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.transform.util.AbstractActorMachineTransformer;
@@ -72,9 +71,8 @@ AbstractActorMachineTransformer<Stack<String>> {
 		ImmutableList.Builder<DeclVar> builder = ImmutableList.builder();
 
 		for (DeclVar decl : let.getVarDecls()) {
-			if(decl.getInitialValue() != null){
-				builder.add(transformVarDecl(decl, stack));
-			} else{
+			builder.add(transformVarDecl(decl, stack));
+			if(decl.getInitialValue() == null){
 				error(decl, "local variable " + decl.getName() + " in let expression do not have any initialization");
 			}
 			stack.push(decl.getName());
@@ -99,36 +97,17 @@ AbstractActorMachineTransformer<Stack<String>> {
 	}
 
 	@Override
-	public Expression visitExprList(ExprList expr, Stack<String> stack) {
-		ImmutableList.Builder<GeneratorFilter> generatorBuilder = ImmutableList.builder();
-		for(GeneratorFilter gen : expr.getGenerators()){
-			// first evaluate all values this generator should iterate over. At this point the local names are not visible
-			Expression collectionExpr = transformExpression(gen.getCollectionExpr(), stack);
-			// introduce all local names by pushing the values to the stack
-			for(DeclVar decl : gen.getVariables()){
-				assert decl.getInitialValue() == null;  // initial value is not allowed, the generator creates the values
-				stack.push(decl.getName());
+	public Expression visitExprList(final ExprList expr, final Stack<String> stack) {
+		final ImmutableList.Builder<Expression> elementBuilder = ImmutableList.builder();
+		Runnable buildList = new Runnable() {
+			public void run() {
+				for(Expression element : expr.getElements()){
+					elementBuilder.add(transformExpression(element, stack));
+				}
 			}
-			// evaluate the filters
-			ImmutableList.Builder<Expression> filterBuilder = ImmutableList.builder();
-			for(Expression filter : gen.getFilters()){
-				filterBuilder.add(transformExpression(filter, stack));
-			}
-			// now all offsets for named accesses in this generator has been computed
-			generatorBuilder.add(gen.copy(gen.getVariables(), collectionExpr, filterBuilder.build()));
-		}
-		ImmutableList.Builder<Expression> elementBuilder = ImmutableList.builder();			
-		for(Expression element : expr.getElements()){
-			elementBuilder.add(transformExpression(element, stack));
-		}
-		// pop the local names from the stack
-		for(GeneratorFilter gen : expr.getGenerators()){
-			for(int i=gen.getVariables().size(); i>0; i--){
-				stack.pop();
-			}
-		}
-
-		return expr.copy(elementBuilder.build(), generatorBuilder.build());
+		};
+		ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.memoryLayout(expr.getGenerators(), buildList, stack, this);
+		return expr.copy(elementBuilder.build(), transformedGenerators);
 	}
 
 	@Override
@@ -145,13 +124,26 @@ AbstractActorMachineTransformer<Stack<String>> {
 	public Statement visitStmtBlock(StmtBlock block, Stack<String> stack) {
 		ImmutableList.Builder<DeclVar> builderVar = ImmutableList.builder();
 		for (DeclVar decl : block.getVarDecls()) {
-			if(decl.getInitialValue() != null){
-				builderVar.add(transformVarDecl(decl, stack));
-			}
+			builderVar.add(transformVarDecl(decl, stack));
 			stack.push(decl.getName());
 		}
+		ImmutableList<Statement> stmts = transformStatements(block.getStatements(), stack);
+		for(int i=block.getVarDecls().size(); i>0; i--){
+			stack.pop();
+		}
 		return block.copy(transformTypeDecls(block.getTypeDecls(), stack), 
-				          builderVar.build(),
-				          transformStatements(block.getStatements(), stack));
+				          builderVar.build(), stmts);
+	}
+	
+	@Override
+	public Statement visitStmtForeach(final StmtForeach stmt, final Stack<String> stack) {
+		final Statement[] body = new Statement[1];
+		Runnable transformer = new Runnable() {
+			public void run() {
+				body[0] = transformStatement(stmt.getBody(), stack);
+			}
+		};
+		ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.memoryLayout(stmt.getGenerators(), transformer, stack, this);
+		return stmt.copy(transformedGenerators, body[0]);
 	}
 }

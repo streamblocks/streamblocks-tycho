@@ -5,7 +5,6 @@ import net.opendf.interp.values.List;
 import net.opendf.interp.values.Procedure;
 import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
-import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.LValueField;
@@ -31,12 +30,14 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	private final TypeConverter conv;
 	private final Stack stack;
 	private final GeneratorFilterHelper gen;
+	private final TypeConverter converter;
 
 	public StatementExecutor(Interpreter interpreter) {
 		this.interpreter = interpreter;
 		this.conv = TypeConverter.getInstance();
 		this.stack = interpreter.getStack();
 		this.gen = new GeneratorFilterHelper(interpreter);
+		this.converter = TypeConverter.getInstance();
 	}
 
 	private void execute(Statement stmt, Environment env) {
@@ -58,10 +59,13 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	@Override
 	public Ref visitLValueVariable(LValueVariable lvalue, Environment env) {
 		Variable var = lvalue.getVariable();
+		if(!var.hasLocation()){
+			throw new net.opendf.interp.exception.CALRuntimeException("Unknown name at lhs of assignment: " + var.getName());
+		}
 		if(var.isStatic()){
 			return env.getMemory().get(var);
 		} else {
-			throw new UnsupportedOperationException();
+			return stack.peek(var.getOffset());
 		}
 	}
 
@@ -70,8 +74,11 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	 */
 	@Override
 	public Ref visitLValueIndexer(LValueIndexer lvalue, Environment env) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		RefView index = interpreter.evaluate(lvalue.getIndex(), env);
+		int i = converter.getInt(index);
+		Ref structure = lvalue.getStructure().accept(this, env);
+		List l = converter.getList(structure);
+		return l.getRef(i);
 	}
 
 	/**
@@ -80,7 +87,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	@Override
 	public Ref visitLValueField(LValueField lvalue, Environment env) {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("field at lhs of assignment");
 	}
 
 	@Override
@@ -92,17 +99,20 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 
 	@Override
 	public Void visitStmtBlock(StmtBlock stmt, Environment env) {
-		int stackAllocs = 0;
-		for (DeclType d : stmt.getTypeDecls()) {
-//			stackAllocs += interpreter.declare(d, env);
+		if(!stmt.getTypeDecls().isEmpty()) {
+			throw new UnsupportedOperationException();
 		}
 		for (DeclVar d : stmt.getVarDecls()) {
-///			stackAllocs += interpreter.declare(d, env);
+			if(d.getInitialValue() != null){
+				stack.push(interpreter.evaluate(d.getInitialValue(), env));				
+			} else {
+				stack.push();
+			}
 		}
 		for (Statement s : stmt.getStatements()) {
 			execute(s, env);
 		}
-//		stack.remove(stackAllocs);
+		stack.remove(stmt.getVarDecls().size());
 		return null;
 	}
 
@@ -126,7 +136,9 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 		for (Expression arg : argExprs) {
 			stack.push(interpreter.evaluate(arg, env));
 		}
+		//TODO, closure
 		p.exec(interpreter);
+		stack.remove(stmt.getArgs().size());
 		return null;
 	}
 
@@ -168,7 +180,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 				execute(stmt.getBody(), env);
 			}
 		};
-		gen.generate(stmt.getGenerators(), execStmt, env);
+		gen.interpret(stmt.getGenerators(), execStmt, env);
 		return null;
 	}
 

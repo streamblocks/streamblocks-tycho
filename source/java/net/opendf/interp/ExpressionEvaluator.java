@@ -66,13 +66,13 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprBinaryOp(ExprBinaryOp expr, Environment env) {
-		throw notTransformed();
+		throw notTransformed("ExprBinaryOp should be transformed to function call.");
 	}
 
 	@Override
 	public RefView visitExprField(ExprField e, Environment p) {
 		// TODO Auto-generated method stub
-		throw notImplemented();
+		throw notImplemented("field access");
 	}
 
 	@Override
@@ -123,7 +123,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	@Override
 	public RefView visitExprLet(ExprLet expr, Environment env) {
 		if(!expr.getTypeDecls().isEmpty()) {
-			throw notImplemented();
+			throw notImplemented("Type declrations in let expressions.");
 		}
 		//FIXME, initialize the variables in a correct order. for a=b, b=1 the order is (b, a)
 		// this assumes that the declaration are ordered in a correct evaluation order
@@ -152,7 +152,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 				}
 			}
 		};
-		generator.generate(generatorList, buildList, env);
+		generator.interpret(generatorList, buildList, env);
 	}
 
 	@Override
@@ -166,7 +166,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	@Override
 	public RefView visitExprMap(ExprMap expr, Environment env) {
 		// TODO implement
-		throw notImplemented();
+		throw notImplemented("Map Comprehension, i.e. map {a->: for a, b in {1,2,3}}");
 	}
 
 	@Override
@@ -181,12 +181,12 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	@Override
 	public RefView visitExprSet(ExprSet expr, Environment env) {
 		// TODO implement
-		throw notImplemented();
+		throw notImplemented("Set Comprehension, i.e. {2*a: for a in {1,2,3}}");
 	}
 
 	@Override
 	public RefView visitExprUnaryOp(ExprUnaryOp expr, Environment env) {
-		throw notTransformed();
+		throw notTransformed("ExprUnaryOp should be transformed to function call.");
 	}
 
 	@Override
@@ -196,25 +196,15 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 			throw notImplemented("unknown name " + var.getName());
 		}
 		RefView value;
-//System.out.print("getting " + var.getName());		
 		if (var.isDynamic())
 			value = stack.peek(var.getOffset());
 		else
 			value = env.getMemory().get(var);
-//System.out.println(", = " + value);
 		return value;
-	}
-
-	private IllegalArgumentException notTransformed() {
-		return new IllegalArgumentException("Tree not transformed");
 	}
 
 	private IllegalArgumentException notTransformed(String msg) {
 		return new IllegalArgumentException(msg);
-	}
-
-	private UnsupportedOperationException notImplemented() {
-		return notImplemented("not implemented");
 	}
 
 	private UnsupportedOperationException notImplemented(String msg) {

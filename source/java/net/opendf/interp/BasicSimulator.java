@@ -44,7 +44,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		// memory layout (stack offset)
 		MemoryLayoutTransformer t = new MemoryLayoutTransformer();
 		actorMachine = t.transformActorMachine(actorMachine);
-		
+		// replace ExprLiteral vith ExprValue
 		EvaluateLiteralsTransformer t2 = new EvaluateLiteralsTransformer();
 		actorMachine = t2.transformActorMachine(actorMachine);
 

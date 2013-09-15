@@ -2,6 +2,8 @@ package net.opendf.interp.values;
 
 import java.util.ArrayList;
 
+import net.opendf.interp.exception.CALIndexOutOfBoundsException;
+
 public class BasicList implements List {
 	private ArrayList<BasicRef> list;
 	
@@ -16,10 +18,18 @@ public class BasicList implements List {
 
 	@Override
 	public void get(int i, Ref r) {
-		if(i>=0 || i<list.size()){
-			throw new RuntimeException("CAL runtime exception: net.opendf.interp.values.BasicList IndexOutOfBoundsException: Index=" + i + ", Size=" + list.size());
+		if(i<0 || i>=list.size()){
+			throw new CALIndexOutOfBoundsException("Index=" + i + ", Size=" + list.size());
 		}
 		list.get(i).assignTo(r);
+	}
+
+	@Override
+	public Ref getRef(int i) {
+		if(i<0 || i>=list.size()){
+			throw new CALIndexOutOfBoundsException("Index=" + i + ", Size=" + list.size());
+		}
+		return list.get(i);
 	}
 
 	@Override

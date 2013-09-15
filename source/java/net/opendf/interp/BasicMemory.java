@@ -46,6 +46,7 @@ public class BasicMemory implements Memory {
 
 	@Override
 	public BasicMemory closure(int[] select, Ref[] add) {
+		/*
 		Ref[] c = new Ref[select.length + add.length];
 		int i = 0;
 		for (int index : select) {
@@ -56,6 +57,9 @@ public class BasicMemory implements Memory {
 			c[i++] = r;
 		}
 		return new BasicMemory(c);
+		*/
+		//FIXME, closure
+		return this;
 	}
 
 }

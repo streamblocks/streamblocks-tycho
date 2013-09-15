@@ -1,8 +1,10 @@
 package net.opendf.interp;
 
+import net.opendf.interp.preprocess.MemoryLayoutTransformer;
 import net.opendf.interp.values.Collection;
 import net.opendf.interp.values.Iterator;
 import net.opendf.interp.values.RefView;
+import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.util.ImmutableList;
@@ -19,16 +21,24 @@ public class GeneratorFilterHelper {
 		this.converter = TypeConverter.getInstance();
 	}
 
-	public void generate(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env) {
+	/**
+	 * Called during the interpretation of an actor machine.
+	 * Called by ExpressionEvaluator and StatementExecutor.
+	 * NOTE, the stack must be modified in the same order by both interpret() and memoryLayout()
+	 * 
+	 * @param generators
+	 * @param action
+	 * @param env
+	 */
+	public void interpret(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env) {
 		if (generators == null || generators.isEmpty()){
 			action.run();
 		} else {
-			generate(generators, action, env, 0, 0, null);
+			interpret(generators, action, env, 0, 0, null);
 		}
  	}
  
-	// NOTE, if you change here you must also change in MemoryLayoutTransformer so the stack offsets are correct!!!
-	private void generate(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env, int gen, int var, Collection coll) {
+	private void interpret(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env, int gen, int var, Collection coll) {
 		assert !generators.isEmpty();
 		if (gen == generators.size()) {
 			// all generators have given their variables values, run the body for this generator
@@ -43,7 +53,7 @@ public class GeneratorFilterHelper {
 				}
 			}
 			if (included){
-				generate(generators, action, env, gen + 1, 0, null);
+				interpret(generators, action, env, gen + 1, 0, null);
 			}
 		} else {
 			if(coll==null){
@@ -54,10 +64,54 @@ public class GeneratorFilterHelper {
 			Iterator iter = coll.iterator();
 			while (!iter.finished()) {
 				stack.push(iter);
-				generate(generators, action, env, gen, var + 1, coll);
+				interpret(generators, action, env, gen, var + 1, coll);
 				stack.pop();
 				iter.advance();
 			}
 		}
 	}
+
+	/**
+	 * Called when an actor machine is prepared for interpretation.
+	 * The purpose is to find the offset on the stack for all variables.
+	 * Called by MemoryLayoutTransformer.
+	 * NOTE, the stack must be modified in the same order by both interpret() and memoryLayout()
+	 * 
+	 * @param generators
+	 * @param action
+	 * @param stack
+	 * @param transformer
+	 * @return
+	 */
+	public static ImmutableList<GeneratorFilter> memoryLayout(ImmutableList<GeneratorFilter> generators, Runnable action, 
+			final java.util.Stack<String> stack, MemoryLayoutTransformer transformer){
+		ImmutableList.Builder<GeneratorFilter> generatorBuilder = ImmutableList.builder();
+		for(GeneratorFilter gen : generators){
+			// first evaluate all values this generator should iterate over. At this point the local names are not visible
+			Expression collectionExpr = transformer.transformExpression(gen.getCollectionExpr(), stack);
+			// introduce all local names by pushing the values to the stack
+			for(DeclVar decl : gen.getVariables()){
+				assert decl.getInitialValue() == null;  // initial value is not allowed, the generator creates the values
+				stack.push(decl.getName());
+			}
+			// evaluate the filters
+			ImmutableList.Builder<Expression> filterBuilder = ImmutableList.builder();
+			for(Expression filter : gen.getFilters()){
+				filterBuilder.add(transformer.transformExpression(filter, stack));
+			}
+			// now all offsets for named accesses in this generator has been computed
+			generatorBuilder.add(gen.copy(gen.getVariables(), collectionExpr, filterBuilder.build()));
+		}
+
+		action.run();
+
+		// pop the local names from the stack
+		for(GeneratorFilter gen : generators){
+			for(int i=gen.getVariables().size(); i>0; i--){
+				stack.pop();
+			}
+		}
+		return generatorBuilder.build();
+	}
+
 }
