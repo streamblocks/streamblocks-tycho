@@ -138,4 +138,18 @@ public class Variable extends AbstractIRNode {
 	public int getOffset() {
 		return offset;
 	}
+	
+	public String toString(){
+		String type = dynamic ? "DynVar(" : "StatVar(";
+		return type + name + ", " + scope + ", " + offset + ")";
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof Variable){
+			Variable v = (Variable)o;
+			return v.name.equals(name) && v.dynamic==dynamic && v.scope==scope && v.offset==offset;
+		}
+		return false;
+	}
 }

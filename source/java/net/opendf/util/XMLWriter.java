@@ -105,14 +105,122 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			actorElement.setAttribute("name", actor.getName());
 			//-- type/value parameters, in/out ports, type/value declarations
 			generateXMLForDeclEntity(actor, actorElement);
-
-		//--- initializers
-		//--- action
-		//--- schedule
-		//--- priorities
-		//--- invariants
+			generateXMLForActions(actor.getInitializers(), actorElement);
+			generateXMLForActions(actor.getActions(), actorElement);
+			generateXMLForSchedule(actor.getScheduleFSM(), actorElement);
+			generateXMLForPriorityList(actor.getPriorities(), actorElement);
+			generateXMLForExpressionList(actor.getInvariants(), actorElement, "InvariantList");
 		}catch(ParserConfigurationException pce){
 			pce.printStackTrace();
+		}
+	}
+	private void generateXMLForSchedule(ScheduleFSM scheduleFSM, Element p) {
+		if(scheduleFSM == null) return;
+		Element top = doc.createElement("ScheduleFSM");
+		p.appendChild(top);
+		top.setAttribute("initialState", scheduleFSM.getInitialState());
+		generateXMLForFSMTransitionList(scheduleFSM.getTransitions(), top);
+	}
+	private void generateXMLForFSMTransitionList(ImmutableList<net.opendf.ir.cal.Transition> list, Element p) {
+		Element top = doc.createElement("TransitionListFSM");
+		p.appendChild(top);
+		for(net.opendf.ir.cal.Transition t : list){
+			generateXMLForFSMTransition(t, top);
+		}
+	}
+	private void generateXMLForFSMTransition(net.opendf.ir.cal.Transition t, Element p) {
+		Element top = doc.createElement("TransitionFSM");
+		p.appendChild(top);
+		top.setAttribute("sourceState", t.getSourceState());
+		top.setAttribute("destinationState", t.getDestinationState());
+		Element actions = doc.createElement("ActionList");
+		top.appendChild(actions);
+		for(QID id:t.getActionTags()){
+			generateXMLForQID(id, actions);
+		}
+	}
+	private void generateXMLForPriorityList(
+			ImmutableList<ImmutableList<QID>> list, Element p) {
+		if(list==null || list.size()==0){ return; }
+		Element top = doc.createElement("PriorityList");
+		p.appendChild(top);
+		for(ImmutableList<QID> pri : list){
+			generateXMLForPriority(pri, top);
+		}
+	}
+	private void generateXMLForPriority(ImmutableList<QID> pri, Element p) {
+		Element top = doc.createElement("Priority");
+		p.appendChild(top);
+		for(QID id : pri){
+			generateXMLForQID(id, top);
+		}
+	}
+	private void generateXMLForActions(ImmutableList<Action> actions, Element parent) {
+		for(Action a : actions){
+			generateXMLForAction(a, parent);
+		}
+	}
+	private void generateXMLForAction(Action action, Element parent) {
+		Element top = doc.createElement("Action");
+		parent.appendChild(top);
+		if(action.getInputPatterns()==null || action.getInputPatterns().size()==0){
+			top.setAttribute("Initializer", "true");
+		}
+		generateXMLForQID(action.getTag(), top);
+		generateXMLForInputPatterns(action.getInputPatterns(), top);
+		generateXMLForDeclTypeList(action.getTypeDecls(), top);
+		generateXMLForDeclVarList(action.getVarDecls(), top);
+		generateXMLForExpressionList(action.getGuards(), top, "GuardList");
+		generateXMLForStatementList(action.getBody(), top);
+		generateXMLForOutputExpressionList(action.getOutputExpressions(), top);
+		if(action.getDelay() != null){
+			action.getDelay().accept(this, top);
+		}
+		generateXMLForExpressionList(action.getPreconditions(), top, "PreConditionList");
+		generateXMLForExpressionList(action.getPostconditions(), top, "PostConditionList");		
+	}
+	private void generateXMLForOutputExpressionList(ImmutableList<OutputExpression> outputExpressions, Element p) {
+		Element top = doc.createElement("OutputExpressionList");
+		p.appendChild(top);
+		for(OutputExpression o : outputExpressions){
+			generateXMLForOutputExpression(o, top);
+		}
+	}
+	private void generateXMLForOutputExpression(OutputExpression output, Element p) {
+		Element top = doc.createElement("OutputExpression");
+		p.appendChild(top);
+		generateXMLForPort(output.getPort(), top);
+		generateXMLForExpressionList(output.getExpressions(), top, "OutputExpressions");
+		Element rep = doc.createElement("Repeat");
+		top.appendChild(rep);
+		if(output.getRepeatExpr() != null){
+			output.getRepeatExpr().accept(this, rep);
+		}
+	}
+	private void generateXMLForInputPatterns(
+			ImmutableList<InputPattern> inputPatterns, Element p) {
+		Element top = doc.createElement("InputtPatternList");
+		p.appendChild(top);
+		for(InputPattern i : inputPatterns){
+			generateXMLForInputPattern(i, top);
+		}
+	}
+	private void generateXMLForInputPattern(InputPattern input, Element p) {
+		Element top = doc.createElement("InputPattern");
+		p.appendChild(top);
+		generateXMLForPort(input.getPort(), p);
+		generateXMLForDeclVarList(input.getVariables(), p);
+		Element rep = doc.createElement("Repeat");
+		top.appendChild(rep);
+		if(input.getRepeatExpr() != null){
+			input.getRepeatExpr().accept(this, rep);
+		}
+	}
+	private void generateXMLForQID(QID tag, Element parent) {
+		if(tag != null){
+			Element qid = doc.createElement("QID");
+			parent.appendChild(qid);
+			qid.setAttribute("name", tag.toString());
 		}
 	}
 	//-- type/value parameters, in/out ports, type/value declarations
@@ -329,11 +437,13 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	}
 	
 	private void generateXMLForPort(Port port, Element p) {
-		Element e = doc.createElement("Port");
-		p.appendChild(e);
-		e.setAttribute("name", port.getName());
-		if(port.hasLocation()){
-			e.setAttribute("offset", Integer.toString(port.getOffset()));
+		if(port != null){
+			Element e = doc.createElement("Port");
+			p.appendChild(e);
+			e.setAttribute("name", port.getName());
+			if(port.hasLocation()){
+				e.setAttribute("offset", Integer.toString(port.getOffset()));
+			}
 		}
 	}
 	private void generateXMLForParDeclValueList(List<ParDeclValue> valueParameters, Element p) {
@@ -383,6 +493,9 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		p.appendChild(varElem);
 		varElem.setAttribute("name", var.getName());
 		if(var.isDynamic()){
+			varElem.setAttribute("isDynamic", "true");
+		} else {
+			varElem.setAttribute("isDynamic", "false");
 			varElem.setAttribute("scope", Integer.toString(var.getScope()));
 		}
 		if(var.hasLocation()){
@@ -395,6 +508,17 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		fieldElem.setAttribute("name", f.getName());
 		if(f.hasOffset()){
 			fieldElem.setAttribute("offset", Integer.toString(f.getOffset()));
+		}
+	}
+	
+	private void generateXMLForFreeVariablelist(
+			ImmutableList<Variable> freeVariables, Element p) {
+		if(freeVariables != null){
+			Element top = doc.createElement("FreeVariables");
+			p.appendChild(top);
+			for(Variable v : freeVariables){
+				generateXMLForVariable(v, top);
+			}
 		}
 	}
 /******************************************************************************
@@ -508,6 +632,9 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		Element body = doc.createElement("BodyExpr");
 		top.appendChild(body);
 		e.getBody().accept(this, body);
+		if(e.isFreeVariablesComputed()){
+			generateXMLForFreeVariablelist(e.getFreeVariables(), top);
+		}
 		return null;
 	}
 	@Override
@@ -568,6 +695,9 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		generateXMLForParDeclValueList(e.getValueParameters(), top);
 		//TODO type parameters
 		generateXMLForStatement(e.getBody(), top, "BodyStmt");
+		if(e.isFreeVariablesComputed()){
+			generateXMLForFreeVariablelist(e.getFreeVariables(), top);
+		}
 		return null;
 	}
 	@Override
@@ -633,6 +763,13 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 /******************************************************************************
  * Statement
  */
+	private void generateXMLForStatementList(ImmutableList<Statement> list, Element p) {
+		Element stmtElement = doc.createElement("StatementList");
+		p.appendChild(stmtElement);
+		for(Statement stmt : list){
+			stmt.accept(this, stmtElement);
+		}
+	}
 	void generateXMLForStatement(Statement s, Element p, String label) {
 		if(s != null){
 			Element top = doc.createElement(label);
@@ -656,11 +793,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		p.appendChild(top);
 		generateXMLForDeclTypeList(s.getTypeDecls(), top);
 		generateXMLForDeclVarList(s.getVarDecls(), top);
-		Element stmtElement = doc.createElement("StatementList");
-		top.appendChild(stmtElement);
-		for(Statement stmt : s.getStatements()){
-			stmt.accept(this, stmtElement);
-		}
+		generateXMLForStatementList(s.getStatements(), top);
 		return null;
 	}
 	@Override

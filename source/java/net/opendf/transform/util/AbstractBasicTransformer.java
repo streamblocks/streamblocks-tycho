@@ -47,6 +47,7 @@ import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.ImmutableList.Builder;
 
 /**
  * BasicTransformer implementation that transforms the nodes by calling the
@@ -298,11 +299,19 @@ LValueVisitor<LValue, P> {
 
 	@Override
 	public Expression visitExprLambda(ExprLambda e, P p) {
+		Builder<Variable> builder = ImmutableList.builder();
+		if(e.isFreeVariablesComputed()){
+			for(Variable v : e.getFreeVariables()){
+				builder.add(transformVariable(v, p));
+			}
+		}
 		return e.copy(
 				transformTypeParameters(e.getTypeParameters(), p),
 				transformValueParameters(e.getValueParameters(), p),
 				transformExpression(e.getBody(), p),
-				transformTypeExpr(e.getReturnType(), p));
+				transformTypeExpr(e.getReturnType(), p),
+				builder.build(),
+				e.isFreeVariablesComputed());
 	}
 
 	@Override
@@ -339,10 +348,18 @@ LValueVisitor<LValue, P> {
 
 	@Override
 	public Expression visitExprProc(ExprProc e, P p) {
+		Builder<Variable> builder = ImmutableList.builder();
+		if(e.isFreeVariablesComputed()){
+			for(Variable v : e.getFreeVariables()){
+				builder.add(transformVariable(v, p));
+			}
+		}
 		return e.copy(
 				transformTypeParameters(e.getTypeParameters(), p),
 				transformValueParameters(e.getValueParameters(), p),
-				transformStatement(e.getBody(), p));
+				transformStatement(e.getBody(), p),
+				builder.build(),
+				e.isFreeVariablesComputed());
 	}
 
 	@Override

@@ -20,7 +20,7 @@ public interface Stack {
  */
 	public Ref peek(int i);
 
-	public Ref[] closure(int[] select);
+	public Ref closure(int select);
 
 	public boolean isEmpty();
 

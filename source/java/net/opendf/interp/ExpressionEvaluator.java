@@ -113,9 +113,10 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprLambda(ExprLambda expr, Environment env) {
-		//FIXME, create the closure
-		Environment closure = env; //expr.createClosure(env, stack);
-		Function f = new LambdaFunction(expr, closure);
+		assert expr.isFreeVariablesComputed();
+		int[] noSelect = {};
+		Environment closureEnv = env.closure(noSelect, noSelect, expr.getFreeVariables(), stack);
+		Function f = new LambdaFunction(expr, closureEnv);
 		converter.setFunction(stack.push(), f);
 		return stack.pop();
 	}
@@ -123,7 +124,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	@Override
 	public RefView visitExprLet(ExprLet expr, Environment env) {
 		if(!expr.getTypeDecls().isEmpty()) {
-			throw notImplemented("Type declrations in let expressions.");
+			throw notImplemented("Type declarations in let expressions.");
 		}
 		//FIXME, initialize the variables in a correct order. for a=b, b=1 the order is (b, a)
 		// this assumes that the declaration are ordered in a correct evaluation order
@@ -171,9 +172,10 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprProc(ExprProc expr, Environment env) {
-		//FIXME create closure
-		Environment closure = env; //expr.createClosure(env, stack);
-		Procedure p = new ProcProcedure(expr, closure);
+		assert expr.isFreeVariablesComputed();
+		int[] noSelect = {};
+		Environment closureEnv = env.closure(noSelect, noSelect, expr.getFreeVariables(), stack);
+		Procedure p = new ProcProcedure(expr, closureEnv);
 		converter.setProcedure(stack.push(), p);
 		return stack.pop();
 	}

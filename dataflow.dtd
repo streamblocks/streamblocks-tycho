@@ -155,7 +155,8 @@
 <!ELEMENT LValueField %lvalue; Field>
 
 <!ELEMENT Variable>
+<!ATTLIST Variable isDynamic CDATA #REQUIRED>
 <!ATTLIST Variable name CDATA #REQUIRED>
-<!ATTLIST Variable level CDATA #IMPLIED>
+<!ATTLIST Variable scope CDATA #IMPLIED>
 <!ATTLIST Variable offset CDATA #IMPLIED>
  ]>

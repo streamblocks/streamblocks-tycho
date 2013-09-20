@@ -51,21 +51,38 @@ public class ExprProc extends Expression {
 	}
 
 	public ExprProc(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
-		this(null, typeParams, valueParams, body);
+		this(null, typeParams, valueParams, body, ImmutableList.<Variable>empty(), false);
+	}
+
+	/**
+	 * The parameter freeVariabls must have the correct set of variables, i.e. this constructor sets isFreeVariablesComputed to true.
+	 * @param typeParams
+	 * @param valueParams
+	 * @param body
+	 * @param freeVariables
+	 */
+	public ExprProc(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body, ImmutableList<Variable> freeVariables) {
+		this(null, typeParams, valueParams, body, freeVariables, true);
 	}
 	
-	private ExprProc(ExprProc original, ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+	private ExprProc(ExprProc original, ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body, 
+			         ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
 		super(original);
+		assert typeParams != null && valueParams != null && body!= null && freeVariables != null;
 		this.typeParameters = ImmutableList.copyOf(typeParams);
 		this.valueParameters = ImmutableList.copyOf(valueParams);
 		this.body = body;
+		this.freeVariables = freeVariables;
+		this.isFreeVariablesComputed = isFreeVariablesComputed;
 	}
 	
-	public ExprProc copy(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
-		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams) && Objects.equals(this.body, body)) {
+	public ExprProc copy(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body, 
+			             ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
+		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams) && Objects.equals(this.body, body)
+				 && this.isFreeVariablesComputed==isFreeVariablesComputed && Lists.equals(this.freeVariables, freeVariables)) {
 			return this;
 		}
-		return new ExprProc(this, typeParams, valueParams, body);
+		return new ExprProc(this, typeParams, valueParams, body, freeVariables, isFreeVariablesComputed);
 	}
 
 
@@ -77,11 +94,26 @@ public class ExprProc extends Expression {
 		return valueParameters;
 	}
 
+	/**
+	 * Before calling getFreeVariables() the free variables must be computed. 
+	 * @return
+	 */
+	public ImmutableList<Variable> getFreeVariables(){
+		assert isFreeVariablesComputed;
+		return freeVariables;
+	}
+
+	public boolean isFreeVariablesComputed(){
+		return isFreeVariablesComputed;
+	}
+
 	public Statement getBody() {
 		return body;
 	}
 
 	private ImmutableList<ParDeclType> typeParameters;
 	private ImmutableList<ParDeclValue> valueParameters;
+	private ImmutableList<Variable> freeVariables;
+	private boolean isFreeVariablesComputed;
 	private Statement body;
 }

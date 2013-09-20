@@ -173,6 +173,9 @@ public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, Ex
 		traverseValueParameters(e.getValueParameters(), p);
 		traverseTypeExpr(e.getReturnType(), p);
 		traverseExpression(e.getBody(), p);
+		if(e.isFreeVariablesComputed()){
+			traverseVariables(e.getFreeVariables(), p);
+		}
 		return null;
 	}
 
@@ -211,6 +214,9 @@ public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, Ex
 		traverseTypeParameters(e.getTypeParameters(), p);
 		traverseValueParameters(e.getValueParameters(), p);
 		traverseStatement(e.getBody(), p);
+		if(e.isFreeVariablesComputed()){
+			traverseVariables(e.getFreeVariables(), p);
+		}
 		return null;
 	}
 
@@ -329,6 +335,13 @@ public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, Ex
 
 	@Override
 	public void traverseVariable(Variable var, P param) {
+	}
+
+	@Override
+	public void traverseVariables(ImmutableList<Variable> varList, P param) {
+		for(Variable v : varList){
+			traverseVariable(v, param);
+		}
 	}
 
 	@Override

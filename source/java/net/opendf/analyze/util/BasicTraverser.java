@@ -47,6 +47,8 @@ public interface BasicTraverser<P> {
 
 	public void traverseVariable(Variable var, P param);
 
+	public void traverseVariables(ImmutableList<Variable> varList, P param);
+
 	public void traverseField(Field field, P param);
 
 	public void traversePort(Port port, P param);

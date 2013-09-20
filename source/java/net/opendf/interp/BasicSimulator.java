@@ -1,9 +1,12 @@
 package net.opendf.interp;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import net.opendf.analyze.memory.FreeVariablesTransformer;
 import net.opendf.analyze.util.AbstractBasicTraverser;
 import net.opendf.interp.preprocess.EvaluateLiteralsTransformer;
 import net.opendf.interp.preprocess.MemoryLayoutTransformer;
@@ -20,11 +23,18 @@ import net.opendf.ir.am.InstructionVisitor;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
 import net.opendf.ir.am.Transition;
+import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprVariable;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.transform.caltoam.ActorToActorMachine;
+import net.opendf.transform.caltoam.ActorStates.State;
+import net.opendf.transform.filter.InstructionFilterFactory;
+import net.opendf.transform.filter.PrioritizeCallInstructions;
+import net.opendf.transform.filter.SelectRandomInstruction;
+import net.opendf.transform.operators.ActorOpTransformer;
 
 public class BasicSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
 		ConditionVisitor<Boolean, Environment> {
@@ -40,11 +50,36 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 
 	private int state;
 
+	/**
+	 * Transform an Actor to an ActorMachine which is prepared for interpretation
+	 * @param actor
+	 * @return
+	 */
+	public static ActorMachine prepareActor(Actor actor){
+		actor = FreeVariablesTransformer.transformActor(actor);
+		// replace BinOp and UnaryOp in all expressions with function calls
+		ActorOpTransformer transformer = new ActorOpTransformer();
+		actor = transformer.transformActor(actor);
+
+		// translate the actor to an actor machine
+		List<InstructionFilterFactory<State>> instructionFilters = new ArrayList<InstructionFilterFactory<State>>();
+		InstructionFilterFactory<State> f = PrioritizeCallInstructions.getFactory();
+		instructionFilters.add(f);
+		f = SelectRandomInstruction.getFactory();
+		instructionFilters.add(f);
+		ActorToActorMachine trans = new ActorToActorMachine(instructionFilters);
+		ActorMachine actorMachine = trans.translate(actor);
+		
+		actorMachine = BasicSimulator.prepareActorMachine(actorMachine);
+
+		return actorMachine;
+	}
+	
 	public static ActorMachine prepareActorMachine(ActorMachine actorMachine){
 		// memory layout (stack offset)
 		MemoryLayoutTransformer t = new MemoryLayoutTransformer();
 		actorMachine = t.transformActorMachine(actorMachine);
-		// replace ExprLiteral vith ExprValue
+		// replace ExprLiteral with ExprValue
 		EvaluateLiteralsTransformer t2 = new EvaluateLiteralsTransformer();
 		actorMachine = t2.transformActorMachine(actorMachine);
 

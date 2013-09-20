@@ -588,7 +588,7 @@ invariant =
 //--- Schedule ----------------------------------------------------------------
 schedule =
     SCHEDULE FSM? IDENTIFIER.ID COLON fsm_state_transitions.trans* end_schedule 
-      {:  ImmutableList.Builder tl = trans[0];
+      {:  ImmutableList.Builder tl = trans.length>0 ? trans[0] : new ImmutableList.Builder();
           for(int i=1; i<trans.length; i++){
             tl.addAll(trans[i].build());
           }

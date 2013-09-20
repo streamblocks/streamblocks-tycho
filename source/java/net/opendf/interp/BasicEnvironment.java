@@ -1,10 +1,11 @@
 package net.opendf.interp;
 
-import net.opendf.interp.values.Ref;
 import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.common.Variable;
+import net.opendf.ir.util.ImmutableList;
 
 public class BasicEnvironment implements Environment {
-	private final BasicMemory memory;
+	private final Memory memory;
 	private final Channel.InputEnd[] sinkChannelsEnd;
 	private final Channel.OutputEnd[] sourceChannelsEnd;
 
@@ -13,9 +14,14 @@ public class BasicEnvironment implements Environment {
 		this.sinkChannelsEnd = sinkChannelsEnd;
 		this.sourceChannelsEnd = sourceChannelsEnd;
 	}
+	private BasicEnvironment(Channel.InputEnd[] sinkChannelsEnds, Channel.OutputEnd[] sourceChannelsEnds, Memory mem) {
+		this.memory = mem;
+		this.sinkChannelsEnd = sinkChannelsEnds;
+		this.sourceChannelsEnd = sourceChannelsEnds;
+	}
 
 	@Override
-	public BasicMemory getMemory() {
+	public Memory getMemory() {
 		return memory;
 	}
 
@@ -39,8 +45,8 @@ public class BasicEnvironment implements Environment {
 	}
 
 	@Override
-	public BasicEnvironment closure(int[] selectChannelIn, int[] selectChannelOut, int[] selectMemory, Ref[] addRefs) {
-		BasicMemory mem = memory.closure(selectMemory, addRefs);
+	public Environment closure(int[] selectChannelIn, int[] selectChannelOut, ImmutableList<Variable> variables, Stack stack){
+		Memory mem = memory.closure(variables, stack);
 		Channel.InputEnd[] csi = new Channel.InputEnd[selectChannelIn.length];
 		Channel.OutputEnd[] cso = new Channel.OutputEnd[selectChannelOut.length];
 		for (int i = 0; i < selectChannelIn.length; i++) {
@@ -49,8 +55,7 @@ public class BasicEnvironment implements Environment {
 		for (int i = 0; i < selectChannelOut.length; i++) {
 			cso[i] = sourceChannelsEnd[selectChannelOut[i]];
 		}
-		//FIXME, closure
-		return this; //new BasicEnvironment(csi, cso, mem);
+		return new BasicEnvironment(csi, cso, mem);
 	}
 
 }

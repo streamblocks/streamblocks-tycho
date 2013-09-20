@@ -71,13 +71,9 @@ public class BasicStack implements Stack {
 	}
 
 	@Override
-	public Ref[] closure(int[] select) {
-		Ref[] c = new Ref[select.length];
-		for (int i = 0; i < select.length; i++) {
-			c[i] = peek(select[i]);
-			closure.set(i);
-		}
-		return c;
+	public Ref closure(int select) {
+		closure.set(select);
+		return peek(select);
 	}
 
 }

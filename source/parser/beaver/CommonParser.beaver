@@ -140,7 +140,7 @@ procedure_expr_body =
     LPAREN formal_parameter_list.param? RPAREN decl_block.decl? stmt_block_opt.body end_proc
       {:  return new Symbol(
             new ExprProc(
-              null, 
+              ImmutableList.<ParDeclType>empty(), 
               param==null ? ImmutableList.empty() : param.build(),
               new StmtBlock(null, decl, body)
             )
@@ -152,17 +152,17 @@ stmt_block_opt =
   ;
 lambda_expr_body =
     LPAREN formal_parameter_list.param? RPAREN expression.body end_lambda
-         {: return new Symbol(new ExprLambda(null,
+         {: return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              body,
                                              null)); :}
   | LPAREN formal_parameter_list.param? RPAREN decl_block.decl? COLON expression.body end_lambda
-         {: return new Symbol(new ExprLambda(null,
+         {: return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              new ExprLet(null, decl, body),
                                              null)); :}
   | LPAREN formal_parameter_list.param? RPAREN edge_type.t decl_block.decl? COLON expression.body end_lambda
-         {: return new Symbol(new ExprLambda(null,
+         {: return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              new ExprLet(null, decl, body),
                                              t)); :}

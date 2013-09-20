@@ -907,7 +907,7 @@ public class CalParser extends Parser {
 					final Symbol _symbol_trans = _symbols[offset + 5];
 					final ArrayList _list_trans = (ArrayList) _symbol_trans.value;
 					final ImmutableList.Builder[] trans = _list_trans == null ? new ImmutableList.Builder[0] : (ImmutableList.Builder[]) _list_trans.toArray(new ImmutableList.Builder[_list_trans.size()]);
-					  ImmutableList.Builder tl = trans[0];
+					  ImmutableList.Builder tl = trans.length>0 ? trans[0] : new ImmutableList.Builder();
           for(int i=1; i<trans.length; i++){
             tl.addAll(trans[i].build());
           }
@@ -1404,7 +1404,7 @@ public class CalParser extends Parser {
 					final ImmutableList body = (ImmutableList) _symbol_body.value;
 					  return new Symbol(
             new ExprProc(
-              null, 
+              ImmutableList.<ParDeclType>empty(), 
               param==null ? ImmutableList.empty() : param.build(),
               new StmtBlock(null, decl, body)
             )
@@ -1426,7 +1426,7 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_body = _symbols[offset + 4];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(null,
+					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              body,
                                              null));
@@ -1439,7 +1439,7 @@ public class CalParser extends Parser {
 					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 6];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(null,
+					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              new ExprLet(null, decl, body),
                                              null));
@@ -1454,7 +1454,7 @@ public class CalParser extends Parser {
 					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 7];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(null,
+					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              new ExprLet(null, decl, body),
                                              t));

@@ -3,8 +3,6 @@ package net.opendf.interp.test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import net.opendf.interp.Simulator;
 import net.opendf.interp.BasicSimulator;
@@ -18,12 +16,6 @@ import net.opendf.interp.values.ConstRef;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.parser.lth.CalParser;
-import net.opendf.transform.caltoam.ActorToActorMachine;
-import net.opendf.transform.caltoam.ActorStates.State;
-import net.opendf.transform.filter.InstructionFilterFactory;
-import net.opendf.transform.filter.PrioritizeCallInstructions;
-import net.opendf.transform.filter.SelectRandomInstruction;
-import net.opendf.transform.operators.ActorOpTransformer;
 
 public class Test {
 	public static void main(String[] args) throws FileNotFoundException {
@@ -43,9 +35,6 @@ public class Test {
 			parser.printParseProblems();
 			return;
 		}
-		// replace BinOp and UnaryOp in all expressions with function calls
-		ActorOpTransformer transformer = new ActorOpTransformer();
-		actor = transformer.transformActor(actor);
 
 //		List<Decl> actorArgs = new ArrayList<Decl>();
 		// actorArgs.add(varDecl("MAXW_IN_MB", lit(121)));
@@ -53,15 +42,7 @@ public class Test {
 		// actorArgs.add(varDecl("SAMPLE_SZ", lit(13)));
 //		Scope argScope = new Scope(ScopeKind.Persistent, actorArgs);
 
-		// translate the actor to an actor machine
-		List<InstructionFilterFactory<State>> instructionFilters = new ArrayList<InstructionFilterFactory<State>>();
-		InstructionFilterFactory<State> f = PrioritizeCallInstructions.getFactory();
-		instructionFilters.add(f);
-		f = SelectRandomInstruction.getFactory();
-		instructionFilters.add(f);
-		ActorToActorMachine trans = new ActorToActorMachine(instructionFilters);
-		ActorMachine actorMachine = trans.translate(actor);
-		actorMachine = BasicSimulator.prepareActorMachine(actorMachine);
+		ActorMachine actorMachine = BasicSimulator.prepareActor(actor);
 
 //		XMLWriter doc = new XMLWriter(actorMachine);		doc.print();
 

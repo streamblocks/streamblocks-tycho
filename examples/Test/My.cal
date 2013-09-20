@@ -1,33 +1,24 @@
 actor Empty (parA, parB) in1, in2 ==> out1:
 
-//	actorA = 0;
-	list = [1+2, 3, 6];
-	hepp = let a=3, step=10 : [[a+step, b, c] : for a, b in 1..a, a<2, for c in [a, b]] end;
+	      a := b;
+	      b := c;
+	      c := a;
+
+	list = [1, 2, 3];	
+	actorA = 1;
 	
+    function bar() : 1 end
+
+//	hepp = let a=3, step=10 : [[a+step, b, c] : for a, b in 1..a, a<2, for c in [a, b]] end;
+
 	action [tokenA], [tokenB] ==> [list]
 	var
-//	  actionA := let a=2, b=a+1 : lambda(arg) : arg + b end end
-	  actionA :=3
+	  actionA := 3
 	do
 	  list[0] := tokenA;
-	  list[1] := tokenB;
-	  begin
-	  var
-	    blockA,
-	    procedure foo(a, b)
-	    begin
-	      a := a;
-	      //blockA := a - b;
-	    end
-	  do
-	    foo(10, 5);
-	    list[2] := tokenA;
-	    
-	    foreach a, b in 0..3, a<2, for c in 1..3 do
-	      list[a] := b+c;
-	    end
-	  end
+	  list[1] := actionA;
 	end
+	
 /*
 
 	action [c] ==> [foo(c)]

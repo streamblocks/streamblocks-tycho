@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import beaver.Scanner;
+import net.opendf.analyze.memory.FreeVariablesTransformer;
 import net.opendf.interp.BasicSimulator;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
@@ -96,28 +97,17 @@ public class Parse{
 			Actor actor = parser.parse(path, fileName);
 			parser.printParseProblems();
 			if(parser.parseProblems.isEmpty()){
+				actor = FreeVariablesTransformer.transformActor(actor);
 				if(prettyPrint){
 					PrettyPrint pp = new PrettyPrint();
 					pp.print(actor);
 				}
 
 				if(am){
-					ActorOpTransformer opT = new ActorOpTransformer();
-					actor = opT.transformActor(actor);
-
-					// chose policy for selecting Actor Machine instructions
-					List<InstructionFilterFactory<State>> filters = new ArrayList<InstructionFilterFactory<State>>();
-					InstructionFilterFactory<State> f = PrioritizeCallInstructions.getFactory();
-					filters.add(f);
-					f = SelectRandomInstruction.getFactory();
-					filters.add(f);
-					ActorToActorMachine trans = new ActorToActorMachine(filters);
-					ActorMachine theAM = trans.translate(actor);
-
-					theAM = BasicSimulator.prepareActorMachine(theAM);
+					ActorMachine actorMachine = BasicSimulator.prepareActor(actor);
 					
 					if(xml){
-						XMLWriter doc = new XMLWriter(theAM);
+						XMLWriter doc = new XMLWriter(actorMachine);
 						String xmlString = doc.toString();
 
 						System.out.println(xmlString);

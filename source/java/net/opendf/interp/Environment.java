@@ -1,6 +1,7 @@
 package net.opendf.interp;
 
-import net.opendf.interp.values.Ref;
+import net.opendf.ir.common.Variable;
+import net.opendf.ir.util.ImmutableList;
 
 public interface Environment {
 	public Memory getMemory();
@@ -11,6 +12,6 @@ public interface Environment {
 	public Channel.OutputEnd getSourceChannelOutputEnd(int i);
 	public Channel.OutputEnd[] getSourceChannelOutputEnds();
 
-	public Environment closure(int[] selectChannelIn, int[] selectChannelOut, int[] selectMemory, Ref[] addRefs);
+	public Environment closure(int[] selectChannelIn, int[] selectChannelOut, ImmutableList<Variable> variables, Stack stack);
 
 }

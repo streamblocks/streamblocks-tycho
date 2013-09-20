@@ -1175,7 +1175,7 @@ public class NlParser extends Parser {
 					final ImmutableList body = (ImmutableList) _symbol_body.value;
 					  return new Symbol(
             new ExprProc(
-              null, 
+              ImmutableList.<ParDeclType>empty(), 
               param==null ? ImmutableList.empty() : param.build(),
               new StmtBlock(null, decl, body)
             )
@@ -1197,7 +1197,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_body = _symbols[offset + 4];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(null,
+					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              body,
                                              null));
@@ -1210,7 +1210,7 @@ public class NlParser extends Parser {
 					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 6];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(null,
+					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              new ExprLet(null, decl, body),
                                              null));
@@ -1225,7 +1225,7 @@ public class NlParser extends Parser {
 					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 7];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(null,
+					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              new ExprLet(null, decl, body),
                                              t));

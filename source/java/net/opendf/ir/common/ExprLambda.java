@@ -52,25 +52,42 @@ public class ExprLambda extends Expression {
 
 	public ExprLambda(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Expression body,
 			TypeExpr returnTypeExpr) {
-		this(null, typeParams, valueParams, body, returnTypeExpr);
+		this(null, typeParams, valueParams, body, returnTypeExpr, ImmutableList.<Variable>empty(), false);
+	}
+
+	/**
+	 * The parameter freeVariabls must have the correct set of variables, i.e. this constructor sets isFreeVariablesComputed to true.
+	 * @param typeParams
+	 * @param valueParams
+	 * @param body
+	 * @param freeVariables
+	 */
+
+	public ExprLambda(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Expression body,
+			TypeExpr returnTypeExpr, ImmutableList<Variable> freeVariables) {
+		this(null, typeParams, valueParams, body, returnTypeExpr, freeVariables, true);
 	}
 
 	private ExprLambda(ExprLambda original, ImmutableList<ParDeclType> typeParams,
-			ImmutableList<ParDeclValue> valueParams, Expression body, TypeExpr returnTypeExpr) {
+			ImmutableList<ParDeclValue> valueParams, Expression body, TypeExpr returnTypeExpr,
+			ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
 		super(original);
 		this.typeParameters = ImmutableList.copyOf(typeParams);
 		this.valueParameters = ImmutableList.copyOf(valueParams);
 		this.body = body;
 		this.returnTypeExpr = returnTypeExpr;
+		this.freeVariables = freeVariables;
+		this.isFreeVariablesComputed = isFreeVariablesComputed;
 	}
 
 	public ExprLambda copy(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams,
-			Expression body, TypeExpr returnTypeExpr) {
+			Expression body, TypeExpr returnTypeExpr, ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
 		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams)
-				&& Objects.equals(this.body, body) && Objects.equals(this.returnTypeExpr, returnTypeExpr)) {
+				&& Objects.equals(this.body, body) && Objects.equals(this.returnTypeExpr, returnTypeExpr)
+				&& isFreeVariablesComputed == this.isFreeVariablesComputed && Lists.equals(freeVariables, this.freeVariables)) {
 			return this;
 		}
-		return new ExprLambda(this, typeParams, valueParams, body, returnTypeExpr);
+		return new ExprLambda(this, typeParams, valueParams, body, returnTypeExpr, freeVariables, isFreeVariablesComputed);
 	}
 
 	public ImmutableList<ParDeclType> getTypeParameters() {
@@ -89,8 +106,23 @@ public class ExprLambda extends Expression {
 		return returnTypeExpr;
 	}
 
+	/**
+	 * Before calling getFreeVariables() the free variables must be computed. 
+	 * @return
+	 */
+	public ImmutableList<Variable> getFreeVariables(){
+		assert isFreeVariablesComputed;
+		return freeVariables;
+	}
+
+	public boolean isFreeVariablesComputed(){
+		return isFreeVariablesComputed;
+	}
+
 	private ImmutableList<ParDeclType> typeParameters;
 	private ImmutableList<ParDeclValue> valueParameters;
 	private Expression body;
 	private TypeExpr returnTypeExpr;
+	private ImmutableList<Variable> freeVariables;
+	private boolean isFreeVariablesComputed;
 }
