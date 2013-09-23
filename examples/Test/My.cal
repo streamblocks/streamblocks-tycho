@@ -2,7 +2,11 @@ actor Empty (parA, parB) in1, in2 ==> out1:
 
 	      a := b;
 	      b := c;
-	      c := a;
+	      c := f;
+	      f := 1;
+	      e := 1;
+	      d := 1;
+
 
 	list = [1, 2, 3];	
 	actorA = 1;
