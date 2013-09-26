@@ -1,11 +1,16 @@
 package net.opendf.analyze.memory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 
+import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.DeclVar;
@@ -126,76 +131,75 @@ public class FreeVariablesTransformer extends AbstractActorTransformer<Set<Strin
 		}
 	}
 	
-
-	private class DeclVarComparator implements Comparator<DeclVar>{
-		// for performance reason, cache the set of free variables
-		HashMap<String, Set<String>> freeVars;
-		DeclVarComparator(HashMap<String, Set<String>> freeVars){
-			this.freeVars = freeVars;
-		}
-		@Override
-		public int compare(DeclVar o1, DeclVar o2) {
-			String o1Name = o1.getName();
-			String o2Name = o2.getName();
-			Set<String> o1FreeVars = freeVars.get(o1Name);
-			Set<String> o2FreeVars = freeVars.get(o2Name);
-			assert o1FreeVars!=null && o2FreeVars!=null;
-			
-			if(o1FreeVars.contains(o2Name)){
-				// o1 depends on o2
-				/* this only detects cyclic dependencies where the cycle is of size 2
-				if(o2FreeVars.contains(o1Name)){
-					throw new CALRuntimeException("cyclic dependency when initializing variables. Names: " + o1Name + " and " + o2Name);
-				}
-				*/
-				return 1; // o1 > o2
-			} else {
-				if(o2FreeVars.contains(o1Name)){
-					// o2 depends on o1
-					return -1;
-				}
-			}
-			return o1Name.compareTo(o2Name);  // alphabetic order for unrelated variables
-		}
-		
-	}
 	@Override
-	public ImmutableList<DeclVar> transformVarDecls(ImmutableList<DeclVar> varDecls, Set<String> c) {
+	public ImmutableList<DeclVar> transformVarDecls(ImmutableList<DeclVar> varDecls, Set<String> c){
+		assert varDecls != null;
+		Set<String> allFreeVars;
 		try {
-			Set<String> allFreeVars = c.getClass().newInstance();
+			ImmutableList.Builder<DeclVar> builder = new ImmutableList.Builder<>();
+			allFreeVars = c.getClass().newInstance();
 			int size = varDecls.size();
-			HashMap<String, Set<String>> freeVars = new HashMap();
+			HashMap<String, Set<String>> freeVarsMap = new HashMap<String, Set<String>>();
 			DeclVar[] newDecls = new DeclVar[size];
+			ScheduleStatus[] status = new ScheduleStatus[size];
 			// compute the free variables for each declaration
 			for(int i=0; i<size; i++){
-				Set<String> uses = c.getClass().newInstance();
-				allFreeVars.addAll(uses);
-				newDecls[i] = transformVarDecl(varDecls.get(i), uses);
-				freeVars.put(varDecls.get(i).getName(), uses);				
+				Set<String> freeVars = c.getClass().newInstance();
+				newDecls[i] = transformVarDecl(varDecls.get(i), freeVars);
+				status[i] = ScheduleStatus.nop;
+				freeVarsMap.put(varDecls.get(i).getName(), freeVars);				
+				allFreeVars.addAll(freeVars);
 			}
-			// sort the declarations in initialization order
-			DeclVarComparator cmp = new DeclVarComparator(freeVars);
-			Arrays.sort(newDecls, cmp);
-			// check for cyclic dependencies.
+			
 			for(int i=0; i<newDecls.length; i++){
-				Set<String> dependsOn = freeVars.get(newDecls[i].getName());
-				// check if this variable is depending on any variable initialized later
-				for(int j=i; j<newDecls.length; j++){
-					if(dependsOn.contains(newDecls[j].getName())){
-						throw new CALRuntimeException("cyclic dependency when initializing variables. Dependent variables: " 
-					                                  + newDecls[i].getName() + " and " + newDecls[j].getName());						
-					}
-				}
+				scheduleDecls(i, newDecls, status, freeVarsMap, builder);
 			}
+			
 			for(DeclVar v : varDecls){
 				allFreeVars.remove(v.getName());
 			}
 			c.addAll(allFreeVars);
-			return ImmutableList.copyOf(newDecls);
+			return builder.build();
 		} catch (InstantiationException e) {
 			throw new RuntimeException(e);
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private enum ScheduleStatus{nop, Visited, Scheduled}
+
+	public void scheduleDecls(int candidateIndex, DeclVar[] decls, ScheduleStatus[] status, Map<String, Set<String>> freeVarsMap, ImmutableList.Builder<DeclVar> builder) {
+		switch(status[candidateIndex]){
+		case Visited:
+			// A variable is depending on itself. Find the variables involved in the dependency cycle
+			StringBuffer sb = new StringBuffer();
+			String sep = "";
+			for(int i=0; i<status.length; i++){
+				if(status[i]==ScheduleStatus.Visited){
+					sb.append(sep);
+					sb.append(decls[i].getName());
+					sep = ", ";
+				}
+			}
+			throw new CALCompiletimeException("Cyclic dependency when initializing variables. Dependent variables: " + sb);
+		case Scheduled:
+			return;
+		case nop :
+			DeclVar candidate = decls[candidateIndex];
+			status[candidateIndex] = ScheduleStatus.Visited;
+			for(String freeVar : freeVarsMap.get(candidate.getName())){
+				for(int i=0; i<decls.length; i++){
+					DeclVar decl = decls[i];
+					if(status[i] != ScheduleStatus.Scheduled && decl.getName().equals(freeVar)){
+						// the candidate is depending on an uninitialized variable. Initialize it first
+						scheduleDecls(i, decls, status, freeVarsMap, builder);
+					}
+				}
+			}
+			status[candidateIndex] = ScheduleStatus.Scheduled;
+			builder.add(candidate);
+			break;
 		}
 	}
 

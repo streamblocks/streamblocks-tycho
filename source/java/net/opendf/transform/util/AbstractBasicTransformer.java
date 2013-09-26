@@ -133,6 +133,7 @@ LValueVisitor<LValue, P> {
 
 	@Override
 	public DeclVar transformVarDecl(DeclVar varDecl, P param) {
+		assert varDecl != null;
 		return varDecl.copy(
 				transformTypeExpr(varDecl.getType(), param),
 				varDecl.getName(),
