@@ -6,7 +6,7 @@ import net.opendf.interp.exception.CALIndexOutOfBoundsException;
 import net.opendf.interp.values.BasicRef;
 import net.opendf.interp.values.Ref;
 import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.common.DeclVar;
+import net.opendf.ir.am.Scope;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
 
@@ -16,12 +16,12 @@ public class BasicMemory implements Memory {
 	private final BitSet[] inClosure;        // set to true if the corresponding memory cell is part of a closure
 	
 	public BasicMemory(ActorMachine actorMachine) {
-		ImmutableList<ImmutableList<DeclVar>> scopes = actorMachine.getScopes();
+		ImmutableList<Scope> scopes = actorMachine.getScopes();
 		int nbrScopes = scopes.size();
 		mem = new BasicRef[nbrScopes][];
 		inClosure = new BitSet[nbrScopes];
 		for (int i = 0; i < nbrScopes; i++) {
-			int scopeSize = scopes.get(i).size();
+			int scopeSize = scopes.get(i).getDeclarations().size();
 			mem[i] =  new BasicRef[scopeSize];
 			inClosure[i] = new BitSet(scopeSize);
 			for(int j=0; j<scopeSize; j++){

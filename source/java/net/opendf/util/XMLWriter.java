@@ -32,6 +32,8 @@ import net.opendf.ir.am.Instruction;
 import net.opendf.ir.am.InstructionVisitor;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
+import net.opendf.ir.am.Scope;
+import net.opendf.ir.am.State;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
@@ -300,29 +302,29 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			}
 		}
 	}
-	private void generateXMLForAMScopeList(ImmutableList<ImmutableList<DeclVar>> scopes, Element p) {
+	private void generateXMLForAMScopeList(ImmutableList<Scope> scopes, Element p) {
 		if(scopes != null && !scopes.isEmpty()){
 			Element top = doc.createElement("ScopeList");
 			p.appendChild(top);
 			int scopeId = 0;
-			for(ImmutableList<DeclVar> scope : scopes){
-				Element list = generateXMLForDeclVarList(scope, top, "Scope", true);
+			for(Scope scope : scopes){
+				Element list = generateXMLForDeclVarList(scope.getDeclarations(), top, "Scope", true);
 				if(list != null){
 					list.setAttribute("scopeID", Integer.toString(scopeId++));
 				}
 			}
 		}		
 	}
-	private void generateXMLForAMController(ImmutableList<ImmutableList<Instruction>> controller, Element parent) {
+	private void generateXMLForAMController(ImmutableList<State> controller, Element parent) {
 		if(controller != null && !controller.isEmpty()){
 			Element top = doc.createElement("Controller");
 			parent.appendChild(top);
 			int stateNbr = 0;
-			for(ImmutableList<Instruction> state : controller){
+			for(State state : controller){
 				Element sElem = doc.createElement("ControllerState");
 				top.appendChild(sElem);
 				sElem.setAttribute("index", Integer.toString(stateNbr));
-				for(Instruction i : state){
+				for(Instruction i : state.getInstructions()){
 					i.accept(this, sElem);
 				}
 				stateNbr++;

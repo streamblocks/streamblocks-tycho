@@ -2,8 +2,8 @@ package net.opendf.transform.util;
 
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.Condition;
+import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.util.ImmutableList;
 
@@ -19,7 +19,8 @@ public interface ActorMachineTransformer<P> extends BasicTransformer<P> {
 	public ImmutableList<PortDecl> transformOutputPorts(ImmutableList<PortDecl> port, P param);
 
 
-	ImmutableList<ImmutableList<DeclVar>> transformScopes(ImmutableList<ImmutableList<DeclVar>> scope, P param);
+	ImmutableList<Scope> transformScopes(ImmutableList<Scope> scope, P param);
+	Scope transformScope(Scope scope, P param);
 	
 	ImmutableList<Transition> transformTransitions(ImmutableList<Transition> transition, P param); 
 	Transition transformTransition(Transition transition, P param); 

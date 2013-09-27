@@ -10,8 +10,9 @@ import net.opendf.ir.am.Instruction;
 import net.opendf.ir.am.InstructionVisitor;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
+import net.opendf.ir.am.Scope;
+import net.opendf.ir.am.State;
 import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.util.ImmutableList;
 
@@ -30,15 +31,15 @@ public abstract class AbstractActorMachineTraverser<P> extends AbstractBasicTrav
 	}
 
 	@Override
-	public void traverseScopes(ImmutableList<ImmutableList<DeclVar>> scopes, P param) {
-		for (ImmutableList<DeclVar> scope : scopes) {
+	public void traverseScopes(ImmutableList<Scope> scopes, P param) {
+		for (Scope scope : scopes) {
 			traverseScope(scope, param);
 		}
 	}
 
 	@Override
-	public void traverseScope(ImmutableList<DeclVar> scope, P param) {
-		traverseVarDecls(scope, param);
+	public void traverseScope(Scope scope, P param) {
+		traverseVarDecls(scope.getDeclarations(), param);
 	}
 
 	@Override
@@ -84,15 +85,15 @@ public abstract class AbstractActorMachineTraverser<P> extends AbstractBasicTrav
 	}
 
 	@Override
-	public void traverseController(ImmutableList<ImmutableList<Instruction>> controller, P param) {
-		for (ImmutableList<Instruction> state : controller) {
+	public void traverseController(ImmutableList<State> controller, P param) {
+		for (State state : controller) {
 			traverseControllerState(state, param);
 		}
 	}
 
 	@Override
-	public void traverseControllerState(ImmutableList<Instruction> state, P param) {
-		for (Instruction instr : state) {
+	public void traverseControllerState(State state, P param) {
+		for (Instruction instr : state.getInstructions()) {
 			traverseInstruction(instr, param);
 		}
 	}

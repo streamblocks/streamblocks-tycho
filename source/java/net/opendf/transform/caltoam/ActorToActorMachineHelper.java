@@ -8,6 +8,7 @@ import java.util.Map;
 import net.opendf.ir.am.Condition;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
+import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.Action;
 import net.opendf.ir.cal.Actor;
@@ -63,7 +64,7 @@ class ActorToActorMachineHelper {
 		return getActor().getOutputPorts();
 	}
 	
-	public ImmutableList<ImmutableList<DeclVar>> getScopes() {
+	public ImmutableList<Scope> getScopes() {
 		return aveResult.scopes;
 	}
 	

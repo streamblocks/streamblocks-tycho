@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import net.opendf.ir.am.Scope;
 import net.opendf.ir.cal.Action;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.cal.InputPattern;
@@ -29,7 +30,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	public Result extractVariables(Actor actor) {
 		Variables data = new Variables();
 		Actor resultActor = transformActor(actor, data);
-		ImmutableList<ImmutableList<DeclVar>> scopes = generateScopes(resultActor);
+		ImmutableList<Scope> scopes = generateScopes(resultActor);
 		ImmutableList<Integer> transientScopes = transientScopes(resultActor);
 		return new Result(resultActor, scopes, transientScopes);
 	}
@@ -43,9 +44,9 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		return builder.build();
 	}
 
-	private ImmutableList<ImmutableList<DeclVar>> generateScopes(Actor actor) {
-		ImmutableList.Builder<ImmutableList<DeclVar>> result = ImmutableList.builder();
-		result.add(actor.getVarDecls());
+	private ImmutableList<Scope> generateScopes(Actor actor) {
+		ImmutableList.Builder<Scope> result = ImmutableList.builder();
+		result.add(new Scope(actor.getVarDecls()));
 		ImmutableList<Action> actions = ImmutableList.<Action> builder()
 				.addAll(actor.getInitializers())
 				.addAll(actor.getActions())
@@ -59,7 +60,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 				addInputVarDecls(portDecl, in, builder);
 			}
 			builder.addAll(a.getVarDecls());
-			result.add(builder.build());
+			result.add(new Scope(builder.build()));
 		}
 		return result.build();
 	}
@@ -175,10 +176,10 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 
 	public static class Result {
 		public final Actor actor;
-		public final ImmutableList<ImmutableList<DeclVar>> scopes;
+		public final ImmutableList<Scope> scopes;
 		public final ImmutableList<Integer> transientScopes;
 
-		public Result(Actor actor, ImmutableList<ImmutableList<DeclVar>> scopes,
+		public Result(Actor actor, ImmutableList<Scope> scopes,
 				ImmutableList<Integer> persistentScopes) {
 			this.actor = actor;
 			this.scopes = scopes;

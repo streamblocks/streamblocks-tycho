@@ -1,7 +1,6 @@
 package net.opendf.util;
 
 import java.io.PrintWriter;
-import java.util.List;
 
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.ICall;
@@ -9,6 +8,7 @@ import net.opendf.ir.am.ITest;
 import net.opendf.ir.am.IWait;
 import net.opendf.ir.am.Instruction;
 import net.opendf.ir.am.InstructionVisitor;
+import net.opendf.ir.am.State;
 
 public class ControllerToGraphviz {
 
@@ -34,10 +34,10 @@ public class ControllerToGraphviz {
 			printWriter.println("digraph " + name + " {");
 			currentState = 0;
 			instrCount = 0;
-			for (List<Instruction> inst : am.getController()) {
+			for (State state : am.getController()) {
 				printWriter.println("  " + currentState + " [shape=circle,style=filled];");
-				if (inst != null)
-					for (Instruction i : inst) {
+				if (state != null)
+					for (Instruction i : state.getInstructions()) {
 						i.accept(this, null);
 						instrCount++;
 					}

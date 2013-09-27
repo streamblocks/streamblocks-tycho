@@ -22,6 +22,7 @@ import net.opendf.ir.am.Instruction;
 import net.opendf.ir.am.InstructionVisitor;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
+import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.DeclVar;
@@ -92,7 +93,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		this.interpreter = interpreter;
 		this.converter = TypeConverter.getInstance();
 		this.state = 0;
-		ImmutableList<ImmutableList<DeclVar>> scopeList = actorMachine.getScopes();
+		ImmutableList<Scope> scopeList = actorMachine.getScopes();
 		int nbrScopes = scopeList.size();
 		this.liveScopes = new BitSet(nbrScopes);
 		// conditions, find the required scopes for each condition
@@ -147,13 +148,13 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 
 	
 	private void initScopes(BitSet required) {
-		ImmutableList<ImmutableList<DeclVar>> scopeList = actorMachine.getScopes();
+		ImmutableList<Scope> scopeList = actorMachine.getScopes();
 		int nbrScopes = scopeList.size();
 		//FIXME, scopes may depend on each other, ensure a correct evaluation order. The order 0..N is likely ok since the actor scope is initialized first.
 		//if the scopes are ordered Actor ..local this code works fine.
 		for(int scopeId=0; scopeId<nbrScopes; scopeId++){
 			if(required.get(scopeId) && !liveScopes.get(scopeId)){
-				ImmutableList<DeclVar> declList = scopeList.get(scopeId);
+				ImmutableList<DeclVar> declList = scopeList.get(scopeId).getDeclarations();
 				//FIXME, find a correct evaluation order, variables can be dependent on each other.
 				for(int declOffset=0; declOffset<declList.size() ; declOffset++){
 					Ref memCell = environment.getMemory().declare(scopeId, declOffset);
@@ -212,10 +213,10 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 
 	public String scopesToString(){
 		StringBuffer s = new StringBuffer();
-		ImmutableList<ImmutableList<DeclVar>> scopeList = actorMachine.getScopes();
+		ImmutableList<Scope> scopeList = actorMachine.getScopes();
 		for(int scopeId=0; scopeId<scopeList.size(); scopeId++){
 			s.append("{\n");
-			ImmutableList<DeclVar> declList = scopeList.get(scopeId);
+			ImmutableList<DeclVar> declList = scopeList.get(scopeId).getDeclarations();
 			for(int declId=0; declId<declList.size(); declId++){
 				Variable var = Variable.staticVariable(declList.get(declId).getName(), scopeId, declId);
 				s.append("  " + var.getName() + " : ");

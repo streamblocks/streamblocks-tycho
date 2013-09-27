@@ -36,20 +36,20 @@ import net.opendf.ir.util.Lists;
 
 public class ActorMachine extends AbstractIRNode implements PortContainer {
 
-	public ImmutableList<ImmutableList<Instruction>> getController() {
+	public ImmutableList<State> getController() {
 		return controller;
 	}
 
 	public ImmutableList<Instruction> getInstructions(int n) {
-		return controller.get(n);
+		return controller.get(n).getInstructions();
 	}
 
-	public ImmutableList<ImmutableList<DeclVar>> getScopes() {
+	public ImmutableList<Scope> getScopes() {
 		return scopes;
 	}
 
 	public ImmutableList<DeclVar> getScope(int i) {
-		return scopes.get(i);
+		return scopes.get(i).getDeclarations();
 	}
 
 	public ImmutableList<PortDecl> getInputPorts() {
@@ -77,14 +77,14 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 	}
 
 	public ActorMachine(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
-			ImmutableList<ImmutableList<DeclVar>> scopes, ImmutableList<ImmutableList<Instruction>> controller,
+			ImmutableList<Scope> scopes, ImmutableList<State> controller,
 			ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
 		this(null, inputPorts, outputPorts, scopes, controller, transitions, conditions);
 	}
 
 	private ActorMachine(ActorMachine original, ImmutableList<PortDecl> inputPorts,
-			ImmutableList<PortDecl> outputPorts, ImmutableList<ImmutableList<DeclVar>> scopes,
-			ImmutableList<ImmutableList<Instruction>> controller, ImmutableList<Transition> transitions,
+			ImmutableList<PortDecl> outputPorts, ImmutableList<Scope> scopes,
+			ImmutableList<State> controller, ImmutableList<Transition> transitions,
 			ImmutableList<Condition> conditions) {
 		super(original);
 		this.scopes = ImmutableList.copyOf(scopes);
@@ -96,7 +96,7 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 	}
 
 	public ActorMachine copy(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
-			ImmutableList<ImmutableList<DeclVar>> scopes, ImmutableList<ImmutableList<Instruction>> controller,
+			ImmutableList<Scope> scopes, ImmutableList<State> controller,
 			ImmutableList<Transition> transitions, ImmutableList<Condition> conditions) {
 		if (Lists.equals(this.inputPorts, inputPorts) && Lists.equals(this.outputPorts, outputPorts)
 				&& Lists.equals(this.scopes, scopes) && Lists.equals(this.controller, controller)
@@ -106,8 +106,8 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 		return new ActorMachine(this, inputPorts, outputPorts, scopes, controller, transitions, conditions);
 	}
 
-	private ImmutableList<ImmutableList<DeclVar>> scopes;
-	private ImmutableList<ImmutableList<Instruction>> controller;
+	private ImmutableList<Scope> scopes;
+	private ImmutableList<State> controller;
 	private ImmutableList<PortDecl> inputPorts;
 	private ImmutableList<PortDecl> outputPorts;
 	private ImmutableList<Transition> transitions;

@@ -7,6 +7,7 @@ import net.opendf.ir.am.Condition;
 import net.opendf.ir.am.ConditionVisitor;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
+import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.PortDecl;
@@ -19,6 +20,7 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 	private static final MethodHandle transTransition = methodHandle(AbstractActorMachineTransformer.class, Transition.class, "transformTransition");
 	private static final MethodHandle transCondition = methodHandle(AbstractActorMachineTransformer.class, Condition.class, "transformCondition");
 	private static final MethodHandle transVarDecl = methodHandle(AbstractActorMachineTransformer.class, DeclVar.class, "transformVarDecl");
+	private static final MethodHandle transScope = methodHandle(AbstractActorMachineTransformer.class, Scope.class, "transformScope");
 
 	@Override
 	public ActorMachine transformActorMachine(ActorMachine actorMachine, P param) {
@@ -53,13 +55,14 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 	}
 
 	@Override
-	public ImmutableList<ImmutableList<DeclVar>> transformScopes(
-			ImmutableList<ImmutableList<DeclVar>> scopes, P param) {
-		ImmutableList.Builder<ImmutableList<DeclVar>> builder = ImmutableList.builder();
-		for (ImmutableList<DeclVar> decl : scopes) {
-			builder.add(transformList(transVarDecl, decl, param));
-		}
-		return builder.build();
+	public ImmutableList<Scope> transformScopes(
+			ImmutableList<Scope> scopes, P param) {
+		return transformList(transScope, scopes, param);
+	}
+	
+	@Override
+	public Scope transformScope(Scope scope, P param) {
+		return scope.copy(transformList(transVarDecl, scope.getDeclarations(), param));
 	}
 
 	@Override

@@ -8,13 +8,14 @@ import java.util.Map;
 import java.util.Queue;
 
 import net.opendf.ir.am.Instruction;
+import net.opendf.ir.am.State;
 import net.opendf.ir.util.ImmutableList;
 
 public class ControllerGenerator<S> {
-	private final ImmutableList<ImmutableList<Instruction>> controller;
+	private final ImmutableList<State> controller;
 	private final ImmutableList<S> interpretation;
 
-	private ControllerGenerator(ImmutableList<ImmutableList<Instruction>> controller,
+	private ControllerGenerator(ImmutableList<State> controller,
 			ImmutableList<S> interpretation) {
 		this.controller = controller;
 		this.interpretation = interpretation;
@@ -23,7 +24,7 @@ public class ControllerGenerator<S> {
 	/**
 	 * @return the controller
 	 */
-	public ImmutableList<ImmutableList<Instruction>> getController() {
+	public ImmutableList<State> getController() {
 		return controller;
 	}
 
@@ -69,17 +70,16 @@ public class ControllerGenerator<S> {
 			}
 		}
 
-		ImmutableList.Builder<ImmutableList<Instruction>> resultBuilder = ImmutableList.builder();
+		ImmutableList.Builder<State> resultBuilder = ImmutableList.builder();
 		for (List<GenInstruction<S>> instructions : controller) {
 			ImmutableList.Builder<Instruction> stateBuilder = ImmutableList.builder();
 			for (GenInstruction<S> instruction : instructions) {
 				stateBuilder.add(instruction.generateInstruction(states));
 			}
-			ImmutableList<Instruction> state = stateBuilder.build();
+			State state = new State(stateBuilder.build());
 			resultBuilder.add(state);
-			assert instructions.size() == state.size();
 		}
-		ImmutableList<ImmutableList<Instruction>> result = resultBuilder.build();
+		ImmutableList<State> result = resultBuilder.build();
 		assert controller.size() == result.size();
 
 		return new ControllerGenerator<S>(result, interpretationBuilder.build());
