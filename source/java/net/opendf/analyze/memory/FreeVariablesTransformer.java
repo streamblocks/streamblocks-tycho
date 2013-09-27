@@ -59,7 +59,7 @@ public class FreeVariablesTransformer extends AbstractActorTransformer<Set<Strin
 			}
 			ImmutableList.Builder<Variable> builder = new ImmutableList.Builder<Variable>();
 			for(String name : freeVars){
-				builder.add(Variable.namedVariable(name));
+				builder.add(Variable.variable(name));
 			}
 			c.addAll(freeVars);
 			return lambda.copy(lambda.getTypeParameters(), lambda.getValueParameters(), body, lambda.getReturnType(), 
@@ -120,7 +120,7 @@ public class FreeVariablesTransformer extends AbstractActorTransformer<Set<Strin
 			}
 			ImmutableList.Builder<Variable> builder = new ImmutableList.Builder<Variable>();
 			for(String name : freeVars){
-				builder.add(Variable.namedVariable(name));
+				builder.add(Variable.variable(name));
 			}
 			c.addAll(freeVars);
 			return proc.copy(proc.getTypeParameters(), proc.getValueParameters(), body, builder.build(), true);

@@ -23,7 +23,7 @@ qual_id =
   | IDENTIFIER.id DOT qual_id.l       {: l.add(0, id.value); return _symbol_l; :}
   ;
 
-variable = IDENTIFIER.id {: return new Symbol(Variable.namedVariable((String) id.value)); :} ;
+variable = IDENTIFIER.id {: return new Symbol(Variable.variable((String) id.value)); :} ;
 field = IDENTIFIER.id {: return new Symbol(new Field((String) id.value)); :} ;
 
 //=== Declaration =============================================================
@@ -284,7 +284,7 @@ statement =
     expression.lhs COLONEQ expression.value SEMICOLON {: LValue lvalue = expressionToLValue(lhs);
                                                          if (lvalue != null) return new Symbol(new StmtAssignment(lvalue, value));
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
-                                                         return new Symbol(new StmtAssignment(new LValueVariable(Variable.namedVariable("$illegal")), value));
+                                                         return new Symbol(new StmtAssignment(new LValueVariable(Variable.variable("$illegal")), value));
                                                        :}
   | method_invocation.m SEMICOLON    {: return new Symbol(new StmtCall(m.getFunction(), m.getArgs())); :}
   | BEGIN statement_list_opt.s END   {: return new Symbol(new StmtBlock(null, null, s)); :}

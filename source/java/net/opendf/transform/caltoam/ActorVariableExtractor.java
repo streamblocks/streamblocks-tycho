@@ -187,16 +187,6 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		}
 	}
 
-	private static class Location {
-		public final int scope;
-		public final int offset;
-
-		public Location(int scope, int offset) {
-			this.scope = scope;
-			this.offset = offset;
-		}
-	}
-
 	private static class IntBox {
 		public int value;
 		public IntBox(int value) {
@@ -205,31 +195,28 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	}
 	
 	public static class Variables {
-		private final Map<String, Location> staticVarsMap;
+		private final Map<String, Integer> staticVarsMap;
 		private final Set<String> shaddowedVars;
 		private final boolean dynamic;
 		private final IntBox scopeNumber;
-		private int variableOffset;
 
 		public Variables() {
 			staticVarsMap = new HashMap<>();
 			shaddowedVars = new HashSet<>();
 			dynamic = false;
 			scopeNumber = new IntBox(0);
-			variableOffset = 0;
 		}
 
-		private Variables(Map<String, Location> staticVarMap, Set<String> shaddowedVars, boolean dynamic,
+		private Variables(Map<String, Integer> staticVarMap, Set<String> shaddowedVars, boolean dynamic,
 				IntBox scopeNumber) {
 			this.staticVarsMap = new HashMap<>(staticVarMap);
 			this.shaddowedVars = new HashSet<>(shaddowedVars);
 			this.dynamic = dynamic;
 			this.scopeNumber = scopeNumber;
-			this.variableOffset = 0;
 		}
 
 		public void addStaticVar(String name) {
-			staticVarsMap.put(name, new Location(scopeNumber.value, variableOffset++));
+			staticVarsMap.put(name, scopeNumber.value);
 		}
 
 		public void declare(String name) {
@@ -241,8 +228,8 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		public Variable transform(Variable var) {
 			String name = var.getName();
 			if (!shaddowedVars.contains(name) && staticVarsMap.containsKey(name)) {
-				Location loc = staticVarsMap.get(name);
-				return var.copy(name, loc.scope, loc.offset, false);
+				int scope = staticVarsMap.get(name);
+				return var.copy(name, scope);
 			}
 			return var;
 		}

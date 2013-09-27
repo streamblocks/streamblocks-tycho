@@ -866,7 +866,7 @@ public class NlParser extends Parser {
 			case 87: // variable = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(Variable.namedVariable((String) id.value));
+					 return new Symbol(Variable.variable((String) id.value));
 			}
 			case 88: // field = IDENTIFIER.id
 			{
@@ -1599,7 +1599,7 @@ public class NlParser extends Parser {
 					 LValue lvalue = expressionToLValue(lhs);
                                                          if (lvalue != null) return new Symbol(new StmtAssignment(lvalue, value));
                                                          newError("Illegal left hand sign of assignment.", _symbol_lhs);
-                                                         return new Symbol(new StmtAssignment(new LValueVariable(Variable.namedVariable("$illegal")), value));
+                                                         return new Symbol(new StmtAssignment(new LValueVariable(Variable.variable("$illegal")), value));
 			}
 			case 207: // statement = method_invocation.m SEMICOLON
 			{
