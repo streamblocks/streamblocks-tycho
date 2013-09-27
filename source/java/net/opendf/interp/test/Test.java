@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import net.opendf.interp.Simulator;
-import net.opendf.interp.BasicSimulator;
+import net.opendf.interp.ActorMachineSimulator;
+import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicChannel;
 import net.opendf.interp.BasicInterpreter;
 import net.opendf.interp.Channel;
@@ -42,7 +42,7 @@ public class Test {
 		// actorArgs.add(varDecl("SAMPLE_SZ", lit(13)));
 //		Scope argScope = new Scope(ScopeKind.Persistent, actorArgs);
 
-		ActorMachine actorMachine = BasicSimulator.prepareActor(actor);
+		ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor);
 
 //		XMLWriter doc = new XMLWriter(actorMachine);		doc.print();
 
@@ -62,7 +62,7 @@ public class Test {
 
 		int stackSize = 100;
 		Environment env = new BasicEnvironment(sinkChannelInputEnd, sourceChannelOutputEnd, actorMachine);
-		Simulator runner = new BasicSimulator(actorMachine, env, new BasicInterpreter(stackSize));
+		ActorMachineSimulator runner = new BasicActorMachineSimulator(actorMachine, env, new BasicInterpreter(stackSize));
 
 		while(runner.step()) { ; }
 		

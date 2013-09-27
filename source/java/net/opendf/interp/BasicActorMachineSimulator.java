@@ -37,7 +37,7 @@ import net.opendf.transform.filter.PrioritizeCallInstructions;
 import net.opendf.transform.filter.SelectRandomInstruction;
 import net.opendf.transform.operators.ActorOpTransformer;
 
-public class BasicSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
+public class BasicActorMachineSimulator implements ActorMachineSimulator, InstructionVisitor<Integer, Environment>,
 		ConditionVisitor<Boolean, Environment> {
 
 	private final ActorMachine actorMachine;
@@ -71,7 +71,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		ActorToActorMachine trans = new ActorToActorMachine(instructionFilters);
 		ActorMachine actorMachine = trans.translate(actor);
 		
-		actorMachine = BasicSimulator.prepareActorMachine(actorMachine);
+		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine);
 
 		return actorMachine;
 	}
@@ -87,7 +87,7 @@ public class BasicSimulator implements Simulator, InstructionVisitor<Integer, En
 		return actorMachine;
 	}
 	
-	public BasicSimulator(ActorMachine actorMachine, Environment environment, Interpreter interpreter) {
+	public BasicActorMachineSimulator(ActorMachine actorMachine, Environment environment, Interpreter interpreter) {
 		this.actorMachine = actorMachine;
 		this.environment = environment;
 		this.interpreter = interpreter;

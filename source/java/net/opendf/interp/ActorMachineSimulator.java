@@ -1,6 +1,6 @@
 package net.opendf.interp;
 
-public interface Simulator {
+public interface ActorMachineSimulator {
 	/**
 	 * Executes instructions in the actor machine controller until an ICall or IWait instruction is executed.
 	 * 

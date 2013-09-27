@@ -11,7 +11,7 @@ import java.util.List;
 
 import beaver.Scanner;
 import net.opendf.analyze.memory.FreeVariablesTransformer;
-import net.opendf.interp.BasicSimulator;
+import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.net.ast.EntityNameBinding;
@@ -104,7 +104,7 @@ public class Parse{
 				}
 
 				if(am){
-					ActorMachine actorMachine = BasicSimulator.prepareActor(actor);
+					ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor);
 					
 					if(xml){
 						XMLWriter doc = new XMLWriter(actorMachine);
