@@ -37,13 +37,13 @@ public class BasicMemory implements Memory {
 	}
 	
 	@Override
-	public Ref get(Variable var) {
+	public Ref get(VariableLocation var) {
 		try{
-			assert var.isStatic();
-			return mem[var.getScope()][var.getOffset()];
+			assert var.isScopeVariable();
+			return mem[var.getScopeId()][var.getOffset()];
 		} catch(java.lang.ArrayIndexOutOfBoundsException e){
-			String scopeMsg = var.getScope()<0 || mem.length<=var.getScope() ? " the scope does not exist" : ", size of scope: " + mem[var.getScope()].length;
-			throw new CALIndexOutOfBoundsException("access to static memory, scope: " + var.getScope() + ", offset: " + var.getOffset() + scopeMsg);
+			String scopeMsg = var.getScopeId()<0 || mem.length<=var.getScopeId() ? " the scope does not exist" : ", size of scope: " + mem[var.getScopeId()].length;
+			throw new CALIndexOutOfBoundsException("access to static memory, scope: " + var.getScopeId() + ", offset: " + var.getOffset() + scopeMsg);
 		}
 	}
 
@@ -60,13 +60,12 @@ public class BasicMemory implements Memory {
 	public BasicMemory closure(ImmutableList<Variable> variables, Stack stack) {
 		BasicMemory newClosure = new BasicMemory(variables.size());
 		for(int i=0; i<variables.size(); i++){
-			Variable v = variables.get(i);
-			if(v.isDynamic()){
-				newClosure.mem[0][i] = stack.closure(v.getOffset());
-				//TODO, copy from stack
+			VariableLocation v = (VariableLocation)variables.get(i);
+			if(v.isScopeVariable()){
+				newClosure.mem[0][i] = mem[v.getScopeId()][v.getOffset()];
+				inClosure[v.getScopeId()].set(v.getOffset());
 			} else {
-				newClosure.mem[0][i] = mem[v.getScope()][v.getOffset()];
-				inClosure[v.getScope()].set(v.getOffset());
+				newClosure.mem[0][i] = stack.closure(v.getOffset());
 			}
 		}
 		return newClosure;

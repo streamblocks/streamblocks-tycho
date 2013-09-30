@@ -1,17 +1,11 @@
 package net.opendf.analyze.memory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 
 import net.opendf.interp.exception.CALCompiletimeException;
-import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLambda;

@@ -3,9 +3,12 @@ package net.opendf.ir.common;
 import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.IRNode;
 
 /**
  * Variable node that refers to a variable declaration.
+ * 
+ * For all variables in Actors isScopeVariable() == false.
  * 
  * Static variables are variables declared in a {@link net.opendf.ir.am.Scope}
  * and {@link #getScopeId()} returns an identifier for the scope where the variable is
@@ -14,7 +17,7 @@ import net.opendf.ir.AbstractIRNode;
 public class Variable extends AbstractIRNode {
 	private final String name;
 	private final int scopeId;
-	private final boolean isStatic;
+	private final boolean isScopeVariable;
 
 	/**
 	 * Constructs a variable.
@@ -26,34 +29,34 @@ public class Variable extends AbstractIRNode {
 	}
 
 	/**
-	 * Constructs a static variable.
+	 * Constructs a static scope variable.
 	 * 
 	 * @param name the variable name
 	 * @param scope the static scope identifier
 	 */
-	public static Variable staticVariable(String name, int scope) {
-		return new Variable(null, name, scope, true);
+	public static Variable scopeVariable(String name, int scopeId) {
+		return new Variable(null, name, scopeId, true);
 	}
 
 	public Variable copy(String name) {
-		if (Objects.equals(this.name, name) && !this.isStatic) {
+		if (Objects.equals(this.name, name) && !this.isScopeVariable) {
 			return this;
 		}
-		return new Variable(this, name, scopeId, isStatic);
+		return new Variable(this, name, scopeId, isScopeVariable);
 	}
 
 	public Variable copy(String name, int scopeId) {
-		if (Objects.equals(this.name, name) && this.scopeId == scopeId && this.isStatic) {
+		if (Objects.equals(this.name, name) && this.scopeId == scopeId && this.isScopeVariable) {
 			return this;
 		}
-		return new Variable(this, name, scopeId, isStatic);
+		return new Variable(this, name, scopeId, isScopeVariable);
 	}
 
-	private Variable(Variable original, String name, int scope, boolean isStatic) {
+	protected Variable(IRNode original, String name, int scopeId, boolean isScopeVariable) {
 		super(original);
 		this.name = name.intern();
-		this.scopeId = scope;
-		this.isStatic = isStatic;
+		this.scopeId = scopeId;
+		this.isScopeVariable = isScopeVariable;
 	}
 
 	/**
@@ -61,8 +64,8 @@ public class Variable extends AbstractIRNode {
 	 * 
 	 * @return true if the variable is static
 	 */
-	public boolean isStaticVariable() {
-		return isStatic;
+	public boolean isScopeVariable() {
+		return isScopeVariable;
 	}
 
 	/**
@@ -84,10 +87,10 @@ public class Variable extends AbstractIRNode {
 	}
 
 	public String toString() {
-		if (isStatic) {
-			return "StaticVariable(" + name + ", " + scopeId + ")";
+		if (isScopeVariable) {
+			return "ScopeVariable(" + name + ", " + scopeId + ")";
 		} else {
-			return "Variable(" + name + ")";
+			return "StackVariable(" + name + ")";
 		}
 	}
 
@@ -97,10 +100,10 @@ public class Variable extends AbstractIRNode {
 			return false;
 		}
 		Variable that = (Variable) o;
-		if (this.isStatic != that.isStatic) {
+		if (this.isScopeVariable != that.isScopeVariable) {
 			return false;
 		}
-		if (isStatic && this.scopeId != that.scopeId) {
+		if (isScopeVariable && this.scopeId != that.scopeId) {
 			return false;
 		}
 		if (!Objects.equals(this.name, that.name)) {
