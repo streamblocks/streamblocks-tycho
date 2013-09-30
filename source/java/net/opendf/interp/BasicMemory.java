@@ -29,7 +29,7 @@ public class BasicMemory implements Memory {
 			}
 		}
 	}
-	private BasicMemory(int size) {
+	public BasicMemory(int size) {
 		mem = new BasicRef[1][];
 		mem[0] = new BasicRef[size];
 		inClosure = new BitSet[1];

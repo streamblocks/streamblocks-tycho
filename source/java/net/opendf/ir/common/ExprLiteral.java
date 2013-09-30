@@ -67,7 +67,7 @@ public class ExprLiteral extends Expression {
 	}
 
 	/* FIXME: add some error checking here? */
-	protected ExprLiteral(IRNode original, Kind kind, String text) {
+	public ExprLiteral(IRNode original, Kind kind, String text) {
 		super(original);
 		this.kind = kind;
 		this.text = text.intern();

@@ -14,7 +14,7 @@ public class BasicEnvironment implements Environment {
 		this.sinkChannelsEnd = sinkChannelsEnd;
 		this.sourceChannelsEnd = sourceChannelsEnd;
 	}
-	private BasicEnvironment(Channel.InputEnd[] sinkChannelsEnds, Channel.OutputEnd[] sourceChannelsEnds, Memory mem) {
+	public BasicEnvironment(Channel.InputEnd[] sinkChannelsEnds, Channel.OutputEnd[] sourceChannelsEnds, Memory mem) {
 		this.memory = mem;
 		this.sinkChannelsEnd = sinkChannelsEnds;
 		this.sourceChannelsEnd = sourceChannelsEnds;

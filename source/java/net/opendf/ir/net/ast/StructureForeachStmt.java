@@ -1,5 +1,6 @@
 package net.opendf.ir.net.ast;
 
+import net.opendf.ir.IRNode;
 import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
@@ -10,7 +11,7 @@ public class StructureForeachStmt extends StructureStatement {
 		this(null, generators, statements);
 	}
 
-	private StructureForeachStmt(StructureForeachStmt original, ImmutableList<GeneratorFilter> generators,
+	public StructureForeachStmt(IRNode original, ImmutableList<GeneratorFilter> generators,
 			ImmutableList<StructureStatement> statements) {
 		super(original);
 		this.generators = ImmutableList.copyOf(generators);

@@ -1,6 +1,7 @@
 package net.opendf.ir.net.ast;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.IRNode;
 
 /**
  * 
@@ -11,7 +12,7 @@ import net.opendf.ir.AbstractIRNode;
 abstract public class StructureStatement extends AbstractIRNode {
 	public abstract <R, P> R accept(StructureStmtVisitor<R, P> v, P p);
 
-	public StructureStatement(StructureStatement original) {
+	public StructureStatement(IRNode original) {
 		super(original);
 	}
 }
