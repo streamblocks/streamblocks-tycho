@@ -90,7 +90,7 @@ public class Variable extends AbstractIRNode {
 		if (isScopeVariable) {
 			return "ScopeVariable(" + name + ", " + scopeId + ")";
 		} else {
-			return "StackVariable(" + name + ")";
+			return "Variable(" + name + ")";
 		}
 	}
 
