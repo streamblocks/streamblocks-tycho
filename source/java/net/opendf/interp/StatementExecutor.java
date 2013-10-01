@@ -21,7 +21,6 @@ import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.StmtIf;
 import net.opendf.ir.common.StmtOutput;
 import net.opendf.ir.common.StmtWhile;
-import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
 
 public class StatementExecutor implements StatementVisitor<Void, Environment>, LValueVisitor<Ref, Environment> {

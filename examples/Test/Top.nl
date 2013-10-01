@@ -1,4 +1,13 @@
 network Top [TypeParamA, TypeParamB] (ValueParamA, ValueParamB) Type1(c:int, a=2, b:int, d:int) in1, Type2 in2 ==> outA, outB :
+
+var
+  a := b;
+  b := 4;
+
+entities
+  nodeA = Add(a=let p1=p2, p2=3 : p1+p2 end);
+
+/*
 var
   nTaps = #taps;
   
@@ -41,4 +50,5 @@ structure
     c[i].a --> c[i-1].b;
     apa[i].b --> d[i].d;
   end
+*/
 end

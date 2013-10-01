@@ -12,14 +12,13 @@ import net.opendf.interp.Environment;
 import net.opendf.interp.Interpreter;
 import net.opendf.interp.Memory;
 import net.opendf.interp.TypeConverter;
+import net.opendf.interp.values.ExprValue;
 import net.opendf.interp.values.RefView;
-import net.opendf.ir.IRNode;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLiteral;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.ParDeclValue;
-import net.opendf.ir.common.ExprLiteral.Kind;
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ast.EntityExprVisitor;
 import net.opendf.ir.net.ast.EntityIfExpr;
@@ -131,7 +130,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		ImmutableList.Builder<Expression> srcBuilder = new ImmutableList.Builder<Expression>();
 		for(Expression expr : src.getEntityIndex()){
 			RefView value = interpreter.evaluate(expr, env);
-			srcBuilder.add(new ExprLiteral(expr, ExprLiteral.Kind.Integer, value.toString()));
+			srcBuilder.add(new ExprValue(expr, ExprLiteral.Kind.Integer, value.toString(), value));
 		}
 		PortReference newSrc = src.copy(src.getEntityName(), srcBuilder.build(), src.getPortName());
 		// dst
@@ -139,7 +138,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		ImmutableList.Builder<Expression> dstBuilder = new ImmutableList.Builder<Expression>();
 		for(Expression expr : dst.getEntityIndex()){
 			RefView value = interpreter.evaluate(expr, env);
-			dstBuilder.add(new ExprLiteral(expr, ExprLiteral.Kind.Integer, value.toString()));
+			dstBuilder.add(new ExprValue(expr, ExprLiteral.Kind.Integer, value.toString(), value));
 		}
 		PortReference newDst = dst.copy(dst.getEntityName(), dstBuilder.build(), dst.getPortName());
 		return stmt.copy(newSrc, newDst, stmt.getToolAttributes());

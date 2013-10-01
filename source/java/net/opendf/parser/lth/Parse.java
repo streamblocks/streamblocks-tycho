@@ -12,6 +12,7 @@ import java.util.List;
 import beaver.Scanner;
 import net.opendf.analyze.memory.FreeVariablesTransformer;
 import net.opendf.interp.BasicActorMachineSimulator;
+import net.opendf.interp.BasicNetworkSimulator;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.net.ast.EntityNameBinding;
@@ -137,7 +138,7 @@ public class Parse{
 			NetworkDefinition network = parser.parse(path, fileName);
 			parser.printParseProblems();
 			if(parser.parseProblems.isEmpty()){
-				new EntityNameBinding(network);
+				network = BasicNetworkSimulator.prepareNetworkDefinition(network);
 				if(prettyPrint){
 					PrettyPrint pp = new PrettyPrint();
 					pp.print(network);
