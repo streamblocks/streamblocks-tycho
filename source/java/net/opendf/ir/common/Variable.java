@@ -42,14 +42,14 @@ public class Variable extends AbstractIRNode {
 		if (Objects.equals(this.name, name) && !this.isScopeVariable) {
 			return this;
 		}
-		return new Variable(this, name, scopeId, isScopeVariable);
+		return new Variable(this, name, scopeId, false);
 	}
 
 	public Variable copy(String name, int scopeId) {
 		if (Objects.equals(this.name, name) && this.scopeId == scopeId && this.isScopeVariable) {
 			return this;
 		}
-		return new Variable(this, name, scopeId, isScopeVariable);
+		return new Variable(this, name, scopeId, true);
 	}
 
 	protected Variable(IRNode original, String name, int scopeId, boolean isScopeVariable) {
@@ -90,7 +90,7 @@ public class Variable extends AbstractIRNode {
 		if (isScopeVariable) {
 			return "ScopeVariable(" + name + ", " + scopeId + ")";
 		} else {
-			return "StackVariable(" + name + ")";
+			return "Variable(" + name + ")";
 		}
 	}
 
