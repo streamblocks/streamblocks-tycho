@@ -15,7 +15,6 @@ import net.opendf.ir.cal.Actor;
 import net.opendf.ir.cal.InputPattern;
 import net.opendf.ir.cal.OutputExpression;
 import net.opendf.ir.cal.ScheduleFSM;
-import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLiteral;
 import net.opendf.ir.common.ExprLiteral.Kind;
 import net.opendf.ir.common.Expression;

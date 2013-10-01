@@ -31,7 +31,7 @@ public class ActorOpTransformer extends AbstractActorTransformer<Map<String, Int
 	@Override
 	public Expression visitExprUnaryOp(ExprUnaryOp opSeq, Map<String, Integer> table) {
 		String funcName = "$UnaryOperation." + opSeq.getOperation();
-		ExprVariable func = new ExprVariable(Variable.namedVariable(funcName));
+		ExprVariable func = new ExprVariable(Variable.variable(funcName));
 		Expression arg = transformExpression(opSeq.getOperand(), table);
 		return new ExprApplication(func, ImmutableList.of(arg));
 	}
@@ -70,7 +70,7 @@ public class ActorOpTransformer extends AbstractActorTransformer<Map<String, Int
 	private void transformOperator(LinkedList<Expression> out, LinkedList<String> ops) {
 		String operator = ops.removeLast();
 		String function = "$BinaryOperation." + operator;
-		ExprVariable func = new ExprVariable(Variable.namedVariable(function));
+		ExprVariable func = new ExprVariable(Variable.variable(function));
 		Expression right = out.removeLast();
 		Expression left = out.removeLast();
 		ImmutableList<Expression> args = ImmutableList.of(left, right);

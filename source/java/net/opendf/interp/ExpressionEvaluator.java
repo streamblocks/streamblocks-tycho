@@ -29,7 +29,6 @@ import net.opendf.ir.common.ExprVariable;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.ExpressionVisitor;
 import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
 
 public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environment> {
@@ -193,15 +192,13 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 
 	@Override
 	public RefView visitExprVariable(ExprVariable expr, Environment env) {
-		Variable var = expr.getVariable();
-		if(!var.hasLocation()){
-			throw notImplemented("unknown name " + var.getName());
-		}
+		VariableLocation var = (VariableLocation)expr.getVariable();
 		RefView value;
-		if (var.isDynamic())
-			value = stack.peek(var.getOffset());
-		else
+		if (var.isScopeVariable()){
 			value = env.getMemory().get(var);
+		} else {
+			value = stack.peek(var.getOffset());
+		}
 		return value;
 	}
 

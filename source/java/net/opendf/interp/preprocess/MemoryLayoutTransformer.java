@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Stack;
 
 import net.opendf.interp.GeneratorFilterHelper;
+import net.opendf.interp.VariableLocation;
+import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.am.Scope;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprApplication;
 import net.opendf.ir.common.ExprLambda;
@@ -24,7 +27,8 @@ import net.opendf.ir.util.ImmutableList;
 import net.opendf.transform.util.AbstractActorMachineTransformer;
 
 /**
- * Compute the stack offset for all stack accesses on the stack.
+ * Compute the offset for all variable accesses.
+ * All Variable objects are replaced with VariableLocation objects
  * The IR must be traversed in the exact same order as the interpreter.
  * 
  * @author pera
@@ -32,14 +36,18 @@ import net.opendf.transform.util.AbstractActorMachineTransformer;
 public class MemoryLayoutTransformer extends
 AbstractActorMachineTransformer<MemoryLayoutTransformer.LookupTable> {
 
+	ImmutableList<Scope> scopes;
+	
 	private void error(DeclVar decl, String msg) {
 		System.err.println(msg);
 		throw new RuntimeException(msg);
 	}
 
 	public ActorMachine transformActorMachine(ActorMachine actorMachine){
+		scopes = actorMachine.getScopes();
 		LookupTable table = new LookupTable();
 		ActorMachine a = transformActorMachine(actorMachine, table);
+		scopes = null;
 		assert table.isEmpty();
 		return a;
 	}
@@ -180,56 +188,71 @@ AbstractActorMachineTransformer<MemoryLayoutTransformer.LookupTable> {
 
 		private int addToClosure(Variable var){
 			int pos;
+			// check if this name already is in the closure
 			for(pos=0; pos<closure.size(); pos++){
 				if(closure.get(pos).getName().equals(var.getName())){
 					assert closure.get(pos).equals(var);
 					return pos;
 				}
 			}
+			// add a new name to the closure
 			pos = closure.size();
+			//TODO the closure must have VaraibleLocation objects
 			closure.add(var);
 			return pos;
 		}
 
-		public Variable lookup(Variable var){
+		public VariableLocation lookup(Variable var){
 			String name = var.getName();
 			if(parent == null){
 				// outside lambda/procedure expression, do not create closure
-				// look for the name inside this lambda/process block
-				int offset = stack.search(name) -  1;  // in search(), top of stack = 1
-				if(offset>=0){
-					return var.copy(name, 0, offset, true);
+				if(var.isScopeVariable()){
+					Scope scope = scopes.get(var.getScopeId());
+					ImmutableList<DeclVar> list = scope.getDeclarations();
+					for(int i=0; i<list.size(); i++){
+						DeclVar decl = list.get(i);
+						if(decl.getName().equals(name)){
+							return VariableLocation.scopeVariable(var, name, var.getScopeId(), i);
+						}
+					}
+				} else {
+					// look for the name inside this lambda/process block and static scopes
+					int offset = stack.search(name) -  1;  // in search(), top of stack = 1
+					if(offset>=0){
+						return VariableLocation.stackVariable(var, name, offset);
+					}
 				}
-				return var;
+				throw new CALCompiletimeException("unknown variable name " + name);
 			} else {
-				// inside lambda/procedure expression, do not create closure
+				// inside lambda/procedure expression
 				LookupTable frame = parent;
-				// is var in the static scope?
-				//TODO, this assumes a correct static scope labeling
-				if(var.hasLocation()){
+				// is var in the static scope? Then we do not search the stack for the name.
+				if(var.isScopeVariable()){
+					// add the variable to the closure
 					int colosureOffset = addToClosure(var);
-					return var.copy(name, 0, colosureOffset, false);
+					// the closure has scopeId 0
+					return VariableLocation.scopeVariable(var, name, 0, colosureOffset);
 				}
 				// look for the name inside this lambda/process block
-				int offset = stack.search(name) -  1;  // in search(), top of stack = 1
-				if(offset>=0){
-					return var.copy(name, 0, offset, true);
+				int stackOffset = stack.search(name) -  1;  // in search(), top of stack = 1
+				if(stackOffset>=0){
+					return VariableLocation.stackVariable(var, name, stackOffset);
 				}
 				// the name was not declared within the closest lambda/proc expression. search for it in the closure
 				int scopeDist = 0;                     // the distance to the variable on the stack when the closure is created
 				while(frame!=null){
-					offset = frame.stack.search(name) -  1;  // in search(), top of stack = 1
-					if(offset<0){
+					stackOffset = frame.stack.search(name) -  1;  // in search(), top of stack = 1
+					if(stackOffset<0){
 						// name was not here, continue to the parent scope
 						scopeDist += frame.stack.size();
 					} else {
-						int colosureOffset = addToClosure(var.copy(name, 0, offset + scopeDist, true)); // pos = offset + innerScopeDist
-						return var.copy(name, 0, colosureOffset, false);
+						int colosureOffset = addToClosure(VariableLocation.stackVariable(var, name, stackOffset + scopeDist)); // pos = offset + innerScopeDist
+						return VariableLocation.scopeVariable(var, name, 0, colosureOffset);
 					}
 					frame = frame.parent;
 				}
 			}
-			return var;
+			throw new CALCompiletimeException("unknown variable name " + name);
 		}
 
 		public boolean isEmpty(){

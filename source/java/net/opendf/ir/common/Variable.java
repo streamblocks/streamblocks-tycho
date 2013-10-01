@@ -3,111 +3,69 @@ package net.opendf.ir.common;
 import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.IRNode;
 
 /**
- * Variable node that refers to a variable either by name or by location. The
- * location is either a location of a static or a dynamic variable.
+ * Variable node that refers to a variable declaration.
  * 
- * The offset is the number of declarations between the first declaration in the
- * scope where the variable is declared and the declaration of the referenced
- * variable. The first declared variable in a scope has offset 0.
+ * For all variables in Actors isScopeVariable() == false.
  * 
- * Variables are either static or dynamic. For dynamic variables, the scope is
- * the nesting distance to the lexical scope where the variable is declared.
- * Variables declared in the current scope are at level 0 and variables declared
- * in the immediate enclosing scope are at level 1. For static variables, the
- * scope is the identifier of the scope where it is declared.
+ * Static variables are variables declared in a {@link net.opendf.ir.am.Scope}
+ * and {@link #getScopeId()} returns an identifier for the scope where the variable is
+ * declared.
  */
 public class Variable extends AbstractIRNode {
 	private final String name;
-	private final int scope;
-	private final int offset;
-	private final boolean dynamic;
+	private final int scopeId;
+	private final boolean isScopeVariable;
 
 	/**
-	 * Constructs a variable with a name.
+	 * Constructs a variable.
 	 * 
-	 * @param name
-	 *            the variable name
+	 * @param name the variable name
 	 */
-	public static Variable namedVariable(String name) {
-		return new Variable(null, name, -1, -1, false);
+	public static Variable variable(String name) {
+		return new Variable(null, name, -1, false);
 	}
 
 	/**
-	 * Constructs a static variable with a name, scope and offset.
+	 * Constructs a static scope variable.
 	 * 
-	 * @param name
-	 *            the variable name
-	 * @param scope
-	 *            the static scope number
-	 * @param offset
-	 *            the offset
+	 * @param name the variable name
+	 * @param scope the static scope identifier
 	 */
-	public static Variable staticVariable(String name, int scope, int offset) {
-		assert scope >= 0;
-		assert offset >= 0;
-		return new Variable(null, name, scope, offset, false);
+	public static Variable scopeVariable(String name, int scopeId) {
+		return new Variable(null, name, scopeId, true);
 	}
 
-	/**
-	 * Constructs a dynamic variable with a name, scope and offset.
-	 * 
-	 * @param name
-	 *            the variable name
-	 * @param scope
-	 *            the lexical scope distance
-	 * @param offset
-	 *            the offset
-	 */
-	public static Variable dynamicVariable(String name, int scope, int offset) {
-		assert scope >= 0;
-		assert offset >= 0;
-		return new Variable(null, name, scope, offset, true);
-	}
-
-	public Variable copy(String name, int scope, int offset, boolean dynamic) {
-		if (Objects.equals(this.name, name) && this.scope == scope && this.offset == offset && this.dynamic == dynamic) {
+	public Variable copy(String name) {
+		if (Objects.equals(this.name, name) && !this.isScopeVariable) {
 			return this;
 		}
-		return new Variable(this, name, scope, offset, dynamic);
+		return new Variable(this, name, scopeId, isScopeVariable);
 	}
 
-	private Variable(Variable original, String name, int scope, int offset, boolean dynamic) {
+	public Variable copy(String name, int scopeId) {
+		if (Objects.equals(this.name, name) && this.scopeId == scopeId && this.isScopeVariable) {
+			return this;
+		}
+		return new Variable(this, name, scopeId, isScopeVariable);
+	}
+
+	protected Variable(IRNode original, String name, int scopeId, boolean isScopeVariable) {
 		super(original);
 		this.name = name.intern();
-		this.scope = scope;
-		this.offset = offset;
-		this.dynamic = dynamic;
+		this.scopeId = scopeId;
+		this.isScopeVariable = isScopeVariable;
 	}
 
 	/**
-	 * Returns true if the variable is static and false if it does not have a
-	 * location or the location is to a dynamic variable.
+	 * Returns true if the variable is static.
 	 * 
 	 * @return true if the variable is static
 	 */
-	public boolean isStatic() {
-		return hasLocation() && !dynamic;
-	}
-
-	/**
-	 * Returns true if the variable is dynamic and false if it does not have a
-	 * location or the location is to a static variable.
-	 * 
-	 * @return true if the variable is static
-	 */
-	public boolean isDynamic() {
-		return hasLocation() && dynamic;
-	}
-
-	/**
-	 * Returns true if the variable is specified with a location.
-	 * 
-	 * @return true if the variable is specified with a location
-	 */
-	public boolean hasLocation() {
-		return scope >= 0 && offset >= 0;
+	public boolean isScopeVariable() {
+		return isScopeVariable;
 	}
 
 	/**
@@ -120,36 +78,37 @@ public class Variable extends AbstractIRNode {
 	}
 
 	/**
-	 * Returns the scope of the variable. For dynamic variables, this is the
-	 * static nesting distance and for static variables this is that static
-	 * scope number.
+	 * Returns the scope identifier if the variable is static.
 	 * 
 	 * @return the level
 	 */
-	public int getScope() {
-		return scope;
+	public int getScopeId() {
+		return scopeId;
 	}
 
-	/**
-	 * Returns the offset if the variable is specified with a location.
-	 * 
-	 * @return the offset
-	 */
-	public int getOffset() {
-		return offset;
-	}
-	
-	public String toString(){
-		String type = dynamic ? "DynVar(" : "StatVar(";
-		return type + name + ", " + scope + ", " + offset + ")";
+	public String toString() {
+		if (isScopeVariable) {
+			return "ScopeVariable(" + name + ", " + scopeId + ")";
+		} else {
+			return "StackVariable(" + name + ")";
+		}
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if(o instanceof Variable){
-			Variable v = (Variable)o;
-			return v.name.equals(name) && v.dynamic==dynamic && v.scope==scope && v.offset==offset;
+		if (!(o instanceof Variable)) {
+			return false;
 		}
-		return false;
+		Variable that = (Variable) o;
+		if (this.isScopeVariable != that.isScopeVariable) {
+			return false;
+		}
+		if (isScopeVariable && this.scopeId != that.scopeId) {
+			return false;
+		}
+		if (!Objects.equals(this.name, that.name)) {
+			return false;
+		}
+		return true;
 	}
 }

@@ -58,11 +58,8 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	 */
 	@Override
 	public Ref visitLValueVariable(LValueVariable lvalue, Environment env) {
-		Variable var = lvalue.getVariable();
-		if(!var.hasLocation()){
-			throw new net.opendf.interp.exception.CALRuntimeException("Unknown name at lhs of assignment: " + var.getName());
-		}
-		if(var.isStatic()){
+		VariableLocation var = (VariableLocation)lvalue.getVariable();
+		if(var.isScopeVariable()){
 			return env.getMemory().get(var);
 		} else {
 			return stack.peek(var.getOffset());

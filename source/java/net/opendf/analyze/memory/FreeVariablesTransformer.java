@@ -1,17 +1,11 @@
 package net.opendf.analyze.memory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 
 import net.opendf.interp.exception.CALCompiletimeException;
-import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLambda;
@@ -59,7 +53,7 @@ public class FreeVariablesTransformer extends AbstractActorTransformer<Set<Strin
 			}
 			ImmutableList.Builder<Variable> builder = new ImmutableList.Builder<Variable>();
 			for(String name : freeVars){
-				builder.add(Variable.namedVariable(name));
+				builder.add(Variable.variable(name));
 			}
 			c.addAll(freeVars);
 			return lambda.copy(lambda.getTypeParameters(), lambda.getValueParameters(), body, lambda.getReturnType(), 
@@ -120,7 +114,7 @@ public class FreeVariablesTransformer extends AbstractActorTransformer<Set<Strin
 			}
 			ImmutableList.Builder<Variable> builder = new ImmutableList.Builder<Variable>();
 			for(String name : freeVars){
-				builder.add(Variable.namedVariable(name));
+				builder.add(Variable.variable(name));
 			}
 			c.addAll(freeVars);
 			return proc.copy(proc.getTypeParameters(), proc.getValueParameters(), body, builder.build(), true);

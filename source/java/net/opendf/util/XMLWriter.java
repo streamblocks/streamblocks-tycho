@@ -23,6 +23,7 @@ import org.w3c.dom.Element;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
+import net.opendf.interp.VariableLocation;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.Condition;
 import net.opendf.ir.am.ICall;
@@ -494,14 +495,14 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 		Element varElem = doc.createElement("Variable");
 		p.appendChild(varElem);
 		varElem.setAttribute("name", var.getName());
-		if(var.isDynamic()){
-			varElem.setAttribute("isDynamic", "true");
+		if(var.isScopeVariable()){
+			varElem.setAttribute("isScopeVariable", "true");
+			varElem.setAttribute("scopeId", Integer.toString(var.getScopeId()));
 		} else {
-			varElem.setAttribute("isDynamic", "false");
-			varElem.setAttribute("scope", Integer.toString(var.getScope()));
+			varElem.setAttribute("isScopeVariable", "false");
 		}
-		if(var.hasLocation()){
-			varElem.setAttribute("offset", Integer.toString(var.getOffset()));
+		if(var instanceof VariableLocation){
+			varElem.setAttribute("offset", Integer.toString(((VariableLocation)var).getOffset()));
 		}
 	}
 	private void generateXMLForField(Field f, Element p){
@@ -721,12 +722,8 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 	@Override
 	public Void visitExprVariable(ExprVariable e, Element p) {
 		Element var = doc.createElement("ExprVariable");
-		Variable v = e.getVariable();
-		var.setAttribute("name", v.getName());
-		var.setAttribute("isDynamic", Boolean.toString(v.isDynamic()));
-		var.setAttribute("offset", Integer.toString(v.getOffset()));
-		var.setAttribute("scope", Integer.toString(v.getScope()));
 		p.appendChild(var);
+		generateXMLForVariable(e.getVariable(), var);
 		return null;
 	}
 	

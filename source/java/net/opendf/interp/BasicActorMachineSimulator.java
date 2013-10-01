@@ -28,7 +28,6 @@ import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprVariable;
 import net.opendf.ir.common.Expression;
-import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.transform.caltoam.ActorToActorMachine;
 import net.opendf.transform.caltoam.ActorStates.State;
@@ -138,9 +137,9 @@ public class BasicActorMachineSimulator implements ActorMachineSimulator, Instru
 	private class FindRequiredScopes extends AbstractBasicTraverser<BitSet>{
 		@Override
 		public Void visitExprVariable(ExprVariable e, BitSet p) {
-			Variable var = e.getVariable();
-			if(var.isStatic() && var.getScope()>=0){
-				p.set(e.getVariable().getScope());
+			VariableLocation var = (VariableLocation)e.getVariable();
+			if(var.isScopeVariable()){
+				p.set(e.getVariable().getScopeId());
 			}
 			return null;		
 		}
@@ -218,7 +217,7 @@ public class BasicActorMachineSimulator implements ActorMachineSimulator, Instru
 			s.append("{\n");
 			ImmutableList<DeclVar> declList = scopeList.get(scopeId).getDeclarations();
 			for(int declId=0; declId<declList.size(); declId++){
-				Variable var = Variable.staticVariable(declList.get(declId).getName(), scopeId, declId);
+				VariableLocation var = VariableLocation.scopeVariable(actorMachine, declList.get(declId).getName(), scopeId, declId);
 				s.append("  " + var.getName() + " : ");
 				s.append(environment.getMemory().get(var).toString() + "\n");
 			}
