@@ -1,6 +1,7 @@
 package net.opendf.interp;
 
 import net.opendf.analyze.memory.FreeVariablesTransformer;
+import net.opendf.interp.preprocess.VariableOffsetTransformer;
 import net.opendf.ir.net.ast.NetworkDefinition;
 
 public class BasicNetworkSimulator {
@@ -12,8 +13,11 @@ public class BasicNetworkSimulator {
 	 * @return
 	 */
 	public static NetworkDefinition prepareNetworkDefinition(NetworkDefinition def){
-		//order variable initializations
+		// order variable initializations
 		def = FreeVariablesTransformer.transformNetworkDefinition(def);
+		// compute variable offsets
+		VariableOffsetTransformer varT = new VariableOffsetTransformer();
+		def = varT.transformNetworkDefinition(def);
 		
 		return def;
 	}

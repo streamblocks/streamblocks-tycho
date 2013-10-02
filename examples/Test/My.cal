@@ -19,7 +19,7 @@ actor Empty (parA, parB) in1, in2 ==> out1:
 	var
 	  actionA := 3
 	do
-	  list[0] := tokenA;
+	  list[0] := let a=3 : tokenA + a end;
 	  list[1] := actionA;
 	end
 	

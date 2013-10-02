@@ -23,8 +23,11 @@ import net.opendf.ir.common.StmtBlock;
 import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
+import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.util.ImmutableList;
-import net.opendf.transform.util.AbstractActorMachineTransformer;
+import net.opendf.transform.util.AbstractBasicTransformer;
+import net.opendf.transform.util.ActorMachineTransformerWrapper;
+import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
 
 /**
  * Compute the offset for all variable accesses.
@@ -33,8 +36,7 @@ import net.opendf.transform.util.AbstractActorMachineTransformer;
  * 
  * @author pera
  */
-public class MemoryLayoutTransformer extends
-AbstractActorMachineTransformer<MemoryLayoutTransformer.LookupTable> {
+public class VariableOffsetTransformer extends AbstractBasicTransformer<VariableOffsetTransformer.LookupTable> {
 
 	ImmutableList<Scope> scopes;
 	
@@ -43,13 +45,26 @@ AbstractActorMachineTransformer<MemoryLayoutTransformer.LookupTable> {
 		throw new RuntimeException(msg);
 	}
 
+	public NetworkDefinition transformNetworkDefinition(NetworkDefinition net){
+		Scope scope = new Scope(net.getVarDecls());
+		scopes = ImmutableList.of(scope);
+		LookupTable table = new LookupTable();
+		VariableOffsetTransformer transformer = new VariableOffsetTransformer();
+		NetworkDefinitionTransformerWrapper<VariableOffsetTransformer.LookupTable> wrapper = new NetworkDefinitionTransformerWrapper<VariableOffsetTransformer.LookupTable>(transformer);
+		net = wrapper.transformNetworkDefinition(net, table);
+		scopes = null;
+		assert table.isEmpty();
+		return net;
+	}
+
 	public ActorMachine transformActorMachine(ActorMachine actorMachine){
 		scopes = actorMachine.getScopes();
 		LookupTable table = new LookupTable();
-		ActorMachine a = transformActorMachine(actorMachine, table);
-		scopes = null;
+		VariableOffsetTransformer transformer = new VariableOffsetTransformer();
+		ActorMachineTransformerWrapper<VariableOffsetTransformer.LookupTable> wrapper = new ActorMachineTransformerWrapper<VariableOffsetTransformer.LookupTable>(transformer);
+		actorMachine = wrapper.transformActorMachine(actorMachine, table);
 		assert table.isEmpty();
-		return a;
+		return actorMachine;
 	}
 	
 	@Override
@@ -222,6 +237,16 @@ AbstractActorMachineTransformer<MemoryLayoutTransformer.LookupTable> {
 						return VariableLocation.stackVariable(var, name, offset);
 					}
 				}
+				//TODO this is a quick fix for network definitions
+				// In network definitions scope variables are not marked, i.e. variable.isScopeVariable==false for all variable accesses
+				ImmutableList<DeclVar> declList = scopes.get(0).getDeclarations();
+				for(int i=0; i<declList.size(); i++){
+					DeclVar v = declList.get(i);
+					if(v.getName().equals(name)){
+						return VariableLocation.scopeVariable(var, name, 0, i);
+					}
+				}
+				
 				throw new CALCompiletimeException("unknown variable name " + name);
 			} else {
 				// inside lambda/procedure expression

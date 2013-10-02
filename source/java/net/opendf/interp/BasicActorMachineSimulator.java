@@ -9,7 +9,7 @@ import java.util.Map;
 import net.opendf.analyze.memory.FreeVariablesTransformer;
 import net.opendf.analyze.util.AbstractBasicTraverser;
 import net.opendf.interp.preprocess.EvaluateLiteralsTransformer;
-import net.opendf.interp.preprocess.MemoryLayoutTransformer;
+import net.opendf.interp.preprocess.VariableOffsetTransformer;
 import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.am.ActorMachine;
@@ -76,12 +76,11 @@ public class BasicActorMachineSimulator implements ActorMachineSimulator, Instru
 	}
 	
 	public static ActorMachine prepareActorMachine(ActorMachine actorMachine){
+		// replace ExprLiteral with ExprValue. This removes the glocal variables for predefined functions, i.e. $BinaryOperation.+ 
+		actorMachine = EvaluateLiteralsTransformer.transformActorMachine(actorMachine);
 		// memory layout (stack offset)
-		MemoryLayoutTransformer t = new MemoryLayoutTransformer();
+		VariableOffsetTransformer t = new VariableOffsetTransformer();
 		actorMachine = t.transformActorMachine(actorMachine);
-		// replace ExprLiteral with ExprValue
-		EvaluateLiteralsTransformer t2 = new EvaluateLiteralsTransformer();
-		actorMachine = t2.transformActorMachine(actorMachine);
 
 		return actorMachine;
 	}

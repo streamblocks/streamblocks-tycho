@@ -15,16 +15,20 @@ public interface NetworkDefinitionTransformer<P> extends BasicTransformer<P> {
 	public NetworkDefinition transformNetworkDefinition(NetworkDefinition net, P p);
 
 	public ImmutableList<PortDecl> transformInputPorts(ImmutableList<PortDecl> port, P param);
+	public PortDecl transformInputPort(PortDecl port, P param);
 
 	public ImmutableList<PortDecl> transformOutputPorts(ImmutableList<PortDecl> port, P param);
-
-	public ImmutableList<Map.Entry<String,EntityExpr>> transformEntities(ImmutableList<Map.Entry<String, EntityExpr>> entities, P p);
-	public EntityExpr transformEntityExpr(EntityExpr expr, P p);
-	
-	public ImmutableList<StructureStatement> transformStructureStmts(ImmutableList<StructureStatement> structs, P p);
+	public PortDecl transformOutputPort(PortDecl port, P param);
 
 	public PortReference transformPortReference(PortReference port, P p);
 	
-	public ImmutableList<ToolAttribute> transformToolAttributes(ImmutableList<ToolAttribute> ta, P p);
+	public ImmutableList<Map.Entry<String,EntityExpr>> transformEntitiyExprs(ImmutableList<Map.Entry<String, EntityExpr>> entities, P p);
+	public EntityExpr transformEntityExpr(EntityExpr expr, P p);
+	
+	public ImmutableList<StructureStatement> transformStructureStmts(ImmutableList<StructureStatement> structs, P p);
+    public StructureStatement transformStructureStmt(StructureStatement stmt, P p);
+
+	public ImmutableList<ToolAttribute> transformToolAttributes(ImmutableList<ToolAttribute> tas, P p);
+	public ToolAttribute transformToolAttribute(ToolAttribute ta, P p);
 
 }

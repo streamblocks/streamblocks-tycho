@@ -1,21 +1,43 @@
 package net.opendf.interp.preprocess;
 
 import java.util.Map;
-
 import net.opendf.interp.values.ExprValue;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.predef.Predef;
-import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.ExprApplication;
 import net.opendf.ir.common.ExprLiteral;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.ExprVariable;
-import net.opendf.transform.util.AbstractActorMachineTransformer;
+import net.opendf.ir.net.ast.NetworkDefinition;
+import net.opendf.transform.util.AbstractBasicTransformer;
+import net.opendf.transform.util.ActorMachineTransformerWrapper;
+import net.opendf.transform.util.ActorTransformerWrapper;
+import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
 
-public class EvaluateLiteralsTransformer extends AbstractActorMachineTransformer<Map<String, RefView>> {
-	public ActorMachine transformActorMachine(ActorMachine actorMachine){
-		return transformActorMachine(actorMachine, Predef.predef());
+/**
+ * Constant propagation. Currently it only transform ExprLiteral to ExprValue
+ * @author pera
+ *
+ */
+public class EvaluateLiteralsTransformer extends AbstractBasicTransformer<Map<String, RefView>> {
+	public static Actor transformActor(Actor actor){
+		EvaluateLiteralsTransformer freeVarTransformer = new EvaluateLiteralsTransformer();
+		ActorTransformerWrapper<Map<String, RefView>> wrapper = new ActorTransformerWrapper<Map<String, RefView>>(freeVarTransformer);
+		return wrapper.transformActor(actor, Predef.predef());
+	}
+
+	public static ActorMachine transformActorMachine(ActorMachine actorMachine){
+		EvaluateLiteralsTransformer freeVarTransformer = new EvaluateLiteralsTransformer();
+		ActorMachineTransformerWrapper<Map<String, RefView>> wrapper = new ActorMachineTransformerWrapper<Map<String, RefView>>(freeVarTransformer);
+		return wrapper.transformActorMachine(actorMachine, Predef.predef());
+	}
+
+	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net){
+		EvaluateLiteralsTransformer freeVarTransformer = new EvaluateLiteralsTransformer();
+		NetworkDefinitionTransformerWrapper<Map<String, RefView>> wrapper = new NetworkDefinitionTransformerWrapper<Map<String, RefView>>(freeVarTransformer);
+		return wrapper.transformNetworkDefinition(net, Predef.predef());
 	}
 
 	public ExprLiteral visitExprLiteral(ExprLiteral e, Map<String, RefView> p){
@@ -35,11 +57,6 @@ public class EvaluateLiteralsTransformer extends AbstractActorMachineTransformer
 		return e.copy(
 				transformExpression(e.getFunction(), p),
 				transformExpressions(e.getArgs(), p));
-	}
-
-	private void error(IRNode node, String msg) {
-		System.err.println(msg);
-		throw new RuntimeException(msg);
 	}
 
 }

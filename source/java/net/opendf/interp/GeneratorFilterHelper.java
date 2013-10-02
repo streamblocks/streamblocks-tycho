@@ -1,7 +1,7 @@
 package net.opendf.interp;
 
-import net.opendf.interp.preprocess.MemoryLayoutTransformer;
-import net.opendf.interp.preprocess.MemoryLayoutTransformer.LookupTable;
+import net.opendf.interp.preprocess.VariableOffsetTransformer;
+import net.opendf.interp.preprocess.VariableOffsetTransformer.LookupTable;
 import net.opendf.interp.values.Collection;
 import net.opendf.interp.values.Iterator;
 import net.opendf.interp.values.RefView;
@@ -85,7 +85,7 @@ public class GeneratorFilterHelper {
 	 * @return
 	 */
 	public static ImmutableList<GeneratorFilter> memoryLayout(ImmutableList<GeneratorFilter> generators, Runnable action, 
-			final LookupTable lookupTable, MemoryLayoutTransformer transformer){
+			final LookupTable lookupTable, VariableOffsetTransformer transformer){
 		ImmutableList.Builder<GeneratorFilter> generatorBuilder = ImmutableList.builder();
 		for(GeneratorFilter gen : generators){
 			// first evaluate all values this generator should iterate over. At this point the local names are not visible

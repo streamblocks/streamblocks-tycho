@@ -4,14 +4,15 @@ package net.opendf.util;
  *  copyright (c) 2013, Per Andersson
  *  
  *  This code translates a cal IR to an XML document (org.w3c.dom.Document)
- *  The translation is incomplete!!!
- *  Currently only expressions are exported.
+ *  The XML document is built top down. 
+ *  The parameter to all visit methods is the parent XML node.
  **/
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,19 +39,27 @@ import net.opendf.ir.am.State;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
+import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ast.EntityExprVisitor;
 import net.opendf.ir.net.ast.EntityIfExpr;
 import net.opendf.ir.net.ast.EntityInstanceExpr;
 import net.opendf.ir.net.ast.EntityListExpr;
 import net.opendf.ir.net.ast.NetworkDefinition;
+import net.opendf.ir.net.ast.PortReference;
 import net.opendf.ir.net.ast.StructureConnectionStmt;
 import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.net.ast.StructureIfStmt;
+import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
 import net.opendf.ir.util.ImmutableList;
 
-public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisitor<Void, Element>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Element>, InstructionVisitor<Void, Element>{
+public class XMLWriter implements ExpressionVisitor<Void,Element>, 
+                                  StatementVisitor<Void, Element>, 
+                                  EntityExprVisitor<Void, Element>, 
+                                  StructureStmtVisitor<Void, Element>, 
+                                  LValueVisitor<Void, Element>, 
+                                  InstructionVisitor<Void, Element>{
 	private java.io.PrintStream out = System.out;
 	Document doc;
 
@@ -92,10 +101,18 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 			networkElement.setAttribute("name", network.getName());
 			//-- type/value parameters, in/out ports, type/value declarations
 			generateXMLForDeclEntity(network, networkElement);
+			generateXMLForEntityExprList(network.getEntities(), networkElement);
+			generateXMLForStructureStmtList(network.getStructure(), networkElement);
+			generateXMLForToolAttributeList(network.getToolAttributes(), networkElement);
 			
 		}catch(ParserConfigurationException pce){
 			pce.printStackTrace();
 		}
+	}
+	public void generateXMLForToolAttributeList(
+			ImmutableList<ToolAttribute> toolAttributes, Element p) {
+		// TODO Auto-generated method stub
+		
 	}
 	public XMLWriter(Actor actor){
 		try{
@@ -874,28 +891,99 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>, StatementVisi
 /******************************************************************************
  * EntityExpr (Network)
  */
-	public void print(EntityExpr entity){
-		entity.accept(this, null);
+	public void generateXMLForEntityExprList(ImmutableList<Entry<String, EntityExpr>> entities, Element p) {
+		Element top = doc.createElement("StructureStmtList");
+		p.appendChild(top);
+		for(Entry<String, EntityExpr> e : entities){
+			Element decl = doc.createElement("EntityDecl");
+			top.appendChild(decl);
+			decl.setAttribute("name", e.getKey());
+			e.getValue().accept(this, decl);
+		}
 	}
-	public Void visitEntityInstanceExpr(EntityInstanceExpr e, Void p) {
+	public Void visitEntityInstanceExpr(EntityInstanceExpr entity, Element p) {
+		Element top = doc.createElement("EntityInstance");
+		p.appendChild(top);
+		top.setAttribute("name", entity.getEntityName());
+		generateXMLForParameterAssignmentList(entity.getParameterAssignments(), top);
+		generateXMLForToolAttributeList(entity.getToolAttributes(), top);
 		return null;
 	}
-	public Void visitEntityIfExpr(EntityIfExpr e, Void p) {
+	public Void visitEntityIfExpr(EntityIfExpr e, Element p) {
 		return null;
 	}
-	public Void visitEntityListExpr(EntityListExpr e, Void p) {
+	public Void visitEntityListExpr(EntityListExpr e, Element p) {
 		return null;
+	}
+	public void generateXMLForParameterAssignmentList(ImmutableList<Entry<String, Expression>> parameterAssignments,
+			Element p) {
+		Element top = doc.createElement("ParameterAssignementList");
+		p.appendChild(top);
+		for(Entry<String, Expression> node : parameterAssignments){
+			generateXMLForParameterAssignment(node, top);
+		}
+	}
+	public void generateXMLForParameterAssignment(Entry<String, Expression> node, Element p) {
+		Element top = doc.createElement("ParameterAssignment");
+		p.appendChild(top);
+		top.setAttribute("name", node.getKey());
+		node.getValue().accept(this, top);
 	}
 /******************************************************************************
  * Structure Statement (Network)
  */
-	public Void visitStructureConnectionStmt(StructureConnectionStmt stmt, Void p) {
+	public void generateXMLForStructureStmtList(ImmutableList<StructureStatement> structure, Element p) {
+		Element top = doc.createElement("StructureStmtList");
+		p.appendChild(top);
+		for(StructureStatement s : structure){
+			s.accept(this, p);
+		}
+	}
+	public Void visitStructureConnectionStmt(StructureConnectionStmt stmt, Element p) {
+		Element top = doc.createElement("StructureStmtConnection");
+		p.appendChild(top);
+		generateXMLForPortReference(stmt.getSrc(), "SrcPort", p);
+		generateXMLForPortReference(stmt.getDst(), "DstPort", p);
+		generateXMLForToolAttributeList(stmt.getToolAttributes(), top);
 		return null;
 	}
-	public Void visitStructureIfStmt(StructureIfStmt stmt, Void p) {
+	private void generateXMLForPortReference(PortReference port, String label,
+			Element p) {
+		Element top = doc.createElement(label);
+		p.appendChild(top);
+		if(port.getEntityName() != null){
+			top.setAttribute("EntityNmae", port.getEntityName());
+		}
+		top.setAttribute("portName", port.getPortName());
+		generateXMLForExpressionList(port.getEntityIndex(), top, "EntityIndexList");
+	}
+	public Void visitStructureIfStmt(StructureIfStmt stmt, Element p) {
+		Element top = doc.createElement("StructureIfStmt");
+		p.appendChild(top);
+		//--- condition
+		Element cond = doc.createElement("Condition");
+		top.appendChild(cond);
+		stmt.getCondition().accept(this, cond);
+		//--- true branch
+		Element trueExpr = doc.createElement("TrueExpr");
+		top.appendChild(trueExpr);
+		generateXMLForStructureStmtList(stmt.getTrueStmt(), trueExpr);
+		//--- else expr
+		if(stmt.getFalseStmt() != null){
+			Element elseExpr = doc.createElement("ElseExpr");
+			top.appendChild(elseExpr);
+			generateXMLForStructureStmtList(stmt.getFalseStmt(), elseExpr);
+		}
 		return null;
 	}
-	public Void visitStructureForeachStmt(StructureForeachStmt stmt, Void p) {
+	public Void visitStructureForeachStmt(StructureForeachStmt stmt, Element p) {
+		Element top = doc.createElement("StructureStmtForeach");
+		p.appendChild(top);
+		//-- body
+		Element bodyElement = doc.createElement("Body");
+		top.appendChild(bodyElement);
+		generateXMLForStructureStmtList(stmt.getStatements(), bodyElement);
+		generateXMLForGeneratorFilterList(stmt.getGenerators(), top);
 		return null;
 	}
 }

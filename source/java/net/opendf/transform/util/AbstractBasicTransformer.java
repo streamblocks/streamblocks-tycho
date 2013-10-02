@@ -88,6 +88,10 @@ LValueVisitor<LValue, P> {
 			for (T element : list) {
 				builder.add((T) method.invoke(this, element, param));
 			}
+		} catch(Error e){
+			throw e;
+		} catch(RuntimeException e){
+			throw e;
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
