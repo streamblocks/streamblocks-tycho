@@ -93,22 +93,4 @@ public class Variable extends AbstractIRNode {
 			return "Variable(" + name + ")";
 		}
 	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (!(o instanceof Variable)) {
-			return false;
-		}
-		Variable that = (Variable) o;
-		if (this.isScopeVariable != that.isScopeVariable) {
-			return false;
-		}
-		if (isScopeVariable && this.scopeId != that.scopeId) {
-			return false;
-		}
-		if (!Objects.equals(this.name, that.name)) {
-			return false;
-		}
-		return true;
-	}
 }
