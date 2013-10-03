@@ -42,7 +42,7 @@ import net.opendf.ir.util.ImmutableList;
 
 public class NetworkDefinitionTransformerWrapper<P> extends AbstractNetworkDefinitionTransformer<P> implements NetworkDefinitionTransformer<P> {
 
-	private final BasicTransformer<P> inner;
+	protected final BasicTransformer<P> inner;
 
 	public NetworkDefinitionTransformerWrapper(BasicTransformer<P> inner) {
 		this.inner = inner;

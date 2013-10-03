@@ -55,6 +55,21 @@ public class EntityInstanceExpr extends net.opendf.ir.net.ast.EntityExpr {
 		return v.visitEntityInstanceExpr(this, p);
 	}
 
+	public String toString(){
+		StringBuffer sb = new StringBuffer();
+		sb.append(entityName);
+		String sep = "";
+		sb.append("(");
+		for(Entry<String, Expression> pa : parameterAssignments){
+			sb.append(pa.getKey());
+			sb.append("=");
+			sb.append(pa.getValue());
+			sb.append(sep);
+			sep = ", ";
+		}
+		sb.append(")");
+		return sb.toString();
+	}
 	private String entityName; // the name of the actor/network
 	private ImmutableList<Entry<String, Expression>> parameterAssignments;
 	private ImmutableList<ToolAttribute> toolAttributes;

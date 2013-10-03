@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.opendf.analyze.memory.FreeVariablesTransformer;
+import net.opendf.analyze.memory.VariableInitOrderTransformer;
 import net.opendf.analyze.util.AbstractBasicTraverser;
 import net.opendf.interp.preprocess.EvaluateLiteralsTransformer;
 import net.opendf.interp.preprocess.VariableOffsetTransformer;
@@ -56,10 +56,9 @@ public class BasicActorMachineSimulator implements ActorMachineSimulator, Instru
 	 * @return
 	 */
 	public static ActorMachine prepareActor(Actor actor){
-		actor = FreeVariablesTransformer.transformActor(actor);
+		actor = VariableInitOrderTransformer.transformActor(actor);
 		// replace BinOp and UnaryOp in all expressions with function calls
-		ActorOpTransformer transformer = new ActorOpTransformer();
-		actor = transformer.transformActor(actor);
+		actor = ActorOpTransformer.transformActor(actor);
 
 		// translate the actor to an actor machine
 		List<InstructionFilterFactory<State>> instructionFilters = new ArrayList<InstructionFilterFactory<State>>();

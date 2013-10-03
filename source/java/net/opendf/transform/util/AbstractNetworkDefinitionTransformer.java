@@ -57,7 +57,7 @@ public class AbstractNetworkDefinitionTransformer<P> extends AbstractBasicTransf
 	public ImmutableList<PortDecl> transformInputPorts(ImmutableList<PortDecl> ports, P p) {
 		ImmutableList.Builder<PortDecl> builder = new ImmutableList.Builder<PortDecl>();
 		for(PortDecl port : ports){
-			transformInputPort(port, p);
+			builder.add(transformInputPort(port, p));
 		}
 		return builder.build();
 	}
@@ -71,7 +71,7 @@ public class AbstractNetworkDefinitionTransformer<P> extends AbstractBasicTransf
 	public ImmutableList<PortDecl> transformOutputPorts(ImmutableList<PortDecl> ports, P p) {
 		ImmutableList.Builder<PortDecl> builder = new ImmutableList.Builder<PortDecl>();
 		for(PortDecl port : ports){
-			transformOutputPort(port, p);
+			builder.add(transformOutputPort(port, p));
 		}
 		return builder.build();
 	}

@@ -1,25 +1,36 @@
 package net.opendf.interp;
 
-import net.opendf.analyze.memory.FreeVariablesTransformer;
+import java.util.Map;
+
+import net.opendf.analyze.memory.VariableInitOrderTransformer;
+import net.opendf.interp.preprocess.EvaluateLiteralsTransformer;
 import net.opendf.interp.preprocess.VariableOffsetTransformer;
+import net.opendf.ir.common.Expression;
 import net.opendf.ir.net.ast.NetworkDefinition;
+import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.transform.operators.ActorOpTransformer;
 
 public class BasicNetworkSimulator {
 
 
-	/**
-	 * Transform an Actor to an ActorMachine which is prepared for interpretation
-	 * @param actor
-	 * @return
-	 */
-	public static NetworkDefinition prepareNetworkDefinition(NetworkDefinition def){
+	public static NetworkDefinition prepareNetworkDefinition(NetworkDefinition net){
 		// order variable initializations
-		def = FreeVariablesTransformer.transformNetworkDefinition(def);
+		net = VariableInitOrderTransformer.transformNetworkDefinition(net);
+		// replace operators with function calls
+		net = ActorOpTransformer.transformNetworkDefinition(net);
+		// replace global variables with constants, i.e. $BinaryOperation.+ with ExprValue(ConstRef.of(new IntFunctions.Add()))
+		net = EvaluateLiteralsTransformer.transformNetworkDefinition(net);
 		// compute variable offsets
 		VariableOffsetTransformer varT = new VariableOffsetTransformer();
-		def = varT.transformNetworkDefinition(def);
+		net = varT.transformNetworkDefinition(net);
 		
-		return def;
+		Interpreter interpreter = new BasicInterpreter(100);
+		NetDefEvaluator eval = new NetDefEvaluator(net, interpreter);
+		eval.evaluate(ImmutableList.<Map.Entry<String,Expression>>empty());
+		net = eval.getNetworkDefinition();
+
+		return net;
 	}
-	
+		
 }

@@ -3,6 +3,7 @@ package net.opendf.interp.preprocess;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import net.opendf.interp.Environment;
 import net.opendf.interp.GeneratorFilterHelper;
 import net.opendf.interp.VariableLocation;
 import net.opendf.interp.exception.CALCompiletimeException;
@@ -23,7 +24,11 @@ import net.opendf.ir.common.StmtBlock;
 import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
+import net.opendf.ir.net.ast.EntityExpr;
+import net.opendf.ir.net.ast.EntityListExpr;
 import net.opendf.ir.net.ast.NetworkDefinition;
+import net.opendf.ir.net.ast.StructureForeachStmt;
+import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.transform.util.AbstractBasicTransformer;
 import net.opendf.transform.util.ActorMachineTransformerWrapper;
@@ -46,14 +51,10 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 	}
 
 	public NetworkDefinition transformNetworkDefinition(NetworkDefinition net){
-		Scope scope = new Scope(net.getVarDecls());
-		scopes = ImmutableList.of(scope);
+		NetDefVarOffsetTransformer wrapper = new NetDefVarOffsetTransformer();
+
 		LookupTable table = new LookupTable();
-		VariableOffsetTransformer transformer = new VariableOffsetTransformer();
-		NetworkDefinitionTransformerWrapper<VariableOffsetTransformer.LookupTable> wrapper = new NetworkDefinitionTransformerWrapper<VariableOffsetTransformer.LookupTable>(transformer);
 		net = wrapper.transformNetworkDefinition(net, table);
-		scopes = null;
-		assert table.isEmpty();
 		return net;
 	}
 
@@ -132,7 +133,7 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 				}
 			}
 		};
-		ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.memoryLayout(expr.getGenerators(), buildList, table, this);
+		ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.setVariableOffsets(expr.getGenerators(), buildList, table, this);
 		return expr.copy(elementBuilder.build(), transformedGenerators);
 	}
 
@@ -166,14 +167,14 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 	
 	@Override
 	public Statement visitStmtForeach(final StmtForeach stmt, final LookupTable table) {
-		final Statement[] body = new Statement[1];
+		final Statement[] newBody = new Statement[1];  // newBody must be final for Runnable, use a pointer so Runnable can change it.
 		Runnable transformer = new Runnable() {
 			public void run() {
-				body[0] = transformStatement(stmt.getBody(), table);
+				newBody[0] = transformStatement(stmt.getBody(), table);
 			}
 		};
-		ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.memoryLayout(stmt.getGenerators(), transformer, table, this);
-		return stmt.copy(transformedGenerators, body[0]);
+		ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.setVariableOffsets(stmt.getGenerators(), transformer, table, this);
+		return stmt.copy(transformedGenerators, newBody[0]);
 	}
 	
 	public class LookupTable{
@@ -289,6 +290,54 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 		}
 		public LookupTable endClosure(){
 			return parent;
+		}
+	}
+	
+	public class NetDefVarOffsetTransformer extends NetworkDefinitionTransformerWrapper<VariableOffsetTransformer.LookupTable>{
+
+		public NetDefVarOffsetTransformer() {
+			super(new VariableOffsetTransformer());
+		}
+
+		@Override
+		public NetworkDefinition transformNetworkDefinition(NetworkDefinition net, LookupTable table){
+			Scope scope = new Scope(net.getVarDecls());
+			scopes = ImmutableList.of(scope);
+			net = super.transformNetworkDefinition(net, table);
+			scopes = null;
+			assert table.isEmpty();
+			return net;
+		}
+
+		@Override
+		public EntityExpr visitEntityListExpr(final EntityListExpr e, final LookupTable table) {
+			final ImmutableList.Builder<EntityExpr> builder = new ImmutableList.Builder<EntityExpr>();
+			final NetDefVarOffsetTransformer entityExprTransformer = this;
+			
+			Runnable transformer = new Runnable() {
+				public void run() {
+					for(EntityExpr expr : e.getEntityList()){
+						builder.add(expr.accept(entityExprTransformer, table));
+					}
+				}
+			};
+			ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.setVariableOffsets(e.getGenerators(), transformer, table, (VariableOffsetTransformer)inner);
+			return e.copy(builder.build(), transformedGenerators);
+		}
+		@Override
+		public StructureStatement visitStructureForeachStmt(final StructureForeachStmt stmt, final LookupTable table) {
+			final ImmutableList.Builder<StructureStatement> builder = new ImmutableList.Builder<StructureStatement>();
+			final NetDefVarOffsetTransformer structStmtTransformer = this;
+			
+			Runnable transformer = new Runnable() {
+				public void run() {
+					for(StructureStatement s : stmt.getStatements()){
+						builder.add(s.accept(structStmtTransformer, table));
+					}
+				}
+			};
+			ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.setVariableOffsets(stmt.getGenerators(), transformer, table, (VariableOffsetTransformer)inner);
+			return stmt.copy(transformedGenerators, builder.build());
 		}
 	}
 }

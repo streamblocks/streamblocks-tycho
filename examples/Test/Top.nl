@@ -1,11 +1,23 @@
-network Top [TypeParamA, TypeParamB] (ValueParamA, ValueParamB) Type1(c:int, a=2, b:int, d:int) in1, Type2 in2 ==> outA, outB :
+network Top [TypeParamA, TypeParamB] () Type1(c:int, a=2, b:int, d:int) in1, Type2 in2 ==> outA, outB :
 
 var
   a := b;
   b := 4;
 
 entities
-  nodeA = Add(a=let p1=p2, p2=3 : p1+p2 end);
+  nodeA = if a!=4 then Add(a=let p1=p2, p2=3 : p1+p2 end) else Sub() end;
+  list = [Add(a=i, b=j) : for i in 1..3, i!=2, for j in 10..11 ];
+  list2 = [[Add(), Add()], [Sub(), Sub()]];
+
+structure
+  if a>4 then
+    nodA.out --> nodeA.in1;
+  else
+    nodA.out --> nodeA.in2;
+  end
+  foreach i in 1..2, foreach j in 1..3 do
+    list[i].a --> list2[i][j].b;
+  end
 
 /*
 var

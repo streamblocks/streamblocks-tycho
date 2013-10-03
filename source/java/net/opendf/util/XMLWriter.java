@@ -892,7 +892,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
  * EntityExpr (Network)
  */
 	public void generateXMLForEntityExprList(ImmutableList<Entry<String, EntityExpr>> entities, Element p) {
-		Element top = doc.createElement("StructureStmtList");
+		Element top = doc.createElement("EntityExprList");
 		p.appendChild(top);
 		for(Entry<String, EntityExpr> e : entities){
 			Element decl = doc.createElement("EntityDecl");
@@ -942,8 +942,8 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 	public Void visitStructureConnectionStmt(StructureConnectionStmt stmt, Element p) {
 		Element top = doc.createElement("StructureStmtConnection");
 		p.appendChild(top);
-		generateXMLForPortReference(stmt.getSrc(), "SrcPort", p);
-		generateXMLForPortReference(stmt.getDst(), "DstPort", p);
+		generateXMLForPortReference(stmt.getSrc(), "SrcPort", top);
+		generateXMLForPortReference(stmt.getDst(), "DstPort", top);
 		generateXMLForToolAttributeList(stmt.getToolAttributes(), top);
 		return null;
 	}
@@ -952,7 +952,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 		Element top = doc.createElement(label);
 		p.appendChild(top);
 		if(port.getEntityName() != null){
-			top.setAttribute("EntityNmae", port.getEntityName());
+			top.setAttribute("EntityName", port.getEntityName());
 		}
 		top.setAttribute("portName", port.getPortName());
 		generateXMLForExpressionList(port.getEntityIndex(), top, "EntityIndexList");

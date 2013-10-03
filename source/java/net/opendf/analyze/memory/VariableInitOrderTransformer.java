@@ -33,25 +33,25 @@ import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
  * This is done by transformVarDecls(ImmutableList<DeclVar> varDecls, Set<String> c).
  */
 
-public class FreeVariablesTransformer extends AbstractBasicTransformer<Set<String>> {
+public class VariableInitOrderTransformer extends AbstractBasicTransformer<Set<String>> {
 
 	
 	public static Actor transformActor(Actor actor){
-		FreeVariablesTransformer freeVarTransformer = new FreeVariablesTransformer();
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
 		ActorTransformerWrapper<Set<String>> wrapper = new ActorTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
 		return wrapper.transformActor(actor, c);
 	}
 
 	public static ActorMachine transformActorMachine(ActorMachine actorMachine){
-		FreeVariablesTransformer freeVarTransformer = new FreeVariablesTransformer();
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
 		ActorMachineTransformerWrapper<Set<String>> wrapper = new ActorMachineTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
 		return wrapper.transformActorMachine(actorMachine, c);
 	}
 
 	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net){
-		FreeVariablesTransformer freeVarTransformer = new FreeVariablesTransformer();
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
 		NetworkDefinitionTransformerWrapper<Set<String>> wrapper = new NetworkDefinitionTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
 		return wrapper.transformNetworkDefinition(net, c);

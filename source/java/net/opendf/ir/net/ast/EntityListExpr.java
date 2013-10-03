@@ -36,6 +36,24 @@ public class EntityListExpr extends EntityExpr {
 	public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
 		return v.visitEntityListExpr(this, p);
 	}
+	
+	public String toString(){
+		StringBuffer sb = new StringBuffer("[");
+		String sep = "";
+		for(EntityExpr e : entityList){
+			sb.append(sep);
+			sep = ", ";
+			sb.append(e);
+		}
+		sep = "";
+		for(GeneratorFilter g : generators){
+			sb.append(sep);
+			sep = ", ";
+			sb.append(g);
+		}
+		sb.append("]");
+		return sb.toString();
+	}
 
 	private ImmutableList<EntityExpr> entityList;
 	private ImmutableList<GeneratorFilter> generators;

@@ -32,6 +32,9 @@ public class BasicMemory implements Memory {
 	public BasicMemory(int size) {
 		mem = new BasicRef[1][];
 		mem[0] = new BasicRef[size];
+		for(int j=0; j<size; j++){
+			mem[0][j] = new BasicRef();
+		}
 		inClosure = new BitSet[1];
 		inClosure[0] = new BitSet(size);
 	}

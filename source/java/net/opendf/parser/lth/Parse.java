@@ -6,24 +6,15 @@ package net.opendf.parser.lth;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.List;
 
 import beaver.Scanner;
-import net.opendf.analyze.memory.FreeVariablesTransformer;
+import net.opendf.analyze.memory.VariableInitOrderTransformer;
 import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicNetworkSimulator;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
-import net.opendf.ir.net.ast.EntityNameBinding;
 import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.parser.lth.CalParser;
-import net.opendf.transform.caltoam.ActorToActorMachine;
-import net.opendf.transform.caltoam.ActorStates.State;
-import net.opendf.transform.filter.InstructionFilterFactory;
-import net.opendf.transform.filter.PrioritizeCallInstructions;
-import net.opendf.transform.filter.SelectRandomInstruction;
-import net.opendf.transform.operators.ActorOpTransformer;
 import net.opendf.util.PrettyPrint;
 import net.opendf.util.XMLWriter;
 
@@ -98,7 +89,7 @@ public class Parse{
 			Actor actor = parser.parse(path, fileName);
 			parser.printParseProblems();
 			if(parser.parseProblems.isEmpty()){
-				actor = FreeVariablesTransformer.transformActor(actor);
+				actor = VariableInitOrderTransformer.transformActor(actor);
 				if(prettyPrint){
 					PrettyPrint pp = new PrettyPrint();
 					pp.print(actor);

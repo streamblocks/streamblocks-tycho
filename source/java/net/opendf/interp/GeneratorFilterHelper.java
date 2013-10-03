@@ -75,16 +75,17 @@ public class GeneratorFilterHelper {
 	/**
 	 * Called when an actor machine is prepared for interpretation.
 	 * The purpose is to find the offset on the stack for all variables.
-	 * Called by MemoryLayoutTransformer.
+	 * Called by VariableOffsetTransformer.
 	 * NOTE, the stack must be modified in the same order by both interpret() and memoryLayout()
 	 * 
 	 * @param generators
 	 * @param action
 	 * @param lookupTable
-	 * @param transformer
+	 * @param transformer - The run() method transform the content of this generator, i.e. the list of elements for list generators, the statement body for foreach statement
+	 *                      run() is called after the names introduced by this generator has been added to the lookup table
 	 * @return
 	 */
-	public static ImmutableList<GeneratorFilter> memoryLayout(ImmutableList<GeneratorFilter> generators, Runnable action, 
+	public static ImmutableList<GeneratorFilter> setVariableOffsets(ImmutableList<GeneratorFilter> generators, Runnable action, 
 			final LookupTable lookupTable, VariableOffsetTransformer transformer){
 		ImmutableList.Builder<GeneratorFilter> generatorBuilder = ImmutableList.builder();
 		for(GeneratorFilter gen : generators){

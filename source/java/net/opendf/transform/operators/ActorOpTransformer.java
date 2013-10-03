@@ -3,6 +3,7 @@ package net.opendf.transform.operators;
 import java.util.LinkedList;
 import java.util.Map;
 
+import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.ExprApplication;
 import net.opendf.ir.common.ExprBinaryOp;
@@ -10,19 +11,37 @@ import net.opendf.ir.common.ExprUnaryOp;
 import net.opendf.ir.common.ExprVariable;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Variable;
+import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.util.ImmutableList;
-import net.opendf.transform.util.AbstractActorTransformer;
+import net.opendf.transform.util.AbstractBasicTransformer;
+import net.opendf.transform.util.ActorMachineTransformerWrapper;
+import net.opendf.transform.util.ActorTransformerWrapper;
+import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
 /**
  * Replaces all BinaryOp and UnaryOp nodes in expressions with corresponding ExprApplication.
  * The transformation is done by calling transformActor(Actor actor).
  *
  */
-public class ActorOpTransformer extends AbstractActorTransformer<Map<String, Integer>> {
+public class ActorOpTransformer extends AbstractBasicTransformer<Map<String, Integer>> {
 
-	public Actor transformActor(Actor actor){
-		return transformActor(actor, BinOpPriorities.getDefaultMapper());
+	public static Actor transformActor(Actor actor){
+		ActorOpTransformer transformer = new ActorOpTransformer();
+		ActorTransformerWrapper<Map<String, Integer>> wrapper = new ActorTransformerWrapper<Map<String, Integer>>(transformer);
+		return wrapper.transformActor(actor, BinOpPriorities.getDefaultMapper());
 	}
-	
+
+	public static ActorMachine transformActorMachine(ActorMachine actorMachine){
+		ActorOpTransformer transformer = new ActorOpTransformer();
+		ActorMachineTransformerWrapper<Map<String, Integer>> wrapper = new ActorMachineTransformerWrapper<Map<String, Integer>>(transformer);
+		return wrapper.transformActorMachine(actorMachine, BinOpPriorities.getDefaultMapper());
+	}
+
+	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net){
+		ActorOpTransformer transformer = new ActorOpTransformer();
+		NetworkDefinitionTransformerWrapper<Map<String, Integer>> wrapper = new NetworkDefinitionTransformerWrapper<Map<String, Integer>>(transformer);
+		return wrapper.transformNetworkDefinition(net, BinOpPriorities.getDefaultMapper());
+	}
+
 	@Override
 	public Expression visitExprBinaryOp(ExprBinaryOp opSeq, Map<String, Integer> table) {
 		return shuntingYard(opSeq.getOperations(), opSeq.getOperands(), table);
