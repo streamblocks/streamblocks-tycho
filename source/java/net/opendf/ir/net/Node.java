@@ -1,12 +1,11 @@
 package net.opendf.ir.net;
 
+import java.util.Objects;
+
 import net.opendf.ir.AbstractIRNode;
-import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.PortContainer;
-import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.util.ImmutableList;
 
 /**
  * A Node is a basic element in a network. It can contain ports, and it also may contain some other {@link AbstractIRNode} as payload. Usually,
@@ -17,35 +16,34 @@ import net.opendf.ir.util.ImmutableList;
  *
  */
 
-public class Node extends AbstractIRNode implements PortContainer {
+public class Node extends AbstractIRNode {
 	
-	public IRNode  getContent() { return content; }
+	public PortContainer  getContent() { return content; }
 	
-	// PortContainer
-	
-	public ImmutableList<PortDecl> getInputPorts() {
-		return inputPorts;
-	}
-	
-	public ImmutableList<PortDecl> getOutputPorts() {
-		return outputPorts;
-	}
-	
-	
+	public String getName(){ return name; }
+
 	//
 	// Ctor
 	//
 	
-	public Node(IRNode content) {
-		super (null);
-		
-		this.content = content;
-		this.inputPorts = inputPorts; //FIXME
-		this.outputPorts = outputPorts; //FIXME
+	public Node(String name, PortContainer content) {
+		this(null, name, content);
 	}
 	
-	private IRNode content;
-
-	private ImmutableList<PortDecl>  inputPorts;
-	private ImmutableList<PortDecl>  outputPorts;
+	protected Node(Node original, String name, PortContainer content) {
+		super (original);
+		this.name = name;
+		this.content = content;
+	}
+	
+	public Node copy(String name, PortContainer content){
+		if(Objects.equals(this.name, name) && Objects.equals(this.content, content)){
+			return this;
+		}
+		return new Node(this, name, content);
+	}
+	
+	private String name;
+	private PortContainer content;
+	
 }

@@ -1,10 +1,12 @@
 package net.opendf.ir.net;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
+import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.Lists;
 
 
 /**
@@ -15,40 +17,45 @@ import net.opendf.ir.common.PortDecl;
  *
  */
 
-public class Network {
+public class Network extends AbstractIRNode{
 
 	
-	public List<Node> getNodes() {
+	public ImmutableList<Node> getNodes() {
 		return nodes;
 	}
 	
-	public void addNode(Node n) {
-		getNodes().add(n);
-	}
-	
-	public List<Connection> getConnections() {
+	public ImmutableList<Connection> getConnections() {
 		return connections;
 	}
 	
-	public void addConnection(Connection c) {
-		getConnections().add(c);
-	}
+	public ImmutableList<PortDecl> getInputPorts() { return inputPorts; }
 	
-	public List<PortDecl> getInputPorts() { return inputPorts; }
-	
-	public List<PortDecl> getOutputPorts() { return outputPorts; }
+	public ImmutableList<PortDecl> getOutputPorts() { return outputPorts; }
 
 	//
 	// Ctor
 	// 
-		
-	public Network (List<PortDecl> inputPorts, List<PortDecl> outputPorts) {
+	public Network (ImmutableList<Node> nodes, ImmutableList<Connection> connections, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) {
+		this(null, nodes, connections, inputPorts, outputPorts);
+	}
+	
+	protected Network (Network original, ImmutableList<Node> nodes, ImmutableList<Connection> connections, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) {
+		super(original);
+		this.nodes = nodes;
+		this.connections = connections;
         this.inputPorts = inputPorts;
         this.outputPorts = outputPorts;
 	}
+	
+	public Network copy(Network original, ImmutableList<Node> nodes, ImmutableList<Connection> connections, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts){
+		if(Objects.equals(this.nodes, nodes) && Lists.equals(this.connections, connections) && Lists.equals(this.inputPorts,  inputPorts) && Lists.equals(this.outputPorts,  outputPorts)){
+			return original;
+		}
+		return new Network(this, nodes, connections, inputPorts, outputPorts);
+	}
 
-	private List<Node>			nodes = new ArrayList<Node>();
-	private List<Connection>	connections = new ArrayList<Connection>();
-	private List<PortDecl>		inputPorts;
-	private List<PortDecl>		outputPorts;
+	private ImmutableList<Node>			nodes;
+	private ImmutableList<Connection>	connections;
+	private ImmutableList<PortDecl>		inputPorts;
+	private ImmutableList<PortDecl>		outputPorts;
 }
