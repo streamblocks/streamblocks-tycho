@@ -20,7 +20,8 @@ public class StructureIfStmt extends StructureStatement {
 
 	private StructureIfStmt(StructureIfStmt original, Expression condition, ImmutableList<StructureStatement> trueStmt,
 			ImmutableList<StructureStatement> falseStmt) {
-		super(original);
+		//TODO tool attributes
+		super(original, null);
 		this.condition = condition;
 		this.trueStmt = ImmutableList.copyOf(trueStmt);
 		this.falseStmt = ImmutableList.copyOf(falseStmt);

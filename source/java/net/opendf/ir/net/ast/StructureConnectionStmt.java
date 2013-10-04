@@ -19,16 +19,15 @@ public class StructureConnectionStmt extends StructureStatement {
 
 	private StructureConnectionStmt(StructureConnectionStmt original, PortReference src, PortReference dst,
 			ImmutableList<ToolAttribute> toolAttributes) {
-		super(original);
+		super(original, toolAttributes);
 		this.src = src;
 		this.dst = dst;
-		this.toolAttributes = ImmutableList.copyOf(toolAttributes);
 	}
 
 	public StructureConnectionStmt copy(PortReference src, PortReference dst,
 			ImmutableList<ToolAttribute> toolAttributes) {
 		if (Objects.equals(this.src, src) && Objects.equals(this.dst, dst)
-				&& Lists.equals(this.toolAttributes, toolAttributes)) {
+				&& Lists.equals(getToolAttributes(), toolAttributes)) {
 			return this;
 		}
 		return new StructureConnectionStmt(this, src, dst, toolAttributes);
@@ -42,10 +41,6 @@ public class StructureConnectionStmt extends StructureStatement {
 		return dst;
 	}
 
-	public ImmutableList<ToolAttribute> getToolAttributes() {
-		return toolAttributes;
-	}
-
 	public String toString() {
 		return src.toString() + " --> " + dst.toString();
 	}
@@ -56,5 +51,4 @@ public class StructureConnectionStmt extends StructureStatement {
 	}
 
 	private PortReference src, dst;
-	protected ImmutableList<ToolAttribute> toolAttributes;
 }

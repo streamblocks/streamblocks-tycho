@@ -16,6 +16,7 @@ import net.opendf.interp.Memory;
 import net.opendf.interp.TypeConverter;
 import net.opendf.interp.values.ExprValue;
 import net.opendf.interp.values.RefView;
+import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLiteral;
@@ -23,6 +24,11 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
+import net.opendf.ir.common.Port;
+import net.opendf.ir.common.PortContainer;
+import net.opendf.ir.net.Connection;
+import net.opendf.ir.net.Network;
+import net.opendf.ir.net.Node;
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ast.EntityExprVisitor;
 import net.opendf.ir.net.ast.EntityIfExpr;
@@ -59,6 +65,97 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				ImmutableList.copyOf(entities.entrySet()), ImmutableList.copyOf(structure), srcNetwork.getToolAttributes());
 	}
 
+	public Network getNetwork(){
+		NetworkNodeBuilder nb = new NetworkNodeBuilder();
+		for(Entry<String, EntityExpr> entry : entities.entrySet()){
+			entry.getValue().accept(nb, entry.getKey());
+		}
+		for(StructureStatement stmt : structure){
+			stmt.accept(nb,  "");
+		}
+		return new Network(nb.getNodes(), nb.getConnections(), srcNetwork.getInputPorts(), srcNetwork.getOutputPorts());
+	}
+
+	private class NetworkNodeBuilder implements EntityExprVisitor<Void, String>, StructureStmtVisitor<Void, String>{
+		HashMap<String, Node> nodes = new HashMap<String, Node>();
+		ImmutableList.Builder<Connection> connections = new ImmutableList.Builder<Connection>();
+
+		public ImmutableList<Node> getNodes() {	return ImmutableList.copyOf(nodes.values()); }
+		public ImmutableList<Connection> getConnections(){ return connections.build(); }
+
+		@Override
+		public Void visitEntityInstanceExpr(EntityInstanceExpr e, String p) {
+			String entityName = e.getEntityName() + ":" + p;
+			e.getParameterAssignments();
+			PortContainer payload = null; 
+			// TODO get the payload
+			//universe.instanciate(entityName, parameterAssignments);
+			nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
+			return null;
+		}
+
+		@Override
+		public Void visitEntityIfExpr(EntityIfExpr e, String p) {
+			throw new RuntimeException("The NetworkDefinition is not evalated befor the Network is created.");
+		}
+
+		@Override
+		public Void visitEntityListExpr(EntityListExpr e, String p) {
+			assert e.getGenerators().isEmpty();
+			ImmutableList<EntityExpr> list = e.getEntityList();
+			for(int i=0; i<list.size(); i++){
+				list.get(i).accept(this, p + "[" + i + "]");
+			}
+			return null;
+		}
+		private String makeEntityName(PortReference port){
+			StringBuffer name = new StringBuffer(port.getEntityName());
+			for(Expression index : port.getEntityIndex()){
+				name.append("[");
+				name.append(((ExprLiteral)index).getText());
+				name.append("]");
+			}
+			return name.toString();
+		}
+		@Override
+		public Void visitStructureConnectionStmt(StructureConnectionStmt stmt, String p) {
+			PortReference src = stmt.getSrc();
+			PortReference dst = stmt.getDst();
+			Node srcNode = nodes.get(makeEntityName(src));
+			Node dstNode = nodes.get(makeEntityName(dst));
+			Identifier srcId = null;
+			if(srcNode != null){
+				srcId = srcNode.getIdentifier();
+			} else {
+				error("can not find entity " + makeEntityName(src));
+			}
+			Identifier dstId = null;
+			if(dstNode != null){
+				dstId = dstNode.getIdentifier();
+			} else {
+				error("can not find entity " + makeEntityName(dst));
+			}
+			Connection con =  new Connection(srcId, new Port(src.getPortName()), dstId, new Port(dst.getPortName()), stmt.getToolAttributes());
+			connections.add(con);
+			return null;
+		}
+		private void error(String msg) {
+			System.err.println(msg);
+		}
+		@Override
+		public Void visitStructureIfStmt(StructureIfStmt stmt, String p) {
+			throw new RuntimeException("The NetworkDefinition is not evalated befor the Network is created.");
+		}
+		@Override
+		public Void visitStructureForeachStmt(StructureForeachStmt stmt, String p) {
+			assert stmt.getGenerators().isEmpty();
+			for(StructureStatement s : stmt.getStatements()){
+				s.accept(this, "");
+			}
+			return null;
+		}
+	}
+	
 	public NetDefEvaluator(NetworkDefinition network, Interpreter interpreter){
 		this.srcNetwork = network;
 		this.interpreter = interpreter;

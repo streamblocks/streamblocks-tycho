@@ -39,6 +39,9 @@ ENDCOPYRIGHT
 
 package net.opendf.ir;
 
+import net.opendf.ir.net.ToolAttribute;
+import net.opendf.ir.util.ImmutableList;
+
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
  * @author Jorn W. Janneck <jwj@acm.org>
@@ -46,17 +49,40 @@ package net.opendf.ir;
 public abstract class AbstractIRNode implements IRNode {
 
 	@Override
-	public Object getIdentifier() {
+	public Identifier getIdentifier() {
 		return identifier;
 	}
 
 	public AbstractIRNode(IRNode original) {
+		this(original, null);
+	}
+
+	public AbstractIRNode(IRNode original, ImmutableList<ToolAttribute> attributes) {
 		if (original == null) {
-			identifier = new Object();
+			identifier = new Identifier();
 		} else {
 			identifier = original.getIdentifier();
 		}
+		if(attributes == null){
+			toolAttributes = ImmutableList.empty();
+		} else {
+			this.toolAttributes = attributes;
+		}
 	}
 
-	private final Object identifier;
+	public ToolAttribute getToolAttribute(String name){
+		for(ToolAttribute ta : toolAttributes){
+			if(ta.getName().equals(name)){
+				return ta;
+			}
+		}
+		return null;
+	}
+	
+	public ImmutableList<ToolAttribute> getToolAttributes(){
+		return toolAttributes;
+	}
+	
+	private final Identifier identifier;
+	private ImmutableList<ToolAttribute> toolAttributes;
 }

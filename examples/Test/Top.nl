@@ -13,9 +13,9 @@ structure
   if a>4 then
     nodA.out --> nodeA.in1;
   else
-    nodA.out --> nodeA.in2;
+    nodeA.out --> nodeA.in2;
   end
-  foreach i in 1..2, foreach j in 1..3 do
+  foreach i in 0..1, foreach j in 0..1 do
     list[i].a --> list2[i][j].b;
   end
 

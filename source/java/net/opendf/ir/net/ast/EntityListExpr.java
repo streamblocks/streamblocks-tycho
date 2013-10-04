@@ -10,9 +10,9 @@ public class EntityListExpr extends EntityExpr {
 		this(null, entityList, generators);
 	}
 
-	private EntityListExpr(EntityListExpr original, ImmutableList<EntityExpr> entityList,
-			ImmutableList<GeneratorFilter> generators) {
-		super(original);
+	private EntityListExpr(EntityListExpr original, ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {
+		//TODO tool attributes
+		super(original, null);
 		this.entityList = ImmutableList.copyOf(entityList);
 		this.generators = ImmutableList.copyOf(generators);
 	}

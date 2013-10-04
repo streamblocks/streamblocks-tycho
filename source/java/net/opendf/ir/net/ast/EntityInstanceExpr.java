@@ -22,17 +22,16 @@ public class EntityInstanceExpr extends net.opendf.ir.net.ast.EntityExpr {
 
 	private EntityInstanceExpr(EntityInstanceExpr original, String entityName,
 			ImmutableList<Entry<String, Expression>> parameterAssignments, ImmutableList<ToolAttribute> toolAttributes) {
-		super(original);
+		super(original, toolAttributes);
 		this.entityName = entityName;
 		this.parameterAssignments = ImmutableList.copyOf(parameterAssignments);
-		this.toolAttributes = ImmutableList.copyOf(toolAttributes);
 	}
 
 	public EntityInstanceExpr copy(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments,
 			ImmutableList<ToolAttribute> toolAttributes) {
 		if (Objects.equals(this.entityName, entityName)
 				&& Lists.equals(this.parameterAssignments, parameterAssignments)
-				&& Lists.equals(this.toolAttributes, toolAttributes)) {
+				&& Lists.equals(getToolAttributes(), toolAttributes)) {
 			return this;
 		}
 		return new EntityInstanceExpr(this, entityName, parameterAssignments, toolAttributes);
@@ -44,10 +43,6 @@ public class EntityInstanceExpr extends net.opendf.ir.net.ast.EntityExpr {
 
 	public ImmutableList<Entry<String, Expression>> getParameterAssignments() {
 		return parameterAssignments;
-	}
-
-	public ImmutableList<ToolAttribute> getToolAttributes() {
-		return toolAttributes;
 	}
 
 	@Override
@@ -72,5 +67,4 @@ public class EntityInstanceExpr extends net.opendf.ir.net.ast.EntityExpr {
 	}
 	private String entityName; // the name of the actor/network
 	private ImmutableList<Entry<String, Expression>> parameterAssignments;
-	private ImmutableList<ToolAttribute> toolAttributes;
 }

@@ -16,7 +16,8 @@ public class EntityIfExpr extends EntityExpr {
 	}
 
 	private EntityIfExpr(EntityIfExpr original, Expression condition, EntityExpr trueEntity, EntityExpr falseEntity) {
-		super(original);
+		//TODO tool attributes
+		super(original, null);
 		this.condition = condition;
 		this.trueEntity = trueEntity;
 		this.falseEntity = falseEntity;

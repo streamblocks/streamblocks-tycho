@@ -8,6 +8,9 @@ import java.util.Map.Entry;
 
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
+import net.opendf.ir.net.Connection;
+import net.opendf.ir.net.Network;
+import net.opendf.ir.net.Node;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ast.EntityExprVisitor;
@@ -27,6 +30,41 @@ import net.opendf.ir.util.ImmutableList;
 public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisitor<Void, Void>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Void> {
 	private java.io.PrintStream out = System.out;
 	private int indentDepth = 0;
+
+	public static String toString(Network net){
+		StringBuffer sb = new StringBuffer("input ports:\n");
+		for(PortDecl port : net.getInputPorts()){
+			sb.append("  ");
+			sb.append(port);
+			sb.append("\n");
+		}
+		sb.append("output ports:\n");
+		for(PortDecl port : net.getOutputPorts()){
+			sb.append("  ");
+			sb.append(port);
+			sb.append("\n");
+		}
+		sb.append("entities:\n");
+		for(Node n : net.getNodes()){
+			sb.append(" ");
+			sb.append(n.getName());
+			sb.append("\n");
+		}
+		sb.append("connections:\n");
+		for(Connection c : net.getConnections()){
+			sb.append(" ");
+			sb.append(c.getSrcNodeId());
+			sb.append(".");
+			sb.append(c.getSrcPort());
+			sb.append("->");
+			sb.append(c.getDstNodeId());
+			sb.append(".");
+			sb.append(c.getDstPort());
+			sb.append("\n");
+		}
+		
+		return sb.toString();
+	}
 
 	public void print(NetworkDefinition network){
 		indent();

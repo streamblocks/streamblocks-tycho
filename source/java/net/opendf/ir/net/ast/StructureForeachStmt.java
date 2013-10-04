@@ -13,7 +13,8 @@ public class StructureForeachStmt extends StructureStatement {
 
 	public StructureForeachStmt(IRNode original, ImmutableList<GeneratorFilter> generators,
 			ImmutableList<StructureStatement> statements) {
-		super(original);
+		//TODO tool attributes
+		super(original, null);
 		this.generators = ImmutableList.copyOf(generators);
 		this.statements = ImmutableList.copyOf(statements);
 	}
