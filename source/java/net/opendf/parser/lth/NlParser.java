@@ -297,7 +297,6 @@ public class NlParser extends Parser {
   };
   public void printParseProblems(){ printParseProblems(System.err); }
   public void printParseProblems(PrintStream out){
-    out.println("number of problems: " + parseProblems.size());
     for(String msg : parseProblems){
       out.println("ERROR: " + msg);
     }

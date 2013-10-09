@@ -21,6 +21,15 @@ import net.opendf.ir.util.Lists;
 public class Network extends AbstractIRNode implements PortContainer{
 
 	
+	public Node getNode(Identifier id) {
+		for(Node node : nodes){
+			if(node.getIdentifier()==id){
+				return node;
+			}
+		}
+		return null;
+	}
+
 	public ImmutableList<Node> getNodes() {
 		return nodes;
 	}

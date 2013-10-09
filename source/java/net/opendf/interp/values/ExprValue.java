@@ -28,14 +28,16 @@ public class ExprValue extends ExprLiteral {
 		}
 	}
 	
-	public ExprValue(ExprLiteral original, RefView value) {
-		super(original, original.getKind(), original.getText());
-		this.value = value;
-	}
-
 	public ExprValue(IRNode original, ExprLiteral.Kind kind, String text, RefView value) {
 		super(original, kind, text);
-		this.value = value;
+		BasicRef tmp = new BasicRef();
+		value.assignTo(tmp);
+		this.value = tmp;
+	}
+
+	@Override
+	public String getText() {
+		return value.toString();
 	}
 
 	public RefView getValue(){

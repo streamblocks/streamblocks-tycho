@@ -48,12 +48,13 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
+import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.QID;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
-public class Actor extends DeclEntity {
+public class Actor extends DeclEntity implements PortContainer{
 
 	public Actor(String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,

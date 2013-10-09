@@ -6,8 +6,7 @@ import net.opendf.ir.util.ImmutableList;
 
 /**
  * PortContainer is the common base class of things that contain input and
- * output ports, viz. {@link Network}s and {@link Node}s. Each collection of
- * ports is represented by a top-level {@link CompositePortDecl}.
+ * output ports, viz. {@link Network}s and {@link Node}s.
  * 
  * @author Jorn W. Janneck <jwj@acm.org>
  * 

@@ -36,7 +36,7 @@ import net.opendf.transform.filter.PrioritizeCallInstructions;
 import net.opendf.transform.filter.SelectRandomInstruction;
 import net.opendf.transform.operators.ActorOpTransformer;
 
-public class BasicActorMachineSimulator implements ActorMachineSimulator, InstructionVisitor<Integer, Environment>,
+public class BasicActorMachineSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
 		ConditionVisitor<Boolean, Environment> {
 
 	private final ActorMachine actorMachine;
@@ -51,9 +51,11 @@ public class BasicActorMachineSimulator implements ActorMachineSimulator, Instru
 	private int state;
 
 	/**
-	 * Transform an Actor to an ActorMachine which is prepared for interpretation
+	 * Transform an Actor to an ActorMachine which is prepared for interpretation, i.e. variables are ordered in initialization order, 
+	 * variable and port offsets are computed, operations are replaced by function calls et.c.
+	 * 
 	 * @param actor
-	 * @return
+	 * @return an ActorMachine ready to be simulated by BasicActorMachineSimulator.
 	 */
 	public static ActorMachine prepareActor(Actor actor){
 		actor = VariableInitOrderTransformer.transformActor(actor);
@@ -208,20 +210,21 @@ public class BasicActorMachineSimulator implements ActorMachineSimulator, Instru
 		return converter.getBoolean(cond);
 	}
 
-	public String scopesToString(){
-		StringBuffer s = new StringBuffer();
+	@Override
+	public void scopesToString(StringBuffer sb){
 		ImmutableList<Scope> scopeList = actorMachine.getScopes();
 		for(int scopeId=0; scopeId<scopeList.size(); scopeId++){
-			s.append("{\n");
-			ImmutableList<DeclVar> declList = scopeList.get(scopeId).getDeclarations();
-			for(int declId=0; declId<declList.size(); declId++){
-				VariableLocation var = VariableLocation.scopeVariable(actorMachine, declList.get(declId).getName(), scopeId, declId);
-				s.append("  " + var.getName() + " : ");
-				s.append(environment.getMemory().get(var).toString() + "\n");
+			if(liveScopes.get(scopeId)){
+				sb.append("{\n");
+				ImmutableList<DeclVar> declList = scopeList.get(scopeId).getDeclarations();
+				for(int declId=0; declId<declList.size(); declId++){
+					VariableLocation var = VariableLocation.scopeVariable(actorMachine, declList.get(declId).getName(), scopeId, declId);
+					sb.append("  " + var.getName() + " : ");
+					sb.append(environment.getMemory().get(var).toString() + "\n");
+				}
+				sb.append("}\n");
 			}
-			s.append("}\n");
 		}
-		return s.toString();
 	}
 
 }

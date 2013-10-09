@@ -117,7 +117,7 @@ public class DAG {
 	/**
 	 * Returns all arcs in the graph.
 	 * 
-	 * @return
+	 * @return Returns all arcs in the graph.
 	 */
 	public Iterable<Arc> arcs() {
 		return new ArcIterable();
@@ -126,7 +126,8 @@ public class DAG {
 	/**
 	 * Returns the number of nodes in the graph.
 	 * 
-	 * @return
+	 * @return Returns the number of nodes in the graph.
+	 * 
 	 */
 	public int numberOfNodes() {
 		return arcs.length;
@@ -135,7 +136,7 @@ public class DAG {
 	/**
 	 * Returns the number of arcs in the graph.
 	 * 
-	 * @return
+	 * @return Returns the number of arcs in the graph.
 	 */
 	public int numberOfArcs() {
 		int count = 0;
@@ -295,7 +296,7 @@ public class DAG {
 		/**
 		 * Builds and returns the graph.
 		 * 
-		 * @return
+		 * @return the graph
 		 * @throws CyclicGraphException
 		 */
 		public DAG build() {

@@ -1,0 +1,8 @@
+actor Empty () sink ==> :
+  sum = 0;
+  
+  action [a] ==> 
+  do
+    sum := sum + a;
+  end
+end

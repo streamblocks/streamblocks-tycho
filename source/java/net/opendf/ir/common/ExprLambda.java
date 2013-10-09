@@ -108,7 +108,7 @@ public class ExprLambda extends Expression {
 
 	/**
 	 * Before calling getFreeVariables() the free variables must be computed. 
-	 * @return
+	 * @return the free variables of the lambda function
 	 */
 	public ImmutableList<Variable> getFreeVariables(){
 		assert isFreeVariablesComputed;

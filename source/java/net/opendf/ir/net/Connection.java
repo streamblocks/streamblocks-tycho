@@ -17,7 +17,7 @@ import net.opendf.ir.util.Lists;
  * and a {@link net.opendf.ir.common.Port} object. 
  * 
  * For external ports, i.e. ports belonging to the {@link Network}, 
- * srcNodeId/dstNodeId is {@value null}.
+ * srcNodeId/dstNodeId is <code>null</code>.
  */
 
 public class Connection extends AbstractIRNode {
@@ -28,7 +28,7 @@ public class Connection extends AbstractIRNode {
 	
 	public Port getDstPort() { return dstPort; }
 	
-	public Object getDstNodeId(){ return dstNodeId; }
+	public Identifier getDstNodeId(){ return dstNodeId; }
 	//
 	//  Ctor
 	// 

@@ -96,7 +96,7 @@ public class ExprProc extends Expression {
 
 	/**
 	 * Before calling getFreeVariables() the free variables must be computed. 
-	 * @return
+	 * @return the free variables of the procedure
 	 */
 	public ImmutableList<Variable> getFreeVariables(){
 		assert isFreeVariablesComputed;

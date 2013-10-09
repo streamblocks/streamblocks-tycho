@@ -5,18 +5,12 @@ var
   b := 4;
 
 entities
-  nodeA = if a!=4 then Add(a=let p1=p2, p2=3 : p1+p2 end) else Sub() end;
-  list = [Add(a=i, b=j) : for i in 1..3, i!=2, for j in 10..11 ];
-  list2 = [[Add(), Add()], [Sub(), Sub()]];
+  nodeA = [Source() : for i in 0..1 ];
+  nodeB = [Sink() : for i in 0..1 ];
 
 structure
-  if a>4 then
-    nodA.out --> nodeA.in1;
-  else
-    nodeA.out --> nodeA.in2;
-  end
-  foreach i in 0..1, foreach j in 0..1 do
-    list[i].a --> list2[i][j].b;
+  foreach i in 0..1 do
+    nodeA[i].src --> nodeB[i].sink;
   end
 
 /*

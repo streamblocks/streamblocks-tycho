@@ -39,6 +39,9 @@ import net.opendf.ir.am.State;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
+import net.opendf.ir.net.Connection;
+import net.opendf.ir.net.Network;
+import net.opendf.ir.net.Node;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ast.EntityExprVisitor;
@@ -55,84 +58,170 @@ import net.opendf.ir.net.ast.StructureStmtVisitor;
 import net.opendf.ir.util.ImmutableList;
 
 public class XMLWriter implements ExpressionVisitor<Void,Element>, 
-                                  StatementVisitor<Void, Element>, 
-                                  EntityExprVisitor<Void, Element>, 
-                                  StructureStmtVisitor<Void, Element>, 
-                                  LValueVisitor<Void, Element>, 
-                                  InstructionVisitor<Void, Element>{
+StatementVisitor<Void, Element>, 
+EntityExprVisitor<Void, Element>, 
+StructureStmtVisitor<Void, Element>, 
+LValueVisitor<Void, Element>, 
+InstructionVisitor<Void, Element>{
 	private java.io.PrintStream out = System.out;
 	Document doc;
 
 	public Document getDocument(){ return doc; }
 	public void print(){
-        try {
-        	OutputFormat format = new OutputFormat(doc);
-        	format.setLineWidth(80);
-        	format.setIndenting(true);
-        	format.setIndent(2);
-        	XMLSerializer serializer = new XMLSerializer(out, format);
-        	serializer.serialize(doc);
-        } catch (IOException e) {
+		try {
+			OutputFormat format = new OutputFormat(doc);
+			format.setLineWidth(80);
+			format.setIndenting(true);
+			format.setIndent(2);
+			XMLSerializer serializer = new XMLSerializer(out, format);
+			serializer.serialize(doc);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	public String toString(){
-    	ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-        	OutputFormat format = new OutputFormat(doc);
-        	format.setLineWidth(80);
-        	format.setIndenting(true);
-        	format.setIndent(2);
-        	XMLSerializer serializer = new XMLSerializer(out, format);
-        	serializer.serialize(doc);
-        } catch (IOException e) {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try {
+			OutputFormat format = new OutputFormat(doc);
+			format.setLineWidth(80);
+			format.setIndenting(true);
+			format.setIndent(2);
+			XMLSerializer serializer = new XMLSerializer(out, format);
+			serializer.serialize(doc);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-        return out.toString();
+		return out.toString();
 	}
+
+	public XMLWriter(Actor actor){
+		try{
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+			doc = docBuilder.newDocument();
+			Element top = doc.createElement("wrapper");
+			generateXMLForActor(actor, top);
+		}catch(ParserConfigurationException pce){
+			pce.printStackTrace();
+		}
+	}
+	
+	public XMLWriter(Network net) {
+		try {
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder;
+			docBuilder = docFactory.newDocumentBuilder();
+			doc = docBuilder.newDocument();
+
+			Element top = doc.createElement("wrapper");
+			doc.appendChild(top);
+			generateXMLForNetwork(net, top);
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void generateXMLForNetwork(Network net, Element p) {
+		Element top = doc.createElement("Network");
+		p.appendChild(top);
+		// ports
+		generateXMLForPortDeclList(net.getInputPorts(), top, "InputPortList");
+		generateXMLForPortDeclList(net.getOutputPorts(), top, "OutputPortList");
+		//nodes
+		generateXMLForNodeList(net.getNodes(), top);
+		//connections
+		generateXMLForConnectionList(net.getConnections(), top);
+	}
+
+	private void generateXMLForConnectionList(ImmutableList<Connection> connections, Element p) {
+		Element top = doc.createElement("ConnectionList");
+		p.appendChild(top);
+		for(Connection c : connections){
+			generateXMLForConnection(c, top);
+		}
+	}
+	private void generateXMLForConnection(Connection c, Element p) {
+		Element top = doc.createElement("Connection");
+		p.appendChild(top);
+		Element src = doc.createElement("Source");
+		top.appendChild(src);
+		if(c.getSrcNodeId() != null){
+			src.setAttribute("nodeId", c.getSrcNodeId().toString());
+		}
+		generateXMLForPort(c.getSrcPort(), src);
+		Element dst = doc.createElement("Destination");
+		top.appendChild(dst);
+		if(c.getDstNodeId() != null){
+			dst.setAttribute("nodeId",  c.getDstNodeId().toString());
+		}
+		generateXMLForPort(c.getDstPort(), dst);
+	}
+	private void generateXMLForNodeList(ImmutableList<Node> nodes, Element p) {
+		Element top = doc.createElement("NodeList");
+		p.appendChild(top);
+		for(Node node : nodes){
+			GenerateXMLForNode(node, top);
+		}
+	}
+	private void GenerateXMLForNode(Node node, Element p) {
+		Element top = doc.createElement("Node");
+		p.appendChild(top);
+		top.setAttribute("name", node.getName());
+		top.setAttribute("id", node.getIdentifier().toString());
+		PortContainer content = node.getContent();
+		generateXMLForToolAttributeList(node.getToolAttributes(), top);
+		if(content instanceof Actor){
+			generateXMLForActor((Actor)content, top);
+		} else if(content instanceof ActorMachine){
+			generateXMLForActorMachine((ActorMachine)content, top);
+		} else if(content instanceof NetworkDefinition){
+			generateXMLForNetworkDefinition((NetworkDefinition)content, top);
+		} else if(content instanceof Network){
+			generateXMLForNetwork((Network)content, top);
+		}
+	}
+	
 	public XMLWriter(NetworkDefinition network){
 		try{
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 			doc = docBuilder.newDocument();
 			
-			Element networkElement = doc.createElement("NetworkDefinition");
-			doc.appendChild(networkElement);
-			networkElement.setAttribute("name", network.getName());
-			//-- type/value parameters, in/out ports, type/value declarations
-			generateXMLForDeclEntity(network, networkElement);
-			generateXMLForEntityExprList(network.getEntities(), networkElement);
-			generateXMLForStructureStmtList(network.getStructure(), networkElement);
-			generateXMLForToolAttributeList(network.getToolAttributes(), networkElement);
-			
+			Element wrapper = doc.createElement("wrapper");
+			doc.appendChild(wrapper);
+			generateXMLForNetworkDefinition(network, wrapper);
 		}catch(ParserConfigurationException pce){
 			pce.printStackTrace();
 		}
 	}
-	public void generateXMLForToolAttributeList(
-			ImmutableList<ToolAttribute> toolAttributes, Element p) {
+	private void generateXMLForNetworkDefinition(NetworkDefinition network, Element p) {
+		Element networkElement = doc.createElement("NetworkDefinition");
+		p.appendChild(networkElement);
+		networkElement.setAttribute("name", network.getName());
+		//-- type/value parameters, in/out ports, type/value declarations
+		generateXMLForDeclEntity(network, networkElement);
+		generateXMLForEntityExprList(network.getEntities(), networkElement);
+		generateXMLForStructureStmtList(network.getStructure(), networkElement);
+		generateXMLForToolAttributeList(network.getToolAttributes(), networkElement);
+	}
+
+	public void generateXMLForToolAttributeList(ImmutableList<ToolAttribute> toolAttributes, Element p) {
+		assert toolAttributes==null || toolAttributes.isEmpty();
 		// TODO Auto-generated method stub
-		
 	}
-	public XMLWriter(Actor actor){
-		try{
-			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-			doc = docBuilder.newDocument();
-			
-			Element actorElement = doc.createElement("Actor");
-			doc.appendChild(actorElement);
-			actorElement.setAttribute("name", actor.getName());
-			//-- type/value parameters, in/out ports, type/value declarations
-			generateXMLForDeclEntity(actor, actorElement);
-			generateXMLForActions(actor.getInitializers(), actorElement);
-			generateXMLForActions(actor.getActions(), actorElement);
-			generateXMLForSchedule(actor.getScheduleFSM(), actorElement);
-			generateXMLForPriorityList(actor.getPriorities(), actorElement);
-			generateXMLForExpressionList(actor.getInvariants(), actorElement, "InvariantList");
-		}catch(ParserConfigurationException pce){
-			pce.printStackTrace();
-		}
+	
+	private void generateXMLForActor(Actor actor, Element p) {
+		Element actorElement = doc.createElement("Actor");
+		p.appendChild(actorElement);
+		doc.appendChild(actorElement);
+		actorElement.setAttribute("name", actor.getName());
+		//-- type/value parameters, in/out ports, type/value declarations
+		generateXMLForDeclEntity(actor, actorElement);
+		generateXMLForActions(actor.getInitializers(), actorElement);
+		generateXMLForActions(actor.getActions(), actorElement);
+		generateXMLForSchedule(actor.getScheduleFSM(), actorElement);
+		generateXMLForPriorityList(actor.getPriorities(), actorElement);
+		generateXMLForExpressionList(actor.getInvariants(), actorElement, "InvariantList");		
 	}
 	private void generateXMLForSchedule(ScheduleFSM scheduleFSM, Element p) {
 		if(scheduleFSM == null) return;
@@ -267,18 +356,24 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 			doc = docBuilder.newDocument();
 
-			Element amElement = doc.createElement("ActorMachine");
-			doc.appendChild(amElement);
-			generateXMLForConditionList(am.getConditions(), amElement);
-			generateXMLForAMController(am.getController(), amElement);
-			generateXMLForPortDeclList(am.getInputPorts(), amElement, "InputPortList");
-			generateXMLForPortDeclList(am.getOutputPorts(), amElement, "OutputPortList");
-			generateXMLForAMScopeList(am.getScopes(), amElement);
-			generateXMLForAMTransitionList(am.getTransitions(), amElement);
+			Element wrapper = doc.createElement("wrapper");
+			doc.appendChild(wrapper);
+			generateXMLForActorMachine(am, wrapper);
 		}catch(ParserConfigurationException pce){
 			pce.printStackTrace();
 		}
 	}
+	private void generateXMLForActorMachine(ActorMachine am, Element p) {
+		Element amElement = doc.createElement("ActorMachine");
+		p.appendChild(amElement);
+		generateXMLForConditionList(am.getConditions(), amElement);
+		generateXMLForAMController(am.getController(), amElement);
+		generateXMLForPortDeclList(am.getInputPorts(), amElement, "InputPortList");
+		generateXMLForPortDeclList(am.getOutputPorts(), amElement, "OutputPortList");
+		generateXMLForAMScopeList(am.getScopes(), amElement);
+		generateXMLForAMTransitionList(am.getTransitions(), amElement);
+	}
+
 	private void generateXMLForAMTransitionList(ImmutableList<Transition> transitions, Element p) {
 		if(transitions != null && !transitions.isEmpty()){
 			Element top = doc.createElement("TransitionList");
@@ -316,7 +411,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 						generateXMLForPort(r.getKey(), rateElem);
 					}
 				} // output rates
-			index++;
+				index++;
 			}
 		}
 	}
@@ -391,7 +486,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 					e.setAttribute("index", Integer.toString(index));
 					generateXMLForPort(c.getPortName(), e);
 					break;
-					}
+				}
 				case predicate:{
 					Element e = doc.createElement("PredicateCondition");
 					top.appendChild(e);
@@ -399,11 +494,11 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 					PredicateCondition c = (PredicateCondition) cond;
 					((Expression)c.getExpression()).accept(this, e);
 					break;
-					}
+				}
 				}
 				index++;
 			}
-			
+
 		}
 	}
 	/******************************************************************************
@@ -455,7 +550,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 		}
 		return declVarList;
 	}
-	
+
 	private void generateXMLForPort(Port port, Element p) {
 		if(port != null){
 			Element e = doc.createElement("Port");
@@ -530,7 +625,7 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 			fieldElem.setAttribute("offset", Integer.toString(f.getOffset()));
 		}
 	}
-	
+
 	private void generateXMLForFreeVariablelist(
 			ImmutableList<Variable> freeVariables, Element p) {
 		if(freeVariables != null){
@@ -541,9 +636,9 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 			}
 		}
 	}
-/******************************************************************************
- * Expression
- */
+	/******************************************************************************
+	 * Expression
+	 */
 	public void generateXMLForExpressionList(List<Expression> exprVector, Element p, String lablel){
 		if(exprVector != null && !exprVector.isEmpty()){
 			Element top = doc.createElement(lablel);
@@ -743,10 +838,10 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 		generateXMLForVariable(e.getVariable(), var);
 		return null;
 	}
-	
-/******************************************************************************
- * LValue
- */
+
+	/******************************************************************************
+	 * LValue
+	 */
 	@Override
 	public Void visitLValueVariable(LValueVariable lvalue, Element p) {
 		Element var = doc.createElement("LValueVariable");
@@ -776,9 +871,9 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 		generateXMLForField(lvalue.getField(), top);
 		return null;
 	}
-/******************************************************************************
- * Statement
- */
+	/******************************************************************************
+	 * Statement
+	 */
 	private void generateXMLForStatementList(ImmutableList<Statement> list, Element p) {
 		Element stmtElement = doc.createElement("StatementList");
 		p.appendChild(stmtElement);
@@ -887,10 +982,10 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 		s.getBody().accept(this, bodyElement);
 		return null;
 	}
-	
-/******************************************************************************
- * EntityExpr (Network)
- */
+
+	/******************************************************************************
+	 * EntityExpr (Network)
+	 */
 	public void generateXMLForEntityExprList(ImmutableList<Entry<String, EntityExpr>> entities, Element p) {
 		Element top = doc.createElement("EntityExprList");
 		p.appendChild(top);
@@ -910,9 +1005,31 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 		return null;
 	}
 	public Void visitEntityIfExpr(EntityIfExpr e, Element p) {
+		Element top = doc.createElement("EntityIfExpr");
+		p.appendChild(top);
+		//-- condition
+		Element cond = doc.createElement("Condition");
+		top.appendChild(cond);
+		e.getCondition().accept(this, cond);
+		//-- then branch
+		Element thenElement = doc.createElement("TrueEntity");
+		top.appendChild(thenElement);
+		e.getTrueEntity().accept(this, thenElement);
+		//-- else branch
+		Element elseElement = doc.createElement("FalseEntity");
+		top.appendChild(elseElement);
+		e.getFalseEntity().accept(this, elseElement);
 		return null;
 	}
 	public Void visitEntityListExpr(EntityListExpr e, Element p) {
+		Element top = doc.createElement("EntityListExpr");
+		p.appendChild(top);
+		Element list = doc.createElement("EntityList");
+		top.appendChild(list);
+		for(EntityExpr elem : e.getEntityList()){
+			elem.accept(this, list);
+		}
+		generateXMLForGeneratorFilterList(e.getGenerators(), top);
 		return null;
 	}
 	public void generateXMLForParameterAssignmentList(ImmutableList<Entry<String, Expression>> parameterAssignments,
@@ -929,9 +1046,9 @@ public class XMLWriter implements ExpressionVisitor<Void,Element>,
 		top.setAttribute("name", node.getKey());
 		node.getValue().accept(this, top);
 	}
-/******************************************************************************
- * Structure Statement (Network)
- */
+	/******************************************************************************
+	 * Structure Statement (Network)
+	 */
 	public void generateXMLForStructureStmtList(ImmutableList<StructureStatement> structure, Element p) {
 		Element top = doc.createElement("StructureStmtList");
 		p.appendChild(top);

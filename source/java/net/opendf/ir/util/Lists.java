@@ -10,7 +10,7 @@ public class Lists {
 	 * 
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return true iff both a and b is empty, or both a and have the same length and the elements with the same index are equal.
 	 */
 	public static <E> boolean equals(List<? extends E> a, List<? extends E> b) {
 		if (a == null)

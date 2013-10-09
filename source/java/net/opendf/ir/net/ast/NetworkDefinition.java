@@ -8,10 +8,12 @@ import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
+import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
+import net.opendf.ir.common.DeclEntity;
 
 /**
  * A NetworkTemplate the internal representation of a .nl file. Basically it is
@@ -21,7 +23,7 @@ import net.opendf.ir.util.Lists;
  * 
  */
 
-public class NetworkDefinition extends net.opendf.ir.common.DeclEntity {
+public class NetworkDefinition extends DeclEntity implements PortContainer{
 
 	public NetworkDefinition(String name) {
 		super(null, name, null, null, null, null, null, null, null);

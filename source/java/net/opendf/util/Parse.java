@@ -1,4 +1,4 @@
-package net.opendf.parser.lth;
+package net.opendf.util;
 /**
  *  copyright (c) 20011, Per Andersson
  *  all rights reserved
@@ -6,6 +6,7 @@ package net.opendf.parser.lth;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.PrintWriter;
 
 import beaver.Scanner;
 import net.opendf.analyze.memory.VariableInitOrderTransformer;
@@ -13,10 +14,12 @@ import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicNetworkSimulator;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
+import net.opendf.ir.net.Network;
 import net.opendf.ir.net.ast.NetworkDefinition;
+import net.opendf.ir.util.DeclLoader;
 import net.opendf.parser.lth.CalParser;
-import net.opendf.util.PrettyPrint;
-import net.opendf.util.XMLWriter;
+import net.opendf.parser.lth.CalScanner;
+import net.opendf.parser.lth.NlParser;
 
 public class Parse{
 	static final String usage = "Correct use: java net.opendf.parser.lth.Parse [options] path file" +
@@ -26,6 +29,8 @@ public class Parse{
 			"\n-pp pretty print" +
 			"\n-am transform actor to actor machine, done before xml printing" +
 			"\n-xml print an xml representation of th IR" +
+			"\n-net evaluate the network and create the Network object" +
+			"\n-graph graphviz representation of evaluated network" +
 			"\nThe file name should include the file extension, i.e. 'Add.cal'";
 
 	private static void dumpScanner(String path, String fileName){
@@ -57,6 +62,9 @@ public class Parse{
 		boolean prettyPrint = false;
 		boolean xml = false;
 		boolean am = false;
+		boolean netEval = false;
+		boolean graph = false;
+
 		while(index<args.length && args[index].startsWith("-")){
 			if(args[index].equals("-xml")){
 				xml = true;
@@ -64,6 +72,12 @@ public class Parse{
 				prettyPrint = true;
 			} else if(args[index].equals("-am")){
 				am = true;
+			} else if(args[index].equals("-graph")){
+				graph = true;
+				netEval = true;
+			} else if(args[index].equals("-net")){
+				netEval = true;
+				xml = true;
 			} else if(args[index].equals("-tokens")){
 				tokens = true;
 			} else {
@@ -79,8 +93,9 @@ public class Parse{
 
 		String path = args[index++];
 		String fileName = args[index++];
+		DeclLoader declLoader= new DeclLoader(path);
 
-		System.out.println("------- " + System.getProperty("user.dir") + "/" + path + "/" + fileName + " (" +  new java.util.Date() + ") -------");
+//		System.out.println("------- " + System.getProperty("user.dir") + "/" + path + "/" + fileName + " (" +  new java.util.Date() + ") -------");
 		if(tokens){
 			dumpScanner(path, fileName);
 		}
@@ -97,17 +112,16 @@ public class Parse{
 
 				if(am){
 					ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor);
-					
+
 					if(xml){
 						XMLWriter doc = new XMLWriter(actorMachine);
-						String xmlString = doc.toString();
+						doc.print();
 
-						System.out.println(xmlString);
-				        
-				        // convert to JSON
+						// convert to JSON
 						// JSON package from http://www.json.org https://github.com/douglascrockford/JSON-java
 						/*
 						try {
+  						    String xmlString = doc.toString();
 				        	int PRETTY_PRINT_INDENT_FACTOR = 2;
 				        	org.json.JSONObject xmlJSONObj = org.json.XML.toJSONObject(xmlString);
 				            String jsonPrettyPrintString = xmlJSONObj.toString(PRETTY_PRINT_INDENT_FACTOR);
@@ -115,8 +129,8 @@ public class Parse{
 				        } catch (org.json.JSONException je) {
 				            System.out.println(je.toString());
 				        }
-				        */
-				        
+						 */
+
 					}
 				}
 				else if(xml){
@@ -129,19 +143,27 @@ public class Parse{
 			NetworkDefinition network = parser.parse(path, fileName);
 			parser.printParseProblems();
 			if(parser.parseProblems.isEmpty()){
-				network = BasicNetworkSimulator.prepareNetworkDefinition(network);
+				if(netEval){
+					Network net = BasicNetworkSimulator.prepareNetworkDefinition(network, declLoader);
+					if(xml){
+						XMLWriter doc = new XMLWriter(net);
+						doc.print();
+					}
+					if(graph){
+						NetworkToGraphviz.print(net, "fileName", new PrintWriter(System.out));
+					}
+				} else if(xml){
+					XMLWriter doc = new XMLWriter(network);
+					doc.print();
+				}
 				if(prettyPrint){
 					PrettyPrint pp = new PrettyPrint();
 					pp.print(network);
 				}
-				if(xml){
-					XMLWriter doc = new XMLWriter(network);
-					doc.print();
-				}
+
 			}
 		} else{
 			System.out.println("unknown file extension");
 		}
-		System.out.println("---- done ---");
 	}
 }

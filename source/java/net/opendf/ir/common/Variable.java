@@ -32,7 +32,7 @@ public class Variable extends AbstractIRNode {
 	 * Constructs a static scope variable.
 	 * 
 	 * @param name the variable name
-	 * @param scope the static scope identifier
+	 * @param scopeId the static scope identifier
 	 */
 	public static Variable scopeVariable(String name, int scopeId) {
 		return new Variable(null, name, scopeId, true);

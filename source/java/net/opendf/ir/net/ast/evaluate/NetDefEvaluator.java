@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicEnvironment;
 import net.opendf.interp.BasicMemory;
 import net.opendf.interp.Channel;
@@ -14,9 +15,12 @@ import net.opendf.interp.GeneratorFilterHelper;
 import net.opendf.interp.Interpreter;
 import net.opendf.interp.Memory;
 import net.opendf.interp.TypeConverter;
+import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.interp.values.ExprValue;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.IRNode.Identifier;
+import net.opendf.ir.cal.Actor;
+import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLiteral;
@@ -42,17 +46,27 @@ import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureStmtVisitor;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.ir.util.DeclLoader;
 
 public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environment>, StructureStmtVisitor<StructureStatement, Environment>{
 	NetworkDefinition srcNetwork;
 	private final Interpreter interpreter;
 	private final TypeConverter converter;
 	private final GeneratorFilterHelper gen;
+	private DeclLoader entityLoader;
 
 	private HashMap<String, EntityExpr> entities;
-	//TODO	private ImmutableList.Builder<ToolAttribute> toolAttributes;
 	private ArrayList<StructureStatement> structure;
-	Memory mem;
+	private Memory mem;
+
+	public NetDefEvaluator(NetworkDefinition network, Interpreter interpreter, DeclLoader entityLoader){
+		this.srcNetwork = network;
+		this.interpreter = interpreter;
+		this.converter = TypeConverter.getInstance();
+		this.gen = new GeneratorFilterHelper(interpreter);
+		this.entityLoader = entityLoader;
+	}
+
 
 	public NetworkDefinition getNetworkDefinition(){
 		ImmutableList<ParDeclType> typePars = ImmutableList.empty();
@@ -85,12 +99,20 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 
 		@Override
 		public Void visitEntityInstanceExpr(EntityInstanceExpr e, String p) {
-			String entityName = e.getEntityName() + ":" + p;
-			e.getParameterAssignments();
-			PortContainer payload = null; 
-			// TODO get the payload
-			//universe.instanciate(entityName, parameterAssignments);
-			nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
+			Decl decl = null;
+			try{
+				String entityName = e.getEntityName() + ":" + p;
+				// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
+				//e.getParameterAssignments();
+				PortContainer payload = null; 
+				decl = entityLoader.getDecl(e.getEntityName());
+				//TODO handle networks
+				payload = BasicActorMachineSimulator.prepareActor((Actor)decl);
+				nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
+			} catch (ClassCastException exception){
+				throw new CALCompiletimeException("An entity instance expression in a network must refer to an actor or network. "
+			                                      + e.getEntityName() + " instantiates " + decl.getName() + " of type " + decl.getClass().getCanonicalName());
+			}
 			return null;
 		}
 
@@ -156,13 +178,6 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		}
 	}
 	
-	public NetDefEvaluator(NetworkDefinition network, Interpreter interpreter){
-		this.srcNetwork = network;
-		this.interpreter = interpreter;
-		this.converter = TypeConverter.getInstance();
-		this.gen = new GeneratorFilterHelper(interpreter);
-	}
-
 	public void evaluate(ImmutableList<Map.Entry<String,Expression>> parameterAssignments){
 		entities = new HashMap<String, EntityExpr>();
 		structure = new ArrayList<StructureStatement>();
@@ -204,6 +219,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		for(Entry<String, Expression> pa : e.getParameterAssignments()){
 			Expression expr = pa.getValue();
 			RefView value = interpreter.evaluate(expr, env);
+			//TODO support for values that can not be represented as strings, i.e. ExprLambda
 			builder.add(new AbstractMap.SimpleEntry<String, Expression>(pa.getKey(), new ExprValue(pa.getValue(), ExprLiteral.Kind.Integer, value.toString(), value)));
 		}
 		return e.copy(e.getEntityName(), builder.build(), e.getToolAttributes());
@@ -242,9 +258,6 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	 */
 	@Override
 	public StructureStatement visitStructureConnectionStmt(StructureConnectionStmt stmt, Environment env) {
-		//TODO tool attributes
-		assert stmt.getToolAttributes().isEmpty();
-
 		PortReference src = stmt.getSrc();
 		ImmutableList.Builder<Expression> srcBuilder = new ImmutableList.Builder<Expression>();
 		for(Expression expr : src.getEntityIndex()){

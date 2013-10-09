@@ -54,6 +54,10 @@ public class Namespace extends AbstractIRNode {
 		return decls;
 	}
 	
+	public NamespaceDecl  getDecl(int index) {
+		return decls.get(index);
+	}
+
 	public List<Namespace>  getSubnamespaces() {
 		return subnamespaces;
 	}

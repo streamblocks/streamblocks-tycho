@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import net.opendf.interp.ActorMachineSimulator;
+import net.opendf.interp.Simulator;
 import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicChannel;
 import net.opendf.interp.BasicInterpreter;
@@ -62,12 +62,14 @@ public class Test {
 
 		int stackSize = 100;
 		Environment env = new BasicEnvironment(sinkChannelInputEnd, sourceChannelOutputEnd, actorMachine);
-		ActorMachineSimulator runner = new BasicActorMachineSimulator(actorMachine, env, new BasicInterpreter(stackSize));
+		Simulator runner = new BasicActorMachineSimulator(actorMachine, env, new BasicInterpreter(stackSize));
 
 		while(runner.step()) { ; }
 		
 		System.out.println("Scopes: ");
-		System.out.println(runner.scopesToString());
+		StringBuffer sb = new StringBuffer();
+		runner.scopesToString(sb);
+		System.out.println(sb);
 		System.out.println("Output: ");
 		String sep = "";
 		int i = 0;

@@ -39,7 +39,7 @@ public class ControllerGenerator<S> {
 	 * Generates a controller with its interpretation from a StateHandler.
 	 * 
 	 * @param stateHandler
-	 * @return
+	 * @return the controller
 	 */
 	public static <S> ControllerGenerator<S> generate(StateHandler<S> stateHandler) {
 		Map<S, Integer> states = new HashMap<>();

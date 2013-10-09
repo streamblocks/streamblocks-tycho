@@ -33,7 +33,7 @@ public class NamespaceDecl extends AbstractIRNode {
 	
 	//
 	
-	void  addDecl(Decl d) {
+	public void  addDecl(Decl d) {
 		decls.add(d);
 	}
 	

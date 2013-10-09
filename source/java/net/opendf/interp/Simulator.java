@@ -1,6 +1,6 @@
 package net.opendf.interp;
 
-public interface ActorMachineSimulator {
+public interface Simulator {
 	/**
 	 * Executes instructions in the actor machine controller until an ICall or IWait instruction is executed.
 	 * 
@@ -8,5 +8,10 @@ public interface ActorMachineSimulator {
 	 *           i.e. when step() return false there is no need to call it again until other actors has put new tokens in this actors input channels.
 	 */
 	public boolean step();
-	public String scopesToString();
+	
+	/**
+	 * Adds the content of all live scopes to the stringbuffer.
+	 * @param sb
+	 */
+	public void scopesToString(StringBuffer sb);
 }

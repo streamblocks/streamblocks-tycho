@@ -16,7 +16,6 @@ public interface Stack {
 
 /**
  * @param i , 0 = top of stack
- * @return
  */
 	public Ref peek(int i);
 
