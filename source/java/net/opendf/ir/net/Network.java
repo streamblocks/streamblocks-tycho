@@ -14,6 +14,8 @@ import net.opendf.ir.util.Lists;
  * A Network is a directed graph structure, where {@link Connection}s create links between {@link PortDecl}s. Each {@link net.opendf.ir.common.Port} is 
  * part of a {@link PortContainer} --- such a  can be either the Network itself, or any of the {@link Node}s inside it.
  * 
+ * {@link Network}s can be hierarchical, i.e. sub-networks are represented as {@link Network}s.
+ * 
  * @author Jorn W. Janneck <jwj@acm.org>
  *
  */

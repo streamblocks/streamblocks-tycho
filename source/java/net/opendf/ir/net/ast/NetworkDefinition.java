@@ -19,6 +19,10 @@ import net.opendf.ir.common.DeclEntity;
  * A NetworkTemplate the internal representation of a .nl file. Basically it is
  * a AST derived straight from the .nl grammar.
  * 
+ * A NetworkDefinition is a flat structure, i.e. sub-networks are represented by their name.
+ * NetworkDefinitions are instantiated to {@link Network}s.
+ * {@link Network}s can be hierarchical, i.e. sub-networks are represented as {@link Network}s.
+ * 
  * @author Per Andersson <Per.Andersson@cs.lth.se>
  * 
  */

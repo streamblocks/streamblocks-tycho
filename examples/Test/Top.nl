@@ -5,13 +5,18 @@ var
   b := 4;
 
 entities
-  nodeA = [Source() : for i in 0..1 ];
-  nodeB = [Sink() : for i in 0..1 ];
+  src = [Source() : for i in 0..3 ];
+  sink = [Sink() : for i in 0..1 ];
+  subgraph = SubGraph();
 
 structure
-  foreach i in 0..1 do
-    nodeA[i].src --> nodeB[i].sink;
-  end
+  src[0].src --> subgraph.in1;
+  src[1].src --> subgraph.in2;
+  src[2].src --> subgraph.in3;
+  src[3].src --> subgraph.in4;
+
+  subgraph.out1 --> sink[0].sink;
+  subgraph.out2 --> sink[1].sink;
 
 /*
 var

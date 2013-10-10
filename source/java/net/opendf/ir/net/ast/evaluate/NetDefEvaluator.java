@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicEnvironment;
 import net.opendf.interp.BasicMemory;
+import net.opendf.interp.BasicNetworkSimulator;
 import net.opendf.interp.Channel;
 import net.opendf.interp.Environment;
 import net.opendf.interp.GeneratorFilterHelper;
@@ -30,6 +31,7 @@ import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.PortContainer;
+import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
@@ -53,7 +55,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	private final Interpreter interpreter;
 	private final TypeConverter converter;
 	private final GeneratorFilterHelper gen;
-	private DeclLoader entityLoader;
+	private DeclLoader declLoader;
 
 	private HashMap<String, EntityExpr> entities;
 	private ArrayList<StructureStatement> structure;
@@ -64,7 +66,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		this.interpreter = interpreter;
 		this.converter = TypeConverter.getInstance();
 		this.gen = new GeneratorFilterHelper(interpreter);
-		this.entityLoader = entityLoader;
+		this.declLoader = entityLoader;
 	}
 
 
@@ -90,6 +92,19 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		return new Network(nb.getNodes(), nb.getConnections(), srcNetwork.getInputPorts(), srcNetwork.getOutputPorts());
 	}
 
+	private void error(String msg) {
+		throw new CALCompiletimeException(msg);
+	}
+
+	private int findPortIndex(String portName, ImmutableList<PortDecl> portList) {
+		for(int i=0; i<portList.size(); i++){
+			if(portList.get(i).getName().equals(portName)){
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	private class NetworkNodeBuilder implements EntityExprVisitor<Void, String>, StructureStmtVisitor<Void, String>{
 		HashMap<String, Node> nodes = new HashMap<String, Node>();
 		ImmutableList.Builder<Connection> connections = new ImmutableList.Builder<Connection>();
@@ -105,9 +120,22 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
 				//e.getParameterAssignments();
 				PortContainer payload = null; 
-				decl = entityLoader.getDecl(e.getEntityName());
-				//TODO handle networks
-				payload = BasicActorMachineSimulator.prepareActor((Actor)decl);
+				decl = declLoader.getDecl(e.getEntityName());
+				switch(decl.getKind()){
+				case type:
+					throw new UnsupportedOperationException("Type declaration instantiation in networks");
+				case value:
+					throw new UnsupportedOperationException("Value declaration instantiation in networks");
+				case entity:
+					if(decl instanceof Actor){
+						payload = BasicActorMachineSimulator.prepareActor((Actor)decl);
+					} else if(decl instanceof NetworkDefinition){
+						payload = BasicNetworkSimulator.prepareNetworkDefinition((NetworkDefinition)decl, e.getParameterAssignments(), declLoader);
+					} else {
+						throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
+					}
+				}
+				//TODO parameters for actors
 				nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
 			} catch (ClassCastException exception){
 				throw new CALCompiletimeException("An entity instance expression in a network must refer to an actor or network. "
@@ -139,30 +167,51 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			}
 			return name.toString();
 		}
+		
+		/**
+		 * Validates entity and port names
+		 */
 		@Override
 		public Void visitStructureConnectionStmt(StructureConnectionStmt stmt, String p) {
 			PortReference src = stmt.getSrc();
 			PortReference dst = stmt.getDst();
-			Node srcNode = nodes.get(makeEntityName(src));
-			Node dstNode = nodes.get(makeEntityName(dst));
 			Identifier srcId = null;
-			if(srcNode != null){
-				srcId = srcNode.getIdentifier();
-			} else {
-				error("can not find entity " + makeEntityName(src));
-			}
 			Identifier dstId = null;
-			if(dstNode != null){
-				dstId = dstNode.getIdentifier();
+			int srcPortIndex = -1;
+			int dstPortIndex = -1;
+			ImmutableList<PortDecl> srcPortList, dstPortList;
+			if(src.getEntityName() != null){
+				// internal node
+				Node srcNode = nodes.get(makeEntityName(src));
+				if(srcNode == null){
+					error("can not find entity " + makeEntityName(src));
+				}
+				srcId = srcNode.getIdentifier();
+				srcPortList = srcNode.getContent().getOutputPorts();
 			} else {
-				error("can not find entity " + makeEntityName(dst));
+				// external port, nodeId == null
+				srcPortList = srcNetwork.getInputPorts();
 			}
-			Connection con =  new Connection(srcId, new Port(src.getPortName()), dstId, new Port(dst.getPortName()), stmt.getToolAttributes());
+
+			if(dst.getEntityName() != null){
+				Node dstNode = nodes.get(makeEntityName(dst));
+				if(dstNode == null){
+					error("can not find entity " + makeEntityName(dst));
+				}
+				dstId = dstNode.getIdentifier();
+				dstPortList = dstNode.getContent().getInputPorts();
+			} else {
+				// external port, nodeId == null
+				dstPortList = srcNetwork.getOutputPorts();
+			}
+			// verify that the ports exists
+			srcPortIndex = findPortIndex(src.getPortName(), srcPortList);
+			if(srcPortIndex<0){ error("can not find port " + src.getPortName()); }
+			dstPortIndex = findPortIndex(dst.getPortName(), dstPortList);
+			if(dstPortIndex<0){ error("can not find port " + dst.getPortName()); }
+			Connection con =  new Connection(srcId, new Port(src.getPortName(), srcPortIndex), dstId, new Port(dst.getPortName(), dstPortIndex), stmt.getToolAttributes());
 			connections.add(con);
 			return null;
-		}
-		private void error(String msg) {
-			System.err.println(msg);
 		}
 		@Override
 		public Void visitStructureIfStmt(StructureIfStmt stmt, String p) {

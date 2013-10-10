@@ -1,0 +1,4 @@
+
+actor Add () A, B ==> Result: 
+  action [a], [b] ==> [a + b] end
+end

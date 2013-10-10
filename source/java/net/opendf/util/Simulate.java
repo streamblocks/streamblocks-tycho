@@ -1,16 +1,10 @@
 package net.opendf.util;
 
-import java.util.Map;
-
-import net.opendf.interp.BasicInterpreter;
 import net.opendf.interp.BasicNetworkSimulator;
 import net.opendf.ir.common.Decl;
-import net.opendf.ir.common.Expression;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.ast.NetworkDefinition;
-import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
 import net.opendf.ir.util.DeclLoader;
-import net.opendf.ir.util.ImmutableList;
 
 public class Simulate {
 	static final String usage = "Correct use: java net.opendf.util.Simulate path entityName" +
@@ -31,7 +25,7 @@ public class Simulate {
 		if(e instanceof NetworkDefinition){
 			NetworkDefinition netDef = (NetworkDefinition)e;
 			Network net = BasicNetworkSimulator.prepareNetworkDefinition(netDef, declLoader);
-			BasicNetworkSimulator simulator = new BasicNetworkSimulator(net, 100);
+			BasicNetworkSimulator simulator = new BasicNetworkSimulator(net, 10, 100);
 
 			// run the simulation
 			while(simulator.step()){ 			}

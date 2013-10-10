@@ -23,9 +23,15 @@ import net.opendf.ir.util.ImmutableList;
 import net.opendf.transform.operators.ActorOpTransformer;
 
 public class BasicNetworkSimulator implements Simulator{
+	private int defaultStackSize;
+	private int defaultChannelSize;
 	Network net;
 	private Simulator[] simList;
 	int nextNodeToRun;
+
+	private void warning(String msg) {
+		System.err.println(msg);
+	}
 
 	public static Network prepareNetworkDefinition(NetworkDefinition net, DeclLoader declLoader){
 		return prepareNetworkDefinition(net, ImmutableList.<Map.Entry<String,Expression>>empty(), declLoader);
@@ -50,116 +56,165 @@ public class BasicNetworkSimulator implements Simulator{
 		return eval.getNetwork();
 	}
 		
-	public BasicNetworkSimulator(Network net, int defaultChannelSize) {
+	public BasicNetworkSimulator(Network net, int defaultChannelSize, int defaultStackSize) {
+		this(net, new Channel[net.getInputPorts().size()], new Channel[net.getOutputPorts().size()], defaultChannelSize, defaultStackSize);
+	}
+
+	public BasicNetworkSimulator(Network net, Channel[] externalSourcePortChannel, Channel[] externalSinkPortChannel, 
+			int defaultChannelSize, int defaultStackSize) {
 		this.net = net;
+		this.defaultStackSize = defaultStackSize;
+		this.defaultChannelSize = defaultChannelSize;
 		ImmutableList<Node> nodeList = net.getNodes();
 		int nbrNodes = nodeList.size();
 		simList = new Simulator[nbrNodes];
 		
-		InputEnd[][] channelInputEnds = new InputEnd[nbrNodes][];            //[nodeIndex][portIndex]
-		OutputEnd[][] channelOutputEnds = new OutputEnd[nbrNodes][];         //[nodeIndex][portIndex]
+		Channel[][] internalNodeSinkPortChannel = new Channel[nbrNodes][];            //[nodeIndex][portIndex]
+		Channel[][] internalNodeSourcePortChannel = new Channel[nbrNodes][];         //[nodeIndex][portIndex]
 		for(int i=0; i<nbrNodes; i++){
 			PortContainer node = nodeList.get(i).getContent();
-			channelInputEnds[i] = new InputEnd[node.getOutputPorts().size()];
-			channelOutputEnds[i] = new OutputEnd[node.getInputPorts().size()];
+			internalNodeSourcePortChannel[i] = new Channel[node.getOutputPorts().size()];
+			internalNodeSinkPortChannel[i] = new Channel[node.getInputPorts().size()];
 		}
 
-		instantiateChannels(channelInputEnds, channelOutputEnds, defaultChannelSize);
-		instantiateNodes(channelInputEnds, channelOutputEnds);
+		instantiateChannels(internalNodeSourcePortChannel, internalNodeSinkPortChannel, 
+				            externalSourcePortChannel, externalSinkPortChannel);
+		instantiateNodes(internalNodeSourcePortChannel, internalNodeSinkPortChannel);
 	}
 	
-	private void instantiateChannels(InputEnd[][] channelInputEnds, OutputEnd[][] channelOutputEnds, int defaultChannelSize){
+	private void instantiateChannels(Channel[][] internalSourcePortChannel, Channel[][] internalSinkPortChannel,
+			Channel[] externalSourcePortChannel, Channel[] externalSinkPortChannel){
 		ImmutableList<Node> nodeList = net.getNodes();
-		int nbrNodes = nodeList.size();
-
-		Channel[][] channels = new Channel[nbrNodes][];                      //[nodeIndex][portIndex]
-		for(int i=0; i<nbrNodes; i++){
-			PortContainer node = nodeList.get(i).getContent();
-			channels[i] = new Channel[node.getOutputPorts().size()];
-		}
-
-		//TODO external channels should be passed from the wrapping network. There the BasicChannels have already been created.
-		//FIXME this do not work, where are the channels created? here, or in the wrapping network
-		Channel[] externalChannels = new Channel[net.getInputPorts().size()];
-
-		InputEnd[] externalChannelInputEnds = new InputEnd[net.getInputPorts().size()];
-		OutputEnd[] externalChannelOutputEnds = new OutputEnd[net.getOutputPorts().size()];
 
 		
 		// if several connections attach to the same output port, they should share the same BasicCannel
 		for(Connection con : net.getConnections()){
-			Channel channel;
-			// connect to the source node
+			int srcNodeIndex = -1;
+			int srcPortIndex;
+			int dstNodeIndex = -1;
+			int dstPortIndex;
+			
+			//---- find the source node and port
 			Identifier srcId = con.getSrcNodeId();
 			if(srcId != null){
-				// connect to an internal node
-				int srcNodeIndex = findNodeIndex(srcId, nodeList);
+				srcNodeIndex = findNodeIndex(srcId, nodeList);
 				assert srcNodeIndex >= 0;
-				int srcPortIndex = findPort(con.getSrcPort().getName(), nodeList.get(srcNodeIndex).getContent().getOutputPorts());
+				srcPortIndex = findPort(con.getSrcPort().getName(), nodeList.get(srcNodeIndex).getContent().getOutputPorts());
 				assert srcPortIndex>=0;
-				if(channels[srcNodeIndex][srcPortIndex] == null){
-					channel = new BasicChannel(defaultChannelSize);
-					channels[srcNodeIndex][srcPortIndex] = channel;
-				} else {
-					// another connection to the source port exists, share the BasicChannel
-					channel = channels[srcNodeIndex][srcPortIndex];
-				}
-				channelInputEnds[srcNodeIndex][srcPortIndex] = channel.getInputEnd();
 			} else {
 				// connect to an external port
-				int srcPortIndex = findPort(con.getSrcPort().getName(), net.getInputPorts());
+				srcPortIndex = findPort(con.getSrcPort().getName(), net.getInputPorts());
 				assert srcPortIndex>=0;
-				if(externalChannels[srcPortIndex] == null){
-					// This should not happen
-					channel = new BasicChannel(defaultChannelSize);
-					externalChannels[srcPortIndex] = channel;
-					throw new CALCompiletimeException("You are connectiong to an external port with the intent to read from it, but no one is writing to this channel");
-				} else {
-					channel = externalChannels[srcPortIndex];
-					// another connection to the source port exists, share the BasicCahnnel
-				}
-				externalChannelInputEnds[srcPortIndex] = channel.getInputEnd();
 			}
 			
-			// connect to the sink port
+			//---- find the sink node and port
 			Identifier dstId = con.getDstNodeId();
 			if(dstId != null){
 				// internal node
-				int dstNodeIndex = findNodeIndex(con.getDstNodeId(), nodeList);
+				dstNodeIndex = findNodeIndex(con.getDstNodeId(), nodeList);
 				assert dstNodeIndex >= 0;
-				int dstPortIndex = findPort(con.getDstPort().getName(), nodeList.get(dstNodeIndex).getContent().getInputPorts());
+				dstPortIndex = findPort(con.getDstPort().getName(), nodeList.get(dstNodeIndex).getContent().getInputPorts());
 				assert dstPortIndex>=0;
-				if(channelOutputEnds[dstNodeIndex][dstPortIndex] != null){
-					throw new CALCompiletimeException("Connceting multiple channels to the same sink port. Node " + net.getNodes().get(dstNodeIndex).getName() + " port " + dstPortIndex);
-				}
-				channelOutputEnds[dstNodeIndex][dstPortIndex] = channel.createOutputEnd();
 			} else {
 				// external port
-				int dstPortIndex = findPort(con.getDstPort().getName(), net.getOutputPorts());
+				dstPortIndex = findPort(con.getDstPort().getName(), net.getOutputPorts());
 				assert dstPortIndex>=0;
-				if(externalChannelOutputEnds[dstPortIndex] != null){
-					throw new CALCompiletimeException("Connceting multiple channels to the same external sink port.");
+			}
+
+			if(srcNodeIndex >=0){
+				// source is internal node
+				if(dstNodeIndex>=0){
+					// internal -> internal
+					assert internalSinkPortChannel[dstNodeIndex][dstPortIndex]==null;   // assert that this is the only connection writing to this port
+					if(internalSourcePortChannel[srcNodeIndex][srcPortIndex]==null){
+						internalSourcePortChannel[srcNodeIndex][srcPortIndex] = createChannel(con);
+					}
+					internalSinkPortChannel[dstNodeIndex][dstPortIndex] = internalSourcePortChannel[srcNodeIndex][srcPortIndex];
+				} else {
+					// internal -> external
+					assert internalSourcePortChannel[srcNodeIndex][srcPortIndex]==null;
+					if(externalSinkPortChannel[dstPortIndex]==null){  // the wrapping network has not connected to the port. This gives a warning in the wrapper so ignore it here
+						externalSinkPortChannel[dstPortIndex] = createChannel(con);
+					}
+					internalSourcePortChannel[srcNodeIndex][srcPortIndex] = externalSinkPortChannel[dstPortIndex];
 				}
-				externalChannelOutputEnds[dstPortIndex] = channel.createOutputEnd();
+			} else {
+				// source is external port
+				if(dstNodeIndex>=0){
+					// external -> internal
+					assert internalSinkPortChannel[dstNodeIndex][dstPortIndex] == null;   // assert that this is the only connection writing to this port
+					if(externalSourcePortChannel[srcPortIndex]==null){      // the wrapping network has not connected to the port. This gives a warning in the wrapper so ignore it here
+						externalSourcePortChannel[srcPortIndex] = createChannel(con);
+					}
+					internalSinkPortChannel[dstNodeIndex][dstPortIndex] = externalSourcePortChannel[srcPortIndex];
+				} else {
+					// external -> internal
+					if(externalSourcePortChannel[srcPortIndex] != null){
+						if(externalSinkPortChannel[dstPortIndex] != null){
+							//TODO we have two channels instances to connect. Merge channels
+							throw new CALCompiletimeException("multiple writers to the smae port port.");
+						} else {
+							// mark the input port as writer to the output port to detect multiple writers.
+							externalSourcePortChannel[srcPortIndex] = externalSinkPortChannel[dstPortIndex];
+						}
+						
+					} else {
+						// the wrapper has not connected to the input port
+						if(externalSinkPortChannel[dstPortIndex] != null){
+							externalSourcePortChannel[srcPortIndex] = externalSinkPortChannel[dstPortIndex];
+						} else {
+							// both external ports are unconnected in the wrapper, so let them hang loose
+							throw new UnsupportedOperationException("connecting a network input port directly to a network output port.");
+						}
+					}
+				}
 			}
 		}
 	}
 
-	private void instantiateNodes(InputEnd[][] channelInputEnds, OutputEnd[][] channelOutputEnds){
+	private Channel createChannel(Connection con) {
+		int size = defaultChannelSize;
+		//TODO check for channel size among the tool attributes
+		return new BasicChannel(size);
+	}
+
+	private void instantiateNodes(Channel[][] internalSourcePortChannel, Channel[][] intrnalSinkPortChannel){
 		ImmutableList<Node> nodeList = net.getNodes();
 		int nbrNodes = nodeList.size();
 		// instantiate the nodes
-		for(int i=0; i<nbrNodes; i++){
-			Node node = nodeList.get(i);
+		for(int nodeIndex=0; nodeIndex<nbrNodes; nodeIndex++){
+			Node node = nodeList.get(nodeIndex);
+			//--- the node is an Actor ---
 			if(node.getContent() instanceof ActorMachine){
 				ActorMachine am = (ActorMachine)node.getContent();
-				Environment env = new BasicEnvironment(channelInputEnds[i], channelOutputEnds[i], am);
-				Interpreter interp = new BasicInterpreter(100);
-				Simulator amSim = new BasicActorMachineSimulator(am, env, interp);
-				simList[i] = amSim;
+				// create the InputEnd[] for the Environment
+				InputEnd[] channelInputEnds = new InputEnd[internalSourcePortChannel[nodeIndex].length];
+				for(int portIndex=0; portIndex<channelInputEnds.length; portIndex++){
+					Channel c = internalSourcePortChannel[nodeIndex][portIndex];
+					if(c==null){
+						Node n = net.getNodes().get(nodeIndex);
+						warning("unconnected port. Node " + n.getName() + ", port: " + n.getContent().getOutputPorts().get(portIndex));
+					}
+					channelInputEnds[portIndex] = internalSourcePortChannel[nodeIndex][portIndex].getInputEnd();
+				}
+				// create the OutputEnd[] for the Environment
+				OutputEnd[] channelOutputEnds = new OutputEnd[intrnalSinkPortChannel[nodeIndex].length];
+				for(int portIndex=0; portIndex<channelOutputEnds.length; portIndex++){
+					Channel c = intrnalSinkPortChannel[nodeIndex][portIndex];
+					if(c==null){
+						Node n = net.getNodes().get(nodeIndex);
+						warning("unconnected port. Node " + n.getName() + ", port: " + n.getContent().getInputPorts().get(portIndex));
+					}
+					channelOutputEnds[portIndex] = intrnalSinkPortChannel[nodeIndex][portIndex].createOutputEnd();
+				}
+				Environment env = new BasicEnvironment(channelInputEnds, channelOutputEnds, am);
+				Interpreter interp = new BasicInterpreter(defaultStackSize);
+				simList[nodeIndex] = new BasicActorMachineSimulator(am, env, interp);
 			} else if(node.getContent() instanceof Network){
-				//TODO
-				throw new java.lang.UnsupportedOperationException("Nested network in not supported by the simulator.");
+				//--- the node is a Network ---
+				Network net = (Network)node.getContent();
+				simList[nodeIndex] = new BasicNetworkSimulator(net, intrnalSinkPortChannel[nodeIndex], internalSourcePortChannel[nodeIndex], 
+						defaultChannelSize, defaultStackSize);				
 			} else {
 				throw new java.lang.UnsupportedOperationException("Network node must be instances of ActorMachine or Network in the simulator. " + node.getName() + " is instance of class "+ node.getContent().getClass().getCanonicalName());
 			}

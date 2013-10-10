@@ -150,7 +150,7 @@ public class Parse{
 						doc.print();
 					}
 					if(graph){
-						NetworkToGraphviz.print(net, "fileName", new PrintWriter(System.out));
+						NetworkToGraphviz.print(net, fileName, new PrintWriter(System.out));
 					}
 				} else if(xml){
 					XMLWriter doc = new XMLWriter(network);
