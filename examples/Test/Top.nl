@@ -1,13 +1,9 @@
-network Top [TypeParamA, TypeParamB] () Type1(c:int, a=2, b:int, d:int) in1, Type2 in2 ==> outA, outB :
-
-var
-  a := b;
-  b := 4;
+network Top [] () ==> :
 
 entities
   src = [Source() : for i in 0..3 ];
   sink = [Sink() : for i in 0..1 ];
-  subgraph = SubGraph();
+  subgraph = SubGraph(nbrNodes=0);
 
 structure
   src[0].src --> subgraph.in1;

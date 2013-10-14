@@ -29,14 +29,16 @@ public class BasicMemory implements Memory {
 			}
 		}
 	}
-	public BasicMemory(int size) {
-		mem = new BasicRef[1][];
-		mem[0] = new BasicRef[size];
-		for(int j=0; j<size; j++){
-			mem[0][j] = new BasicRef();
+	public BasicMemory(int[] sizes) {
+		mem = new BasicRef[sizes.length][];
+		inClosure = new BitSet[sizes.length];
+		for(int scopeId=0; scopeId<sizes.length; scopeId++){
+			mem[scopeId] = new BasicRef[sizes[scopeId]];
+			for(int j=0; j<sizes[scopeId]; j++){
+				mem[scopeId][j] = new BasicRef();
+			}
+			inClosure[scopeId] = new BitSet(sizes[scopeId]);
 		}
-		inClosure = new BitSet[1];
-		inClosure[0] = new BitSet(size);
 	}
 	
 	@Override
@@ -61,7 +63,9 @@ public class BasicMemory implements Memory {
 
 	@Override
 	public BasicMemory closure(ImmutableList<Variable> variables, Stack stack) {
-		BasicMemory newClosure = new BasicMemory(variables.size());
+		int[] config = new int[1];
+		config[0] = variables.size();
+		BasicMemory newClosure = new BasicMemory(config);
 		for(int i=0; i<variables.size(); i++){
 			VariableLocation v = (VariableLocation)variables.get(i);
 			if(v.isScopeVariable()){

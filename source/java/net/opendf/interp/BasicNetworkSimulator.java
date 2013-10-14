@@ -194,6 +194,7 @@ public class BasicNetworkSimulator implements Simulator{
 					if(c==null){
 						Node n = net.getNodes().get(nodeIndex);
 						warning("unconnected port. Node " + n.getName() + ", port: " + n.getContent().getOutputPorts().get(portIndex));
+						internalSourcePortChannel[nodeIndex][portIndex] = new BasicChannel(defaultChannelSize);
 					}
 					channelInputEnds[portIndex] = internalSourcePortChannel[nodeIndex][portIndex].getInputEnd();
 				}
@@ -204,6 +205,7 @@ public class BasicNetworkSimulator implements Simulator{
 					if(c==null){
 						Node n = net.getNodes().get(nodeIndex);
 						warning("unconnected port. Node " + n.getName() + ", port: " + n.getContent().getInputPorts().get(portIndex));
+						intrnalSinkPortChannel[nodeIndex][portIndex] = new BasicChannel(defaultChannelSize);
 					}
 					channelOutputEnds[portIndex] = intrnalSinkPortChannel[nodeIndex][portIndex].createOutputEnd();
 				}

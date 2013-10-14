@@ -56,6 +56,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	private final TypeConverter converter;
 	private final GeneratorFilterHelper gen;
 	private DeclLoader declLoader;
+	private boolean evaluated;
 
 	private HashMap<String, EntityExpr> entities;
 	private ArrayList<StructureStatement> structure;
@@ -67,10 +68,12 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		this.converter = TypeConverter.getInstance();
 		this.gen = new GeneratorFilterHelper(interpreter);
 		this.declLoader = entityLoader;
+		this.evaluated = false;
 	}
 
 
 	public NetworkDefinition getNetworkDefinition(){
+		assert evaluated;
 		ImmutableList<ParDeclType> typePars = ImmutableList.empty();
 		ImmutableList<ParDeclValue> valuePars = ImmutableList.empty();
 		ImmutableList<DeclType> typeDecls = ImmutableList.empty();
@@ -82,6 +85,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	}
 
 	public Network getNetwork(){
+		assert evaluated;
 		NetworkNodeBuilder nb = new NetworkNodeBuilder();
 		for(Entry<String, EntityExpr> entry : entities.entrySet()){
 			entry.getValue().accept(nb, entry.getKey());
@@ -231,9 +235,12 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		entities = new HashMap<String, EntityExpr>();
 		structure = new ArrayList<StructureStatement>();
 
-		mem = new BasicMemory(srcNetwork.getVarDecls().size() + srcNetwork.getValueParameters().size());
+		int[] config = new int[Math.max(NetworkDefinition.NetworkGlobalScopeId, NetworkDefinition.NetworkParamScopeId)+1];
+		config[NetworkDefinition.NetworkGlobalScopeId] = srcNetwork.getVarDecls().size();
+		config[NetworkDefinition.NetworkParamScopeId] = srcNetwork.getValueParameters().size();
+		mem = new BasicMemory(config);
 		Environment env = new BasicEnvironment(new Channel.InputEnd[0], new Channel.OutputEnd[0], mem);    // no expressions will read from the ports while instantiating/flattening this network
-		// declarations
+		// declarations, compute initial values
 		ImmutableList<DeclVar> declList = srcNetwork.getVarDecls();
 		int scopeIndex=0;
 		for(scopeIndex=0; scopeIndex<declList.size(); scopeIndex++){
@@ -241,15 +248,21 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			RefView value = interpreter.evaluate(decl.getInitialValue(), env);
 			value.assignTo(mem.declare(0, scopeIndex));
 		}
-		// value parameters
+		// value parameters, compute values and store in paramScopeId memory
 		ImmutableList<ParDeclValue> parList = srcNetwork.getValueParameters();
-		for(int parIndex=0; parIndex<parameterAssignments.size(); parIndex++){
-			ParDeclValue par = parList.get(parIndex);
-			Entry<String, Expression> assignment = parameterAssignments.get(parIndex);
-			//TODO here we assume that parameters are declared in the same order as they are assigned
-			assert assignment.getKey().equals(par.getName());
-			RefView value = interpreter.evaluate(assignment.getValue(), env);			
-			value.assignTo(mem.declare(0, scopeIndex++));
+		for(Entry<String, Expression> assignment : parameterAssignments){
+			String name = assignment.getKey();
+			scopeIndex = -1;
+			for(int i=0; i<parList.size(); i++){
+				if(name.equals(parList.get(i).getName())){
+					scopeIndex = i;
+				}
+			}
+			if(scopeIndex<0) {
+				throw new CALCompiletimeException("unknown parameter name: " + name);
+			}
+			RefView value = interpreter.evaluate(assignment.getValue(), env);
+			value.assignTo(mem.declare(NetworkDefinition.NetworkParamScopeId, scopeIndex));
 		}
 		// EntityExpr
 		for(Entry<String, EntityExpr> decl : srcNetwork.getEntities()){
@@ -260,6 +273,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		for(StructureStatement s : srcNetwork.getStructure()){
 			structure.add(s.accept(this, env));
 		}
+		evaluated = true;
 	}
 
 	@Override

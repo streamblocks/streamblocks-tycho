@@ -6,6 +6,7 @@ ENDCOPYRIGHT
 package net.opendf.ir.common;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.IRNode;
 
 /**
  * Declarations bind a name to a an object in a way that code may refer to the
@@ -75,16 +76,16 @@ abstract public class Decl extends AbstractIRNode {
 	// Ctor
 	//
 
-	public Decl(Decl original, String name, NamespaceDecl namespaceDecl) {
+	public Decl(IRNode original, String name, NamespaceDecl namespaceDecl) {
 		this(original, name, namespaceDecl, false, null);
 	}
 
-	public Decl(Decl original, String name, NamespaceDecl namespaceDecl, String[] qid) {
+	public Decl(IRNode original, String name, NamespaceDecl namespaceDecl, String[] qid) {
 		this(original, name, namespaceDecl, true, qid);
 		assert qid != null && qid.length >= 1;
 	}
 
-	private Decl(Decl original, String name, NamespaceDecl namespaceDecl, boolean isImport, String[] qid) {
+	protected Decl(IRNode original, String name, NamespaceDecl namespaceDecl, boolean isImport, String[] qid) {
 		super(original);
 		this.name = name.intern();
 		this.namespaceDecl = namespaceDecl;

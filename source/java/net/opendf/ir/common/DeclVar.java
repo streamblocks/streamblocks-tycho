@@ -7,6 +7,8 @@ package net.opendf.ir.common;
 
 import java.util.Objects;
 
+import net.opendf.ir.IRNode;
+
 public class DeclVar extends Decl {
 
 	@Override
@@ -43,7 +45,7 @@ public class DeclVar extends Decl {
 		this(null, type, name, namespace, initialValue, isAssignable);
 	}
 
-	private DeclVar(DeclVar original, TypeExpr type, String name, NamespaceDecl namespace, Expression initialValue,
+	public DeclVar(IRNode original, TypeExpr type, String name, NamespaceDecl namespace, Expression initialValue,
 			boolean isAssignable) {
 
 		super(original, name, namespace);

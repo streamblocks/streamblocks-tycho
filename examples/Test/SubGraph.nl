@@ -1,6 +1,7 @@
-network SubGraph [] () in1, in2, in3, in4 ==> out1, out2 :
+network SubGraph [] (nbrNodes) in1, in2, in3, in4 ==> out1, out2 :
 
 entities
+  extraNodes = [Add() : for i in 1..nbrNodes];
   nodeA = Add();
   nodeB = Add();
 

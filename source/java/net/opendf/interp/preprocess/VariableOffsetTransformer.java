@@ -3,7 +3,6 @@ package net.opendf.interp.preprocess;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import net.opendf.interp.Environment;
 import net.opendf.interp.GeneratorFilterHelper;
 import net.opendf.interp.VariableLocation;
 import net.opendf.interp.exception.CALCompiletimeException;
@@ -17,6 +16,7 @@ import net.opendf.ir.common.ExprList;
 import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.GeneratorFilter;
+import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.Statement;
@@ -36,15 +36,31 @@ import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
 
 /**
  * Compute the offset for all variable accesses.
- * All Variable objects are replaced with VariableLocation objects
- * The IR must be traversed in the exact same order as the interpreter.
+ * All Variable objects are replaced with VariableLocation objects.
  * 
+ * To ensure that the stack have a correct content the IR must be traversed in 
+ * the exact same order as the interpreter do, pushing names/values to the 
+ * stack in the same order.
+ * 
+ * In an {@link ActorMachine} all global and action scope variables have the 
+ * scopeId set. Only offset is computed here.
+ * 
+ * In a {@link Network} there are two global scopes:
+ * scopeId 0 : global variables
+ * scopeId 1 : parameters
  * @author pera
  */
 public class VariableOffsetTransformer extends AbstractBasicTransformer<VariableOffsetTransformer.LookupTable> {
+	/**
+	 * 
+	 * globalScopeId - scope in which names for the network/actor global variables are located. Use -1 not to search for global variables, i.e. when transforming {@link ActorMachines}
+	 * paramScopeId - scope in which names for the network/actor parameters are located. Use -1 not to search for parameters
+	 */
+	private int globalScopeId = -1;
+	private int paramScopeId = -1;
 
 	ImmutableList<Scope> scopes;
-	
+
 	private void error(DeclVar decl, String msg) {
 		System.err.println(msg);
 		throw new RuntimeException(msg);
@@ -223,14 +239,13 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 			if(parent == null){
 				// outside lambda/procedure expression, do not create closure
 				if(var.isScopeVariable()){
-					Scope scope = scopes.get(var.getScopeId());
-					ImmutableList<DeclVar> list = scope.getDeclarations();
-					for(int i=0; i<list.size(); i++){
-						DeclVar decl = list.get(i);
-						if(decl.getName().equals(name)){
-							return VariableLocation.scopeVariable(var, name, var.getScopeId(), i);
-						}
+					VariableLocation result = searchScope(var.getScopeId(), var);
+					if(result != null){
+						return result;
 					}
+					// This should not happen. The actor machine translator has given a scopeId to a variable, but the scope do not declare the name.
+					throw new RuntimeException("unknown scope variable: " + name);
+
 				} else {
 					// look for the name inside this lambda/process block and static scopes
 					int offset = stack.search(name) -  1;  // in search(), top of stack = 1
@@ -238,16 +253,18 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 						return VariableLocation.stackVariable(var, name, offset);
 					}
 				}
-				//TODO this is a quick fix for network definitions
-				// In network definitions scope variables are not marked, i.e. variable.isScopeVariable==false for all variable accesses
-				ImmutableList<DeclVar> declList = scopes.get(0).getDeclarations();
-				for(int i=0; i<declList.size(); i++){
-					DeclVar v = declList.get(i);
-					if(v.getName().equals(name)){
-						return VariableLocation.scopeVariable(var, name, 0, i);
+				if(globalScopeId>0){
+					VariableLocation result = searchScope(globalScopeId, var);
+					if(result != null){
+						return result;
 					}
 				}
-				
+				if(paramScopeId>0){
+					VariableLocation result = searchScope(paramScopeId, var);
+					if(result != null){
+						return result;
+					}
+				}
 				throw new CALCompiletimeException("unknown variable name " + name);
 			} else {
 				// inside lambda/procedure expression
@@ -281,6 +298,18 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 			throw new CALCompiletimeException("unknown variable name " + name);
 		}
 
+		private VariableLocation searchScope(int scopeId, Variable var){
+			String name = var.getName();
+			ImmutableList<DeclVar> declList = scopes.get(scopeId).getDeclarations();
+			for(int i=0; i<declList.size(); i++){
+				DeclVar v = declList.get(i);
+				if(v.getName().equals(name)){
+					return VariableLocation.scopeVariable(var, name, scopeId, i);
+				}
+			}
+			return null;
+		}
+
 		public boolean isEmpty(){
 			return stack.isEmpty();
 		}
@@ -301,12 +330,27 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 
 		@Override
 		public NetworkDefinition transformNetworkDefinition(NetworkDefinition net, LookupTable table){
-			Scope scope = new Scope(net.getVarDecls());
-			scopes = ImmutableList.of(scope);
+			globalScopeId = NetworkDefinition.NetworkGlobalScopeId;
+			paramScopeId = NetworkDefinition.NetworkParamScopeId;
+			Scope globalScope[] = new Scope[Math.max(paramScopeId, globalScopeId)+1];
+			globalScope[globalScopeId] = new Scope(net.getVarDecls());
+			//FIXME this is a bit over engineered. The generated list of declarations is not saved.
+			globalScope[paramScopeId] = buildParamScope(net.getValueParameters());
+			scopes = ImmutableList.copyOf(globalScope);
 			net = super.transformNetworkDefinition(net, table);
 			scopes = null;
 			assert table.isEmpty();
 			return net;
+		}
+
+		private Scope buildParamScope(ImmutableList<ParDeclValue> valueParameters) {
+			ImmutableList.Builder<DeclVar> builder = new ImmutableList.Builder<DeclVar>();
+			for(ParDeclValue par : valueParameters){
+				//TODO create a proper NamespaceDecl
+				NamespaceDecl ns = null;
+				builder.add(new DeclVar(par, par.getType(), par.getName(), ns, null, false));
+			}
+			return new Scope(builder.build());
 		}
 
 		@Override

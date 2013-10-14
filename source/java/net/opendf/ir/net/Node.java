@@ -1,11 +1,13 @@
 package net.opendf.ir.net;
 
+import java.util.Map;
 import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
+import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
