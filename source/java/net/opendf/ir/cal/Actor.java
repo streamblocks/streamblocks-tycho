@@ -72,11 +72,11 @@ public class Actor extends DeclEntity implements PortContainer{
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
 		super(original, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
 
-		this.initializers = initializers;
-		this.actions = actions;
+		this.initializers = ImmutableList.copyOf(initializers);
+		this.actions = ImmutableList.copyOf(actions);
 		this.scheduleFSM = scheduleFSM;
-		this.priorities = priorities;
-		this.invariants = invariants;
+		this.priorities = ImmutableList.copyOf(priorities);
+		this.invariants = ImmutableList.copyOf(invariants);
 	}
 
 	public Actor copy(String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
