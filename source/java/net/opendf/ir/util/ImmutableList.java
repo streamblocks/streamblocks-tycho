@@ -198,7 +198,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		 * @param elements
 		 * @return the builder
 		 */
-		public Builder<E> addAll(Iterable<E> elements) {
+		public Builder<E> addAll(Iterable<? extends E> elements) {
 			for (E e : elements) {
 				add(e);
 			}
