@@ -45,6 +45,7 @@ public class ActorStateHandler implements StateHandler<State> {
 			for (Entry<Port, Integer> entry : transitions.get(call).getInputRates().entrySet()) {
 				destination = destination.removeTokens(entry.getKey(), entry.getValue());
 			}
+			destination = destination.clearAbsentTokenResults();
 			destination = destination.setSchedulerState(scheduleHandler.destinations(state.getSchedulerState(), call));
 			destination = destination.clearPredicateResults();
 			result.add(new GenInstruction.Call<>(call, destination));
