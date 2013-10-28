@@ -37,6 +37,12 @@ public class DeclVar extends Decl {
 	// Ctor
 	//
 
+	/**
+	 * Create an assignable variable declaration with no initial value.
+	 * @param type
+	 * @param name
+	 * @param namespace
+	 */
 	public DeclVar(TypeExpr type, String name, NamespaceDecl namespace) {
 		this(type, name, namespace, null, true);
 	}

@@ -1,4 +1,6 @@
 package net.opendf.ir.net;
+import java.util.Objects;
+
 import net.opendf.ir.common.Expression;
 import net.opendf.util.PrettyPrint;
 /**
@@ -11,6 +13,19 @@ public class ToolValueAttribute extends ToolAttribute {
 		super(name);
 		this.value = value;
 	}
+
+	protected ToolValueAttribute(ToolValueAttribute original, String name, Expression value) {
+		super (original, name);
+		this.value = value;
+	}
+	
+	public ToolValueAttribute copy(String name, Expression value){
+		if(Objects.equals(this.name, name) && Objects.equals(this.value, value)){
+			return this;
+		}
+		return new ToolValueAttribute(this, name, value);
+	}
+
 	public Expression getValue(){
 		return value;
 	}

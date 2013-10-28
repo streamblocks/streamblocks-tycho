@@ -1,9 +1,9 @@
 %header {: 
 /* 
  *  @author Per Andersson<Per.Andersson@cs.lth.se>, Lund University
- *  To parse a CAL file use one of the methods:
- *  - public net.opendf.ir.cal.Actor parse(String path, String fileName)
- *  - public net.opendf.ir.cal.Actor parse(File file)
+ *  To parse a NL file use one of the methods:
+ *  - public net.opendf.ir.cal.NetworkDefinition parse(String path, String fileName)
+ *  - public net.opendf.ir.cal.NetworkDefinition parse(File file)
  *
  *  After parsing check for errors in the attribute parseProblems.
  *
@@ -27,53 +27,65 @@
 %import "net.opendf.ir.net.ToolAttribute";
 %import "net.opendf.ir.net.ToolTypeAttribute";
 %import "net.opendf.ir.net.ToolValueAttribute";
+%import "net.opendf.interp.exception.BasicErrorModule";
+%import "net.opendf.interp.exception.ErrorModule";
 %import "java.io.PrintStream";
 %import "java.util.Map";
 %import "java.util.TreeSet";
 %import "java.util.AbstractMap";
-%import "java.util.Arrays";
+%import "net.opendf.ir.IRNode.Identifier";
+%import "net.opendf.parser.SourceCodeOracle";
+%import "net.opendf.parser.SourceCodeOracle.SourceCodePosition";
+%import "net.opendf.ir.IRNode";
+%import "java.io.File";
+
 %embed {:
 /*******************************************************
- *  Inject code for custom error handling in the parser class.
+ *  Code for error handling in the parser class.
  *******************************************************/
   // all errors encountered during parsing is stored in the array parseProblems. This includes lexical, syntactical and semantic error (multiple initialization actors et.c.)
-  public java.util.TreeSet<String> parseProblems = new TreeSet<String>();
-  public void newError(String msg, Symbol token){
-      parseProblems.add(msg + " At row " + Symbol.getLine(token.getStart()) + ", column " + Symbol.getColumn(token.getStart()));
-  };
-  public void printParseProblems(){ printParseProblems(System.err); }
-  public void printParseProblems(PrintStream out){
-    for(String msg : parseProblems){
-      out.println("ERROR: " + msg);
+  BasicErrorModule em;
+
+  private void warning(String msg, Symbol startS, Symbol endS){
+    int start = startS.getStart();
+    int end = endS.getEnd();
+    em.warning(msg + " between " + Symbol.getLine(start) + ":" + Symbol.getColumn(start) + " and " + Symbol.getLine(end) + ":" + Symbol.getColumn(end) + " in " + file.getName(), null);
+  }
+
+  public ErrorModule getErrorModule(){ return em; }
+
+  private void warnPortIndex(Expression[] index){
+    if(index != null && index.length != 0){
+      em.warning("port index is ignored", index[0]);
     }
   }
 
   // parser plug-in methods that are called when the parser encounters a syntactical problem
   class Events extends Parser.Events {
     public void scannerError(Scanner.Exception e) {
-      parseProblems.add(e.getMessage());
+      em.error(e.getMessage(), null);
     }
     public void syntaxError(Symbol token) {
       // This method is always called when a problem is encountered, even if it is repaired.
       // beaver.Parser$Exception is thrown if recovery fails.
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("unexpected token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.error("unexpected token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void unexpectedTokenRemoved(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void missingTokenInserted(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after inserting token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after inserting token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void misspelledTokenReplaced(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after replacing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after replacing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void errorPhraseRemoved(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
   }
 
@@ -82,48 +94,102 @@
     report = new Events(); // Use error handler in parser
   }
 
+/********************************************************
+ * Store the source code position of the symbols.
+ * The following IR-nodes have source file information:
+ * Registered by NLParser.beaver:
+ * - EntityIfExpr
+ * - EntityInstanceExpr
+ * - EntityListExpr
+ * - NetworkDefinition
+ * - PortReference
+ * - StructureConnectionStmt
+ * - StructureForeachStmt
+ * - StructureIfStmt
+ * - ToolValueAttribute
+ * - ToolTypeAttribute
+ *
+ * Registered by CommonParser.beaver
+ * - ExprLiteral
+ * - Field
+ * - Variable
+ * - ExprVariable
+ * - DeclVar
+ * - ExprApplication
+ * - ExprLiteral
+ * - ExprIf
+ *
+ * The following IRNodes do not have source code info:
+ * - GeneratorFilter
+ * - Import
+ * - LValue
+ ********************************************************/
+
+  private File file;
+  private Map<Identifier, SourceCodePosition> srcLocations;
+  public Symbol register(Symbol start, Symbol end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(start, end, file));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(IRNode start, Symbol end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(srcLocations.get(start.getIdentifier()), end));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(Symbol start, IRNode end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(start, srcLocations.get(end.getIdentifier())));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(IRNode start, IRNode end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(srcLocations.get(start.getIdentifier()), srcLocations.get(end.getIdentifier())));
+    }
+    return new Symbol(node);
+  }
+
 /*******************************************************
  *  Help routine that parses a file, given its name.
- *  A compilation unit is always returned, containing all parseProblems encountered during parsing.
- *  If a Parser.exception is thrown a CompilationUnit with an empty AST is returned.
+ *  If a Parser.exception is thrown a CompilationUnit with an empty network is returned.
  *******************************************************/
 
-  public NetworkDefinition parse(String fileName){
-    return parse(new java.io.File(fileName));
+  public NetworkDefinition parse(String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+    return parse(new File(fileName), srcLocations, scOracle);
   }
-  public NetworkDefinition parse(String path, String fileName){
-    return parse(new java.io.File(path + "/" + fileName));
+  public NetworkDefinition parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+    return parse(new java.io.File(path + File.separatorChar + fileName), srcLocations, scOracle);
   }
-  public NetworkDefinition parse(java.io.File file){
-     NetworkDefinition network;
-     parseProblems = new TreeSet<String>();
-     java.io.FileReader fr = null;
-     try {
-       try {
-         fr = new java.io.FileReader(file);
-	       NlScanner scanner = new NlScanner(new java.io.BufferedReader(fr));
-         network = (NetworkDefinition)parse(scanner);
-         fr.close();
-       } catch(CalParser.Exception e) {
-         // build empty compilation unit for failed error recovery
-         // The problem is added to parseProblems[] by the syntaxError() method added to the parser above.
-         network = new NetworkDefinition(file.getName());
-       } finally {
-         if(fr != null){ fr.close(); }
-       }
-     } catch (java.io.FileNotFoundException e){
-       parseProblems.add("file not found: " + e.getMessage());
-       network = new NetworkDefinition(file.getName());
-     } catch (java.io.IOException e){
-       parseProblems.add("error reading file: " + e.getMessage());
-       network = new NetworkDefinition(file.getName());
-     }
-//     network.setSourceFile(file);
-//     network.parseProblems = parseProblems;
-//     for(Problem p : parseProblems) {
-//       p.setSourceFile(file);
-//     }
-     return network;
+  public NetworkDefinition parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+    this.file = file;
+    this.srcLocations = srcLocations;
+    em = new BasicErrorModule(scOracle);
+    NetworkDefinition network;
+    java.io.FileReader fr = null;
+    try {
+      try {
+        fr = new java.io.FileReader(file);
+        NlScanner scanner = new NlScanner(new java.io.BufferedReader(fr));
+        network = (NetworkDefinition)parse(scanner);
+        fr.close();
+      } catch(CalParser.Exception e) {
+        // build empty compilation unit for failed error recovery
+        // The problem is added to parseProblems[] by the syntaxError() method added to the parser above.
+        network = new NetworkDefinition(file.getName());
+      } finally {
+        if(fr != null){ fr.close(); }
+      }
+    } catch (java.io.FileNotFoundException e){
+      em.error("file not found: " + e.getMessage(), null);
+      network = new NetworkDefinition(file.getName());
+    } catch (java.io.IOException e){
+      em.error("error reading file: " + e.getMessage(), null);
+      network = new NetworkDefinition(file.getName());
+    }
+    return network;
    }
 
   private enum NetworkBodyPartKind{ IMPORT, VAR_DECL, ENTITIES, STRUCTURE, TOOL_ATTRIBUTE; }
@@ -132,10 +198,25 @@
  * Needed by CommonParser.beaver
  * Repeated in both NlParser.beaver and CalParser.beaver
  *****************************************************************************/
-  private GeneratorFilter makeGeneratorFilter(TypeExpr type, ImmutableList<String> varList, Expression e, ImmutableList<Expression> filterList){
+  private Symbol makeGeneratorFilter(Symbol start, TypeExpr t, ImmutableList<Symbol>varList, Expression e, ImmutableList<Expression> filterList, ImmutableList l){
+    GeneratorFilter gen = makeGeneratorFilter2(t, varList, e, filterList);
+    Expression end = e;
+    if(filterList != null && !filterList.isEmpty()){
+   	 end = filterList.get(filterList.size()-1);
+    }
+    register(start, end, gen);
+    ImmutableList.Builder newList = ImmutableList.builder().add(gen);
+    if(l != null){
+   	 newList.addAll(l);
+    }
+    return new Symbol(newList);
+  }
+  private GeneratorFilter makeGeneratorFilter2(TypeExpr type, ImmutableList<Symbol> varList, Expression e, ImmutableList<Expression> filterList){
     ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
-    for(String var : varList){
-      vars.add(new DeclVar(type, var, null));
+    for(Symbol var : varList){
+      DeclVar decl = new DeclVar(type, (String)var.value, null);
+      register(var, var, decl);
+      vars.add(decl);
     }
     return new GeneratorFilter(vars.build(), e, filterList);
   }
@@ -147,17 +228,22 @@
    
   private LValue expressionToLValue(Expression expression) {
     if (expression instanceof ExprVariable) {
-      return new LValueVariable(((ExprVariable) expression).getVariable());
+      Variable var = ((ExprVariable) expression).getVariable();
+      return new LValueVariable(var, var);             // use the same Variable as the Variable node
     } else if (expression instanceof ExprIndexer) {
       ExprIndexer exprIndexer = (ExprIndexer) expression;
       LValue structure = expressionToLValue(exprIndexer.getStructure());
       if (structure == null) return null;
-      return new LValueIndexer(structure, exprIndexer.getIndex());
+      LValue result = new LValueIndexer(structure, exprIndexer.getIndex());
+      register(structure, exprIndexer, result);
+      return result;
     } else if (expression instanceof ExprField) {
       ExprField exprField = (ExprField) expression;
       LValue structure = expressionToLValue(exprField.getStructure());
       if (structure == null) return null;
-      return new LValueField(structure, exprField.getField());
+      LValue result = new LValueField(structure, exprField.getField());
+      register(structure, exprField, result);
+      return result;
     } else {
       return null;
     }
@@ -229,7 +315,6 @@
 %terminals ENTITIES;
 %terminals ENTITY;
 %terminals ENDNETWORK;
-%terminals EQCOLON;
 %terminals IMPORT;
 %terminals NETWORK;
 %terminals PORTCONN;
@@ -284,23 +369,13 @@
 %typeof formal_parameter = "ParDeclValue";
 %typeof formal_parameter_list = "ImmutableList.Builder";
 %typeof statement = "Statement";
-%typeof choose_generator_list = "ArrayList";
+%typeof choose_generator_list = "ImmutableList.Builder";
 %typeof for_generator_list = "ImmutableList.Builder";
 %typeof generator_variable_list = "ImmutableList.Builder";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
-%typeof for_foreach = "String";
-%typeof do_begin = "String";
-%typeof end_choose = "String";
-%typeof end_foreach = "String";
-%typeof end_if = "String";
-%typeof end_lambda = "String";
-%typeof end_let = "String";
-%typeof end_proc = "String";
-%typeof end_while = "String";
 %typeof statement_list = "ImmutableList.Builder";
 %typeof statement_list_opt = "ImmutableList";
 
 //--- Network specific keywords
-%typeof end_network = "String";
 %typeof entities = "ArrayList";
 %typeof entity = "java.util.Map.Entry";
 %typeof entity_expr = "EntityExpr";
@@ -309,7 +384,6 @@
 %typeof entity_port = "PortReference";
 %typeof entity_statement = "StructureStatement";
 %typeof import_group = "ArrayList";  //TODO
-%typeof import_kind = "String";
 %typeof import_part = "ArrayList";   //TODO
 %typeof import_single = "ArrayList"; //TODO
 %typeof network = "net.opendf.ir.net.NetworkBuilder";
@@ -325,7 +399,7 @@
 %goal network;
 
 network =
-    NETWORK 
+    NETWORK.startSymbol
     IDENTIFIER.name
     type_parameter_block.typePars?
     LPAREN actor_parameter_list.valuePars? RPAREN 
@@ -334,7 +408,7 @@ network =
     port_decl_list_opt.outputPorts
     COLON
     network_body_part.body*
-    end_network.end_network
+    end_network.endSymbol
     SEMICOLON?
     {:
         NamespaceDecl ns = null;
@@ -366,7 +440,7 @@ network =
             }
         }
         
-        return new Symbol(new NetworkDefinition((String)name.value, 
+        return register(startSymbol, endSymbol, new NetworkDefinition((String)name.value, 
                           ns, 
                           typePars,     // typePars,
                           valuePars == null ? null : valuePars.build(), // valuePars,
@@ -408,11 +482,11 @@ entity =
   ;
 
 entity_expr =
-    IDENTIFIER.id LPAREN param_assign_list.l? RPAREN tool_attribute_block.a? {: return new Symbol(new EntityInstanceExpr((String)id.value, l == null ? null : l.build(), a));
+    IDENTIFIER.id LPAREN param_assign_list.l? RPAREN.end tool_attribute_block.a? {: return register(id, end, new EntityInstanceExpr((String)id.value, l == null ? null : l.build(), a));
                                                                              :}
-  | IF expression.e THEN entity_expr.t ELSE entity_expr.f end_if             {: return new Symbol(new EntityIfExpr(e, t, f)); :}
-  | LBRACK entity_expr_list.e? RBRACK                                        {: return new Symbol(new EntityListExpr(e==null ? null : e.build(), null)); :}
-  | LBRACK entity_expr_list.e COLON for_generator_list.g RBRACK              {: return new Symbol(new EntityListExpr(e.build(), g.build())); :}
+  | IF.start expression.e THEN entity_expr.t ELSE entity_expr.f end_if.end       {: return register(start, end, new EntityIfExpr(e, t, f)); :}
+  | LBRACK.start entity_expr_list.e? RBRACK.end                                  {: return register(start, end, new EntityListExpr(e==null ? null : e.build(), null)); :}
+  | LBRACK.start entity_expr_list.e COLON for_generator_list.g RBRACK.end        {: return register(start, end, new EntityListExpr(e.build(), g.build())); :}
   ;
 param_assign_list =
     param_assign.p                           {: return new Symbol(ImmutableList.builder().add(p)); :}
@@ -430,16 +504,22 @@ structure =
     STRUCTURE entity_statement.l* {: return _symbol_l; :}
   ;
 entity_statement =
-    entity_port.src EDGE entity_port.dst tool_attribute_block.a? SEMICOLON          {: return new Symbol(new StructureConnectionStmt(src, dst, a==null ? null : a)); :}
-  | for_generator_list.g DO entity_statement.s* END                                 {: return new Symbol(new StructureForeachStmt(g.build(), ImmutableList.copyOf(s))); :}
-  | IF expression.e THEN entity_statement.t_stmt* END                               {: return new Symbol(new StructureIfStmt(e, ImmutableList.copyOf(t_stmt), null)); :}
-  | IF expression.e THEN entity_statement.t_stmt* ELSE entity_statement.f_stmt* END {: return new Symbol(new StructureIfStmt(e, ImmutableList.copyOf(t_stmt), ImmutableList.copyOf(f_stmt))); :}
+    entity_port.src EDGE entity_port.dst tool_attribute_block.a? SEMICOLON.end                {: return register(src, end, new StructureConnectionStmt(src, dst, a==null ? null : a)); :}
+  | for_generator_list.g DO.doSymbol entity_statement.s* END.end                              {: ImmutableList<GeneratorFilter> genList = g.build();
+                                                                                                 if(genList.isEmpty()){
+                                                                                                   return register(doSymbol, end, new StructureForeachStmt(genList, ImmutableList.copyOf(s)));
+                                                                                                 } else {
+                                                                                                   return register(genList.get(0), end, new StructureForeachStmt(genList, ImmutableList.copyOf(s)));
+                                                                                                 }
+                                                                                               :}
+  | IF.start expression.e THEN entity_statement.t_stmt* END.end                               {: return register(start, end, new StructureIfStmt(e, ImmutableList.copyOf(t_stmt), null)); :}
+  | IF.start expression.e THEN entity_statement.t_stmt* ELSE entity_statement.f_stmt* END.end {: return register(start, end, new StructureIfStmt(e, ImmutableList.copyOf(t_stmt), ImmutableList.copyOf(f_stmt))); :}
   ;
 
 entity_port =
 //TODO, port index is not supported
-    IDENTIFIER.id_port entity_indexing.index_port*                                                        {: return new Symbol(new PortReference(null, null, (String)id_port.value)); :}
-  | IDENTIFIER.id_entity entity_indexing.index_entity* DOT IDENTIFIER.id_port entity_indexing.index_port* {: return new Symbol(new PortReference((String)id_entity.value, ImmutableList.copyOf(index_entity) , (String)id_port.value)); :}
+    IDENTIFIER.id_port entity_indexing.index_port*                                                        {: warnPortIndex(index_port); return register(id_port, id_port, new PortReference(null, null, (String)id_port.value)); :}
+  | IDENTIFIER.id_entity entity_indexing.index_entity* DOT IDENTIFIER.id_port entity_indexing.index_port* {: warnPortIndex(index_port); return register(id_entity, id_port, new PortReference((String)id_entity.value, ImmutableList.copyOf(index_entity) , (String)id_port.value)); :}
   ;
 entity_indexing =
     LBRACK.LBRACK expression.e RBRACK.RBRACK {: return _symbol_e; :}
@@ -466,8 +546,8 @@ tool_attribute_block =
     LBRACE tool_attribute.a* RBRACE {: return new Symbol(ImmutableList.builder().addAll(a).build()); :}
   ;
 tool_attribute =
-    IDENTIFIER.ID EQ expression.expression SEMICOLON {: return new Symbol(new ToolValueAttribute((String)ID.value, expression)); :}
-  | IDENTIFIER.ID COLON type.type SEMICOLON          {: return new Symbol(new ToolTypeAttribute((String)ID.value, type)); :}
+    IDENTIFIER.ID EQ expression.expression SEMICOLON.end {: return register(ID, end, new ToolValueAttribute((String)ID.value, expression)); :}
+  | IDENTIFIER.ID COLON type.type SEMICOLON.end          {: return register(ID, end, new ToolTypeAttribute((String)ID.value, type)); :}
   ;
 end_network =
     END 

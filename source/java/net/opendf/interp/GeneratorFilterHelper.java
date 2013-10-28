@@ -42,7 +42,7 @@ public class GeneratorFilterHelper {
 	private void interpret(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env, int gen, int var, Collection coll) {
 		assert !generators.isEmpty();
 		if (gen == generators.size()) {
-			// all generators have given their variables values, run the body for this generator
+			// all generators have given their variables values, run the body
 			action.run();
 		} else if (var == generators.get(gen).getVariables().size()) {
 			// all local variables has been given a value, check if this passes the filters

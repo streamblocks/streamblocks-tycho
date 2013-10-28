@@ -17,6 +17,7 @@ import net.opendf.interp.Interpreter;
 import net.opendf.interp.Memory;
 import net.opendf.interp.TypeConverter;
 import net.opendf.interp.exception.CALCompiletimeException;
+import net.opendf.interp.preprocess.VariableOffsetTransformer;
 import net.opendf.interp.values.ExprValue;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.IRNode.Identifier;
@@ -97,7 +98,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	}
 
 	private void error(String msg) {
-		throw new CALCompiletimeException(msg);
+		throw new CALCompiletimeException(msg, null);
 	}
 
 	private int findPortIndex(String portName, ImmutableList<PortDecl> portList) {
@@ -119,32 +120,27 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		@Override
 		public Void visitEntityInstanceExpr(EntityInstanceExpr e, String p) {
 			Decl decl = null;
-			try{
-				String entityName = e.getEntityName() + ":" + p;
-				// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
-				//e.getParameterAssignments();
-				PortContainer payload = null; 
-				decl = declLoader.getDecl(e.getEntityName());
-				switch(decl.getKind()){
-				case type:
-					throw new UnsupportedOperationException("Type declaration instantiation in networks");
-				case value:
-					throw new UnsupportedOperationException("Value declaration instantiation in networks");
-				case entity:
-					if(decl instanceof Actor){
-						payload = BasicActorMachineSimulator.prepareActor((Actor)decl);
-					} else if(decl instanceof NetworkDefinition){
-						payload = BasicNetworkSimulator.prepareNetworkDefinition((NetworkDefinition)decl, e.getParameterAssignments(), declLoader);
-					} else {
-						throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
-					}
+			String entityName = e.getEntityName() + ":" + p;
+			// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
+			//e.getParameterAssignments();
+			PortContainer payload = null; 
+			decl = declLoader.getDecl(e.getEntityName());
+			switch(decl.getKind()){
+			case type:
+				throw new UnsupportedOperationException("Type declaration instantiation in networks");
+			case value:
+				throw new UnsupportedOperationException("Value declaration instantiation in networks");
+			case entity:
+				if(decl instanceof Actor){
+					payload = BasicActorMachineSimulator.prepareActor((Actor)decl, declLoader);
+				} else if(decl instanceof NetworkDefinition){
+					payload = BasicNetworkSimulator.prepareNetworkDefinition((NetworkDefinition)decl, e.getParameterAssignments(), declLoader);
+				} else {
+					throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
 				}
-				//TODO parameters for actors
-				nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
-			} catch (ClassCastException exception){
-				throw new CALCompiletimeException("An entity instance expression in a network must refer to an actor or network. "
-			                                      + e.getEntityName() + " instantiates " + decl.getName() + " of type " + decl.getClass().getCanonicalName());
 			}
+			//TODO parameters for actors
+			nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
 			return null;
 		}
 
@@ -171,7 +167,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			}
 			return name.toString();
 		}
-		
+
 		/**
 		 * Validates entity and port names
 		 */
@@ -230,39 +226,39 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			return null;
 		}
 	}
-	
+
 	public void evaluate(ImmutableList<Map.Entry<String,Expression>> parameterAssignments){
 		entities = new HashMap<String, EntityExpr>();
 		structure = new ArrayList<StructureStatement>();
 
-		int[] config = new int[Math.max(NetworkDefinition.NetworkGlobalScopeId, NetworkDefinition.NetworkParamScopeId)+1];
-		config[NetworkDefinition.NetworkGlobalScopeId] = srcNetwork.getVarDecls().size();
-		config[NetworkDefinition.NetworkParamScopeId] = srcNetwork.getValueParameters().size();
+		int[] config = new int[Math.max(VariableOffsetTransformer.NetworkGlobalScopeId, VariableOffsetTransformer.NetworkParamScopeId)+1];
+		config[VariableOffsetTransformer.NetworkGlobalScopeId] = srcNetwork.getVarDecls().size();
+		config[VariableOffsetTransformer.NetworkParamScopeId] = srcNetwork.getValueParameters().size();
 		mem = new BasicMemory(config);
 		Environment env = new BasicEnvironment(new Channel.InputEnd[0], new Channel.OutputEnd[0], mem);    // no expressions will read from the ports while instantiating/flattening this network
 		// declarations, compute initial values
 		ImmutableList<DeclVar> declList = srcNetwork.getVarDecls();
-		int scopeIndex=0;
-		for(scopeIndex=0; scopeIndex<declList.size(); scopeIndex++){
-			DeclVar decl = declList.get(scopeIndex);
+		int scopeOffset=0;
+		for(scopeOffset=0; scopeOffset<declList.size(); scopeOffset++){
+			DeclVar decl = declList.get(scopeOffset);
 			RefView value = interpreter.evaluate(decl.getInitialValue(), env);
-			value.assignTo(mem.declare(0, scopeIndex));
+			value.assignTo(mem.declare(VariableOffsetTransformer.NetworkGlobalScopeId, scopeOffset));
 		}
 		// value parameters, compute values and store in paramScopeId memory
 		ImmutableList<ParDeclValue> parList = srcNetwork.getValueParameters();
 		for(Entry<String, Expression> assignment : parameterAssignments){
 			String name = assignment.getKey();
-			scopeIndex = -1;
+			scopeOffset = -1;
 			for(int i=0; i<parList.size(); i++){
 				if(name.equals(parList.get(i).getName())){
-					scopeIndex = i;
+					scopeOffset = i;
 				}
 			}
-			if(scopeIndex<0) {
-				throw new CALCompiletimeException("unknown parameter name: " + name);
+			if(scopeOffset<0) {
+				throw new CALCompiletimeException("unknown parameter name: " + name, null);
 			}
 			RefView value = interpreter.evaluate(assignment.getValue(), env);
-			value.assignTo(mem.declare(NetworkDefinition.NetworkParamScopeId, scopeIndex));
+			value.assignTo(mem.declare(VariableOffsetTransformer.NetworkParamScopeId, scopeOffset));
 		}
 		// EntityExpr
 		for(Entry<String, EntityExpr> decl : srcNetwork.getEntities()){
@@ -278,14 +274,19 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 
 	@Override
 	public EntityExpr visitEntityInstanceExpr(EntityInstanceExpr e, Environment env) {
-		ImmutableList.Builder<Map.Entry<String,Expression>> builder = new ImmutableList.Builder<Map.Entry<String,Expression>>();
-		for(Entry<String, Expression> pa : e.getParameterAssignments()){
-			Expression expr = pa.getValue();
-			RefView value = interpreter.evaluate(expr, env);
-			//TODO support for values that can not be represented as strings, i.e. ExprLambda
-			builder.add(new AbstractMap.SimpleEntry<String, Expression>(pa.getKey(), new ExprValue(pa.getValue(), ExprLiteral.Kind.Integer, value.toString(), value)));
+		try{
+			ImmutableList.Builder<Map.Entry<String,Expression>> builder = new ImmutableList.Builder<Map.Entry<String,Expression>>();
+			for(Entry<String, Expression> pa : e.getParameterAssignments()){
+				Expression expr = pa.getValue();
+				RefView value = interpreter.evaluate(expr, env);
+				//TODO support for values that can not be represented as strings, i.e. ExprLambda
+				builder.add(new AbstractMap.SimpleEntry<String, Expression>(pa.getKey(), new ExprValue(pa.getValue(), ExprLiteral.Kind.Integer, value.toString(), value)));
+			}
+			return e.copy(e.getEntityName(), builder.build(), e.getToolAttributes());
+		} catch(net.opendf.interp.exception.CALIndexOutOfBoundsException error){
+			String msg = error.getMessage();
+			throw new net.opendf.interp.exception.CALIndexOutOfBoundsException(msg + " at " + declLoader.getSrcLocations(e.getIdentifier()));
 		}
-		return e.copy(e.getEntityName(), builder.build(), e.getToolAttributes());
 	}
 
 	@Override

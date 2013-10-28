@@ -1,4 +1,6 @@
 package net.opendf.ir.net;
+import java.util.Objects;
+
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.util.PrettyPrint;
 
@@ -9,9 +11,20 @@ import net.opendf.util.PrettyPrint;
 
 public class ToolTypeAttribute extends ToolAttribute {
 	public ToolTypeAttribute(String name, TypeExpr type){
-		super(name);
+		this(null, name, type);
+	}
+	protected ToolTypeAttribute(ToolTypeAttribute original, String name, TypeExpr type) {
+		super (original, name);
 		this.type = type;
 	}
+	
+	public ToolTypeAttribute copy(String name, TypeExpr type){
+		if(Objects.equals(this.name, name) && Objects.equals(this.type, type)){
+			return this;
+		}
+		return new ToolTypeAttribute(this, name, type);
+	}
+	
 	public TypeExpr getType(){
 		return type;
 	}

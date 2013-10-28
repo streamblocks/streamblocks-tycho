@@ -3,7 +3,6 @@ package net.opendf.interp.values;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.opendf.interp.exception.CALNumberFormatException;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.common.ExprLiteral;
 
@@ -22,7 +21,7 @@ public class ExprValue extends ExprLiteral {
 				try{
 					tmp.setDouble(Double.parseDouble(original.getText()));
 				} catch (NumberFormatException eD){
-					throw new CALNumberFormatException(original.getText());
+					tmp.setString(original.getText());
 				}
 			}
 		}
@@ -33,11 +32,6 @@ public class ExprValue extends ExprLiteral {
 		BasicRef tmp = new BasicRef();
 		value.assignTo(tmp);
 		this.value = tmp;
-	}
-
-	@Override
-	public String getText() {
-		return value.toString();
 	}
 
 	public RefView getValue(){

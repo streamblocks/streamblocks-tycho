@@ -58,17 +58,17 @@ public class ParserTest extends TestCase{
 		if(fileName.endsWith(".cal")){
 			System.out.println("  parsing cal-file " + file.getName());
 			CalParser parser = new CalParser();
-			Actor actor = parser.parse(file);
-			if(!parser.parseProblems.isEmpty()){
-				parser.printParseProblems(System.err);
+			Actor actor = parser.parse(file, null, null);
+			if(parser.getErrorModule().hasProblem()){
+				parser.getErrorModule().printMessages();
 				Assert.fail("compile error while loading " + fileName + " in directory " + file.getParent());
 			}
 		} else if(fileName.endsWith(".nl")){
 			System.out.println("  parsing nl-file " + file.getName());
 			NlParser parser = new NlParser();
-			NetworkDefinition network = parser.parse(file);
-			if(!parser.parseProblems.isEmpty()){
-				parser.printParseProblems();
+			NetworkDefinition network = parser.parse(file, null, null);
+			if(parser.getErrorModule().hasProblem()){
+				parser.getErrorModule().printMessages();
 				Assert.fail("compile error while loading " + fileName + " in directory " + file.getParent());
 			}
 		}

@@ -7,6 +7,8 @@ public interface RefView {
 	public long getLong();
 
 	public double getDouble();
+	
+	public String getString();
 
 	public void assignTo(Ref r);
 

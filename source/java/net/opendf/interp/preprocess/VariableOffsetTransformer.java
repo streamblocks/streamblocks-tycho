@@ -3,6 +3,7 @@ package net.opendf.interp.preprocess;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import net.opendf.errorhandling.ErrorModule;
 import net.opendf.interp.GeneratorFilterHelper;
 import net.opendf.interp.VariableLocation;
 import net.opendf.interp.exception.CALCompiletimeException;
@@ -30,8 +31,9 @@ import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.util.ImmutableList;
-import net.opendf.transform.util.AbstractBasicTransformer;
+import net.opendf.parser.SourceCodeOracle;
 import net.opendf.transform.util.ActorMachineTransformerWrapper;
+import net.opendf.transform.util.ErrorAwareBasicTransformer;
 import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
 
 /**
@@ -43,14 +45,30 @@ import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
  * stack in the same order.
  * 
  * In an {@link ActorMachine} all global and action scope variables have the 
- * scopeId set. Only offset is computed here.
+ * scopeId set. Only offset is computed.
  * 
  * In a {@link Network} there are two global scopes:
  * scopeId 0 : global variables
  * scopeId 1 : parameters
+ * 
+ * Semantic Checks:
+ * - report error if a name i used that is not declared (variable/parameter).
+ * - report an error if a local variable in a let expression do not have an initialization expression.
+ * 
+ * Prerequisites:
+ * - for {@link ActorMachine}s the scopeId is assumed to be correct and set for all {@link Variable}s in a scope.
+ * 
  * @author pera
  */
-public class VariableOffsetTransformer extends AbstractBasicTransformer<VariableOffsetTransformer.LookupTable> {
+public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<VariableOffsetTransformer.LookupTable> implements ErrorModule {
+	public VariableOffsetTransformer(SourceCodeOracle sourceOracle) {
+		super(sourceOracle);
+	}
+
+	public static final int NetworkGlobalScopeId = 0;
+	public static final int NetworkParamScopeId = 1;
+
+
 	/**
 	 * 
 	 * globalScopeId - scope in which names for the network/actor global variables are located. Use -1 not to search for global variables, i.e. when transforming {@link ActorMachines}
@@ -61,29 +79,44 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 
 	ImmutableList<Scope> scopes;
 
-	private void error(DeclVar decl, String msg) {
-		System.err.println(msg);
-		throw new RuntimeException(msg);
-	}
+	//--- wrappers ------------------------------------------------------------
+	/**
+	 * Replace all Variable objects with VariableLocation objects.
+	 * @param net
+	 * @return
+	 * @throws CALCompiletimeException if an error occurs
+	 */
+	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+		VariableOffsetTransformer transformer = new VariableOffsetTransformer(sourceOracle);
+		NetDefVarOffsetTransformer wrapper = transformer.new NetDefVarOffsetTransformer(transformer);
 
-	public NetworkDefinition transformNetworkDefinition(NetworkDefinition net){
-		NetDefVarOffsetTransformer wrapper = new NetDefVarOffsetTransformer();
-
-		LookupTable table = new LookupTable();
+		LookupTable table = transformer.new LookupTable();
 		net = wrapper.transformNetworkDefinition(net, table);
+		transformer.printWarnings();
+		transformer.abortIfError();
 		return net;
 	}
 
-	public ActorMachine transformActorMachine(ActorMachine actorMachine){
-		scopes = actorMachine.getScopes();
-		LookupTable table = new LookupTable();
-		VariableOffsetTransformer transformer = new VariableOffsetTransformer();
+	/**
+	 * Replace all Variable objects with VariableLocation objects.
+	 * @param net
+	 * @return
+	 * @throws CALCompiletimeException if an error occurs
+	 */
+	public static ActorMachine transformActorMachine(ActorMachine actorMachine, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+		VariableOffsetTransformer transformer = new VariableOffsetTransformer(sourceOracle);
 		ActorMachineTransformerWrapper<VariableOffsetTransformer.LookupTable> wrapper = new ActorMachineTransformerWrapper<VariableOffsetTransformer.LookupTable>(transformer);
+
+		transformer.scopes = actorMachine.getScopes();
+		LookupTable table = transformer.new LookupTable();
 		actorMachine = wrapper.transformActorMachine(actorMachine, table);
 		assert table.isEmpty();
+		transformer.printWarnings();
+		transformer.abortIfError();
 		return actorMachine;
 	}
 	
+	//--- transformations -----------------------------------------------------
 	@Override
 	public Variable transformVariable(Variable var, LookupTable table) {
 		return table.lookup(var);
@@ -110,7 +143,7 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 		for (DeclVar decl : let.getVarDecls()) {
 			builder.add(transformVarDecl(decl, table));
 			if(decl.getInitialValue() == null){
-				error(decl, "local variable " + decl.getName() + " in let expression do not have any initialization");
+				error("local variable " + decl.getName() + " in let expression do not have any initialization", decl);
 			}
 			table.addName(decl.getName());
 		}
@@ -234,7 +267,7 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 			return pos;
 		}
 
-		public VariableLocation lookup(Variable var){
+		public Variable lookup(Variable var){
 			String name = var.getName();
 			if(parent == null){
 				// outside lambda/procedure expression, do not create closure
@@ -253,35 +286,43 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 						return VariableLocation.stackVariable(var, name, offset);
 					}
 				}
-				if(globalScopeId>0){
+				if(globalScopeId>=0){
 					VariableLocation result = searchScope(globalScopeId, var);
 					if(result != null){
 						return result;
 					}
 				}
-				if(paramScopeId>0){
+				if(paramScopeId>=0){
 					VariableLocation result = searchScope(paramScopeId, var);
 					if(result != null){
 						return result;
 					}
 				}
-				throw new CALCompiletimeException("unknown variable name " + name);
+				error("unknown variable name " + name, var);
+				return var;
 			} else {
 				// inside lambda/procedure expression
-				LookupTable frame = parent;
 				// is var in the static scope? Then we do not search the stack for the name.
 				if(var.isScopeVariable()){
-					// add the variable to the closure
-					int colosureOffset = addToClosure(var);
+					// all variables in a scope is part of the closure, add it
+					VariableLocation closureVar = searchScope(var.getScopeId(), var);
+					if(closureVar == null){
+						error("unknown variable name " + name, var);
+						return var;
+					}
+					int colosureOffset = addToClosure(closureVar);
 					// the closure has scopeId 0
 					return VariableLocation.scopeVariable(var, name, 0, colosureOffset);
 				}
-				// look for the name inside this lambda/process block
+				// the variable is not known to be in a scope, look for it on the stack
+				LookupTable frame = parent;
+				// look for the name inside this lambda/process block. The parameters are on the stack.
 				int stackOffset = stack.search(name) -  1;  // in search(), top of stack = 1
 				if(stackOffset>=0){
+					// parameters and locally declared variables is not part of a closure. 
 					return VariableLocation.stackVariable(var, name, stackOffset);
 				}
-				// the name was not declared within the closest lambda/proc expression. search for it in the closure
+				// the name was not declared within the closest lambda/proc expression. Search for it in the closure
 				int scopeDist = 0;                     // the distance to the variable on the stack when the closure is created
 				while(frame!=null){
 					stackOffset = frame.stack.search(name) -  1;  // in search(), top of stack = 1
@@ -294,8 +335,26 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 					}
 					frame = frame.parent;
 				}
+				// For Networks, search the global and parameter names to
+				if(globalScopeId>=0){
+					VariableLocation closureVar = searchScope(globalScopeId, var);
+					if(closureVar != null){
+						int colosureOffset = addToClosure(closureVar);
+						// the closure has scopeId 0
+						return VariableLocation.scopeVariable(var, name, 0, colosureOffset);
+					}
+				}
+				if(paramScopeId>=0){
+					VariableLocation closureVar = searchScope(paramScopeId, var);
+					if(closureVar != null){
+						int colosureOffset = addToClosure(closureVar);
+						// the closure has scopeId 0
+						return VariableLocation.scopeVariable(var, name, 0, colosureOffset);
+					}
+				}
 			}
-			throw new CALCompiletimeException("unknown variable name " + name);
+			error("unknown variable name " + name, var);
+			return var;
 		}
 
 		private VariableLocation searchScope(int scopeId, Variable var){
@@ -324,14 +383,17 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 	
 	public class NetDefVarOffsetTransformer extends NetworkDefinitionTransformerWrapper<VariableOffsetTransformer.LookupTable>{
 
-		public NetDefVarOffsetTransformer() {
-			super(new VariableOffsetTransformer());
+		public NetDefVarOffsetTransformer(SourceCodeOracle sourceOracle) {
+			super(new VariableOffsetTransformer(sourceOracle));
+		}
+		public NetDefVarOffsetTransformer(VariableOffsetTransformer innerT) {
+			super(innerT);
 		}
 
 		@Override
 		public NetworkDefinition transformNetworkDefinition(NetworkDefinition net, LookupTable table){
-			globalScopeId = NetworkDefinition.NetworkGlobalScopeId;
-			paramScopeId = NetworkDefinition.NetworkParamScopeId;
+			globalScopeId = NetworkGlobalScopeId;
+			paramScopeId = NetworkParamScopeId;
 			Scope globalScope[] = new Scope[Math.max(paramScopeId, globalScopeId)+1];
 			globalScope[globalScopeId] = new Scope(net.getVarDecls());
 			//FIXME this is a bit over engineered. The generated list of declarations is not saved.

@@ -20,6 +20,7 @@ import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
 import net.opendf.ir.util.DeclLoader;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.parser.SourceCodeOracle;
 import net.opendf.transform.operators.ActorOpTransformer;
 
 public class BasicNetworkSimulator implements Simulator{
@@ -36,17 +37,25 @@ public class BasicNetworkSimulator implements Simulator{
 	public static Network prepareNetworkDefinition(NetworkDefinition net, DeclLoader declLoader){
 		return prepareNetworkDefinition(net, ImmutableList.<Map.Entry<String,Expression>>empty(), declLoader);
 	}
-	
-	public static Network prepareNetworkDefinition(NetworkDefinition net, ImmutableList<Map.Entry<String,Expression>> paramAssigns, DeclLoader declLoader){
+
+	/**
+	 * Evaluate a {@link NetworkDefinition} to a {@link Network}. 
+	 * In the evaluated network all {@link Actor}s are evaluated to {@link ActorMachine}s and embedded {@link NetworkDefinition}s to a {@link Network}s
+	 * @param net
+	 * @param paramAssigns
+	 * @param declLoader
+	 * @return
+	 * @throws CALCompiletimeException if an error occurs
+	 */
+	public static Network prepareNetworkDefinition(NetworkDefinition net, ImmutableList<Map.Entry<String,Expression>> paramAssigns, DeclLoader declLoader) throws CALCompiletimeException {
 		// order variable initializations
-		net = VariableInitOrderTransformer.transformNetworkDefinition(net);
+		net = VariableInitOrderTransformer.transformNetworkDefinition(net, declLoader);
 		// replace operators with function calls
-		net = ActorOpTransformer.transformNetworkDefinition(net);
+		net = ActorOpTransformer.transformNetworkDefinition(net, declLoader);
 		// replace global variables with constants, i.e. $BinaryOperation.+ with ExprValue(ConstRef.of(new IntFunctions.Add()))
-		net = EvaluateLiteralsTransformer.transformNetworkDefinition(net);
+		net = EvaluateLiteralsTransformer.transformNetworkDefinition(net, declLoader);
 		// compute variable offsets
-		VariableOffsetTransformer varT = new VariableOffsetTransformer();
-		net = varT.transformNetworkDefinition(net);
+		net = VariableOffsetTransformer.transformNetworkDefinition(net, declLoader);
 		
 
 		Interpreter interpreter = new BasicInterpreter(100);
@@ -152,7 +161,7 @@ public class BasicNetworkSimulator implements Simulator{
 					if(externalSourcePortChannel[srcPortIndex] != null){
 						if(externalSinkPortChannel[dstPortIndex] != null){
 							//TODO we have two channels instances to connect. Merge channels
-							throw new CALCompiletimeException("multiple writers to the smae port port.");
+							throw new CALCompiletimeException("multiple writers to the same port port.", null);
 						} else {
 							// mark the input port as writer to the output port to detect multiple writers.
 							externalSourcePortChannel[srcPortIndex] = externalSinkPortChannel[dstPortIndex];
