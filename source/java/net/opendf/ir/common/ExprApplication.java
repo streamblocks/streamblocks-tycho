@@ -41,6 +41,7 @@ package net.opendf.ir.common;
 
 import java.util.Objects;
 
+import net.opendf.ir.IRNode;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
@@ -54,7 +55,7 @@ public class ExprApplication extends Expression {
 		this(null, function, args);
 	}
 	
-	private ExprApplication(ExprApplication original, Expression function, ImmutableList<Expression> args) {
+	public ExprApplication(IRNode original, Expression function, ImmutableList<Expression> args) {
 		super(original);
 		this.function = function;
 		this.args = ImmutableList.copyOf(args);

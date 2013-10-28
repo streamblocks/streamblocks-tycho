@@ -11,11 +11,13 @@ public class Predef {
 
 	private static Map<String, RefView> predef = new HashMap<String, RefView>();
 	static {
-		
+		predef.put("$UnaryOperation.-", ConstRef.of(new IntFunctions.Negate()));
 		
 		predef.put("$BinaryOperation.+", ConstRef.of(new IntFunctions.Add()));
 		predef.put("$BinaryOperation.-", ConstRef.of(new IntFunctions.Sub()));
 		predef.put("$BinaryOperation.*", ConstRef.of(new IntFunctions.Mul()));
+		predef.put("$BinaryOperation./", ConstRef.of(new IntFunctions.Div()));
+		predef.put("$BinaryOperation.Mod", ConstRef.of(new IntFunctions.Mod()));
 
 		predef.put("$BinaryOperation.bitor", ConstRef.of(new IntFunctions.BitOr()));
 		predef.put("$BinaryOperation.bitand", ConstRef.of(new IntFunctions.BitAnd()));
@@ -34,6 +36,8 @@ public class Predef {
 		predef.put("$BinaryOperation.not", ConstRef.of(new BoolFunctions.Not()));
 		
 		predef.put("$BinaryOperation...", ConstRef.of(new CollFunctions.IntegerRange()));
+
+		predef.put("accumulate", ConstRef.of(new CollFunctions.ListAccumulate()));
 		
 		predef = Collections.unmodifiableMap(predef);
 	}

@@ -24,48 +24,65 @@
 %import "java.util.AbstractMap";
 %import "java.util.Arrays";
 %import "java.util.Collection";
+%import "net.opendf.ir.IRNode";
+%import "net.opendf.ir.IRNode.Identifier";
+%import "net.opendf.parser.SourceCodeOracle";
+%import "net.opendf.parser.SourceCodeOracle.SourceCodePosition";
+%import "net.opendf.interp.exception.BasicErrorModule";
+%import "net.opendf.interp.exception.ErrorModule";
 %embed {:
 /*******************************************************
- *  Inject code for custom error handling in the parser class.
+ *  Code for error handling in the parser class.
  *******************************************************/
   // all errors encountered during parsing is stored in the array parseProblems. This includes lexical, syntactical and semantic error (multiple initialization actors et.c.)
-  public java.util.TreeSet<String> parseProblems = new TreeSet<String>();
-  public void newError(String msg, Symbol token){
-      parseProblems.add(msg + " At row " + Symbol.getLine(token.getStart()) + ", column " + Symbol.getColumn(token.getStart()));
-  };
-  public void printParseProblems(){ printParseProblems(System.err); }
-  public void printParseProblems(PrintStream out){
-    for(String msg : parseProblems){
-      out.println("ERROR: " + msg);
+  BasicErrorModule em;
+
+  public ErrorModule getErrorModule(){ return em; }
+
+  private void warning(String msg, Symbol startS, Symbol endS){
+    int start = startS.getStart();
+    int end = endS.getEnd();
+    em.warning(msg + " between " + Symbol.getLine(start) + ":" + Symbol.getColumn(start) + " and " + Symbol.getLine(end) + ":" + Symbol.getColumn(end) + " in " + file.getName(), null);
+  }
+  
+  String posToString(Symbol s){
+	  int start = s.getStart();
+	  int end = s.getEnd();
+	  return Symbol.getLine(start) + ":" + Symbol.getColumn(start) + ", " + Symbol.getLine(end) + ":" + Symbol.getColumn(end) + " in " + file.getName();
+  }
+
+  private void warnPortIndex(Expression[] index){
+    if(index != null && index.length != 0){
+      em.warning("port index is ignored", index[0]);
     }
   }
 
   // parser plug-in methods that are called when the parser encounters a syntactical problem
   class Events extends Parser.Events {
     public void scannerError(Scanner.Exception e) {
-      parseProblems.add(e.getMessage());
+      em.error(e.getMessage(), null);
     }
     public void syntaxError(Symbol token) {
       // This method is always called when a problem is encountered, even if it is repaired.
       // beaver.Parser$Exception is thrown if recovery fails.
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("unexpected token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.error("unexpected token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void unexpectedTokenRemoved(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void missingTokenInserted(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after inserting token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after inserting token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void misspelledTokenReplaced(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after replacing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after replacing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void errorPhraseRemoved(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
   }
 
@@ -74,6 +91,59 @@
     report = new Events(); // Use error handler in parser
   }
 
+/********************************************************
+ * Store the source code position of the symbols.
+ * The following IR-nodes have source file information:
+ * Registered by NLParser.beaver:
+ * - EntityIfExpr
+ * - EntityInstanceExpr
+ * - EntityListExpr
+ * - NetworkDefinition
+ * - PortReference
+ * - StructureConnectionStmt
+ * - StructureForeachStmt
+ * - StructureIfStmt
+ * - ToolValueAttribute
+ * - ToolTypeAttribute
+ *
+ * Registered by CommonParser.beaver
+ * - ExprLiteral
+ * - Field
+ * - Variable
+ * - ExprVariable
+ *
+ * The following IRNodes do not have source code info:
+ * - GeneratorFilter
+ * - Import
+ * - LValue
+ ********************************************************/
+
+  private File file;
+  private Map<Identifier, SourceCodePosition> srcLocations;
+  public Symbol register(Symbol start, Symbol end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(start, end, file));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(IRNode start, Symbol end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(srcLocations.get(start.getIdentifier()), end));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(Symbol start, IRNode end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(start, srcLocations.get(end.getIdentifier())));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(IRNode start, IRNode end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(srcLocations.get(start.getIdentifier()), srcLocations.get(end.getIdentifier())));
+    }
+    return new Symbol(node);
+  }
 /*******************************************************
  *  Help routine that parses a file, given its name.
  *  A compilation unit is always returned, containing all parseProblems encountered during parsing.
@@ -90,12 +160,14 @@
     return new Actor(name, null, null, null, null, null, null, null, null, null, null, null, null);   
   }
   
-  public net.opendf.ir.cal.Actor parse(String path, String fileName){
-    return parse(new java.io.File(path + "/" + fileName));
+  public net.opendf.ir.cal.Actor parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+    return parse(new java.io.File(path + "/" + fileName), srcLocations, scOracle);
   }
-  public net.opendf.ir.cal.Actor parse(File file){
+  public net.opendf.ir.cal.Actor parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+     this.file = file;
+     this.srcLocations = srcLocations;
+     em = new BasicErrorModule(scOracle);
      Actor actor;
-     parseProblems = new TreeSet<String>();
      java.io.FileReader fr = null;
      try {
        try{
@@ -112,15 +184,12 @@
          }
        }
      } catch (java.io.FileNotFoundException e){
-       parseProblems.add("file not found: " + e.getMessage());
+       em.error("file not found: " + e.getMessage(), null);
        actor = makeEmptyActor(file);
-//       actor.setFileNotFound(true);
      } catch (java.io.IOException e){
-       parseProblems.add("error reading file: " + e.getMessage());
+       em.error("error reading file: " + e.getMessage(), null);
        actor = makeEmptyActor(file);
      }
-//     actor.setSourceFile(file);
-//     actor.parseProblems = parseProblems;
      return actor;
    }
 
@@ -131,32 +200,52 @@
    * Needed by CommonParser.beaver
    * Repeated in both NlParser.beaver and CalParser.beaver
    ***************************************************************************/
-  private GeneratorFilter makeGeneratorFilter(TypeExpr type, ImmutableList<String> varList, Expression e, ImmutableList<Expression> filterList){
+  private Symbol makeGeneratorFilter(Symbol start, TypeExpr t, ImmutableList<Symbol>varList, Expression e, ImmutableList<Expression> filterList, ImmutableList l){
+    GeneratorFilter gen = makeGeneratorFilter2(t, varList, e, filterList);
+    Expression end = e;
+    if(filterList != null && !filterList.isEmpty()){
+   	 end = filterList.get(filterList.size()-1);
+    }
+    register(start, end, gen);
+    ImmutableList.Builder newList = ImmutableList.builder().add(gen);
+    if(l != null){
+   	 newList.addAll(l);
+    }
+    return new Symbol(newList);
+  }
+  private GeneratorFilter makeGeneratorFilter2(TypeExpr type, ImmutableList<Symbol> varList, Expression e, ImmutableList<Expression> filterList){
     ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
-    for(String var : varList){
-      vars.add(new DeclVar(type, var, null));
+    for(Symbol var : varList){
+      DeclVar decl = new DeclVar(type, (String)var.value, null);
+      register(var, var, decl);
+      vars.add(decl);
     }
     return new GeneratorFilter(vars.build(), e, filterList);
   }
   class ParenthesSymbol extends Symbol{ // used by the parser to wrap subexpressions that are enclosed by parentheses, i.e. do not add them to a ExprBinaryOp sequence.
-     ParenthesSymbol(Symbol s){
-       super(s.getId(), s.getStart(), s.getEnd(), s.value);
-     }
+    ParenthesSymbol(Symbol s){
+      super(s.getId(), s.getStart(), s.getEnd(), s.value);
+    }
   }
   
   private LValue expressionToLValue(Expression expression) {
     if (expression instanceof ExprVariable) {
-      return new LValueVariable(((ExprVariable) expression).getVariable());
+      Variable var = ((ExprVariable) expression).getVariable();
+      return new LValueVariable(var, var);             // use the same Variable as the Variable node
     } else if (expression instanceof ExprIndexer) {
       ExprIndexer exprIndexer = (ExprIndexer) expression;
       LValue structure = expressionToLValue(exprIndexer.getStructure());
       if (structure == null) return null;
-      return new LValueIndexer(structure, exprIndexer.getIndex());
+      LValue result = new LValueIndexer(structure, exprIndexer.getIndex());
+      register(structure, exprIndexer, result);
+      return result;
     } else if (expression instanceof ExprField) {
       ExprField exprField = (ExprField) expression;
       LValue structure = expressionToLValue(exprField.getStructure());
       if (structure == null) return null;
-      return new LValueField(structure, exprField.getField());
+      LValue result = new LValueField(structure, exprField.getField());
+      register(structure, exprField, result);
+      return result;
     } else {
       return null;
     }
@@ -236,7 +325,6 @@
 %terminals ENDACTOR;
 %terminals ENDINVARIANT;
 %terminals ENDSCHEDULE;
-%terminals EQCOLON;
 %terminals FSM;
 %terminals GUARD;
 %terminals IMPORT;
@@ -297,18 +385,9 @@
 %typeof formal_parameter = "ParDeclValue";
 %typeof formal_parameter_list = "ImmutableList.Builder";
 %typeof statement = "Statement";
-%typeof choose_generator_list = "ArrayList";
+%typeof choose_generator_list = "ImmutableList.Builder";
 %typeof for_generator_list = "ImmutableList.Builder";
 %typeof generator_variable_list = "ImmutableList.Builder";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
-%typeof for_foreach = "String";
-%typeof do_begin = "String";
-%typeof end_choose = "String";
-%typeof end_foreach = "String";
-%typeof end_if = "String";
-%typeof end_lambda = "String";
-%typeof end_let = "String";
-%typeof end_proc = "String";
-%typeof end_while = "String";
 %typeof statement_list = "ImmutableList.Builder";
 %typeof statement_list_opt = "ImmutableList";
 
@@ -326,10 +405,6 @@
 %typeof actor_body = "Map.Entry";
 %typeof actor_decl = "Actor";
 %typeof channel_selector = "String";
-%typeof end_actor = "String";
-%typeof end_action = "String";
-%typeof end_invariant = "String";
-%typeof end_schedule = "String";
 %typeof init_action_decl = "Action";
 %typeof fsm_state_transitions = "ImmutableList.Builder";
 %typeof fsm_state_target = "Transition";
@@ -341,9 +416,9 @@
 %typeof port_name_colon = "Port";
 %typeof pri_inequality = "ImmutableList.Builder";        //<QID>
 %typeof pri_inequality_list = "ImmutableList";   //<QID>
-%typeof regexpr = "AbstractIRNode";
-%typeof regexpr_simple = "AbstractIRNode";
-%typeof regexpr_kleene = "AbstractIRNode";
+//%typeof regexpr = "AbstractIRNode";
+//%typeof regexpr_simple = "AbstractIRNode";
+//%typeof regexpr_kleene = "AbstractIRNode";
 %typeof repeat = "Expression";
 %typeof schedule = "ScheduleFSM";
 %typeof time = "TypeExpr";
@@ -351,7 +426,7 @@
 
 %goal goal;
 goal =
-    actor_decl.actor_decl end_actor SEMICOLON? {: return _symbol_actor_decl;:}
+    actor_decl.actor_decl SEMICOLON? {: return _symbol_actor_decl;:}
   ;
 //=== import ==================================================================
 import_list =
@@ -364,19 +439,19 @@ import_part =
   ;
 import_single =
 //TODO return
-    IMPORT qual_id.qual_id SEMICOLON {: return new Symbol(null);:}
-  | IMPORT qual_id.qual_id EQ IDENTIFIER.alias SEMICOLON {: return new Symbol(null);:}
+    IMPORT qual_id.qual_id SEMICOLON {: return _symbol_qual_id; :}
+  | IMPORT qual_id.qual_id EQ IDENTIFIER.alias SEMICOLON {: return _symbol_qual_id; :}
   ;
 import_group =
 //TODO return
-    IMPORT ALL qual_id.qual_id SEMICOLON {: return new Symbol(null);:}
+    IMPORT ALL qual_id.qual_id SEMICOLON {: return _symbol_qual_id; :}
   ;
 //=== Action ==================================================================
 action_decl =
-  action_tag.tag? ACTION.ACTION action_in_pattern_list.in_pattern_list PORTCONN action_output_expression_list.out_expr_list?
+  action_tag.tag? ACTION.start action_in_pattern_list.in_pattern_list PORTCONN action_output_expression_list.out_expr_list?
   action_head.head*  // guard, variable declaration, or delay
   action_statement_body.body
-  end_action
+  end_action.end
   SEMICOLON?
   /**
    * When the the content of an action is parsed, the Action object is not jet created. (the tree is build bottom up)
@@ -397,7 +472,7 @@ action_decl =
                  declVarList.addAll((Iterable)part.getValue());
                  break;
                case DELAY:
-                 if(delay != null){ parseProblems.add("multiple delays is not allowed in action, at " + Symbol.getLine(ACTION.getStart()) + ", " + Symbol.getColumn(ACTION.getStart())); }
+                 if(delay != null){ em.error("multiple delays is not allowed in action.", (Expression)part.getValue()); }
                  delay = (Expression)part.getValue();
                  break;
              }
@@ -413,15 +488,19 @@ action_decl =
                                   delay,           // delay
                                   null,            // preconditions  NOTE, can not be expressed in CAL
                                   null);           // postconditions NOTE, can not be expressed in CAL
-            return new Symbol(a);
+            if(tag != null){
+              return register(tag, end, a);
+            } else {
+              return register(start, end, a);
+            }
         :}
 
   ;
 init_action_decl =
-  action_tag.tag? INITIALIZE.INITIALIZE PORTCONN action_output_expression_list.out_expr_list?
+  action_tag.tag? INITIALIZE.start PORTCONN action_output_expression_list.out_expr_list?
   action_head.head*  // guard, variable declaration, or delay
   action_statement_body.body
-  end_action
+  end_action.end
   SEMICOLON?
         {: 
            // split the action head to it's parts
@@ -437,7 +516,7 @@ init_action_decl =
                  declVarList.addAll((ArrayList<DeclVar>)part.getValue());
                  break;
                case DELAY:
-                 if(delay != null){ parseProblems.add("multiple delays is not allowed in action, at " + Symbol.getLine(INITIALIZE.getStart()) + ", " + Symbol.getColumn(INITIALIZE.getStart())); }
+                 if(delay != null){ em.error("multiple delays is not allowed in action.", (Expression)part.getValue()); }
                  delay = (Expression)part.getValue();
                  break;
              }
@@ -453,16 +532,20 @@ init_action_decl =
                                   delay,                      // delay
                                   null,         // preconditions  NOTE, can not be expressed in CAL
                                   null);        // postconditions NOTE, can not be expressed in CAL
-            return new Symbol(a);
+            if(tag != null){
+              return register(tag, end, a);
+            } else {
+              return register(start, end, a);
+            }
         :}
   ;
 action_tag =
-    qual_id.n COLON                    {: return new Symbol(new QID((String[])n.toArray(new String[n.size()]))); :}
+    qual_id.n COLON.end           {: return register(_symbol_n, _symbol_n, new QID((String[])n.toArray(new String[n.size()]))); :}
   ;
 action_head =
     GUARD expression_list.l       {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.GUARD, l.build())); :}
   | VAR decl_list.d               {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DECL_LIST, d.build())); :}
-  | DELAY expression.e            {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DELAY, e)); :}
+  | DELAY.s expression.e          {: register(s, e, e); return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DELAY, e)); :}
   ;
 action_statement_body =
                             {: return new Symbol(ImmutableList.empty()); :}
@@ -475,19 +558,29 @@ action_in_pattern_list =
   ;
 action_in_pattern =
 //TODO channels are ignored
-  port_name_colon.actor_port_name? LBRACK token_name_list.tokens? RBRACK repeat.r? channel_selector.c? 
-     {: return new Symbol(new InputPattern(actor_port_name, tokens==null ? null : tokens.build(), r)); :}
+  port_name_colon.actor_port_name? LBRACK.start token_name_list.tokens? RBRACK.end repeat.r? channel_selector.c? 
+     {: Symbol s = actor_port_name == null ? start : _symbol_actor_port_name;
+        Symbol e = r == null ? end : _symbol_r;  // FIXME, ignores channel selector
+        return register(s, e, new InputPattern(actor_port_name, tokens==null ? null : tokens.build(), r)); :}
   ;
 token_name_list =
 //TODO, the position of the names are not saved
-    IDENTIFIER.ID                           {: return new Symbol(ImmutableList.builder().add(new DeclVar(null, (String) ID.value, null))); :}
-  | token_name_list.l COMMA IDENTIFIER.ID   {: l.add(new DeclVar(null, (String) ID.value, null)); return _symbol_l; :}
+    IDENTIFIER.ID                           {: DeclVar decl = new DeclVar(null, (String) ID.value, null);
+                                               register(ID, ID, decl);
+                                               return new Symbol(ImmutableList.builder().add(decl)); :}
+  | token_name_list.l COMMA IDENTIFIER.ID   {: Decl decl = new DeclVar(null, (String) ID.value, null);
+                                               register(ID, ID, decl);
+                                               l.add(decl); return _symbol_l; :}
   ;
 channel_selector =
-    AT expression.e          {: return new Symbol(null); :} //TODO new SingleChannel(e); :}
-  | ATSTAR expression.e      {: return new Symbol(null); :} //TODO new AtStarChannel(e); :}
-  | ATSTAR? ANY              {: return new Symbol(null); :} //TODO new AnyChannel(); :}
-  | ATSTAR? ALL              {: return new Symbol(null); :} //TODO new AllChannels(); :}
+    AT.a expression.e        {: em.error("channel selector is not supported, at found at " + posToString(a), null);
+                                return _symbol_e; :} //TODO new SingleChannel(e); :}
+  | ATSTAR.a expression.e    {: em.error("channel selector is not supported, at* found at " + posToString(a), null);
+                                return _symbol_e; :} //TODO new AtStarChannel(e); :}
+  | ATSTAR? ANY.a            {: em.error("channel selector is not supported, any found at " + posToString(a), null);
+                                return a; :} //TODO new AnyChannel(); :}
+  | ATSTAR? ALL.a            {: em.error("channel selector is not supported, all found at " + posToString(a), null);
+                                return a; :} //TODO new AllChannels(); :}
   ;
 repeat =
     REPEAT expression.e {: return _symbol_e; :}
@@ -498,29 +591,47 @@ action_output_expression_list =
   ;
 action_output_expression =
 //TODO channels are ignored
-  port_name_colon.actor_port_name? LBRACK expression_list.values? RBRACK repeat.r? channel_selector.c? 
-      {: return new Symbol(new OutputExpression(actor_port_name, values == null ? null : values.build(), r)); :}
+  port_name_colon.actor_port_name? LBRACK.start expression_list.values? RBRACK.end repeat.r? channel_selector.c? 
+      {: OutputExpression out = new OutputExpression(actor_port_name, values == null ? null : values.build(), r);
+         if(actor_port_name == null){
+           if(r == null){
+             return register(start, end, out);
+           } else {
+             return register(start, r, out);
+           }
+         } else {
+           if(r == null){
+             return register(actor_port_name, end, out);
+           } else {
+             return register(actor_port_name, r, out);
+           }
+         }
+       :}
   ;
 port_name_colon =
-    IDENTIFIER.IDENTIFIER COLON {: return new Symbol(new Port((String)IDENTIFIER.value));:}
+    IDENTIFIER.id COLON {: return register(id, id, new Port((String)id.value));:}
   ;
 //=== Actor ===================================================================
 actor_decl =
   import_list.imports? 
-  ACTOR IDENTIFIER.name
+  ACTOR.start IDENTIFIER.name
   type_parameter_block.typePars?
   LPAREN actor_parameter_list.valuePars? RPAREN 
   port_decl_list_opt.in PORTCONN port_decl_list_opt.out 
 //TODO, time is ignored
   time.t?
-  COLON 
+  COLON
   actor_body.body*
+  end_actor.end
   /**
    * When the the content of an actor is parsed (actor_body_list), the Actor object is not jet created. (the tree is build bottom up)
    * To allow multiple elements in any order (actions, schedule...) the parser first collect these in a list, using actor_body_list.
    * When the Actor object is created this list is traversed and each element is added to the right attribute (Actor.VariableList, Actor.ActionList, ...)
    **/
   {:
+    if(t != null){ 
+      em.warning("time is not supported", t); 
+    }
     ImmutableList.Builder varDecls = ImmutableList.builder();
     ImmutableList.Builder initializers = ImmutableList.builder();
     ImmutableList.Builder actions = ImmutableList.builder();
@@ -563,13 +674,12 @@ actor_decl =
                          priorities.build(),
                          invariants.build()
                         );
-     
-    return new Symbol(a);
+    return register(start, end, a);
   :}
   ;
 
 time =
-    TIME type.t {: return _symbol_t; :}
+    TIME.start type.t {: return register(start, _symbol_t, t); :}
   ;
 actor_body =
     action_decl.a                               {: return new Symbol(new AbstractMap.SimpleEntry(ActorPartKind.ACTION, a)); :}
@@ -586,24 +696,31 @@ invariant =
   ;
 //--- Schedule ----------------------------------------------------------------
 schedule =
-    SCHEDULE FSM? IDENTIFIER.ID COLON fsm_state_transitions.trans* end_schedule 
+    SCHEDULE.start FSM? IDENTIFIER.ID COLON fsm_state_transitions.trans* end_schedule.end 
       {:  ImmutableList.Builder tl = trans.length>0 ? trans[0] : new ImmutableList.Builder();
           for(int i=1; i<trans.length; i++){
             tl.addAll(trans[i].build());
           }
-          return new Symbol(new ScheduleFSM(tl.build(), (String)ID.value)); :}
-  | SCHEDULE.SCHEDULE REGEXP regexpr.r end_schedule
-    {: parseProblems.add("Regular expression schedules are not supported, at " + Symbol.getLine(SCHEDULE.getStart()) + ", " + Symbol.getColumn(SCHEDULE.getStart())); return new Symbol(null); :}
+          return register(start, end, new ScheduleFSM(tl.build(), (String)ID.value)); :}
+  | SCHEDULE.start REGEXP regexpr.r end_schedule.end
+    {: IRNode pos = new ScheduleFSM(ImmutableList.<Transition>empty(), "$regexpr"); // dummy node needed for error reporting
+       Symbol result = register(start, end, pos);
+       em.error("Regular expression schedules is not supported", pos); 
+       return result; :}
   ;
 fsm_state_transitions =
-    IDENTIFIER.Src_state LPAREN action_tag_list.tags RPAREN EDGE IDENTIFIER.Dst_state fsm_state_target.more* SEMICOLON 
+    IDENTIFIER.Src_state LPAREN action_tag_list.tags RPAREN EDGE IDENTIFIER.Dst_state fsm_state_target.more* SEMICOLON.end
        {: ImmutableList.Builder result = ImmutableList.builder();
           String startState = (String)Src_state.value;
-          result.add(new Transition(startState,
+          Transition trans = new Transition(startState,
                                     (String)Dst_state.value,
-                                    tags.build())); 
+                                    tags.build());
+          register(Src_state, end, trans);
+          result.add(trans);
           for(Transition t : more){
-            result.add(new Transition(startState, t.getDestinationState(), t.getActionTags()));
+            trans = new Transition(startState, t.getDestinationState(), t.getActionTags());
+            register(Src_state, end, trans);
+            result.add(trans);
           }
           return new Symbol(result); :}
   ;
@@ -614,31 +731,43 @@ fsm_state_target =
                                            tags.build())); :}
   ;
 action_tag_list =
-    qual_id.id                         {: return new Symbol(ImmutableList.builder().add(new QID((String[])id.toArray(new String[id.size()])))); :}
-  | action_tag_list.l COMMA qual_id.id {: l.add(new QID((String[])id.toArray(new String[id.size()]))); return _symbol_l; :}
+    qual_id.id                         {: QID qid = new QID((String[])id.toArray(new String[id.size()]));
+                                          register(_symbol_id, _symbol_id, qid);
+                                          return new Symbol(ImmutableList.builder().add(qid)); :}
+  | action_tag_list.l COMMA qual_id.id {: QID qid = new QID((String[])id.toArray(new String[id.size()]));
+                                          register(_symbol_id, _symbol_id, qid);
+                                          l.add(qid);
+                                          return _symbol_l; :}
   ;
 //TODO, reg expr schedules
 regexpr =
-    regexpr_kleene.r                 {: return new Symbol(null); :}
-  | regexpr.r1 regexpr_kleene.r2     {: return new Symbol(null); :}
-  | regexpr.r1 BAR regexpr_kleene.r2 {: return new Symbol(null); :}
+    regexpr_kleene.r                 {: return r; :}   // error is reported in schedule. error("regexp schedules is not supported", r, r);
+  | regexpr.r1 regexpr_kleene.r2     {: return r1; :}  // error("regexp schedules is not supported", r1, r2); 
+  | regexpr.r1 BAR regexpr_kleene.r2 {: return r1; :}  // error("regexp schedules is not supported", r1, r2); 
   ;
 regexpr_kleene =
-    regexpr_simple.r        {: return new Symbol(null); :}
-  | regexpr_simple.r MULT   {: return new Symbol(null); :}
+    regexpr_simple.r        {: return r; :}
+  | regexpr_simple.r MULT   {: return r; :}
   ;
 regexpr_simple =
-    qual_id.n               {: return new Symbol(null); :}
-  | LPAREN regexpr.r RPAREN {: return new Symbol(null); :}
-  | LBRACK regexpr.r RBRACK {: return new Symbol(null); :}
+    qual_id.n               {: return _symbol_n; :}
+  | LPAREN regexpr.r RPAREN {: return r; :}
+  | LBRACK regexpr.r RBRACK {: return r; :}
   ;
 //--- priority ----------------------------------------------------------------
 pri_inequality_list =
     pri_inequality.p SEMICOLON         {: return new Symbol(p.build()); :}
   ;
 pri_inequality =
-    qual_id.high GT qual_id.low        {: return new Symbol(ImmutableList.builder().add(new QID((String[])high.toArray(new String[high.size()]))).add(new QID((String[])low.toArray(new String[low.size()])))); :}
-  | pri_inequality.l GT qual_id.n      {: l.add(new QID((String[])n.toArray(new String[n.size()]))); return _symbol_l; :}
+    qual_id.high GT qual_id.low        {: QID lowQID = new QID((String[])low.toArray(new String[low.size()]));
+                                          register(_symbol_low, _symbol_low, lowQID);
+                                          QID highQID = new QID((String[])high.toArray(new String[high.size()]));
+                                          register(_symbol_high, _symbol_high, highQID);
+                                          return new Symbol(ImmutableList.builder().add(highQID).add(lowQID)); :}
+  | pri_inequality.l GT qual_id.n      {: QID qid = new QID((String[])n.toArray(new String[n.size()]));
+                                          register(_symbol_n, _symbol_n, qid);
+                                          l.add(qid);
+                                          return _symbol_l; :}
   ;
 //--- end ---------------------------------------------------------------------
 end_action =

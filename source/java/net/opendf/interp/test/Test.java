@@ -30,11 +30,7 @@ public class Test {
 		// File("../dataflow/examples/MPEG4_SP_Decoder/ACPred.cal");
 
 		CalParser parser = new CalParser();
-		Actor actor = parser.parse(calFile);
-		if(!parser.parseProblems.isEmpty()){
-			parser.printParseProblems();
-			return;
-		}
+		Actor actor = parser.parse(calFile, null, null);
 
 //		List<Decl> actorArgs = new ArrayList<Decl>();
 		// actorArgs.add(varDecl("MAXW_IN_MB", lit(121)));
@@ -42,7 +38,7 @@ public class Test {
 		// actorArgs.add(varDecl("SAMPLE_SZ", lit(13)));
 //		Scope argScope = new Scope(ScopeKind.Persistent, actorArgs);
 
-		ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor);
+		ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, null);
 
 //		XMLWriter doc = new XMLWriter(actorMachine);		doc.print();
 

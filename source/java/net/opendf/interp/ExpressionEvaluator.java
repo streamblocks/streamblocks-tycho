@@ -54,13 +54,15 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	@Override
 	public RefView visitExprApplication(ExprApplication expr, Environment env) {
         RefView r = evaluate(expr.getFunction(), env);
+		Function f = converter.getFunction(r);
+		
         ImmutableList<Expression> argExprs = expr.getArgs();
 		for (Expression arg : argExprs) {
 			stack.push(evaluate(arg, env));
 		}
 
-		Function f = converter.getFunction(r);
 		return f.apply(interpreter);
+		// Function.apply() is responsible for removing the arguments from the stack.
 	}
 
 	@Override

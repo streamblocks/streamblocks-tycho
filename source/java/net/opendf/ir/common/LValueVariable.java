@@ -2,6 +2,8 @@ package net.opendf.ir.common;
 
 import java.util.Objects;
 
+import net.opendf.ir.IRNode;
+
 /**
  * An LValue that is a variable.
  */
@@ -18,7 +20,7 @@ public class LValueVariable extends LValue {
 		this(null, variable);
 	}
 
-	private LValueVariable(LValueVariable original, Variable variable) {
+	public LValueVariable(IRNode original, Variable variable) {
 		super(original);
 		this.variable = variable;
 	}

@@ -26,4 +26,12 @@ public class VariableLocation extends Variable {
 	public int getOffset(){
 		return offset;
 	}
+
+	public String toString() {
+		if (isScopeVariable()) {
+			return "ScopeVariable(" + getName() + ", " + getScopeId() + ", " + offset + ")";
+		} else {
+			return "Variable(" + getName() + ", " + offset + ")";
+		}
+	}
 }

@@ -80,6 +80,11 @@ public class BasicList implements List {
 		}
 
 		@Override
+		public String getString() {
+			return list.get(index).getString();
+		}
+
+		@Override
 		public void assignTo(Ref r) {
 			list.get(index).assignTo(r);
 		}
@@ -93,7 +98,6 @@ public class BasicList implements List {
 		public void advance() {
 			index++;
 		}
-		
 	}
 	
 	public static class Builder implements net.opendf.interp.values.Builder {

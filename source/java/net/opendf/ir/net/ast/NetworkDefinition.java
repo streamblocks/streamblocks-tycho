@@ -28,9 +28,6 @@ import net.opendf.ir.common.DeclEntity;
  */
 
 public class NetworkDefinition extends DeclEntity implements PortContainer{
-	public static final int NetworkGlobalScopeId = 1;
-	public static final int NetworkParamScopeId = 1;
-
 	public NetworkDefinition(String name) {
 		super(null, name, null, null, null, null, null, null, null);
 	}

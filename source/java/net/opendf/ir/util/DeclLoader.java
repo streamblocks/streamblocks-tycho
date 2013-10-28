@@ -1,13 +1,18 @@
 package net.opendf.ir.util;
 
 import java.io.File;
+import java.util.HashMap;
 
+import net.opendf.errorhandling.ErrorModule;
 import net.opendf.interp.exception.CALCompiletimeException;
+import net.opendf.ir.IRNode;
+import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.Decl;
 import net.opendf.ir.common.Namespace;
 import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.net.ast.NetworkDefinition;
+import net.opendf.parser.SourceCodeOracle;
 import net.opendf.parser.lth.CalParser;
 import net.opendf.parser.lth.NlParser;
 
@@ -22,9 +27,11 @@ import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
  * @author pera
  *
  */
-public class DeclLoader {
+public class DeclLoader implements SourceCodeOracle{
 	private Namespace ns;
 	private String filePath;
+	
+	private HashMap<Identifier, SourceCodePosition> srcPositions = new HashMap<Identifier, SourceCodePosition>();
 
 	public DeclLoader(String filePath){
 		this.filePath = filePath;
@@ -38,8 +45,9 @@ public class DeclLoader {
 	 * 
 	 * @param name
 	 * @return The {$link Decl} associated with name in the global namespace.
+	 * @throws CALCompiletimeException is a compilation error occurs
 	 */
-	public Decl getDecl(String name){
+	public Decl getDecl(String name) throws CALCompiletimeException {
 		for(NamespaceDecl nsDecl : ns.getDecls()){
 			for(Decl decl : nsDecl.getDecls()){
 				if(decl.getName().equals(name)){
@@ -50,32 +58,36 @@ public class DeclLoader {
 		return loadDecl(name);
 	}
 
-	private Decl loadDecl(String name) {
+	/**
+	 * Load a declaration from file.
+	 * @param name
+	 * @return
+	 * @throws CALCompiletimeException is a compilation error occurs
+	 */
+	private Decl loadDecl(String name) throws CALCompiletimeException {
 		Decl result = null;
 		File file = new File(filePath + File.separatorChar + name + ".cal");
+		ErrorModule em;
 		if(file.exists()){
 			CalParser parser = new CalParser();
-			Actor actor = parser.parse(file);
-			parser.printParseProblems();
-			if(!parser.parseProblems.isEmpty()){
-				//TODO handle errors
-			}
-			//TODO semantic checks and build the actor machine
-			//ActorMachine am = BasicActorMachineSimulator.prepareActor(actor);
+			Actor actor = parser.parse(file, srcPositions, this);
+			em = parser.getErrorModule();
+			em.printWarnings();
+			em.abortIfError();
+			//TODO semantic checks
 			result = actor;
 		} else {
 			file = new File(filePath + File.separatorChar + name + ".nl");
 			if(file.exists()){
 				NlParser parser = new NlParser();
-				NetworkDefinition net = parser.parse(file);
-				parser.printParseProblems();
-				if(!parser.parseProblems.isEmpty()){
-					//TODO handle errors
-				}
+				NetworkDefinition net = parser.parse(file, srcPositions, this);
+				em = parser.getErrorModule();
+				em.printWarnings();
+				em.abortIfError();
 				//TODO semantic checks
 				result = net;
 			} else {
-				throw new CALCompiletimeException("Can not find definition for entity " + name);
+				throw new CALCompiletimeException("Can not find definition for entity " + name, null);
 				//TODO name not found
 			}
 		}
@@ -84,5 +96,14 @@ public class DeclLoader {
 			ns.getDecl(0).addDecl(result);
 		}
 		return result;
+	}
+	
+	public SourceCodePosition getSrcLocations(Identifier id){
+		return srcPositions.get(id);
+	}
+
+	@Override
+	public void register(IRNode node, SourceCodePosition pos) {
+		srcPositions.put(node.getIdentifier(), pos);
 	}
 }

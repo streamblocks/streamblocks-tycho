@@ -19,43 +19,81 @@ import net.opendf.ir.common.StmtBlock;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.util.ImmutableList;
-import net.opendf.transform.util.AbstractBasicTransformer;
+import net.opendf.parser.SourceCodeOracle;
 import net.opendf.transform.util.ActorMachineTransformerWrapper;
 import net.opendf.transform.util.ActorTransformerWrapper;
+import net.opendf.transform.util.ErrorAwareBasicTransformer;
 import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
 
 /**
- * This class computes the set of free variables for any expression.
+ * This Transformation computes the set of free variables for any expression.
  * The set of free variables are cached in the ExprLambda and ExprProc classes.
  * 
  * It also orders variable declarations to a valid initialization order.
- * Cyclic dependencies in variable initialization are detected.
- * This is done by transformVarDecls(ImmutableList<DeclVar> varDecls, Set<String> c).
+ * 
+ * Semantic Checks:
+ * - Cyclic dependencies in variable initialization is detected.
+ * 
+ * Prerequisites:
+ * - non
+ * 
+ * @author pera
  */
 
-public class VariableInitOrderTransformer extends AbstractBasicTransformer<Set<String>> {
+public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set<String>> {
 
 	
-	public static Actor transformActor(Actor actor){
-		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
+	public VariableInitOrderTransformer(SourceCodeOracle sourceOracle) {
+		super(sourceOracle);
+	}
+
+	//--- wrappers ------------------------------------------------------------
+	/**
+	 * Order all variable initializations to a valid initialization order, i.e. a variable is only depending on variables earlier in the list.
+	 * Prints all warnings to System.err and throws an exception if any error occurs.
+	 * @throws CALCompiletimeException if an error occurs
+	 */
+	public static Actor transformActor(Actor actor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer(sourceOracle);
 		ActorTransformerWrapper<Set<String>> wrapper = new ActorTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
-		return wrapper.transformActor(actor, c);
+		actor = wrapper.transformActor(actor, c);
+		freeVarTransformer.printWarnings();
+		freeVarTransformer.abortIfError();
+		return actor;
 	}
 
-	public static ActorMachine transformActorMachine(ActorMachine actorMachine){
-		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
+	/**
+	 * Order all variable initializations to a valid initialization order, i.e. a variable is only depending on variables earlier in the list.
+	 * Prints all warnings to System.err and throws an exception if any error occurs.
+	 * @throws CALCompiletimeException if an error occurs
+	 */
+	public static ActorMachine transformActorMachine(ActorMachine actorMachine, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer(sourceOracle);
 		ActorMachineTransformerWrapper<Set<String>> wrapper = new ActorMachineTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
-		return wrapper.transformActorMachine(actorMachine, c);
+		actorMachine = wrapper.transformActorMachine(actorMachine, c);
+		freeVarTransformer.printWarnings();
+		freeVarTransformer.abortIfError();
+		return actorMachine;
 	}
 
-	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net){
-		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
+	/**
+	 * Order all variable initializations to a valid initialization order, i.e. a variable is only depending on variables earlier in the list.
+	 * Prints all warnings to System.err and throws an exception if any error occurs.
+	 * @throws CALCompiletimeException if an error occurs
+	 */
+	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer(sourceOracle);
 		NetworkDefinitionTransformerWrapper<Set<String>> wrapper = new NetworkDefinitionTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
-		return wrapper.transformNetworkDefinition(net, c);
+		net = wrapper.transformNetworkDefinition(net, c);
+		freeVarTransformer.printWarnings();
+		freeVarTransformer.abortIfError();
+		return net;
 	}
+
+	//--- transformations ---------------------------------------------------------------
 
 	/**************************************************************************************************************
 	 * computing the free variables
@@ -200,7 +238,8 @@ public class VariableInitOrderTransformer extends AbstractBasicTransformer<Set<S
 					sep = ", ";
 				}
 			}
-			throw new CALCompiletimeException("Cyclic dependency when initializing variables. Dependent variables: " + sb);
+			error("Cyclic dependency when initializing variables. Dependent variables: " + sb, decls[candidateIndex]);
+			return;
 		case Scheduled:
 			return;
 		case nop :

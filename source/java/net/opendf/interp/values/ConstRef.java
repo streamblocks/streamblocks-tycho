@@ -88,5 +88,10 @@ public abstract class ConstRef implements RefView {
 	}
 
 	@Override
+	public String getString() {
+		throw new IllegalStateException(wrongType);
+	}
+
+	@Override
 	public abstract void assignTo(Ref r);
 }

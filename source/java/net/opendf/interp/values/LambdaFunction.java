@@ -21,7 +21,9 @@ public class LambdaFunction implements Function {
 
 	@Override
 	public RefView apply(Interpreter interpreter) {
-		return interpreter.evaluate(lambda.getBody(), closure);
+		RefView result = interpreter.evaluate(lambda.getBody(), closure);
+		interpreter.getStack().remove(lambda.getValueParameters().size());
+		return result;
 	}
 
 }

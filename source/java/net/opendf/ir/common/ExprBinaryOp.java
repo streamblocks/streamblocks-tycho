@@ -7,6 +7,7 @@
 
 package net.opendf.ir.common;
 
+import net.opendf.ir.IRNode;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
@@ -20,7 +21,7 @@ public class ExprBinaryOp extends Expression {
 		this(null, operations, operands);
 	}
 
-	private ExprBinaryOp(ExprBinaryOp original, ImmutableList<String> operations, ImmutableList<Expression> operands) {
+	public ExprBinaryOp(IRNode original, ImmutableList<String> operations, ImmutableList<Expression> operands) {
 		super(original);
 		assert (operations.size() == operands.size() - 1);
 		this.operations = operations;

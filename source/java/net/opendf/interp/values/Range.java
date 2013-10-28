@@ -50,6 +50,11 @@ public class Range implements Collection {
 		}
 
 		@Override
+		public String getString() {
+			throw new IllegalStateException("Wrong type");
+		}
+
+		@Override
 		public void assignTo(Ref r) {
 			if (finished()) {
 				throw new IllegalStateException("End of iterator");
@@ -71,7 +76,6 @@ public class Range implements Collection {
 		public String toString(){
 			return Long.toString(next);
 		}
-		
 	}
 
 }

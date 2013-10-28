@@ -3,9 +3,7 @@ package net.opendf.interp.values.predef;
 import net.opendf.interp.Interpreter;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
-import net.opendf.interp.values.BasicRef;
 import net.opendf.interp.values.Function;
-import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.Value;
 
@@ -17,28 +15,33 @@ public class IntFunctions {
 		}
 	}
 
-	private static abstract class ArithOp implements Function {
-		public static Ref[] memory = new Ref[14];
-		static{
-			for(int i=0; i<memory.length; i++){
-				memory[i] = new BasicRef();
-			}
-			memory[0].setValue(new Add());	
-			memory[1].setValue(new Sub());	
-			memory[2].setValue(new Mul());	
-			memory[3].setValue(new BitAnd());	
-			memory[4].setValue(new BitOr());	
-			memory[5].setValue(new RightShiftSignExt());	
-			memory[6].setValue(new LeftShift());	
-			memory[7].setValue(new Truncate());	
-			memory[8].setValue(new LT());	
-			memory[9].setValue(new LE());	
-			memory[10].setValue(new EQ());	
-			memory[11].setValue(new NE());	
-			memory[12].setValue(new GE());	
-			memory[13].setValue(new GT());	
+	private static abstract class UnaryArithOp implements Function {
+		private TypeConverter conv = TypeConverter.getInstance();
+
+		@Override
+		public final Value copy() {
+			return this;
+		}
+		
+		@Override
+		public final RefView apply(Interpreter interpreter) {
+			Stack stack = interpreter.getStack();
+			int a = conv.getInt(stack.pop());
+			conv.setInt(stack.push(), op(a));
+			return stack.pop();
+		}
+		
+		protected abstract int op(int a);
+	}
+
+	public static class Negate extends UnaryArithOp {
+		protected final int op(int a) {
+			return -a;
 		}
 
+	}
+
+	private static abstract class ArithOp implements Function {
 		private TypeConverter conv = TypeConverter.getInstance();
 
 		@Override
@@ -73,6 +76,18 @@ public class IntFunctions {
 	public static class Mul extends ArithOp {
 		protected final int op(int a, int b) {
 			return a * b;
+		}
+	}
+
+	public static class Div extends ArithOp {
+		protected final int op(int a, int b) {
+			return a / b;
+		}
+	}
+
+	public static class Mod extends ArithOp {
+		protected final int op(int a, int b) {
+			return a % b;
 		}
 	}
 

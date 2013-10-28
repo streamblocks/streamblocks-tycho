@@ -1,6 +1,7 @@
 package net.opendf.ir.common;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.IRNode;
 
 /**
  * LValue represent things that can be on the left hand side of an assignment.
@@ -12,7 +13,7 @@ public abstract class LValue extends AbstractIRNode {
 		return accept(visitor, null);
 	}
 	
-	public LValue(LValue original) {
+	public LValue(IRNode original) {
 		super(original);
 	}
 }

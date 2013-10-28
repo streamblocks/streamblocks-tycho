@@ -41,6 +41,8 @@ package net.opendf.ir.common;
 
 import java.util.Objects;
 
+import net.opendf.ir.IRNode;
+
 public class ExprVariable extends Expression {
 
 	private final Variable var;
@@ -49,7 +51,7 @@ public class ExprVariable extends Expression {
 		this(null, var);
 	}
 
-	protected ExprVariable(ExprVariable original, Variable var) {
+	public ExprVariable(IRNode original, Variable var) {
 		super(original);
 		this.var = var;
 	}

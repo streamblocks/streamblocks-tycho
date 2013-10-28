@@ -8,6 +8,7 @@ import java.util.Map;
 
 import net.opendf.analyze.memory.VariableInitOrderTransformer;
 import net.opendf.analyze.util.AbstractBasicTraverser;
+import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.interp.preprocess.EvaluateLiteralsTransformer;
 import net.opendf.interp.preprocess.VariableOffsetTransformer;
 import net.opendf.interp.values.Ref;
@@ -26,9 +27,10 @@ import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.ExprVariable;
 import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
+import net.opendf.parser.SourceCodeOracle;
 import net.opendf.transform.caltoam.ActorToActorMachine;
 import net.opendf.transform.caltoam.ActorStates.State;
 import net.opendf.transform.filter.InstructionFilterFactory;
@@ -56,11 +58,13 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 	 * 
 	 * @param actor
 	 * @return an ActorMachine ready to be simulated by BasicActorMachineSimulator.
+	 * @throws CALCompiletimeException if an error occurred
 	 */
-	public static ActorMachine prepareActor(Actor actor){
-		actor = VariableInitOrderTransformer.transformActor(actor);
+	public static ActorMachine prepareActor(Actor actor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+		// Order variable declarations so they can be initialized in declaration order
+		actor = VariableInitOrderTransformer.transformActor(actor, sourceOracle);
 		// replace BinOp and UnaryOp in all expressions with function calls
-		actor = ActorOpTransformer.transformActor(actor);
+		actor = ActorOpTransformer.transformActor(actor, sourceOracle);
 
 		// translate the actor to an actor machine
 		List<InstructionFilterFactory<State>> instructionFilters = new ArrayList<InstructionFilterFactory<State>>();
@@ -71,17 +75,16 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		ActorToActorMachine trans = new ActorToActorMachine(instructionFilters);
 		ActorMachine actorMachine = trans.translate(actor);
 		
-		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine);
+		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine, sourceOracle);
 
 		return actorMachine;
 	}
 	
-	public static ActorMachine prepareActorMachine(ActorMachine actorMachine){
-		// replace ExprLiteral with ExprValue. This removes the glocal variables for predefined functions, i.e. $BinaryOperation.+ 
-		actorMachine = EvaluateLiteralsTransformer.transformActorMachine(actorMachine);
+	public static ActorMachine prepareActorMachine(ActorMachine actorMachine, SourceCodeOracle sourceOracle){
+		// replace ExprLiteral with ExprValue. This removes the global variables for predefined functions, i.e. $BinaryOperation.+ 
+		actorMachine = EvaluateLiteralsTransformer.transformActorMachine(actorMachine, sourceOracle);
 		// memory layout (stack offset)
-		VariableOffsetTransformer t = new VariableOffsetTransformer();
-		actorMachine = t.transformActorMachine(actorMachine);
+		actorMachine = VariableOffsetTransformer.transformActorMachine(actorMachine, sourceOracle);
 
 		return actorMachine;
 	}
@@ -136,12 +139,10 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 
 	private class FindRequiredScopes extends AbstractBasicTraverser<BitSet>{
 		@Override
-		public Void visitExprVariable(ExprVariable e, BitSet p) {
-			VariableLocation var = (VariableLocation)e.getVariable();
+		public void traverseVariable(Variable var, BitSet p) {
 			if(var.isScopeVariable()){
-				p.set(e.getVariable().getScopeId());
+				p.set(var.getScopeId());
 			}
-			return null;		
 		}
 	}
 
@@ -157,7 +158,10 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 				//FIXME, find a correct evaluation order, variables can be dependent on each other.
 				for(int declOffset=0; declOffset<declList.size() ; declOffset++){
 					Ref memCell = environment.getMemory().declare(scopeId, declOffset);
-					interpreter.evaluate(declList.get(declOffset).getInitialValue(), environment).assignTo(memCell);
+					Expression initExpr = declList.get(declOffset).getInitialValue();
+					if(initExpr != null){
+						interpreter.evaluate(initExpr, environment).assignTo(memCell);
+					}
 				}
 				liveScopes.set(scopeId);
 			}

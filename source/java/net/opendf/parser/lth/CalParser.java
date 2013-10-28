@@ -11,6 +11,8 @@
  
 package net.opendf.parser.lth;
 
+import net.opendf.errorhandling.BasicErrorModule;
+import net.opendf.errorhandling.ErrorModule;
 import net.opendf.ir.cal.Action;
 import java.util.ArrayList;
 import java.util.Map;
@@ -18,13 +20,17 @@ import net.opendf.ir.cal.*;
 import java.util.AbstractMap;
 import net.opendf.ir.*;
 import java.io.PrintStream;
+import net.opendf.parser.SourceCodeOracle.SourceCodePosition;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.ImmutableEntry;
 import java.util.TreeSet;
 import beaver.*;
+import net.opendf.ir.IRNode;
+import net.opendf.parser.SourceCodeOracle;
 import java.io.File;
 import java.util.Arrays;
 import net.opendf.ir.common.*;
+import net.opendf.ir.IRNode.Identifier;
 import java.util.Collection;
 
 /**
@@ -70,53 +76,52 @@ public class CalParser extends Parser {
 		static public final short REGEXP = 33;
 		static public final short DOT = 34;
 		static public final short MUTABLE = 35;
-		static public final short EQCOLON = 36;
+		static public final short COLONEQ = 36;
 		static public final short FUNCTION = 37;
 		static public final short PROCEDURE = 38;
 		static public final short MULTI = 39;
 		static public final short LET = 40;
 		static public final short CONST = 41;
 		static public final short LAMBDA = 42;
-		static public final short COLONEQ = 43;
-		static public final short WHILE = 44;
-		static public final short GUARD = 45;
-		static public final short DELAY = 46;
-		static public final short AT = 47;
-		static public final short ATSTAR = 48;
-		static public final short ANY = 49;
-		static public final short REPEAT = 50;
-		static public final short TIME = 51;
-		static public final short INVARIANT = 52;
-		static public final short FSM = 53;
-		static public final short MULT = 54;
-		static public final short GT = 55;
-		static public final short ENDACTION = 56;
-		static public final short ENDACTOR = 57;
-		static public final short ENDINVARIANT = 58;
-		static public final short ENDSCHEDULE = 59;
-		static public final short LT = 60;
-		static public final short ARROW = 61;
-		static public final short INTEGER_LITERAL = 62;
-		static public final short LONG_LITERAL = 63;
-		static public final short FLOATING_POINT_LITERAL = 64;
-		static public final short DOUBLE_LITERAL = 65;
-		static public final short TRUE_LITERAL = 66;
-		static public final short FALSE_LITERAL = 67;
-		static public final short CHARACTER_LITERAL = 68;
-		static public final short STRING_LITERAL = 69;
-		static public final short NULL_LITERAL = 70;
-		static public final short OLD = 71;
-		static public final short PROC = 72;
-		static public final short OPERATOR = 73;
-		static public final short FOREACH = 74;
-		static public final short FOR = 75;
-		static public final short ENDCHOOSE = 76;
-		static public final short ENDFOREACH = 77;
-		static public final short ENDIF = 78;
-		static public final short ENDLAMBDA = 79;
-		static public final short ENDLET = 80;
-		static public final short ENDPROC = 81;
-		static public final short ENDWHILE = 82;
+		static public final short WHILE = 43;
+		static public final short GUARD = 44;
+		static public final short DELAY = 45;
+		static public final short AT = 46;
+		static public final short ATSTAR = 47;
+		static public final short ANY = 48;
+		static public final short REPEAT = 49;
+		static public final short TIME = 50;
+		static public final short INVARIANT = 51;
+		static public final short FSM = 52;
+		static public final short MULT = 53;
+		static public final short GT = 54;
+		static public final short ENDACTION = 55;
+		static public final short ENDACTOR = 56;
+		static public final short ENDINVARIANT = 57;
+		static public final short ENDSCHEDULE = 58;
+		static public final short LT = 59;
+		static public final short ARROW = 60;
+		static public final short INTEGER_LITERAL = 61;
+		static public final short LONG_LITERAL = 62;
+		static public final short FLOATING_POINT_LITERAL = 63;
+		static public final short DOUBLE_LITERAL = 64;
+		static public final short TRUE_LITERAL = 65;
+		static public final short FALSE_LITERAL = 66;
+		static public final short CHARACTER_LITERAL = 67;
+		static public final short STRING_LITERAL = 68;
+		static public final short NULL_LITERAL = 69;
+		static public final short OLD = 70;
+		static public final short PROC = 71;
+		static public final short OPERATOR = 72;
+		static public final short FOREACH = 73;
+		static public final short FOR = 74;
+		static public final short ENDCHOOSE = 75;
+		static public final short ENDFOREACH = 76;
+		static public final short ENDIF = 77;
+		static public final short ENDLAMBDA = 78;
+		static public final short ENDLET = 79;
+		static public final short ENDPROC = 80;
+		static public final short ENDWHILE = 81;
 
 		static public final String[] NAMES = {
 			"EOF",
@@ -155,14 +160,13 @@ public class CalParser extends Parser {
 			"REGEXP",
 			"DOT",
 			"MUTABLE",
-			"EQCOLON",
+			"COLONEQ",
 			"FUNCTION",
 			"PROCEDURE",
 			"MULTI",
 			"LET",
 			"CONST",
 			"LAMBDA",
-			"COLONEQ",
 			"WHILE",
 			"GUARD",
 			"DELAY",
@@ -206,167 +210,177 @@ public class CalParser extends Parser {
 	}
 
 	static final ParsingTables PARSING_TABLES = new ParsingTables(
-		"U9pjN7TybCNJdtdkBiaHKcWc64IbML2m8Q221JL4Gz7O00czgFGclOC2Ag2224XlAaqiY4g" +
-		"L8aKHbHyA2eBO4HjMvFRzxZpxt3rtkSl5yiVxoOS7vvajixFVcPsTPv$SdKJfn#bksgZowI" +
-		"rAe9hyAEKgHGtfPJx27mGEKZzgHJvQHYjf6vUW7BwC5gZcr9qQqntKYAwZDsW3vL5Jkerkf" +
-		"xwqXqRH37gCIzDnMa9xE8qIqPRC#qJ$hNIBUeZ6yr6#Y6joVVg43j8X#fGEqn7wZ8xIvtGd" +
-		"pQ9iwahTD2P#dSxNPVwASgcQngGsyokyHcFYwsWPrrB3RKpSbYR7miHV6andqN5#cJny9by" +
-		"5PAsvFLMdqXeJdGjCkpKcIec7IUtWZkIbB$XZokLtn4z$qEMsd$WGBLDRgQB1b4$xO$gfge" +
-		"q9lZbE7QWT3wBwAE#asdGERTEOu9tnQgzWsXuF4qR#ZtjoRxKNVdfIC5r7bUXwMRiwyDCGc" +
-		"clMxciw5WFJS6vf$7GL7LT7k3bt4KoTk0pje$TaxVO2qrk2gNBSjRFn$C1V0zFv6XFjnlpV" +
-		"2QO36XD$e36fhZGCgnSTqyt1U2gbCQ4sNfsIsD6hvnS$TQUpUHyqNufLZ8VfVXxEWxa7zmM" +
-		"cFOBf1B$EzmccyS2aDMi$RU8rV5iiJFoImLG1QzUHw$98gi#3QJwTf02L44prk9wwJTt6Us" +
-		"bHN4mZ44#$0CqUO9ekQ$S2J#83WgaaC3t4UpKcIkFyc7xgIyfWGZnf#xWDjLKly07nqsB1T" +
-		"3OluWLKYjhmXBYOzl0gVX5xf3PYl8xikq#n5rS9fZ781LNvZQ2VteovxzOQJDE0QJsbyXRu" +
-		"UYRqw1rTN$QTrlCgTEWz7G$JDkoJthoURm6cQsJjReAkTC4K2CS4ZB7MReF1zAl6n2VuBHi" +
-		"FT0z233cOW8T$uz#BiEyKNmxR1cBjwilQ7UCFQ89WEWPC0wYNhDqZo9tVnC3Kp8bnwebuUe" +
-		"TlKYsfDZU4z$Vf$2QOoj0sTI$oGe2JucBQnLNOXtss9nZZP$BPo08wFoKXdafo6V5J1fTHp" +
-		"M9WQX74z27sdSxS2dxny$cwh8O9fZ6wpEMelceQT#sIUJf6NyqNujdIH31LvNfKHVoq3Nwg" +
-		"XbsaCLNX6v2hecDg6SIaOpmFMQagh#GPl1TvuJpk9Z7#8Dr45q13LVLsN4pz#NtkfnRp4c0" +
-		"w8ckNosFvfFZfB$XfD8yJJ7FKePYOEdD$WoaNQzUG7rRRaGscy61rH2s2Petf3#YOool5Y$" +
-		"4mBUT7L1E#cU0dgWjCzz0LuckDwNb4MXKyDxP1tuUYhJkVHm$HmpIEBe6EiVoShOEcEfXOY" +
-		"OuzL0kaVOtO5ao7eECehrPRO5SiJFO#MSyRoSUVOFoLcFz7$e5tydU2QPjgZ$dBKnPLY6lN" +
-		"ftoGlu2E6cQVt4CDi5Br1TFTT1SVvk$vCFR96MYh7yFN8tcxiIk3CkaYkbXrW6nxq0FKX#n" +
-		"yyY0DfS6Y8#xPWYRHH7gSdW7FfMc2QIRDeTc2QHuylP2MqWfWUgaGJ8#YnyOKhVTfmQH7Rw" +
-		"6jMAztuc9wctRGk$G1wUVu#uBf8up#IZ1zIp$Ip$GR$GbCf#XtvXYONc5F8PXUa$K$XnFnp" +
-		"4hdibmnxddd1iQgS1QVYtYgB9Z6Y4qw9Y$c6dm$JSBJBuSluKlXl#wIFzVnCBw2h#K6l5hi" +
-		"keopW$j4rfyhykr6HoVaJur9xxLx#Mvk4IycezgrLdIqGbG17NUsh9WwT3m#m0DqVkUkmNY" +
-		"4HUgmu1bAIMedZn8yOo0t7lliCUn6YoVpuzWBJ$0lecCAX$RPKsBJB7wQPucEPtYsOrDWFp" +
-		"moxn$Pj4bqpEU5l9YVXPPbXTgq518h#3Mr4dYs2fvTwar#L#DHQ$az$Xz$93RjXty#Zn4x7" +
-		"$EHGl1yBsV0RVojQeVzUfn$AXJFp$mdd#80CbQkHHgFnQGl7Sku43UauuRigxjwHrg7aNDf" +
-		"7HF1dRWH7QPFuWPSxoyAwVZxFkOKeoDq5MAJIwe07bTV24$avUY8OPFmVszJPZ6qwO9YQ5F" +
-		"rOcZJZSNGffnYQDEjnT2cEugXJHsAeKszYg5DVOgXJGEBeKsV5GERhequbrCniAb9CRF9ZS" +
-		"Q#faJObFElR78q5MvJjikcgV#vJVUwTFmzczRyHpRzL#iKUHKrzWfccEUf7kGxi1VtN#av#" +
-		"ekkBaoARQch2fSokfujajJo8acz64FgrJ2fBukawviYIVrK9Aa$YYB5Lf6a4c99yUNY#vqY" +
-		"LGbI5FnBPc5hjGForvY8g17ZSnWjsHJwtWOzINleVYBrY$g5pf9Huz6gFsFQRhIOlsI60eq" +
-		"turOs#kTpw2aNjUU9Gh0qS#c#Y#kQubCnHuHVDygu9aMIla6aet$gSZrre2vXqgr1GwX$OP" +
-		"hXxn2Ew9yEQWkT$M$xcwX7qD#vy7T3#RJoJNBobdsVWlomtlXx7Tfof2V7oTNSY3RBPo$XF" +
-		"Ss3U7H#i3DC3ZdPmhwxisEsjAqnFTaYcorzKyF6s6tPhh6vt5ZcpSOzN$hDEoWYrvdtFeFL" +
-		"#Gm0VLmDigDTA#xqwRyZLaF32w9bH1ZMN5gD##jcDhlDmPh3gPZHoQOvN3vyHk2i1WzNfSZ" +
-		"Bze#3s6shUppiqeZvIi6IBRQBBu9ZR3GvV6U1ETj1lpF6kPpLaZ51RsfDpWewJmNt6trESF" +
-		"PGcpDxjcYYYDMohOiSOsDtnZZOt2kS8v#$XDPoTMWaJu$mdj77wmkqkdgZNDdXd6UGHHwXD" +
-		"Af8PvCVZSbK4cIX9PrAKHALGSQnw0na8miHaeWyc8VTTYVTXUVjFTGCSTy2qTmIxUVJ1NGX" +
-		"jKNEse9QHwgB#tDqdkY$acfJ0bL6l5QbQhZNbtFgzSWB3R1$Ry9kjJrp2opGyctmJvTt05C" +
-		"bmPH03o1BQ4n315CvWwaiZOc9QOeBqtXw6PXcGFPYvET9j5GmFGbCbmkcv#DYOcIatlGqSe" +
-		"oVTWgc4jWjjfyiOF9YdzYO7e65iJ1P1bCMCBL2fki8kIpQ33rfwDEOye6fl63Q7HUJVYhLf" +
-		"4leKc1wK30DmPfv15CTOBBW7HjJAlJ7MxiPm9G5VwyKJFhvimdPKMCg3qmUmLGxBYORJnze" +
-		"y6CLxRMpaACrfcJ1PCUJZwPZzOeIJrduLncngUVNgyU2wI6ieeuk7rOn7gPkiAK7pQ6vm9G" +
-		"bcDA0RO1WgWnCMhF6f6CizjeDT67gIRsWDGzQ#ublxRNJjddnBnyjyJ0zYdYwNMnprkvnnD" +
-		"CWmUG1feUWHMCQZNYAxQTSW#afODBsTHHl3n8$tMOmhSFpR3ILHYaUfgTeCfsBkSe0Kpd1L" +
-		"05#AYUOCcNjF44$rOhhfzMoTbvWQaDhpOxEDvWyeaDJF4nfia#oO9SVqQqnPKANJp2bHM3A" +
-		"Z8jfWc2QXbErZKVhji8mpQHdYh3lSYLEDAOymRGHxPs2c4gZHsFIcVITk35U0PWin80NOwk" +
-		"WzJp9RtRErF5aINQ8XobJHZMMUB9ZF0djTOAOz7xMc3IFdySp1PC7TbeuMoLBsSQKAULyZF" +
-		"V6nTGJCpV2YEh0b22Oz0vf4yoPbR2BDAQos4LMN4mwPsR8$6rmBjV#RqDZJNxADBklGbnCi" +
-		"x4xBeLl$44$lGejIS7yjCBuwGdeYerfji7a1wPasewSr0ssze2yrgmnbO0EBn3gEUEltQFm" +
-		"JoAadNqtKdHeJ3gRb1NRCkIkewyJTSOPxtvQ0XrTWTJMqII8gRpeoC9xR9RnjSV4U0Qq#Q4" +
-		"pAoOcnzSLO8dUJxqnOXUz3MoPHaU5uFpnx9gAP$1Kw1WMt2TUQCapcEwWHRWl0gQ9QCkBwU" +
-		"jP1jCycayBQ27cpyCEouCcNTAOT7OgBJhoucBoq52W60hknEI5A2yslYvBgs1t6Z2b5Oefp" +
-		"s2AtginwT7vqEWfGjvzMbOv7$Ru4GKQazvV3mkcXn4HB#9vsXUO#g9SBYQcld4nzS8fEKzs" +
-		"K7nCNknUBLiEcCQPl9iNNBkXY7SFubt7v6A9INlC0D6jywAk3uSTJapccVtVq#Xu36Cq9lj" +
-		"yaablnOt9s7Rrn$XCGJiXfWvxvrmc#Rr248#znXfF0ZqhJsEDfmBazDxtmVgNi1T78IPwus" +
-		"rDwtWbU8OBvRJn8ArZijbdMiUxQ4ly5pPPcFDnYPxOQwNn94e#l19tFzw0xVDM0lnkswJNE" +
-		"j$uEA#GV9OS5uy7Nj5efj4rXUB9bvoN97Ziyr#ImgNn2Ey6GjmekNIU4Jv0cSkE6t3ZOvIW" +
-		"m$H9t8033#uX7V$Gnyfr5MQJIwe07bTV48#Ak1mTiMmIVjgcqpQTjkcqJQTjEctJQPjEstJ" +
-		"QfjCs5MgJe#EqJVz$R7AZCUMqS9kqfdzkawEfS9ie9sGJDVclRQBKa8w$PvF#E#1$OTD$jK" +
-		"u5vYbgx4NDC91lHQrnRqljg3rrA4oA#XH5gcYwJaiLLOhonVTj72d8Et$9B6ojB2rl8c9Od" +
-		"FadWixKdt#2wyzKpv5HbK7wCwPPHelvIwOhqgu0BOkf#xMOVuKi14jGTqVgPKhzOes8s0ST" +
-		"vJwzAD8qM6oDZczvE18j3TfAsmhJJ9OBUH4irFuM7CRVo7cLaH#qlxt1B6hVzTzrCsr$ozy" +
-		"0zISqSZUQqkWi#HGbh8TItFd1pZ2IyUoCOzzTsH7vGSjLDpqv8fiZVKt2njXjEQwnVcegy#" +
-		"O8LftnCenilZElZJyKkTBN5IEwkxpiHBN6qHNrxbAgvyQAML9mJpApsMq6gtpAakzaqw3FG" +
-		"ZFwCMEoUqQtVuA8NRQ6eT9s6SJsx45Vv8SXr2WAp8bMCoOugrajCyPuKx0uA#Wy5J9SQ3AS" +
-		"sLrjPdPfZLpX76DTn1WRkpCcQ8zxXJFiPs3GC$xGI7qwS7ilg2#hGAkhj#3bj0RvrKIMPxZ" +
-		"zHOyfQFW5F4b$pqktEOHwSz1yK1cG$kRPF8ohWN9TSFtjgHAW9YZl84gTR8z9omdNONqPNl" +
-		"UauxOwLASZfhssuHL1pKov9gYZUxmcuFqIx3Xmj0JLGRaHv5u6VuN8cnW#7triRAbcy8qYI" +
-		"cXe#huYyi46Rosxxgs4lab4wMKYvmpNcR0gTf$t6fVSdvXlB55Y1V2PuEt1rzjzYMZdemQ7" +
-		"5$$TQd3#WDjlw7y7ifjWrn7qPOCk2fyd4NBMOZFcE$JVQ9VJ6w2SX#M4NwpfTfjL2srt67p" +
-		"mLL9puulNKCQQfgCDcOsifk3v1MsoHe0MGdOpP6#7ZWVDl8jGxW#C6q3J8lmmaCXVagZaV5" +
-		"Dl1XfaoYFC#CKeZmRrHVaFqAnm7Tp3fM#KvbZx0Cf3ZD#MG0PrUXnjm#msF#8pxIUqmxQK5" +
-		"DJxeVw7wPk6SjlmEVoVegsBiNC5z2mpyw5ilGc#qVHXFRml65mNexxRO2Y5TlqjmItWIrq#" +
-		"mvwozeJg9IpuhdcaRsCHhY#D7iI6DIEyhyGjm0oxlElGrnXukeNtMw#Y3sjbmLwUOlGrHFs" +
-		"sS3alC5k8BskB6VS#rl4YyAqH#h3Nh4EOjmlcXLq#o7W$0#$ZqlMduISXYxuIBq7sByXCHH" +
-		"lMrdSmNAS7Q#Cz1GuxhCyDHgoRLvb#FtJy3px37az6JaXl0nrdWYhO$RvpGESQMUGdt$bcR" +
-		"Iv3tOgOAmjKnvJBG$O2Lzybg5V37DS1xtscxHgR9p#CUJk1FuU#0T7NoLSRyZT01jZJiUUy" +
-		"iCU7#F1kSCdS43w6Bx9vIUmv7$OUjmB7EfQy5phCtl9XBtfkD6Nu804OVQr1#ljvBuPqbHo" +
-		"ACIF1ju9FnfXRm#SgYHoNZjpZmJo#pY0q#xeQEpiO$Ts0GQzh3r0BD9mq$RrHVoJ2tWbeVm" +
-		"po6r0UZBLR0$weiUjhb9y6JGVDXLobYB4c5$YGDtpBqByK$5dGBfIH0tpRpBppZ1psdEzTr" +
-		"3K$0DfZsWyNN0Vh3DYvobM$oiYkSBLf$rKnPUGTpqykR4UHBn0BLeE2kad7oESksIymzWFm" +
-		"Rq0VOSm2WtibwZ#OCcBNim$r4w5ndjz1lngTBlqfoAdfSo3xA#ZFK7i2ujfxBTgmfnBAOQm" +
-		"2pp0O3eNal9ckEHQ4O$VeFMtoPSA5eAgcZ3sSK3rSrdiG#LN$rg9gf0ySGlzOm$VROxYnuJ" +
-		"tHPjOdzKmpzyknz1WTny1sHxR3d$jTPUMofLCqFQ6zxON$SSh77W1r1SqEbqkvr#2xp8n3d" +
-		"aeU6UfFNHI18mCoNnLc0yOVYztd#TQbgusED$3dmN#sdmzUlvbtRKYEMeVAJfxm80QyoP3B" +
-		"DlBlXS#J#erhZ2lUlAcclwyBHyIUf8L65hd8ep4Xpj9C3lBqTSkQyTSPUOq9UyvpIjUnbf#" +
-		"OkP2Bg7l1SLxzd6hayesJvmyQ75qScw6h8ze$31#V4aLdYcljqiQOjYckESVfynZQS4xmrW" +
-		"FXUUYznUxpuRdgRH6kJ#T1huaHx#qHVegqfxghtDd8cBtWlI#A$Tr3PTzYvonK5DBdFsFRw" +
-		"mv#bowSUMcDwTTdb7CZnhOnVOTTvHoKsnMS9#K4sdkPSJYVfYQ2zmYNiSpvDU4Sz2t6MfcS" +
-		"JTz7mJtBo8v7UIqAfUmwrurkPogUxzu9TZbjPNXVmWdxl9AO3xxLw9yTwlSEBgWlxTtey$2" +
-		"1wEtEcIxnBPIR6BtlsppfCllCauHdgRKp#dZlTflx4r36SpVLF1TJ0owPeH5ZZXbCempcRu" +
-		"mE$ImkwyAS42fJ2uCNpqJQ5shtxyUOwZWttGXUeo2#4ilHNZE6Jovr#U60uJXRStOq#P2iV" +
-		"dOppYI#KeOg6xkEkdJtrsUtY74PhlbEHc2fvPAh7ofxcaQPVrGKMyv2NBfoBxyVHUO5q5vJ" +
-		"rcVMioBwtzRdtC9iTs6OwC8OhNzAz76UcOPF3xKbPq9#WRlVXUbeXDwHHgwXgssNI$vuXFo" +
-		"E6FXtXzSj3mKl5L1FgYSeub9TvRv1hLFhrKRrXa9cKg#fDUfLQNz5uMrSuIIedb8FuJvMMg" +
-		"UfrUebzI9AduD#Lj$hztYir7TggfeIEAY#27mIE22IvLK5uTUfwt5le39LXZf3bLDbLHc57" +
-		"A6oL6LLIPsZBbVObUfIDIOCsoKAvt5LKyerxBO0tiG3E7q5JWH#27ml$VBRENMHmbvHs3Fg" +
-		"0gcVht16KZTB#IQZRwGQgeOed7NL813UQrMru5ot1Bu8V6xAyXiXLHLKHKfDL2xkZG970eT" +
-		"XtQs1Zu4uHNfA1iSd2xg3ffOgzxFLMUfAATMI#nKgNtWBkTyfzpk26kvHTmjlfLhZdgUkLV" +
-		"LLFNMDkbfTfUggEggskWlj9VGSoX$uAl2byOYk9mK#3HmArXBbdX0u5lZMjFWCzmQ#2Nnjv" +
-		"iDxhD8Z$WeWEmH#DAsCCfe39mEd0Zy5VZBZ44TgX1gbiF$LWw1#8jjRxhqKJlogZyn#FF2T" +
-		"QYojQQeqxgLKUj0#lBSgd8$L0AcT5pWQ#4nb1turLk3DCl0RwES0pYxgN3LQLLJ7rGyeuso" +
-		"kW5bzfNvKmADs6tq7rSTgbqASgNtg0uLJkdfVlQS#0TyJd1Fl7Eepb$n#ANseFb97moBtc9" +
-		"71kunwNarI4zLIjPp2BhKGjCHLNm2Qf#QhPzKAgJ#dvk0#MyrIpwYPqZ93xjFLN3DYbNfSJ" +
-		"LOdn5$Vgasc5U$YwdxL4tSyALHtK3VrWFGygXvHunNUqnJUNr4Ufy9#hQpQgCwgey9xhRfF" +
-		"jSNzfFfJ$I4zlylzDxd$gl3spbL9hrPlOdeNgMqDkFwUwmHmJJFHDfDyz0nvIV$$juQXRJZ" +
-		"fDCBqY9158r0VWV8yyjDyIg9PQEll8drU70ckVRG4Sala5pa4Oj8UMW6kyyTOSEGI4CltuV" +
-		"MtwhT3TWx6QjBUceisfpuRz1ZgZq56lnUiH7a0nlL0EzuvGKnuhmSnuKmEOiBxA8ZfDI6Bi" +
-		"AuWffSeXNQYFX5bcqBbruLqtHDiMoZV1DP$ZsHQAsIH$itUQfGN0CC2#6iToklGhd#djnxb" +
-		"oVADtWHw0kKdC7uW#43q3vHVdZ38eYxWNL3ND0dr9y4rZKAxffSDlM5elA4DGleRz$eNf4n" +
-		"JC7OAwelasy4Cyj0Tu6#H$dy3Ql9GB$JftTa7l2lQ7EgCUcVWjqdNFKATKEw4lljGlXyq2F" +
-		"L1P1dooAzBHwFjAI4FxK8xdh4WfccaVmb38AOTwDi8lX5y4$Wc#TOmazw$ky7rj#RrtzlUb" +
-		"B9FwfjHtYpVbBTfEUdVjX68IUUSVk2BuLiyyq7w##a#K28eYRQYRol6J0TrHBaZE78zYEbU" +
-		"wBu7F1ur4$A0VDGSPPiiK2B80$85#JRetYRzNb22wRDClqLteSycZ$0Mu7UZ$MxmEr6$4#M" +
-		"Mu2rHpmEFHaE4B9e1FWDoxJ1NEzJRIJa1v0CbHfJzHiv7RS7R2ay09Rfu4iXFhT7V6lsjqT" +
-		"uQxI6U1F9JJypR4tEr0jUqnL1VG#CCFMpeGKEl6bfbw4L3xU6pzk0TX2pQyt$UaJIy");
+		"U9pjd0UO54NJnwjcToyH3X3a50G9Xma380W6n0WefaF9H$J8I18492i698a24aGG15G4n40" +
+		"M41KneAYO1GLKNYMOnRJz$RkcTtPcRsVtm9VmV2zpJqsdwkfVLuVfWTqbAZ6Ncj9wrPfULu" +
+		"hEvR7KY0BKW5xW7HGCRwF#r8O#fMTe2Lt66TIGg$CktauzrMjqFTrCrr4zMathg37TI3TH3" +
+		"lMZksWwZQDzN89pjKtEf2tgNjh2BUXQkeRgyaWQpOEvAfzBNz0ssavVqbUqWtRIBlgQRg6P" +
+		"L9zwq6sQY4wdAkeD$bQz0gAbceX6yHZ#GuWUfcUufXfk4z5V5AQUb964w1JwYDwZy$Xaq7n" +
+		"EvVaT8QgWjeAeUa68k3VtLLlLFxmKH5k4IF47naUZGGGRXkW$j0T4yNcsE4HT#H7uuaw2Z#" +
+		"2PZtY69k8k1ql4c#6h2D4qNaLxyn6zp2kulG$HS7xU8VgIJk1L$0kbSNTkoxVIHl7HMVmYw" +
+		"bUd2lnLqb7RGX$oitG1xtQ8Il8Bl2SVKNigHyEe9tyNb#bgXwYuMAwjQNWUpwKKyT4b$86w" +
+		"YIzHFTHDINtKaJjIAbYsE4Jpg0PFq4HS5qGVSKyXQes$hPZPhP8GbQLixiNzw2sknoDv8my" +
+		"Mei$Kw$GWdKg5wQgaFgf8y$b2$W#Fe4OiH7m1l5xR8NgTFt16RQlVFE8r4I9AfsymfzjHUw" +
+		"v7bQWGtsiJmSUp#ICgIksI#WZz0P4USKD4xs0UlIcZzXbMVpQlZX3H9b#YTGvH4LvBW$XLz" +
+		"Ioiv547CuzWHRMWWRmSLfBE8pMCduELKI1Q9KHrTNqXAW4VwHcfYORm1ghcGtGrwaT6hGuF" +
+		"fnzWQOxQGPtu13evGgGjOVNzbjH7l$C1lWaMDrCZbIkZLXUjrn2YFI0gJyKq4Jr07QcF3r5" +
+		"pj1uXkXYpKTlk3G$rbPWcogCxwHUi$cjeRb8VZQBAj83sgkQHcSsDQ0pyfEVH0nYrZRHHY3" +
+		"RInx93nYDgoGqYHEfBlKhqlehmLxuATVGygimXJkFoN8hJaX6f6xWGV5eO$etkaAMHqaILw" +
+		"Hbv8kXHErt7V8XoIJdpA9lJfKuwdybRkGvb2z7bMFatec#DOJdPg5t4q$Xzki2r#gjWrFuI" +
+		"ehynQhVn7K9qDvt6Gto8Ehj6hJyFm0glpTFvFlMssi7t2D7zF4JDvmLgEvsHb6W0Bu6VheR" +
+		"DHhm4HCtKF5w0dkbvT2RFvihYcuPoFz#7Q2GlCaIwzDAOKaqqYvzMhr8TUEafNo9DiuiNyH" +
+		"TKaxy1JGrDWndmCGM5fXQVHlVIVNG$$FCLtOEP5PzchFDCqwKtnA7PpdjvFqPpcxergNz#v" +
+		"1$K9b0ehBCy8Re2lR2V#tgzlWJ$ryMiRihBg8aFqTG84TPhNVcx5T8DSZlT8UjiC0qr9HEI" +
+		"hhFnD15QC#WHpA57XMWMFKQFHuZe2Lf8Y#6ZoY3oyz6Bz7o4YDURbklIg$GQHdcp4Br1RzE" +
+		"xz06zJrkJ4ds2khlfU$eHH3yBqUzqWFuKed#OES2dSYfyL9UBSKaVefLSpX2T2BqoN84h2T" +
+		"CeFflF4Q89V1vNerbyFb#QTELVpbTmVTWfXtcK8qHrkIctadNMajjWp4RfKUE1t9bx#12ju" +
+		"Mvc7ebtr5SyLBt9T$5e7iK3PHwDephy84#a83#KS5PFuiayawVmLD3Cr3JyA3zchp6Umu$p" +
+		"V7vITiPiVe8N#j2ypCyOccnUp2lL4dwDtr8R#5srXjyJcW$v4$uK$VmQP#K4D6eZVwywy7x" +
+		"U1nePBVw9$#H$X2PCsHOHQHgBIL$nQJv7YKqJxzAZvRuIqBYq6a7qIDcNdZlc4jzG0fhznn" +
+		"8D5pcIDBWS6hKvBa$MqQ69otB6qV9DN9gpZYcQAuyfceR75CsrnnJDpSSKJTunHTFdcAAv$" +
+		"PYY6NHCqUpqqDXsx6jI34t3Vq6ZJoPTyTGSxAAHYuUvsgoFDgiRciaUTgtPwI1z4z6Ewnk7" +
+		"fhwBPhA7fXKqndj6ofzcnR#ZSUoxQVGftg71ALvVzjbucj5UQ#gzPDldjIvR1qt3qnFIHBM" +
+		"ZbqsZtyqRGVlGvus$Rw9s4j7Kv#iYD39l8ZGjZEPXfh4ilbuyMCEcSVd6lAlAlzDKGUxTCJ" +
+		"IX93GM$#hfRP8L7luqdsyeIXEZdTytXsCMUsbQnT2uvqrhEkBp9evlklZuXlwDRypCSD4u$" +
+		"ue1VSoC1lIiqN3JHBopB0vDmwHxiQqVeHaHfN4iDJG#YFXcbMVUr2U$aOgbQSX5Z$n8yKa#" +
+		"DFewF2D5N8LhSBRHC3JUSaYjm$eCp#yR3utnpIr7t3SoYxb371hlpFbtizZj6xzPJ8SwY$#" +
+		"5Rmvj5X#dEKvpgCyfz$LVF1VxqiHUH#SDvd#59l#RsjDq2VJpE8ZxR$GK$KqN9T9YM#l2n5" +
+		"h6rfC5qbfK8AtdVBIMUxI#BP2jxmgazLE1jFueY1PR1T9AyTF24rBx$atHgWWjVJeuYSfGs" +
+		"OHZzGRqBtRcn3a#dz7GkZVosx3vC6r1gglwLVrAfqYTqSZLdsBOP6oKfYogIcT7JF8hk1MF" +
+		"$qaBKIWLj#oX12JD7Tirk0dNGP$rDKLo$FjirxRhtM0YLqgVAO7sYOvlBXTjryMNvUlp41f" +
+		"WSjhwV6e2$DGz4Hr6979TwM#3cpaKzeZqSaPaGsH4yftJt2FYtiLVoQ#Jy8hTIU9VzScYW0" +
+		"XHEIfFwTI72b5XI1fbKZ7CYLmwWKgY$4JupqBAmiW5qSF6wFKjr0JxOZDgZZVfbdXtEvtEe" +
+		"3FfB6e77Mqp3s4Af2BLf5gequCgOLVCfYgOsNNbVu0lmuXT0HzU1O$LXnyQWbhNR8iwJ0#Z" +
+		"TZhcdYRAeZ6K8KJzXQYK8IeApZBOeP8HhQUNwHaXMalZgReGFOHvM0as2a9q3frBvy5B4q1" +
+		"KHeYkHRxjeqeWqZRSHF5voZX4FUW5#28FEu$MFGspHnCDE6YYD#2h255$nA$BHzILki5VVa" +
+		"G37Q99u6wB5Rg0biWwiOHelDItuAidaXBfDVqWh6noY6hZxByk7r59MabJeV5sqb7JbYyGc" +
+		"ZNq4cQ49hBm5uI4S4z6T0V#z8mjun1buartX3EpJwDxXEW1$EKMQ6PRz1ZDmcmSZ17Cn0Xg" +
+		"ea5ewMwaXY8$6L4QTeXfQ6aCY2OBqGdmUYc7g0wq8gEMMu1H2z0ZqCh3IXaCaY3wOnEL1D5" +
+		"f82gHb4ZtPvhuE4AK0g8DGbG8H9PP$PfeSm68GhBgyr2lBRN6oSWoenQWLD1eAyddKIcgW7" +
+		"iMYDeAKOxaQwA58D8sxBLslhIMRAtrXgM#iDGFUVefaEOGQKivs8kJ4Ksd6J8Q5eY2GfGhk" +
+		"w4coXGVfGXHH#ebEruoei68QzjbnKCwfebqF5DiFPkKA0lzUGMhFTMPsI$YdYD4bX1PnaTP" +
+		"2VQZoWvHMLabUbyjWoTOVzJHH3gTAJtDJ4gKWhvRuj$e3gbJcgYaQnuLCcCSd#XQXyZ2ir5" +
+		"hDW9bBiRGdaVzpEelNO2rfdi#I7eV8Qg8$3HdPe$2Rgk95iENLW56xJoSlREm7rr8huk$HW" +
+		"bHbjXCHqwjf4GpqL8AngoCCxDrJKk8sg9V9KMhjDn7#X9b6Q9ufPfe8Ym5CN8MOdv4keLSM" +
+		"DB$xpy93Bb2KyRnJn$CvKxKcRg0vWcSXdAI#iUFnX8FMNYQbqtgdpVfBUpoPJ0ksf#QI8zr" +
+		"XfdL0QIoq4vfMOUDanBfSlrN0gBhbOKLJLH2Klela9He2DeCm9O#YGmHeW3DGrw4QAcSbFG" +
+		"pBJs1Zp8TehAcPVsPmQ2SlMhAllq8qhcO6Sbzb8kwz#Al55fyJeZw8dwx4DqkiTvq7uXonE" +
+		"z#H9OXwYLwfL0ZnzGO8aIQR9xShQH4GNWdL$ReTDYpz#iiCwituWcSPKQj6iAo1PX7EUB95" +
+		"DcHBDIe9aGXK8x4R4t3t4mqgvyNvXISFFJAqZGJf1$sYANYX18vpQR9Iapi7$qKgudxAbZK" +
+		"lKn17#nPhPy0ET928fe0#7NhKvmrTf7iDfecJLjNIcZI52u$6fG8ZOfpQHfFEW6DIoiT0Xg" +
+		"J0erJ0XeJEquJGuDKbAPiehFY4QSvjdnpdEOupN6QupJ7QUBIs7QCVgQNHjivL1evcVH0l6" +
+		"UKneG3ect2JYODD#URwzti4XzxSBw9QCVtJOI66aHfw7eFJL78SFT8#TDGvNz74x7leT6dj" +
+		"2XDkjnjtsGQxInJhwnjF#BJG$CDtXuJq4IrNHesJKavyPS#z7dZxvkedKGqUjuuDDVh4fk6" +
+		"YXZDmqn3e#a62NDj6fTl8k#g#jzfkYFtjXYQ#ObfQ1ajT$SswGf$9z58URNZ#EOmpEAOaIh" +
+		"gfJdQyoQ$Ro9hAjOtaZvatzWpmqqJcHdYW#xGlotEI7dciPS69KdsObi$GaCNksWYfALj7p" +
+		"XxSPfd$s$WDrAnD0d$pUl$qKWXrHtloZ4ZvItNQ$nmFiFp#yPBSxHyatmMnwCvs5dieV6Pn" +
+		"LxV7CmiFjBxpN6QupI7klifr$NVF1VxqSHUH#SDvd#6nkzDhJMrmRqTjQSET6iYBUfR4As2" +
+		"sJgkLL0jd0wqxzj6j9HpEaWuLfRMT#R4i8Iwun2UhESUvSadOqwLEfKW#bCCZneRi#bncaD" +
+		"p7Pir84$xsKNP2f$#9FI5iPqBajxw$miGxoVt97qszQQQC4$t6U9FDywfSwVMzgoWHR5zrh" +
+		"y3u6WdycG2Eh8S#ta5ye4z8dT6HeI2peZ4dDCy8#B#zuHJykiakc9t4X#j1aHMOBZzcIhzY" +
+		"IxzIS0fTbf$rfvxGcP1lY3vj9h#Lft#T9XL6UaPzYUzh9b4nVKt4N$NzI92LE8IRzhguqq7" +
+		"ic5hSZJDIqp#jIP4#u769juBiivTNmiwy2tijeAqX4n7rdReVGnR9wChx6sFFZ7jLBJ3GfE" +
+		"9KbutPSM8GkLGfv6T3jOZIiqaAl9ER9jUcwbD$Ck2pLrwZwAzKWXt8OGlqyv2#9rTbjO7JD" +
+		"iCMmhgjJN#cWrfX$8LH8NXxy2VA4DVWrTusqdNkdDC7On3i8KTB$8vuXrHNX$vsQPy8F8w6" +
+		"xuEA1jdnmjtHtmhKL4mKadewK$jvURlaxKHyXbHHbdeLeIDmOQxAU9ZmVWSx2oDySCuwEks" +
+		"zfXq5yXu4vziwhT0V0fa0kAB85syDhYRozvK7MBimuW$PETXJoJvf2dg1#VQUHbFeL$eBp#" +
+		"FU0t8ZqWljSiArKPwaBUDGh1HegNfvtUmizAqjnhfIGZN6fQx47$9w66zMD#R#Bd8NuVoGW" +
+		"WNkdps2MIVgvtNuBjMiRxr4rpJJRl$mCv4RrdX8kZ7UhJtEigkXgpmbbi$esmpml58v1XxU" +
+		"ZxizEe5tqSUretrZwdt5yQo0iJowWMmJWB5qUxDaBLOCtce#o52Lt#3Uqs8#Hh8WXxMPU4$" +
+		"eADPuDUK2sDiOco2#n1sXOGCuppaxJVbvw3#3lWCywR86GZdm1RMIIZTBW$1tw72HXVZ6Yf" +
+		"gR6YVr8ffgmcagObV1zrCLrbvf4z16zXhCZQRlEPsM6GPsbs247EkK5hySGhfDNeLz215xW" +
+		"N$6EHXBGMtkdJEyjRXAdPOLEjYpsBuDbG6QOn7KRC$XC0Lw6$YPy9$8n1Y$ONqTomxHcrbe" +
+		"dxHtn5YpyYiXZeTlMrbBe3KHJwI8PI7C0z2DKm$HnhxvyDdkn7MX63yQR4fln$fwsFwUoFo" +
+		"Pu4PyoPq6UBj4TvabrdOtqAT8TX$GXYtGDkOkZrC25#7iFy5NaRO6z8FSSoNaEblOBdHkmD" +
+		"o9zBOxqC38ADD$hZyus1XtyuOvafNDxgvhhmSZ8jvjbYm6vpXOdiGVjglloETtpR1$w7nBb" +
+		"tiDu4z22T2C2wyqN1ZZOUcsV4WvcfW4zAkDWBmSV1SOzDblrWjjAtxXsTgoFLi33q3VJrcs" +
+		"8T2Yn77M8UUDML3eth16rpn1bxsO7MqszlKmJCbzAA9hu6izkfcl8NzTR8xpx2sqo7ApDx8" +
+		"fviGOqSdcZvWZV12RxtY0s9jnTWT0PlVvy#tXhXyLiaLpujd1pOssUNfWt4xeCyIaA6GQLw" +
+		"xnUePBiEivrzWZ8jtGWm7zhrWQk8#1DxtBmjck6mrHnhxZFKumdBw#O6ml6btVbIFjxZgr3" +
+		"PjO7q6iIwBLpNwZev9RtVLQUzglv8fR#Ogx#ojI#OC4SGS3mn1Y3MSOPu7WVbkNLF$CbE6i" +
+		"qAmAkG4mtsgQQiZncDd$df1$Gj2lLpfauoTNqpzBiO#Gp3F0$kyzOirpc#pc6iVB9nXyWQw" +
+		"si2#7yGpgnZssM0do6EkSv1UYp7dZP1#bdSrvJ5x5pUCwKzLLrniej$FcRJ7hiaRx6gdFzB" +
+		"tnUhuYUw3wPlcloM6UOtscIbVwkOoTNkQibSHxsNYPoFUDtyxnR2d1$kPUZX35TDpj8DNnp" +
+		"BxHqeGPTEZQu$snk6UO7JnZX74$aKbx3JNYjKrxOUZPyl2sxrbATXhWpXdfk1S5NpUs7Ujt" +
+		"M3d$FOAxu$VZdMfJ$vEEqmzLP$zZ5spjwTsiizBgOlqcIz#$Q1vRgN#YZWuYvjzj$ZFBfsO" +
+		"EHSvR$9GEonYdf5fEDS6TqJroBN7apdhMpXVqP$H$3HzHiLP8EqDX0VoywNZd17y8puxd#V" +
+		"om$js63W9#UtZwRjiRi3j3ttUCRBRzEi55syQqhjY#ktgMw2Pjyn#5pLwkrrwSTvDGjNovn" +
+		"7EOUJUKpV7wI$EBVo3YJ#DFfUAAT#enp1HtrqC5qRZrcznokl5hnUORNXT#s8wthD3rvdo7" +
+		"Z7zwXrZznIZvzvRNE#VV216luKFVynUPmN8NFfjotkf7d9V1tb9FQmUKclLUhLQhK9wfLgX" +
+		"balfY#e5tAT2fYYCXRf7SXzHozJp2cjOVGtvMUtNx$7OGVQgoMfIU9lw9ln5#3FHF4cLbR2" +
+		"UmWbJNQ6oL6breYgbIgeJ59uDgeogf2ggKrKDXTEDggP6UGZFKvVZVgx4px7pmdWh2UDa4F" +
+		"ub$4DulvJBjmbLLNKbxdZcgJCaVRh2Sr1TBV6hZBsHQgWQed2sK3Wpga6GAavRruI$2Nzju" +
+		"lBzDvKDgIon6nJsFNLTU4VuA$Jksl3d82uY9OMT#eM4Rfj95PLxUNMAgYMncd8$NxMMiANS" +
+		"vRSGrCsEXMQggOHjL5lS6wjBLLrrYRfONQGkL7LKRNM1mbDGPUWsL7fuT$XRun6TJWj$6Tx" +
+		"kf5BbdXBU4$xUv8HC60n$5$wFQS#2w1f$Xp4tmZ#QN3ormyWE$nN#9$nJ#2TJ3$D8ZL1tAP" +
+		"nj5Sxogh$ezfLx7uLJlxfTMjyNtglaDsTKfYg1Ut5LpEbV0mZExMgWf4uBxmhlLFN3lvbUO" +
+		"ES9OySB$np6dgiggBjLERLF$O0utZaLcDLkzQC2Zth7sDkcFbTlASmpzP7wGE4jLhsltbDV" +
+		"8DpYjFakPATBNtw7HdsiFb6xF3DtZz71ELqzhIQeyMgXMaIUIpq1MU1ApuKyhkQe9zLYIJ#" +
+		"bPk7#c9gf7bKp96UwtAUfsQR6KZLHFQX#4NzzhruskTqXNHLEu0flKwedv3RLJKh6gZ5gj7" +
+		"e0iViWOzJzolFjRTLETLOT5Pvdgel2BgZ#Kd#gFwJaWDn$b$jlwc$i8DcaV$ki3p6zGnOjH" +
+		"xWSuMY4MgRBTur2D8E2ycynmv0tdFGsmlI0Y2M$r382yTcKJe$ZIV0eykvmoKYKZqG87q8O" +
+		"4Y2zn$H0N7jeCKAzlaSXrFl8FGZ7K0hUyncYlmzcYS2B47RICo5ZaHuB7Rp3GvW6e5vFvCz" +
+		"7UZxIUbmM87mIuPC8dqBu5C8L8XRXkG1XMaP5wGsano5kIpI#KaId0qxUNFbSFq6OLejOX1" +
+		"qHmZG737FWhpM8hq6#$hKh$Lt12V3DWoYRYFX4r1#8S23A1yhtlXXYKJU4tP3MCfxqjnm38" +
+		"dSXNyj28wkCt6zahKX0VijgadnJLN#$9K1FoFS561AWnWWtGcuJ2SWtcFHAxOkmE$8YqWdf" +
+		"Jk2tHQS38XqHxuYopeXtWGn2UX3IjWG8xsCGfiaY#hip5hs5FFqDcYc8lutusuXlGjawXEi" +
+		"GhaUuNhv3mhGPvPiHwk#Xw3NmiiH3ajw0#0RvRg4jYs3lRjA$JyNo7UX#2EV9zzG8ehyp4e" +
+		"AaGjBeLPIzYZfJvHl030aGzda8KqlOReemcJGJ2K12r1nnMon8AYG02JdXQx3zcfG78Iccp" +
+		"3Bb5js2Cbi24hP0s0JvJH3UZFJDYBT2s0hf78JnPB28HTCGJeDUUxJL7kds4a#1X22fCV5q" +
+		"enUYTWZRIPW2INM5QP1qQeFoDYXlW$mso8#6QH3zhHg61AWrGYsl6BdTo7r6xZNItyYBHfO" +
+		"QUSw8$XsU3WXl5R7etVy3OZHxQW==");
 
 /*******************************************************
- *  Inject code for custom error handling in the parser class.
+ *  Code for error handling in the parser class.
  *******************************************************/
   // all errors encountered during parsing is stored in the array parseProblems. This includes lexical, syntactical and semantic error (multiple initialization actors et.c.)
-  public java.util.TreeSet<String> parseProblems = new TreeSet<String>();
-  public void newError(String msg, Symbol token){
-      parseProblems.add(msg + " At row " + Symbol.getLine(token.getStart()) + ", column " + Symbol.getColumn(token.getStart()));
-  };
-  public void printParseProblems(){ printParseProblems(System.err); }
-  public void printParseProblems(PrintStream out){
-    for(String msg : parseProblems){
-      out.println("ERROR: " + msg);
+  BasicErrorModule em;
+
+  public ErrorModule getErrorModule(){ return em; }
+
+  private void warning(String msg, Symbol startS, Symbol endS){
+    int start = startS.getStart();
+    int end = endS.getEnd();
+    em.warning(msg + " between " + Symbol.getLine(start) + ":" + Symbol.getColumn(start) + " and " + Symbol.getLine(end) + ":" + Symbol.getColumn(end) + " in " + file.getName(), null);
+  }
+  
+  String posToString(Symbol s){
+	  int start = s.getStart();
+	  int end = s.getEnd();
+	  return Symbol.getLine(start) + ":" + Symbol.getColumn(start) + ", " + Symbol.getLine(end) + ":" + Symbol.getColumn(end) + " in " + file.getName();
+  }
+
+  private void warnPortIndex(Expression[] index){
+    if(index != null && index.length != 0){
+      em.warning("port index is ignored", index[0]);
     }
   }
 
   // parser plug-in methods that are called when the parser encounters a syntactical problem
   class Events extends Parser.Events {
     public void scannerError(Scanner.Exception e) {
-      parseProblems.add(e.getMessage());
+      em.error(e.getMessage(), null);
     }
     public void syntaxError(Symbol token) {
       // This method is always called when a problem is encountered, even if it is repaired.
       // beaver.Parser$Exception is thrown if recovery fails.
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("unexpected token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.error("unexpected token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void unexpectedTokenRemoved(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void missingTokenInserted(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after inserting token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after inserting token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void misspelledTokenReplaced(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after replacing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after replacing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
     public void errorPhraseRemoved(Symbol token) {
       String value = token.value != null ? token.value.toString() : Terminals.NAMES[token.getId()];
-      parseProblems.add("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()));
+      em.warning("parser recovered after removing token \"" + value + "\" at " + Symbol.getLine(token.getStart()) + ", " + Symbol.getColumn(token.getStart()), null);
     }
   }
 
@@ -375,6 +389,59 @@ public class CalParser extends Parser {
     report = new Events(); // Use error handler in parser
   }
 
+/********************************************************
+ * Store the source code position of the symbols.
+ * The following IR-nodes have source file information:
+ * Registered by NLParser.beaver:
+ * - EntityIfExpr
+ * - EntityInstanceExpr
+ * - EntityListExpr
+ * - NetworkDefinition
+ * - PortReference
+ * - StructureConnectionStmt
+ * - StructureForeachStmt
+ * - StructureIfStmt
+ * - ToolValueAttribute
+ * - ToolTypeAttribute
+ *
+ * Registered by CommonParser.beaver
+ * - ExprLiteral
+ * - Field
+ * - Variable
+ * - ExprVariable
+ *
+ * The following IRNodes do not have source code info:
+ * - GeneratorFilter
+ * - Import
+ * - LValue
+ ********************************************************/
+
+  private File file;
+  private Map<Identifier, SourceCodePosition> srcLocations;
+  public Symbol register(Symbol start, Symbol end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(start, end, file));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(IRNode start, Symbol end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(srcLocations.get(start.getIdentifier()), end));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(Symbol start, IRNode end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(start, srcLocations.get(end.getIdentifier())));
+    }
+    return new Symbol(node);
+  }
+  public Symbol register(IRNode start, IRNode end, IRNode node){
+    if(srcLocations != null){
+      srcLocations.put(node.getIdentifier(), SourceCodePosition.newIncluding(srcLocations.get(start.getIdentifier()), srcLocations.get(end.getIdentifier())));
+    }
+    return new Symbol(node);
+  }
 /*******************************************************
  *  Help routine that parses a file, given its name.
  *  A compilation unit is always returned, containing all parseProblems encountered during parsing.
@@ -391,12 +458,14 @@ public class CalParser extends Parser {
     return new Actor(name, null, null, null, null, null, null, null, null, null, null, null, null);   
   }
   
-  public net.opendf.ir.cal.Actor parse(String path, String fileName){
-    return parse(new java.io.File(path + "/" + fileName));
+  public net.opendf.ir.cal.Actor parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+    return parse(new java.io.File(path + "/" + fileName), srcLocations, scOracle);
   }
-  public net.opendf.ir.cal.Actor parse(File file){
+  public net.opendf.ir.cal.Actor parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+     this.file = file;
+     this.srcLocations = srcLocations;
+     em = new BasicErrorModule(scOracle);
      Actor actor;
-     parseProblems = new TreeSet<String>();
      java.io.FileReader fr = null;
      try {
        try{
@@ -413,15 +482,12 @@ public class CalParser extends Parser {
          }
        }
      } catch (java.io.FileNotFoundException e){
-       parseProblems.add("file not found: " + e.getMessage());
+       em.error("file not found: " + e.getMessage(), null);
        actor = makeEmptyActor(file);
-//       actor.setFileNotFound(true);
      } catch (java.io.IOException e){
-       parseProblems.add("error reading file: " + e.getMessage());
+       em.error("error reading file: " + e.getMessage(), null);
        actor = makeEmptyActor(file);
      }
-//     actor.setSourceFile(file);
-//     actor.parseProblems = parseProblems;
      return actor;
    }
 
@@ -432,32 +498,52 @@ public class CalParser extends Parser {
    * Needed by CommonParser.beaver
    * Repeated in both NlParser.beaver and CalParser.beaver
    ***************************************************************************/
-  private GeneratorFilter makeGeneratorFilter(TypeExpr type, ImmutableList<String> varList, Expression e, ImmutableList<Expression> filterList){
+  private Symbol makeGeneratorFilter(Symbol start, TypeExpr t, ImmutableList<Symbol>varList, Expression e, ImmutableList<Expression> filterList, ImmutableList l){
+    GeneratorFilter gen = makeGeneratorFilter2(t, varList, e, filterList);
+    Expression end = e;
+    if(filterList != null && !filterList.isEmpty()){
+   	 end = filterList.get(filterList.size()-1);
+    }
+    register(start, end, gen);
+    ImmutableList.Builder newList = ImmutableList.builder().add(gen);
+    if(l != null){
+   	 newList.addAll(l);
+    }
+    return new Symbol(newList);
+  }
+  private GeneratorFilter makeGeneratorFilter2(TypeExpr type, ImmutableList<Symbol> varList, Expression e, ImmutableList<Expression> filterList){
     ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
-    for(String var : varList){
-      vars.add(new DeclVar(type, var, null));
+    for(Symbol var : varList){
+      DeclVar decl = new DeclVar(type, (String)var.value, null);
+      register(var, var, decl);
+      vars.add(decl);
     }
     return new GeneratorFilter(vars.build(), e, filterList);
   }
   class ParenthesSymbol extends Symbol{ // used by the parser to wrap subexpressions that are enclosed by parentheses, i.e. do not add them to a ExprBinaryOp sequence.
-     ParenthesSymbol(Symbol s){
-       super(s.getId(), s.getStart(), s.getEnd(), s.value);
-     }
+    ParenthesSymbol(Symbol s){
+      super(s.getId(), s.getStart(), s.getEnd(), s.value);
+    }
   }
   
   private LValue expressionToLValue(Expression expression) {
     if (expression instanceof ExprVariable) {
-      return new LValueVariable(((ExprVariable) expression).getVariable());
+      Variable var = ((ExprVariable) expression).getVariable();
+      return new LValueVariable(var, var);             // use the same Variable as the Variable node
     } else if (expression instanceof ExprIndexer) {
       ExprIndexer exprIndexer = (ExprIndexer) expression;
       LValue structure = expressionToLValue(exprIndexer.getStructure());
       if (structure == null) return null;
-      return new LValueIndexer(structure, exprIndexer.getIndex());
+      LValue result = new LValueIndexer(structure, exprIndexer.getIndex());
+      register(structure, exprIndexer, result);
+      return result;
     } else if (expression instanceof ExprField) {
       ExprField exprField = (ExprField) expression;
       LValue structure = expressionToLValue(exprField.getStructure());
       if (structure == null) return null;
-      return new LValueField(structure, exprField.getField());
+      LValue result = new LValueField(structure, exprField.getField());
+      register(structure, exprField, result);
+      return result;
     } else {
       return null;
     }
@@ -469,7 +555,7 @@ public class CalParser extends Parser {
 
 	protected Symbol invokeReduceAction(int rule_num, int offset) {
 		switch(rule_num) {
-			case 2: // goal = actor_decl.actor_decl end_actor opt$SEMICOLON
+			case 2: // goal = actor_decl.actor_decl opt$SEMICOLON
 			{
 					final Symbol _symbol_actor_decl = _symbols[offset + 1];
 					final Actor actor_decl = (Actor) _symbol_actor_decl.value;
@@ -505,20 +591,20 @@ public class CalParser extends Parser {
 			{
 					final Symbol _symbol_qual_id = _symbols[offset + 2];
 					final ArrayList qual_id = (ArrayList) _symbol_qual_id.value;
-					 return new Symbol(null);
+					 return _symbol_qual_id;
 			}
 			case 8: // import_single = IMPORT qual_id.qual_id EQ IDENTIFIER.alias SEMICOLON
 			{
 					final Symbol _symbol_qual_id = _symbols[offset + 2];
 					final ArrayList qual_id = (ArrayList) _symbol_qual_id.value;
 					final Symbol alias = _symbols[offset + 4];
-					 return new Symbol(null);
+					 return _symbol_qual_id;
 			}
 			case 9: // import_group = IMPORT ALL qual_id.qual_id SEMICOLON
 			{
 					final Symbol _symbol_qual_id = _symbols[offset + 3];
 					final ArrayList qual_id = (ArrayList) _symbol_qual_id.value;
-					 return new Symbol(null);
+					 return _symbol_qual_id;
 			}
 			case 14: // lst$action_head = action_head
 			{
@@ -528,11 +614,11 @@ public class CalParser extends Parser {
 			{
 					((ArrayList) _symbols[offset + 1].value).add(_symbols[offset + 2].value); return _symbols[offset + 1];
 			}
-			case 18: // action_decl = opt$action_tag.tag ACTION.ACTION action_in_pattern_list.in_pattern_list PORTCONN opt$action_output_expression_list.out_expr_list opt$lst$action_head.head action_statement_body.body end_action opt$SEMICOLON
+			case 18: // action_decl = opt$action_tag.tag ACTION.start action_in_pattern_list.in_pattern_list PORTCONN opt$action_output_expression_list.out_expr_list opt$lst$action_head.head action_statement_body.body end_action.end opt$SEMICOLON
 			{
 					final Symbol _symbol_tag = _symbols[offset + 1];
 					final QID tag = (QID) _symbol_tag.value;
-					final Symbol ACTION = _symbols[offset + 2];
+					final Symbol start = _symbols[offset + 2];
 					final Symbol _symbol_in_pattern_list = _symbols[offset + 3];
 					final ImmutableList.Builder in_pattern_list = (ImmutableList.Builder) _symbol_in_pattern_list.value;
 					final Symbol _symbol_out_expr_list = _symbols[offset + 5];
@@ -542,6 +628,7 @@ public class CalParser extends Parser {
 					final Map.Entry[] head = _list_head == null ? new Map.Entry[0] : (Map.Entry[]) _list_head.toArray(new Map.Entry[_list_head.size()]);
 					final Symbol _symbol_body = _symbols[offset + 7];
 					final ImmutableList body = (ImmutableList) _symbol_body.value;
+					final Symbol end = _symbols[offset + 8];
 					
            // split the action head to it's parts
            ImmutableList.Builder<Expression> guardList = ImmutableList.builder();
@@ -556,7 +643,7 @@ public class CalParser extends Parser {
                  declVarList.addAll((Iterable)part.getValue());
                  break;
                case DELAY:
-                 if(delay != null){ parseProblems.add("multiple delays is not allowed in action, at " + Symbol.getLine(ACTION.getStart()) + ", " + Symbol.getColumn(ACTION.getStart())); }
+                 if(delay != null){ em.error("multiple delays is not allowed in action.", (Expression)part.getValue()); }
                  delay = (Expression)part.getValue();
                  break;
              }
@@ -572,13 +659,17 @@ public class CalParser extends Parser {
                                   delay,           // delay
                                   null,            // preconditions  NOTE, can not be expressed in CAL
                                   null);           // postconditions NOTE, can not be expressed in CAL
-            return new Symbol(a);
+            if(tag != null){
+              return register(tag, end, a);
+            } else {
+              return register(start, end, a);
+            }
 			}
-			case 19: // init_action_decl = opt$action_tag.tag INITIALIZE.INITIALIZE PORTCONN opt$action_output_expression_list.out_expr_list opt$lst$action_head.head action_statement_body.body end_action opt$SEMICOLON
+			case 19: // init_action_decl = opt$action_tag.tag INITIALIZE.start PORTCONN opt$action_output_expression_list.out_expr_list opt$lst$action_head.head action_statement_body.body end_action.end opt$SEMICOLON
 			{
 					final Symbol _symbol_tag = _symbols[offset + 1];
 					final QID tag = (QID) _symbol_tag.value;
-					final Symbol INITIALIZE = _symbols[offset + 2];
+					final Symbol start = _symbols[offset + 2];
 					final Symbol _symbol_out_expr_list = _symbols[offset + 4];
 					final ImmutableList.Builder out_expr_list = (ImmutableList.Builder) _symbol_out_expr_list.value;
 					final Symbol _symbol_head = _symbols[offset + 5];
@@ -586,6 +677,7 @@ public class CalParser extends Parser {
 					final Map.Entry[] head = _list_head == null ? new Map.Entry[0] : (Map.Entry[]) _list_head.toArray(new Map.Entry[_list_head.size()]);
 					final Symbol _symbol_body = _symbols[offset + 6];
 					final ImmutableList body = (ImmutableList) _symbol_body.value;
+					final Symbol end = _symbols[offset + 7];
 					 
            // split the action head to it's parts
            ImmutableList.Builder<Expression> guardList = ImmutableList.builder();
@@ -600,7 +692,7 @@ public class CalParser extends Parser {
                  declVarList.addAll((ArrayList<DeclVar>)part.getValue());
                  break;
                case DELAY:
-                 if(delay != null){ parseProblems.add("multiple delays is not allowed in action, at " + Symbol.getLine(INITIALIZE.getStart()) + ", " + Symbol.getColumn(INITIALIZE.getStart())); }
+                 if(delay != null){ em.error("multiple delays is not allowed in action.", (Expression)part.getValue()); }
                  delay = (Expression)part.getValue();
                  break;
              }
@@ -616,13 +708,18 @@ public class CalParser extends Parser {
                                   delay,                      // delay
                                   null,         // preconditions  NOTE, can not be expressed in CAL
                                   null);        // postconditions NOTE, can not be expressed in CAL
-            return new Symbol(a);
+            if(tag != null){
+              return register(tag, end, a);
+            } else {
+              return register(start, end, a);
+            }
 			}
-			case 20: // action_tag = qual_id.n COLON
+			case 20: // action_tag = qual_id.n COLON.end
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final ArrayList n = (ArrayList) _symbol_n.value;
-					 return new Symbol(new QID((String[])n.toArray(new String[n.size()])));
+					final Symbol end = _symbols[offset + 2];
+					 return register(_symbol_n, _symbol_n, new QID((String[])n.toArray(new String[n.size()])));
 			}
 			case 21: // action_head = GUARD expression_list.l
 			{
@@ -636,11 +733,12 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder d = (ImmutableList.Builder) _symbol_d.value;
 					 return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DECL_LIST, d.build()));
 			}
-			case 23: // action_head = DELAY expression.e
+			case 23: // action_head = DELAY.s expression.e
 			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DELAY, e));
+					 register(s, e, e); return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.DELAY, e));
 			}
 			case 24: // action_statement_body = 
 			{
@@ -670,49 +768,65 @@ public class CalParser extends Parser {
 					final InputPattern p = (InputPattern) _symbol_p.value;
 					 l.add(p); return _symbol_l;
 			}
-			case 37: // action_in_pattern = opt$port_name_colon.actor_port_name LBRACK opt$token_name_list.tokens RBRACK opt$repeat.r opt$channel_selector.c
+			case 37: // action_in_pattern = opt$port_name_colon.actor_port_name LBRACK.start opt$token_name_list.tokens RBRACK.end opt$repeat.r opt$channel_selector.c
 			{
 					final Symbol _symbol_actor_port_name = _symbols[offset + 1];
 					final Port actor_port_name = (Port) _symbol_actor_port_name.value;
+					final Symbol start = _symbols[offset + 2];
 					final Symbol _symbol_tokens = _symbols[offset + 3];
 					final ImmutableList.Builder tokens = (ImmutableList.Builder) _symbol_tokens.value;
+					final Symbol end = _symbols[offset + 4];
 					final Symbol _symbol_r = _symbols[offset + 5];
 					final Expression r = (Expression) _symbol_r.value;
 					final Symbol _symbol_c = _symbols[offset + 6];
 					final String c = (String) _symbol_c.value;
-					 return new Symbol(new InputPattern(actor_port_name, tokens==null ? null : tokens.build(), r));
+					 Symbol s = actor_port_name == null ? start : _symbol_actor_port_name;
+        Symbol e = r == null ? end : _symbol_r;  // FIXME, ignores channel selector
+        return register(s, e, new InputPattern(actor_port_name, tokens==null ? null : tokens.build(), r));
 			}
 			case 38: // token_name_list = IDENTIFIER.ID
 			{
 					final Symbol ID = _symbols[offset + 1];
-					 return new Symbol(ImmutableList.builder().add(new DeclVar(null, (String) ID.value, null)));
+					 DeclVar decl = new DeclVar(null, (String) ID.value, null);
+                                               register(ID, ID, decl);
+                                               return new Symbol(ImmutableList.builder().add(decl));
 			}
 			case 39: // token_name_list = token_name_list.l COMMA IDENTIFIER.ID
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol ID = _symbols[offset + 3];
-					 l.add(new DeclVar(null, (String) ID.value, null)); return _symbol_l;
+					 Decl decl = new DeclVar(null, (String) ID.value, null);
+                                               register(ID, ID, decl);
+                                               l.add(decl); return _symbol_l;
 			}
-			case 40: // channel_selector = AT expression.e
+			case 40: // channel_selector = AT.a expression.e
 			{
+					final Symbol a = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(null);
+					 em.error("channel selector is not supported, at found at " + posToString(a), null);
+                                return _symbol_e;
 			}
-			case 41: // channel_selector = ATSTAR expression.e
+			case 41: // channel_selector = ATSTAR.a expression.e
 			{
+					final Symbol a = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(null);
+					 em.error("channel selector is not supported, at* found at " + posToString(a), null);
+                                return _symbol_e;
 			}
-			case 44: // channel_selector = opt$ATSTAR ANY
+			case 44: // channel_selector = opt$ATSTAR ANY.a
 			{
-					 return new Symbol(null);
+					final Symbol a = _symbols[offset + 2];
+					 em.error("channel selector is not supported, any found at " + posToString(a), null);
+                                return a;
 			}
-			case 45: // channel_selector = opt$ATSTAR ALL
+			case 45: // channel_selector = opt$ATSTAR ALL.a
 			{
-					 return new Symbol(null);
+					final Symbol a = _symbols[offset + 2];
+					 em.error("channel selector is not supported, all found at " + posToString(a), null);
+                                return a;
 			}
 			case 46: // repeat = REPEAT expression.e
 			{
@@ -734,22 +848,37 @@ public class CalParser extends Parser {
 					final OutputExpression e = (OutputExpression) _symbol_e.value;
 					 l.add(e); return _symbol_l;
 			}
-			case 51: // action_output_expression = opt$port_name_colon.actor_port_name LBRACK opt$expression_list.values RBRACK opt$repeat.r opt$channel_selector.c
+			case 51: // action_output_expression = opt$port_name_colon.actor_port_name LBRACK.start opt$expression_list.values RBRACK.end opt$repeat.r opt$channel_selector.c
 			{
 					final Symbol _symbol_actor_port_name = _symbols[offset + 1];
 					final Port actor_port_name = (Port) _symbol_actor_port_name.value;
+					final Symbol start = _symbols[offset + 2];
 					final Symbol _symbol_values = _symbols[offset + 3];
 					final ImmutableList.Builder values = (ImmutableList.Builder) _symbol_values.value;
+					final Symbol end = _symbols[offset + 4];
 					final Symbol _symbol_r = _symbols[offset + 5];
 					final Expression r = (Expression) _symbol_r.value;
 					final Symbol _symbol_c = _symbols[offset + 6];
 					final String c = (String) _symbol_c.value;
-					 return new Symbol(new OutputExpression(actor_port_name, values == null ? null : values.build(), r));
+					 OutputExpression out = new OutputExpression(actor_port_name, values == null ? null : values.build(), r);
+         if(actor_port_name == null){
+           if(r == null){
+             return register(start, end, out);
+           } else {
+             return register(start, r, out);
+           }
+         } else {
+           if(r == null){
+             return register(actor_port_name, end, out);
+           } else {
+             return register(actor_port_name, r, out);
+           }
+         }
 			}
-			case 52: // port_name_colon = IDENTIFIER.IDENTIFIER COLON
+			case 52: // port_name_colon = IDENTIFIER.id COLON
 			{
-					final Symbol IDENTIFIER = _symbols[offset + 1];
-					 return new Symbol(new Port((String)IDENTIFIER.value));
+					final Symbol id = _symbols[offset + 1];
+					 return register(id, id, new Port((String)id.value));
 			}
 			case 61: // lst$actor_body = actor_body
 			{
@@ -759,10 +888,11 @@ public class CalParser extends Parser {
 			{
 					((ArrayList) _symbols[offset + 1].value).add(_symbols[offset + 2].value); return _symbols[offset + 1];
 			}
-			case 65: // actor_decl = opt$import_list.imports ACTOR IDENTIFIER.name opt$type_parameter_block.typePars LPAREN opt$actor_parameter_list.valuePars RPAREN port_decl_list_opt.in PORTCONN port_decl_list_opt.out opt$time.t COLON opt$lst$actor_body.body
+			case 65: // actor_decl = opt$import_list.imports ACTOR.start IDENTIFIER.name opt$type_parameter_block.typePars LPAREN opt$actor_parameter_list.valuePars RPAREN port_decl_list_opt.in PORTCONN port_decl_list_opt.out opt$time.t COLON opt$lst$actor_body.body end_actor.end
 			{
 					final Symbol _symbol_imports = _symbols[offset + 1];
 					final ArrayList imports = (ArrayList) _symbol_imports.value;
+					final Symbol start = _symbols[offset + 2];
 					final Symbol name = _symbols[offset + 3];
 					final Symbol _symbol_typePars = _symbols[offset + 4];
 					final ImmutableList typePars = (ImmutableList) _symbol_typePars.value;
@@ -777,7 +907,11 @@ public class CalParser extends Parser {
 					final Symbol _symbol_body = _symbols[offset + 13];
 					final ArrayList _list_body = (ArrayList) _symbol_body.value;
 					final Map.Entry[] body = _list_body == null ? new Map.Entry[0] : (Map.Entry[]) _list_body.toArray(new Map.Entry[_list_body.size()]);
+					final Symbol end = _symbols[offset + 14];
 					
+    if(t != null){ 
+      em.warning("time is not supported", t); 
+    }
     ImmutableList.Builder varDecls = ImmutableList.builder();
     ImmutableList.Builder initializers = ImmutableList.builder();
     ImmutableList.Builder actions = ImmutableList.builder();
@@ -820,14 +954,14 @@ public class CalParser extends Parser {
                          priorities.build(),
                          invariants.build()
                         );
-     
-    return new Symbol(a);
+    return register(start, end, a);
 			}
-			case 66: // time = TIME type.t
+			case 66: // time = TIME.start type.t
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
-					 return _symbol_t;
+					 return register(start, _symbol_t, t);
 			}
 			case 67: // actor_body = action_decl.a
 			{
@@ -900,24 +1034,29 @@ public class CalParser extends Parser {
 			{
 					((ArrayList) _symbols[offset + 1].value).add(_symbols[offset + 2].value); return _symbols[offset + 1];
 			}
-			case 84: // schedule = SCHEDULE opt$FSM IDENTIFIER.ID COLON opt$lst$fsm_state_transitions.trans end_schedule
+			case 84: // schedule = SCHEDULE.start opt$FSM IDENTIFIER.ID COLON opt$lst$fsm_state_transitions.trans end_schedule.end
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol ID = _symbols[offset + 3];
 					final Symbol _symbol_trans = _symbols[offset + 5];
 					final ArrayList _list_trans = (ArrayList) _symbol_trans.value;
 					final ImmutableList.Builder[] trans = _list_trans == null ? new ImmutableList.Builder[0] : (ImmutableList.Builder[]) _list_trans.toArray(new ImmutableList.Builder[_list_trans.size()]);
+					final Symbol end = _symbols[offset + 6];
 					  ImmutableList.Builder tl = trans.length>0 ? trans[0] : new ImmutableList.Builder();
           for(int i=1; i<trans.length; i++){
             tl.addAll(trans[i].build());
           }
-          return new Symbol(new ScheduleFSM(tl.build(), (String)ID.value));
+          return register(start, end, new ScheduleFSM(tl.build(), (String)ID.value));
 			}
-			case 85: // schedule = SCHEDULE.SCHEDULE REGEXP regexpr.r end_schedule
+			case 85: // schedule = SCHEDULE.start REGEXP regexpr.r end_schedule.end
 			{
-					final Symbol SCHEDULE = _symbols[offset + 1];
-					final Symbol _symbol_r = _symbols[offset + 3];
-					final AbstractIRNode r = (AbstractIRNode) _symbol_r.value;
-					 parseProblems.add("Regular expression schedules are not supported, at " + Symbol.getLine(SCHEDULE.getStart()) + ", " + Symbol.getColumn(SCHEDULE.getStart())); return new Symbol(null);
+					final Symbol start = _symbols[offset + 1];
+					final Symbol r = _symbols[offset + 3];
+					final Symbol end = _symbols[offset + 4];
+					 IRNode pos = new ScheduleFSM(ImmutableList.<Transition>empty(), "$regexpr"); // dummy node needed for error reporting
+       Symbol result = register(start, end, pos);
+       em.error("Regular expression schedules is not supported", pos); 
+       return result;
 			}
 			case 86: // lst$fsm_state_target = fsm_state_target
 			{
@@ -927,7 +1066,7 @@ public class CalParser extends Parser {
 			{
 					((ArrayList) _symbols[offset + 1].value).add(_symbols[offset + 2].value); return _symbols[offset + 1];
 			}
-			case 90: // fsm_state_transitions = IDENTIFIER.Src_state LPAREN action_tag_list.tags RPAREN EDGE IDENTIFIER.Dst_state opt$lst$fsm_state_target.more SEMICOLON
+			case 90: // fsm_state_transitions = IDENTIFIER.Src_state LPAREN action_tag_list.tags RPAREN EDGE IDENTIFIER.Dst_state opt$lst$fsm_state_target.more SEMICOLON.end
 			{
 					final Symbol Src_state = _symbols[offset + 1];
 					final Symbol _symbol_tags = _symbols[offset + 3];
@@ -936,13 +1075,18 @@ public class CalParser extends Parser {
 					final Symbol _symbol_more = _symbols[offset + 7];
 					final ArrayList _list_more = (ArrayList) _symbol_more.value;
 					final Transition[] more = _list_more == null ? new Transition[0] : (Transition[]) _list_more.toArray(new Transition[_list_more.size()]);
+					final Symbol end = _symbols[offset + 8];
 					 ImmutableList.Builder result = ImmutableList.builder();
           String startState = (String)Src_state.value;
-          result.add(new Transition(startState,
+          Transition trans = new Transition(startState,
                                     (String)Dst_state.value,
-                                    tags.build())); 
+                                    tags.build());
+          register(Src_state, end, trans);
+          result.add(trans);
           for(Transition t : more){
-            result.add(new Transition(startState, t.getDestinationState(), t.getActionTags()));
+            trans = new Transition(startState, t.getDestinationState(), t.getActionTags());
+            register(Src_state, end, trans);
+            result.add(trans);
           }
           return new Symbol(result);
 			}
@@ -959,7 +1103,9 @@ public class CalParser extends Parser {
 			{
 					final Symbol _symbol_id = _symbols[offset + 1];
 					final ArrayList id = (ArrayList) _symbol_id.value;
-					 return new Symbol(ImmutableList.builder().add(new QID((String[])id.toArray(new String[id.size()]))));
+					 QID qid = new QID((String[])id.toArray(new String[id.size()]));
+                                          register(_symbol_id, _symbol_id, qid);
+                                          return new Symbol(ImmutableList.builder().add(qid));
 			}
 			case 93: // action_tag_list = action_tag_list.l COMMA qual_id.id
 			{
@@ -967,59 +1113,53 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_id = _symbols[offset + 3];
 					final ArrayList id = (ArrayList) _symbol_id.value;
-					 l.add(new QID((String[])id.toArray(new String[id.size()]))); return _symbol_l;
+					 QID qid = new QID((String[])id.toArray(new String[id.size()]));
+                                          register(_symbol_id, _symbol_id, qid);
+                                          l.add(qid);
+                                          return _symbol_l;
 			}
 			case 94: // regexpr = regexpr_kleene.r
 			{
-					final Symbol _symbol_r = _symbols[offset + 1];
-					final AbstractIRNode r = (AbstractIRNode) _symbol_r.value;
-					 return new Symbol(null);
+					final Symbol r = _symbols[offset + 1];
+					 return r;
 			}
 			case 95: // regexpr = regexpr.r1 regexpr_kleene.r2
 			{
-					final Symbol _symbol_r1 = _symbols[offset + 1];
-					final AbstractIRNode r1 = (AbstractIRNode) _symbol_r1.value;
-					final Symbol _symbol_r2 = _symbols[offset + 2];
-					final AbstractIRNode r2 = (AbstractIRNode) _symbol_r2.value;
-					 return new Symbol(null);
+					final Symbol r1 = _symbols[offset + 1];
+					final Symbol r2 = _symbols[offset + 2];
+					 return r1;
 			}
 			case 96: // regexpr = regexpr.r1 BAR regexpr_kleene.r2
 			{
-					final Symbol _symbol_r1 = _symbols[offset + 1];
-					final AbstractIRNode r1 = (AbstractIRNode) _symbol_r1.value;
-					final Symbol _symbol_r2 = _symbols[offset + 3];
-					final AbstractIRNode r2 = (AbstractIRNode) _symbol_r2.value;
-					 return new Symbol(null);
+					final Symbol r1 = _symbols[offset + 1];
+					final Symbol r2 = _symbols[offset + 3];
+					 return r1;
 			}
 			case 97: // regexpr_kleene = regexpr_simple.r
 			{
-					final Symbol _symbol_r = _symbols[offset + 1];
-					final AbstractIRNode r = (AbstractIRNode) _symbol_r.value;
-					 return new Symbol(null);
+					final Symbol r = _symbols[offset + 1];
+					 return r;
 			}
 			case 98: // regexpr_kleene = regexpr_simple.r MULT
 			{
-					final Symbol _symbol_r = _symbols[offset + 1];
-					final AbstractIRNode r = (AbstractIRNode) _symbol_r.value;
-					 return new Symbol(null);
+					final Symbol r = _symbols[offset + 1];
+					 return r;
 			}
 			case 99: // regexpr_simple = qual_id.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final ArrayList n = (ArrayList) _symbol_n.value;
-					 return new Symbol(null);
+					 return _symbol_n;
 			}
 			case 100: // regexpr_simple = LPAREN regexpr.r RPAREN
 			{
-					final Symbol _symbol_r = _symbols[offset + 2];
-					final AbstractIRNode r = (AbstractIRNode) _symbol_r.value;
-					 return new Symbol(null);
+					final Symbol r = _symbols[offset + 2];
+					 return r;
 			}
 			case 101: // regexpr_simple = LBRACK regexpr.r RBRACK
 			{
-					final Symbol _symbol_r = _symbols[offset + 2];
-					final AbstractIRNode r = (AbstractIRNode) _symbol_r.value;
-					 return new Symbol(null);
+					final Symbol r = _symbols[offset + 2];
+					 return r;
 			}
 			case 102: // pri_inequality_list = pri_inequality.p SEMICOLON
 			{
@@ -1033,7 +1173,11 @@ public class CalParser extends Parser {
 					final ArrayList high = (ArrayList) _symbol_high.value;
 					final Symbol _symbol_low = _symbols[offset + 3];
 					final ArrayList low = (ArrayList) _symbol_low.value;
-					 return new Symbol(ImmutableList.builder().add(new QID((String[])high.toArray(new String[high.size()]))).add(new QID((String[])low.toArray(new String[low.size()]))));
+					 QID lowQID = new QID((String[])low.toArray(new String[low.size()]));
+                                          register(_symbol_low, _symbol_low, lowQID);
+                                          QID highQID = new QID((String[])high.toArray(new String[high.size()]));
+                                          register(_symbol_high, _symbol_high, highQID);
+                                          return new Symbol(ImmutableList.builder().add(highQID).add(lowQID));
 			}
 			case 104: // pri_inequality = pri_inequality.l GT qual_id.n
 			{
@@ -1041,7 +1185,10 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_n = _symbols[offset + 3];
 					final ArrayList n = (ArrayList) _symbol_n.value;
-					 l.add(new QID((String[])n.toArray(new String[n.size()]))); return _symbol_l;
+					 QID qid = new QID((String[])n.toArray(new String[n.size()]));
+                                          register(_symbol_n, _symbol_n, qid);
+                                          l.add(qid);
+                                          return _symbol_l;
 			}
 			case 113: // actor_parameter_list = actor_parameter.p
 			{
@@ -1062,7 +1209,10 @@ public class CalParser extends Parser {
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(new ParDeclValue((String)id.value, null));
+					 ParDeclValue decl = new ParDeclValue((String)id.value, null);
+                                                               Symbol result = register(id, id, decl);
+                                                               if(e != null){ register(id, e, decl); em.warning("default value for parameter " + (String)id.value + " is ignored.", decl);}; 
+                                                               return result;
 			}
 			case 118: // actor_parameter = type.t IDENTIFIER.id opt$actor_parameter_init_expression.e
 			{
@@ -1071,7 +1221,10 @@ public class CalParser extends Parser {
 					final Symbol id = _symbols[offset + 2];
 					final Symbol _symbol_e = _symbols[offset + 3];
 					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(new ParDeclValue((String)id.value, t));
+					 ParDecl decl = new ParDeclValue((String)id.value, t);
+                                                               Symbol result = register(t, id, decl);
+                                                               if(e != null){ register(t, e, decl); em.warning("default value for parameter " + (String)id.value + " is ignored.", decl);}; 
+                                                               return result;
 			}
 			case 119: // actor_parameter_init_expression = EQ expression.e
 			{
@@ -1082,24 +1235,24 @@ public class CalParser extends Parser {
 			case 120: // qual_id = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 ArrayList l = new ArrayList(); l.add(id.value); return new Symbol(l);
+					 ArrayList l = new ArrayList(); l.add(id.value); return new Symbol(id.getId(), id.getStart(), id.getEnd(), l);
 			}
 			case 121: // qual_id = IDENTIFIER.id DOT qual_id.l
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_l = _symbols[offset + 3];
 					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, id.value); return _symbol_l;
+					 l.add(0, id.value); return new Symbol(id.getId(), id.getStart(), _symbol_l.getEnd(), l);
 			}
 			case 122: // variable = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(Variable.variable((String) id.value));
+					 return register(id, id, Variable.variable((String) id.value));
 			}
 			case 123: // field = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new Field((String) id.value));
+					 return register(id, id, new Field((String) id.value));
 			}
 			case 124: // decl_list = decl.d
 			{
@@ -1149,33 +1302,40 @@ public class CalParser extends Parser {
 					final DeclVar d = (DeclVar) _symbol_d.value;
 					 return _symbol_d;
 			}
-			case 132: // var_decl = MUTABLE var_name_type.v
+			case 132: // var_decl = MUTABLE.m var_name_type.v
 			{
+					final Symbol m = _symbols[offset + 1];
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final DeclVar v = (DeclVar) _symbol_v.value;
-					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, null, true));
+					 em.warning("mutable is ignored for " + v.getName(), v); 
+                                                         register(m, v, v);
+                                                         return _symbol_v;
 			}
-			case 133: // var_decl = MUTABLE var_name_type.v EQ expression.init
+			case 133: // var_decl = MUTABLE.m var_name_type.v EQ expression.init
 			{
+					final Symbol m = _symbols[offset + 1];
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final DeclVar v = (DeclVar) _symbol_v.value;
 					final Symbol _symbol_init = _symbols[offset + 4];
 					final Expression init = (Expression) _symbol_init.value;
-					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, false));
+					 em.warning("mutable is ignored for " + v.getName(), v);
+                                                         return register(m, init, v.copy(v.getType(), v.getName(), null, init, false));
 			}
-			case 134: // var_decl = MUTABLE var_name_type.v EQCOLON expression.init
+			case 134: // var_decl = MUTABLE.m var_name_type.v COLONEQ expression.init
 			{
+					final Symbol m = _symbols[offset + 1];
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final DeclVar v = (DeclVar) _symbol_v.value;
 					final Symbol _symbol_init = _symbols[offset + 4];
 					final Expression init = (Expression) _symbol_init.value;
-					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, true));
+					 em.warning("mutable is ignored for " + v.getName(), v);
+                                                         return register(m, init, v.copy(v.getType(), v.getName(), null, init, true));
 			}
 			case 135: // var_decl = var_name_type.v
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
 					final DeclVar v = (DeclVar) _symbol_v.value;
-					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, null, true));
+					 return _symbol_v;
 			}
 			case 136: // var_decl = var_name_type.v EQ expression.init
 			{
@@ -1183,7 +1343,7 @@ public class CalParser extends Parser {
 					final DeclVar v = (DeclVar) _symbol_v.value;
 					final Symbol _symbol_init = _symbols[offset + 3];
 					final Expression init = (Expression) _symbol_init.value;
-					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, false));
+					 return register(v, init, v.copy(v.getType(), v.getName(), null, init, false));
 			}
 			case 137: // var_decl = var_name_type.v COLONEQ expression.init
 			{
@@ -1191,57 +1351,63 @@ public class CalParser extends Parser {
 					final DeclVar v = (DeclVar) _symbol_v.value;
 					final Symbol _symbol_init = _symbols[offset + 3];
 					final Expression init = (Expression) _symbol_init.value;
-					 return new Symbol(new DeclVar(v.getType(), v.getName(), null, init, true));
+					 return register(v, init, v.copy(v.getType(), v.getName(), null, init, true));
 			}
 			case 138: // var_name_type = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new DeclVar(null, (String)id.value, null));
+					 return register(id, id, new DeclVar(null, (String)id.value, null, null, true));
 			}
 			case 139: // var_name_type = type.type IDENTIFIER.id
 			{
 					final Symbol _symbol_type = _symbols[offset + 1];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 2];
-					 return new Symbol(new DeclVar(type, (String)id.value, null));
+					 return register(id, id, new DeclVar(type, (String)id.value, null, null, true));
 			}
-			case 140: // fun_decl = FUNCTION IDENTIFIER.id lambda_expr_body.lambda
+			case 140: // fun_decl = FUNCTION.start IDENTIFIER.id lambda_expr_body.lambda
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol id = _symbols[offset + 2];
 					final Symbol _symbol_lambda = _symbols[offset + 3];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
-					 return new Symbol(new DeclVar(null, (String)id.value, null, lambda, false));
+					 register(start, lambda, lambda); return register(start, lambda, new DeclVar(null, (String)id.value, null, lambda, false));
 			}
-			case 141: // proc_decl = PROCEDURE IDENTIFIER.id procedure_expr_body.body
+			case 141: // proc_decl = PROCEDURE.start IDENTIFIER.id procedure_expr_body.body
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol id = _symbols[offset + 2];
 					final Symbol _symbol_body = _symbols[offset + 3];
 					final ExprProc body = (ExprProc) _symbol_body.value;
-					 return new Symbol(new DeclVar(null, (String)id.value, null, body, false));
+					 register(start, body, body); return register(start, body, new DeclVar(null, (String)id.value, null, body, false));
 			}
 			case 142: // port_decl = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new PortDecl((String)id.value, null));
+					 return register(id, id, new PortDecl((String)id.value, null));
 			}
 			case 143: // port_decl = type.type IDENTIFIER.id
 			{
 					final Symbol _symbol_type = _symbols[offset + 1];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 2];
-					 return new Symbol(new PortDecl((String)id.value, type));
+					 return register(type, id, new PortDecl((String)id.value, type));
 			}
-			case 144: // port_decl = MULTI IDENTIFIER.id
+			case 144: // port_decl = MULTI.m IDENTIFIER.id
 			{
+					final Symbol m = _symbols[offset + 1];
 					final Symbol id = _symbols[offset + 2];
-					 return new Symbol(new PortDecl((String)id.value, null));
+					 em.warning("multi is ignored for " + (String)id.value, null);
+                                       return register(m, id, new PortDecl((String)id.value, null));
 			}
-			case 145: // port_decl = MULTI type.type IDENTIFIER.id
+			case 145: // port_decl = MULTI.m type.type IDENTIFIER.id
 			{
+					final Symbol m = _symbols[offset + 1];
 					final Symbol _symbol_type = _symbols[offset + 2];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 3];
-					 return new Symbol(new PortDecl((String)id.value, type));
+					 em.warning("multi is ignored for " + (String)id.value, null);
+                                       return register(m, id, new PortDecl((String)id.value, type));
 			}
 			case 146: // port_decl_list_opt = 
 			{
@@ -1288,7 +1454,10 @@ public class CalParser extends Parser {
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_type_bound = _symbols[offset + 2];
 					final TypeExpr type_bound = (TypeExpr) _symbol_type_bound.value;
-					 return new Symbol(new ParDeclType((String)id.value));
+					 ParDeclType decl = new ParDeclType((String)id.value);
+                                               Symbol result = register(id, type_bound, decl);
+                                               em.warning("type bound is ignored", null);
+                                               return result;
 			}
 			case 156: // type_parameter_block = LBRACK opt$type_parameter_list.l RBRACK
 			{
@@ -1327,37 +1496,42 @@ public class CalParser extends Parser {
 			case 161: // type = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new TypeExpr((String)id.value));
+					 return register(id, id, new TypeExpr((String)id.value));
 			}
-			case 164: // type = IDENTIFIER.id LPAREN opt$type_attribute_list.attributes RPAREN
+			case 164: // type = IDENTIFIER.id LPAREN opt$type_attribute_list.attributes RPAREN.end
 			{
 					final Symbol id = _symbols[offset + 1];
 					final Symbol _symbol_attributes = _symbols[offset + 3];
 					final ArrayList attributes = (ArrayList) _symbol_attributes.value;
+					final Symbol end = _symbols[offset + 4];
 					 ImmutableList.Builder valueParameters = ImmutableList.builder();
-                                                                   ImmutableList.Builder typeParameters = ImmutableList.builder();
-                                                                   for(Map.Entry map : (ArrayList<Map.Entry>)attributes){
-                                                                     if(map.getValue() instanceof Expression){
-                                                                       valueParameters.add(ImmutableEntry.of(map.getKey(), map.getValue()));
-                                                                     } else {
-                                                                       typeParameters.add(ImmutableEntry.of(map.getKey(), map.getValue()));
-                                                                     }
-                                                                   }
-                                                                   return new Symbol(new TypeExpr((String)id.value, typeParameters.build(), valueParameters.build()));
+                             ImmutableList.Builder typeParameters = ImmutableList.builder();
+                             for(Map.Entry map : (ArrayList<Map.Entry>)attributes){
+                               if(map.getValue() instanceof Expression){
+                                 valueParameters.add(ImmutableEntry.of(map.getKey(), map.getValue()));
+                               } else {
+                                 typeParameters.add(ImmutableEntry.of(map.getKey(), map.getValue()));
+                               }
+                             }
+                             return register(id, end, new TypeExpr((String)id.value, typeParameters.build(), valueParameters.build()));
 			}
-			case 167: // type = LBRACK opt$type_list.param EDGE type.result_type RBRACK
+			case 167: // type = LBRACK.l opt$type_list.param EDGE type.result_type RBRACK.e
 			{
+					final Symbol l = _symbols[offset + 1];
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_result_type = _symbols[offset + 4];
 					final TypeExpr result_type = (TypeExpr) _symbol_result_type.value;
-					 return new Symbol(null);
+					final Symbol e = _symbols[offset + 5];
+					 warning("types involving -> is not supported", l, e); return new Symbol(null);
 			}
-			case 168: // type = LBRACK opt$type_list.param EDGE RBRACK
+			case 168: // type = LBRACK.l opt$type_list.param EDGE RBRACK.e
 			{
+					final Symbol l = _symbols[offset + 1];
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
-					 return new Symbol(null);
+					final Symbol e = _symbols[offset + 4];
+					 warning("types involving -> is not supported", l, e); return new Symbol(null);
 			}
 			case 169: // type_attribute_list = type_attribute.t
 			{
@@ -1393,15 +1567,17 @@ public class CalParser extends Parser {
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					 return _symbol_t;
 			}
-			case 178: // procedure_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl stmt_block_opt.body end_proc
+			case 178: // procedure_expr_body = LPAREN.start opt$formal_parameter_list.param RPAREN opt$decl_block.decl stmt_block_opt.body end_proc.end
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_decl = _symbols[offset + 4];
 					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 5];
 					final ImmutableList body = (ImmutableList) _symbol_body.value;
-					  return new Symbol(
+					final Symbol end = _symbols[offset + 6];
+					  return register(start, end,
             new ExprProc(
               ImmutableList.<ParDeclType>empty(), 
               param==null ? ImmutableList.empty() : param.build(),
@@ -1419,32 +1595,37 @@ public class CalParser extends Parser {
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
 					 return _symbol_s;
 			}
-			case 181: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN expression.body end_lambda
+			case 181: // lambda_expr_body = LPAREN.s opt$formal_parameter_list.param RPAREN expression.body end_lambda.e
 			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_body = _symbols[offset + 4];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
+					final Symbol e = _symbols[offset + 5];
+					 return register(s, e, new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              body,
                                              null));
 			}
-			case 182: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN opt$decl_block.decl COLON expression.body end_lambda
+			case 182: // lambda_expr_body = LPAREN.s opt$formal_parameter_list.param RPAREN opt$decl_block.decl COLON expression.body end_lambda.e
 			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_decl = _symbols[offset + 4];
 					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 6];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
+					final Symbol e = _symbols[offset + 7];
+					 return register(s, e, new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              new ExprLet(null, decl, body),
                                              null));
 			}
-			case 183: // lambda_expr_body = LPAREN opt$formal_parameter_list.param RPAREN edge_type.t opt$decl_block.decl COLON expression.body end_lambda
+			case 183: // lambda_expr_body = LPAREN.s opt$formal_parameter_list.param RPAREN edge_type.t opt$decl_block.decl COLON expression.body end_lambda.e
 			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_param = _symbols[offset + 2];
 					final ImmutableList.Builder param = (ImmutableList.Builder) _symbol_param.value;
 					final Symbol _symbol_t = _symbols[offset + 4];
@@ -1453,7 +1634,8 @@ public class CalParser extends Parser {
 					final ImmutableList decl = (ImmutableList) _symbol_decl.value;
 					final Symbol _symbol_body = _symbols[offset + 7];
 					final Expression body = (Expression) _symbol_body.value;
-					 return new Symbol(new ExprLambda(ImmutableList.<ParDeclType>empty(),
+					final Symbol e = _symbols[offset + 8];
+					 return register(s, e, new ExprLambda(ImmutableList.<ParDeclType>empty(),
                                              param==null ? null : param.build(),
                                              new ExprLet(null, decl, body),
                                              t));
@@ -1504,58 +1686,59 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder n = (ImmutableList.Builder) _symbol_n.value;
 					 return new Symbol(n.build());
 			}
-			case 191: // method_invocation = indexing_expression.function LPAREN expression_list_opt.args RPAREN
+			case 191: // method_invocation = indexing_expression.function LPAREN expression_list_opt.args RPAREN.end
 			{
 					final Symbol _symbol_function = _symbols[offset + 1];
 					final Expression function = (Expression) _symbol_function.value;
 					final Symbol _symbol_args = _symbols[offset + 3];
 					final ImmutableList args = (ImmutableList) _symbol_args.value;
-					 return new Symbol(new ExprApplication(function, args));
+					final Symbol end = _symbols[offset + 4];
+					 return register(function, end, new ExprApplication(function, args));
 			}
 			case 192: // literal = INTEGER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
 			case 193: // literal = LONG_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
 			}
 			case 194: // literal = FLOATING_POINT_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Integer, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.Real, ((String)txt.value)));
 			}
 			case 195: // literal = DOUBLE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Real, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.Real, ((String)txt.value)));
 			}
 			case 196: // literal = TRUE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.True, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.True, ((String)txt.value)));
 			}
 			case 197: // literal = FALSE_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.False, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.False, ((String)txt.value)));
 			}
 			case 198: // literal = CHARACTER_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Char, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.Char, ((String)txt.value)));
 			}
 			case 199: // literal = STRING_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.String, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.String, ((String)txt.value)));
 			}
 			case 200: // literal = NULL_LITERAL.txt
 			{
 					final Symbol txt = _symbols[offset + 1];
-					 return new Symbol(new ExprLiteral(ExprLiteral.Kind.Null, ((String)txt.value)));
+					 return register(txt, txt, new ExprLiteral(ExprLiteral.Kind.Null, ((String)txt.value)));
 			}
 			case 201: // primary = literal.l
 			{
@@ -1569,14 +1752,16 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return new ParenthesSymbol(_symbol_e);
 			}
-			case 203: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN
+			case 203: // primary = LPAREN.start expression.e DOUBLECOLON type.t RPAREN.end
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_t = _symbols[offset + 4];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
-					 parseProblems.add("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(start.getStart()) + ", " + Symbol.getColumn(start.getStart()));
+					final Symbol end = _symbols[offset + 5];
+					 em.warning("Type assertion is not supported. Assertion is ignored at " + Symbol.getLine(start.getStart()) + ", " + Symbol.getColumn(start.getStart()), null); 
+                                                               return register(start, end, new ExprLiteral(ExprLiteral.Kind.String, "type assertion"));
 			}
 			case 204: // simple_expression = primary.p
 			{
@@ -1588,91 +1773,114 @@ public class CalParser extends Parser {
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
 					final Variable v = (Variable) _symbol_v.value;
-					 return new Symbol(new ExprVariable(v));
+					 return register(v, v, new ExprVariable(v));
 			}
-			case 206: // simple_expression = OLD variable.v
+			case 206: // simple_expression = OLD.old variable.v
 			{
+					final Symbol old = _symbols[offset + 1];
 					final Symbol _symbol_v = _symbols[offset + 2];
 					final Variable v = (Variable) _symbol_v.value;
-					 return new Symbol(new ExprVariable(v));
+					 em.warning("old is not supported for " + v.getName() + ", at " + Symbol.getLine(old.getStart()) + ", " + Symbol.getColumn(old.getStart()), null); 
+                                                                             return register(v, v, new ExprVariable(v));
 			}
-			case 207: // simple_expression = IF expression.c THEN expression.e1 ELSE expression.e2 END
+			case 207: // simple_expression = IF.s expression.c THEN expression.e1 ELSE expression.e2 END.end
 			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_c = _symbols[offset + 2];
 					final Expression c = (Expression) _symbol_c.value;
 					final Symbol _symbol_e1 = _symbols[offset + 4];
 					final Expression e1 = (Expression) _symbol_e1.value;
 					final Symbol _symbol_e2 = _symbols[offset + 6];
 					final Expression e2 = (Expression) _symbol_e2.value;
-					 return new Symbol(new ExprIf(c, e1, e2));
+					final Symbol end = _symbols[offset + 7];
+					 return register(s, end, new ExprIf(c, e1, e2));
 			}
-			case 208: // simple_expression = LBRACE expression_list_opt.e RBRACE
+			case 208: // simple_expression = LBRACE.s expression_list_opt.e RBRACE.end
 			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ImmutableList e = (ImmutableList) _symbol_e.value;
-					 return new Symbol(new ExprSet(e));
+					final Symbol end = _symbols[offset + 3];
+					 return register(s, end, new ExprSet(e));
 			}
-			case 209: // simple_expression = LBRACE expression_list_opt.e COLON for_generator_list.l RBRACE
+			case 209: // simple_expression = LBRACE.s expression_list_opt.e COLON for_generator_list.l RBRACE.end
 			{
-					final Symbol _symbol_e = _symbols[offset + 2];
-					final ImmutableList e = (ImmutableList) _symbol_e.value;
-					final Symbol _symbol_l = _symbols[offset + 4];
-					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
-					 return new Symbol(new ExprSet(e, l.build()));
-			}
-			case 210: // simple_expression = LBRACK expression_list_opt.e RBRACK
-			{
-					final Symbol _symbol_e = _symbols[offset + 2];
-					final ImmutableList e = (ImmutableList) _symbol_e.value;
-					 return new Symbol(new ExprList(e));
-			}
-			case 211: // simple_expression = LBRACK expression_list_opt.e COLON for_generator_list.l RBRACK
-			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final ImmutableList e = (ImmutableList) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 4];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
-					 return new Symbol(new ExprList(e, l.build()));
+					final Symbol end = _symbols[offset + 5];
+					 return register(s, end, new ExprSet(e, l.build()));
 			}
-			case 214: // simple_expression = MAP LBRACE opt$map_list.m RBRACE
+			case 210: // simple_expression = LBRACK.s expression_list_opt.e RBRACK.end
 			{
+					final Symbol s = _symbols[offset + 1];
+					final Symbol _symbol_e = _symbols[offset + 2];
+					final ImmutableList e = (ImmutableList) _symbol_e.value;
+					final Symbol end = _symbols[offset + 3];
+					 return register(s, end, new ExprList(e));
+			}
+			case 211: // simple_expression = LBRACK.s expression_list_opt.e COLON for_generator_list.l RBRACK.end
+			{
+					final Symbol s = _symbols[offset + 1];
+					final Symbol _symbol_e = _symbols[offset + 2];
+					final ImmutableList e = (ImmutableList) _symbol_e.value;
+					final Symbol _symbol_l = _symbols[offset + 4];
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					final Symbol end = _symbols[offset + 5];
+					 return register(s, end, new ExprList(e, l.build()));
+			}
+			case 214: // simple_expression = MAP.s LBRACE opt$map_list.m RBRACE.end
+			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final ImmutableList.Builder m = (ImmutableList.Builder) _symbol_m.value;
-					 return new Symbol(new ExprMap(m==null? null : m.build()));
+					final Symbol end = _symbols[offset + 4];
+					 return register(s, end, new ExprMap(m==null? null : m.build()));
 			}
-			case 215: // simple_expression = MAP LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE
+			case 215: // simple_expression = MAP.s LBRACE opt$map_list.m COLON for_generator_list.generators RBRACE.end
 			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_m = _symbols[offset + 3];
 					final ImmutableList.Builder m = (ImmutableList.Builder) _symbol_m.value;
 					final Symbol _symbol_generators = _symbols[offset + 5];
 					final ImmutableList.Builder generators = (ImmutableList.Builder) _symbol_generators.value;
-					 return new Symbol(new ExprMap(m==null? null : m.build(), generators.build()));
+					final Symbol end = _symbols[offset + 6];
+					 return register(s, end, new ExprMap(m==null? null : m.build(), generators.build()));
 			}
-			case 216: // simple_expression = LET decl_list.l COLON expression.e end_let
+			case 216: // simple_expression = LET.s decl_list.l COLON expression.e end_let.end
 			{
+					final Symbol s = _symbols[offset + 1];
 					final Symbol _symbol_l = _symbols[offset + 2];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(new ExprLet(null, l.build(), e));
+					final Symbol end = _symbols[offset + 5];
+					 return register(s, end, new ExprLet(null, l.build(), e));
 			}
-			case 217: // simple_expression = LAMBDA lambda_expr_body.lambda
+			case 217: // simple_expression = LAMBDA.start lambda_expr_body.lambda
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_lambda = _symbols[offset + 2];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
-					 return _symbol_lambda;
+					 return register(start, lambda, lambda);
 			}
-			case 218: // simple_expression = CONST LAMBDA lambda_expr_body.lambda
+			case 218: // simple_expression = CONST.start LAMBDA lambda_expr_body.lambda
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_lambda = _symbols[offset + 3];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
-					 return _symbol_lambda;
+					 register(start, lambda, lambda); 
+                                                                             em.warning("const is ignored in lambda expression", lambda); 
+                                                                             return _symbol_lambda;
 			}
-			case 219: // simple_expression = PROC procedure_expr_body.p
+			case 219: // simple_expression = PROC.start procedure_expr_body.p
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_p = _symbols[offset + 2];
 					final ExprProc p = (ExprProc) _symbol_p.value;
-					 return _symbol_p;
+					 return register(start, p, p);
 			}
 			case 220: // indexing_expression = simple_expression.e
 			{
@@ -1691,7 +1899,7 @@ public class CalParser extends Parser {
 					final Expression p = (Expression) _symbol_p.value;
 					final Symbol _symbol_f = _symbols[offset + 3];
 					final Field f = (Field) _symbol_f.value;
-					 return new Symbol(new ExprField(p, f));
+					 return register(p, f, new ExprField(p, f));
 			}
 			case 223: // indexing_expression = method_invocation.m
 			{
@@ -1699,13 +1907,14 @@ public class CalParser extends Parser {
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
 					 return _symbol_m;
 			}
-			case 224: // indexer = indexer_start.s expression.i RBRACK
+			case 224: // indexer = indexer_start.s expression.i RBRACK.e
 			{
 					final Symbol _symbol_s = _symbols[offset + 1];
 					final Expression s = (Expression) _symbol_s.value;
 					final Symbol _symbol_i = _symbols[offset + 2];
 					final Expression i = (Expression) _symbol_i.value;
-					 return new Symbol(new ExprIndexer(s, i));
+					final Symbol e = _symbols[offset + 3];
+					 return register(s,e, new ExprIndexer(s, i));
 			}
 			case 225: // indexer_start = indexing_expression.e LBRACK
 			{
@@ -1713,13 +1922,14 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return _symbol_e;
 			}
-			case 226: // indexer_start = indexer_start.s expression.i COMMA
+			case 226: // indexer_start = indexer_start.s expression.i COMMA.e
 			{
 					final Symbol _symbol_s = _symbols[offset + 1];
 					final Expression s = (Expression) _symbol_s.value;
 					final Symbol _symbol_i = _symbols[offset + 2];
 					final Expression i = (Expression) _symbol_i.value;
-					 return new Symbol(new ExprIndexer(s, i));
+					final Symbol e = _symbols[offset + 3];
+					 return register(s, e, new ExprIndexer(s, i));
 			}
 			case 227: // unary_expression = indexing_expression.e
 			{
@@ -1733,7 +1943,7 @@ public class CalParser extends Parser {
 					final String operator = (String) _symbol_operator.value;
 					final Symbol _symbol_expr = _symbols[offset + 2];
 					final Expression expr = (Expression) _symbol_expr.value;
-					 return new Symbol(new ExprUnaryOp(operator, expr));
+					 return register(_symbol_operator, expr, new ExprUnaryOp(operator, expr));
 			}
 			case 229: // expression = unary_expression.e
 			{
@@ -1752,15 +1962,16 @@ public class CalParser extends Parser {
 					 ImmutableList<String> operators;
                                                                ImmutableList<Expression> operands;
                                                                boolean arg1IsPar = _symbol_arg1 instanceof ParenthesSymbol;
+                                                               ExprBinaryOp expr = null;
                                                                if((arg1 instanceof ExprBinaryOp) && !(arg1IsPar)){
-                                                                 ExprBinaryOp expr = (ExprBinaryOp)arg1;
+                                                                 expr = (ExprBinaryOp)arg1;
                                                                  operators = ImmutableList.<String>builder().addAll(expr.getOperations()).add(operator).build();
                                                                  operands = ImmutableList.<Expression>builder().addAll(expr.getOperands()).add(arg2).build();
                                                                } else {
                                                                  operators = ImmutableList.of(operator);
                                                                  operands = ImmutableList.of(arg1, arg2);
                                                                }
-                                                               return new Symbol(new ExprBinaryOp(operators, operands));
+                                                               return register(operands.get(0), arg2, new ExprBinaryOp(expr, operators, operands));  // reuse the Identifier from the previous expr.
 			}
 			case 231: // operator = OPERATOR.op
 			{
@@ -1795,14 +2006,14 @@ public class CalParser extends Parser {
 			case 237: // formal_parameter = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(new ParDeclValue((String)id.value, null));
+					 return register(id, id, new ParDeclValue((String)id.value, null));
 			}
 			case 238: // formal_parameter = type.t IDENTIFIER.id
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol id = _symbols[offset + 2];
-					 return new Symbol(new ParDeclValue((String)id.value, t));
+					 return register(t, id, new ParDeclValue((String)id.value, t));
 			}
 			case 239: // formal_parameter_list = formal_parameter.p
 			{
@@ -1818,115 +2029,186 @@ public class CalParser extends Parser {
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 l.add(p);  return _symbol_l;
 			}
-			case 241: // statement = expression.lhs COLONEQ expression.value SEMICOLON
+			case 241: // statement = expression.lhs COLONEQ expression.value SEMICOLON.end
 			{
 					final Symbol _symbol_lhs = _symbols[offset + 1];
 					final Expression lhs = (Expression) _symbol_lhs.value;
 					final Symbol _symbol_value = _symbols[offset + 3];
 					final Expression value = (Expression) _symbol_value.value;
+					final Symbol end = _symbols[offset + 4];
 					 LValue lvalue = expressionToLValue(lhs);
-                                                         if (lvalue != null) return new Symbol(new StmtAssignment(lvalue, value));
-                                                         newError("Illegal left hand sign of assignment.", _symbol_lhs);
-                                                         return new Symbol(new StmtAssignment(new LValueVariable(Variable.variable("$illegal")), value));
+                                                             if (lvalue != null) return register(lhs, end, new StmtAssignment(lvalue, value));
+                                                             em.error("Illegal left hand sign of assignment.", lhs);
+                                                             return register(lhs, end, new StmtAssignment(new LValueVariable(Variable.variable("$illegal")), value));
 			}
-			case 242: // statement = method_invocation.m SEMICOLON
+			case 242: // statement = method_invocation.m SEMICOLON.end
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
-					 return new Symbol(new StmtCall(m.getFunction(), m.getArgs()));
+					final Symbol end = _symbols[offset + 2];
+					 return register(m, end, new StmtCall(m.getFunction(), m.getArgs()));
 			}
-			case 243: // statement = BEGIN statement_list_opt.s END
+			case 243: // statement = BEGIN.start statement_list_opt.s END.end
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_s = _symbols[offset + 2];
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
-					 return new Symbol(new StmtBlock(null, null, s));
+					final Symbol end = _symbols[offset + 3];
+					 return register(start, end, new StmtBlock(null, null, s));
 			}
-			case 244: // statement = BEGIN VAR decl_list.d DO statement_list_opt.s END
+			case 244: // statement = BEGIN.start VAR decl_list.d DO statement_list_opt.s END.end
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_d = _symbols[offset + 3];
 					final ImmutableList.Builder d = (ImmutableList.Builder) _symbol_d.value;
 					final Symbol _symbol_s = _symbols[offset + 5];
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
-					 return new Symbol(new StmtBlock(null, d.build(), s));
+					final Symbol end = _symbols[offset + 6];
+					 return register(start, end, new StmtBlock(null, d.build(), s));
 			}
-			case 245: // statement = IF expression.e THEN statement_list_opt.s end_if
+			case 245: // statement = IF.start expression.e THEN statement_list_opt.s end_if.end
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_s = _symbols[offset + 4];
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
-					 return new Symbol(new StmtIf(e, new StmtBlock(null, null, s), null));
+					final Symbol end = _symbols[offset + 5];
+					 return register(start, end, new StmtIf(e, new StmtBlock(null, null, s), null));
 			}
-			case 246: // statement = IF expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if
+			case 246: // statement = IF.start expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if.end
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_s1 = _symbols[offset + 4];
 					final ImmutableList s1 = (ImmutableList) _symbol_s1.value;
 					final Symbol _symbol_s2 = _symbols[offset + 6];
 					final ImmutableList s2 = (ImmutableList) _symbol_s2.value;
-					 return new Symbol(new StmtIf(e, 
-                                                                                                                 new StmtBlock(null, null, s1),
-                                                                                                                 new StmtBlock(null, null, s2)));
+					final Symbol end = _symbols[offset + 7];
+					 return register(start, end, new StmtIf(e, 
+                                                                                                                                     new StmtBlock(null, null, s1),
+                                                                                                                                     new StmtBlock(null, null, s2)));
 			}
-			case 247: // statement = WHILE expression.e decl_block_opt.d DO statement_list_opt.s end_while
+			case 247: // statement = WHILE.start expression.e decl_block_opt.d DO statement_list_opt.s end_while.end
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_d = _symbols[offset + 3];
 					final ImmutableList d = (ImmutableList) _symbol_d.value;
 					final Symbol _symbol_s = _symbols[offset + 5];
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
-					 return new Symbol(new StmtWhile(e, new StmtBlock(null, d, s)));
+					final Symbol end = _symbols[offset + 6];
+					 return register(start, end, new StmtWhile(e, new StmtBlock(null, d, s)));
 			}
-			case 251: // statement = for_generator_list.g DO statement_list_opt.s end_foreach
+			case 248: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s end_choose.end
+			{
+					final Symbol _symbol_l = _symbols[offset + 1];
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					final Symbol _symbol_do_v = _symbols[offset + 2];
+					final ImmutableList do_v = (ImmutableList) _symbol_do_v.value;
+					final Symbol c = _symbols[offset + 3];
+					final Symbol _symbol_do_s = _symbols[offset + 4];
+					final ImmutableList do_s = (ImmutableList) _symbol_do_s.value;
+					final Symbol end = _symbols[offset + 5];
+					 Statement stmt = new StmtBlock(null, null, ImmutableList.<Statement>empty());
+       Symbol result = register((GeneratorFilter)l.build().get(0), end, stmt);
+       em.error("choose statement is not supported", stmt);
+       return result;
+			}
+			case 249: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose.end
+			{
+					final Symbol _symbol_l = _symbols[offset + 1];
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					final Symbol _symbol_do_v = _symbols[offset + 2];
+					final ImmutableList do_v = (ImmutableList) _symbol_do_v.value;
+					final Symbol c = _symbols[offset + 3];
+					final Symbol _symbol_do_s = _symbols[offset + 4];
+					final ImmutableList do_s = (ImmutableList) _symbol_do_s.value;
+					final Symbol _symbol_else_s = _symbols[offset + 6];
+					final ImmutableList else_s = (ImmutableList) _symbol_else_s.value;
+					final Symbol end = _symbols[offset + 7];
+					 Statement stmt = new StmtBlock(null, null, ImmutableList.<Statement>empty());
+       Symbol result = register((GeneratorFilter)l.build().get(0), end, stmt);
+       em.error("choose statement is not supported", stmt);
+       return result;
+			}
+			case 250: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose.end
+			{
+					final Symbol _symbol_l = _symbols[offset + 1];
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					final Symbol _symbol_do_v = _symbols[offset + 2];
+					final ImmutableList do_v = (ImmutableList) _symbol_do_v.value;
+					final Symbol c = _symbols[offset + 3];
+					final Symbol _symbol_do_s = _symbols[offset + 4];
+					final ImmutableList do_s = (ImmutableList) _symbol_do_s.value;
+					final Symbol _symbol_else_v = _symbols[offset + 6];
+					final ImmutableList else_v = (ImmutableList) _symbol_else_v.value;
+					final Symbol _symbol_else_s = _symbols[offset + 8];
+					final ImmutableList else_s = (ImmutableList) _symbol_else_s.value;
+					final Symbol end = _symbols[offset + 9];
+					 Statement stmt = new StmtBlock(null, null, ImmutableList.<Statement>empty());
+       Symbol result = register((GeneratorFilter)l.build().get(0), end, stmt);
+       em.error("choose statement is not supported", stmt);
+       return result;
+			}
+			case 251: // statement = for_generator_list.g DO.doSymbol statement_list_opt.s end_foreach.end
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
 					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
+					final Symbol doSymbol = _symbols[offset + 2];
 					final Symbol _symbol_s = _symbols[offset + 3];
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
-					 return new Symbol(new StmtForeach(g.build(), new StmtBlock(null, null, s)));
+					final Symbol end = _symbols[offset + 4];
+					 return register(doSymbol, end, new StmtForeach(g.build(), new StmtBlock(null, null, s)));
 			}
-			case 252: // statement = for_generator_list.g decl_block.d DO statement_list_opt.s end_foreach
+			case 252: // statement = for_generator_list.g decl_block.d DO.doSymbol statement_list_opt.s end_foreach.end
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
 					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
 					final Symbol _symbol_d = _symbols[offset + 2];
 					final ImmutableList d = (ImmutableList) _symbol_d.value;
+					final Symbol doSymbol = _symbols[offset + 3];
 					final Symbol _symbol_s = _symbols[offset + 4];
 					final ImmutableList s = (ImmutableList) _symbol_s.value;
-					 return new Symbol(new StmtForeach(g.build(), new StmtBlock(null, d, s)));
+					final Symbol end = _symbols[offset + 5];
+					 return register(doSymbol, end, new StmtForeach(g.build(), new StmtBlock(null, d, s)));
 			}
-			case 253: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e
+			case 253: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars.build(), e, null)); return new Symbol(l);
+					 return makeGeneratorFilter(start, null, vars.build(), e, null, null);
 			}
-			case 254: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e
+			case 254: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 5];
 					final Expression e = (Expression) _symbol_e.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars.build(), e, null)); return new Symbol(l);
+					 return makeGeneratorFilter(start, t, vars.build(), e, null, null);
 			}
-			case 255: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 255: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 6];
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(null, vars.build(), e, filters.build())); return new Symbol(l);
+					 return makeGeneratorFilter(start, null, vars.build(), e, filters.build(), null);
 			}
-			case 256: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 256: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
@@ -1935,108 +2217,22 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_filters = _symbols[offset + 7];
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
-					 ArrayList l = new ArrayList(); l.add(makeGeneratorFilter(t, vars.build(), e, filters.build())); return new Symbol(l);
+					 return makeGeneratorFilter(start, t, vars.build(), e, filters.build(), null);
 			}
-			case 257: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 257: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
-					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
-					final Symbol _symbol_e = _symbols[offset + 4];
-					final Expression e = (Expression) _symbol_e.value;
-					final Symbol _symbol_l = _symbols[offset + 6];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(null, vars.build(), e, null)); return _symbol_l;
-			}
-			case 258: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
-			{
-					final Symbol _symbol_t = _symbols[offset + 2];
-					final TypeExpr t = (TypeExpr) _symbol_t.value;
-					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
-					final Symbol _symbol_e = _symbols[offset + 5];
-					final Expression e = (Expression) _symbol_e.value;
-					final Symbol _symbol_l = _symbols[offset + 7];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(t, vars.build(), e, null)); return _symbol_l;
-			}
-			case 259: // choose_generator_list = CHOOSE generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
-			{
-					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
-					final Symbol _symbol_e = _symbols[offset + 4];
-					final Expression e = (Expression) _symbol_e.value;
-					final Symbol _symbol_filters = _symbols[offset + 6];
-					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
-					final Symbol _symbol_l = _symbols[offset + 8];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(null, vars.build(), e, filters.build())); return _symbol_l;
-			}
-			case 260: // choose_generator_list = CHOOSE type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
-			{
-					final Symbol _symbol_t = _symbols[offset + 2];
-					final TypeExpr t = (TypeExpr) _symbol_t.value;
-					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
-					final Symbol _symbol_e = _symbols[offset + 5];
-					final Expression e = (Expression) _symbol_e.value;
-					final Symbol _symbol_filters = _symbols[offset + 7];
-					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
-					final Symbol _symbol_l = _symbols[offset + 9];
-					final ArrayList l = (ArrayList) _symbol_l.value;
-					 l.add(0, makeGeneratorFilter(t, vars.build(), e, filters.build())); return _symbol_l;
-			}
-			case 261: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e
-			{
-					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
-					final Symbol _symbol_e = _symbols[offset + 4];
-					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, null)));
-			}
-			case 262: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e
-			{
-					final Symbol _symbol_t = _symbols[offset + 2];
-					final TypeExpr t = (TypeExpr) _symbol_t.value;
-					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
-					final Symbol _symbol_e = _symbols[offset + 5];
-					final Expression e = (Expression) _symbol_e.value;
-					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, null)));
-			}
-			case 263: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters
-			{
-					final Symbol _symbol_vars = _symbols[offset + 2];
-					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
-					final Symbol _symbol_e = _symbols[offset + 4];
-					final Expression e = (Expression) _symbol_e.value;
-					final Symbol _symbol_filters = _symbols[offset + 6];
-					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
-					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, filters.build())));
-			}
-			case 264: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
-			{
-					final Symbol _symbol_t = _symbols[offset + 2];
-					final TypeExpr t = (TypeExpr) _symbol_t.value;
-					final Symbol _symbol_vars = _symbols[offset + 3];
-					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
-					final Symbol _symbol_e = _symbols[offset + 5];
-					final Expression e = (Expression) _symbol_e.value;
-					final Symbol _symbol_filters = _symbols[offset + 7];
-					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
-					 return new Symbol(ImmutableList.builder().add((makeGeneratorFilter(t, vars.build(), e, filters.build()))));
-			}
-			case 265: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA for_generator_list.l
-			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 6];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
-					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, null)).addAll(l.build()));
+					 return makeGeneratorFilter(start, null, vars.build(), e, null, l.build());
 			}
-			case 266: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 258: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
@@ -2045,10 +2241,11 @@ public class CalParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					final Symbol _symbol_l = _symbols[offset + 7];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
-					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, null)).addAll(l.build()));
+					 return makeGeneratorFilter(start, t, vars.build(), e, null, l.build());
 			}
-			case 267: // for_generator_list = for_foreach generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 259: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
 					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
 					final Symbol _symbol_e = _symbols[offset + 4];
@@ -2057,10 +2254,11 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					final Symbol _symbol_l = _symbols[offset + 8];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
-					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(null, vars.build(), e, filters.build())).addAll(l.build()));
+					 return makeGeneratorFilter(start, null, vars.build(), e, filters.build(), l.build());
 			}
-			case 268: // for_generator_list = for_foreach type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 260: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
+					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol _symbol_vars = _symbols[offset + 3];
@@ -2071,19 +2269,115 @@ public class CalParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					final Symbol _symbol_l = _symbols[offset + 9];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
-					 return new Symbol(ImmutableList.builder().add(makeGeneratorFilter(t, vars.build(), e, filters.build())).addAll(l.build()));
+					 return makeGeneratorFilter(start, t, vars.build(), e, filters.build(), l.build());
+			}
+			case 261: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e
+			{
+					final Symbol start = _symbols[offset + 1];
+					final Symbol _symbol_vars = _symbols[offset + 2];
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
+					final Symbol _symbol_e = _symbols[offset + 4];
+					final Expression e = (Expression) _symbol_e.value;
+					 return makeGeneratorFilter(start, null, vars.build(), e, null, null);
+			}
+			case 262: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e
+			{
+					final Symbol start = _symbols[offset + 1];
+					final Symbol _symbol_t = _symbols[offset + 2];
+					final TypeExpr t = (TypeExpr) _symbol_t.value;
+					final Symbol _symbol_vars = _symbols[offset + 3];
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
+					final Symbol _symbol_e = _symbols[offset + 5];
+					final Expression e = (Expression) _symbol_e.value;
+					 return makeGeneratorFilter(start, t, vars.build(), e, null, null);
+			}
+			case 263: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			{
+					final Symbol start = _symbols[offset + 1];
+					final Symbol _symbol_vars = _symbols[offset + 2];
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
+					final Symbol _symbol_e = _symbols[offset + 4];
+					final Expression e = (Expression) _symbol_e.value;
+					final Symbol _symbol_filters = _symbols[offset + 6];
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
+					 return makeGeneratorFilter(start, null, vars.build(), e, filters.build(), null);
+			}
+			case 264: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			{
+					final Symbol start = _symbols[offset + 1];
+					final Symbol _symbol_t = _symbols[offset + 2];
+					final TypeExpr t = (TypeExpr) _symbol_t.value;
+					final Symbol _symbol_vars = _symbols[offset + 3];
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
+					final Symbol _symbol_e = _symbols[offset + 5];
+					final Expression e = (Expression) _symbol_e.value;
+					final Symbol _symbol_filters = _symbols[offset + 7];
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
+					 return makeGeneratorFilter(start, t, vars.build(), e, filters.build(), null);
+			}
+			case 265: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			{
+					final Symbol start = _symbols[offset + 1];
+					final Symbol _symbol_vars = _symbols[offset + 2];
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
+					final Symbol _symbol_e = _symbols[offset + 4];
+					final Expression e = (Expression) _symbol_e.value;
+					final Symbol _symbol_l = _symbols[offset + 6];
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return makeGeneratorFilter(start, null, vars.build(), e, null, l.build());
+			}
+			case 266: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			{
+					final Symbol start = _symbols[offset + 1];
+					final Symbol _symbol_t = _symbols[offset + 2];
+					final TypeExpr t = (TypeExpr) _symbol_t.value;
+					final Symbol _symbol_vars = _symbols[offset + 3];
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
+					final Symbol _symbol_e = _symbols[offset + 5];
+					final Expression e = (Expression) _symbol_e.value;
+					final Symbol _symbol_l = _symbols[offset + 7];
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return makeGeneratorFilter(start, t, vars.build(), e, null, l.build());
+			}
+			case 267: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			{
+					final Symbol start = _symbols[offset + 1];
+					final Symbol _symbol_vars = _symbols[offset + 2];
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
+					final Symbol _symbol_e = _symbols[offset + 4];
+					final Expression e = (Expression) _symbol_e.value;
+					final Symbol _symbol_filters = _symbols[offset + 6];
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
+					final Symbol _symbol_l = _symbols[offset + 8];
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return makeGeneratorFilter(start, null, vars.build(), e, filters.build(), l.build());
+			}
+			case 268: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			{
+					final Symbol start = _symbols[offset + 1];
+					final Symbol _symbol_t = _symbols[offset + 2];
+					final TypeExpr t = (TypeExpr) _symbol_t.value;
+					final Symbol _symbol_vars = _symbols[offset + 3];
+					final ImmutableList.Builder vars = (ImmutableList.Builder) _symbol_vars.value;
+					final Symbol _symbol_e = _symbols[offset + 5];
+					final Expression e = (Expression) _symbol_e.value;
+					final Symbol _symbol_filters = _symbols[offset + 7];
+					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
+					final Symbol _symbol_l = _symbols[offset + 9];
+					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
+					 return makeGeneratorFilter(start, t, vars.build(), e, filters.build(), l.build());
 			}
 			case 269: // generator_variable_list = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return new Symbol(ImmutableList.builder().add(id.value));
+					 return new Symbol(ImmutableList.builder().add(id));
 			}
 			case 270: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol id = _symbols[offset + 3];
-					 l.add(id.value); return _symbol_l;
+					 l.add(id); return _symbol_l;
 			}
 			case 289: // statement_list_opt = 
 			{
@@ -2190,18 +2484,6 @@ public class CalParser extends Parser {
 			case 288: // end_while = ENDWHILE.ENDWHILE
 			{
 				return _symbols[offset + 1];
-			}
-			case 248: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s end_choose
-			{
-				return _symbols[offset + 4];
-			}
-			case 249: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose
-			{
-				return _symbols[offset + 6];
-			}
-			case 250: // statement = choose_generator_list.l decl_block_opt.do_v DO statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose
-			{
-				return _symbols[offset + 8];
 			}
 			default:
 				throw new IllegalArgumentException("unknown production #" + rule_num);
