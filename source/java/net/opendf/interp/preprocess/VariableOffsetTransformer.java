@@ -14,7 +14,9 @@ import net.opendf.ir.common.ExprApplication;
 import net.opendf.ir.common.ExprLambda;
 import net.opendf.ir.common.ExprLet;
 import net.opendf.ir.common.ExprList;
+import net.opendf.ir.common.ExprMap;
 import net.opendf.ir.common.ExprProc;
+import net.opendf.ir.common.ExprSet;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.NamespaceDecl;
@@ -30,6 +32,7 @@ import net.opendf.ir.net.ast.EntityListExpr;
 import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.net.ast.StructureStatement;
+import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.parser.SourceCodeOracle;
 import net.opendf.transform.util.ActorMachineTransformerWrapper;
@@ -57,6 +60,8 @@ import net.opendf.transform.util.NetworkDefinitionTransformerWrapper;
  * 
  * Prerequisites:
  * - for {@link ActorMachine}s the scopeId is assumed to be correct and set for all {@link Variable}s in a scope.
+ * - free variables of lambda and procedures must be computed before, {@link VariableInitOrderTransformer}, 
+ *   else the offsets for initializing the lambda/procedure scope is not computed.
  * 
  * @author pera
  */
@@ -65,8 +70,8 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 		super(sourceOracle);
 	}
 
-	public static final int NetworkGlobalScopeId = 0;
-	public static final int NetworkParamScopeId = 1;
+	public static final int NetworkParamScopeId = 0;  // global variables may depend on parameters. Ensure parameters are initialized first by giving it a lower id.
+	public static final int NetworkGlobalScopeId = 1;  
 
 
 	/**
@@ -179,6 +184,38 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 			public void run() {
 				for(Expression element : expr.getElements()){
 					elementBuilder.add(transformExpression(element, table));
+				}
+			}
+		};
+		ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.setVariableOffsets(expr.getGenerators(), buildList, table, this);
+		return expr.copy(elementBuilder.build(), transformedGenerators);
+	}
+
+	@Override
+	public Expression visitExprMap(final ExprMap expr, final LookupTable table) {
+		final ImmutableList.Builder<ImmutableEntry<Expression, Expression>> elementBuilder = ImmutableList.builder();
+		Runnable buildList = new Runnable() {
+			public void run() {
+				for(ImmutableEntry<Expression, Expression> element : expr.getMappings()){
+					Expression key = transformExpression(element.getKey(), table);
+					Expression value = transformExpression(element.getValue(), table);
+					elementBuilder.add(new ImmutableEntry<Expression, Expression>(key, value));
+				}
+			}
+		};
+		ImmutableList<GeneratorFilter> transformedGenerators = GeneratorFilterHelper.setVariableOffsets(expr.getGenerators(), buildList, table, this);
+		return expr.copy(elementBuilder.build(), transformedGenerators);
+	}
+	
+	@Override
+	public Expression visitExprSet(final ExprSet expr, final LookupTable table) {
+		final ImmutableList.Builder<Expression> elementBuilder = ImmutableList.builder();
+		Runnable buildList = new Runnable() {
+			public void run() {
+				for(Expression element : expr.getElements()){
+					Expression value = transformExpression(element, table);
+					// TODO remove duplicates from the set
+					elementBuilder.add(value);
 				}
 			}
 		};

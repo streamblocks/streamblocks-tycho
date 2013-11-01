@@ -13,10 +13,20 @@ public class IntFunctions {
 		protected final int op(int a, int b) {
 			throw new UnsupportedOperationException("Not implemented");
 		}
+
+		@Override
+		public int getNbrParameters() {
+			throw new UnsupportedOperationException("Not implemented");
+		}
 	}
 
 	private static abstract class UnaryArithOp implements Function {
 		private TypeConverter conv = TypeConverter.getInstance();
+
+		@Override
+		public int getNbrParameters() {
+			return 1;
+		}
 
 		@Override
 		public final Value copy() {
@@ -38,11 +48,15 @@ public class IntFunctions {
 		protected final int op(int a) {
 			return -a;
 		}
-
 	}
 
 	private static abstract class ArithOp implements Function {
 		private TypeConverter conv = TypeConverter.getInstance();
+
+		@Override
+		public int getNbrParameters() {
+			return 2;
+		}
 
 		@Override
 		public final Value copy() {
@@ -120,6 +134,11 @@ public class IntFunctions {
 		private TypeConverter conv = TypeConverter.getInstance();
 
 		@Override
+		public int getNbrParameters() {
+			return 2;
+		}
+
+		@Override
 		public Value copy() {
 			return this;
 		}
@@ -139,6 +158,11 @@ public class IntFunctions {
 	private static abstract class CompOp implements Function {
 
 		private TypeConverter conv = TypeConverter.getInstance();
+
+		@Override
+		public int getNbrParameters() {
+			return 2;
+		}
 
 		@Override
 		public final Value copy() {

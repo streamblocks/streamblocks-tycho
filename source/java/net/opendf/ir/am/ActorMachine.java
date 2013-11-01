@@ -1,6 +1,7 @@
 package net.opendf.ir.am;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.IRNode;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
@@ -82,7 +83,7 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 		this(null, inputPorts, outputPorts, scopes, controller, transitions, conditions);
 	}
 
-	private ActorMachine(ActorMachine original, ImmutableList<PortDecl> inputPorts,
+	public ActorMachine(IRNode original, ImmutableList<PortDecl> inputPorts,
 			ImmutableList<PortDecl> outputPorts, ImmutableList<Scope> scopes,
 			ImmutableList<State> controller, ImmutableList<Transition> transitions,
 			ImmutableList<Condition> conditions) {

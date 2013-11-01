@@ -3,6 +3,7 @@ package net.opendf.interp.values.predef;
 import net.opendf.interp.Interpreter;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.values.Function;
 import net.opendf.interp.values.List;
 import net.opendf.interp.values.Range;
@@ -25,6 +26,9 @@ public class CollFunctions {
 			RefView accValue = stack.pop();
 			Function function = conv.getFunction(stack.pop());
 			Iterator iter = list.iterator();
+			if(function.getNbrParameters() != 2){
+				throw new CALRuntimeException("The function passed to accumulate() must take two arguments. Found " + function.getNbrParameters() + " argument function.");
+			}
 			while(!iter.finished()){
 				accValue.assignTo(stack.push());
 				iter.assignTo(stack.push());
@@ -32,6 +36,11 @@ public class CollFunctions {
 				iter.advance();
 			}
 			return accValue;
+		}
+
+		@Override
+		public int getNbrParameters() {
+			return 3;
 		}
 	}
 
@@ -52,6 +61,11 @@ public class CollFunctions {
 			int from = conv.getInt(stack.pop());
 			conv.setCollection(stack.push(), new Range(from, to));
 			return stack.pop();
+		}
+
+		@Override
+		public int getNbrParameters() {
+			return 2;
 		}
 	}
 

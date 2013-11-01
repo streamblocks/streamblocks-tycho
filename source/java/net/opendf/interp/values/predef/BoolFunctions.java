@@ -9,7 +9,12 @@ import net.opendf.interp.values.Value;
 
 public class BoolFunctions {
 
-	private static abstract class LogicOp implements Function {
+	private static abstract class BinaryLogicOp implements Function {
+
+		@Override
+		public int getNbrParameters() {
+			return 2;
+		}
 
 		private TypeConverter conv = TypeConverter.getInstance();
 
@@ -30,13 +35,14 @@ public class BoolFunctions {
 		protected abstract boolean op(boolean a, boolean b);
 	}
 
-	public static class And extends LogicOp {
+	public static class And extends BinaryLogicOp {
 		protected final boolean op(boolean a, boolean b) {
 			return a && b;
 		}
+
 	}
 
-	public static class Or extends LogicOp {
+	public static class Or extends BinaryLogicOp {
 		protected final boolean op(boolean a, boolean b) {
 			return a || b;
 		}
@@ -57,6 +63,11 @@ public class BoolFunctions {
 			boolean b = conv.getBoolean(stack.pop());
 			conv.setBoolean(stack.push(), !b);
 			return stack.pop();
+		}
+
+		@Override
+		public int getNbrParameters() {
+			return 1;
 		}
 	}
 

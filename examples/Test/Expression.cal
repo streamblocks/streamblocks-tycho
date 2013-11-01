@@ -1,14 +1,16 @@
-actor Expression[TypeA, TypeB] (ParamA, ParamB) inA, inB ==> outA, outB:
+actor Expression[TypeA, TypeB < int] (ParamA, ParamB) inA, inB ==> outA, outB:
+  function foo() a end
+  function bar(a, b, c) a + b >= c end
   a = 1;
   b = a;
   c = -a;
   d = a+b-c;
   e = (a+b)*c/d;
-  e = a*(b+c)*d/e;
+  e2 = a*(b+c)*d/e;
   f = a[1];
   g = a[1, 2, 1+2];
   h = foo();
-  h = foo(a, b, c);
+  h = bar(a, b, c);
   i = a.b;
   j = a[1](b).c;
   k = -a[1](b).c;
@@ -19,8 +21,8 @@ actor Expression[TypeA, TypeB] (ParamA, ParamB) inA, inB ==> outA, outB:
   p = [a, b, c];
   q = [a : for a in [1, 2, 3], a<b];
   r = [a : for a in [1, 2, 3], a>0, for b in [4, 5, 6], a>0, b>1, a<b];
-  s = map{x->x*x, x->x+2, a->-|b : for x in [1, 2, 3]};
-  t = {a : for a in [1, 2, 3], a>0, for b in {4, 5, 6}, a>0, b>1, a<b};
+  s = map{x->x*x, x->x+2, a->-b : for x in [1, 2, 3]};
+  t = {x : for x in [1, 2, 3], x>0, for y in {4, 5, 6}, x>0, y>1, x<y};
   u = proc(a, b) begin
         d := a+b;
         f := n();
@@ -66,7 +68,7 @@ actor Expression[TypeA, TypeB] (ParamA, ParamB) inA, inB ==> outA, outB:
   
   init: initialize ==> [1,2,3] end
   
-  act1: action [a], portA:[b, c] ==> out:[a-b+c], [3]
+  act1: action [a], inA:[b, c] ==> outA:[a-b+c], [3]
   guard a>3, b>2
   var
     int hepp := 3,

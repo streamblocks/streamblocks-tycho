@@ -10,6 +10,8 @@ import net.opendf.interp.Channel;
 import net.opendf.interp.Environment;
 import net.opendf.interp.Simulator;
 import net.opendf.interp.exception.CALCompiletimeException;
+import net.opendf.interp.exception.CALRuntimeException;
+import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.Decl;
@@ -35,12 +37,14 @@ public class Simulate {
 		String entityName = args[index++];
 		DeclLoader declLoader= new DeclLoader(path);
 		Simulator simulator;
+		IRNode outerEntity; // olny used for filling the cal error stack
 		try{
 			Decl e = declLoader.getDecl(entityName);
 			if(e.getKind() == Decl.DeclKind.entity) {
 				if(e instanceof NetworkDefinition){
 					NetworkDefinition netDef = (NetworkDefinition)e;
 					Network net = BasicNetworkSimulator.prepareNetworkDefinition(netDef, declLoader);
+					outerEntity = net;
 					simulator = new BasicNetworkSimulator(net, defaultChannelSize, defaultStackSize);
 				} else if(e instanceof Actor){
 					Actor actor = (Actor)e;
@@ -57,6 +61,7 @@ public class Simulate {
 						sinkChannelInputEnd[i] = channel.getInputEnd();
 					}
 					Environment env = new BasicEnvironment(sinkChannelInputEnd, sourceChannelOutputEnd, actorMachine);
+					outerEntity = actorMachine;
 					simulator = new BasicActorMachineSimulator(actorMachine, env, new BasicInterpreter(defaultStackSize));
 				} else {
 					System.err.println(entityName + " is not a network or actor.");
@@ -79,7 +84,13 @@ public class Simulate {
 
 		// run the simulation
 		try{
-			while(simulator.step()){ 			}
+			while(simulator.step()){ }
+		} catch (CALRuntimeException error){
+			error.pushCalStack(outerEntity);
+			System.err.println(error.getClass().getSimpleName() + ": " + error.getMessage());
+			System.err.println("cal stack trace");
+			error.printCalStack(System.err, declLoader);
+			return;
 		} catch(Exception error){
 			StringBuffer sb = new StringBuffer();
 			simulator.scopesToString(sb);

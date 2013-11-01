@@ -26,4 +26,9 @@ public class LambdaFunction implements Function {
 		return result;
 	}
 
+	@Override
+	public int getNbrParameters() {
+		return lambda.getValueParameters().size();
+	}
+
 }

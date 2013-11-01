@@ -9,6 +9,7 @@ import java.util.Map;
 import net.opendf.analyze.memory.VariableInitOrderTransformer;
 import net.opendf.analyze.util.AbstractBasicTraverser;
 import net.opendf.interp.exception.CALCompiletimeException;
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.preprocess.EvaluateLiteralsTransformer;
 import net.opendf.interp.preprocess.VariableOffsetTransformer;
 import net.opendf.interp.values.Ref;
@@ -126,13 +127,18 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 	public boolean step() {
 		boolean done = false;
 		Instruction i = null;
-		while (!done) {
-			i = actorMachine.getInstructions(state).get(0);
-			state = i.accept(this, environment);
-			assert interpreter.getStack().isEmpty();
-			if (i instanceof ICall || i instanceof IWait) {
-				done = true;
+		try{
+			while (!done) {
+				i = actorMachine.getInstructions(state).get(0);
+				state = i.accept(this, environment);
+				assert interpreter.getStack().isEmpty();
+				if (i instanceof ICall || i instanceof IWait) {
+					done = true;
+				}
 			}
+		} catch(CALRuntimeException e){
+			e.pushCalStack(i);
+			throw e;
 		}
 		return i instanceof ICall;
 	}
@@ -155,7 +161,6 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		for(int scopeId=0; scopeId<nbrScopes; scopeId++){
 			if(required.get(scopeId) && !liveScopes.get(scopeId)){
 				ImmutableList<DeclVar> declList = scopeList.get(scopeId).getDeclarations();
-				//FIXME, find a correct evaluation order, variables can be dependent on each other.
 				for(int declOffset=0; declOffset<declList.size() ; declOffset++){
 					Ref memCell = environment.getMemory().declare(scopeId, declOffset);
 					Expression initExpr = declList.get(declOffset).getInitialValue();
@@ -209,9 +214,14 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 
 	@Override
 	public Boolean visitPredicateCondition(PredicateCondition c, Environment p) {
-		initScopes(condRequiredScope.get(c));
-		RefView cond = interpreter.evaluate(c.getExpression(), p);
-		return converter.getBoolean(cond);
+		try{
+			initScopes(condRequiredScope.get(c));
+			RefView cond = interpreter.evaluate(c.getExpression(), p);
+			return converter.getBoolean(cond);
+		} catch(CALRuntimeException e){
+			e.pushCalStack(c);
+			throw e;
+		}
 	}
 
 	@Override

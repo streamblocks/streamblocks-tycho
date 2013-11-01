@@ -11,8 +11,6 @@
  
 package net.opendf.parser.lth;
 
-import net.opendf.errorhandling.BasicErrorModule;
-import net.opendf.errorhandling.ErrorModule;
 import net.opendf.ir.net.ast.NetworkDefinition;
 import java.util.Map;
 import java.util.AbstractMap;
@@ -31,6 +29,7 @@ import net.opendf.ir.net.ast.PortReference;
 import net.opendf.ir.net.ToolValueAttribute;
 import net.opendf.ir.net.ast.EntityIfExpr;
 import net.opendf.ir.net.ToolTypeAttribute;
+import net.opendf.errorhandling.ErrorModule;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.net.ast.StructureStatement;
@@ -38,6 +37,7 @@ import net.opendf.parser.SourceCodeOracle;
 import java.io.File;
 import net.opendf.ir.net.ast.StructureForeachStmt;
 import net.opendf.ir.common.*;
+import net.opendf.errorhandling.BasicErrorModule;
 import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.net.ast.StructureIfStmt;
 
@@ -190,107 +190,106 @@ public class NlParser extends Parser {
 	}
 
 	static final ParsingTables PARSING_TABLES = new ParsingTables(
-		"U9pjd7TyL5KMny#TDvD9GWeaaWGG0K5ZHICsH1GbT4WeqdkleKkHhaYHeY1L411G0GqWTiK" +
-		"E5aHqxReMT2sBRUrTplxkUNTctfky90$T$MC$cyddl7llkUUTxpstlJl9J8WgAsf2DrCNwg" +
-		"g6qI6gJ05MQYxb7Vs3#b9BjOBsqxFy4lr0vz1zr8qkeCPq2frAQsWzNKmDwI9gHAFe6ff4R" +
-		"waEL4KDK3LfYpg17gI7w67QIu$Ge$GOFKvFq2KqZywc1dGkdQTfGYrMKy4wn3E4luBow82c" +
-		"qcZQhshm5arL4mtrmbAeazLkVfiikfjs#gHgrWJ4cgFkisEbn4YigfeTgne7QYPDK7VIM1f" +
-		"7uwc0sjAJD2P2fUEeAcLHDbMZwlweQZsTHhVJ8TLPD3KeZt#IM3VIVcQwLNfuCQXvgYcbgo" +
-		"PgANr2HrGBDGtwIApxw0RQfEgfXUfQdzI7L0x$WLWZ#Znrib2d8jPaQYFKppILYl5JeAwdr" +
-		"hhdLMq7THR6QQQgH#tfg4zgNTh24pse2p6RNgKtf8SRHAbxr5AUGrjLVoULGkeH6Qc5Qe5V" +
-		"gkhcfjARGWqYrdDL5ucrXKrL5s3S2wWNlQ#gOTnZr7gKgwwYN2fKJ$cVJHHsnTfAgDCHwzK" +
-		"qK68j5AgEPZWTfW6g9IrLBpge1JH8vljADTPdhC$G5afrnNgIpE6pGTsYzZkegn7jSBfUfT" +
-		"FNAXyhAqRTGSKy6x7c#gLIJ$e9Sy19dIYn$XqzVBgg9JtSG#PmRrgavge0h2kf#guUlWVZV" +
-		"uIIC4Ec#zqbP5uwgNT8hBD0lP7kbrYdKpSbkmWTqNE9qbGrpEitezG9$0FLeZfq8cQzt$LQ" +
-		"p3$gzQfsqGcoNc#GM6kZXtFXMySwGyVAinG9CnSzxLgll9c#KtlGvp$IDdzK7g$gydYwp17" +
-		"h6H9hEirKwHZH6V2UXrY7ymJGpf1rKm#wx#axcwe6gtFu0pMM$wvsgJhbK7MS9#fskuZrXR" +
-		"Y7Pc8crGBJnAc6grFK5VIzQaX7LH#CeebJzOIVOlMO6giwqQK#UxU7we4PxA3oOUdTN9h93" +
-		"$3zr1JUSuNw84QncD#dPXY9WMXTf7Urfm9r9SP#hLhZaxf3tQRkTb8HZwP6oYz5gDHERKTC" +
-		"LwijQfFQ6AFg$fQnFeSwgjq#vs#kUeX$Tr5tEgdgONkjgWVKOtgjgYVKitG5prTxmRLx#A1" +
-		"wddgZd0jBdskL1zC8TG3KVZHKFKc3uIlNz734yXoiaMueJw44cimBQ09ixAUTJQr2Lo7ETL" +
-		"H4Dwdxovz96C$PD1V4ANGjBQ3vy7QTgtT$i8cOoyMqHEyx8ER64NFf5jfCpw67T$WWRgVRw" +
-		"4uGTz5kkelkZSQuZvu1gPciKQmMEkWWeG$f5P1iOcLwdTwXbVGUVKZ$y47ycFv9NxXMorUo" +
-		"MYhHjo3cHec$WSY6g6VFBr7YyIe9$H1K2lCYmSVwJ55fs46SioSplbU5E4KTfqQgB9MDlWT" +
-		"HDLBL3V4aTIhAPuANf2xq4MEkkbmrTX4lSn5ppHxK1Z#jLLlLJXK8iRtgQeWTLNUKEyFJ4j" +
-		"NNHupzi6iDSX67U17XRvHQfKQh8ZL6YEFL94ESecQZF5VDKTUeHJw8yzHys3c9Yrnhyheey" +
-		"GQr7DURrJeXRb2t6E9cTHlAMzMjwdRaoYTkKyNgBXVn7izUlLSzhXxXepnFFIt40#evGtn1" +
-		"7O9Dv5N#EDelvrmb5v5CZCvNdY7OUoo9pN#NI2M8U65lzKlKPmDdhzvdpWR9E1k8TxLCpWR" +
-		"H5yxqL99u337QHEqfHtgC396YnDLk8bx53c9TM6Qegd#6A4mluarnn3p3ZCHO5pOHflznZ8" +
-		"lHDOvKOXp$MepUnDYhWlW$GiHv6KISbgbSOh6BQ#zoUrowOuhH1z7z#hCxG0MnWbX1h21M4" +
-		"2k85SJ$DwB#QyJvhhz6F4KhS5S1$Oi#e1VeKreUzUHj#tdKTXbio$Ftj0#Rvqkn#Pl3vcKV" +
-		"VbxpOVEk3vkFVDXywSFcc$9jL6gvDZTwr3UYFhfUdUyOzqwUTiCzjTFAy7cfxKxLWbmSzJw" +
-		"hr3j8dUTenPcUyyPOnbug5vQdEnH3g7yfSwuHdKMjq1UT$VYL5fHbzqVKxbT8zx9iLMAqjQ" +
-		"5IsgNxwv9ZwFUpZCFVowfLOS$Qaqj4EgmKBrxQopsr#PxQvfxQ3fxQaPxQApsrSporgporQ" +
-		"psr6por3tXgN$JKlksf$TbBgonFxMcUMizULtcUseiyjSqyjRqyjKCzjICyjOizjIizjOzI" +
-		"ZghcccCJ8FAt9pCtxoWn2sClvz#LRUlcb19dar76$ILVDSkrE9u2P644BwR95APaKf00g3i" +
-		"fZTAXgG9YihIi42tBfsQOtItmT6r5hQaDjQLsYAmkrQEJQ3NwOYti0vH9Ps0NgO#LTBRyJj" +
-		"5#SfwF7hlGp9UBXPfDlP26gOPemg1c2ZLBg9b2JIY7ceLsvS3B1jheawhJDQ0DmjFVZdLiD" +
-		"DP24#isK2TI5$dRLtVgGUsnUcTXNujGhyQvOIvTYtF1V9$KIf1DOAIB9aF6LLE3e5fKBDGR" +
-		"G4s1f686ZA0ajELaoeK#GiscMp1UXJI5flga1l0Jf71KdqAZXJfEnYb1g8qDDLkYh2mzFyT" +
-		"1xOcQtg3gkVdNgKccXvEZr1p4gk#woaMrKAlz7Kkiw#AebmhrEb0le#qkQY6iTRJ9o8KTr2" +
-		"wOQvCWVUdMOvXDRkegeGu3TPZfuO1GxJdU53ryExWp7LJT4jth9y3E7$LcN9Uug2b2JP1nl" +
-		"TD1JSKrZAUNxJ$BGTNrGSIQxvkQ87EW97MmnDfFg3c6EXHtQEi4K9qzd8NOaoc4sXg#TmdT" +
-		"FqvgWb1xWjeR9Ktj3wk1SaUotBCKuzeOunyRLp8hEU1xlMRZ7hrU0tWQPqIfgQ3cmtTiDWL" +
-		"bDbdIZ#xrcWcBEeYuh##Lao2hqXbhKAWPUAUJWRfaU4#H4GtYMaFkqIlp4jJOr03Ekq5PLO" +
-		"5ogVhkqT9k9p5BY7L0361C0z4umnZJGI3PeveSZJD5Pf9#Eap0Fkr$XmXun9aFQcNy9C9xl" +
-		"b2dOHJrZfWapuMKA5LxqlEYgkme$gWP9QY3X1efnwYLwHI9fxhCvHZLRhibVL3eavfVOZSS" +
-		"vQ9EDsirI$emZ78MVd9e0InjwWwwGyhviFIxLeDuTn2G#Pk5FgmCN$ccXoEMaIUwHOje3Fn" +
-		"tWOszHcng7$ZGSGv0tNeVCqdFt7eWMl1cqSBec4Pi8cU83CWosNVqRkicviCY2A9LxZhLn5" +
-		"cozlJvGPy12gCnfig#dYH4lLgI7IJTXyEZJ$81oEjzSJdsiF9EBPeu13#Phh4S8iH#D1x4$" +
-		"2Wn2yI08QP8ByQ8zhxO5zP#rcScFBltt429NjL4tUk9g5ieJqvD24JdR8Bql9w7VNqGysNd" +
-		"S1AtkeZvXgZNqYJaUfaLOc6MsSGWdkLLPQxbbBjAD34LryaUpvLuOZvOYP0aZ5gAF6jo3B4" +
-		"Nve1UHJtbULS#iPgiE2SnsqKS4INgFJoVRi9L4qT6UpLLnd6adDNypDMHCY9EOc6flPe2Um" +
-		"knfKXCCmtnDBtJitcLJpHs3Y9A3Y9AGcJ7InCb5QBa$il42256b5AXNsA9iy4eSpOOIxrjx" +
-		"$RPmC6ROL8NqN#CDb6i0xh7J8mzaPP2X2uxHgIQoDMYsd#6g9b#Y6AJ7OiHxmEhHfZ#nx54" +
-		"Z8vnZCJqduhHc#YU9HN4$mMYtkLm3Kc#J6BStcCJwxXqnnHZ#SIuIF$a3b11h21M42k85SG" +
-		"AOWNn$uxezTU80hPFwHsf4rr1dQEUF6rfiDFMZxyAcxzeKqQzOzoxbZ9Unw1r#gH#scVK#z" +
-		"3Ixa3TR6ShIfitSRFqUhIto57UJ5lAc7D5qXS#$9RU3wQsewkbHNvjonoZO#fXs$EVhtL4E" +
-		"lklZtY5jaBhqWwoVtiLdMDT8FARO5EU63yB7RQEloiRpPMqECvcHUdtUtXSMQx5RKJgfTds" +
-		"fm4I8FqWZqAdFq7t1TARYH9F9WgS1raAEHNwRRZnTwHxKPu0MQBljtq4PaVofGamwqpwchd" +
-		"dEdSzVGdk6qIX82GDqjZexoAoFeNzy#Q#Rr4t2TAYR5veL#brLYs7tJzHlXpjgeEqDT8UQC" +
-		"SeqrRzRPkVT1wnFuFwgqoRzEUW6FK7eRiMRVeDwJsGyzsSS0XrwNPUPQ3#OSD4OXr6$INGR" +
-		"pFrWw3xqBJlRTHDDladaD#DUnOWJOMTlgzvoPW2y1y#0hi7SSyVncSkKJ09TKz2RdJR1sjX" +
-		"Z4#4$g0f1o0dcNokkNy0yXZxeFuSLPR#bfRR1#qowMV6$dRux8dKn96u0ctvnNrFuWkuc7v" +
-		"GRy5tlc6sG1dz6knXubcFV2kJxuIwJmmBRGasH$aKf6qSyMFy0WrZvIJCwz0JyVrKci1NBv" +
-		"rYd8yYty$MXMVXqW0o4RgX3j#N8guPQCD9q0z4Mj$4qmzjgE$scpG5bnzXLuJwTP29xdg5#" +
-		"HqSX$Hr59uoCJQ4dxFYsgVdMHL8RtFV1yYtXMnrsmMkX2XmjL$TXxKX68TWTuUl7IQz3xOv" +
-		"iFqC#QsGvH2COV3vE9z3eDFhVZxaBTCt3q1dnZ68jWSFc$n7a8$DVPkGDtCZ$0tADyNvnNe" +
-		"Fx3VvTs3xbQFkSPG$9qgkYxuEspghafqczyBOOXz8Neb#o7FwTCJu7Umjs1n2$ZNaqSV1xv" +
-		"7U6RC9XTttL0f3zwkfgsxI6YRDb6ywKUWuKzRpxMEac0EXcZ4VreKeLpNvXYOz3hwRmBwcA" +
-		"Ly4ctCTzs0#XPeOlzWJAat5tdAwQTCUjFjTi356eVQmnHvWLJ5zz0fqpUmydaTarKQvkV7v" +
-		"k3isClkfcceusEj3cBjMCwHcpOKwGFf3m0yDDZgp5rR2M8Io77qtdVHd9IWqBwPBgOTo8Tf" +
-		"r6lnsDLoiaz12qoRDmrgohZ4#C7wXfIP$4sIvoMEUXJOwss$q6#3Rp2SBSpfqjybZpbkhKD" +
-		"xlwDET4BC$gIQEDlP6txu7swSXZpXyw$rTnuXzFFGiydSZVS7KxOZP1KzqjWdxXLcFPFOdQ" +
-		"v8fcp4A$MQdwVbe1$f6lLCoBig9rvMqIO$iYyTxrwkpxJGDUtu0xqBuvLXTwZYtRLeZsEmj" +
-		"cqUffTS5Fd3umbviuTcHXhbZ9IB5shIQ6gvZRj3bZhQQkPqs5BQZO6VspzIjRaxg7iSzPyJ" +
-		"orZ9Jx$GP5sFgKMEBPsVQU7iyhPscBHTunvKsGp#Z8JSQEpDlKzl1VrCFUpoJLJD7knuowM" +
-		"Pp$pxJjdsuu2nbRNVVdpB2#3$1tFSJVEBCOVri$6E#Mx$6CRVhPxMn$zbTHrNTPUkzM3vOM" +
-		"QUO5sQ$3MQMZ2TODPPFkoT#hliHn3JTmV$Kw9R6nV0OV9y5$IQa3I9jGrdlTLbnjWVGVtjD" +
-		"FVhH#ZgkpQRlKlGpoAo1b2kGB$5SW1vdlQ3PauCuywNy6c#7kTtHSF7C268lJ7tQb9Cy#gk" +
-		"NgJkCF9xpgU#OikTwHdqAxFgOUuztrmMlTEJxUB0wU$iCB2j5R#Pw6lOq5NbERpKwVHx1ka" +
-		"Z7EI5GYj$WQZjDrsr6lwTsCp5yxR0fSj#JdWtTgtPUPHYRRGxxVKvxpCKbfgsETKu77FQxO" +
-		"$bqd5M3Hup#i4Tx3pfipyI#csho#dcCSrFGFDU3U0yJ$CRmFtJxi59Z#L22kowWJFlkTTXK" +
-		"mZtL7MtlxyY$OMngctOqHRwrssT2khkSNW0Rx3K9BHqsSnmn$epwq#DZDvm6SUMMtdPMEuz" +
-		"xYxnj0sOihNn76xl3VfRHjtNRgyPnVirQid8TEiSpGRr4dY$#9Pgxc$Vmp$mhVy$VyRVy3N" +
-		"$DJ$8J$2L$pb$mLwZ$Z8ymLZLZfsIyQ#MBMRwBmmDv4Av3k15Vn0tvGhw0p#V6q5p2pRaPD" +
-		"#Kkt1cbAtYRYzk91#FQKV8TZAucf0OacpCvG#hRYxwGyVHYZ1YtbN8RniZnSCaFC$VUohVm" +
-		"9jx8EFSppZVSAaeguYGstvNXKNB5UOnRI6uyZy5rB8Suo8f7CnqzQYppv7evD#7kafDlk75" +
-		"NdYFfJBbEaUlaA6aQNoNfrNmDhfDu0FVdVjoN#t1lxiKzkGTFHN#SBJPdHU#gVvGbLN8zKw" +
-		"Ty1bVYP5ElowUpnO5ewJIvdihfd6OqfvWqbrFPVAU1SLfcdEYv5kFypCSPRJq8rZUVmBMvA" +
-		"bSrz#6T7c$bsyHYbLnNyXfSLqk#2bVcSP8xX$5ivNEvGRJr8o4u4$9QARNcC2Vm23RVqk3Z" +
-		"8TKXMOptFfpFjxF#$mNh#L$yCV#3F#9FZDs79dsVt#Nt98VtI$oWqTuhrtlu8KbVb#ih$0O" +
-		"vNloENDyofJSXh$9h$2c$n8VuHVvRrEu5VeRt8ts6z$7J$ApedkBdJEr1VbbIh1P#Nd87#1" +
-		"597vVhOt9zb7VWkfttyiFy6r#F$1B66Pbndc2yh#Dbl5JiTlCkBcQSZlaEo2w#a#zojNakB" +
-		"#A5V1roYndlELM0a8SeMeHq4T8L8W5QZF9YvBNVfKXtKYhUAQiIib8ae7$h155qZNo#MeiI" +
-		"MIKI8BppX2YQAvyo398UvzKew#$JJ43QYqAGCEarkqtAbkZM8hyM#JL8ro2T31c8$43uqT#" +
-		"Gwu$yjSZtXcrl#BNJC4s1VWhqUBS3KTHJFaqOeX6u$sgKjSo3$JnAeFdGOmL3bCWwaG3XD0" +
-		"PHD4Y#pH0KMOAoblKY5kbtIjEHdmRxQIWlG3eIvP78DqEw5J90n99FNsEFWGIe3tGHwIQVB" +
-		"GqQqMLBf0lo#dEdtP7l0Hc5yYYKRR5eB7oDXMw6Y4KxeDVVHxe3vPdolG62ABfLlc6W81Pj" +
-		"GBf1FcMkv3zs52FLdz7TYFn6oOUal0dvJVAPN5kkXp#z8iT1ZxqHecWX#ax$Pv0RK3S6zur" +
-		"1l#jFhMv6tMRSCnlI5VckI8jWLuHyE$XkXRGyQIrYGKBK1dbR0f0mn8A4ekaM#DuYzK58Wg" +
-		"aBcFe0jK2TBPQaRP6sXBubqkOeDqU#06c1V5fMUSfeaG3DGJe7Tft0weHo9yadG4AGS5m#o" +
-		"TY5g2FIZf8cGCAED16IH1rGtm7r7Q3Ndu2CfOcG9EeBRb#msYFLSekH8KR66nbkP9YH6uqi" +
-		"CxBS24xH44MTHGAqwzzfJpPl");
+		"U9pjN0TuLDNodtFlfh8X8984L4H5eg0YY0KLGOY828GQwHsa8qMa5wLA4n44GMeGK0WYLbH" +
+		"KL2pOdktPdhrYLopFfyp$T#PEDdStksHvp$3v#S$opPqvCtFcTsREkUUUQtObgk3InRIQJg" +
+		"PiCuXUf0haC9cPLFVWxzIBBZDBQIyzmo$HprJFN4ATwJowY4wXKsa5tKeDwNowW2waOJI3h" +
+		"g6tJ3kgQFhIPAfFjMWNFKWFqSEqcnwXH#ansaEDQ3QTIMVHsNGENK6TBAh90Uh5G7MjnbIZ" +
+		"kkPuYqe1sckEvGs2UhMYDeY1EixiuBVeEgfldeWJzLPQGFVHYoRFtCT4nr1TIXRKDu1QrRI" +
+		"ngBIOEfl1DCPiev4qYaRpBwQvcKHN5QBIQ$I66Sbl8zVqk55ppGs2UYUzQL7v1gdmDA3UH4" +
+		"cIwsIWJZ6FqjsqNRmB1FND4EezPfhPQQPIVPuK7ohbUwYKGFdcSLC55LvKX6gw2kgD5fKAA" +
+		"D5SRsRnP4WxgO3l3w6UP7QOIYO35Ru$pbohQAuFei9$M5HABK9b5jJb7ghPPix3UYkGlWLO" +
+		"RqMeJtger2PEr3QAMiCCvZ62kjLNuVi5TQLKUAIijuv0pQLMG3sv29KUrrmxn8bQmsJp65H" +
+		"u0a#dZOAwML1xuivfQNOBQZUWdW2qsqnTkfm#e$sK4evg#cYk8#BDrMHJ6b2lnoej9$FQMT" +
+		"RmFkHQ3b7i6lxIefgHPgQv0XLkIupgXbKOBI$NYN6YBZ8JA1iLRaFbgPkW3fPSMm3rUZDNK" +
+		"FDnlrf$IrszIWFdCX$gEvfhGRovyay65JPtObxNIuL7IAvtq5wUPgfAXKTHP$uPQ3KmezqB" +
+		"LnFryrLufwBsZVFEoQN#T3Kgl8Yd0dbcw7x5ZcYgUpkYpTNKeVdqFcsH$QewCdq9irk8kjz" +
+		"KeE$DpiF8zMcwWKTH4nujcdpaUa1GonbZAfYzfWPGir7X3#XBSw8vdKwZAPZdkeZ$Yw8MqA" +
+		"$4y2e0we4IK6sUzOqB$oRqawpV0SZp0q7i6lAgXnftjbQQAjSnV9#tAtg8vYZw2Mlv31eEn" +
+		"EmugvlDeqnrvFaUTjmySn9MqgaofsDGCI#se9gZpFbOjm$HipG6iSDHtp0FczDCHQ3cnrdT" +
+		"ir2LVEHwCL3lvlTHjyQA#c0XggqkOdkhzZZJ3wCem0wShTKTWzRnT0ATYBhT4UzACcFDxTJ" +
+		"4RA9gfgFPWGfxpzPRp0gf#QDwrsIRwymwirPgd6qUCFdKMdDz1lMQRRPJn$XN4lStkymUeE" +
+		"uppvldg0ToxIsv3gG1vc7aawqhQJoDeuaq4tmwpw5PD9VcQAxpC1SBnRFaUPKvfVMq0TNTY" +
+		"3jp4zqEn6s2U2VjeBleNhbZBEAJz3GzBt5VfN$Il#Wz#aWHFwPFwGlwchv5TODn8Fw86ByZ" +
+		"HpAfne5SroH9PTDCEeqmHmlYUCndPPDficYkESRKD6UOMgXkgbQs0UIcvYBJ9BuSJKlykno" +
+		"8hKnhaslQ0h6z8EQPBeZKI$QYJa3iRGQO$kPAcwKPPeQR4KRF3cQqkSQCnvvyBNAS7WVY33" +
+		"FVp07YRF3vPXwgcYs8YyqIn5ubYAk1kCQiDnlC9hEHffZRCAvDPhCYRZ45vYvutGF4U#FP4" +
+		"H3tCI3kveFcAPw5MFi4yLdVZl0Y45yWegbK#AahLsyUlKyzMeLOA#D2j9ycOR7iog4YHCYT" +
+		"AVpZGvJTbyJBnYeDn2anSYmDHAcggNy44ScSJSrYpcFfL3Md#3oMCgBzD3$YYB5oR7$44UF" +
+		"FSSX$XRZy25Nr7tzAZdzMLNyxqeWcuOWZNbYwYAP7iQgMpYutD7QEfODugAfQHBFmJy$nvh" +
+		"zQZcM8POXbY6M8fO98nH0fRaIAYLZuAKCiGun4j7#DE3Vihn5Fq5BqogNlw4DwWJwd9Q5eq" +
+		"Ns$2ldU2D#IuZqLXyzpCNnUzlcy4aUSr#FmUJSEdq$YyFac3fyVIlOnvKlqkIcA$KBgQUtc" +
+		"ND$STuZgDpYgTj8XOZRsmfdge8QXwDDYzY1pZcyKfqTTD#fPz36dmBEsJt4bzOcnvYwaEjG" +
+		"2jSYB9wwCu51#1qD#$m5rEPIlIGcDDZ76k6oz6Xr6tUjGbWJy8sQyIa1BZcgjIKTJPSgWJA" +
+		"f2LINAe1XHeccRHjLU4bLxQLHjkwZQeL6rOwDghusglJcgzfQesZLHjGz4rRuKLVjsLEs$e" +
+		"sbD8AgsTbJjcL6rzQ9gBuYgRHPLspsgTc1KxP2esWLHjSkYQX$1#boB5LZLTp$LfJ6uUdyt" +
+		"8BELcidpg6x8lavvlMBhSncUHq5pgS#Nw2YoJwbweUTHuMUPN2ErrlUuOdSuHVWUImwv5AG" +
+		"SF0kJA9KCo46xWCfJEZGLWPegewk6qULWrJV36c#EPsmBkfnQKYjaTXBLe9En5cqz1b8jn3" +
+		"iDEyaPk9lEnFZh0Qk#e9sBkZNGLMDHRRmgm714Kn6ebGJrUa6j9AY99Q1cO7VB4jIDSQAMe" +
+		"nlG9mauGv7PKK2zIb1JWPeB3ukw3gX9s3KdKoUS7hgWJZKfctg4K5FWdGdSMfGMDseRQYke" +
+		"3iuK5ZLHKBi2jJi51BKtOlR565RZNhNUcOBQo9ThLwoaxa0z9avKHr6jD57cTR0FrV6XPj8" +
+		"y6aVZ4TdcbKaLGgZ7OKJ7KtMWhZfCL0SL3WZgLJvKDmnrijGyK$hQcXUXPYfgpyD6JL9KVu" +
+		"M3OQYsJpzmhygvFjIfYZewRjJXG4kYaTeAOW#mg8b0JLJK832cWxP1Kq7MJa84wWH5pJWCr" +
+		"0M2ceIO5dMbe5O2geCe5hMXeZgq1MHtbwGO5HuR9#fWwePxqLPueQ8c2UeoeDgrOr4Bvz9I" +
+		"LcXUD$bG#ojgPjov4YtNUQqag1c2wW0rW2fQrCs8Hg0ydL4FDT67UeAYLeWJrSO9oeverv9" +
+		"5JGZjYBrqHxIvLiFfAnKZiljL6jfJq2f4JHNj2OUHwwrubqcKzUjfWeZXvPgBM5jb7dCGhI" +
+		"bcDmFtQW3sXhA#UYfgfinqPV1Qi1qQrIBMqfLnKMZz1XInqAioi3F5sbYkUQYXjojwY3tGD" +
+		"nSn#Y1MJfnvvY3BNa1DGyzqhEKWgcXHyv2b5zj3xI6ZcuJOUUWJZffASx3lMrGdJjGbaaUI" +
+		"LDD1da4yLpnK9uIQ8wZU#kaZJvTCxC0vYfg7bkTP2oEDVoMT8gXNOy$93LKuHPwqBZJUIih" +
+		"1dXD4HRpwPE0SKBW7Pw2TXRqqup1MKW3x$IH1lPtkGEyW42rg1gBEGRmSpTMb4V2j0Pu8hn" +
+		"7WSnKrW0mNYsV9y#gDELTsGbTgEnM8kO9uZ3oXlVlK8gOXxrI9EmZ$Ak5DkByYLg81#6Ulj" +
+		"R0wIaOS9NLAalkp9#J2dQ4IB1dwTBEdZ16GvyguxCmdmjDHn9uYPr1#d3dQ26E16CHEc2Rd" +
+		"9cykqx63vsYE5IH71#Ufe6JP3JFT3PbwY5durmtMhd4ynIrYcgxPAk2Ps85jJ2z7MqDl7xe" +
+		"5bY7migX3e4k3buCU7k8GgOMzdqg#KxmT8KSGWv2p94T74AT4x0YrcAanwuU2SXL4rLIMzP" +
+		"eL3wBu9$bZMKHSGuYGCpdiuqUq#wn51DbHbG8YfKRFiJGGlQeUIKJmYoabrZoM4c9ox9Npz" +
+		"vZ7w6kr4D7U7KSMCVuSgVP$WqXfV#ULyzUPnxyVul$FbMCH$$pdurylnpB4CiGon3B4qa1K" +
+		"Nn#YjED2LDyeY25D6M8POYHYjBz6j4Ol#zzvsb5xwa0TGz6Y#b9$lsyyySfy$aUVGzXzStz" +
+		"5ZFaw3Aq$9lMoCKFHhupL0xPf$b74MZSHAtSHnZlCrrvF6mwnveP9BUA86xiEQcqNDj9XyV" +
+		"eUSeuEf#xzlCWnuus9RQLhwJgQGJDf5itswlw$ptYPjamRlZufW9MLwxkVWfI7g$pTmAvFI" +
+		"f7dKJ1aFrPvvMBhinhU4EVJrKM#qDdVKTk$skZpAAIl9jS8hVWkZRp3rHBofTk8p3#cUTyD" +
+		"I0Grajy54NqBRhzfj9l8MGJv7iZtWhy5RlUUty5lXAqjg9$jhp4s5ygn29yVFMxEyBYpFDn" +
+		"kiX7$PwA4055A5V26sgycaViP$D$oscuQR6FXqwvap8JjiMtkDJw$pr66#g0J8Fy7l0jec6" +
+		"TBN8AnRT8n9gFVmof$2deNzkT0gAU3VkuZe7F2SP8IOAkiVGx0hdcap8Fy2UmNmNwbrgGET" +
+		"9$h#3w0xHeTmtkGxqIV9n1Z40YooI#UapCTVb$0xm$q$rqn1q16sza3UYsY1WU9aaya2hoh" +
+		"RUGJK5iWeFrlXMppjjy1EminPeR7eEtAztiyVIzYTiKuihnsyaseQMPud#JduRTHntmouf#" +
+		"ec90Tr3vGKstp8MVhEAv4UwLYVGLzPV3lmQlwneBwE$kAsYbOswbXyt4eGgpQbcCTeYw1Ee" +
+		"gBsfjN88o1xanVRDmpIRWF3CQSZlcWnUhV2vS9uN5Jng46RT3$DDXNOemtXzkTnR3LW#rrK" +
+		"64z6q2$Ec9yk4UTYg0DscyLg2NeoOXuBu4mvfGT6EFrw5STT1ceiozMJ#KOh$CbVFV3zt6q" +
+		"SNy7x5ZtXSTq7UZou3iRz97YL8MkeyOP31ggybMWaTeFumsCLl#EeAOHOyLwSLvLtwFXEyQ" +
+		"7YNm3ep279w5#SrMduqxj1Xe1MWhR7dzCNuwekti#V5v0RjYxt97G3G7VwlEP4jwdN1ByDw" +
+		"lj9kLBbI$4$FG1NwJjMn0B#rK0SnfOKXJ3Vbyoi5p7c#9nin6n6sFjdwtwg#5pgozNZ3MmH" +
+		"UEkW#zuZEC37TDTw3SSCTw0RJFgbGd$Teer4xerAcEEtLoqrsfjMuVdPXef$qPnreFkHv#w" +
+		"u7jKzm1e5#X5aEvrWTqw3goJv4s#sZsD2#eLUBb85wm1d$U1yHtYxjHnt02VmZd6UdIHZxj" +
+		"BOtm8UaFbZq7lg8pr6$Z2FtxLluruchlx4DhVgOnwkLXBWGE#ckBvvKxJdDVxnjWTkM3j9c" +
+		"1VI$0$BrBX$pLYsETG4FA3uEcA#uClxgF#CM6$wAxy4SzEuvLNLAwrJS$1E30$PdxnlD8EH" +
+		"EgA#wHtK$p6qUrE1O#NpuQCSmFxvYLjPBXl#GiGfqB9c9GMs#OsyCLhXdPJSEo9RclmRaMr" +
+		"JvjLvESz$pNszzeNUxix2tvwDaZBZwZDNRuSCujaTw7Qc$Zi5qJqFQY#ECUKnrxYtcUVXOf" +
+		"$RlIyoa#67#u3jt1FhwUnMXNESOJ$7EX$yuthPkLJjR#U9Pm6yCFpsPqStZyuMEDNqtxx41" +
+		"Fd3lSvZRyQyWiHc5kWUr$zNm#tcUJmjd#$S$LPJxMr$M7nVDoFVJXte$r3f4z9X9mc5ScEt" +
+		"gF1XH4vsFFIBz2l1VyLf7j4qEuF4MULyi$Qvx3Qdu2z86BCkcy4No#gIx23FKT56HlEUwu#" +
+		"mrpiQS7VB0$tSMOexclsZ86vsQljbEBn0W6rlUyzQzDqBEMpejScpUujlohE7n6n75zE#ul" +
+		"tTMj7Z#cy4aDVE1RawVoi6AUexcVlJ95kO2ks3jJtU8#dOym1x1bfdJI7xtnZUZUyJpgUJu" +
+		"76dcpcQPmJVJ4R#VrnJonGtwmY7zFSvt#gBxOzh$PIVLwKyPxjyptTdajKFizxzWSw5FO5j" +
+		"L2iNU4nt5w#UDt3RTHF#KIVJw$2vx7Q5lZok4Dzz6oKthJmNE7pNnFUJiV#6LW1uIrVdCe#" +
+		"l4ljsIOoTxLDYcZFZExd3epITsCCNptB5Rq$O8oTuV#atrvaSquDRmUMgLypdyvtJZU5l$E" +
+		"F#F2$Gz9Elej$vT$u0F$8F$3t$1tluSVuQ$wIl#9lOD$FNp3kQiPEoNXZuGkvaVJho$rm7S" +
+		"0NyFdSWC$ZS$aSFfiRGdSHD#DBk2ddCKwbt84tXo6tv$wujXEvhUgE1M4du0m#YYkAlOteS" +
+		"ndFByQSSKjfNywjS1qaya3jkv7NyLfUmpWfCawD7FhD6W$ZP4vIMNwrpir1bueqYd72vQiu" +
+		"m2uJ3p$81$zGppFbseGRi$pQZJl9zGgUBdoANCV9DVIRDvx84uHVozVXEfRxS6$knJsv1tV" +
+		"dRjoLk$1urAEE#9mHwdNwGVaT47kjqopdsfpA#eiVQTTYXqseTQfSJ#7odAQQREKrESZbj5" +
+		"yD4EvbhiRLSQsaMfpq6M$XV1mVpqVpqTeFxrYSpxU9X$pwWPVoSbpb5$1SWTDvf4Xr6M$nV" +
+		"1RN2uqUTppZfCqhfDM24pc11tEMMey1LG5LPknOdCER#6BmLVmjVy8VySVygVfzgFmz$XU$" +
+		"An9E4$o0Qk#HwzsyI$ZhSds5$qc#3xyZrpUrXNCylyglyMVy4h$0Bt9e$VFp$1G$2VuKFy5" +
+		"x#MdHFSxFgFKvVbautkzudqZFyiF27vNh8tBTpRVZkeKVuWVvFxm8yWB6MpZZHC5uk#F5l5" +
+		"3yxkJjl8qB8Dq1sivRUKVOc6VmF9xBEA$pVCPRXd49CiZGFF1vu3S9EOJtT90X6tSXU06bu" +
+		"NtP5AEbGexzxqyWGzV9jsGj6Q5bGWvjWdqJv1do$Si0sNc#6UtHuAF1k#7OtWrl7lQUtInj" +
+		"LtGh8A#0l1nyEVWreBwG#o9ER$ZsXZmJSdVusbzXU3o9na4$3dgyGu0CTPLlR2RGOFI$5cr" +
+		"Bi#0$Yn9fDlIuWq56QAMG$TOzWGprGvy9yBMq06rBguHScWIVIP3jRpCceZr7li5fG2vT0f" +
+		"uFwYFaKY$OiCU07Ee1NI5racyl1vHisnNAWso$sTmPSXVGKBI7agFa4jx9GOOc2xbqE$IOT" +
+		"v2XAP2tGjuAUQDyBzs0N5eDlbg#isne6#pRmEstVjT0NYDoWhJNGbuBlwbAYn3Ftf4ZeSVU" +
+		"238q5xN3Uo38eH7eDm9r7q79j1wszUWpJVxle0RaqZ2olzSrr0gnBmClYLe8kQ04kXooHmu" +
+		"e2UI24aBS$l#ZDeWz04fKcwDsXow5pIDNU4lmvj0t1s#6TZF8hS5RotUWJKmQBkJGTF3fy6" +
+		"qFlFPejnSv4PG0IegGKzGlWTg1jnEU24hoyMHG2hM5lItiRQ6tluCfuicW5Ee9t9xoVNGZj" +
+		"4vfWD8efK5A0vMMA2rMkb49PscGeOv23ct$Frvfpce=");
 
 /*******************************************************
  *  Code for error handling in the parser class.
@@ -1181,8 +1180,13 @@ public class NlParser extends Parser {
 					final Symbol _symbol_type_bound = _symbols[offset + 2];
 					final TypeExpr type_bound = (TypeExpr) _symbol_type_bound.value;
 					 ParDeclType decl = new ParDeclType((String)id.value);
-                                               Symbol result = register(id, type_bound, decl);
-                                               em.warning("type bound is ignored", null);
+                                               Symbol result;
+                                               if(type_bound == null){
+                                                 result = register(id, id, decl);
+                                               } else {
+                                                 em.warning("type bound is ignored", type_bound);
+                                                 result = register(id, type_bound, decl);
+                                               }
                                                return result;
 			}
 			case 121: // type_parameter_block = LBRACK opt$type_parameter_list.l RBRACK
@@ -1386,7 +1390,7 @@ public class NlParser extends Parser {
 					final Expression e1 = (Expression) _symbol_e1.value;
 					final Symbol _symbol_e2 = _symbols[offset + 3];
 					final Expression e2 = (Expression) _symbol_e2.value;
-					 return new Symbol(new AbstractMap.SimpleEntry(e1, e2));
+					 return new Symbol(new ImmutableEntry(e1, e2));
 			}
 			case 152: // expression_list = expression.e
 			{
@@ -1719,35 +1723,40 @@ public class NlParser extends Parser {
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 200: // operator = MULT.op
+			case 200: // operator = LT.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 201: // operator = BAR.op
+			case 201: // operator = MULT.op
 			{
 					final Symbol op = _symbols[offset + 1];
 					 return op;
 			}
-			case 202: // formal_parameter = IDENTIFIER.id
+			case 202: // operator = BAR.op
+			{
+					final Symbol op = _symbols[offset + 1];
+					 return op;
+			}
+			case 203: // formal_parameter = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return register(id, id, new ParDeclValue((String)id.value, null));
 			}
-			case 203: // formal_parameter = type.t IDENTIFIER.id
+			case 204: // formal_parameter = type.t IDENTIFIER.id
 			{
 					final Symbol _symbol_t = _symbols[offset + 1];
 					final TypeExpr t = (TypeExpr) _symbol_t.value;
 					final Symbol id = _symbols[offset + 2];
 					 return register(t, id, new ParDeclValue((String)id.value, t));
 			}
-			case 204: // formal_parameter_list = formal_parameter.p
+			case 205: // formal_parameter_list = formal_parameter.p
 			{
 					final Symbol _symbol_p = _symbols[offset + 1];
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 return new Symbol(ImmutableList.builder().add(p));
 			}
-			case 205: // formal_parameter_list = formal_parameter_list.l COMMA formal_parameter.p
+			case 206: // formal_parameter_list = formal_parameter_list.l COMMA formal_parameter.p
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -1755,7 +1764,7 @@ public class NlParser extends Parser {
 					final ParDeclValue p = (ParDeclValue) _symbol_p.value;
 					 l.add(p);  return _symbol_l;
 			}
-			case 206: // statement = expression.lhs COLONEQ expression.value SEMICOLON.end
+			case 207: // statement = expression.lhs COLONEQ expression.value SEMICOLON.end
 			{
 					final Symbol _symbol_lhs = _symbols[offset + 1];
 					final Expression lhs = (Expression) _symbol_lhs.value;
@@ -1767,14 +1776,14 @@ public class NlParser extends Parser {
                                                              em.error("Illegal left hand sign of assignment.", lhs);
                                                              return register(lhs, end, new StmtAssignment(new LValueVariable(Variable.variable("$illegal")), value));
 			}
-			case 207: // statement = method_invocation.m SEMICOLON.end
+			case 208: // statement = method_invocation.m SEMICOLON.end
 			{
 					final Symbol _symbol_m = _symbols[offset + 1];
 					final ExprApplication m = (ExprApplication) _symbol_m.value;
 					final Symbol end = _symbols[offset + 2];
 					 return register(m, end, new StmtCall(m.getFunction(), m.getArgs()));
 			}
-			case 208: // statement = BEGIN.start statement_list_opt.s END.end
+			case 209: // statement = BEGIN.start statement_list_opt.s END.end
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_s = _symbols[offset + 2];
@@ -1782,7 +1791,7 @@ public class NlParser extends Parser {
 					final Symbol end = _symbols[offset + 3];
 					 return register(start, end, new StmtBlock(null, null, s));
 			}
-			case 209: // statement = BEGIN.start VAR decl_list.d DO statement_list_opt.s END.end
+			case 210: // statement = BEGIN.start VAR decl_list.d DO statement_list_opt.s END.end
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_d = _symbols[offset + 3];
@@ -1792,7 +1801,7 @@ public class NlParser extends Parser {
 					final Symbol end = _symbols[offset + 6];
 					 return register(start, end, new StmtBlock(null, d.build(), s));
 			}
-			case 210: // statement = IF.start expression.e THEN statement_list_opt.s end_if.end
+			case 211: // statement = IF.start expression.e THEN statement_list_opt.s end_if.end
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
@@ -1802,7 +1811,7 @@ public class NlParser extends Parser {
 					final Symbol end = _symbols[offset + 5];
 					 return register(start, end, new StmtIf(e, new StmtBlock(null, null, s), null));
 			}
-			case 211: // statement = IF.start expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if.end
+			case 212: // statement = IF.start expression.e THEN statement_list_opt.s1 ELSE statement_list_opt.s2 end_if.end
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
@@ -1816,7 +1825,7 @@ public class NlParser extends Parser {
                                                                                                                                      new StmtBlock(null, null, s1),
                                                                                                                                      new StmtBlock(null, null, s2)));
 			}
-			case 212: // statement = WHILE.start expression.e decl_block_opt.d DO statement_list_opt.s end_while.end
+			case 213: // statement = WHILE.start expression.e decl_block_opt.d DO statement_list_opt.s end_while.end
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_e = _symbols[offset + 2];
@@ -1828,7 +1837,7 @@ public class NlParser extends Parser {
 					final Symbol end = _symbols[offset + 6];
 					 return register(start, end, new StmtWhile(e, new StmtBlock(null, d, s)));
 			}
-			case 213: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s end_choose.end
+			case 214: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s end_choose.end
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -1843,7 +1852,7 @@ public class NlParser extends Parser {
        em.error("choose statement is not supported", stmt);
        return result;
 			}
-			case 214: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose.end
+			case 215: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s ELSE statement_list_opt.else_s end_choose.end
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -1860,7 +1869,7 @@ public class NlParser extends Parser {
        em.error("choose statement is not supported", stmt);
        return result;
 			}
-			case 215: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose.end
+			case 216: // statement = choose_generator_list.l decl_block_opt.do_v DO.c statement_list_opt.do_s ELSE decl_block_opt.else_v DO statement_list_opt.else_s end_choose.end
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -1879,7 +1888,7 @@ public class NlParser extends Parser {
        em.error("choose statement is not supported", stmt);
        return result;
 			}
-			case 216: // statement = for_generator_list.g DO.doSymbol statement_list_opt.s end_foreach.end
+			case 217: // statement = for_generator_list.g DO.doSymbol statement_list_opt.s end_foreach.end
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
 					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
@@ -1889,7 +1898,7 @@ public class NlParser extends Parser {
 					final Symbol end = _symbols[offset + 4];
 					 return register(doSymbol, end, new StmtForeach(g.build(), new StmtBlock(null, null, s)));
 			}
-			case 217: // statement = for_generator_list.g decl_block.d DO.doSymbol statement_list_opt.s end_foreach.end
+			case 218: // statement = for_generator_list.g decl_block.d DO.doSymbol statement_list_opt.s end_foreach.end
 			{
 					final Symbol _symbol_g = _symbols[offset + 1];
 					final ImmutableList.Builder g = (ImmutableList.Builder) _symbol_g.value;
@@ -1901,7 +1910,7 @@ public class NlParser extends Parser {
 					final Symbol end = _symbols[offset + 5];
 					 return register(doSymbol, end, new StmtForeach(g.build(), new StmtBlock(null, d, s)));
 			}
-			case 218: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e
+			case 219: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
@@ -1910,7 +1919,7 @@ public class NlParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return makeGeneratorFilter(start, null, vars.build(), e, null, null);
 			}
-			case 219: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e
+			case 220: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
@@ -1921,7 +1930,7 @@ public class NlParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return makeGeneratorFilter(start, t, vars.build(), e, null, null);
 			}
-			case 220: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 221: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
@@ -1932,7 +1941,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					 return makeGeneratorFilter(start, null, vars.build(), e, filters.build(), null);
 			}
-			case 221: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 222: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
@@ -1945,7 +1954,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					 return makeGeneratorFilter(start, t, vars.build(), e, filters.build(), null);
 			}
-			case 222: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 223: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
@@ -1956,7 +1965,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return makeGeneratorFilter(start, null, vars.build(), e, null, l.build());
 			}
-			case 223: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
+			case 224: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA choose_generator_list.l
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
@@ -1969,7 +1978,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return makeGeneratorFilter(start, t, vars.build(), e, null, l.build());
 			}
-			case 224: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
+			case 225: // choose_generator_list = CHOOSE.start generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
@@ -1982,7 +1991,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return makeGeneratorFilter(start, null, vars.build(), e, filters.build(), l.build());
 			}
-			case 225: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
+			case 226: // choose_generator_list = CHOOSE.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA choose_generator_list.l
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
@@ -1997,7 +2006,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return makeGeneratorFilter(start, t, vars.build(), e, filters.build(), l.build());
 			}
-			case 226: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e
+			case 227: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
@@ -2006,7 +2015,7 @@ public class NlParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return makeGeneratorFilter(start, null, vars.build(), e, null, null);
 			}
-			case 227: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e
+			case 228: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
@@ -2017,7 +2026,7 @@ public class NlParser extends Parser {
 					final Expression e = (Expression) _symbol_e.value;
 					 return makeGeneratorFilter(start, t, vars.build(), e, null, null);
 			}
-			case 228: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 229: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
@@ -2028,7 +2037,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					 return makeGeneratorFilter(start, null, vars.build(), e, filters.build(), null);
 			}
-			case 229: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
+			case 230: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
@@ -2041,7 +2050,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder filters = (ImmutableList.Builder) _symbol_filters.value;
 					 return makeGeneratorFilter(start, t, vars.build(), e, filters.build(), null);
 			}
-			case 230: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 231: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA for_generator_list.l
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
@@ -2052,7 +2061,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return makeGeneratorFilter(start, null, vars.build(), e, null, l.build());
 			}
-			case 231: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
+			case 232: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA for_generator_list.l
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
@@ -2065,7 +2074,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return makeGeneratorFilter(start, t, vars.build(), e, null, l.build());
 			}
-			case 232: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 233: // for_generator_list = for_foreach.start generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_vars = _symbols[offset + 2];
@@ -2078,7 +2087,7 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return makeGeneratorFilter(start, null, vars.build(), e, filters.build(), l.build());
 			}
-			case 233: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
+			case 234: // for_generator_list = for_foreach.start type.t generator_variable_list.vars IN expression.e COMMA expression_list.filters COMMA for_generator_list.l
 			{
 					final Symbol start = _symbols[offset + 1];
 					final Symbol _symbol_t = _symbols[offset + 2];
@@ -2093,35 +2102,35 @@ public class NlParser extends Parser {
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return makeGeneratorFilter(start, t, vars.build(), e, filters.build(), l.build());
 			}
-			case 234: // generator_variable_list = IDENTIFIER.id
+			case 235: // generator_variable_list = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
 					 return new Symbol(ImmutableList.builder().add(id));
 			}
-			case 235: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
+			case 236: // generator_variable_list = generator_variable_list.l COMMA IDENTIFIER.id
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol id = _symbols[offset + 3];
 					 l.add(id); return _symbol_l;
 			}
-			case 254: // statement_list_opt = 
+			case 255: // statement_list_opt = 
 			{
 					 return new Symbol(ImmutableList.empty());
 			}
-			case 255: // statement_list_opt = statement_list.l
+			case 256: // statement_list_opt = statement_list.l
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					 return new Symbol(l.build());
 			}
-			case 256: // statement_list = statement.n
+			case 257: // statement_list = statement.n
 			{
 					final Symbol _symbol_n = _symbols[offset + 1];
 					final Statement n = (Statement) _symbol_n.value;
 					 return new Symbol(ImmutableList.builder().add(n));
 			}
-			case 257: // statement_list = statement_list.l statement.n
+			case 258: // statement_list = statement_list.l statement.n
 			{
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
@@ -2172,24 +2181,24 @@ public class NlParser extends Parser {
 			case 140: // opt$formal_parameter_list = formal_parameter_list
 			case 142: // opt$decl_block = decl_block
 			case 178: // opt$map_list = map_list
-			case 236: // for_foreach = FOREACH.FOREACH
-			case 237: // for_foreach = FOR.FOR
-			case 238: // do_begin = BEGIN.BEGIN
-			case 239: // do_begin = DO.DO
-			case 240: // end_choose = END.END
-			case 241: // end_choose = ENDCHOOSE.ENDCHOOSE
-			case 242: // end_foreach = END.END
-			case 243: // end_foreach = ENDFOREACH.ENDFOREACH
-			case 244: // end_if = END.END
-			case 245: // end_if = ENDIF.ENDIF
-			case 246: // end_lambda = END.END
-			case 247: // end_lambda = ENDLAMBDA.ENDLAMBDA
-			case 248: // end_let = END.END
-			case 249: // end_let = ENDLET.ENDLET
-			case 250: // end_proc = END.END
-			case 251: // end_proc = ENDPROC.ENDPROC
-			case 252: // end_while = END.END
-			case 253: // end_while = ENDWHILE.ENDWHILE
+			case 237: // for_foreach = FOREACH.FOREACH
+			case 238: // for_foreach = FOR.FOR
+			case 239: // do_begin = BEGIN.BEGIN
+			case 240: // do_begin = DO.DO
+			case 241: // end_choose = END.END
+			case 242: // end_choose = ENDCHOOSE.ENDCHOOSE
+			case 243: // end_foreach = END.END
+			case 244: // end_foreach = ENDFOREACH.ENDFOREACH
+			case 245: // end_if = END.END
+			case 246: // end_if = ENDIF.ENDIF
+			case 247: // end_lambda = END.END
+			case 248: // end_lambda = ENDLAMBDA.ENDLAMBDA
+			case 249: // end_let = END.END
+			case 250: // end_let = ENDLET.ENDLET
+			case 251: // end_proc = END.END
+			case 252: // end_proc = ENDPROC.ENDPROC
+			case 253: // end_while = END.END
+			case 254: // end_while = ENDWHILE.ENDWHILE
 			{
 				return _symbols[offset + 1];
 			}

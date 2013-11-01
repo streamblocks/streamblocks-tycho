@@ -28,8 +28,8 @@
 %import "net.opendf.ir.IRNode.Identifier";
 %import "net.opendf.parser.SourceCodeOracle";
 %import "net.opendf.parser.SourceCodeOracle.SourceCodePosition";
-%import "net.opendf.interp.exception.BasicErrorModule";
-%import "net.opendf.interp.exception.ErrorModule";
+%import "net.opendf.errorhandling.BasicErrorModule";
+%import "net.opendf.errorhandling.ErrorModule";
 %embed {:
 /*******************************************************
  *  Code for error handling in the parser class.

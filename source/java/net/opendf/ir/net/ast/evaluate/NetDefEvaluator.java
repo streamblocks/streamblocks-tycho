@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.opendf.errorhandling.BasicErrorModule;
+import net.opendf.errorhandling.ErrorModule;
 import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicEnvironment;
 import net.opendf.interp.BasicMemory;
@@ -52,6 +54,7 @@ import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.DeclLoader;
 
 public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environment>, StructureStmtVisitor<StructureStatement, Environment>{
+	private ErrorModule em;
 	NetworkDefinition srcNetwork;
 	private final Interpreter interpreter;
 	private final TypeConverter converter;
@@ -70,11 +73,14 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		this.gen = new GeneratorFilterHelper(interpreter);
 		this.declLoader = entityLoader;
 		this.evaluated = false;
+		this.em = new BasicErrorModule(entityLoader);
 	}
 
 
-	public NetworkDefinition getNetworkDefinition(){
+	public NetworkDefinition getNetworkDefinition() throws CALCompiletimeException {
 		assert evaluated;
+		em.printWarnings();
+		em.abortIfError();
 		ImmutableList<ParDeclType> typePars = ImmutableList.empty();
 		ImmutableList<ParDeclValue> valuePars = ImmutableList.empty();
 		ImmutableList<DeclType> typeDecls = ImmutableList.empty();
@@ -87,6 +93,8 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 
 	public Network getNetwork(){
 		assert evaluated;
+		em.printWarnings();
+		em.abortIfError();
 		NetworkNodeBuilder nb = new NetworkNodeBuilder();
 		for(Entry<String, EntityExpr> entry : entities.entrySet()){
 			entry.getValue().accept(nb, entry.getKey());
@@ -94,11 +102,9 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		for(StructureStatement stmt : structure){
 			stmt.accept(nb,  "");
 		}
-		return new Network(nb.getNodes(), nb.getConnections(), srcNetwork.getInputPorts(), srcNetwork.getOutputPorts());
-	}
-
-	private void error(String msg) {
-		throw new CALCompiletimeException(msg, null);
+		em.printWarnings();
+		em.abortIfError();
+		return new Network(srcNetwork, nb.getNodes(), nb.getConnections(), srcNetwork.getInputPorts(), srcNetwork.getOutputPorts());
 	}
 
 	private int findPortIndex(String portName, ImmutableList<PortDecl> portList) {
@@ -179,12 +185,14 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			Identifier dstId = null;
 			int srcPortIndex = -1;
 			int dstPortIndex = -1;
+			Node srcNode=null, dstNode=null;
 			ImmutableList<PortDecl> srcPortList, dstPortList;
 			if(src.getEntityName() != null){
 				// internal node
-				Node srcNode = nodes.get(makeEntityName(src));
+				srcNode = nodes.get(makeEntityName(src));
 				if(srcNode == null){
-					error("can not find entity " + makeEntityName(src));
+					em.error("can not find entity " + makeEntityName(src), src);
+					return null;
 				}
 				srcId = srcNode.getIdentifier();
 				srcPortList = srcNode.getContent().getOutputPorts();
@@ -194,9 +202,10 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			}
 
 			if(dst.getEntityName() != null){
-				Node dstNode = nodes.get(makeEntityName(dst));
+				dstNode = nodes.get(makeEntityName(dst));
 				if(dstNode == null){
-					error("can not find entity " + makeEntityName(dst));
+					em.error("can not find entity " + makeEntityName(dst), dst);
+					return null;
 				}
 				dstId = dstNode.getIdentifier();
 				dstPortList = dstNode.getContent().getInputPorts();
@@ -206,9 +215,15 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			}
 			// verify that the ports exists
 			srcPortIndex = findPortIndex(src.getPortName(), srcPortList);
-			if(srcPortIndex<0){ error("can not find port " + src.getPortName()); }
+			if(srcPortIndex<0){
+				em.error("no port with name " + src.getPortName() + " exist in " + srcNode.getName(), src);
+				return null;
+		    }
 			dstPortIndex = findPortIndex(dst.getPortName(), dstPortList);
-			if(dstPortIndex<0){ error("can not find port " + dst.getPortName()); }
+			if(dstPortIndex<0){
+				em.error("no port with name " + dst.getPortName() + " exist in " + dstNode.getName(), dst);
+				return null;
+			}
 			Connection con =  new Connection(srcId, new Port(src.getPortName(), srcPortIndex), dstId, new Port(dst.getPortName(), dstPortIndex), stmt.getToolAttributes());
 			connections.add(con);
 			return null;
@@ -227,10 +242,19 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		}
 	}
 
+	/**
+	 * Evaluate {@link Expression}s in the {@link NetworkDefinition}.
+	 * The result is a {@link NetworkDefinition} with no variables and all index expressions are {@link ExprValue}s
+	 * The generated {@link Entity} objects are stored in the attribute entities.
+	 * The generated {@link Structure} objects are stored in the attribute structure.
+	 * 
+	 * @param parameterAssignments
+	 */
 	public void evaluate(ImmutableList<Map.Entry<String,Expression>> parameterAssignments){
 		entities = new HashMap<String, EntityExpr>();
 		structure = new ArrayList<StructureStatement>();
 
+		// create the memory for global variables and parameters
 		int[] config = new int[Math.max(VariableOffsetTransformer.NetworkGlobalScopeId, VariableOffsetTransformer.NetworkParamScopeId)+1];
 		config[VariableOffsetTransformer.NetworkGlobalScopeId] = srcNetwork.getVarDecls().size();
 		config[VariableOffsetTransformer.NetworkParamScopeId] = srcNetwork.getValueParameters().size();
@@ -255,7 +279,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				}
 			}
 			if(scopeOffset<0) {
-				throw new CALCompiletimeException("unknown parameter name: " + name, null);
+				em.error("unknown parameter name: " + name, assignment.getValue());
 			}
 			RefView value = interpreter.evaluate(assignment.getValue(), env);
 			value.assignTo(mem.declare(VariableOffsetTransformer.NetworkParamScopeId, scopeOffset));
@@ -269,6 +293,8 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		for(StructureStatement s : srcNetwork.getStructure()){
 			structure.add(s.accept(this, env));
 		}
+		em.printWarnings();
+		em.abortIfError();
 		evaluated = true;
 	}
 

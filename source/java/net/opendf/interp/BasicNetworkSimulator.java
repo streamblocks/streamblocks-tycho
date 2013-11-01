@@ -6,8 +6,10 @@ import net.opendf.analyze.memory.VariableInitOrderTransformer;
 import net.opendf.interp.Channel.InputEnd;
 import net.opendf.interp.Channel.OutputEnd;
 import net.opendf.interp.exception.CALCompiletimeException;
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.preprocess.EvaluateLiteralsTransformer;
 import net.opendf.interp.preprocess.VariableOffsetTransformer;
+import net.opendf.ir.IRNode;
 import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.common.Expression;
@@ -20,7 +22,6 @@ import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
 import net.opendf.ir.util.DeclLoader;
 import net.opendf.ir.util.ImmutableList;
-import net.opendf.parser.SourceCodeOracle;
 import net.opendf.transform.operators.ActorOpTransformer;
 
 public class BasicNetworkSimulator implements Simulator{
@@ -252,14 +253,19 @@ public class BasicNetworkSimulator implements Simulator{
 
 	@Override
 	public boolean step() {
-		int waits = 0;
-		boolean progress = false;
-		while(!progress && waits<simList.length){
-			progress = simList[nextNodeToRun].step();
-			nextNodeToRun = (nextNodeToRun + 1) % simList.length;
-			waits++;
+		try{
+			int waits = 0;
+			boolean progress = false;
+			while(!progress && waits<simList.length){
+				progress = simList[nextNodeToRun].step();
+				nextNodeToRun = (nextNodeToRun + 1) % simList.length;
+				waits++;
+			}
+			return progress;
+		} catch(CALRuntimeException e){
+			e.pushCalStack((IRNode)net.getNodes().get(nextNodeToRun).getContent());
+			throw e;
 		}
-		return progress;
 	}
 
 	@Override

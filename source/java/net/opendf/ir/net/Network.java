@@ -51,7 +51,7 @@ public class Network extends AbstractIRNode implements PortContainer{
 		this(null, nodes, connections, inputPorts, outputPorts);
 	}
 	
-	protected Network (IRNode original, ImmutableList<Node> nodes, ImmutableList<Connection> connections, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) {
+	public Network (IRNode original, ImmutableList<Node> nodes, ImmutableList<Connection> connections, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) {
 		super(original);
 		this.nodes = nodes;
 		this.connections = connections;

@@ -136,6 +136,9 @@
                                    if("|".equals(str())){
                                      return sym(Terminals.BAR);
                                    }
+                                   if("<".equals(str())){           // type bound
+                                     return sym(Terminals.LT);
+                                   }
                                    return sym(Terminals.OPERATOR); 
                                  }
 //TODO, MULT is needed by regular expression schedules  

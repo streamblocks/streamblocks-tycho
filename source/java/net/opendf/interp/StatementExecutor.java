@@ -1,5 +1,6 @@
 package net.opendf.interp;
 
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.values.BasicRef;
 import net.opendf.interp.values.List;
 import net.opendf.interp.values.Procedure;
@@ -43,13 +44,18 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 		stmt.accept(this, env);
 	}
 
-	
+
 	@Override
 	public Void visitStmtAssignment(StmtAssignment stmt, Environment env) {
-		RefView value = interpreter.evaluate(stmt.getExpression(), env);
-		Ref memCell = stmt.getLValue().accept(this, env);
-		value.assignTo(memCell);
-		return null;
+		try{
+			RefView value = interpreter.evaluate(stmt.getExpression(), env);
+			Ref memCell = stmt.getLValue().accept(this, env);
+			value.assignTo(memCell);
+			return null;
+		} catch(CALRuntimeException e){
+			e.pushCalStack(stmt);
+			throw e;
+		}
 	}
 
 	/**
@@ -88,96 +94,133 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 
 	@Override
 	public Void visitStmtConsume(StmtConsume s, Environment p) {
-		Channel.OutputEnd source = p.getSourceChannelOutputEnd(s.getPort().getOffset());
-		source.remove(s.getNumberOfTokens());
-		return null;
+		try{
+			Channel.OutputEnd source = p.getSourceChannelOutputEnd(s.getPort().getOffset());
+			source.remove(s.getNumberOfTokens());
+			return null;
+		} catch(CALRuntimeException e){
+			e.pushCalStack(s);
+			throw e;
+		}
 	}
 
 	@Override
 	public Void visitStmtBlock(StmtBlock stmt, Environment env) {
-		if(!stmt.getTypeDecls().isEmpty()) {
-			throw new UnsupportedOperationException();
-		}
-		for (DeclVar d : stmt.getVarDecls()) {
-			if(d.getInitialValue() != null){
-				stack.push(interpreter.evaluate(d.getInitialValue(), env));				
-			} else {
-				stack.push();
+		try{
+			if(!stmt.getTypeDecls().isEmpty()) {
+				throw new UnsupportedOperationException();
 			}
+			for (DeclVar d : stmt.getVarDecls()) {
+				if(d.getInitialValue() != null){
+					stack.push(interpreter.evaluate(d.getInitialValue(), env));				
+				} else {
+					stack.push();
+				}
+			}
+			for (Statement s : stmt.getStatements()) {
+				execute(s, env);
+			}
+			stack.remove(stmt.getVarDecls().size());
+			return null;
+		} catch(CALRuntimeException e){
+			e.pushCalStack(stmt);
+			throw e;
 		}
-		for (Statement s : stmt.getStatements()) {
-			execute(s, env);
-		}
-		stack.remove(stmt.getVarDecls().size());
-		return null;
 	}
 
 	@Override
 	public Void visitStmtIf(StmtIf stmt, Environment env) {
-		RefView condRef = interpreter.evaluate(stmt.getCondition(), env);
-		boolean cond = conv.getBoolean(condRef);
-		if (cond) {
-			execute(stmt.getThenBranch(), env);
-		} else {
-			execute(stmt.getElseBranch(), env);
+		try{
+			//--- condition
+			RefView condRef = interpreter.evaluate(stmt.getCondition(), env);
+			boolean cond = conv.getBoolean(condRef);
+			if (cond) {
+				//--- true branch
+				execute(stmt.getThenBranch(), env);
+			} else {
+				execute(stmt.getElseBranch(), env);
+			}
+			return null;
+		} catch(CALRuntimeException e){
+			e.pushCalStack(stmt);
+			throw e;
 		}
-		return null;
 	}
 
 	@Override
 	public Void visitStmtCall(StmtCall stmt, Environment env) {
-		RefView r = interpreter.evaluate(stmt.getProcedure(), env);
-		Procedure p = conv.getProcedure(r);
-		ImmutableList<Expression> argExprs = stmt.getArgs();
-		for (Expression arg : argExprs) {
-			stack.push(interpreter.evaluate(arg, env));
+		try{
+			RefView r = interpreter.evaluate(stmt.getProcedure(), env);
+			Procedure p = conv.getProcedure(r);
+			ImmutableList<Expression> argExprs = stmt.getArgs();
+			for (Expression arg : argExprs) {
+				stack.push(interpreter.evaluate(arg, env));
+			}
+			//TODO, closure
+			p.exec(interpreter);
+			stack.remove(stmt.getArgs().size());
+			return null;
+		} catch(CALRuntimeException e){
+			e.pushCalStack(stmt);
+			throw e;
 		}
-		//TODO, closure
-		p.exec(interpreter);
-		stack.remove(stmt.getArgs().size());
-		return null;
 	}
 
 	@Override
 	public Void visitStmtOutput(StmtOutput stmt, Environment env) {
-		Channel.InputEnd channel = env.getSinkChannelInputEnd(stmt.getPort().getOffset());
-		if (stmt.hasRepeat()) {
-			ImmutableList<Expression> exprList = stmt.getValues();
-			BasicRef[] values = new BasicRef[exprList.size()];
-			for (int i = 0; i < exprList.size(); i++) {
-				values[i] = new BasicRef();
-				interpreter.evaluate(exprList.get(i), env).assignTo(values[i]);
+		try{
+			Channel.InputEnd channel = env.getSinkChannelInputEnd(stmt.getPort().getOffset());
+			if (stmt.hasRepeat()) {
+				ImmutableList<Expression> exprList = stmt.getValues();
+				BasicRef[] values = new BasicRef[exprList.size()];
+				for (int i = 0; i < exprList.size(); i++) {
+					values[i] = new BasicRef();
+					interpreter.evaluate(exprList.get(i), env).assignTo(values[i]);
+				}
+				for (int r = 0; r < stmt.getRepeat(); r++) {
+					for (BasicRef v : values)
+						channel.write(v);
+				}
+			} else {
+				ImmutableList<Expression> exprList = stmt.getValues();
+				for (Expression expr : exprList) {
+					// write() always succeeds so no exceptions to catch
+					channel.write(interpreter.evaluate(expr, env));
+				}
 			}
-			for (int r = 0; r < stmt.getRepeat(); r++) {
-				for (BasicRef v : values)
-					channel.write(v);
-			}
-		} else {
-			ImmutableList<Expression> exprList = stmt.getValues();
-			for (Expression expr : exprList) {
-				channel.write(interpreter.evaluate(expr, env));
-			}
+			return null;
+		} catch(CALRuntimeException e){
+			e.pushCalStack(stmt);
+			throw e;
 		}
-		return null;
 	}
 
 	@Override
 	public Void visitStmtWhile(StmtWhile stmt, Environment env) {
-		while (conv.getBoolean(interpreter.evaluate(stmt.getCondition(), env))) {
-			execute(stmt.getBody(), env);
+		try{
+			while (conv.getBoolean(interpreter.evaluate(stmt.getCondition(), env))) {
+				execute(stmt.getBody(), env);
+			}
+			return null;
+		} catch(CALRuntimeException e){
+			e.pushCalStack(stmt);
+			throw e;
 		}
-		return null;
 	}
 
 	@Override
 	public Void visitStmtForeach(final StmtForeach stmt, final Environment env) {
-		Runnable execStmt = new Runnable() {
-			public void run() {
-				execute(stmt.getBody(), env);
-			}
-		};
-		gen.interpret(stmt.getGenerators(), execStmt, env);
-		return null;
+		try{
+			Runnable execStmt = new Runnable() {
+				public void run() {
+					execute(stmt.getBody(), env);
+				}
+			};
+			gen.interpret(stmt.getGenerators(), execStmt, env);
+			return null;
+		} catch(CALRuntimeException e){
+			e.pushCalStack(stmt);
+			throw e;
+		}
 	}
-
 }

@@ -29,6 +29,7 @@ public class ActorToActorMachine {
 		StateHandler<State> stateHandler = getStateHandler(helper.getActorStateHandler());
 		ControllerGenerator<State> generator = ControllerGenerator.generate(stateHandler);
 		return new ActorMachine(
+				actor,  // use the same identifier as the source actor
 				helper.getInputPorts(),
 				helper.getOutputPorts(),
 				helper.getScopes(),
