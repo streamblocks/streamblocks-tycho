@@ -7,6 +7,7 @@ import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.values.Function;
 import net.opendf.interp.values.List;
 import net.opendf.interp.values.Range;
+import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.Value;
 import net.opendf.interp.values.Iterator;
@@ -20,7 +21,7 @@ public class CollFunctions {
 		}
 
 		@Override
-		public final RefView apply(Interpreter interpreter) {
+		public final RefView apply(Interpreter interpreter) throws CALRuntimeException {
 			Stack stack = interpreter.getStack();
 			List list = conv.getList(stack.pop());
 			RefView accValue = stack.pop();
@@ -44,6 +45,28 @@ public class CollFunctions {
 		}
 	}
 
+	public static class ListSize implements Function {
+		private TypeConverter conv = TypeConverter.getInstance();
+		@Override
+		public final Value copy() {
+			return this;
+		}
+
+		@Override
+		public final RefView apply(Interpreter interpreter) throws CALRuntimeException {
+			Stack stack = interpreter.getStack();
+			List list = conv.getList(stack.pop());
+			stack.push();
+			Ref size = stack.pop();
+			size.setLong(list.size());
+			return size;
+		}
+
+		@Override
+		public int getNbrParameters() {
+			return 1;
+		}
+	}
 
 	public static class IntegerRange implements Function {
 
@@ -55,7 +78,7 @@ public class CollFunctions {
 		}
 
 		@Override
-		public final RefView apply(Interpreter interpreter) {
+		public final RefView apply(Interpreter interpreter) throws CALRuntimeException {
 			Stack stack = interpreter.getStack();
 			int to = conv.getInt(stack.pop());
 			int from = conv.getInt(stack.pop());

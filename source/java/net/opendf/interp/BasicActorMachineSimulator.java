@@ -213,7 +213,7 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 	}
 
 	@Override
-	public Boolean visitPredicateCondition(PredicateCondition c, Environment p) {
+	public Boolean visitPredicateCondition(PredicateCondition c, Environment p) throws CALRuntimeException {
 		try{
 			initScopes(condRequiredScope.get(c));
 			RefView cond = interpreter.evaluate(c.getExpression(), p);

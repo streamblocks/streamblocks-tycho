@@ -19,6 +19,7 @@ import net.opendf.interp.Interpreter;
 import net.opendf.interp.Memory;
 import net.opendf.interp.TypeConverter;
 import net.opendf.interp.exception.CALCompiletimeException;
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.preprocess.VariableOffsetTransformer;
 import net.opendf.interp.values.ExprValue;
 import net.opendf.interp.values.RefView;
@@ -91,7 +92,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				ImmutableList.copyOf(entities.entrySet()), ImmutableList.copyOf(structure), srcNetwork.getToolAttributes());
 	}
 
-	public Network getNetwork(){
+	public Network getNetwork() throws CALCompiletimeException {
 		assert evaluated;
 		em.printWarnings();
 		em.abortIfError();
@@ -125,29 +126,34 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 
 		@Override
 		public Void visitEntityInstanceExpr(EntityInstanceExpr e, String p) {
-			Decl decl = null;
-			String entityName = e.getEntityName() + ":" + p;
-			// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
-			//e.getParameterAssignments();
-			PortContainer payload = null; 
-			decl = declLoader.getDecl(e.getEntityName());
-			switch(decl.getKind()){
-			case type:
-				throw new UnsupportedOperationException("Type declaration instantiation in networks");
-			case value:
-				throw new UnsupportedOperationException("Value declaration instantiation in networks");
-			case entity:
-				if(decl instanceof Actor){
-					payload = BasicActorMachineSimulator.prepareActor((Actor)decl, declLoader);
-				} else if(decl instanceof NetworkDefinition){
-					payload = BasicNetworkSimulator.prepareNetworkDefinition((NetworkDefinition)decl, e.getParameterAssignments(), declLoader);
-				} else {
-					throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
+			try{
+				Decl decl = null;
+				String entityName = e.getEntityName() + ":" + p;
+				// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
+				//e.getParameterAssignments();
+				PortContainer payload = null; 
+				decl = declLoader.getDecl(e.getEntityName());
+				switch(decl.getKind()){
+				case type:
+					throw new UnsupportedOperationException("Type declaration instantiation in networks");
+				case value:
+					throw new UnsupportedOperationException("Value declaration instantiation in networks");
+				case entity:
+					if(decl instanceof Actor){
+						payload = BasicActorMachineSimulator.prepareActor((Actor)decl, declLoader);
+					} else if(decl instanceof NetworkDefinition){
+						payload = BasicNetworkSimulator.prepareNetworkDefinition((NetworkDefinition)decl, e.getParameterAssignments(), declLoader);
+					} else {
+						throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
+					}
 				}
+				//TODO parameters for actors
+				nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
+				return null;
+			} catch(CALRuntimeException error){
+				error.pushCalStack(e);
+				throw error;
 			}
-			//TODO parameters for actors
-			nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
-			return null;
 		}
 
 		@Override
@@ -250,7 +256,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	 * 
 	 * @param parameterAssignments
 	 */
-	public void evaluate(ImmutableList<Map.Entry<String,Expression>> parameterAssignments){
+	public void evaluate(ImmutableList<Map.Entry<String,Expression>> parameterAssignments) throws CALRuntimeException{
 		entities = new HashMap<String, EntityExpr>();
 		structure = new ArrayList<StructureStatement>();
 
@@ -279,7 +285,9 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				}
 			}
 			if(scopeOffset<0) {
-				em.error("unknown parameter name: " + name, assignment.getValue());
+				CALRuntimeException error = new CALRuntimeException("unknown parameter name: " + name + " found in parameter assignments while evaluating network "
+						+ srcNetwork.getName(), srcNetwork);
+				throw error;
 			}
 			RefView value = interpreter.evaluate(assignment.getValue(), env);
 			value.assignTo(mem.declare(VariableOffsetTransformer.NetworkParamScopeId, scopeOffset));

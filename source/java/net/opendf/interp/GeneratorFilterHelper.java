@@ -1,5 +1,6 @@
 package net.opendf.interp;
 
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.preprocess.VariableOffsetTransformer;
 import net.opendf.interp.preprocess.VariableOffsetTransformer.LookupTable;
 import net.opendf.interp.values.Collection;
@@ -30,8 +31,9 @@ public class GeneratorFilterHelper {
 	 * @param generators
 	 * @param action
 	 * @param env
+	 * @throws CALRuntimeException 
 	 */
-	public void interpret(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env) {
+	public void interpret(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env) throws CALRuntimeException {
 		if (generators == null || generators.isEmpty()){
 			action.run();
 		} else {
@@ -39,7 +41,7 @@ public class GeneratorFilterHelper {
 		}
  	}
  
-	private void interpret(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env, int gen, int var, Collection coll) {
+	private void interpret(ImmutableList<GeneratorFilter> generators, Runnable action, Environment env, int gen, int var, Collection coll) throws CALRuntimeException {
 		assert !generators.isEmpty();
 		if (gen == generators.size()) {
 			// all generators have given their variables values, run the body

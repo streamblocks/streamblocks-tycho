@@ -18,6 +18,7 @@ public class CALRuntimeException extends java.lang.RuntimeException{
 	}
 	public CALRuntimeException(String msg, IRNode source) {
 		super(msg);
+		assert source != null;
 		calStack.push(source);
 	}
 	
@@ -26,15 +27,23 @@ public class CALRuntimeException extends java.lang.RuntimeException{
 	}
 
 	public void printCalStack(PrintStream err, SourceCodeOracle oracle){
+		err.print(calStackToString(oracle));
+	}
+	
+	public String calStackToString(SourceCodeOracle oracle){
+		StringBuffer sb = new StringBuffer();
 		for(IRNode node : calStack){
-			SourceCodePosition pos = oracle.getSrcLocations(node.getIdentifier());
+			SourceCodePosition pos = oracle == null ? null : oracle.getSrcLocations(node.getIdentifier());
 			if(pos != null){
-				err.println(node.getClass().getSimpleName() + ": between [" + pos.getStartLine() + ", " + pos.getStartColumn() + "] and [" + pos.getEndLine() + ", " + pos.getEndColumn() + "] in "+ pos.getFileName());
+				sb.append(node.getClass().getSimpleName() + ": between [" + pos.getStartLine() + ", " + pos.getStartColumn());
+				sb.append("] and [" + pos.getEndLine() + ", " + pos.getEndColumn() + "] in "+ pos.getFileName());
+				sb.append("\n");
 			} else {
-				err.println(node.getClass().getSimpleName());
+				sb.append(node.getClass().getSimpleName());
+				sb.append("\n");
 			}
-			
 		}
+		return sb.toString();
 	}
 	
 	private static final long serialVersionUID = 1L;

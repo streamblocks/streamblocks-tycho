@@ -3,6 +3,7 @@ package net.opendf.interp.values.predef;
 import net.opendf.interp.Interpreter;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.values.Function;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.Value;
@@ -24,7 +25,7 @@ public class BoolFunctions {
 		}
 
 		@Override
-		public final RefView apply(Interpreter interpreter) {
+		public final RefView apply(Interpreter interpreter) throws CALRuntimeException {
 			Stack stack = interpreter.getStack();
 			boolean b = conv.getBoolean(stack.pop());
 			boolean a = conv.getBoolean(stack.pop());
@@ -58,7 +59,7 @@ public class BoolFunctions {
 		}
 
 		@Override
-		public final RefView apply(Interpreter interpreter) {
+		public final RefView apply(Interpreter interpreter) throws CALRuntimeException {
 			Stack stack = interpreter.getStack();
 			boolean b = conv.getBoolean(stack.pop());
 			conv.setBoolean(stack.push(), !b);

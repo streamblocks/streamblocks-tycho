@@ -48,12 +48,12 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 		this.tmp = new BasicRef();
 	}
 
-	private RefView evaluate(Expression expr, Environment env) {
+	private RefView evaluate(Expression expr, Environment env) throws CALRuntimeException {
 		return expr.accept(this, env);
 	}
 
 	@Override
-	public RefView visitExprApplication(ExprApplication expr, Environment env) {
+	public RefView visitExprApplication(ExprApplication expr, Environment env) throws CALRuntimeException {
 		try{
 			RefView r = evaluate(expr.getFunction(), env);
 			Function f = converter.getFunction(r);
@@ -72,21 +72,21 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprBinaryOp(ExprBinaryOp expr, Environment env) {
+	public RefView visitExprBinaryOp(ExprBinaryOp expr, Environment env) throws CALRuntimeException {
 		CALRuntimeException e = new CALRuntimeException("ExprBinaryOp should be transformed to function call.");
 		e.pushCalStack(expr);
 		throw e;
 	}
 
 	@Override
-	public RefView visitExprField(ExprField expr, Environment p) {
+	public RefView visitExprField(ExprField expr, Environment p) throws CALRuntimeException {
 		CALRuntimeException e = new CALRuntimeException("Field is not supported.");
 		e.pushCalStack(expr);
 		throw e;
 	}
 
 	@Override
-	public RefView visitExprIf(ExprIf expr, Environment env) {
+	public RefView visitExprIf(ExprIf expr, Environment env) throws CALRuntimeException {
 		try{
 			RefView c = evaluate(expr.getCondition(), env);
 			Expression e = converter.getBoolean(c) ? expr.getThenExpr() : expr.getElseExpr();
@@ -98,7 +98,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprIndexer(ExprIndexer expr, Environment env) {
+	public RefView visitExprIndexer(ExprIndexer expr, Environment env) throws CALRuntimeException {
 		try{
 			List l = converter.getList(evaluate(expr.getStructure(), env));
 			RefView index = evaluate(expr.getIndex(), env);
@@ -112,7 +112,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprInput(ExprInput expr, Environment env) {
+	public RefView visitExprInput(ExprInput expr, Environment env) throws CALRuntimeException {
 		try{
 			Channel.OutputEnd channel = env.getSourceChannelOutputEnd(expr.getPort().getOffset());
 			if (!expr.hasRepeat()) {
@@ -137,7 +137,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprLambda(ExprLambda expr, Environment env) {
+	public RefView visitExprLambda(ExprLambda expr, Environment env) throws CALRuntimeException {
 		try{
 			assert expr.isFreeVariablesComputed();
 			int[] noSelect = {};
@@ -152,7 +152,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprLet(ExprLet expr, Environment env) {
+	public RefView visitExprLet(ExprLet expr, Environment env) throws CALRuntimeException {
 		try{
 			if(!expr.getTypeDecls().isEmpty()) {
 				CALRuntimeException e = new CALRuntimeException("Type declarations in let expressions.");
@@ -174,7 +174,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprList(ExprList expr, Environment env) {
+	public RefView visitExprList(ExprList expr, Environment env) throws CALRuntimeException {
 		try{
 			BasicList.Builder builder = new BasicList.Builder();
 			buildCollection(expr.getGenerators(), expr.getElements(), builder, env);
@@ -187,7 +187,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	private void buildCollection(ImmutableList<GeneratorFilter> generatorList, final ImmutableList<Expression> elements, final Builder builder,
-			final Environment env) {
+			final Environment env) throws CALRuntimeException {
 		Runnable buildList = new Runnable() {
 			public void run() {
 				for (Expression e : elements) {
@@ -199,7 +199,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprLiteral(ExprLiteral expr, Environment env) {
+	public RefView visitExprLiteral(ExprLiteral expr, Environment env) throws CALRuntimeException {
 		if(expr instanceof ExprValue){
 			return ((ExprValue)expr).getValue();
 		}
@@ -209,7 +209,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprMap(ExprMap expr, Environment env) {
+	public RefView visitExprMap(ExprMap expr, Environment env) throws CALRuntimeException {
 		// TODO implement
 		CALRuntimeException e = new CALRuntimeException("Map Comprehension, i.e. map {a->: for a, b in {1,2,3}}");
 		e.pushCalStack(expr);
@@ -217,7 +217,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprProc(ExprProc expr, Environment env) {
+	public RefView visitExprProc(ExprProc expr, Environment env) throws CALRuntimeException {
 		try{
 			assert expr.isFreeVariablesComputed();
 			int[] noSelect = {};
@@ -232,7 +232,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprSet(ExprSet expr, Environment env) {
+	public RefView visitExprSet(ExprSet expr, Environment env) throws CALRuntimeException {
 		// TODO implement
 		CALRuntimeException e = new CALRuntimeException("Set Comprehension, i.e. {2*a: for a in {1,2,3}}");
 		e.pushCalStack(expr);
@@ -240,14 +240,14 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 	}
 
 	@Override
-	public RefView visitExprUnaryOp(ExprUnaryOp expr, Environment env) {
+	public RefView visitExprUnaryOp(ExprUnaryOp expr, Environment env) throws CALRuntimeException {
 		CALRuntimeException e = new CALRuntimeException("ExprUnaryOp should be transformed to function call.");
 		e.pushCalStack(expr);
 		throw e;
 	}
 
 	@Override
-	public RefView visitExprVariable(ExprVariable expr, Environment env) {
+	public RefView visitExprVariable(ExprVariable expr, Environment env) throws CALRuntimeException {
 		try{
 			VariableLocation var = (VariableLocation)expr.getVariable();
 			RefView value;

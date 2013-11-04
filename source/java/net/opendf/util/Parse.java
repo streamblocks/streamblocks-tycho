@@ -9,11 +9,11 @@ import java.io.FileReader;
 import java.io.PrintWriter;
 
 import beaver.Scanner;
-import net.opendf.analyze.memory.VariableInitOrderTransformer;
 import net.opendf.errorhandling.ErrorModule;
 import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicNetworkSimulator;
 import net.opendf.interp.exception.CALCompiletimeException;
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.Decl;
@@ -103,9 +103,10 @@ public class Parse{
 			dumpScanner(path, name);
 		}
 
+		DeclLoader declLoader= new DeclLoader(path);
+		Decl decl = null;
 		try{
-			DeclLoader declLoader= new DeclLoader(path);
-			Decl decl = declLoader.getDecl(name);
+			decl = declLoader.getDecl(name);
 
 			//		System.out.println("------- " + System.getProperty("user.dir") + "/" + path + "/" + name + " (" +  new java.util.Date() + ") -------");
 			switch(decl.getKind()){
@@ -156,13 +157,23 @@ public class Parse{
 					throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + name + "is instance of class" + decl.getClass().getCanonicalName());
 				}
 			}
-		} catch(CALCompiletimeException e){
-			ErrorModule em = e.getErrorModule();
+		} catch (CALRuntimeException error){
+			if(decl != null){
+				error.pushCalStack(decl);
+			}
+			System.err.println(error.getClass().getSimpleName() + ": " + error.getMessage());
+			System.err.println("cal stack trace");
+			error.printCalStack(System.err, declLoader);
+			return;
+		} catch(CALCompiletimeException error){
+			ErrorModule em = error.getErrorModule();
 			if(em != null){
 				em.printErrors();
 			} else {
-				System.err.println("ERROR: " + e.getMessage());
+				System.err.println("ERROR: " + error.getMessage());
 			}
+			System.err.println("Problems occured while compiling, aborting before simulation.");
+			return;
 		}
 	}
 }

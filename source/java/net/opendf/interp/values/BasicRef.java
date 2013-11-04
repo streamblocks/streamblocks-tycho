@@ -1,5 +1,7 @@
 package net.opendf.interp.values;
 
+import net.opendf.interp.exception.CALRuntimeException;
+
 public class BasicRef implements Ref {
 
 	private static enum Type {
@@ -12,33 +14,35 @@ public class BasicRef implements Ref {
 	private double double_;
 	private String string_;
 	
-	private void assertType(Type t) {
+	private void assertType(Type t) throws CALRuntimeException {
 		if (type != t) {
-			throw new IllegalStateException("Wrong type");
+			String expectedType = t == null ? "UNINITIALIZED" : t.toString();
+			String foundType = type == null ? "UNINITIALIZED" : type.toString();
+			throw new CALRuntimeException("Wrong type, expecting " + expectedType + " found " + foundType);
 		}
 	}
 
 	@Override
-	public Value getValue() {
+	public Value getValue() throws CALRuntimeException {
 		assertType(Type.VALUE);
 		return value;
 	}
 
 	@Override
-	public long getLong() {
+	public long getLong() throws CALRuntimeException {
 		assertType(Type.LONG);
 		return long_;
 	}
 
 	@Override
-	public double getDouble() {
+	public double getDouble() throws CALRuntimeException {
 		assertType(Type.DOUBLE);
 		return double_;
 	}
 
 
 	@Override
-	public String getString() {
+	public String getString() throws CALRuntimeException {
 		assertType(Type.STRING);
 		return string_;
 	}

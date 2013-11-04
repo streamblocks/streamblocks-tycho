@@ -40,13 +40,13 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 		this.converter = TypeConverter.getInstance();
 	}
 
-	private void execute(Statement stmt, Environment env) {
+	private void execute(Statement stmt, Environment env) throws CALRuntimeException {
 		stmt.accept(this, env);
 	}
 
 
 	@Override
-	public Void visitStmtAssignment(StmtAssignment stmt, Environment env) {
+	public Void visitStmtAssignment(StmtAssignment stmt, Environment env) throws CALRuntimeException {
 		try{
 			RefView value = interpreter.evaluate(stmt.getExpression(), env);
 			Ref memCell = stmt.getLValue().accept(this, env);
@@ -87,13 +87,13 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	 * Return the memory location of the lhs
 	 */
 	@Override
-	public Ref visitLValueField(LValueField lvalue, Environment env) {
+	public Ref visitLValueField(LValueField lvalue, Environment env) throws CALRuntimeException {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("field at lhs of assignment");
+		throw new CALRuntimeException("unsopported operation, field at lhs of assignment", lvalue);
 	}
 
 	@Override
-	public Void visitStmtConsume(StmtConsume s, Environment p) {
+	public Void visitStmtConsume(StmtConsume s, Environment p) throws CALRuntimeException {
 		try{
 			Channel.OutputEnd source = p.getSourceChannelOutputEnd(s.getPort().getOffset());
 			source.remove(s.getNumberOfTokens());
@@ -105,7 +105,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	}
 
 	@Override
-	public Void visitStmtBlock(StmtBlock stmt, Environment env) {
+	public Void visitStmtBlock(StmtBlock stmt, Environment env) throws CALRuntimeException {
 		try{
 			if(!stmt.getTypeDecls().isEmpty()) {
 				throw new UnsupportedOperationException();
@@ -129,7 +129,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	}
 
 	@Override
-	public Void visitStmtIf(StmtIf stmt, Environment env) {
+	public Void visitStmtIf(StmtIf stmt, Environment env) throws CALRuntimeException {
 		try{
 			//--- condition
 			RefView condRef = interpreter.evaluate(stmt.getCondition(), env);
@@ -148,7 +148,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	}
 
 	@Override
-	public Void visitStmtCall(StmtCall stmt, Environment env) {
+	public Void visitStmtCall(StmtCall stmt, Environment env) throws CALRuntimeException {
 		try{
 			RefView r = interpreter.evaluate(stmt.getProcedure(), env);
 			Procedure p = conv.getProcedure(r);
@@ -156,7 +156,6 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 			for (Expression arg : argExprs) {
 				stack.push(interpreter.evaluate(arg, env));
 			}
-			//TODO, closure
 			p.exec(interpreter);
 			stack.remove(stmt.getArgs().size());
 			return null;
@@ -167,7 +166,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	}
 
 	@Override
-	public Void visitStmtOutput(StmtOutput stmt, Environment env) {
+	public Void visitStmtOutput(StmtOutput stmt, Environment env) throws CALRuntimeException {
 		try{
 			Channel.InputEnd channel = env.getSinkChannelInputEnd(stmt.getPort().getOffset());
 			if (stmt.hasRepeat()) {
@@ -196,7 +195,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	}
 
 	@Override
-	public Void visitStmtWhile(StmtWhile stmt, Environment env) {
+	public Void visitStmtWhile(StmtWhile stmt, Environment env) throws CALRuntimeException {
 		try{
 			while (conv.getBoolean(interpreter.evaluate(stmt.getCondition(), env))) {
 				execute(stmt.getBody(), env);
@@ -209,7 +208,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 	}
 
 	@Override
-	public Void visitStmtForeach(final StmtForeach stmt, final Environment env) {
+	public Void visitStmtForeach(final StmtForeach stmt, final Environment env) throws CALRuntimeException {
 		try{
 			Runnable execStmt = new Runnable() {
 				public void run() {

@@ -48,12 +48,14 @@ public class BasicMemory implements Memory {
 			return mem[var.getScopeId()][var.getOffset()];
 		} catch(java.lang.ArrayIndexOutOfBoundsException e){
 			String scopeMsg = var.getScopeId()<0 || mem.length<=var.getScopeId() ? " the scope does not exist" : ", size of scope: " + mem[var.getScopeId()].length;
-			throw new CALIndexOutOfBoundsException("access to static memory, scope: " + var.getScopeId() + ", offset: " + var.getOffset() + scopeMsg);
+			throw new ArrayIndexOutOfBoundsException("access to static memory, scope: " + var.getScopeId() + ", offset: " + var.getOffset() + scopeMsg);
 		}
 	}
 
 	@Override
 	public Ref declare(int scope, int offset) {
+		assert scope >= 0;
+		assert offset >= 0;
 		if (inClosure[scope].get(offset)) {
 			mem[scope][offset] = new BasicRef();
 			inClosure[scope].clear(offset);

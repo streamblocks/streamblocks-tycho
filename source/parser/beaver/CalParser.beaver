@@ -408,10 +408,10 @@
 %typeof init_action_decl = "Action";
 %typeof fsm_state_transitions = "ImmutableList.Builder";
 %typeof fsm_state_target = "Transition";
-%typeof import_group = "String";
+%typeof import_group = "ArrayList";
 %typeof import_list = "ArrayList";
-%typeof import_part = "String";
-%typeof import_single = "String";
+%typeof import_part = "ArrayList";
+%typeof import_single = "ArrayList";
 %typeof invariant = "ImmutableList";
 %typeof port_name_colon = "Port";
 %typeof pri_inequality = "ImmutableList.Builder";        //<QID>

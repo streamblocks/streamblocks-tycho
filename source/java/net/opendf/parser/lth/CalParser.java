@@ -565,7 +565,7 @@ public class CalParser extends Parser {
 			case 3: // import_list = import_part.i
 			{
 					final Symbol _symbol_i = _symbols[offset + 1];
-					final String i = (String) _symbol_i.value;
+					final ArrayList i = (ArrayList) _symbol_i.value;
 					 ArrayList l = new ArrayList(); l.add(i); return new Symbol(l);
 			}
 			case 4: // import_list = import_list.l import_part.i
@@ -573,19 +573,19 @@ public class CalParser extends Parser {
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ArrayList l = (ArrayList) _symbol_l.value;
 					final Symbol _symbol_i = _symbols[offset + 2];
-					final String i = (String) _symbol_i.value;
+					final ArrayList i = (ArrayList) _symbol_i.value;
 					 l.add(i); return _symbol_l;
 			}
 			case 5: // import_part = import_single.i
 			{
 					final Symbol _symbol_i = _symbols[offset + 1];
-					final String i = (String) _symbol_i.value;
+					final ArrayList i = (ArrayList) _symbol_i.value;
 					 return _symbol_i;
 			}
 			case 6: // import_part = import_group.i
 			{
 					final Symbol _symbol_i = _symbols[offset + 1];
-					final String i = (String) _symbol_i.value;
+					final ArrayList i = (ArrayList) _symbol_i.value;
 					 return _symbol_i;
 			}
 			case 7: // import_single = IMPORT qual_id.qual_id SEMICOLON

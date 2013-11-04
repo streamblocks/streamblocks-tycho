@@ -36,18 +36,24 @@ public class EvaluateLiteralsTransformer extends ErrorAwareBasicTransformer<Map<
 	public static Actor transformActor(Actor actor, SourceCodeOracle sourceOracle){
 		EvaluateLiteralsTransformer freeVarTransformer = new EvaluateLiteralsTransformer(sourceOracle);
 		ActorTransformerWrapper<Map<String, RefView>> wrapper = new ActorTransformerWrapper<Map<String, RefView>>(freeVarTransformer);
+		freeVarTransformer.printWarnings();
+		freeVarTransformer.abortIfError();
 		return wrapper.transformActor(actor, Predef.predef());
 	}
 
 	public static ActorMachine transformActorMachine(ActorMachine actorMachine, SourceCodeOracle sourceOracle){
 		EvaluateLiteralsTransformer freeVarTransformer = new EvaluateLiteralsTransformer(sourceOracle);
 		ActorMachineTransformerWrapper<Map<String, RefView>> wrapper = new ActorMachineTransformerWrapper<Map<String, RefView>>(freeVarTransformer);
+		freeVarTransformer.printWarnings();
+		freeVarTransformer.abortIfError();
 		return wrapper.transformActorMachine(actorMachine, Predef.predef());
 	}
 
 	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net, SourceCodeOracle sourceOracle){
 		EvaluateLiteralsTransformer freeVarTransformer = new EvaluateLiteralsTransformer(sourceOracle);
 		NetworkDefinitionTransformerWrapper<Map<String, RefView>> wrapper = new NetworkDefinitionTransformerWrapper<Map<String, RefView>>(freeVarTransformer);
+		freeVarTransformer.printWarnings();
+		freeVarTransformer.abortIfError();
 		return wrapper.transformNetworkDefinition(net, Predef.predef());
 	}
 

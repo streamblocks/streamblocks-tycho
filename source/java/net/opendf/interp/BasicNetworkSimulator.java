@@ -35,7 +35,7 @@ public class BasicNetworkSimulator implements Simulator{
 		System.err.println(msg);
 	}
 
-	public static Network prepareNetworkDefinition(NetworkDefinition net, DeclLoader declLoader){
+	public static Network prepareNetworkDefinition(NetworkDefinition net, DeclLoader declLoader) throws CALCompiletimeException, CALRuntimeException{
 		return prepareNetworkDefinition(net, ImmutableList.<Map.Entry<String,Expression>>empty(), declLoader);
 	}
 
@@ -48,7 +48,8 @@ public class BasicNetworkSimulator implements Simulator{
 	 * @return
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static Network prepareNetworkDefinition(NetworkDefinition net, ImmutableList<Map.Entry<String,Expression>> paramAssigns, DeclLoader declLoader) throws CALCompiletimeException {
+	public static Network prepareNetworkDefinition(NetworkDefinition net, ImmutableList<Map.Entry<String,Expression>> paramAssigns, DeclLoader declLoader) 
+			throws CALCompiletimeException, CALRuntimeException {
 		// order variable initializations
 		net = VariableInitOrderTransformer.transformNetworkDefinition(net, declLoader);
 		// replace operators with function calls
@@ -62,7 +63,6 @@ public class BasicNetworkSimulator implements Simulator{
 		Interpreter interpreter = new BasicInterpreter(100);
 		NetDefEvaluator eval = new NetDefEvaluator(net, interpreter, declLoader);
 		eval.evaluate(paramAssigns);
-
 		return eval.getNetwork();
 	}
 		

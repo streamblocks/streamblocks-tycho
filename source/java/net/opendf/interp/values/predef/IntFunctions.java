@@ -3,6 +3,7 @@ package net.opendf.interp.values.predef;
 import net.opendf.interp.Interpreter;
 import net.opendf.interp.Stack;
 import net.opendf.interp.TypeConverter;
+import net.opendf.interp.exception.CALRuntimeException;
 import net.opendf.interp.values.Function;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.Value;
@@ -34,7 +35,7 @@ public class IntFunctions {
 		}
 		
 		@Override
-		public final RefView apply(Interpreter interpreter) {
+		public final RefView apply(Interpreter interpreter) throws CALRuntimeException {
 			Stack stack = interpreter.getStack();
 			int a = conv.getInt(stack.pop());
 			conv.setInt(stack.push(), op(a));
@@ -64,7 +65,7 @@ public class IntFunctions {
 		}
 
 		@Override
-		public final RefView apply(Interpreter interpreter) {
+		public final RefView apply(Interpreter interpreter) throws CALRuntimeException {
 			Stack stack = interpreter.getStack();
 			int b = conv.getInt(stack.pop());
 			int a = conv.getInt(stack.pop());
@@ -144,7 +145,7 @@ public class IntFunctions {
 		}
 
 		@Override
-		public RefView apply(Interpreter interpreter) {
+		public RefView apply(Interpreter interpreter) throws CALRuntimeException {
 			Stack stack = interpreter.getStack();
 			int value = conv.getInt(stack.pop());
 			int size = conv.getInt(stack.pop());
@@ -170,7 +171,7 @@ public class IntFunctions {
 		}
 
 		@Override
-		public final RefView apply(Interpreter interpreter) {
+		public final RefView apply(Interpreter interpreter) throws CALRuntimeException {
 			Stack stack = interpreter.getStack();
 			int b = conv.getInt(stack.pop());
 			int a = conv.getInt(stack.pop());

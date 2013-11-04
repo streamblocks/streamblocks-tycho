@@ -12,6 +12,7 @@ public class Predef {
 	private static Map<String, RefView> predef = new HashMap<String, RefView>();
 	static {
 		predef.put("$UnaryOperation.-", ConstRef.of(new IntFunctions.Negate()));
+		predef.put("$UnaryOperation.#", ConstRef.of(new CollFunctions.ListSize()));
 		
 		predef.put("$BinaryOperation.+", ConstRef.of(new IntFunctions.Add()));
 		predef.put("$BinaryOperation.-", ConstRef.of(new IntFunctions.Sub()));

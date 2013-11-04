@@ -37,7 +37,7 @@ public class Simulate {
 		String entityName = args[index++];
 		DeclLoader declLoader= new DeclLoader(path);
 		Simulator simulator;
-		IRNode outerEntity; // olny used for filling the cal error stack
+		IRNode outerEntity = null; // only used for filling the cal error stack
 		try{
 			Decl e = declLoader.getDecl(entityName);
 			if(e.getKind() == Decl.DeclKind.entity) {
@@ -71,6 +71,14 @@ public class Simulate {
 				System.err.println(entityName + " is not a network or actor.");
 				return;
 			}
+		} catch (CALRuntimeException error){
+			if(outerEntity != null){
+				error.pushCalStack(outerEntity);
+			}
+			System.err.println(error.getClass().getSimpleName() + ": " + error.getMessage());
+			System.err.println("cal stack trace");
+			error.printCalStack(System.err, declLoader);
+			return;
 		} catch(CALCompiletimeException error){
 			ErrorModule em = error.getErrorModule();
 			if(em != null){
