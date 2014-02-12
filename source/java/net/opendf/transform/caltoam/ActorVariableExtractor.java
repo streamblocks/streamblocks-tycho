@@ -38,7 +38,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	private ImmutableList<Integer> transientScopes(Actor actor) {
 		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
 		int nbrOfActions = actor.getActions().size() + actor.getInitializers().size();
-		for (int i = 1; i < nbrOfActions; i++) {
+		for (int i = 1; i <= nbrOfActions; i++) {
 			builder.add(i);
 		}
 		return builder.build();
