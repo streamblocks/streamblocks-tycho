@@ -17,10 +17,10 @@ import net.opendf.ir.common.ExprLiteral;
 import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.ParDeclValue;
+import net.opendf.ir.common.Port;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.Statement;
 import net.opendf.ir.common.StmtBlock;
-import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.transform.util.AbstractActorTransformer;
@@ -83,21 +83,24 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	}
 
 	private void addInputVarDecls(PortDecl portDecl, InputPattern input, ImmutableList.Builder<DeclVar> builder) {
-		TypeExpr type = null;
-		if (portDecl != null) {
-			type = portDecl.getType();
-		}
-		
 		int offset = 0;
 		for (DeclVar var : input.getVariables()) {
 			Expression read;
 			if (input.getRepeatExpr() == null) {
-				read = new ExprInput(input.getPort(), offset);
+				read = new ExprInput(copyPort(input.getPort()), offset);
 			} else {
-				read = new ExprInput(input.getPort(), offset, evalRepeat(input.getRepeatExpr()), input.getVariables().size());
+				read = new ExprInput(copyPort(input.getPort()), offset, evalRepeat(input.getRepeatExpr()), input.getVariables().size());
 			}
-			builder.add(var.copy(type, var.getName(), var.getNamespaceDecl(), read, false));
+			builder.add(var.copy(null, var.getName(), var.getNamespaceDecl(), read, false));
 			offset += 1;
+		}
+	}
+	
+	private Port copyPort(Port port) {
+		if (port.hasLocation()) {
+			return new Port(port.getName(), port.getOffset());
+		} else {
+			return new Port(port.getName());
 		}
 	}
 

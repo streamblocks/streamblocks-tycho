@@ -154,7 +154,7 @@ class ActorToActorMachineHelper {
 
 	private void addConsumeStmts(Builder<Statement> builder, ImmutableList<InputPattern> inputPatterns) {
 		for (InputPattern input : inputPatterns) {
-			Port port = input.getPort();
+			Port port = copyPort(input.getPort());
 			int tokens = input.getVariables().size() * getRepeatMultiplier(input.getRepeatExpr());
 			builder.add(new StmtConsume(port, tokens));
 		}
@@ -163,10 +163,18 @@ class ActorToActorMachineHelper {
 	private void addOutputStmts(ImmutableList.Builder<Statement> builder, ImmutableList<OutputExpression> outputExpressions) {
 		for (OutputExpression output : outputExpressions) {
 			if (output.getRepeatExpr() != null) {
-				builder.add(new StmtOutput(output.getExpressions(), output.getPort(), getRepeatMultiplier(output.getRepeatExpr())));
+				builder.add(new StmtOutput(output.getExpressions(), copyPort(output.getPort()), getRepeatMultiplier(output.getRepeatExpr())));
 			} else {
-				builder.add(new StmtOutput(output.getExpressions(), output.getPort()));
+				builder.add(new StmtOutput(output.getExpressions(), copyPort(output.getPort())));
 			}
+		}
+	}
+
+	private Port copyPort(Port port) {
+		if (port.hasLocation()) {
+			return new Port(port.getName(), port.getOffset());
+		} else {
+			return new Port(port.getName());
 		}
 	}
 
