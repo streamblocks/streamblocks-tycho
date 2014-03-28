@@ -105,8 +105,13 @@ type_bound_opt =
 type_parameter =
 //TODO, type bound is ignored
     IDENTIFIER.id type_bound_opt.type_bound {: ParDeclType decl = new ParDeclType((String)id.value);
-                                               Symbol result = register(id, type_bound, decl);
-                                               em.warning("type bound is ignored", null);
+                                               Symbol result;
+                                               if(type_bound == null){
+                                                 result = register(id, id, decl);
+                                               } else {
+                                                 em.warning("type bound is ignored", type_bound);
+                                                 result = register(id, type_bound, decl);
+                                               }
                                                return result; :}
   ;
 type_parameter_block =
@@ -188,7 +193,7 @@ map_list =
   | map_list.l COMMA map_entry.m {: l.add(m); return _symbol_l; :}
   ;
 map_entry =
-    expression.e1 ARROW expression.e2 {: return new Symbol(new AbstractMap.SimpleEntry(e1, e2)); :}
+    expression.e1 ARROW expression.e2 {: return new Symbol(new ImmutableEntry(e1, e2)); :}
   ;
 //tail =
 //    BAR expression.e {: return _symbol_e; :}
@@ -287,6 +292,7 @@ operator =
   | EQ.op       {: return op; :}
   | IN.op       {: return op; :}
   | GT.op       {: return op; :}
+  | LT.op       {: return op; :}
   | MULT.op     {: return op; :}
   | BAR.op      {: return op; :}  //TODO, update 2013-05-08 BAR is treated as an operator, ambiguous with list comprehension. It can either a list tail, or binary operation in: (c|d): [a, b, c | d]
   ;

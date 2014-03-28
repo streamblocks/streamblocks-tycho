@@ -55,12 +55,13 @@ EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
 TraditionalIdentifier = [:jletter:][:jletterdigit:]*  // any sequence of digits, letters, $ and _ is an identifier according to CLR, but $ is an potential operator. 
 EscapedIdentifier = "\\" [^\\]* "\\"                  // \#-|*\ is parsed as IDENTIFIER(#-|*)
 
-OperatorStart =[!@#$%\^&*/+\-Ñ<>?~\|]
+OperatorStart =[!@#$%\^&*/+\-ï¿½<>?~\|]
 Operator = {OperatorStart} ({OperatorStart}|[=])*  // "$" will be parsed as an OPERATOR. 
                                                        // the operator string may not start with | or = which are parsed as BAR and EQ
                                                        // "|" is needed in the FSM syntax: s1(a.b)-->s2 | (b)-->s0 | (c.c)-->s1; and in regular expressions
                                                        // "a=-b" should be parsed as "a = - b". Therefore an operator may not start with '='. (longest match will give the tokens "a", "=-", "b")
                                                        // ".." is parsed as an operator
+                                                       // "<" is parsed as LT
 
 // 3.10.1 Integer Literals
 DecimalNumeral = 0 | {NonZeroDigit} {Digits}? 

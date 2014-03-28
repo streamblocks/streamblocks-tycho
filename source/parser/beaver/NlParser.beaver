@@ -27,8 +27,8 @@
 %import "net.opendf.ir.net.ToolAttribute";
 %import "net.opendf.ir.net.ToolTypeAttribute";
 %import "net.opendf.ir.net.ToolValueAttribute";
-%import "net.opendf.interp.exception.BasicErrorModule";
-%import "net.opendf.interp.exception.ErrorModule";
+%import "net.opendf.errorhandling.BasicErrorModule";
+%import "net.opendf.errorhandling.ErrorModule";
 %import "java.io.PrintStream";
 %import "java.util.Map";
 %import "java.util.TreeSet";
