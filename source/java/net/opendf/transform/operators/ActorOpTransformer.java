@@ -94,9 +94,9 @@ public class ActorOpTransformer extends ErrorAwareBasicTransformer<Map<String, I
 	public Expression visitExprUnaryOp(ExprUnaryOp opSeq, Map<String, Integer> table) {
 		String funcName = "$UnaryOperation." + opSeq.getOperation();
 		Variable funcVar = Variable.variable(funcName);
-		ExprVariable func = new ExprVariable(funcVar, funcVar);  // use the same Identifier as for funcVar
+		ExprVariable func = new ExprVariable(funcVar);
 		Expression arg = transformExpression(opSeq.getOperand(), table);
-		Expression result = new ExprApplication(opSeq, func, ImmutableList.of(arg));
+		Expression result = new ExprApplication(func, ImmutableList.of(arg));
 		// register the source code trace
 		SourceCodePosition opPos = sourceOracle.getSrcLocations(opSeq.getIdentifier());
 		opPos = SourceCodePosition.newExcludeEnd(opPos, sourceOracle.getSrcLocations(arg.getIdentifier()));
@@ -139,7 +139,7 @@ public class ActorOpTransformer extends ErrorAwareBasicTransformer<Map<String, I
 		String operator = ops.removeLast();
 		String function = "$BinaryOperation." + operator;
 		Variable funcVar = Variable.variable(function);
-		ExprVariable func = new ExprVariable(funcVar, funcVar);  // use the same Identifier as for funcVar
+		ExprVariable func = new ExprVariable(funcVar);  // use the same Identifier as for funcVar
 		Expression right = out.removeLast();
 		Expression left = out.removeLast();
 		ImmutableList<Expression> args = ImmutableList.of(left, right);
