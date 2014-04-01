@@ -231,7 +231,7 @@
   private LValue expressionToLValue(Expression expression) {
     if (expression instanceof ExprVariable) {
       Variable var = ((ExprVariable) expression).getVariable();
-      return new LValueVariable(var, var);             // use the same Variable as the Variable node
+      return new LValueVariable(expression, var);
     } else if (expression instanceof ExprIndexer) {
       ExprIndexer exprIndexer = (ExprIndexer) expression;
       LValue structure = expressionToLValue(exprIndexer.getStructure());
