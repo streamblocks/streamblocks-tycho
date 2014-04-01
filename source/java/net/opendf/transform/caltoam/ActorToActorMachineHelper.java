@@ -177,13 +177,13 @@ class ActorToActorMachineHelper {
 			return new Port(port.getName());
 		}
 	}
-
+	
 	private Map<Port, Integer> getOutputRates(ImmutableList<OutputExpression> outputExpressions) {
 		Map<Port, Integer> outputRates = new HashMap<>();
 		for (OutputExpression output : outputExpressions) {
 			int vars = output.getExpressions().size();
 			int rep = getRepeatMultiplier(output.getRepeatExpr());
-			outputRates.put(output.getPort(), vars * rep);
+			outputRates.put(copyPort(output.getPort()), vars * rep);
 		}
 		return outputRates;
 	}
@@ -193,7 +193,7 @@ class ActorToActorMachineHelper {
 		for (InputPattern input : inputPatterns) {
 			int vars = input.getVariables().size();
 			int rep = getRepeatMultiplier(input.getRepeatExpr());
-			inputRates.put(input.getPort(), vars * rep);
+			inputRates.put(copyPort(input.getPort()), vars * rep);
 		}
 		return inputRates;
 	}
