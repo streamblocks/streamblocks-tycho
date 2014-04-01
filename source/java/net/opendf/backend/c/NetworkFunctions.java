@@ -1,8 +1,8 @@
 package net.opendf.backend.c;
 
 import net.opendf.ir.IRNode.Identifier;
-import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.common.Port;
+import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
@@ -10,7 +10,7 @@ import net.opendf.ir.net.Node;
 import net.opendf.ir.util.ImmutableList;
 
 public class NetworkFunctions {
-	public static Network fromActorMachine(ActorMachine actorMachine, String name) {
+	public static Network fromSingleNode(PortContainer actorMachine, String name) {
 		Node node = new Node(name, actorMachine, null);
 		ImmutableList<PortDecl> inputPorts = copyPorts(actorMachine.getInputPorts());
 		ImmutableList<PortDecl> outputPorts = copyPorts(actorMachine.getOutputPorts());

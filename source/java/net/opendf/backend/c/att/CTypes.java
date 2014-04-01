@@ -58,6 +58,7 @@ public class CTypes extends Module<CTypes.Required> {
 		switch (type.getName()) {
 		case "int":
 		case "uint":
+			/*
 			Integer size = null;
 			for (Entry<String, Expression> entry : type.getValueParameters()) {
 				if (entry.getKey().equals("size")) {
@@ -76,6 +77,7 @@ public class CTypes extends Module<CTypes.Required> {
 					return new CNamedType(type.getName()+"64_t");
 				}
 			}
+			*/
 			return new CNamedType(type.getName()+"32_t");
 		case "bool":
 			return new CNamedType("_Bool");

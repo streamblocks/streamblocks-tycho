@@ -1,6 +1,7 @@
 package net.opendf.backend.c.att;
 
 import java.util.List;
+
 import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.backend.c.CArrayType;
@@ -8,11 +9,14 @@ import net.opendf.backend.c.CType;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprInput;
+import net.opendf.ir.common.ExprLiteral;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.StmtConsume;
 import net.opendf.ir.common.StmtOutput;
 import net.opendf.ir.net.Connection;
+import net.opendf.ir.net.ToolAttribute;
+import net.opendf.ir.net.ToolValueAttribute;
 
 public class Buffers extends Module<Buffers.Required> {
 
@@ -36,6 +40,21 @@ public class Buffers extends Module<Buffers.Required> {
 
 	@Synthesized
 	public int bufferSize(Connection conn) {
+		ToolAttribute attribute = conn.getToolAttribute("buffer_size");
+		if (attribute instanceof ToolValueAttribute) {
+			ToolValueAttribute valueAttribute = (ToolValueAttribute) attribute;
+			Expression value = valueAttribute.getValue();
+			if (value instanceof ExprLiteral) {
+				ExprLiteral literal = (ExprLiteral) value;
+				if (literal.getKind() == ExprLiteral.Kind.Integer) {
+					try {
+						return Integer.parseInt(literal.getText());
+					} catch (NumberFormatException e) {
+						// ignore
+					}
+				}
+			}
+		}
 		return 1024*8;
 	}
 
@@ -46,7 +65,7 @@ public class Buffers extends Module<Buffers.Required> {
 		CType elementType = get().ctype(conn);
 		CType type = new CArrayType(elementType, "size"+name);
 		return "// " + conn.getDstPort().getName() + "\n" +
-				"static const size_t size" + name + " = " + size + ";\n" + 
+				"#define size" + name + " " + size + "\n" + 
 				"static "+type.variableType("buffer"+name)+";\n" +
 				"static size_t head" + name + " = 0;\n" +
 				"static size_t tokens" + name + " = 0;\n";
@@ -102,12 +121,16 @@ public class Buffers extends Module<Buffers.Required> {
 			return "tokens" + name + " >= " + cond.N();
 		} else {
 			StringBuilder result = new StringBuilder();
-			for (Connection conn : get().connections(cond.getPortName())) {
+			List<Connection> connections = get().connections(cond.getPortName());
+			if (connections.isEmpty()) {
+				System.nanoTime();
+			}
+			for (Connection conn : connections) {
 				String name = get().bufferName(conn);
 				result.append("(tokens").append(name).append(" + ")
 					.append(cond.N()).append(" <= size").append(name).append(") && ");
 			}
-			result.append(" true");
+			result.append("true");
 			return result.toString();
 		}
 	}

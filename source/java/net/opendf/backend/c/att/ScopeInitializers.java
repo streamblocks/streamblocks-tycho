@@ -93,7 +93,7 @@ public class ScopeInitializers extends Module<ScopeInitializers.Required> {
 				alive.retainAll(after);
 			}
 		}
-		return alive;
+		return alive == null ? get().persistentScopes(s) : alive;
 	}
 
 	// ALIVE AFTER INSTRUCTION
@@ -144,7 +144,8 @@ public class ScopeInitializers extends Module<ScopeInitializers.Required> {
 		Set<Scope> init = new HashSet<>();
 		init.addAll(get().requiredScopes(i));
 		State pred = get().predecessor(i);
-		init.removeAll(get().aliveInState(pred));
+		Set<Scope> aliveInState = get().aliveInState(pred);
+		init.removeAll(aliveInState);
 		List<Scope> result = new ArrayList<>();
 		while (!init.isEmpty()) {
 			Iterator<Scope> iter = init.iterator();

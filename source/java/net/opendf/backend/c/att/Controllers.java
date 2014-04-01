@@ -39,7 +39,7 @@ public class Controllers extends Module<Controllers.Required> {
 	@Synthesized
 	public void controller(ActorMachine actorMachine, PrintWriter writer) {
 		int node = get().index(get().node(actorMachine));
-		writer.println("_Bool actor_n" + node + "(void) {");
+		writer.println("static _Bool actor_n" + node + "(void) {");
 		writer.println("_Bool progress = false;");
 		writer.println("static int state = -1;");
 		get().controllerContinue(actorMachine, writer);

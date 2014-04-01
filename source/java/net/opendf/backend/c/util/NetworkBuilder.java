@@ -37,6 +37,7 @@ public class NetworkBuilder {
     }
 
     public void addNode(String name, PortContainer node) {
+    	System.out.println(name);
         addNode(name, node, null);
     }
 

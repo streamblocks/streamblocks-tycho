@@ -28,12 +28,11 @@ import net.opendf.backend.c.att.Statements;
 import net.opendf.backend.c.att.Transitions;
 import net.opendf.backend.c.att.TranslationUnit;
 import net.opendf.backend.c.att.Utilities;
-import net.opendf.ir.IRNode;
 import net.opendf.ir.net.Network;
 
 public class Backend {
 
-	private static TreeTraverser<IRNode> traverser = new IRNodeTraverser();
+	private static TreeTraverser<Object> traverser = new IRNodeTraverser();
 
 	public static void generateCode(Network network, PrintWriter out) {
 		BasicAttributeRegister register = new BasicAttributeRegister();

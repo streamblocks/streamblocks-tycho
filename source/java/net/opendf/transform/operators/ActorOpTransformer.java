@@ -98,9 +98,9 @@ public class ActorOpTransformer extends ErrorAwareBasicTransformer<Map<String, I
 		Expression arg = transformExpression(opSeq.getOperand(), table);
 		Expression result = new ExprApplication(func, ImmutableList.of(arg));
 		// register the source code trace
-		SourceCodePosition opPos = sourceOracle.getSrcLocations(opSeq.getIdentifier());
-		opPos = SourceCodePosition.newExcludeEnd(opPos, sourceOracle.getSrcLocations(arg.getIdentifier()));
-		sourceOracle.register(funcVar, opPos);
+		//SourceCodePosition opPos = sourceOracle.getSrcLocations(opSeq.getIdentifier());
+		//opPos = SourceCodePosition.newExcludeEnd(opPos, sourceOracle.getSrcLocations(arg.getIdentifier()));
+		//sourceOracle.register(funcVar, opPos);
 		return result;
 	}
 
@@ -145,10 +145,10 @@ public class ActorOpTransformer extends ErrorAwareBasicTransformer<Map<String, I
 		ImmutableList<Expression> args = ImmutableList.of(left, right);
 		Expression result = new ExprApplication(func, args);
 		// register the source code trace
-		SourceCodePosition before = sourceOracle.getSrcLocations(left.getIdentifier());
-		SourceCodePosition after = sourceOracle.getSrcLocations(right.getIdentifier());
-		sourceOracle.register(result, SourceCodePosition.newIncluding(before, after));
-		sourceOracle.register(funcVar, SourceCodePosition.newBetween(before, after));
+		//SourceCodePosition before = sourceOracle.getSrcLocations(left.getIdentifier());
+		//SourceCodePosition after = sourceOracle.getSrcLocations(right.getIdentifier());
+		//sourceOracle.register(result, SourceCodePosition.newIncluding(before, after));
+		//sourceOracle.register(funcVar, SourceCodePosition.newBetween(before, after));
 		out.add(result);
 	}
 }

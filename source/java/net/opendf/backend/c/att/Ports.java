@@ -7,6 +7,7 @@ import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.PortCondition;
+import net.opendf.ir.am.Transition;
 import net.opendf.ir.common.ExprInput;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.PortContainer;
@@ -44,6 +45,21 @@ public class Ports extends Module<Ports.Required> {
 
 	@Inherited
 	public PortDecl lookupPort(AbstractIRNode node, Port port) {
+		throw new Error();
+	}
+	
+	@Inherited
+	public PortDecl lookupPort(Transition t, Port port) {
+		for (Port p : t.getInputRates().keySet()) {
+			if (p == port) {
+				return get().lookupInputPort(t, port);
+			}
+		}
+		for (Port p : t.getOutputRates().keySet()) {
+			if (p == port) {
+				return get().lookupOutputPort(t, port);
+			}
+		}
 		throw new Error();
 	}
 
