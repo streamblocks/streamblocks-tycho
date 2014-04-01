@@ -90,12 +90,12 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 
 	@Override
 	public Condition visitInputCondition(PortCondition c, P p) {
-		return c.copy(c.getPortName(), c.N(), c.isInputCondition());
+		return c.copy(transformPort(c.getPortName(), p), c.N(), c.isInputCondition());
 	}
 
 	@Override
 	public Condition visitOutputCondition(PortCondition c, P p) {
-		return c.copy(c.getPortName(), c.N(), c.isInputCondition());
+		return c.copy(transformPort(c.getPortName(), p), c.N(), c.isInputCondition());
 	}
 
 	@Override
