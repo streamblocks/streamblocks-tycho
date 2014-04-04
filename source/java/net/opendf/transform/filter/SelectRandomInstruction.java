@@ -40,17 +40,4 @@ public class SelectRandomInstruction<S> implements StateHandler<S> {
 	public S initialState() {
 		return stateHandler.initialState();
 	}
-	
-	public static <S> InstructionFilterFactory<S> getFactory(final Random random) {
-		return new InstructionFilterFactory<S>() {
-			public StateHandler<S> createFilter(StateHandler<S> stateHandler) {
-				return new SelectRandomInstruction<S>(stateHandler, random);
-			}
-		};
-	}
-	
-	public static <S> InstructionFilterFactory<S> getFactory() {
-		return getFactory(new Random());
-	}
-
 }

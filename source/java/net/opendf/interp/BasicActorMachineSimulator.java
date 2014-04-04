@@ -1,9 +1,7 @@
 package net.opendf.interp;
 
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.opendf.analyze.memory.VariableInitOrderTransformer;
@@ -31,12 +29,12 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.parser.SourceCodeOracle;
+import net.opendf.transform.caltoam.ActorStates;
 import net.opendf.transform.caltoam.ActorToActorMachine;
-import net.opendf.transform.caltoam.ActorStates.State;
-import net.opendf.transform.filter.InstructionFilterFactory;
 import net.opendf.transform.filter.PrioritizeCallInstructions;
 import net.opendf.transform.filter.SelectRandomInstruction;
 import net.opendf.transform.operators.ActorOpTransformer;
+import net.opendf.transform.util.StateHandler;
 
 public class BasicActorMachineSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
 		ConditionVisitor<Boolean, Environment> {
@@ -67,12 +65,14 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		actor = ActorOpTransformer.transformActor(actor, sourceOracle);
 
 		// translate the actor to an actor machine
-		List<InstructionFilterFactory<State>> instructionFilters = new ArrayList<InstructionFilterFactory<State>>();
-		InstructionFilterFactory<State> f = PrioritizeCallInstructions.getFactory();
-		instructionFilters.add(f);
-		f = SelectRandomInstruction.getFactory();
-		instructionFilters.add(f);
-		ActorToActorMachine trans = new ActorToActorMachine(instructionFilters);
+		ActorToActorMachine trans = new ActorToActorMachine() {
+			@Override
+			protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
+				stateHandler = new PrioritizeCallInstructions<>(stateHandler);
+				stateHandler = new SelectRandomInstruction<>(stateHandler);
+				return stateHandler;
+			}
+		};
 		ActorMachine actorMachine = trans.translate(actor);
 		
 		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine, sourceOracle);

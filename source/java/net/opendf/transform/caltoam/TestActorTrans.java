@@ -12,20 +12,23 @@ import net.opendf.ir.am.PredicateCondition;
 import net.opendf.ir.am.State;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.Actor;
-import net.opendf.ir.util.ImmutableList;
 import net.opendf.parser.lth.CalParser;
-import net.opendf.transform.filter.InstructionFilterFactory;
 import net.opendf.transform.filter.PrioritizeCallInstructions;
+import net.opendf.transform.util.StateHandler;
 import net.opendf.util.ControllerToGraphviz;
 import net.opendf.util.PrettyPrint;
 
 class TestActorTrans {
 	private CalParser parser = new CalParser();
 	private PrettyPrint prettyPrint = new PrettyPrint();
-	private ImmutableList<InstructionFilterFactory<ActorStates.State>> filters = ImmutableList.of(
-			PrioritizeCallInstructions.<ActorStates.State> getFactory()/*,
-			SelectRandomInstruction.<ActorStates.State> getFactory()*/);
-	private ActorToActorMachine translator = new ActorToActorMachine(filters);
+	private ActorToActorMachine translator = new ActorToActorMachine() {
+		@Override
+		protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
+			stateHandler = new PrioritizeCallInstructions<>(stateHandler);
+			//stateHandler = new SelectRandomInstruction<>(stateHandler);
+			return stateHandler;
+		}
+	};
 
 	private Actor parse(File file) {
 		Actor actor = parser.parse(file, null, null);

@@ -24,12 +24,17 @@ import net.opendf.transform.filter.PrioritizeCallInstructions;
 import net.opendf.transform.operators.ActorOpTransformer;
 import net.opendf.transform.outcond.OutputConditionAdder;
 import net.opendf.transform.siam.PickFirstInstruction;
-import net.opendf.transform.siam.StateReducerPickFirst;
+import net.opendf.transform.util.StateHandler;
 
 
 public class TestComposition {
-	private ActorToActorMachine translator = new ActorToActorMachine(ImmutableList.of(
-			PrioritizeCallInstructions.<ActorStates.State> getFactory()));
+	private ActorToActorMachine translator = new ActorToActorMachine() {
+		@Override
+		protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
+			stateHandler = new PrioritizeCallInstructions<>(stateHandler);
+			return stateHandler;
+		}
+	};
 
 	private final String BASE_PATH;
 

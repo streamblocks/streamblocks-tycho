@@ -33,13 +33,4 @@ public class SelectFirstInstruction<S> implements StateHandler<S> {
 	public S initialState() {
 		return stateHandler.initialState();
 	}
-	
-	public static <S> InstructionFilterFactory<S> getFactory() {
-		return new InstructionFilterFactory<S>() {
-			public StateHandler<S> createFilter(StateHandler<S> stateHandler) {
-				return new SelectFirstInstruction<S>(stateHandler);
-			}
-		};
-	}
-	
 }

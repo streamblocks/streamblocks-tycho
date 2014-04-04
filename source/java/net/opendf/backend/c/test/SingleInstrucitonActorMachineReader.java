@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import net.opendf.errorhandling.ErrorModule;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
-import net.opendf.ir.util.ImmutableList;
 import net.opendf.parser.lth.CalParser;
 import net.opendf.transform.caltoam.ActorStates;
 import net.opendf.transform.caltoam.ActorToActorMachine;
@@ -15,6 +14,7 @@ import net.opendf.transform.filter.SelectFirstInstruction;
 import net.opendf.transform.operators.ActorOpTransformer;
 import net.opendf.transform.outcond.OutputConditionAdder;
 import net.opendf.transform.siam.PickFirstInstruction;
+import net.opendf.transform.util.StateHandler;
 
 public class SingleInstrucitonActorMachineReader implements NodeReader {
 	private final Path basePath;
@@ -22,9 +22,14 @@ public class SingleInstrucitonActorMachineReader implements NodeReader {
 
 	public SingleInstrucitonActorMachineReader(Path basePath) {
 		this.basePath = basePath;
-		this.translator = new ActorToActorMachine(ImmutableList.of(
-				PrioritizeCallInstructions.<ActorStates.State> getFactory(),
-				SelectFirstInstruction.<ActorStates.State> getFactory()));
+		this.translator = new ActorToActorMachine() {
+			@Override
+			protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
+				stateHandler = new PrioritizeCallInstructions<>(stateHandler);
+				stateHandler = new SelectFirstInstruction<>(stateHandler);
+				return stateHandler;
+			}
+		};
 	}
 
 	@Override
