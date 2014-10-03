@@ -191,7 +191,7 @@ InstructionVisitor<Void, Element>{
 		addSourceCodePosition(node, top);
 		top.setAttribute("name", node.getName());
 		top.setAttribute("id", node.getIdentifier().toString());
-		PortContainer content = node.getContent();
+		Object content = node.getContent();
 		generateXMLForToolAttributeList(node.getToolAttributes(), top);
 		if(content instanceof Actor){
 			generateXMLForActor((Actor)content, top);
@@ -362,7 +362,7 @@ InstructionVisitor<Void, Element>{
 		if(tag != null){
 			Element qid = doc.createElement("QID");
 			parent.appendChild(qid);
-			addSourceCodePosition(tag, qid);
+			//addSourceCodePosition(tag, qid);
 			qid.setAttribute("name", tag.toString());
 		}
 	}

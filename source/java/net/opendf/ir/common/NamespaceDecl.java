@@ -1,60 +1,28 @@
 package net.opendf.ir.common;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.opendf.ir.util.ImmutableList;
 
-import net.opendf.ir.AbstractIRNode;
 
-/**
- * A namespace declaration represents a lexical entity that contributes {@link Decl declarations} to a namespace, and which also serves as the 
- * scope of any of its declaration with 'local' accessibility.
- * 
- * In addition to any number of (variable, type, and entity) declarations, it may also contain other namespace declarations.
- * 
- * @author Jorn W. Janneck <jwj@acm.org>
- *
- */
+public class NamespaceDecl {
+	private final QID qid;
+	private final ImmutableList<NamespaceDecl> namespaceDecls;
+	private final ImmutableList<Decl> decls;
 
-public class NamespaceDecl extends AbstractIRNode {
+	public NamespaceDecl(QID qid, ImmutableList<NamespaceDecl> namespaceDecls, ImmutableList<Decl> decls) {
+		this.qid = qid;
+		this.namespaceDecls = namespaceDecls;
+		this.decls = decls;
+	}
 
-	
-	public List<Decl>  getDecls() {
+	public QID getQID() {
+		return qid;
+	}
+
+	public ImmutableList<NamespaceDecl> getNamespaceDecls() {
+		return namespaceDecls;
+	}
+
+	public ImmutableList<Decl> getDecls() {
 		return decls;
 	}
-	
-	public List<NamespaceDecl>  getSubnamespaceDecls() {
-		return subdecls;
-	}
-	
-	public Namespace  getNamespace() {
-		return namespace;
-	}
-	
-	
-	//
-	
-	public void  addDecl(Decl d) {
-		decls.add(d);
-	}
-	
-	void  addSubnamespaceDecl(NamespaceDecl nd) {
-		subdecls.add(nd);
-	}
-	
-	//
-	//  Ctor
-	//
-	
-	public NamespaceDecl(Namespace namespace) {
-		super(null);
-		this.namespace = namespace;
-		namespace.addDecl(this);
-		decls = new ArrayList<Decl>();
-	}
-	
-
-	private Namespace   		namespace;
-	private List<Decl>			decls;
-	private List<NamespaceDecl>	subdecls;
-	
 }

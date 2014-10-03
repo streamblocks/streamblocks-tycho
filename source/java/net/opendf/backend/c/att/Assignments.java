@@ -6,39 +6,40 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.LValue;
 import net.opendf.ir.common.LValueIndexer;
 import net.opendf.ir.common.LValueVariable;
+import net.opendf.ir.common.Statement;
 import net.opendf.ir.common.StmtAssignment;
 import net.opendf.ir.common.Variable;
 
-public class Assignments extends Module<Assignments.Required> {
+public class Assignments extends Module<Assignments.Decls> {
+	
+	public interface Decls {
+		@Synthesized
+		String lvalue(LValue lv);
 
+		@Synthesized
+		String statement(Statement stmt);
 
-	@Synthesized
+		String variableName(Variable var);
+
+		String simpleExpression(Expression e);
+	}
+
 	public String lvalue(LValueVariable var) {
-		return get().variableName(var.getVariable());
+		return e().variableName(var.getVariable());
 	}
 
-	@Synthesized
 	public String lvalue(LValueIndexer indexer) {
-		return get().lvalue(indexer.getStructure())+"["+
-			get().simpleExpression(indexer.getIndex())+"]";
+		return e().lvalue(indexer.getStructure()) + "[" +
+				e().simpleExpression(indexer.getIndex()) + "]";
 	}
 
-	@Synthesized
 	public String statement(StmtAssignment assign) {
-		String simpleExpression = get().simpleExpression(assign.getExpression());
+		String simpleExpression = e().simpleExpression(assign.getExpression());
 		if (simpleExpression != null) {
-			String lvalue = get().lvalue(assign.getLValue());
+			String lvalue = e().lvalue(assign.getLValue());
 			return lvalue + " = " + simpleExpression + ";\n";
 		}
 		return null;
 	}
 
-
-
-	interface Required {
-		String variableName(Variable var);
-		String simpleExpression(Expression e);
-		String lvalue(LValue lv);
-	}
-	
 }

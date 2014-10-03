@@ -12,62 +12,65 @@ import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
 import net.opendf.ir.util.ImmutableList;
 
-public class ScopeNumbers extends Module<ScopeNumbers.Required> {
+public class ScopeNumbers extends Module<ScopeNumbers.Decls> {
 
-	public interface Required {
+	public interface Decls {
 
-		int numberOfScopes(PortContainer content);
+		@Synthesized
+		int numberOfScopes(Object content);
 
+		@Inherited
 		int scopeOffset(IRNode node , ActorMachine am);
 
+		@Inherited
 		int lookupScopeNumber(Object node, int scopeId);
 
+		@Synthesized
+		Variable translateVariable(Variable var);
+
+		@Inherited
 		ActorMachine actorMachine(IRNode node);
 		
+		@Synthesized
+		public ImmutableList<Integer> scopesToKill(Transition transition);
 	}
 	
-	@Synthesized
 	public int numberOfScopes(ActorMachine actorMachine) {
 		return actorMachine.getScopes().size();
 	}
 	
-	@Inherited
 	public int scopeOffset(Network net, ActorMachine actorMachine) {
 		int offset = 0;
 		for (Node n : net.getNodes()) {
 			if (n.getContent() == actorMachine) {
 				return offset;
 			}
-			offset += get().numberOfScopes(n.getContent());
+			offset += e().numberOfScopes(n.getContent());
 		}
 		throw new Error();
 	}
 	
-	@Inherited
 	public int lookupScopeNumber(ActorMachine am, int scope) {
-		return get().scopeOffset(am, am) + scope;
+		return e().scopeOffset(am, am) + scope;
 	}
 	
-	@Synthesized
 	public Variable translateVariable(Variable var) {
 		if (var.isScopeVariable()) {
-			int id = get().lookupScopeNumber(var.getIdentifier(), var.getScopeId());
+			int id = e().lookupScopeNumber(var.getIdentifier(), var.getScopeId());
 			return var.copy(var.getName(), id);
 		} else {
 			return var;
 		}
 	}
 	
-	@Inherited
 	public ActorMachine actorMachine(ActorMachine am) {
 		return am;
 	}
 	
-	@Synthesized
 	public ImmutableList<Integer> scopesToKill(Transition transition) {
 		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
-		ActorMachine am = get().actorMachine(transition);
-		int offset = get().scopeOffset(transition, am);
+		ActorMachine am = e().actorMachine(transition);
+		int offset = e().scopeOffset(transition, am);
 		for (int s : transition.getScopesToKill()) {
 			builder.add(offset + s);
 		}

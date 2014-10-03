@@ -9,10 +9,14 @@ import net.opendf.ir.am.Transition;
 import net.opendf.ir.common.Statement;
 import net.opendf.ir.net.Node;
 
-public class Transitions extends Module<Transitions.Required> {
+public class Transitions extends Module<Transitions.Decls> {
 
-	public interface Required {
+	public interface Decls {
 
+		@Synthesized
+		public void transitions(ActorMachine actorMachine, PrintWriter writer);
+
+		@Synthesized
 		void transition(Transition t, PrintWriter writer);
 
 		ActorMachine actorMachine(Transition trans);
@@ -21,25 +25,21 @@ public class Transitions extends Module<Transitions.Required> {
 
 		int index(Object node);
 
-		String statement(Statement body);
-
 		String blockified(Statement body);
 
 	}
 
-	@Synthesized
 	public void transitions(ActorMachine actorMachine, PrintWriter writer) {
 		for (Transition t : actorMachine.getTransitions()) {
-			get().transition(t, writer);
+			e().transition(t, writer);
 		}
 	}
-	
-	@Synthesized
+
 	public void transition(Transition trans, PrintWriter writer) {
-		int node = get().index(get().node(get().actorMachine(trans)));
-		int index = get().index(trans);
-		writer.print("static void transition_n"+node+"t"+index+"(void) ");
-		writer.print(get().blockified(trans.getBody()));
+		int node = e().index(e().node(e().actorMachine(trans)));
+		int index = e().index(trans);
+		writer.print("static void transition_n" + node + "t" + index + "(void) ");
+		writer.print(e().blockified(trans.getBody()));
 	}
 
 }

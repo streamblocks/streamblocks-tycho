@@ -43,36 +43,36 @@ public class DeclVar extends Decl {
 	 * @param name
 	 * @param namespace
 	 */
-	public DeclVar(TypeExpr type, String name, NamespaceDecl namespace) {
-		this(type, name, namespace, null, true);
+	public DeclVar(TypeExpr type, String name) {
+		this(type, name, null, true);
 	}
 
-	public DeclVar(TypeExpr type, String name, NamespaceDecl namespace, Expression initialValue, boolean isAssignable) {
-		this(null, type, name, namespace, initialValue, isAssignable);
+	public DeclVar(TypeExpr type, String name, Expression initialValue, boolean isAssignable) {
+		this(null, type, name, initialValue, isAssignable);
 	}
 
-	public DeclVar(IRNode original, TypeExpr type, String name, NamespaceDecl namespace, Expression initialValue,
+	public DeclVar(IRNode original, TypeExpr type, String name, Expression initialValue,
 			boolean isAssignable) {
 
-		super(original, name, namespace);
+		super(original, name);
 
 		this.typeExpr = type;
 		this.initialValue = initialValue;
 		this.isAssignable = isAssignable;
 	}
 
-	public DeclVar copy(TypeExpr type, String name, NamespaceDecl namespace, Expression initialValue,
+	public DeclVar copy(TypeExpr type, String name, Expression initialValue,
 			boolean isAssignable) {
 		if (Objects.equals(typeExpr, type) && Objects.equals(getName(), name)
-				&& Objects.equals(getNamespaceDecl(), namespace) && Objects.equals(this.initialValue, initialValue)
+				&& Objects.equals(this.initialValue, initialValue)
 				&& this.isAssignable == isAssignable) {
 			return this;
 		}
-		return new DeclVar(this, type, name, namespace, initialValue, isAssignable);
+		return new DeclVar(this, type, name, initialValue, isAssignable);
 	}
 	
-	public DeclVar copy(TypeExpr type, String name, NamespaceDecl namespace) {
-		return copy(type, name, namespace, null, true);
+	public DeclVar copy(TypeExpr type, String name) {
+		return copy(type, name, null, true);
 	}
 
 	private Expression initialValue;

@@ -3,6 +3,15 @@ package net.opendf.backend.c.att;
 import java.util.HashSet;
 import java.util.Set;
 
+import javarag.Bottom;
+import javarag.Circular;
+import javarag.Collected;
+import javarag.Inherited;
+import javarag.Module;
+import javarag.Synthesized;
+import javarag.coll.Builder;
+import javarag.coll.CollectionBuilder;
+import javarag.coll.Collector;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.Condition;
@@ -10,123 +19,111 @@ import net.opendf.ir.am.PredicateCondition;
 import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.common.Variable;
-import javarag.CollectionBuilder;
-import javarag.CollectionContribution;
-import javarag.FixedPointStart;
-import javarag.FixedPointStep;
-import javarag.Inherited;
-import javarag.Module;
-import javarag.Synthesized;
-import javarag.coll.Builder;
-import javarag.coll.CollectionWrapper;
 
-public class ScopeDependencies extends Module<ScopeDependencies.Required> {
-	
-	@Inherited
+public class ScopeDependencies extends Module<ScopeDependencies.Decls> {
+
+	public interface Decls {
+
+		@Inherited
+		IRNode lookupEnclosingScopeOrTransitionOrCondition(Variable node, Variable var);
+
+		@Synthesized
+		IRNode enclosingScopeOrTransitionOrCondition(Variable v);
+
+		@Collected
+		Set<Scope> directScopeDependencies(Condition t);
+
+		@Collected
+		Set<Scope> directScopeDependencies(Transition t);
+
+		@Collected
+		Set<Scope> directScopeDependencies(Scope s);
+
+		@Circular
+		@Synthesized
+		Set<Scope> scopeDependencies(Scope dep);
+
+		@Synthesized
+		Set<Scope> requiredScopes(Transition t);
+
+		@Synthesized
+		Set<Scope> requiredScopes(Condition c);
+
+		ActorMachine actorMachine(IRNode n);
+	}
+
 	public Scope lookupEnclosingScopeOrTransitionOrCondition(ActorMachine am, Variable v) {
 		return null;
 	}
 
-	@Inherited
 	public Scope lookupEnclosingScopeOrTransitionOrCondition(Scope s, Variable v) {
 		return s;
 	}
 
-	@Inherited
 	public Transition lookupEnclosingScopeOrTransitionOrCondition(Transition t, Variable v) {
 		return t;
 	}
-	
-	@Inherited
+
 	public PredicateCondition lookupEnclosingScopeOrTransitionOrCondition(PredicateCondition c, Variable v) {
 		return c;
 	}
 
-	@Synthesized
 	public IRNode enclosingScopeOrTransitionOrCondition(Variable var) {
-		return get().lookupEnclosingScopeOrTransitionOrCondition(var, var);
+		return e().lookupEnclosingScopeOrTransitionOrCondition(var, var);
 	}
 
-	@CollectionBuilder("directScopeDependencies")
-	public Builder directScopeDependenciesBuilder(Transition t) {
-		return new CollectionWrapper(new HashSet<>());
+	public Builder<Set<Scope>, Scope> directScopeDependencies(Transition t) {
+		return new CollectionBuilder<Set<Scope>, Scope>(new HashSet<Scope>());
 	}
 
-	@CollectionBuilder("directScopeDependencies")
-	public Builder directScopeDependenciesBuilder(Scope s) {
-		return new CollectionWrapper(new HashSet<>());
+	public Builder<Set<Scope>, Scope> directScopeDependencies(Scope s) {
+		return new CollectionBuilder<Set<Scope>, Scope>(new HashSet<Scope>());
 	}
 
-	@CollectionBuilder("directScopeDependencies")
-	public Builder directScopeDependenciesBuilder(Condition c) {
-		return new CollectionWrapper(new HashSet<>());
+	public Builder<Set<Scope>, Scope> directScopeDependencies(Condition c) {
+		return new CollectionBuilder<Set<Scope>, Scope>(new HashSet<Scope>());
 	}
 
-	@CollectionContribution
-	public void directScopeDependencies(Variable v) {
+	public void directScopeDependencies(Variable v, Collector<Scope> coll) {
 		if (v.isScopeVariable()) {
-			IRNode encl = get().enclosingScopeOrTransitionOrCondition(v);
+			IRNode encl = e().enclosingScopeOrTransitionOrCondition(v);
 			if (encl != null) {
-				Scope s = get().actorMachine(v).getScopes().get(v.getScopeId());
-				contribute(encl, s);
+				Scope s = e().actorMachine(v).getScopes().get(v.getScopeId());
+				coll.add(encl, s);
 			}
 		}
 	}
-	
-	@FixedPointStart("scopeDependencies")
-	@Synthesized
+
+	@Bottom("scopeDependencies")
 	public Set<Scope> scopeDependenciesStart(Scope s) {
 		return new HashSet<>();
 	}
-	
-	@FixedPointStep
-	@Synthesized
+
 	public Set<Scope> scopeDependencies(Scope s) {
 		Set<Scope> result = new HashSet<>();
-		Set<Scope> direct = get().directScopeDependencies(s);
+		Set<Scope> direct = e().directScopeDependencies(s);
 		result.addAll(direct);
 		for (Scope dep : direct) {
-			result.addAll(get().scopeDependencies(dep));
+			result.addAll(e().scopeDependencies(dep));
 		}
 		return result;
 	}
-	
-	@Synthesized
+
 	public Set<Scope> requiredScopes(Transition t) {
 		Set<Scope> result = new HashSet<>();
-		for (Scope s : get().directScopeDependencies(t)) {
+		for (Scope s : e().directScopeDependencies(t)) {
 			result.add(s);
-			result.addAll(get().scopeDependencies(s));
+			result.addAll(e().scopeDependencies(s));
 		}
 		return result;
 	}
 
-	@Synthesized
 	public Set<Scope> requiredScopes(Condition c) {
 		Set<Scope> result = new HashSet<>();
-		for (Scope s : get().directScopeDependencies(c)) {
+		for (Scope s : e().directScopeDependencies(c)) {
 			result.add(s);
-			result.addAll(get().scopeDependencies(s));
+			result.addAll(e().scopeDependencies(s));
 		}
 		return result;
 	}
-
-	public interface Required {
-
-		IRNode lookupEnclosingScopeOrTransitionOrCondition(Variable node, Variable var);
-
-		Set<Scope> directScopeDependencies(Condition t);
-
-		Set<Scope> directScopeDependencies(Transition t);
-
-		Set<Scope> scopeDependencies(Scope dep);
-
-		ActorMachine actorMachine(IRNode n);
-
-		Set<Scope> directScopeDependencies(Scope s);
-
-		IRNode enclosingScopeOrTransitionOrCondition(Variable v);
-
-	}
-
 }

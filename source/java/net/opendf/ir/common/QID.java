@@ -1,99 +1,113 @@
-/* 
-BEGINCOPYRIGHT X,UC
-	
-	Copyright (c) 2007, Xilinx Inc.
-	Copyright (c) 2003, The Regents of the University of California
-	All rights reserved.
-	
-	Redistribution and use in source and binary forms, 
-	with or without modification, are permitted provided 
-	that the following conditions are met:
-	- Redistributions of source code must retain the above 
-	  copyright notice, this list of conditions and the 
-	  following disclaimer.
-	- Redistributions in binary form must reproduce the 
-	  above copyright notice, this list of conditions and 
-	  the following disclaimer in the documentation and/or 
-	  other materials provided with the distribution.
-	- Neither the names of the copyright holders nor the names 
-	  of contributors may be used to endorse or promote 
-	  products derived from this software without specific 
-	  prior written permission.
-	
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
-	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
-	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
-	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
-	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	
-ENDCOPYRIGHT
- */
-
 package net.opendf.ir.common;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import net.opendf.ir.AbstractIRNode;
+public final class QID {
+	private final List<String> parts;
 
-/**
- * 
- * @author jornj
- */
-public class QID extends AbstractIRNode {
+	private QID(List<String> parts) {
+		this.parts = parts;
+	}
 
-	public boolean isPrefixOf(QID q) {
-		if (q.ids.length < this.ids.length)
+	private QID part(int from, int to) {
+		int count = getNameCount();
+		if (from < 0 || from >= count || to < from || to > count) {
+			return null;
+		} else {
+			return new QID(parts.subList(from, to));
+		}
+	}
+
+	public QID getFirst() {
+		return part(0, 1);
+	}
+
+	public QID getLast() {
+		int count = getNameCount();
+		return part(count - 1, count);
+	}
+
+	public QID getButFirst() {
+		return part(1, getNameCount());
+	}
+
+	public QID getButLast() {
+		return part(0, getNameCount() - 1);
+	}
+
+	public QID getName(int index) {
+		QID result = part(index, index + 1);
+		if (result == null) {
+			throw new IndexOutOfBoundsException();
+		} else {
+			return result;
+		}
+	}
+
+	public int getNameCount() {
+		return parts.size();
+	}
+
+	public List<QID> parts() {
+		return parts.stream().map(QID::of).collect(Collectors.toList());
+	}
+	
+	public boolean isPrefixOf(QID that) {
+		if (this.getNameCount() == 0) {
+			return true;
+		} else if (this.getFirst().equals(that.getFirst())) {
+			return this.getButFirst().isPrefixOf(that.getButFirst());
+		} else {
 			return false;
-
-		for (int i = 0; i < this.ids.length; i++) {
-			if (!this.ids[i].equals(q.ids[i]))
-				return false;
 		}
-		return true;
 	}
 
-	public boolean isStrictPrefixOf(QID q) {
-		return this.size() < q.size() && this.isPrefixOf(q);
+	public QID dot(QID name) {
+		List<String> result = new ArrayList<>();
+		result.addAll(parts);
+		result.addAll(name.parts);
+		return new QID(result);
 	}
 
-	public int size() {
-		return ids.length;
+	public static QID parse(String name) {
+		return new QID(Arrays.asList(name.split("\\.")));
 	}
 
-	public QID(String[] ids) {
-		this(null, ids);
-	}
-
-	private QID(QID original, String[] ids) {
-		super(original);
-		this.ids = Arrays.copyOf(ids, ids.length);
-	}
-
-	public QID copy(String[] ids) {
-		if (Arrays.equals(this.ids, ids)) {
-			return this;
+	public static QID of(String... names) {
+		if (Arrays.stream(names).anyMatch((s) -> s.contains("."))) {
+			throw new IllegalArgumentException(
+					"Names may not contain the '.' character");
+		} else {
+			return new QID(new ArrayList<>(Arrays.asList(names)));
 		}
-		return new QID(this, ids);
 	}
 
-	private String[] ids;
+	public static QID empty() {
+		return new QID(Collections.emptyList());
+	}
 
+	@Override
 	public String toString() {
-		if (ids.length == 0)
-			return "";
-		String s = ids[0];
-		for (int i = 1; i < ids.length; i++) {
-			s += ".";
-			s += ids[i];
+		return String.join(".", parts);
+	}
+
+	@Override
+	public int hashCode() {
+		return parts.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof QID) {
+			return ((QID) o).parts.equals(parts);
+		} else if (o == null) {
+			throw new NullPointerException();
+		} else {
+			return false;
 		}
-		return s;
 	}
 }

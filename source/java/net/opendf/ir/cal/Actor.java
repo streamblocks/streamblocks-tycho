@@ -45,7 +45,6 @@ import net.opendf.ir.common.DeclEntity;
 import net.opendf.ir.common.DeclType;
 import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.Expression;
-import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.PortContainer;
@@ -56,21 +55,21 @@ import net.opendf.ir.util.Lists;
 
 public class Actor extends DeclEntity implements PortContainer{
 
-	public Actor(String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
+	public Actor(String name, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
-		this(null, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
+		this(null, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
 				actions, scheduleFSM, priorities, invariants);
 	}
 
-	private Actor(Actor original, String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
+	private Actor(Actor original, String name, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
-		super(original, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
+		super(original, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
 
 		this.initializers = ImmutableList.copyOf(initializers);
 		this.actions = ImmutableList.copyOf(actions);
@@ -79,12 +78,12 @@ public class Actor extends DeclEntity implements PortContainer{
 		this.invariants = ImmutableList.copyOf(invariants);
 	}
 
-	public Actor copy(String name, NamespaceDecl namespace, ImmutableList<ParDeclType> typePars,
+	public Actor copy(String name, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
-		if (Objects.equals(getName(), name) && Objects.equals(getNamespaceDecl(), namespace)
+		if (Objects.equals(getName(), name)
 				&& Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
 				&& Lists.equals(getTypeDecls(), typeDecls) && Lists.equals(getVarDecls(), varDecls)
 				&& Lists.equals(getInputPorts(), inputPorts) && Lists.equals(getOutputPorts(), outputPorts)
@@ -93,7 +92,7 @@ public class Actor extends DeclEntity implements PortContainer{
 				&& Lists.equals(this.invariants, invariants)) {
 			return this;
 		}
-		return new Actor(this, name, namespace, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
+		return new Actor(this, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
 				initializers, actions, scheduleFSM, priorities, invariants);
 	}
 

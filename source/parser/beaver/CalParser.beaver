@@ -157,7 +157,7 @@
     } else {
       name = file.getName();
     }
-    return new Actor(name, null, null, null, null, null, null, null, null, null, null, null, null);   
+    return new Actor(name, null, null, null, null, null, null, null, null, null, null, null);   
   }
   
   public net.opendf.ir.cal.Actor parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
@@ -216,7 +216,7 @@
   private GeneratorFilter makeGeneratorFilter2(TypeExpr type, ImmutableList<Symbol> varList, Expression e, ImmutableList<Expression> filterList){
     ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
     for(Symbol var : varList){
-      DeclVar decl = new DeclVar(type, (String)var.value, null);
+      DeclVar decl = new DeclVar(type, (String)var.value);
       register(var, var, decl);
       vars.add(decl);
     }
@@ -488,11 +488,7 @@ action_decl =
                                   delay,           // delay
                                   null,            // preconditions  NOTE, can not be expressed in CAL
                                   null);           // postconditions NOTE, can not be expressed in CAL
-            if(tag != null){
-              return register(tag, end, a);
-            } else {
-              return register(start, end, a);
-            }
+            return register(start, end, a);
         :}
 
   ;
@@ -532,15 +528,11 @@ init_action_decl =
                                   delay,                      // delay
                                   null,         // preconditions  NOTE, can not be expressed in CAL
                                   null);        // postconditions NOTE, can not be expressed in CAL
-            if(tag != null){
-              return register(tag, end, a);
-            } else {
-              return register(start, end, a);
-            }
+            return register(start, end, a);
         :}
   ;
 action_tag =
-    qual_id.n COLON.end           {: return register(_symbol_n, _symbol_n, new QID((String[])n.toArray(new String[n.size()]))); :}
+    qual_id.n COLON.end           {: return new Symbol(QID.of((String[])n.toArray(new String[n.size()]))); :}
   ;
 action_head =
     GUARD expression_list.l       {: return new Symbol(new AbstractMap.SimpleEntry(ActionPartKind.GUARD, l.build())); :}
@@ -565,10 +557,10 @@ action_in_pattern =
   ;
 token_name_list =
 //TODO, the position of the names are not saved
-    IDENTIFIER.ID                           {: DeclVar decl = new DeclVar(null, (String) ID.value, null);
+    IDENTIFIER.ID                           {: DeclVar decl = new DeclVar(null, (String) ID.value);
                                                register(ID, ID, decl);
                                                return new Symbol(ImmutableList.builder().add(decl)); :}
-  | token_name_list.l COMMA IDENTIFIER.ID   {: Decl decl = new DeclVar(null, (String) ID.value, null);
+  | token_name_list.l COMMA IDENTIFIER.ID   {: Decl decl = new DeclVar(null, (String) ID.value);
                                                register(ID, ID, decl);
                                                l.add(decl); return _symbol_l; :}
   ;
@@ -661,7 +653,6 @@ actor_decl =
       }
     }
     Actor a = new Actor((String)name.value,
-                         null,                 // NamespaceDecl namespace,
                          typePars,     // typePars,
                          valuePars == null ? null : valuePars.build(), // valuePars,
                          null,      // typeDecls, NOTE, can not be expressed in CAL
@@ -731,11 +722,9 @@ fsm_state_target =
                                            tags.build())); :}
   ;
 action_tag_list =
-    qual_id.id                         {: QID qid = new QID((String[])id.toArray(new String[id.size()]));
-                                          register(_symbol_id, _symbol_id, qid);
+    qual_id.id                         {: QID qid = QID.of((String[])id.toArray(new String[id.size()]));
                                           return new Symbol(ImmutableList.builder().add(qid)); :}
-  | action_tag_list.l COMMA qual_id.id {: QID qid = new QID((String[])id.toArray(new String[id.size()]));
-                                          register(_symbol_id, _symbol_id, qid);
+  | action_tag_list.l COMMA qual_id.id {: QID qid = QID.of((String[])id.toArray(new String[id.size()]));
                                           l.add(qid);
                                           return _symbol_l; :}
   ;
@@ -759,13 +748,10 @@ pri_inequality_list =
     pri_inequality.p SEMICOLON         {: return new Symbol(p.build()); :}
   ;
 pri_inequality =
-    qual_id.high GT qual_id.low        {: QID lowQID = new QID((String[])low.toArray(new String[low.size()]));
-                                          register(_symbol_low, _symbol_low, lowQID);
-                                          QID highQID = new QID((String[])high.toArray(new String[high.size()]));
-                                          register(_symbol_high, _symbol_high, highQID);
+    qual_id.high GT qual_id.low        {: QID lowQID = QID.of((String[])low.toArray(new String[low.size()]));
+                                          QID highQID = QID.of((String[])high.toArray(new String[high.size()]));
                                           return new Symbol(ImmutableList.builder().add(highQID).add(lowQID)); :}
-  | pri_inequality.l GT qual_id.n      {: QID qid = new QID((String[])n.toArray(new String[n.size()]));
-                                          register(_symbol_n, _symbol_n, qid);
+  | pri_inequality.l GT qual_id.n      {: QID qid = QID.of((String[])n.toArray(new String[n.size()]));
                                           l.add(qid);
                                           return _symbol_l; :}
   ;

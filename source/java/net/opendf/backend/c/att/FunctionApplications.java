@@ -14,7 +14,23 @@ import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.StmtCall;
 import net.opendf.ir.common.Variable;
 
-public class FunctionApplications extends Module<FunctionApplications.Required> {
+public class FunctionApplications extends Module<FunctionApplications.Decls> {
+	public interface Decls {
+		@Synthesized
+		String functionApplication(ExprVariable func, ExprApplication apply);
+
+		@Synthesized
+		public String procedureCall(ExprVariable proc, StmtCall call);
+
+		IRNode declaration(Variable var);
+
+		String parenthesizedExpression(Expression e);
+
+		String simpleExpression(Expression e);
+
+		String functionName(IRNode decl);
+	}
+
 	private final Map<String, String> binOps;
 	private final Map<String, String> preOps;
 	private final Map<String, String> postOps;
@@ -56,10 +72,9 @@ public class FunctionApplications extends Module<FunctionApplications.Required> 
 		this.postOps = Collections.unmodifiableMap(postOps);
 	}
 
-	@Synthesized
 	public String functionApplication(ExprVariable func, ExprApplication apply) {
 		assert func == apply.getFunction();
-		IRNode decl = get().declaration(func.getVariable());
+		IRNode decl = e().declaration(func.getVariable());
 		if (decl == null) {
 			int numArgs = apply.getArgs().size();
 			String name = func.getVariable().getName();
@@ -67,40 +82,32 @@ public class FunctionApplications extends Module<FunctionApplications.Required> 
 				String op = binOps.get(name);
 				Expression left = apply.getArgs().get(0);
 				Expression right = apply.getArgs().get(1);
-				return get().parenthesizedExpression(left) + " " + op + " " + get().parenthesizedExpression(right);
+				return e().parenthesizedExpression(left) + " " + op + " " + e().parenthesizedExpression(right);
 			} else if (numArgs == 1 && preOps.containsKey(name)) {
-				return preOps.get(name) + get().parenthesizedExpression(apply.getArgs().get(0));
+				return preOps.get(name) + e().parenthesizedExpression(apply.getArgs().get(0));
 			} else if (numArgs == 1 && postOps.containsKey(name)) {
-				return postOps.get(name) + get().parenthesizedExpression(apply.getArgs().get(0));
+				return postOps.get(name) + e().parenthesizedExpression(apply.getArgs().get(0));
 			} else {
 				throw new Error();
 			}
 		} else {
-			String name = get().functionName(decl);
+			String name = e().functionName(decl);
 			ArrayList<String> args = new ArrayList<>();
 			for (Expression arg : apply.getArgs()) {
-				args.add(get().simpleExpression(arg));
+				args.add(e().simpleExpression(arg));
 			}
 			return name + "(" + comma.join(args) + ")";
 		}
 	}
 
-	@Synthesized
 	public String procedureCall(ExprVariable proc, StmtCall call) {
-		IRNode decl = get().declaration(proc.getVariable());
-		String name = get().functionName(decl);
+		IRNode decl = e().declaration(proc.getVariable());
+		String name = e().functionName(decl);
 		ArrayList<String> args = new ArrayList<>();
 		for (Expression arg : call.getArgs()) {
-			args.add(get().simpleExpression(arg));
+			args.add(e().simpleExpression(arg));
 		}
 		return name + "(" + comma.join(args) + ");\n";
-	}
-
-	interface Required {
-		IRNode declaration(Variable var);
-		String parenthesizedExpression(Expression e);
-		String simpleExpression(Expression e);
-		String functionName(IRNode decl);
 	}
 
 }

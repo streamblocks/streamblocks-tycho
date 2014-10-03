@@ -10,103 +10,93 @@ import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.ExprLambda;
 import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.ParDeclValue;
-import net.opendf.ir.common.Port;
-import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.Variable;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Node;
 
-public class Names extends Module<Names.Required> {
+public class Names extends Module<Names.Decls> {
 
-	public interface Required {
+	public interface Decls {
+		@Synthesized
+		String functionName(IRNode n);
 
+		@Inherited
 		Scope variableScope(DeclVar varDecl);
+
+		@Synthesized
+		String variableName(IRNode var);
+
+		@Synthesized
+		String bufferName(Connection c);
+
+		@Synthesized
+		public String tempVariableName(Object o);
 
 		int index(Object o);
 
-		String variableName(IRNode declaration);
-
 		IRNode declaration(Variable var);
-
-		PortDecl declaration(Port p);
-
-		String bufferName(PortDecl decl);
-
-		Connection connection(PortDecl d);
-
-		String bufferName(Connection connection);
 
 		IRNode parent(IRNode o);
 
-		String functionName(IRNode n);
-
 		ActorMachine actorMachine(IRNode n);
-		
+
 		Node node(ActorMachine am);
 
 	}
 
-	@Synthesized
 	public String functionName(DeclVar decl) {
-		return get().variableName(decl);
+		return e().variableName(decl);
 	}
 
-	@Synthesized
 	public String functionName(ExprLambda lambda) {
-		return get().functionName(get().parent(lambda));
+		return e().functionName(e().parent(lambda));
 	}
 
-	@Synthesized
 	public String functionName(ExprProc proc) {
-		return get().functionName(get().parent(proc));
+		return e().functionName(e().parent(proc));
 	}
 
-	@Inherited
 	public Scope variableScope(Scope s) {
 		return s;
 	}
-	@Inherited
+
 	public Scope variableScope(Object o) {
 		return null;
 	}
-	
-	@Synthesized
+
 	public String variableName(DeclVar decl) {
-		Scope s = get().variableScope(decl);
+		Scope s = e().variableScope(decl);
 		if (s == null) {
 			return decl.getName() + "_";
 		} else {
-			ActorMachine am = get().actorMachine(s);
-			Node node = get().node(am);
-			int n = get().index(node);
-			int v = get().index(s);
-			return decl.getName()+"_n"+n+"v"+v;
+			ActorMachine am = e().actorMachine(s);
+			Node node = e().node(am);
+			int n = e().index(node);
+			int v = e().index(s);
+			return decl.getName() + "_n" + n + "v" + v;
 		}
 	}
-	
-	@Synthesized
+
 	public String variableName(ParDeclValue decl) {
 		return decl.getName() + "_";
 	}
 
-	@Synthesized
 	public String variableName(Variable var) {
-		IRNode declaration = get().declaration(var);
+		IRNode declaration = e().declaration(var);
 		if (declaration != null) {
-			return get().variableName(declaration);
+			return e().variableName(declaration);
 		} else {
 			return var.getName();
 		}
 	}
-	
-	@Synthesized
+
 	public String bufferName(Connection c) {
-		return "_b" + get().index(c);
+		return "_b" + e().index(c);
 	}
 
 	private int tempVariableNumber = 0;
-	@Synthesized
+
 	public String tempVariableName(Object o) {
-		return "temp_t"+(tempVariableNumber++);
+		return "temp_t" + (tempVariableNumber++);
 	}
 }

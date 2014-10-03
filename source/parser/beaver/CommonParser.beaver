@@ -57,24 +57,24 @@ var_decl =
                                                          register(m, v, v);
                                                          return _symbol_v; :}
   | MUTABLE.m var_name_type.v EQ expression.init      {: em.warning("mutable is ignored for " + v.getName(), v);
-                                                         return register(m, init, v.copy(v.getType(), v.getName(), null, init, false)); :}
+                                                         return register(m, init, v.copy(v.getType(), v.getName(), init, false)); :}
   | MUTABLE.m var_name_type.v COLONEQ expression.init {: em.warning("mutable is ignored for " + v.getName(), v);
-                                                         return register(m, init, v.copy(v.getType(), v.getName(), null, init, true)); :}
+                                                         return register(m, init, v.copy(v.getType(), v.getName(), init, true)); :}
   | var_name_type.v                                   {: return _symbol_v; :}
-  | var_name_type.v EQ expression.init                {: return register(v, init, v.copy(v.getType(), v.getName(), null, init, false)); :}
-  | var_name_type.v COLONEQ expression.init           {: return register(v, init, v.copy(v.getType(), v.getName(), null, init, true)); :}
+  | var_name_type.v EQ expression.init                {: return register(v, init, v.copy(v.getType(), v.getName(), init, false)); :}
+  | var_name_type.v COLONEQ expression.init           {: return register(v, init, v.copy(v.getType(), v.getName(), init, true)); :}
   ;
 var_name_type =
-    IDENTIFIER.id           {: return register(id, id, new DeclVar(null, (String)id.value, null, null, true)); :}
-  | type.type IDENTIFIER.id {: return register(id, id, new DeclVar(type, (String)id.value, null, null, true)); :}
+    IDENTIFIER.id           {: return register(id, id, new DeclVar(null, (String)id.value, null, true)); :}
+  | type.type IDENTIFIER.id {: return register(id, id, new DeclVar(type, (String)id.value, null, true)); :}
   ;
 //used external
 fun_decl =
-    FUNCTION.start IDENTIFIER.id lambda_expr_body.lambda   {: register(start, lambda, lambda); return register(start, lambda, new DeclVar(null, (String)id.value, null, lambda, false)); :}
+    FUNCTION.start IDENTIFIER.id lambda_expr_body.lambda   {: register(start, lambda, lambda); return register(start, lambda, new DeclVar(null, (String)id.value, lambda, false)); :}
   ;
 //used external
 proc_decl =
-    PROCEDURE.start IDENTIFIER.id procedure_expr_body.body {: register(start, body, body); return register(start, body, new DeclVar(null, (String)id.value, null, body, false)); :}
+    PROCEDURE.start IDENTIFIER.id procedure_expr_body.body {: register(start, body, body); return register(start, body, new DeclVar(null, (String)id.value, body, false)); :}
   ;
 port_decl =
 //TODO, the keyword multi is ignored

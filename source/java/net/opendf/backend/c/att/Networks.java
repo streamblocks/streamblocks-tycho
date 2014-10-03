@@ -14,82 +14,90 @@ import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
 
-public class Networks extends Module<Networks.Required> {
+public class Networks extends Module<Networks.Decls> {
 
-	public interface Required {
+	public interface Decls {
+		@Synthesized
+		public Node node(ActorMachine actorMachine);
+
+		@Inherited
+		Node lookupNode(ActorMachine actorMachine);
+
+		@Synthesized
+		List<Connection> connections(PortDecl p);
+
+		@Synthesized
+		List<Connection> connections(Port p);
+
+		@Synthesized
+		Connection connection(PortDecl p);
+
+		@Synthesized
+		Connection connection(Port p);
+
+		@Inherited
+		List<Connection> lookupConnectionsToPort(IRNode node, PortDecl decl);
+
+		@Inherited
+		List<Connection> lookupConnectionsToNode(IRNode node, IRNode container, PortDecl port);
 
 		PortDecl declaration(Port p);
 
-		List<Connection> connections(PortDecl p);
-
-		Connection connection(PortDecl p);
-
-		List<Connection> lookupConnectionsToPort(IRNode node, PortDecl decl);
-
-		List<Connection> lookupConnectionsToNode(IRNode node, IRNode container, PortDecl port);
-
 		PortKind portKind(PortDecl port);
 
-		Node lookupNode(ActorMachine actorMachine);
+	}
 
-	}
-	
-	@Synthesized
 	public Node node(ActorMachine actorMachine) {
-		return get().lookupNode(actorMachine);
+		return e().lookupNode(actorMachine);
 	}
-	
-	@Inherited
+
 	public Node lookupNode(Node node) {
 		return node;
 	}
-	
-	@Inherited
+
 	public Node lookupNode(Object node) {
 		return null;
 	}
 
-	@Synthesized
 	public Connection connection(Port port) {
-		return get().connection(get().declaration(port));
+		return e().connection(e().declaration(port));
 	}
 
-	@Synthesized
 	public List<Connection> connections(Port port) {
-		return get().connections(get().declaration(port));
+		return e().connections(e().declaration(port));
 	}
-	
-	@Synthesized
+
 	public Connection connection(PortDecl decl) {
-		List<Connection> conns = get().connections(decl);
-		if (conns.isEmpty()) return null;
-		if (conns.size() > 1) throw new Error();
+		List<Connection> conns = e().connections(decl);
+		if (conns.isEmpty())
+			return null;
+		if (conns.size() > 1)
+			throw new Error();
 		return conns.get(0);
 	}
 
-	@Synthesized
 	public List<Connection> connections(PortDecl decl) {
-		return get().lookupConnectionsToPort(decl, decl);
+		return e().lookupConnectionsToPort(decl, decl);
 	}
-	
-	@Inherited
+
 	public List<Connection> lookupConnectionsToPort(Node node, PortDecl port) {
-		return get().lookupConnectionsToNode(node, node, port);
+		return e().lookupConnectionsToNode(node, node, port);
 	}
-	
-	@Inherited
+
 	public List<Connection> lookupConnectionsToNode(Network net, IRNode container, PortDecl port) {
 		List<Connection> result = new ArrayList<>();
-		PortKind kind = get().portKind(port);
+		PortKind kind = e().portKind(port);
 		if (kind == PortKind.INPUT) {
 			for (Connection conn : net.getConnections()) {
-				if (conn.getDstNodeId() == container.getIdentifier() && conn.getDstPort().getName().equals(port.getName())) {
+				if (conn.getDstNodeId() == container.getIdentifier()
+						&& conn.getDstPort().getName().equals(port.getName())) {
 					result.add(conn);
 				}
 			}
 		} else if (kind == PortKind.OUTPUT) {
 			for (Connection conn : net.getConnections()) {
-				if (conn.getSrcNodeId() == container.getIdentifier() && conn.getSrcPort().getName().equals(port.getName())) {
+				if (conn.getSrcNodeId() == container.getIdentifier()
+						&& conn.getSrcPort().getName().equals(port.getName())) {
 					result.add(conn);
 				}
 			}

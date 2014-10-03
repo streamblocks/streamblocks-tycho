@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import javarag.CollectionBuilder;
-import javarag.CollectionContribution;
+import java.util.Set;
+
+import javarag.Collected;
 import javarag.Module;
 import javarag.Synthesized;
 import javarag.coll.Builder;
-import javarag.coll.CollectionWrapper;
+import javarag.coll.CollectionBuilder;
+import javarag.coll.Collector;
 import net.opendf.backend.c.CType;
 import net.opendf.backend.c.util.Joiner;
 import net.opendf.ir.IRNode;
@@ -25,143 +27,155 @@ import net.opendf.ir.common.Statement;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.util.ImmutableList;
 
-public class Functions extends Module<Functions.Required> {
+public class Functions extends Module<Functions.Decls> {
 	private final Joiner pars = new Joiner("(", ", ", ")");
-	interface Required {
-		ActorMachine actorMachine(IRNode node);
-		Collection<ExprLambda> lambdaExpressions(ActorMachine am);
-		Collection<ExprProc> procedureExpressions(ActorMachine am);
+
+	public interface Decls {
+		@Synthesized
+		String scopeVarInit(Expression expr, DeclVar varDecl);
+
+		@Synthesized
 		String lambdaSignature(ExprLambda lambda);
+
+		@Synthesized
 		String procedureSignature(ExprProc proc);
+
+		@Synthesized
+		void functionDeclarations(ActorMachine actorMachine, PrintWriter writer);
+
+		@Synthesized
+		void functionBody(ExprLet let, PrintWriter writer);
+
+		@Synthesized
+		void functionDefinitions(ActorMachine actorMachine, PrintWriter writer);
+
+		@Collected
+		Set<ExprLambda> lambdaExpressions(ActorMachine am);
+
+		@Collected
+		Set<ExprProc> procedureExpressions(ActorMachine am);
+
+		ActorMachine actorMachine(IRNode node);
+
 		String functionName(ExprLambda lambda);
+
 		String functionName(ExprProc proc);
+
 		String variableName(ParDeclValue par);
+
 		String variableName(DeclVar decl);
+
 		CType ctype(TypeExpr type);
+
 		String simpleExpression(Expression e);
+
 		void functionBody(Expression e, PrintWriter w);
-		void functionBody(Statement s, PrintWriter w);
+
 		String blockified(Statement s);
 	}
 
-	@Synthesized
 	public String scopeVarInit(ExprLambda lambda, DeclVar varDecl) {
 		return "";
 	}
 
-	@Synthesized
 	public String scopeVarInit(ExprProc procedure, DeclVar varDecl) {
 		return "";
 	}
 
-	@Synthesized
 	public String lambdaSignature(ExprLambda lambda) {
-		String name = get().functionName(lambda);
+		String name = e().functionName(lambda);
 		List<String> parList = parList(lambda.getValueParameters());
-		CType type = get().ctype(lambda.getReturnType());
+		CType type = e().ctype(lambda.getReturnType());
 		return new StringBuilder()
-			.append(type.plainType())
-			.append(" ")
-			.append(name)
-			.append(pars.join(parList))
-			.toString();
+				.append(type.plainType())
+				.append(" ")
+				.append(name)
+				.append(pars.join(parList))
+				.toString();
 	}
 
-	@Synthesized
 	public String procedureSignature(ExprProc proc) {
-		String name = get().functionName(proc);
+		String name = e().functionName(proc);
 		List<String> parList = parList(proc.getValueParameters());
 		return new StringBuilder()
-			.append("void ")
-			.append(name)
-			.append(pars.join(parList))
-			.toString();
+				.append("void ")
+				.append(name)
+				.append(pars.join(parList))
+				.toString();
 
 	}
 
-	@Synthesized
 	public void functionDeclarations(ActorMachine actorMachine, PrintWriter writer) {
-		Collection<ExprLambda> lambdas = get().lambdaExpressions(actorMachine);
+		Collection<ExprLambda> lambdas = e().lambdaExpressions(actorMachine);
 		for (ExprLambda lambda : lambdas) {
-			writer.print(get().lambdaSignature(lambda));
+			writer.print(e().lambdaSignature(lambda));
 			writer.println(";");
 		}
 
-		Collection<ExprProc> procs = get().procedureExpressions(actorMachine);
+		Collection<ExprProc> procs = e().procedureExpressions(actorMachine);
 		for (ExprProc proc : procs) {
-			writer.print(get().procedureSignature(proc));
+			writer.print(e().procedureSignature(proc));
 			writer.println(";");
 		}
 	}
 
-	@Synthesized
 	public void functionBody(ExprLet let, PrintWriter writer) {
 		writer.println("{");
 		for (DeclVar decl : let.getVarDecls()) {
-			CType type = get().ctype(decl.getType());
-			String name = get().variableName(decl);
-			String value = get().simpleExpression(decl.getInitialValue());
+			CType type = e().ctype(decl.getType());
+			String name = e().variableName(decl);
+			String value = e().simpleExpression(decl.getInitialValue());
 			writer.print("const ");
 			writer.print(type.variableType(name));
 			writer.print(" = ");
 			writer.print(value);
 			writer.println(";");
 		}
-		String value = get().simpleExpression(let.getBody());
-		writer.println("return "+value+";");
+		String value = e().simpleExpression(let.getBody());
+		writer.println("return " + value + ";");
 		writer.println("}");
 	}
 
-	@Synthesized
 	public void functionDefinitions(ActorMachine actorMachine, PrintWriter writer) {
-		Collection<ExprLambda> lambdas = get().lambdaExpressions(actorMachine);
+		Collection<ExprLambda> lambdas = e().lambdaExpressions(actorMachine);
 		for (ExprLambda lambda : lambdas) {
-			writer.println(get().lambdaSignature(lambda));
-			get().functionBody(lambda.getBody(), writer);
+			writer.println(e().lambdaSignature(lambda));
+			e().functionBody(lambda.getBody(), writer);
 		}
 
-		Collection<ExprProc> procs = get().procedureExpressions(actorMachine);
+		Collection<ExprProc> procs = e().procedureExpressions(actorMachine);
 		for (ExprProc proc : procs) {
-			writer.println(get().procedureSignature(proc));
-			writer.println(get().blockified(proc.getBody()));
+			writer.println(e().procedureSignature(proc));
+			writer.println(e().blockified(proc.getBody()));
 		}
 	}
 
 	private List<String> parList(ImmutableList<ParDeclValue> pars) {
 		List<String> parList = new ArrayList<>();
 		for (ParDeclValue par : pars) {
-			String name = get().variableName(par);
-			CType type = get().ctype(par.getType());
+			String name = e().variableName(par);
+			CType type = e().ctype(par.getType());
 			parList.add(type.variableType(name));
 		}
 		return parList;
 	}
 
-	@CollectionBuilder("lambdaExpressions")
-	@Synthesized
-	public Builder lambdaExpressions(ActorMachine actorMachine) {
-		return new CollectionWrapper(new LinkedHashSet<>());
+	public Builder<Set<ExprLambda>, ExprLambda> lambdaExpressions(ActorMachine actorMachine) {
+		return new CollectionBuilder<Set<ExprLambda>, ExprLambda>(new LinkedHashSet<ExprLambda>());
 	}
 
-	@CollectionContribution
-	@Synthesized
-	public void lambdaExpressions(ExprLambda lambda) {
-		ActorMachine am = get().actorMachine(lambda);
-		contribute(am, lambda);
+	public void lambdaExpressions(ExprLambda lambda, Collector<ExprLambda> coll) {
+		ActorMachine am = e().actorMachine(lambda);
+		coll.add(am, lambda);
 	}
 
-	@CollectionBuilder("procedureExpressions")
-	@Synthesized
-	public Builder procedureExpressions(ActorMachine actorMachine) {
-		return new CollectionWrapper(new LinkedHashSet<>());
+	public Builder<Set<ExprProc>, ExprProc> procedureExpressions(ActorMachine actorMachine) {
+		return new CollectionBuilder<Set<ExprProc>, ExprProc>(new LinkedHashSet<ExprProc>());
 	}
 
-	@CollectionContribution
-	@Synthesized
-	public void procedureExpressions(ExprProc proc) {
-		ActorMachine am = get().actorMachine(proc);
-		contribute(am, proc);
+	public void procedureExpressions(ExprProc proc, Collector<ExprProc> coll) {
+		ActorMachine am = e().actorMachine(proc);
+		coll.add(am, proc);
 	}
-
 
 }

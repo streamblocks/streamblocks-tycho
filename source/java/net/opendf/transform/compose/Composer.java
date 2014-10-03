@@ -1,8 +1,12 @@
 package net.opendf.transform.compose;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.management.RuntimeErrorException;
 
 import javarag.AttributeEvaluator;
 import javarag.AttributeRegister;
@@ -23,8 +27,15 @@ import net.opendf.ir.net.Node;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.transform.compose.CompositionStateHandler.State;
 import net.opendf.transform.filter.SelectFirstInstruction;
+import net.opendf.transform.filter.SelectRandomInstruction;
+import net.opendf.transform.reduction.FixedInstructionWeight;
+import net.opendf.transform.reduction.PriorityListSelector;
+import net.opendf.transform.reduction.Selector;
+import net.opendf.transform.reduction.ShortestPathStateHandler;
+import net.opendf.transform.reduction.TransitionPriorityStateHandler;
 import net.opendf.transform.util.AbstractActorMachineTransformer;
 import net.opendf.transform.util.ControllerGenerator;
+import net.opendf.transform.util.StateHandler;
 
 public class Composer {
 	private final AttributeRegister register;
@@ -80,7 +91,18 @@ public class Composer {
 			inputPorts.addAll(transformer.transformInputPorts(am.getInputPorts(), evaluator));
 			outputPorts.addAll(transformer.transformOutputPorts(am.getOutputPorts(), evaluator));
 		}
-		ControllerGenerator<State> controller = ControllerGenerator.generate(new SelectFirstInstruction<>(new CompositionStateHandler(net)));
+		StateHandler<State> stateHandler = new CompositionStateHandler(net);
+		//try {
+		//	Selector<Integer> selector = new PriorityListSelector(PriorityListSelector.readIntsFromFile(new File("dcrecon.prio.txt")));
+		//	stateHandler = new TransitionPriorityStateHandler<>(stateHandler, selector);
+		//	stateHandler = new ShortestPathStateHandler<>(new FixedInstructionWeight<State>(1, 1, 1), stateHandler);
+		//} catch (FileNotFoundException e) {
+		//	throw new RuntimeException(e);
+		//}
+		stateHandler = new SelectRandomInstruction<>(stateHandler);
+		//stateHandler = new SelectFirstInstruction<>(stateHandler);
+		
+		ControllerGenerator<State> controller = ControllerGenerator.generate(stateHandler);
 		//printControllerInterpretation(controller);
 		//System.out.println(controller.getInterpretation().size() + " states.");
 		return new ActorMachine(inputPorts.build(), outputPorts.build(), scopes.build(), controller.getController(), transitions.build(), conditions.build());

@@ -8,7 +8,16 @@ import net.opendf.ir.am.IWait;
 
 public abstract class GenInstruction<S> {
 
+	private GenInstruction() {
+	}
+
 	public abstract S[] destinations();
+
+	public abstract <R, P> R accept(Visitor<S, R, P> visitor, P param);
+
+	public <R> R accept(Visitor<S, R, Void> visitor) {
+		return accept(visitor, null);
+	}
 
 	public boolean isCall() {
 		return false;
@@ -42,6 +51,11 @@ public abstract class GenInstruction<S> {
 		}
 
 		@Override
+		public <R, P> R accept(Visitor<S, R, P> visitor, P parameter) {
+			return visitor.visitCall(this, parameter);
+		}
+
+		@Override
 		public S[] destinations() {
 			@SuppressWarnings("unchecked")
 			S[] states = (S[]) new Object[] { s };
@@ -52,7 +66,7 @@ public abstract class GenInstruction<S> {
 		public boolean isCall() {
 			return true;
 		}
-		
+
 		@Override
 		public ICall generateInstruction(Map<S, Integer> stateMap) {
 			return new ICall(t, stateMap.get(s));
@@ -83,6 +97,11 @@ public abstract class GenInstruction<S> {
 		}
 
 		@Override
+		public <R, P> R accept(Visitor<S, R, P> visitor, P parameter) {
+			return visitor.visitTest(this, parameter);
+		}
+
+		@Override
 		public S[] destinations() {
 			@SuppressWarnings("unchecked")
 			S[] states = (S[]) new Object[] { s0, s1 };
@@ -93,7 +112,7 @@ public abstract class GenInstruction<S> {
 		public boolean isTest() {
 			return true;
 		}
-		
+
 		@Override
 		public ITest generateInstruction(Map<S, Integer> stateMap) {
 			return new ITest(c, stateMap.get(s1), stateMap.get(s0));
@@ -111,6 +130,11 @@ public abstract class GenInstruction<S> {
 			return s;
 		}
 
+		@Override
+		public <R, P> R accept(Visitor<S, R, P> visitor, P parameter) {
+			return visitor.visitWait(this, parameter);
+		}
+
 		public S[] destinations() {
 			@SuppressWarnings("unchecked")
 			S[] states = (S[]) new Object[] { s };
@@ -121,10 +145,18 @@ public abstract class GenInstruction<S> {
 		public boolean isWait() {
 			return true;
 		}
-		
+
 		@Override
 		public IWait generateInstruction(Map<S, Integer> stateMap) {
 			return new IWait(stateMap.get(s));
 		}
+	}
+
+	public interface Visitor<S, R, P> {
+		public R visitCall(Call<S> call, P parameter);
+
+		public R visitTest(Test<S> test, P parameter);
+
+		public R visitWait(Wait<S> wait, P parameter);
 	}
 }

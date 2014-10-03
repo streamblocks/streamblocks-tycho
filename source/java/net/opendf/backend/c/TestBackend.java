@@ -24,7 +24,10 @@ public class TestBackend {
 			try {
 				Network network = testNetwork(inFile);
 				PrintWriter out = new PrintWriter(new java.io.FileWriter(outFile), true);
+				long startNanos = System.nanoTime();
 				Backend.generateCode(network, out);
+				long timeMillis = (System.nanoTime() - startNanos) / 1000000;
+				System.out.println("TIME " + timeMillis + " ms");
 			} catch (Throwable e) {
 				System.err.println("ERROR IN " + inFile.getName() + ":");
 				e.printStackTrace();

@@ -2,6 +2,7 @@ package net.opendf.ir.util;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 
 import net.opendf.errorhandling.ErrorModule;
 import net.opendf.interp.exception.CALCompiletimeException;
@@ -9,14 +10,11 @@ import net.opendf.ir.IRNode;
 import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.Decl;
-import net.opendf.ir.common.Namespace;
-import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.net.ast.NetworkDefinition;
+import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
 import net.opendf.parser.SourceCodeOracle;
 import net.opendf.parser.lth.CalParser;
 import net.opendf.parser.lth.NlParser;
-
-import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
 
 
 /**
@@ -28,15 +26,14 @@ import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
  *
  */
 public class DeclLoader implements SourceCodeOracle{
-	private Namespace ns;
 	private String filePath;
+	
+	private Map<String, Decl> namespace = new HashMap<>();
 	
 	private HashMap<Identifier, SourceCodePosition> srcPositions = new HashMap<Identifier, SourceCodePosition>();
 
 	public DeclLoader(String filePath){
 		this.filePath = filePath;
-		ns = Namespace.createTopLevelNamespace();
-		ns.createNamespaceDecl();
 	}
 
 	/**
@@ -48,14 +45,11 @@ public class DeclLoader implements SourceCodeOracle{
 	 * @throws CALCompiletimeException is a compilation error occurs
 	 */
 	public Decl getDecl(String name) throws CALCompiletimeException {
-		for(NamespaceDecl nsDecl : ns.getDecls()){
-			for(Decl decl : nsDecl.getDecls()){
-				if(decl.getName().equals(name)){
-					return decl;
-				}
-			}
+		if (namespace.containsKey(name)) {
+			return namespace.get(name);
+		} else {
+			return loadDecl(name);
 		}
-		return loadDecl(name);
 	}
 
 	/**
@@ -91,10 +85,7 @@ public class DeclLoader implements SourceCodeOracle{
 				//TODO name not found
 			}
 		}
-		if(result != null){
-			//TODO place the decl in the right name space
-			ns.getDecl(0).addDecl(result);
-		}
+		namespace.put(name,  result);
 		return result;
 	}
 	

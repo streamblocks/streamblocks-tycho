@@ -19,40 +19,45 @@ import net.opendf.ir.common.StmtBlock;
 import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.Variable;
 
-public class VariableBinding extends Module<VariableBinding.Required> {
+public class VariableBinding extends Module<VariableBinding.Decls> {
 
-	@Synthesized
+	public interface Decls {
+		@Synthesized
+		public IRNode declaration(Variable variable);
+
+		@Inherited
+		public IRNode lookupVariable(IRNode node, String name);
+
+		@Inherited
+		public IRNode lookupScopeVariable(IRNode node, int id, String name);
+	}
+
 	public IRNode declaration(Variable variable) {
 		if (variable.isScopeVariable()) {
-			return get().lookupScopeVariable(variable, variable.getScopeId(), variable.getName());
+			return e().lookupScopeVariable(variable, variable.getScopeId(), variable.getName());
 		} else {
-			return get().lookupVariable(variable, variable.getName());
+			return e().lookupVariable(variable, variable.getName());
 		}
 	}
 
-	@Inherited
 	public IRNode lookupScopeVariable(ActorMachine actorMachine, int id, String name) {
 		return lookupInList(actorMachine.getScope(id), name);
 	}
 
-	@Inherited
 	public IRNode lookupVariable(ExprLet let, String name) {
 		IRNode decl = lookupInList(let.getVarDecls(), name);
-		return decl != null ? decl : get().lookupVariable(let, name);
+		return decl != null ? decl : e().lookupVariable(let, name);
 	}
-	
-	@Inherited
+
 	public IRNode lookupVariable(ActorMachine actorMachine, String name) {
 		return null;
 	}
 
-	@Inherited
 	public IRNode lookupVariable(StmtBlock block, String name) {
 		IRNode decl = lookupInList(block.getVarDecls(), name);
-		return decl != null ? decl : get().lookupVariable(block, name);
+		return decl != null ? decl : e().lookupVariable(block, name);
 	}
-	
-	@Inherited
+
 	public IRNode lookupVariable(StmtForeach foreach, String name) {
 		for (GeneratorFilter generator : foreach.getGenerators()) {
 			for (DeclVar decl : generator.getVariables()) {
@@ -61,10 +66,9 @@ public class VariableBinding extends Module<VariableBinding.Required> {
 				}
 			}
 		}
-		return get().lookupVariable(foreach, name);
+		return e().lookupVariable(foreach, name);
 	}
 
-	@Inherited
 	public IRNode lookupVariable(ExprList list, String name) {
 		for (GeneratorFilter generator : list.getGenerators()) {
 			for (DeclVar decl : generator.getVariables()) {
@@ -73,22 +77,19 @@ public class VariableBinding extends Module<VariableBinding.Required> {
 				}
 			}
 		}
-		return get().lookupVariable(list, name);
+		return e().lookupVariable(list, name);
 	}
 
-	@Inherited
 	public IRNode lookupVariable(ExprLambda lambda, String name) {
 		IRNode decl = lookupInList(lambda.getValueParameters(), name);
-		return decl != null ? decl : get().lookupVariable(lambda, name);
+		return decl != null ? decl : e().lookupVariable(lambda, name);
 	}
 
-	@Inherited
 	public IRNode lookupVariable(ExprProc proc, String name) {
 		IRNode decl = lookupInList(proc.getValueParameters(), name);
-		return decl != null ? decl : get().lookupVariable(proc, name);
+		return decl != null ? decl : e().lookupVariable(proc, name);
 	}
 
-	@Inherited
 	public IRNode lookupVariable(Action action, String name) {
 		IRNode decl = lookupInList(action.getVarDecls(), name);
 		if (decl != null) {
@@ -100,10 +101,9 @@ public class VariableBinding extends Module<VariableBinding.Required> {
 				return d;
 			}
 		}
-		return get().lookupVariable(action, name);
+		return e().lookupVariable(action, name);
 	}
-	
-	@Inherited
+
 	public IRNode lookupVariable(Actor actor, String name) {
 		IRNode varDecl = lookupInList(actor.getVarDecls(), name);
 		if (varDecl != null) {
@@ -129,11 +129,6 @@ public class VariableBinding extends Module<VariableBinding.Required> {
 			}
 		}
 		return null;
-	}
-	
-	public interface Required {
-		public IRNode lookupVariable(IRNode node, String name);
-		public IRNode lookupScopeVariable(IRNode node, int id, String name);
 	}
 
 }

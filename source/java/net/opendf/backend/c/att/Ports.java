@@ -17,55 +17,61 @@ import net.opendf.ir.common.StmtOutput;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 
-public class Ports extends Module<Ports.Required> {
+public class Ports extends Module<Ports.Decls> {
 
-	public interface Required {
+	public interface Decls {
 
+		@Synthesized
+		PortDecl declaration(Port port);
+
+		@Inherited
 		PortDecl lookupPort(IRNode node, Port port);
 
+		@Inherited
 		PortDecl lookupInputPort(IRNode node, Port port);
 
+		@Inherited
 		PortDecl lookupOutputPort(IRNode node, Port port);
 
+		@Synthesized
+		PortKind portKind(PortDecl decl);
+
+		@Inherited
 		PortKind checkPortKind(IRNode node, PortDecl decl);
 
+		@Inherited
 		Network network(Connection conn);
 
 	}
 
-	@Inherited
 	public Network network(Network net) {
 		return net;
 	}
 
-	@Synthesized
 	public PortDecl declaration(Port port) {
-		return get().lookupPort(port, port);
+		return e().lookupPort(port, port);
 	}
 
-	@Inherited
-	public PortDecl lookupPort(AbstractIRNode node, Port port) {
+	public PortDecl lookupPort(IRNode node, Port port) {
 		throw new Error();
 	}
-	
-	@Inherited
+
 	public PortDecl lookupPort(Transition t, Port port) {
 		for (Port p : t.getInputRates().keySet()) {
 			if (p == port) {
-				return get().lookupInputPort(t, port);
+				return e().lookupInputPort(t, port);
 			}
 		}
 		for (Port p : t.getOutputRates().keySet()) {
 			if (p == port) {
-				return get().lookupOutputPort(t, port);
+				return e().lookupOutputPort(t, port);
 			}
 		}
 		throw new Error();
 	}
 
-	@Inherited
 	public PortDecl lookupPort(Connection conn, Port port) {
-		Network net = get().network(conn);
+		Network net = e().network(conn);
 		if (conn.getSrcPort() == port) {
 			if (conn.getSrcNodeId() == null) {
 				for (PortDecl decl : net.getInputPorts()) {
@@ -104,31 +110,26 @@ public class Ports extends Module<Ports.Required> {
 		throw new Error();
 	}
 
-	@Inherited
 	public PortDecl lookupPort(StmtConsume stmt, Port port) {
-		return get().lookupInputPort(stmt, port);
+		return e().lookupInputPort(stmt, port);
 	}
 
-	@Inherited
 	public PortDecl lookupPort(StmtOutput stmt, Port port) {
-		return get().lookupOutputPort(stmt, port);
+		return e().lookupOutputPort(stmt, port);
 	}
 
-	@Inherited
 	public PortDecl lookupPort(ExprInput expr, Port port) {
-		return get().lookupInputPort(expr, port);
+		return e().lookupInputPort(expr, port);
 	}
 
-	@Inherited
 	public PortDecl lookupPort(PortCondition cond, Port port) {
 		if (cond.isInputCondition()) {
-			return get().lookupInputPort(cond, port);
+			return e().lookupInputPort(cond, port);
 		} else {
-			return get().lookupOutputPort(cond, port);
+			return e().lookupOutputPort(cond, port);
 		}
 	}
-	
-	@Inherited
+
 	public PortDecl lookupInputPort(ActorMachine actorMachine, Port port) {
 		for (PortDecl decl : actorMachine.getInputPorts()) {
 			if (port.getName().equals(decl.getName())) {
@@ -138,7 +139,6 @@ public class Ports extends Module<Ports.Required> {
 		return null;
 	}
 
-	@Inherited
 	public PortDecl lookupOutputPort(ActorMachine actorMachine, Port port) {
 		for (PortDecl decl : actorMachine.getOutputPorts()) {
 			if (port.getName().equals(decl.getName())) {
@@ -147,15 +147,15 @@ public class Ports extends Module<Ports.Required> {
 		}
 		return null;
 	}
-	
-	@Synthesized
+
 	public PortKind portKind(PortDecl decl) {
-		return get().checkPortKind(decl, decl);
+		return e().checkPortKind(decl, decl);
 	}
-	
-	public enum PortKind { INPUT, OUTPUT }
-	
-	@Inherited
+
+	public enum PortKind {
+		INPUT, OUTPUT
+	}
+
 	public PortKind checkPortKind(ActorMachine actorMachine, PortDecl decl) {
 		if (decl == null) {
 			return null;
@@ -172,9 +172,9 @@ public class Ports extends Module<Ports.Required> {
 		}
 		return null;
 	}
-	@Inherited
+
 	public PortKind checkPortKind(AbstractIRNode node, PortDecl decl) {
 		throw new Error();
 	}
-	
+
 }

@@ -5,11 +5,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javarag.Cached;
 import javarag.Inherited;
-import javarag.Memoized;
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.am.ActorMachine;
@@ -19,49 +18,52 @@ import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
 
-@Memoized("portNameTranslator")
-public class PortNames extends Module<PortNames.Required> {
+public class PortNames extends Module<PortNames.Decls> {
 
-	public interface Required {
+	public interface Decls {
 
 		PortDecl declaration(Port port);
 
+		@Synthesized
 		String uniquePortName(PortDecl decl);
 
+		@Synthesized
 		String uniquePortName(Port port);
 
+		@Cached
+		@Synthesized
 		Map<PortContainer, Map<PortDecl, String>> portNameTranslator(Network net);
 
+		@Inherited
 		String lookupUniquePortName(IRNode node, PortContainer container, PortDecl decl);
 
+		@Inherited
 		PortContainer lookupPortContainer(PortDecl decl);
 
+		@Inherited
 		Object identifierOwner(Identifier identifier);
 
+		@Synthesized
+		public Port translatePort(Port port);
 	}
-	
-	@Inherited
+
 	public Object identifierOwner(Object owner) {
 		return owner;
 	}
-	
-	@Synthesized
+
 	public String uniquePortName(Port port) {
-		PortDecl decl = get().declaration(port);
-		return get().uniquePortName(decl);
+		PortDecl decl = e().declaration(port);
+		return e().uniquePortName(decl);
 	}
-	
-	@Synthesized
+
 	public String uniquePortName(PortDecl decl) {
-		return get().lookupUniquePortName(decl, get().lookupPortContainer(decl), decl);
+		return e().lookupUniquePortName(decl, e().lookupPortContainer(decl), decl);
 	}
-	
-	@Inherited
+
 	public PortContainer lookupPortContainer(ActorMachine am) {
 		return am;
 	}
-	
-	@Synthesized
+
 	public Map<PortContainer, Map<PortDecl, String>> portNameTranslator(Network net) {
 		Set<String> names = new HashSet<>();
 		Map<PortContainer, Map<PortDecl, String>> translator = new HashMap<>();
@@ -78,8 +80,7 @@ public class PortNames extends Module<PortNames.Required> {
 		}
 		return translator;
 	}
-	
-	
+
 	private String registerUniqueName(String originalName, Set<String> names) {
 		String name = originalName;
 		int i = 1;
@@ -91,16 +92,14 @@ public class PortNames extends Module<PortNames.Required> {
 		return name;
 	}
 
-	@Inherited
 	public String lookupUniquePortName(Network net, PortContainer pc, PortDecl decl) {
-		Map<PortContainer, Map<PortDecl, String>> translator = get().portNameTranslator(net);
+		Map<PortContainer, Map<PortDecl, String>> translator = e().portNameTranslator(net);
 		return translator.get(pc).get(decl);
 	}
-	
-	@Synthesized
+
 	public Port translatePort(Port port) {
-		Port originalPort = (Port) get().identifierOwner(port.getIdentifier());
-		String portName = get().uniquePortName(originalPort);
+		Port originalPort = (Port) e().identifierOwner(port.getIdentifier());
+		String portName = e().uniquePortName(originalPort);
 		return port.copy(portName);
 	}
 }

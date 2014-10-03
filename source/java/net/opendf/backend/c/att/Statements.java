@@ -14,19 +14,19 @@ import net.opendf.ir.common.StmtIf;
 import net.opendf.ir.common.StmtWhile;
 import net.opendf.ir.common.TypeExpr;
 
-public class Statements extends Module<Statements.Required> {
+public class Statements extends Module<Statements.Decls> {
 
-	public interface Required {
+	public interface Decls {
+
+		@Synthesized
+		String blockified(Statement statement);
+
+		@Synthesized
+		String statement(Statement stmt);
 
 		String procedureCall(Expression procedure, StmtCall stmt);
 
 		String simpleExpression(Expression condition);
-
-		String blockified(Statement statement);
-
-		String localDeclaration(DeclVar decl);
-
-		String statement(Statement stmt);
 
 		CType ctype(TypeExpr type);
 
@@ -36,16 +36,15 @@ public class Statements extends Module<Statements.Required> {
 
 	}
 
-	@Synthesized
 	public String statement(StmtBlock block) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("{\n");
 		for (DeclVar decl : block.getVarDecls()) {
-			CType type = get().ctype(decl.getType());
-			String name = get().variableName(decl);
+			CType type = e().ctype(decl.getType());
+			String name = e().variableName(decl);
 			builder.append(type.variableType(name));
 			if (decl.getInitialValue() != null) {
-				String value = get().simpleExpression(decl.getInitialValue());
+				String value = e().simpleExpression(decl.getInitialValue());
 				builder.append(" = ");
 				builder.append(value);
 			}
@@ -53,54 +52,50 @@ public class Statements extends Module<Statements.Required> {
 
 		}
 		for (Statement stmt : block.getStatements()) {
-			builder.append(get().statement(stmt));
+			builder.append(e().statement(stmt));
 		}
 		builder.append("}\n");
 		return builder.toString();
 	}
 
-	@Synthesized
 	public String statement(StmtCall stmt) {
-		return get().procedureCall(stmt.getProcedure(), stmt);
+		return e().procedureCall(stmt.getProcedure(), stmt);
 	}
 
-	@Synthesized
 	public String statement(StmtIf stmt) {
 		String ifThen =
-				"if (" + get().simpleExpression(stmt.getCondition()) + ") " +
-						get().blockified(stmt.getThenBranch());
+				"if (" + e().simpleExpression(stmt.getCondition()) + ") " +
+						e().blockified(stmt.getThenBranch());
 		if (stmt.getElseBranch() == null) {
 			return ifThen;
 		} else {
-			return ifThen + " else " + get().blockified(stmt.getElseBranch());
+			return ifThen + " else " + e().blockified(stmt.getElseBranch());
 		}
 	}
 
-	@Synthesized
 	public String statement(StmtWhile stmt) {
-		return "while (" + get().simpleExpression(stmt.getCondition()) + ") " +
-				get().blockified(stmt.getBody());
+		return "while (" + e().simpleExpression(stmt.getCondition()) + ") " +
+				e().blockified(stmt.getBody());
 	}
 
-	@Synthesized
 	public String statement(StmtForeach foreach) {
-		if (foreach.getGenerators().size() != 1) return null;
-		String body = get().statement(foreach.getBody());
-		return get().generatorFilter(foreach.getGenerators().get(0), body);
+		if (foreach.getGenerators().size() != 1)
+			return null;
+		String body = e().statement(foreach.getBody());
+		return e().generatorFilter(foreach.getGenerators().get(0), body);
 	}
-	
-	@Synthesized
+
 	public String blockified(StmtBlock block) {
-		if (block.getVarDecls().isEmpty() && block.getStatements().size() == 1 && block.getStatements().get(0) instanceof StmtBlock) {
-			return get().blockified(block.getStatements().get(0));
+		if (block.getVarDecls().isEmpty() && block.getStatements().size() == 1
+				&& block.getStatements().get(0) instanceof StmtBlock) {
+			return e().blockified(block.getStatements().get(0));
 		} else {
-			return get().statement(block);
+			return e().statement(block);
 		}
 	}
-	
-	@Synthesized
+
 	public String blockified(Statement stmt) {
-		return "{\n" + get().statement(stmt) + "}\n";
+		return "{\n" + e().statement(stmt) + "}\n";
 	}
 
 }

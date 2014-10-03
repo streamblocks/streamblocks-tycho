@@ -20,9 +20,12 @@ public class TestDCReconstruction {
 		NodeReader reader = new SingleInstrucitonActorMachineReader(Paths.get("..", "orc-apps-am", "RVC", "src"));
 		Network network = constr.constructNetwork(reader);
 		Composer composer = new Composer();
-		Network composition = composer.composeNetwork(network, "DCReconstruction");
-		PrintWriter compWriter = new PrintWriter("dcrecon_comp.c");
-		Backend.generateCode(composition, compWriter);
+		for (int i = 0; i < 100; i++) {
+			Network composition = composer.composeNetwork(network, "DCReconstruction");
+			String file = String.format("dcr-random/src/dcrecon_comp-%02d.c", i);
+			PrintWriter compWriter = new PrintWriter(file);
+			Backend.generateCode(composition, compWriter);
+		}
 		PrintWriter schedWriter = new PrintWriter("dcrecon_sched.c");
 		Backend.generateCode(network, schedWriter);
 	}

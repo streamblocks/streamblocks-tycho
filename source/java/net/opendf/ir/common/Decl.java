@@ -50,10 +50,6 @@ abstract public class Decl extends AbstractIRNode {
 		return name;
 	}
 
-	public NamespaceDecl getNamespaceDecl() {
-		return namespaceDecl;
-	}
-
 	public boolean isImport() {
 		return isImport;
 	}
@@ -76,28 +72,23 @@ abstract public class Decl extends AbstractIRNode {
 	// Ctor
 	//
 
-	public Decl(IRNode original, String name, NamespaceDecl namespaceDecl) {
-		this(original, name, namespaceDecl, false, null);
+	public Decl(IRNode original, String name) {
+		this(original, name, false, null);
 	}
 
-	public Decl(IRNode original, String name, NamespaceDecl namespaceDecl, String[] qid) {
-		this(original, name, namespaceDecl, true, qid);
+	public Decl(IRNode original, String name, String[] qid) {
+		this(original, name, true, qid);
 		assert qid != null && qid.length >= 1;
 	}
 
-	protected Decl(IRNode original, String name, NamespaceDecl namespaceDecl, boolean isImport, String[] qid) {
+	protected Decl(IRNode original, String name, boolean isImport, String[] qid) {
 		super(original);
 		this.name = name.intern();
-		this.namespaceDecl = namespaceDecl;
-		if (namespaceDecl != null) {
-			namespaceDecl.addDecl(this);
-		}
 		this.qid = qid;
 	}
 
 	private String name;
 	private boolean isImport;
-	private NamespaceDecl namespaceDecl;
 
 	// import
 

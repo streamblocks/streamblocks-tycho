@@ -7,25 +7,28 @@ import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;
 
-public class Utilities extends Module<Utilities.Required> {
+public class Utilities extends Module<Utilities.Decls> {
 
-	public interface Required {
+	public interface Decls {
+		@Inherited
+		public Object parent(Object n);
 
+		@Synthesized
+		public int index(Object node);
+
+		@Inherited
 		int lookupIndex(Object node, Object node2);
 
 	}
 
-	@Inherited
 	public Object parent(Object p) {
 		return p;
 	}
 
-	@Synthesized
 	public int index(Object node) {
-		return get().lookupIndex(node, node);
+		return e().lookupIndex(node, node);
 	}
-	
-	@Inherited
+
 	public int lookupIndex(Object node, Object element) {
 		Class<?> type = node.getClass();
 		for (Method m : type.getMethods()) {

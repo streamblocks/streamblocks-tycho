@@ -4,71 +4,66 @@ import net.opendf.ir.common.*;
 import javarag.Module;
 import javarag.Synthesized;
 
-public class SimpleExpressions extends Module<SimpleExpressions.Required> {
+public class SimpleExpressions extends Module<SimpleExpressions.Decls> {
 
-	public interface Required {
+	public interface Decls {
 
-		String functionApplication(Expression function, ExprApplication application);
-
+		@Synthesized
 		String parenthesizedExpression(Expression expression);
 
+		@Synthesized
 		String simpleExpression(Expression expression);
+
+		String functionApplication(Expression function, ExprApplication application);
 
 		String variableName(Variable variable);
 
 	}
 
-	@Synthesized
 	public String simpleExpression(ExprApplication expr) {
-		return get().functionApplication(expr.getFunction(), expr);
+		return e().functionApplication(expr.getFunction(), expr);
 	}
 
-	@Synthesized
 	public String simpleExpression(ExprIf expr) {
-		return
-			get().parenthesizedExpression(expr.getCondition()) + " ? " +
-			get().parenthesizedExpression(expr.getThenExpr()) +  " : " +
-			get().parenthesizedExpression(expr.getElseExpr());
+		return e().parenthesizedExpression(expr.getCondition()) + " ? " +
+				e().parenthesizedExpression(expr.getThenExpr()) + " : " +
+				e().parenthesizedExpression(expr.getElseExpr());
 	}
 
-	@Synthesized
 	public String simpleExpression(ExprIndexer expr) {
-		return
-			get().simpleExpression(expr.getStructure()) + "[" +
-			get().simpleExpression(expr.getIndex()) + "]";
+		return e().simpleExpression(expr.getStructure()) + "[" +
+				e().simpleExpression(expr.getIndex()) + "]";
 	}
 
-	@Synthesized
 	public String simpleExpression(ExprLiteral expr) {
 		switch (expr.getKind()) {
-			case Integer: return expr.getText();
-			case True: return "true";
-			case False: return "false";
-			default: return null;
+		case Integer:
+			return expr.getText();
+		case True:
+			return "true";
+		case False:
+			return "false";
+		default:
+			return null;
 		}
 	}
 
-	@Synthesized
 	public String simpleExpression(ExprVariable expr) {
-		return get().variableName(expr.getVariable());
+		return e().variableName(expr.getVariable());
 	}
 
-	@Synthesized
 	public String parenthesizedExpression(Expression expr) {
-		return get().simpleExpression(expr);
+		return e().simpleExpression(expr);
 	}
 
-	@Synthesized
 	public String parenthesizedExpression(ExprIf expr) {
-		return "(" + get().simpleExpression(expr) + ")";
+		return "(" + e().simpleExpression(expr) + ")";
 	}
 
-	@Synthesized
 	public String parenthesizedExpression(ExprApplication expr) {
-		return "(" + get().simpleExpression(expr) + ")";
+		return "(" + e().simpleExpression(expr) + ")";
 	}
-	
-	@Synthesized
+
 	public String simpleExpression(Expression expr) {
 		return null;
 	}

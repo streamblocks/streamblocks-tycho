@@ -3,6 +3,7 @@ package net.opendf.interp.preprocess;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import net.opendf.backend.c.att.ActorMachines;
 import net.opendf.errorhandling.ErrorModule;
 import net.opendf.interp.GeneratorFilterHelper;
 import net.opendf.interp.VariableLocation;
@@ -17,7 +18,6 @@ import net.opendf.ir.common.ExprList;
 import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.NamespaceDecl;
 import net.opendf.ir.common.ParDeclType;
 import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.Statement;
@@ -25,6 +25,7 @@ import net.opendf.ir.common.StmtBlock;
 import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
+import net.opendf.ir.net.Network;
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ast.EntityListExpr;
 import net.opendf.ir.net.ast.NetworkDefinition;
@@ -408,9 +409,7 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 		private Scope buildParamScope(ImmutableList<ParDeclValue> valueParameters) {
 			ImmutableList.Builder<DeclVar> builder = new ImmutableList.Builder<DeclVar>();
 			for(ParDeclValue par : valueParameters){
-				//TODO create a proper NamespaceDecl
-				NamespaceDecl ns = null;
-				builder.add(new DeclVar(par, par.getType(), par.getName(), ns, null, false));
+				builder.add(new DeclVar(par, par.getType(), par.getName(), null, false));
 			}
 			return new Scope(builder.build());
 		}

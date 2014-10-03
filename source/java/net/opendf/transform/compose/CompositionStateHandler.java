@@ -106,7 +106,7 @@ public class CompositionStateHandler implements StateHandler<CompositionStateHan
 	}
 
 	private ActorMachine getActorMachine(int n) {
-		PortContainer content = network.getNodes().get(n).getContent();
+		Object content = network.getNodes().get(n).getContent();
 		return (ActorMachine) content;
 	}
 

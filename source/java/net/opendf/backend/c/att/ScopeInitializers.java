@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javarag.FixedPointStart;
-import javarag.FixedPointStep;
+import javarag.Bottom;
+import javarag.Circular;
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;
@@ -22,9 +22,54 @@ import net.opendf.ir.am.State;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.util.ImmutableList;
 
-public class ScopeInitializers extends Module<ScopeInitializers.Required> {
+public class ScopeInitializers extends Module<ScopeInitializers.Decls> {
 
-	@Inherited
+	public interface Decls {
+		@Inherited
+		Set<Scope> persistentScopes(IRNode s);
+
+		@Synthesized
+		Set<Scope> scopesToKill(Instruction i);
+
+		@Synthesized
+		Set<Scope> scopesToKill(Transition t);
+
+		@Synthesized
+		boolean isInitialState(State s);
+
+		@Inherited
+		boolean checkInitialState(State node, State s);
+
+		@Circular
+		@Synthesized
+		Set<Scope> aliveInState(State s);
+
+		@Circular
+		@Synthesized
+		Set<Scope> aliveAfterInstruction(Instruction pred);
+
+		@Synthesized
+		Set<Scope> requiredScopes(Condition t);
+		
+		@Synthesized
+		Set<Scope> requiredScopes(Transition t);
+		
+		@Synthesized
+		Set<Scope> requiredScopes(Instruction i);
+		
+		@Synthesized
+		List<Scope> scopesToInit(Instruction i);
+		
+		ActorMachine actorMachine(IRNode node);
+
+		State predecessor(Instruction i);
+
+		Set<Instruction> predecessors(State s);
+
+		Set<Scope> scopeDependencies(Scope s);
+
+	}
+
 	public Set<Scope> persistentScopes(ActorMachine am) {
 		Set<Scope> result = new HashSet<>();
 		result.addAll(am.getScopes());
@@ -38,21 +83,18 @@ public class ScopeInitializers extends Module<ScopeInitializers.Required> {
 
 	// KILL
 
-	@Synthesized
 	public Set<Scope> scopesToKill(Instruction i) {
 		return new HashSet<>();
 	}
 
-	@Synthesized
 	public Set<Scope> scopesToKill(ICall c) {
-		ActorMachine am = get().actorMachine(c);
+		ActorMachine am = e().actorMachine(c);
 		Transition t = am.getTransition(c.T());
-		return get().scopesToKill(t);
+		return e().scopesToKill(t);
 	}
 
-	@Synthesized
 	public Set<Scope> scopesToKill(Transition t) {
-		ActorMachine am = get().actorMachine(t);
+		ActorMachine am = e().actorMachine(t);
 		ImmutableList<Scope> scopes = am.getScopes();
 		Set<Scope> kill = new HashSet<>();
 		for (int k : t.getScopesToKill()) {
@@ -63,29 +105,24 @@ public class ScopeInitializers extends Module<ScopeInitializers.Required> {
 
 	// ALIVE IN STATE
 
-	@Inherited
 	public boolean checkInitialState(ActorMachine am, State s) {
 		return am.getController().get(0) == s;
 	}
 
-	@Synthesized
 	public boolean isInitialState(State s) {
-		return get().checkInitialState(s, s);
+		return e().checkInitialState(s, s);
 	}
 
-	@FixedPointStart("aliveInState")
-	@Synthesized
-	public Set<Scope> aliveInStateStart(State s) {
-		Set<Scope> persistentScopes = get().persistentScopes(s);
+	@Bottom("aliveInState")
+	public Set<Scope> aliveInStateBottom(State s) {
+		Set<Scope> persistentScopes = e().persistentScopes(s);
 		return persistentScopes;
 	}
 
-	@FixedPointStep
-	@Synthesized
 	public Set<Scope> aliveInState(State s) {
 		Set<Scope> alive = null;
-		for (Instruction pred : get().predecessors(s)) {
-			Set<Scope> after = get().aliveAfterInstruction(pred);
+		for (Instruction pred : e().predecessors(s)) {
+			Set<Scope> after = e().aliveAfterInstruction(pred);
 			if (alive == null) {
 				alive = new HashSet<>();
 				alive.addAll(after);
@@ -93,58 +130,51 @@ public class ScopeInitializers extends Module<ScopeInitializers.Required> {
 				alive.retainAll(after);
 			}
 		}
-		return alive == null ? get().persistentScopes(s) : alive;
+		return alive == null ? e().persistentScopes(s) : alive;
 	}
 
 	// ALIVE AFTER INSTRUCTION
 
-	@FixedPointStart("aliveAfterInstruction")
-	@Synthesized
-	public Set<Scope> aliveAfterInstructionStart(Instruction i) {
-		Set<Scope> persistentScopes = get().persistentScopes(i);
+	@Bottom("aliveAfterInstruction")
+	public Set<Scope> aliveAfterInstructionBottom(Instruction i) {
+		Set<Scope> persistentScopes = e().persistentScopes(i);
 		return persistentScopes;
 	}
 
-	@Synthesized
-	@FixedPointStep
 	public Set<Scope> aliveAfterInstruction(Instruction i) {
 		Set<Scope> alive = new HashSet<>();
-		State s = get().predecessor(i);
-		alive.addAll(get().aliveInState(s));
-		alive.addAll(get().requiredScopes(i));
-		alive.removeAll(get().scopesToKill(i));
+		State s = e().predecessor(i);
+		alive.addAll(e().aliveInState(s));
+		alive.addAll(e().requiredScopes(i));
+		alive.removeAll(e().scopesToKill(i));
 		return alive;
 	}
 
 	// REQUIRED SCOPES
 
-	@Synthesized
 	public Set<Scope> requiredScopes(Instruction i) {
 		return new HashSet<>();
 	}
 
-	@Synthesized
 	public Set<Scope> requiredScopes(ICall c) {
-		ActorMachine am = get().actorMachine(c);
+		ActorMachine am = e().actorMachine(c);
 		Transition t = am.getTransition(c.T());
-		return get().requiredScopes(t);
+		return e().requiredScopes(t);
 	}
 
-	@Synthesized
 	public Set<Scope> requiredScopes(ITest t) {
-		ActorMachine am = get().actorMachine(t);
+		ActorMachine am = e().actorMachine(t);
 		Condition c = am.getCondition(t.C());
-		return get().requiredScopes(c);
+		return e().requiredScopes(c);
 	}
 
 	// SCOPES TO INIT
 
-	@Synthesized
 	public List<Scope> scopesToInit(Instruction i) {
 		Set<Scope> init = new HashSet<>();
-		init.addAll(get().requiredScopes(i));
-		State pred = get().predecessor(i);
-		Set<Scope> aliveInState = get().aliveInState(pred);
+		init.addAll(e().requiredScopes(i));
+		State pred = e().predecessor(i);
+		Set<Scope> aliveInState = e().aliveInState(pred);
 		init.removeAll(aliveInState);
 		List<Scope> result = new ArrayList<>();
 		while (!init.isEmpty()) {
@@ -152,13 +182,14 @@ public class ScopeInitializers extends Module<ScopeInitializers.Required> {
 			boolean progress = false;
 			while (iter.hasNext()) {
 				Scope s = iter.next();
-				if (!intersects(init, get().scopeDependencies(s), s)) {
+				if (!intersects(init, e().scopeDependencies(s), s)) {
 					result.add(s);
 					iter.remove();
 					progress = true;
 				}
 			}
-			if (!progress) throw new Error();
+			if (!progress)
+				throw new Error();
 		}
 		return result;
 	}
@@ -179,40 +210,6 @@ public class ScopeInitializers extends Module<ScopeInitializers.Required> {
 			}
 		}
 		return false;
-	}
-
-	public interface Required {
-
-		ActorMachine actorMachine(IRNode node);
-
-		int lookupScopeId(Scope scope, Scope scope2);
-
-		Set<Scope> requiredScopes(Condition t);
-
-		Set<Scope> requiredScopes(Transition t);
-
-		Set<Scope> requiredScopes(Instruction i);
-
-		boolean isInitialState(State s);
-
-		Set<Scope> persistentScopes(IRNode s);
-
-		boolean checkInitialState(State node, State s);
-
-		Set<Scope> scopesToKill(Instruction i);
-
-		Set<Scope> aliveInState(State s);
-
-		State predecessor(Instruction i);
-
-		Set<Scope> aliveAfterInstruction(Instruction pred);
-
-		Set<Instruction> predecessors(State s);
-
-		Set<Scope> scopesToKill(Transition t);
-
-		Set<Scope> scopeDependencies(Scope s);
-
 	}
 
 }

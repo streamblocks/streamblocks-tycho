@@ -91,7 +91,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 			} else {
 				read = new ExprInput(copyPort(input.getPort()), offset, evalRepeat(input.getRepeatExpr()), input.getVariables().size());
 			}
-			builder.add(var.copy(null, var.getName(), var.getNamespaceDecl(), read, false));
+			builder.add(var.copy(null, var.getName(), read, false));
 			offset += 1;
 		}
 	}

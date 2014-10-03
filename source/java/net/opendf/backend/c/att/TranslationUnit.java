@@ -6,28 +6,35 @@ import java.util.List;
 
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
 
-public class TranslationUnit extends Module<TranslationUnit.Required> {
+public class TranslationUnit extends Module<TranslationUnit.Decls> {
 
-	public interface Required {
+	public interface Decls {
 
+		@Synthesized
+		public void translate(Network network, PrintWriter writer);
+
+		@Synthesized
 		public void includes(Network network, PrintWriter writer);
 
+		@Synthesized
 		public String bufferDecl(Connection conn);
 
-		public void bufferDecls(Network network, PrintWriter writer);
-
+		@Synthesized
 		public void mainFunction(Network network, PrintWriter writer);
 
+		@Synthesized
 		public void actors(Network network, PrintWriter writer);
+
+		@Synthesized
+		public void bufferDecls(Network network, PrintWriter writer);
 
 		public void borderActors(Network network, PrintWriter writer);
 
-		public void translateNode(PortContainer content, PrintWriter writer);
+		public void translateNode(Object content, PrintWriter writer);
 
 		public List<String> borderActorNames(Network network);
 
@@ -35,22 +42,19 @@ public class TranslationUnit extends Module<TranslationUnit.Required> {
 
 	}
 
-	@Synthesized
 	public void bufferDecls(Network network, PrintWriter writer) {
 		for (Connection conn : network.getConnections()) {
-			writer.println(get().bufferDecl(conn));
+			writer.println(e().bufferDecl(conn));
 		}
 
 	}
 
-	@Synthesized
 	public void actors(Network network, PrintWriter writer) {
 		for (Node n : network.getNodes()) {
-			get().translateNode(n.getContent(), writer);
+			e().translateNode(n.getContent(), writer);
 		}
 	}
 
-	@Synthesized
 	public void mainFunction(Network network, PrintWriter writer) {
 		List<String> inputFileVariables = new ArrayList<>();
 		List<String> outputFileVariables = new ArrayList<>();
@@ -62,7 +66,7 @@ public class TranslationUnit extends Module<TranslationUnit.Required> {
 				argList.append(conn.getSrcPort().getName());
 				argList.append(">");
 				numArgs += 1;
-				inputFileVariables.add("input_file" + get().bufferName(conn));
+				inputFileVariables.add("input_file" + e().bufferName(conn));
 			}
 		}
 		for (Connection conn : network.getConnections()) {
@@ -71,7 +75,7 @@ public class TranslationUnit extends Module<TranslationUnit.Required> {
 				argList.append(conn.getDstPort().getName());
 				argList.append(">");
 				numArgs += 1;
-				outputFileVariables.add("output_file" + get().bufferName(conn));
+				outputFileVariables.add("output_file" + e().bufferName(conn));
 			}
 		}
 
@@ -105,7 +109,7 @@ public class TranslationUnit extends Module<TranslationUnit.Required> {
 		writer.println("	t0 = clock();");
 		writer.println("	while (progress) {");
 		writer.println("		progress = false;");
-		for (String actor : get().borderActorNames(network)) {
+		for (String actor : e().borderActorNames(network)) {
 			writer.println("		progress |= " + actor + "();");
 		}
 		writer.println("		t1 = clock();");
@@ -123,7 +127,7 @@ public class TranslationUnit extends Module<TranslationUnit.Required> {
 		writer.println("	fprintf(stdout, \"Time spent in real actors: %lu ns\\n\", actor_time*1000*1000*1000 / CLOCKS_PER_SEC);");
 
 		for (Connection conn : network.getConnections()) {
-			String name = get().bufferName(conn);
+			String name = e().bufferName(conn);
 			writer.println("	if (tokens" + name + " != 0) fprintf(stderr, \"WARNING: buffer" + name
 					+ " contains %zu token(s).\\n\", tokens" + name + ");");
 		}
@@ -132,7 +136,6 @@ public class TranslationUnit extends Module<TranslationUnit.Required> {
 
 	}
 
-	@Synthesized
 	public void includes(Network network, PrintWriter writer) {
 		writer.println("#include <stdio.h>");
 		writer.println("#include <stdint.h>");
@@ -141,15 +144,48 @@ public class TranslationUnit extends Module<TranslationUnit.Required> {
 		writer.println("#include <time.h>");
 		writer.println("#include \"mpeg_constants.h\"");
 		writer.println();
+		writer.println("#ifdef TRACE_ALL");
+		writer.println("#define TRACE_STATE");
+		writer.println("#define TRACE_INSTRUCTION");
+		writer.println("#endif");
+		writer.println();
+		writer.println("#ifdef TRACE_INSTRUCTION");
+		writer.println("#define TRACE_CALL");
+		writer.println("#define TRACE_TEST");
+		writer.println("#define TRACE_WAIT");
+		writer.println("#endif");
+		writer.println();
+		writer.println("#ifdef TRACE_STATE");
+		writer.println("#define AM_TRACE_STATE(s) printf(\"state %d\\n\", s)");
+		writer.println("#else");
+		writer.println("#define AM_TRACE_STATE(s)");
+		writer.println("#endif");
+		writer.println();
+		writer.println("#ifdef TRACE_CALL");
+		writer.println("#define AM_TRACE_CALL(s) printf(\"call %d\\n\", s)");
+		writer.println("#else");
+		writer.println("#define AM_TRACE_CALL(s)");
+		writer.println("#endif");
+		writer.println();
+		writer.println("#ifdef TRACE_TEST");
+		writer.println("#define AM_TRACE_TEST(s) printf(\"test %d\\n\", s)");
+		writer.println("#else");
+		writer.println("#define AM_TRACE_TEST(s)");
+		writer.println("#endif");
+		writer.println();
+		writer.println("#ifdef TRACE_WAIT");
+		writer.println("#define AM_TRACE_WAIT() printf(\"wait\\n\")");
+		writer.println("#else");
+		writer.println("#define AM_TRACE_WAIT()");
+		writer.println("#endif");
 	}
 
-	@Synthesized
 	public void translate(Network network, PrintWriter writer) {
-		get().includes(network, writer);
-		get().bufferDecls(network, writer);
-		get().actors(network, writer);
-		get().borderActors(network, writer);
-		get().mainFunction(network, writer);
+		e().includes(network, writer);
+		e().bufferDecls(network, writer);
+		e().actors(network, writer);
+		e().borderActors(network, writer);
+		e().mainFunction(network, writer);
 		writer.println();
 	}
 

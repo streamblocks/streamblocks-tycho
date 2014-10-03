@@ -21,18 +21,18 @@ public class DeclType extends Decl {
 		return v.visitDeclType(this, p);
 	}
 
-	public DeclType(String name, NamespaceDecl namespace) {
-		this(null, name, namespace);
+	public DeclType(String name) {
+		this(null, name);
 	}
 	
-	private DeclType(DeclType original, String name, NamespaceDecl namespace) {
-		super(original, name, namespace);
+	private DeclType(DeclType original, String name) {
+		super(original, name);
 	}
 	
-	public DeclType copy(String name, NamespaceDecl namespace) {
-		if (Objects.equals(getName(), name) && Objects.equals(getNamespaceDecl(), namespace)) {
+	public DeclType copy(String name) {
+		if (Objects.equals(getName(), name)) {
 			return this;
 		}
-		return new DeclType(this, name, namespace);
+		return new DeclType(this, name);
 	}
 }

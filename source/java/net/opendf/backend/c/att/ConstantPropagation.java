@@ -9,27 +9,31 @@ import net.opendf.ir.common.ExprVariable;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Variable;
 
-public class ConstantPropagation extends Module<ConstantPropagation.Required> {
+public class ConstantPropagation extends Module<ConstantPropagation.Decls> {
 
+	interface Decls {
+		@Synthesized
+		Integer constantInteger(Expression e);
 
-	@Synthesized
+		IRNode declaration(Variable v);
+
+	}
+
 	public Integer constantInteger(Expression expr) {
 		return null;
 	}
 
-	@Synthesized
 	public Integer constantInteger(ExprVariable var) {
-		IRNode decl = get().declaration(var.getVariable());
+		IRNode decl = e().declaration(var.getVariable());
 		if (decl != null && decl instanceof DeclVar) {
 			DeclVar declVar = (DeclVar) decl;
 			if (!declVar.isAssignable()) {
-				return get().constantInteger(declVar.getInitialValue());
+				return e().constantInteger(declVar.getInitialValue());
 			}
 		}
 		return null;
 	}
 
-	@Synthesized
 	public Integer constantInteger(ExprLiteral lit) {
 		if (lit.getKind() == ExprLiteral.Kind.Integer) {
 			try {
@@ -40,10 +44,4 @@ public class ConstantPropagation extends Module<ConstantPropagation.Required> {
 		return null;
 	}
 
-	interface Required {
-		Integer constantInteger(Expression e);
-		IRNode declaration(Variable v);
-
-	}
-	
 }

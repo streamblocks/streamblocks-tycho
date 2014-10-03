@@ -214,7 +214,7 @@
   private GeneratorFilter makeGeneratorFilter2(TypeExpr type, ImmutableList<Symbol> varList, Expression e, ImmutableList<Expression> filterList){
     ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
     for(Symbol var : varList){
-      DeclVar decl = new DeclVar(type, (String)var.value, null);
+      DeclVar decl = new DeclVar(type, (String)var.value);
       register(var, var, decl);
       vars.add(decl);
     }
@@ -441,7 +441,6 @@ network =
         }
         
         return register(startSymbol, endSymbol, new NetworkDefinition((String)name.value, 
-                          ns, 
                           typePars,     // typePars,
                           valuePars == null ? null : valuePars.build(), // valuePars,
                           null,      // typeDecls, NOTE, can not be expressed in NL

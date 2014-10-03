@@ -29,36 +29,36 @@ import net.opendf.ir.common.DeclEntity;
 
 public class NetworkDefinition extends DeclEntity implements PortContainer{
 	public NetworkDefinition(String name) {
-		super(null, name, null, null, null, null, null, null, null);
+		super(null, name, null, null, null, null, null, null);
 	}
 
-	public NetworkDefinition(String name, NamespaceDecl ns, ImmutableList<ParDeclType> typePars,
+	public NetworkDefinition(String name, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Entry<String, EntityExpr>> entities, ImmutableList<StructureStatement> structure,
 			ImmutableList<ToolAttribute> toolAttributes) {
-		this(null, name, ns, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure,
+		this(null, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure,
 				toolAttributes);
 	}
 
-	private NetworkDefinition(NetworkDefinition original, String name, NamespaceDecl ns,
+	private NetworkDefinition(NetworkDefinition original, String name,
 			ImmutableList<ParDeclType> typePars, ImmutableList<ParDeclValue> valuePars,
 			ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls, ImmutableList<PortDecl> inputPorts,
 			ImmutableList<PortDecl> outputPorts, ImmutableList<Entry<String, EntityExpr>> entities,
 			ImmutableList<StructureStatement> structure, ImmutableList<ToolAttribute> toolAttributes) {
 
-		super(original, name, ns, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
+		super(original, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
 		this.entities = ImmutableList.copyOf(entities);
 		this.toolAttributes = ImmutableList.copyOf(toolAttributes);
 		this.structure = ImmutableList.copyOf(structure);
 	}
 
-	public NetworkDefinition copy(String name, NamespaceDecl ns, ImmutableList<ParDeclType> typePars,
+	public NetworkDefinition copy(String name, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Entry<String, EntityExpr>> entities, ImmutableList<StructureStatement> structure,
 			ImmutableList<ToolAttribute> toolAttributes) {
-		if (Objects.equals(getName(), name) && Objects.equals(getNamespaceDecl(), ns)
+		if (Objects.equals(getName(), name)
 				&& Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
 				&& Lists.equals(getTypeDecls(), typeDecls) && Lists.equals(getVarDecls(), varDecls)
 				&& Lists.equals(getInputPorts(), inputPorts) && Lists.equals(getOutputPorts(), outputPorts)
@@ -66,7 +66,7 @@ public class NetworkDefinition extends DeclEntity implements PortContainer{
 				&& Lists.equals(this.toolAttributes, toolAttributes)) {
 			return this;
 		}
-		return new NetworkDefinition(this, name, ns, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
+		return new NetworkDefinition(this, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
 				entities, structure, toolAttributes);
 	}
 

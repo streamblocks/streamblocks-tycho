@@ -141,7 +141,6 @@ LValueVisitor<LValue, P> {
 		return varDecl.copy(
 				transformTypeExpr(varDecl.getType(), param),
 				varDecl.getName(),
-				varDecl.getNamespaceDecl(),
 				transformExpression(varDecl.getInitialValue(), param),
 				varDecl.isAssignable());
 	}

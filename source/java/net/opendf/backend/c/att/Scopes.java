@@ -16,21 +16,28 @@ import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.Expression;
 import net.opendf.ir.net.Node;
 
-public class Scopes extends Module<Scopes.Required> {
+public class Scopes extends Module<Scopes.Decls> {
 
-	public interface Required {
+	public interface Decls {
 
+		@Synthesized
+		public void scopes(ActorMachine actorMachine, PrintWriter writer);
+
+		@Synthesized
+		boolean scopeDeclIsConst(DeclVar varDecl);
+
+		@Synthesized
 		String scopeVarDecl(DeclVar decl);
+
+		@Inherited
+		Scope variableScope(DeclVar varDecl);
+
+		@Synthesized
+		boolean isPersistent(Scope scope);
 
 		int index(IRNode n);
 
-		Object variableScope(DeclVar varDecl);
-
-		boolean isPersistent(Object variableScope);
-
 		String simpleExpression(Expression initialValue);
-
-		String variableType(CType type, String name);
 
 		String variableName(DeclVar decl);
 
@@ -42,80 +49,81 @@ public class Scopes extends Module<Scopes.Required> {
 
 		Set<Scope> persistentScopes(IRNode node);
 
-		boolean scopeDeclIsConst(DeclVar varDecl);
-
 	}
 
-	@Synthesized
 	public void scopes(ActorMachine actorMachine, PrintWriter writer) {
 		for (Scope s : actorMachine.getScopes()) {
 			for (DeclVar decl : s.getDeclarations()) {
-				String d = get().scopeVarDecl(decl);
-				if (d != null) writer.print(d);
+				String d = e().scopeVarDecl(decl);
+				if (d != null)
+					writer.print(d);
 			}
 		}
-		int node = get().index(get().node(actorMachine));
+		int node = e().index(e().node(actorMachine));
 		for (Scope s : actorMachine.getScopes()) {
-			int index = get().index(s);
+			int index = e().index(s);
 			writer.println("static void init_n" + node + "s" + index + "(void) {");
-			for (DeclVar decl : s.getDeclarations()) if (decl.getInitialValue() != null && !get().scopeDeclIsConst(decl)) {
-				String simpleExpression = get().simpleExpression(decl.getInitialValue());
-				if (simpleExpression != null) {
-					writer.println(get().variableName(decl) + " = " + simpleExpression + ";");
-				} else {
-					writer.print(get().scopeVarInit(decl.getInitialValue(), decl));
+			for (DeclVar decl : s.getDeclarations())
+				if (decl.getInitialValue() != null && !e().scopeDeclIsConst(decl)) {
+					String simpleExpression = e().simpleExpression(decl.getInitialValue());
+					if (simpleExpression != null) {
+						writer.println(e().variableName(decl) + " = " + simpleExpression + ";");
+					} else {
+						writer.print(e().scopeVarInit(decl.getInitialValue(), decl));
+					}
 				}
-			}
 			writer.println("}");
 		}
 	}
 
-	@Synthesized
 	public boolean scopeDeclIsConst(DeclVar decl) {
-		return !decl.isAssignable() && get().isPersistent(get().variableScope(decl)) && get().simpleExpression(decl.getInitialValue()) != null;
+		return !decl.isAssignable() && e().isPersistent(e().variableScope(decl))
+				&& e().simpleExpression(decl.getInitialValue()) != null;
 	}
 
-	@Synthesized
 	public boolean isPersistent(Scope s) {
-		Set<Scope> persistent = get().persistentScopes(s);
+		Set<Scope> persistent = e().persistentScopes(s);
 		return persistent.contains(s);
 	}
 
-	@Inherited
 	public Scope variableScope(Scope s) {
 		return s;
 	}
 
-	@Inherited
 	public Scope variableScope(Object o) {
 		return null;
 	}
 
-	@Synthesized
 	public String scopeVarDecl(DeclVar decl) {
 		StringBuilder result = new StringBuilder();
-		result.append("static ");
 		String value = null;
 		Expression initialValue = decl.getInitialValue();
 		if (initialValue != null) {
-			value = get().simpleExpression(initialValue);
+			value = e().simpleExpression(initialValue);
 			if (initialValue instanceof ExprLambda || initialValue instanceof ExprProc) {
 				return null;
 			}
 		}
-		boolean constant = get().scopeDeclIsConst(decl);
+		boolean constant = e().scopeDeclIsConst(decl);
+		String name = e().variableName(decl);
 		if (constant) {
-			result.append("const ");
+			result.append("#define ");
+			result.append(name);
+			result.append(" (");
+			result.append(value);
+			result.append(")\n");
+			return result.toString();
+		} else {
+			result.append("static ");
+			CType type = e().ctype(decl);
+			String var = type.variableType(name);
+			result.append(var);
+			if (constant) {
+				result.append(" = ").append(value);
+			}
+			result.append(";\n");
+			return result.toString();
 		}
-		CType type = get().ctype(decl);
-		String name = get().variableName(decl);
-		String var = type.variableType(name);
-		result.append(var);
-		if (constant) {
-			result.append(" = ").append(value);
-		}
-		result.append(";\n");
-		return result.toString();
 	}
 
 }

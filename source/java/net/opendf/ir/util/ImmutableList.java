@@ -151,6 +151,11 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		}
 		return new Builder<E>().addAll(elements).build();
 	}
+	
+	@SuppressWarnings("unchecked")
+	public static <E> ImmutableList<E> covariance(ImmutableList<? extends E> list) {
+		return (ImmutableList<E>) list;
+	}
 
 	/**
 	 * A class for constructing ImmutableLists.
