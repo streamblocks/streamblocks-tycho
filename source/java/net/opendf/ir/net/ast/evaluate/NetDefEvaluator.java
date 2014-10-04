@@ -27,8 +27,8 @@ import net.opendf.ir.common.Port;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.decl.Decl;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
 import net.opendf.ir.common.expr.ExprLiteral;
@@ -77,8 +77,8 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		assert evaluated;
 		ImmutableList<ParDeclType> typePars = ImmutableList.empty();
 		ImmutableList<ParDeclValue> valuePars = ImmutableList.empty();
-		ImmutableList<DeclType> typeDecls = ImmutableList.empty();
-		ImmutableList<DeclVar> varDecls = ImmutableList.empty();
+		ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
+		ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 		return srcNetwork.copy(srcNetwork.getName(), 
 				typePars, valuePars, typeDecls, varDecls, 
 				srcNetwork.getInputPorts(), srcNetwork.getOutputPorts(), 
@@ -125,19 +125,12 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			//e.getParameterAssignments();
 			PortContainer payload = null; 
 			decl = declLoader.getDecl(e.getEntityName());
-			switch(decl.getKind()){
-			case type:
-				throw new UnsupportedOperationException("Type declaration instantiation in networks");
-			case value:
-				throw new UnsupportedOperationException("Value declaration instantiation in networks");
-			case entity:
-				if(decl instanceof Actor){
-					payload = BasicActorMachineSimulator.prepareActor((Actor)decl, declLoader);
-				} else if(decl instanceof NetworkDefinition){
-					payload = BasicNetworkSimulator.prepareNetworkDefinition((NetworkDefinition)decl, e.getParameterAssignments(), declLoader);
-				} else {
-					throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
-				}
+			if(decl instanceof Actor){
+				payload = BasicActorMachineSimulator.prepareActor((Actor)decl, declLoader);
+			} else if(decl instanceof NetworkDefinition){
+				payload = BasicNetworkSimulator.prepareNetworkDefinition((NetworkDefinition)decl, e.getParameterAssignments(), declLoader);
+			} else {
+				throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
 			}
 			//TODO parameters for actors
 			nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
@@ -237,10 +230,10 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		mem = new BasicMemory(config);
 		Environment env = new BasicEnvironment(new Channel.InputEnd[0], new Channel.OutputEnd[0], mem);    // no expressions will read from the ports while instantiating/flattening this network
 		// declarations, compute initial values
-		ImmutableList<DeclVar> declList = srcNetwork.getVarDecls();
+		ImmutableList<LocalVarDecl> declList = srcNetwork.getVarDecls();
 		int scopeOffset=0;
 		for(scopeOffset=0; scopeOffset<declList.size(); scopeOffset++){
-			DeclVar decl = declList.get(scopeOffset);
+			LocalVarDecl decl = declList.get(scopeOffset);
 			RefView value = interpreter.evaluate(decl.getInitialValue(), env);
 			value.assignTo(mem.declare(VariableOffsetTransformer.NetworkGlobalScopeId, scopeOffset));
 		}
@@ -378,7 +371,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		StringBuffer sb = new StringBuffer();
 		if(srcNetwork != null){
 			sb.append("vars\n");
-			ImmutableList<DeclVar> vars = srcNetwork.getVarDecls();
+			ImmutableList<LocalVarDecl> vars = srcNetwork.getVarDecls();
 			for(int i = 0; i<vars.size(); i++){
 				sb.append("  ");
 				sb.append(vars.get(i).getName());

@@ -6,7 +6,7 @@ import net.opendf.interp.values.Collection;
 import net.opendf.interp.values.Iterator;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.util.ImmutableList;
 
@@ -92,7 +92,7 @@ public class GeneratorFilterHelper {
 			// first evaluate all values this generator should iterate over. At this point the local names are not visible
 			Expression collectionExpr = transformer.transformExpression(gen.getCollectionExpr(), lookupTable);
 			// introduce all local names by pushing the values to the stack
-			for(DeclVar decl : gen.getVariables()){
+			for(LocalVarDecl decl : gen.getVariables()){
 				assert decl.getInitialValue() == null;  // initial value is not allowed, the generator creates the values
 				lookupTable.addName(decl.getName());
 			}

@@ -12,6 +12,10 @@
  :} ;
 %package "net.opendf.parser.lth";
 %import "net.opendf.ir.common.*";
+%import "net.opendf.ir.common.decl.*";
+%import "net.opendf.ir.common.expr.*";
+%import "net.opendf.ir.common.lvalue.*";
+%import "net.opendf.ir.common.stmt.*";
 %import "net.opendf.ir.util.ImmutableList";
 %import "net.opendf.ir.util.ImmutableEntry";
 %import "net.opendf.ir.net.ast.NetworkDefinition";
@@ -114,7 +118,7 @@
  * - Field
  * - Variable
  * - ExprVariable
- * - DeclVar
+ * - LocalVarDecl
  * - ExprApplication
  * - ExprLiteral
  * - ExprIf
@@ -212,9 +216,9 @@
     return new Symbol(newList);
   }
   private GeneratorFilter makeGeneratorFilter2(TypeExpr type, ImmutableList<Symbol> varList, Expression e, ImmutableList<Expression> filterList){
-    ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
+    ImmutableList.Builder<LocalVarDecl> vars = ImmutableList.builder();
     for(Symbol var : varList){
-      DeclVar decl = new DeclVar(type, (String)var.value);
+      LocalVarDecl decl = new LocalVarDecl(type, (String)var.value);
       register(var, var, decl);
       vars.add(decl);
     }
@@ -331,11 +335,11 @@
 %typeof decl_list = "ImmutableList.Builder";
 %typeof decl_block = "ImmutableList";
 %typeof decl_block_opt = "ImmutableList";
-%typeof decl = "DeclVar";
-%typeof var_decl = "DeclVar";
-%typeof var_name_type = "DeclVar";
-%typeof fun_decl = "DeclVar";
-%typeof proc_decl = "DeclVar";
+%typeof decl = "LocalVarDecl";
+%typeof var_decl = "LocalVarDecl";
+%typeof var_name_type = "LocalVarDecl";
+%typeof fun_decl = "LocalVarDecl";
+%typeof proc_decl = "LocalVarDecl";
 %typeof port_decl = "PortDecl";
 %typeof port_decl_list = "ImmutableList.Builder";
 %typeof port_decl_list_opt = "ImmutableList";
@@ -371,7 +375,7 @@
 %typeof statement = "Statement";
 %typeof choose_generator_list = "ImmutableList.Builder";
 %typeof for_generator_list = "ImmutableList.Builder";
-%typeof generator_variable_list = "ImmutableList.Builder";  //<Symbol>  (type information is not available, so I can not build the DeclVar object)
+%typeof generator_variable_list = "ImmutableList.Builder";  //<Symbol>  (type information is not available, so I can not build the LocalVarDecl object)
 %typeof statement_list = "ImmutableList.Builder";
 %typeof statement_list_opt = "ImmutableList";
 
@@ -388,7 +392,7 @@
 %typeof import_single = "ArrayList"; //TODO
 %typeof network = "net.opendf.ir.net.NetworkBuilder";
 %typeof network_body_part = "Map.Entry";
-%typeof network_decl = "DeclVar";
+%typeof network_decl = "LocalVarDecl";
 %typeof network_decl_block = "ArrayList";
 %typeof param_assign = "Map.Entry";
 %typeof param_assign_list = "ImmutableList.Builder";

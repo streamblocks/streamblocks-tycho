@@ -12,8 +12,9 @@ import net.opendf.ir.cal.InputPattern;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprInput;
 import net.opendf.ir.common.expr.ExprLambda;
 import net.opendf.ir.common.expr.ExprLet;
@@ -52,7 +53,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 				.addAll(actor.getActions())
 				.build();
 		for (Action a : actions) {
-			ImmutableList.Builder<DeclVar> builder = ImmutableList.builder();
+			ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
 			int port = 0;
 			for (InputPattern in : a.getInputPatterns()) {
 				PortDecl portDecl = getPortDecl(actor, port, in);
@@ -82,9 +83,9 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		return null;
 	}
 
-	private void addInputVarDecls(PortDecl portDecl, InputPattern input, ImmutableList.Builder<DeclVar> builder) {
+	private void addInputVarDecls(PortDecl portDecl, InputPattern input, ImmutableList.Builder<LocalVarDecl> builder) {
 		int offset = 0;
-		for (DeclVar var : input.getVariables()) {
+		for (LocalVarDecl var : input.getVariables()) {
 			Expression read;
 			if (input.getRepeatExpr() == null) {
 				read = new ExprInput(copyPort(input.getPort()), offset);
@@ -110,7 +111,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 
 	@Override
 	public Actor transformActor(Actor actor, Variables vars) {
-		for (DeclVar var : actor.getVarDecls()) {
+		for (VarDecl var : actor.getVarDecls()) {
 			vars.addStaticVar(var.getName());
 		}
 		Actor result = super.transformActor(actor, vars);
@@ -130,11 +131,11 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	@Override
 	public Action transformAction(Action action, Variables vars) {
 		for (InputPattern input : action.getInputPatterns()) {
-			for (DeclVar var : input.getVariables()) {
+			for (VarDecl var : input.getVariables()) {
 				vars.addStaticVar(var.getName());
 			}
 		}
-		for (DeclVar var : action.getVarDecls()) {
+		for (VarDecl var : action.getVarDecls()) {
 			vars.addStaticVar(var.getName());
 		}
 		return super.transformAction(action, vars);
@@ -161,7 +162,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	}
 
 	@Override
-	public DeclVar transformVarDecl(DeclVar varDecl, Variables vars) {
+	public LocalVarDecl transformVarDecl(LocalVarDecl varDecl, Variables vars) {
 		vars.declare(varDecl.getName());
 		return super.transformVarDecl(varDecl, vars);
 	}

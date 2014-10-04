@@ -9,10 +9,11 @@ import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprApplication;
 import net.opendf.ir.common.expr.ExprBinaryOp;
 import net.opendf.ir.common.expr.ExprField;
@@ -100,8 +101,8 @@ LValueVisitor<LValue, P> {
 
 	private static final MethodHandle transExpr = methodHandle(AbstractBasicTransformer.class, Expression.class, "transformExpression");
 	private static final MethodHandle transStmt = methodHandle(AbstractBasicTransformer.class, Statement.class, "transformStatement");
-	private static final MethodHandle transVarDecl = methodHandle(AbstractBasicTransformer.class, DeclVar.class, "transformVarDecl");
-	private static final MethodHandle transTypeDecl = methodHandle(AbstractBasicTransformer.class, DeclType.class, "transformTypeDecl");
+	private static final MethodHandle transVarDecl = methodHandle(AbstractBasicTransformer.class, LocalVarDecl.class, "transformVarDecl");
+	private static final MethodHandle transTypeDecl = methodHandle(AbstractBasicTransformer.class, LocalTypeDecl.class, "transformTypeDecl");
 	private static final MethodHandle transValueParam = methodHandle(AbstractBasicTransformer.class, ParDeclValue.class, "transformValueParameter");
 	private static final MethodHandle transTypeParam = methodHandle(AbstractBasicTransformer.class, ParDeclType.class, "transformTypeParameter");
 	private static final MethodHandle transGenerator = methodHandle(AbstractBasicTransformer.class, GeneratorFilter.class, "transformGenerator");
@@ -136,7 +137,7 @@ LValueVisitor<LValue, P> {
 	}
 
 	@Override
-	public DeclVar transformVarDecl(DeclVar varDecl, P param) {
+	public LocalVarDecl transformVarDecl(LocalVarDecl varDecl, P param) {
 		assert varDecl != null;
 		return varDecl.copy(
 				transformTypeExpr(varDecl.getType(), param),
@@ -146,17 +147,17 @@ LValueVisitor<LValue, P> {
 	}
 
 	@Override
-	public ImmutableList<DeclVar> transformVarDecls(ImmutableList<DeclVar> varDecl, P param) {
+	public ImmutableList<LocalVarDecl> transformVarDecls(ImmutableList<LocalVarDecl> varDecl, P param) {
 		return transformList(transVarDecl, varDecl, param);
 	}
 
 	@Override
-	public DeclType transformTypeDecl(DeclType typeDecl, P param) {
+	public LocalTypeDecl transformTypeDecl(LocalTypeDecl typeDecl, P param) {
 		return typeDecl;
 	}
 
 	@Override
-	public ImmutableList<DeclType> transformTypeDecls(ImmutableList<DeclType> typeDecl, P param) {
+	public ImmutableList<LocalTypeDecl> transformTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param) {
 		return transformList(transTypeDecl, typeDecl, param);
 	}
 
@@ -185,7 +186,7 @@ LValueVisitor<LValue, P> {
 	@Override
 	public GeneratorFilter transformGenerator(GeneratorFilter generator, P param) {
 		Expression collection = transformExpression(generator.getCollectionExpr(), param);
-		ImmutableList<DeclVar> variables = transformVarDecls(generator.getVariables(), param);
+		ImmutableList<LocalVarDecl> variables = transformVarDecls(generator.getVariables(), param);
 		ImmutableList<Expression> filters = transformExpressions(generator.getFilters(), param);
 		return generator.copy(variables, collection, filters);
 	}

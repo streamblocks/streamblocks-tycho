@@ -40,9 +40,9 @@ import net.opendf.ir.am.State;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
-import net.opendf.ir.common.decl.DeclEntity;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.GlobalEntityDecl;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclValue;
 import net.opendf.ir.common.expr.ExprApplication;
 import net.opendf.ir.common.expr.ExprBinaryOp;
@@ -402,7 +402,7 @@ InstructionVisitor<Void, Element>{
 		}
 	}
 	//-- type/value parameters, in/out ports, type/value declarations
-	public void generateXMLForDeclEntity(DeclEntity entity, Element top){
+	public void generateXMLForDeclEntity(GlobalEntityDecl entity, Element top){
 		//-- type parameters 
 		//TODO
 		//-- value parameters 
@@ -599,10 +599,10 @@ InstructionVisitor<Void, Element>{
 			}
 		}
 	}
-	public void generateXMLForDeclTypeList(List<DeclType> immutableList, Element parent){
+	public void generateXMLForDeclTypeList(List<LocalTypeDecl> immutableList, Element parent){
 		if(immutableList != null && !immutableList.isEmpty()){
 			Element declTypeList = doc.createElement("DeclTypeList");
-			for(DeclType typeDecl : immutableList){
+			for(LocalTypeDecl typeDecl : immutableList){
 				Element typeDeclElem = doc.createElement("DeclType");
 				addSourceCodePosition(typeDecl, typeDeclElem);
 				typeDeclElem.setAttribute("name", typeDecl.getName());
@@ -611,14 +611,14 @@ InstructionVisitor<Void, Element>{
 			parent.appendChild(declTypeList);
 		}
 	}
-	public Element generateXMLForDeclVarList(List<DeclVar> varDecls, Element parent){
+	public Element generateXMLForDeclVarList(List<LocalVarDecl> varDecls, Element parent){
 		return generateXMLForDeclVarList(varDecls, parent, "DeclVarList", false);
 	}
-	public Element generateXMLForDeclVarList(List<DeclVar> varDecls, Element parent, String topName, boolean printEmptyList){
+	public Element generateXMLForDeclVarList(List<LocalVarDecl> varDecls, Element parent, String topName, boolean printEmptyList){
 		Element declVarList = null;
 		if(varDecls != null && (printEmptyList || !varDecls.isEmpty())){
 			declVarList = doc.createElement(topName);
-			for(DeclVar v : varDecls){
+			for(LocalVarDecl v : varDecls){
 				Element varDeclElem = doc.createElement("DeclVar");
 				addSourceCodePosition(v, varDeclElem);
 				varDeclElem.setAttribute("name", v.getName());

@@ -18,8 +18,9 @@ import net.opendf.backend.c.util.Joiner;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.common.TypeExpr;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprLambda;
 import net.opendf.ir.common.expr.ExprLet;
 import net.opendf.ir.common.expr.ExprProc;
@@ -32,7 +33,7 @@ public class Functions extends Module<Functions.Decls> {
 
 	public interface Decls {
 		@Synthesized
-		String scopeVarInit(Expression expr, DeclVar varDecl);
+		String scopeVarInit(Expression expr, VarDecl varDecl);
 
 		@Synthesized
 		String lambdaSignature(ExprLambda lambda);
@@ -63,7 +64,7 @@ public class Functions extends Module<Functions.Decls> {
 
 		String variableName(ParDeclValue par);
 
-		String variableName(DeclVar decl);
+		String variableName(VarDecl decl);
 
 		CType ctype(TypeExpr type);
 
@@ -74,11 +75,11 @@ public class Functions extends Module<Functions.Decls> {
 		String blockified(Statement s);
 	}
 
-	public String scopeVarInit(ExprLambda lambda, DeclVar varDecl) {
+	public String scopeVarInit(ExprLambda lambda, VarDecl varDecl) {
 		return "";
 	}
 
-	public String scopeVarInit(ExprProc procedure, DeclVar varDecl) {
+	public String scopeVarInit(ExprProc procedure, VarDecl varDecl) {
 		return "";
 	}
 
@@ -121,7 +122,7 @@ public class Functions extends Module<Functions.Decls> {
 
 	public void functionBody(ExprLet let, PrintWriter writer) {
 		writer.println("{");
-		for (DeclVar decl : let.getVarDecls()) {
+		for (LocalVarDecl decl : let.getVarDecls()) {
 			CType type = e().ctype(decl.getType());
 			String name = e().variableName(decl);
 			String value = e().simpleExpression(decl.getInitialValue());

@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
 import net.opendf.ir.common.expr.Expression;
@@ -32,8 +32,8 @@ public class AbstractNetworkDefinitionTransformer<P> extends AbstractBasicTransf
 	public NetworkDefinition transformNetworkDefinition(NetworkDefinition net, P p){
 		ImmutableList<ParDeclType> typePars = transformTypeParameters(net.getTypeParameters(), p);
 		ImmutableList<ParDeclValue> valuePars = transformValueParameters(net.getValueParameters(), p);
-		ImmutableList<DeclType> typeDecls = transformTypeDecls(net.getTypeDecls(), p);
-		ImmutableList<DeclVar> varDecls = transformVarDecls(net.getVarDecls(), p);
+		ImmutableList<LocalTypeDecl> typeDecls = transformTypeDecls(net.getTypeDecls(), p);
+		ImmutableList<LocalVarDecl> varDecls = transformVarDecls(net.getVarDecls(), p);
 		ImmutableList<PortDecl> inputPorts = transformInputPorts(net.getInputPorts(), p);
 		ImmutableList<PortDecl> outputPorts = transformOutputPorts(net.getOutputPorts(), p);
 		ImmutableList<Map.Entry<String,EntityExpr>> entities = transformEntitiyExprs(net.getEntities(), p);

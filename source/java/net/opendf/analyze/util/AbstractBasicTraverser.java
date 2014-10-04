@@ -7,8 +7,8 @@ import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
 import net.opendf.ir.common.expr.ExprApplication;
@@ -273,25 +273,25 @@ public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, Ex
 	}
 
 	@Override
-	public void traverseVarDecl(DeclVar varDecl, P param) {
+	public void traverseVarDecl(LocalVarDecl varDecl, P param) {
 		traverseTypeExpr(varDecl.getType(), param);
 		traverseExpression(varDecl.getInitialValue(), param);
 	}
 
 	@Override
-	public void traverseVarDecls(ImmutableList<DeclVar> varDecl, P param) {
-		for (DeclVar v : varDecl) {
+	public void traverseVarDecls(ImmutableList<LocalVarDecl> varDecl, P param) {
+		for (LocalVarDecl v : varDecl) {
 			traverseVarDecl(v, param);
 		}
 	}
 
 	@Override
-	public void traverseTypeDecl(DeclType typeDecl, P param) {
+	public void traverseTypeDecl(LocalTypeDecl typeDecl, P param) {
 	}
 
 	@Override
-	public void traverseTypeDecls(ImmutableList<DeclType> typeDecl, P param) {
-		for (DeclType d : typeDecl) {
+	public void traverseTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param) {
+		for (LocalTypeDecl d : typeDecl) {
 			traverseTypeDecl(d, param);
 		}
 	}

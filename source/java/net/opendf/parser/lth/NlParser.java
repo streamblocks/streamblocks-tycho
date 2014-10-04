@@ -11,66 +11,32 @@
  
 package net.opendf.parser.lth;
 
+import net.opendf.ir.common.stmt.*;
 import net.opendf.ir.net.ast.EntityInstanceExpr;
 import net.opendf.parser.SourceCodeOracle;
 import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.net.ToolValueAttribute;
 import net.opendf.ir.common.*;
-import net.opendf.ir.common.decl.DeclVar;
-import net.opendf.ir.common.decl.ParDecl;
-import net.opendf.ir.common.decl.ParDeclType;
-import net.opendf.ir.common.decl.ParDeclValue;
-import net.opendf.ir.common.expr.ExprApplication;
-import net.opendf.ir.common.expr.ExprBinaryOp;
-import net.opendf.ir.common.expr.ExprField;
-import net.opendf.ir.common.expr.ExprIf;
-import net.opendf.ir.common.expr.ExprIndexer;
-import net.opendf.ir.common.expr.ExprLambda;
-import net.opendf.ir.common.expr.ExprLet;
-import net.opendf.ir.common.expr.ExprList;
-import net.opendf.ir.common.expr.ExprLiteral;
-import net.opendf.ir.common.expr.ExprMap;
-import net.opendf.ir.common.expr.ExprProc;
-import net.opendf.ir.common.expr.ExprSet;
-import net.opendf.ir.common.expr.ExprUnaryOp;
-import net.opendf.ir.common.expr.ExprVariable;
-import net.opendf.ir.common.expr.Expression;
-import net.opendf.ir.common.lvalue.LValue;
-import net.opendf.ir.common.lvalue.LValueField;
-import net.opendf.ir.common.lvalue.LValueIndexer;
-import net.opendf.ir.common.lvalue.LValueVariable;
-import net.opendf.ir.common.stmt.Statement;
-import net.opendf.ir.common.stmt.StmtAssignment;
-import net.opendf.ir.common.stmt.StmtBlock;
-import net.opendf.ir.common.stmt.StmtCall;
-import net.opendf.ir.common.stmt.StmtForeach;
-import net.opendf.ir.common.stmt.StmtIf;
-import net.opendf.ir.common.stmt.StmtWhile;
-
 import java.util.TreeSet;
 import java.util.ArrayList;
-
 import net.opendf.ir.net.ToolAttribute;
-
+import net.opendf.ir.common.decl.*;
 import java.util.Map;
-
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ToolTypeAttribute;
 import beaver.*;
 import net.opendf.ir.net.ast.PortReference;
-
 import java.io.PrintStream;
-
 import net.opendf.ir.net.ast.StructureStatement;
+import net.opendf.ir.common.expr.*;
 import net.opendf.ir.net.ast.StructureConnectionStmt;
 import net.opendf.ir.net.ast.EntityIfExpr;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.net.ast.NetworkDefinition;
-
 import java.io.File;
 import java.util.AbstractMap;
-
+import net.opendf.ir.common.lvalue.*;
 import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.errorhandling.BasicErrorModule;
 import net.opendf.ir.net.ast.EntityListExpr;
@@ -403,7 +369,7 @@ public class NlParser extends Parser {
  * - Field
  * - Variable
  * - ExprVariable
- * - DeclVar
+ * - LocalVarDecl
  * - ExprApplication
  * - ExprLiteral
  * - ExprIf
@@ -501,9 +467,9 @@ public class NlParser extends Parser {
     return new Symbol(newList);
   }
   private GeneratorFilter makeGeneratorFilter2(TypeExpr type, ImmutableList<Symbol> varList, Expression e, ImmutableList<Expression> filterList){
-    ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
+    ImmutableList.Builder<LocalVarDecl> vars = ImmutableList.builder();
     for(Symbol var : varList){
-      DeclVar decl = new DeclVar(type, (String)var.value);
+      LocalVarDecl decl = new LocalVarDecl(type, (String)var.value);
       register(var, var, decl);
       vars.add(decl);
     }
@@ -652,25 +618,25 @@ public class NlParser extends Parser {
 			{
 					final Symbol _symbol_d = _symbols[offset + 2];
 					final ArrayList _list_d = (ArrayList) _symbol_d.value;
-					final DeclVar[] d = _list_d == null ? new DeclVar[0] : (DeclVar[]) _list_d.toArray(new DeclVar[_list_d.size()]);
+					final LocalVarDecl[] d = _list_d == null ? new LocalVarDecl[0] : (LocalVarDecl[]) _list_d.toArray(new LocalVarDecl[_list_d.size()]);
 					 return _symbol_d;
 			}
 			case 21: // network_decl = var_decl.d SEMICOLON
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
-					final DeclVar d = (DeclVar) _symbol_d.value;
+					final LocalVarDecl d = (LocalVarDecl) _symbol_d.value;
 					 return _symbol_d;
 			}
 			case 22: // network_decl = fun_decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
-					final DeclVar d = (DeclVar) _symbol_d.value;
+					final LocalVarDecl d = (LocalVarDecl) _symbol_d.value;
 					 return _symbol_d;
 			}
 			case 23: // network_decl = proc_decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
-					final DeclVar d = (DeclVar) _symbol_d.value;
+					final LocalVarDecl d = (LocalVarDecl) _symbol_d.value;
 					 return _symbol_d;
 			}
 			case 24: // lst$entity = entity
@@ -1019,7 +985,7 @@ public class NlParser extends Parser {
 			case 89: // decl_list = decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
-					final DeclVar d = (DeclVar) _symbol_d.value;
+					final LocalVarDecl d = (LocalVarDecl) _symbol_d.value;
 					 return new Symbol(ImmutableList.builder().add(d));
 			}
 			case 90: // decl_list = decl_list.l COMMA decl.d
@@ -1027,7 +993,7 @@ public class NlParser extends Parser {
 					final Symbol _symbol_l = _symbols[offset + 1];
 					final ImmutableList.Builder l = (ImmutableList.Builder) _symbol_l.value;
 					final Symbol _symbol_d = _symbols[offset + 3];
-					final DeclVar d = (DeclVar) _symbol_d.value;
+					final LocalVarDecl d = (LocalVarDecl) _symbol_d.value;
 					 l.add(d); return _symbol_l;
 			}
 			case 91: // decl_block = VAR decl_list.d
@@ -1049,26 +1015,26 @@ public class NlParser extends Parser {
 			case 94: // decl = var_decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
-					final DeclVar d = (DeclVar) _symbol_d.value;
+					final LocalVarDecl d = (LocalVarDecl) _symbol_d.value;
 					 return _symbol_d;
 			}
 			case 95: // decl = fun_decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
-					final DeclVar d = (DeclVar) _symbol_d.value;
+					final LocalVarDecl d = (LocalVarDecl) _symbol_d.value;
 					 return _symbol_d;
 			}
 			case 96: // decl = proc_decl.d
 			{
 					final Symbol _symbol_d = _symbols[offset + 1];
-					final DeclVar d = (DeclVar) _symbol_d.value;
+					final LocalVarDecl d = (LocalVarDecl) _symbol_d.value;
 					 return _symbol_d;
 			}
 			case 97: // var_decl = MUTABLE.m var_name_type.v
 			{
 					final Symbol m = _symbols[offset + 1];
 					final Symbol _symbol_v = _symbols[offset + 2];
-					final DeclVar v = (DeclVar) _symbol_v.value;
+					final LocalVarDecl v = (LocalVarDecl) _symbol_v.value;
 					 em.warning("mutable is ignored for " + v.getName(), v); 
                                                          register(m, v, v);
                                                          return _symbol_v;
@@ -1077,7 +1043,7 @@ public class NlParser extends Parser {
 			{
 					final Symbol m = _symbols[offset + 1];
 					final Symbol _symbol_v = _symbols[offset + 2];
-					final DeclVar v = (DeclVar) _symbol_v.value;
+					final LocalVarDecl v = (LocalVarDecl) _symbol_v.value;
 					final Symbol _symbol_init = _symbols[offset + 4];
 					final Expression init = (Expression) _symbol_init.value;
 					 em.warning("mutable is ignored for " + v.getName(), v);
@@ -1087,7 +1053,7 @@ public class NlParser extends Parser {
 			{
 					final Symbol m = _symbols[offset + 1];
 					final Symbol _symbol_v = _symbols[offset + 2];
-					final DeclVar v = (DeclVar) _symbol_v.value;
+					final LocalVarDecl v = (LocalVarDecl) _symbol_v.value;
 					final Symbol _symbol_init = _symbols[offset + 4];
 					final Expression init = (Expression) _symbol_init.value;
 					 em.warning("mutable is ignored for " + v.getName(), v);
@@ -1096,13 +1062,13 @@ public class NlParser extends Parser {
 			case 100: // var_decl = var_name_type.v
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
-					final DeclVar v = (DeclVar) _symbol_v.value;
+					final LocalVarDecl v = (LocalVarDecl) _symbol_v.value;
 					 return _symbol_v;
 			}
 			case 101: // var_decl = var_name_type.v EQ expression.init
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
-					final DeclVar v = (DeclVar) _symbol_v.value;
+					final LocalVarDecl v = (LocalVarDecl) _symbol_v.value;
 					final Symbol _symbol_init = _symbols[offset + 3];
 					final Expression init = (Expression) _symbol_init.value;
 					 return register(v, init, v.copy(v.getType(), v.getName(), init, false));
@@ -1110,7 +1076,7 @@ public class NlParser extends Parser {
 			case 102: // var_decl = var_name_type.v COLONEQ expression.init
 			{
 					final Symbol _symbol_v = _symbols[offset + 1];
-					final DeclVar v = (DeclVar) _symbol_v.value;
+					final LocalVarDecl v = (LocalVarDecl) _symbol_v.value;
 					final Symbol _symbol_init = _symbols[offset + 3];
 					final Expression init = (Expression) _symbol_init.value;
 					 return register(v, init, v.copy(v.getType(), v.getName(), init, true));
@@ -1118,14 +1084,14 @@ public class NlParser extends Parser {
 			case 103: // var_name_type = IDENTIFIER.id
 			{
 					final Symbol id = _symbols[offset + 1];
-					 return register(id, id, new DeclVar(null, (String)id.value, null, true));
+					 return register(id, id, new LocalVarDecl(null, (String)id.value, null, true));
 			}
 			case 104: // var_name_type = type.type IDENTIFIER.id
 			{
 					final Symbol _symbol_type = _symbols[offset + 1];
 					final TypeExpr type = (TypeExpr) _symbol_type.value;
 					final Symbol id = _symbols[offset + 2];
-					 return register(id, id, new DeclVar(type, (String)id.value, null, true));
+					 return register(id, id, new LocalVarDecl(type, (String)id.value, null, true));
 			}
 			case 105: // fun_decl = FUNCTION.start IDENTIFIER.id lambda_expr_body.lambda
 			{
@@ -1133,7 +1099,7 @@ public class NlParser extends Parser {
 					final Symbol id = _symbols[offset + 2];
 					final Symbol _symbol_lambda = _symbols[offset + 3];
 					final ExprLambda lambda = (ExprLambda) _symbol_lambda.value;
-					 register(start, lambda, lambda); return register(start, lambda, new DeclVar(null, (String)id.value, lambda, false));
+					 register(start, lambda, lambda); return register(start, lambda, new LocalVarDecl(null, (String)id.value, lambda, false));
 			}
 			case 106: // proc_decl = PROCEDURE.start IDENTIFIER.id procedure_expr_body.body
 			{
@@ -1141,7 +1107,7 @@ public class NlParser extends Parser {
 					final Symbol id = _symbols[offset + 2];
 					final Symbol _symbol_body = _symbols[offset + 3];
 					final ExprProc body = (ExprProc) _symbol_body.value;
-					 register(start, body, body); return register(start, body, new DeclVar(null, (String)id.value, body, false));
+					 register(start, body, body); return register(start, body, new LocalVarDecl(null, (String)id.value, body, false));
 			}
 			case 107: // port_decl = IDENTIFIER.id
 			{

@@ -10,8 +10,9 @@ import net.opendf.ir.cal.Actor;
 import net.opendf.ir.cal.InputPattern;
 import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprLambda;
 import net.opendf.ir.common.expr.ExprLet;
 import net.opendf.ir.common.expr.ExprList;
@@ -60,7 +61,7 @@ public class VariableBinding extends Module<VariableBinding.Decls> {
 
 	public IRNode lookupVariable(StmtForeach foreach, String name) {
 		for (GeneratorFilter generator : foreach.getGenerators()) {
-			for (DeclVar decl : generator.getVariables()) {
+			for (VarDecl decl : generator.getVariables()) {
 				if (decl.getName().equals(name)) {
 					return decl;
 				}
@@ -71,7 +72,7 @@ public class VariableBinding extends Module<VariableBinding.Decls> {
 
 	public IRNode lookupVariable(ExprList list, String name) {
 		for (GeneratorFilter generator : list.getGenerators()) {
-			for (DeclVar decl : generator.getVariables()) {
+			for (VarDecl decl : generator.getVariables()) {
 				if (decl.getName().equals(name)) {
 					return decl;
 				}
@@ -119,8 +120,8 @@ public class VariableBinding extends Module<VariableBinding.Decls> {
 	private IRNode lookupInList(Iterable<? extends IRNode> decls, String name) {
 		for (IRNode node : decls) {
 			String declName = null;
-			if (node instanceof DeclVar) {
-				declName = ((DeclVar) node).getName();
+			if (node instanceof LocalVarDecl) {
+				declName = ((VarDecl) node).getName();
 			} else if (node instanceof ParDeclValue) {
 				declName = ((ParDeclValue) node).getName();
 			}

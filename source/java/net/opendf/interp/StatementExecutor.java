@@ -5,7 +5,7 @@ import net.opendf.interp.values.List;
 import net.opendf.interp.values.Procedure;
 import net.opendf.interp.values.Ref;
 import net.opendf.interp.values.RefView;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.common.lvalue.LValueField;
 import net.opendf.ir.common.lvalue.LValueIndexer;
@@ -98,7 +98,7 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 		if(!stmt.getTypeDecls().isEmpty()) {
 			throw new UnsupportedOperationException();
 		}
-		for (DeclVar d : stmt.getVarDecls()) {
+		for (LocalVarDecl d : stmt.getVarDecls()) {
 			if(d.getInitialValue() != null){
 				stack.push(interpreter.evaluate(d.getInitialValue(), env));				
 			} else {

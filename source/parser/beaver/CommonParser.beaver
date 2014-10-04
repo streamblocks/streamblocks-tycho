@@ -65,16 +65,16 @@ var_decl =
   | var_name_type.v COLONEQ expression.init           {: return register(v, init, v.copy(v.getType(), v.getName(), init, true)); :}
   ;
 var_name_type =
-    IDENTIFIER.id           {: return register(id, id, new DeclVar(null, (String)id.value, null, true)); :}
-  | type.type IDENTIFIER.id {: return register(id, id, new DeclVar(type, (String)id.value, null, true)); :}
+    IDENTIFIER.id           {: return register(id, id, new LocalVarDecl(null, (String)id.value, null, true)); :}
+  | type.type IDENTIFIER.id {: return register(id, id, new LocalVarDecl(type, (String)id.value, null, true)); :}
   ;
 //used external
 fun_decl =
-    FUNCTION.start IDENTIFIER.id lambda_expr_body.lambda   {: register(start, lambda, lambda); return register(start, lambda, new DeclVar(null, (String)id.value, lambda, false)); :}
+    FUNCTION.start IDENTIFIER.id lambda_expr_body.lambda   {: register(start, lambda, lambda); return register(start, lambda, new LocalVarDecl(null, (String)id.value, lambda, false)); :}
   ;
 //used external
 proc_decl =
-    PROCEDURE.start IDENTIFIER.id procedure_expr_body.body {: register(start, body, body); return register(start, body, new DeclVar(null, (String)id.value, body, false)); :}
+    PROCEDURE.start IDENTIFIER.id procedure_expr_body.body {: register(start, body, body); return register(start, body, new LocalVarDecl(null, (String)id.value, body, false)); :}
   ;
 port_decl =
 //TODO, the keyword multi is ignored

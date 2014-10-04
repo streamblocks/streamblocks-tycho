@@ -8,10 +8,11 @@ import java.util.Map.Entry;
 
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
-import net.opendf.ir.common.decl.DeclEntity;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.GlobalEntityDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprApplication;
 import net.opendf.ir.common.expr.ExprBinaryOp;
 import net.opendf.ir.common.expr.ExprField;
@@ -114,7 +115,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			indent();
 			out.append("var");
 			incIndent();
-			for(DeclVar v : network.getVarDecls()){
+			for(LocalVarDecl v : network.getVarDecls()){
 				indent();
 				print(v);
 				out.append(";");
@@ -164,7 +165,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("}");
 		}
 	}
-	public void printEntityDecl(DeclEntity entity){
+	public void printEntityDecl(GlobalEntityDecl entity){
 		out.append(entity.getName());
 		//--- type parameters
 		if(!entity.getTypeParameters().isEmpty()){
@@ -203,7 +204,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		//TODO DeclType[] typeDecls
 		//--- variable declaration
 		incIndent();  // actor body
-		for(DeclVar v : actor.getVarDecls()){
+		for(LocalVarDecl v : actor.getVarDecls()){
 			indent();
 			print(v);
 			out.append(";");
@@ -343,7 +344,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			}
 			// sequence of token names
 			String varSep = "[";
-			for(DeclVar var : p.getVariables()){
+			for(VarDecl var : p.getVariables()){
 				out.append(varSep);
 				varSep = ", ";
 				out.append(var.getName());
@@ -363,7 +364,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append(p.getName());
 		}
 	}
-	public void print(DeclVar var){
+	public void print(LocalVarDecl var){
 		if(var.getType() != null){
 			print(var.getType());
 			out.append(" ");
@@ -378,9 +379,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			var.getInitialValue().accept(this, null);
 		}
 	}
-	public void printVarDecls(Iterable<DeclVar> varDecls) { // comma separated list
+	public void printVarDecls(Iterable<LocalVarDecl> varDecls) { // comma separated list
 		String sep = "";
-		for(DeclVar v : varDecls){
+		for(LocalVarDecl v : varDecls){
 			out.append(sep);
 			sep = ", ";
 			print(v);

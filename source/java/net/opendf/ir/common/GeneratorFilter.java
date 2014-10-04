@@ -41,14 +41,14 @@ package net.opendf.ir.common;
 import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
 public class GeneratorFilter extends AbstractIRNode {
 
-	public ImmutableList<DeclVar> getVariables() {
+	public ImmutableList<LocalVarDecl> getVariables() {
 		return variables;
 	}
 
@@ -60,12 +60,12 @@ public class GeneratorFilter extends AbstractIRNode {
 		return filters;
 	}
 
-	public GeneratorFilter(ImmutableList<DeclVar> variables, Expression collectionExpr,
+	public GeneratorFilter(ImmutableList<LocalVarDecl> variables, Expression collectionExpr,
 			ImmutableList<Expression> filters) {
 		this(null, variables, collectionExpr, filters);
 	}
 
-	private GeneratorFilter(GeneratorFilter original, ImmutableList<DeclVar> variables, Expression collectionExpr,
+	private GeneratorFilter(GeneratorFilter original, ImmutableList<LocalVarDecl> variables, Expression collectionExpr,
 			ImmutableList<Expression> filters) {
 		super(original);
 		this.variables = ImmutableList.copyOf(variables);
@@ -73,7 +73,7 @@ public class GeneratorFilter extends AbstractIRNode {
 		this.filters = ImmutableList.copyOf(filters);
 	}
 
-	public GeneratorFilter copy(ImmutableList<DeclVar> variables, Expression collectionExpr,
+	public GeneratorFilter copy(ImmutableList<LocalVarDecl> variables, Expression collectionExpr,
 			ImmutableList<Expression> filters) {
 		if (Lists.equals(this.variables, variables) && Objects.equals(this.collectionExpr, collectionExpr)
 				&& Lists.equals(this.filters, filters)) {
@@ -82,7 +82,7 @@ public class GeneratorFilter extends AbstractIRNode {
 		return new GeneratorFilter(this, variables, collectionExpr, filters);
 	}
 
-	private ImmutableList<DeclVar> variables;
+	private ImmutableList<LocalVarDecl> variables;
 	private Expression collectionExpr;
 	private ImmutableList<Expression> filters;
 }

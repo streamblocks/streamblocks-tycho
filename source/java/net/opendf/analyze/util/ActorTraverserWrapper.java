@@ -5,8 +5,8 @@ import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
 import net.opendf.ir.common.expr.Expression;
@@ -48,22 +48,22 @@ public class ActorTraverserWrapper<P> extends AbstractActorTraverser<P> implemen
 	}
 
 	@Override
-	public final void traverseVarDecl(DeclVar varDecl, P param) {
+	public final void traverseVarDecl(LocalVarDecl varDecl, P param) {
 		inner.traverseVarDecl(varDecl, param);
 	}
 
 	@Override
-	public final void traverseVarDecls(ImmutableList<DeclVar> varDecl, P param) {
+	public final void traverseVarDecls(ImmutableList<LocalVarDecl> varDecl, P param) {
 		inner.traverseVarDecls(varDecl, param);
 	}
 
 	@Override
-	public final void traverseTypeDecl(DeclType typeDecl, P param) {
+	public final void traverseTypeDecl(LocalTypeDecl typeDecl, P param) {
 		inner.traverseTypeDecl(typeDecl, param);
 	}
 
 	@Override
-	public final void traverseTypeDecls(ImmutableList<DeclType> typeDecl, P param) {
+	public final void traverseTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param) {
 		inner.traverseTypeDecls(typeDecl, param);
 	}
 

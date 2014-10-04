@@ -39,8 +39,8 @@ ENDCOPYRIGHT
 
 package net.opendf.ir.common.stmt;
 
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
@@ -54,12 +54,12 @@ public class StmtBlock extends Statement {
 		return v.visitStmtBlock(this, p);
 	}
 
-	public StmtBlock(ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+	public StmtBlock(ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<Statement> statements) {
 		this(null, typeDecls, varDecls, statements);
 	}
 	
-	private StmtBlock(StmtBlock original, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+	private StmtBlock(StmtBlock original, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<Statement> statements) {
 		super(original);
 		this.typeDecls = ImmutableList.copyOf(typeDecls);
@@ -67,7 +67,7 @@ public class StmtBlock extends Statement {
 		this.statements = ImmutableList.copyOf(statements);
 	}
 
-	public StmtBlock copy(ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+	public StmtBlock copy(ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<Statement> statements) {
 		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
 				&& Lists.equals(this.statements, statements)) {
@@ -76,11 +76,11 @@ public class StmtBlock extends Statement {
 		return new StmtBlock(this, typeDecls, varDecls, statements);
 	}
 
-	public ImmutableList<DeclType> getTypeDecls() {
+	public ImmutableList<LocalTypeDecl> getTypeDecls() {
 		return typeDecls;
 	}
 
-	public ImmutableList<DeclVar> getVarDecls() {
+	public ImmutableList<LocalVarDecl> getVarDecls() {
 		return varDecls;
 	}
 
@@ -88,7 +88,7 @@ public class StmtBlock extends Statement {
 		return statements;
 	}
 
-	private ImmutableList<DeclType> typeDecls;
-	private ImmutableList<DeclVar> varDecls;
+	private ImmutableList<LocalTypeDecl> typeDecls;
+	private ImmutableList<LocalVarDecl> varDecls;
 	private ImmutableList<Statement> statements;
 }

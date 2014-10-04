@@ -44,19 +44,19 @@ import java.util.Objects;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.QID;
-import net.opendf.ir.common.decl.DeclEntity;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.GlobalEntityDecl;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
-public class Actor extends DeclEntity implements PortContainer{
+public class Actor extends GlobalEntityDecl implements PortContainer{
 
 	public Actor(String name, ImmutableList<ParDeclType> typePars,
-			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
@@ -65,7 +65,7 @@ public class Actor extends DeclEntity implements PortContainer{
 	}
 
 	private Actor(Actor original, String name, ImmutableList<ParDeclType> typePars,
-			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
@@ -79,7 +79,7 @@ public class Actor extends DeclEntity implements PortContainer{
 	}
 
 	public Actor copy(String name, ImmutableList<ParDeclType> typePars,
-			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {

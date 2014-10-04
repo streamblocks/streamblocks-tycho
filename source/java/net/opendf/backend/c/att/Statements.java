@@ -5,7 +5,8 @@ import javarag.Synthesized;
 import net.opendf.backend.c.CType;
 import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.TypeExpr;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.common.stmt.Statement;
 import net.opendf.ir.common.stmt.StmtBlock;
@@ -30,7 +31,7 @@ public class Statements extends Module<Statements.Decls> {
 
 		CType ctype(TypeExpr type);
 
-		String variableName(DeclVar d);
+		String variableName(VarDecl d);
 
 		String generatorFilter(GeneratorFilter generator, String body);
 
@@ -39,7 +40,7 @@ public class Statements extends Module<Statements.Decls> {
 	public String statement(StmtBlock block) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("{\n");
-		for (DeclVar decl : block.getVarDecls()) {
+		for (LocalVarDecl decl : block.getVarDecls()) {
 			CType type = e().ctype(decl.getType());
 			String name = e().variableName(decl);
 			builder.append(type.variableType(name));

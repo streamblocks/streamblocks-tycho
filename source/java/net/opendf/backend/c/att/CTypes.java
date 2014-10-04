@@ -10,7 +10,7 @@ import net.opendf.backend.c.CType;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.common.TypeExpr;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.expr.ExprInput;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.net.Connection;
@@ -34,7 +34,7 @@ public class CTypes extends Module<CTypes.Decls> {
 	}
 
 	@Synthesized
-	public CType ctype(DeclVar varDecl) {
+	public CType ctype(LocalVarDecl varDecl) {
 		if (varDecl.getType() != null) {
 			return e().ctype(varDecl.getType());
 		} else {

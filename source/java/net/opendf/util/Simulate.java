@@ -37,31 +37,26 @@ public class Simulate {
 		Simulator simulator;
 		try{
 			Decl e = declLoader.getDecl(entityName);
-			if(e.getKind() == Decl.DeclKind.entity) {
-				if(e instanceof NetworkDefinition){
-					NetworkDefinition netDef = (NetworkDefinition)e;
-					Network net = BasicNetworkSimulator.prepareNetworkDefinition(netDef, declLoader);
-					simulator = new BasicNetworkSimulator(net, defaultChannelSize, defaultStackSize);
-				} else if(e instanceof Actor){
-					Actor actor = (Actor)e;
-					ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, declLoader);
+			if(e instanceof NetworkDefinition){
+				NetworkDefinition netDef = (NetworkDefinition)e;
+				Network net = BasicNetworkSimulator.prepareNetworkDefinition(netDef, declLoader);
+				simulator = new BasicNetworkSimulator(net, defaultChannelSize, defaultStackSize);
+			} else if(e instanceof Actor){
+				Actor actor = (Actor)e;
+				ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, declLoader);
 
-					Channel.OutputEnd[] sourceChannelOutputEnd = new Channel.OutputEnd[actor.getInputPorts().size()];
-					for(int i=0; i<sourceChannelOutputEnd.length; i++){
-						Channel channel = new BasicChannel(0);  // no one is writing to this channel, so set size to 0
-						sourceChannelOutputEnd[i] = channel.createOutputEnd();
-					}
-					Channel.InputEnd[] sinkChannelInputEnd = new Channel.InputEnd[actor.getOutputPorts().size()];
-					for(int i=0; i<sinkChannelInputEnd.length; i++){
-						Channel channel = new BasicChannel(defaultChannelSize);
-						sinkChannelInputEnd[i] = channel.getInputEnd();
-					}
-					Environment env = new BasicEnvironment(sinkChannelInputEnd, sourceChannelOutputEnd, actorMachine);
-					simulator = new BasicActorMachineSimulator(actorMachine, env, new BasicInterpreter(defaultStackSize));
-				} else {
-					System.err.println(entityName + " is not a network or actor.");
-					return;
+				Channel.OutputEnd[] sourceChannelOutputEnd = new Channel.OutputEnd[actor.getInputPorts().size()];
+				for(int i=0; i<sourceChannelOutputEnd.length; i++){
+					Channel channel = new BasicChannel(0);  // no one is writing to this channel, so set size to 0
+					sourceChannelOutputEnd[i] = channel.createOutputEnd();
 				}
+				Channel.InputEnd[] sinkChannelInputEnd = new Channel.InputEnd[actor.getOutputPorts().size()];
+				for(int i=0; i<sinkChannelInputEnd.length; i++){
+					Channel channel = new BasicChannel(defaultChannelSize);
+					sinkChannelInputEnd[i] = channel.getInputEnd();
+				}
+				Environment env = new BasicEnvironment(sinkChannelInputEnd, sourceChannelOutputEnd, actorMachine);
+				simulator = new BasicActorMachineSimulator(actorMachine, env, new BasicInterpreter(defaultStackSize));
 			} else {
 				System.err.println(entityName + " is not a network or actor.");
 				return;

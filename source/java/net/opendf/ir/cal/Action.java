@@ -43,8 +43,8 @@ import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.QID;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.common.stmt.Statement;
 import net.opendf.ir.util.ImmutableList;
@@ -53,16 +53,16 @@ import net.opendf.ir.util.Lists;
 public class Action extends AbstractIRNode {
 
 	public Action(int id, QID tag, ImmutableList<InputPattern> inputPatterns,
-			ImmutableList<OutputExpression> outputExpressions, ImmutableList<DeclType> typeDecls,
-			ImmutableList<DeclVar> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+			ImmutableList<OutputExpression> outputExpressions, ImmutableList<LocalTypeDecl> typeDecls,
+			ImmutableList<LocalVarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
 			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
 		this(null, id, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions,
 				postconditions);
 	}
 
 	private Action(Action original, int id, QID tag, ImmutableList<InputPattern> inputPatterns,
-			ImmutableList<OutputExpression> outputExpressions, ImmutableList<DeclType> typeDecls,
-			ImmutableList<DeclVar> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+			ImmutableList<OutputExpression> outputExpressions, ImmutableList<LocalTypeDecl> typeDecls,
+			ImmutableList<LocalVarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
 			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
 		super(original);
 		this.id = id;
@@ -79,8 +79,8 @@ public class Action extends AbstractIRNode {
 	}
 
 	public Action copy(int id, QID tag, ImmutableList<InputPattern> inputPatterns,
-			ImmutableList<OutputExpression> outputExpressions, ImmutableList<DeclType> typeDecls,
-			ImmutableList<DeclVar> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+			ImmutableList<OutputExpression> outputExpressions, ImmutableList<LocalTypeDecl> typeDecls,
+			ImmutableList<LocalVarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
 			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
 		if (this.id == id && Objects.equals(this.tag, tag) && Lists.equals(this.inputPatterns, inputPatterns)
 				&& Lists.equals(this.outputExpressions, outputExpressions) && Lists.equals(this.typeDecls, typeDecls)
@@ -105,11 +105,11 @@ public class Action extends AbstractIRNode {
 		return outputExpressions;
 	}
 
-	public ImmutableList<DeclType> getTypeDecls() {
+	public ImmutableList<LocalTypeDecl> getTypeDecls() {
 		return typeDecls;
 	}
 
-	public ImmutableList<DeclVar> getVarDecls() {
+	public ImmutableList<LocalVarDecl> getVarDecls() {
 		return varDecls;
 	}
 
@@ -141,8 +141,8 @@ public class Action extends AbstractIRNode {
 	private QID tag;
 	private ImmutableList<InputPattern> inputPatterns;
 	private ImmutableList<OutputExpression> outputExpressions;
-	private ImmutableList<DeclType> typeDecls;
-	private ImmutableList<DeclVar> varDecls;
+	private ImmutableList<LocalTypeDecl> typeDecls;
+	private ImmutableList<LocalVarDecl> varDecls;
 	private ImmutableList<Expression> guards;
 	private ImmutableList<Statement> body;
 	private Expression delay;

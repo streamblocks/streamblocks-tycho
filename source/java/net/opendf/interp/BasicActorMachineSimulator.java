@@ -25,7 +25,7 @@ import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.parser.SourceCodeOracle;
@@ -154,7 +154,7 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		//if the scopes are ordered Actor ..local this code works fine.
 		for(int scopeId=0; scopeId<nbrScopes; scopeId++){
 			if(required.get(scopeId) && !liveScopes.get(scopeId)){
-				ImmutableList<DeclVar> declList = scopeList.get(scopeId).getDeclarations();
+				ImmutableList<LocalVarDecl> declList = scopeList.get(scopeId).getDeclarations();
 				//FIXME, find a correct evaluation order, variables can be dependent on each other.
 				for(int declOffset=0; declOffset<declList.size() ; declOffset++){
 					Ref memCell = environment.getMemory().declare(scopeId, declOffset);
@@ -220,7 +220,7 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		for(int scopeId=0; scopeId<scopeList.size(); scopeId++){
 			if(liveScopes.get(scopeId)){
 				sb.append("{\n");
-				ImmutableList<DeclVar> declList = scopeList.get(scopeId).getDeclarations();
+				ImmutableList<LocalVarDecl> declList = scopeList.get(scopeId).getDeclarations();
 				for(int declId=0; declId<declList.size(); declId++){
 					VariableLocation var = VariableLocation.scopeVariable(actorMachine, declList.get(declId).getName(), scopeId, declId);
 					sb.append("  " + var.getName() + " : ");

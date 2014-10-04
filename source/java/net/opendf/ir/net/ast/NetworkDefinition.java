@@ -9,9 +9,9 @@ import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
-import net.opendf.ir.common.decl.DeclEntity;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.GlobalEntityDecl;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
 
@@ -27,13 +27,13 @@ import net.opendf.ir.common.decl.ParDeclValue;
  * 
  */
 
-public class NetworkDefinition extends DeclEntity implements PortContainer{
+public class NetworkDefinition extends GlobalEntityDecl implements PortContainer{
 	public NetworkDefinition(String name) {
 		super(null, name, null, null, null, null, null, null);
 	}
 
 	public NetworkDefinition(String name, ImmutableList<ParDeclType> typePars,
-			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Entry<String, EntityExpr>> entities, ImmutableList<StructureStatement> structure,
 			ImmutableList<ToolAttribute> toolAttributes) {
@@ -43,7 +43,7 @@ public class NetworkDefinition extends DeclEntity implements PortContainer{
 
 	private NetworkDefinition(NetworkDefinition original, String name,
 			ImmutableList<ParDeclType> typePars, ImmutableList<ParDeclValue> valuePars,
-			ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls, ImmutableList<PortDecl> inputPorts,
+			ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, ImmutableList<PortDecl> inputPorts,
 			ImmutableList<PortDecl> outputPorts, ImmutableList<Entry<String, EntityExpr>> entities,
 			ImmutableList<StructureStatement> structure, ImmutableList<ToolAttribute> toolAttributes) {
 
@@ -54,7 +54,7 @@ public class NetworkDefinition extends DeclEntity implements PortContainer{
 	}
 
 	public NetworkDefinition copy(String name, ImmutableList<ParDeclType> typePars,
-			ImmutableList<ParDeclValue> valuePars, ImmutableList<DeclType> typeDecls, ImmutableList<DeclVar> varDecls,
+			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Entry<String, EntityExpr>> entities, ImmutableList<StructureStatement> structure,
 			ImmutableList<ToolAttribute> toolAttributes) {

@@ -1,56 +1,9 @@
-/* 
-BEGINCOPYRIGHT JWJ
-ENDCOPYRIGHT
- */
-
 package net.opendf.ir.common.decl;
 
-import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.NamespaceDecl;
 
-/**
- * Declarations bind a name to a an object in a way that code may refer to the
- * object by that name. They are distinguished in a number of ways:
- * <ol type="a">
- * <li>the location of their occurrence (top-level inside a
- * {@link NamespaceDecl namespace declaration} or scoped within other program
- * code),
- * <li>whether they directly declare the name, or do so by reference to another
- * global declaration (import),
- * <li>in case of top-level declarations, their accessibility (local, private,
- * or public),
- * <li>the kind of object they declare (variable, type, or entity).
- * </ol>
- * The name inside a declaration is interned, so it can be compared for identity
- * more efficiently.
- * 
- * @author Jorn W. Janneck <jwj@acm.org>
- * 
- */
+public interface Decl extends IRNode {
 
-abstract public class Decl extends AbstractIRNode {
+	public String getName();
 
-	public static enum DeclKind {
-		value, type, entity
-	};
-
-	abstract public DeclKind getKind();
-
-	abstract public <R, P> R accept(DeclVisitor<R, P> v, P p);
-
-	public <R> R accept(DeclVisitor<R, Void> v) {
-		return accept(v, null);
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public Decl(IRNode original, String name) {
-		super(original);
-		this.name = name.intern();
-	}
-
-	private String name;
 }

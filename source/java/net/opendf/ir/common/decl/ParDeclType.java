@@ -2,18 +2,7 @@ package net.opendf.ir.common.decl;
 
 import java.util.Objects;
 
-/**
- * 
- * @author Jorn W. Janneck <jwj@acm.org>
- * 
- */
-
-public class ParDeclType extends ParDecl {
-
-	@Override
-	public ParameterKind parameterKind() {
-		return ParameterKind.type;
-	}
+public class ParDeclType extends TypeDecl implements ParDecl {
 
 	public ParDeclType(String name) {
 		this(null, name);
@@ -28,6 +17,11 @@ public class ParDeclType extends ParDecl {
 			return this;
 		}
 		return new ParDeclType(this, name);
+	}
+
+	@Override
+	public <R, P> R accept(ParDeclVisitor<R, P> visitor, P param) {
+		return visitor.visitParDeclType(this, param);
 	}
 
 }

@@ -15,6 +15,10 @@
 %import "net.opendf.ir.util.ImmutableList";
 %import "net.opendf.ir.util.ImmutableEntry";
 %import "net.opendf.ir.common.*";
+%import "net.opendf.ir.common.decl.*";
+%import "net.opendf.ir.common.expr.*";
+%import "net.opendf.ir.common.lvalue.*";
+%import "net.opendf.ir.common.stmt.*";
 %import "net.opendf.ir.cal.*";
 %import "net.opendf.ir.cal.Action";
 %import "java.io.File";
@@ -214,9 +218,9 @@
     return new Symbol(newList);
   }
   private GeneratorFilter makeGeneratorFilter2(TypeExpr type, ImmutableList<Symbol> varList, Expression e, ImmutableList<Expression> filterList){
-    ImmutableList.Builder<DeclVar> vars = ImmutableList.builder();
+    ImmutableList.Builder<LocalVarDecl> vars = ImmutableList.builder();
     for(Symbol var : varList){
-      DeclVar decl = new DeclVar(type, (String)var.value);
+      LocalVarDecl decl = new LocalVarDecl(type, (String)var.value);
       register(var, var, decl);
       vars.add(decl);
     }
@@ -347,11 +351,11 @@
 %typeof decl_list = "ImmutableList.Builder";
 %typeof decl_block = "ImmutableList";
 %typeof decl_block_opt = "ImmutableList";
-%typeof decl = "DeclVar";
-%typeof var_decl = "DeclVar";
-%typeof var_name_type = "DeclVar";
-%typeof fun_decl = "DeclVar";
-%typeof proc_decl = "DeclVar";
+%typeof decl = "LocalVarDecl";
+%typeof var_decl = "LocalVarDecl";
+%typeof var_name_type = "LocalVarDecl";
+%typeof fun_decl = "LocalVarDecl";
+%typeof proc_decl = "LocalVarDecl";
 %typeof port_decl = "PortDecl";
 %typeof port_decl_list = "ImmutableList.Builder";
 %typeof port_decl_list_opt = "ImmutableList";
@@ -462,7 +466,7 @@ action_decl =
            // split the action head to it's parts
            ImmutableList.Builder<Expression> guardList = ImmutableList.builder();
            Expression delay = null;
-           ImmutableList.Builder<DeclVar> declVarList = ImmutableList.builder();
+           ImmutableList.Builder<LocalVarDecl> declVarList = ImmutableList.builder();
            for(Map.Entry part : head){
              switch((ActionPartKind)part.getKey()){
                case GUARD:
@@ -502,14 +506,14 @@ init_action_decl =
            // split the action head to it's parts
            ImmutableList.Builder<Expression> guardList = ImmutableList.builder();
            Expression delay = null;
-           ImmutableList.Builder<DeclVar> declVarList = ImmutableList.builder();
+           ImmutableList.Builder<LocalVarDecl> declVarList = ImmutableList.builder();
            for(Map.Entry part : head){
              switch((ActionPartKind)part.getKey()){
                case GUARD:
                  guardList.addAll((ArrayList)part.getValue());
                  break;
                case DECL_LIST:
-                 declVarList.addAll((ArrayList<DeclVar>)part.getValue());
+                 declVarList.addAll((ArrayList<LocalVarDecl>)part.getValue());
                  break;
                case DELAY:
                  if(delay != null){ em.error("multiple delays is not allowed in action.", (Expression)part.getValue()); }
@@ -557,10 +561,10 @@ action_in_pattern =
   ;
 token_name_list =
 //TODO, the position of the names are not saved
-    IDENTIFIER.ID                           {: DeclVar decl = new DeclVar(null, (String) ID.value);
+    IDENTIFIER.ID                           {: LocalVarDecl decl = new LocalVarDecl(null, (String) ID.value);
                                                register(ID, ID, decl);
                                                return new Symbol(ImmutableList.builder().add(decl)); :}
-  | token_name_list.l COMMA IDENTIFIER.ID   {: Decl decl = new DeclVar(null, (String) ID.value);
+  | token_name_list.l COMMA IDENTIFIER.ID   {: Decl decl = new LocalVarDecl(null, (String) ID.value);
                                                register(ID, ID, decl);
                                                l.add(decl); return _symbol_l; :}
   ;

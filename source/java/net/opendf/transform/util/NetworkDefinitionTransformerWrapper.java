@@ -5,10 +5,11 @@ import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprApplication;
 import net.opendf.ir.common.expr.ExprBinaryOp;
 import net.opendf.ir.common.expr.ExprField;
@@ -74,22 +75,22 @@ public class NetworkDefinitionTransformerWrapper<P> extends AbstractNetworkDefin
 	}
 
 	@Override
-	public final DeclVar transformVarDecl(DeclVar varDecl, P param) {
+	public final LocalVarDecl transformVarDecl(LocalVarDecl varDecl, P param) {
 		return inner.transformVarDecl(varDecl, param);
 	}
 
 	@Override
-	public final ImmutableList<DeclVar> transformVarDecls(ImmutableList<DeclVar> varDecl, P param) {
+	public final ImmutableList<LocalVarDecl> transformVarDecls(ImmutableList<LocalVarDecl> varDecl, P param) {
 		return inner.transformVarDecls(varDecl, param);
 	}
 
 	@Override
-	public final DeclType transformTypeDecl(DeclType typeDecl, P param) {
+	public final LocalTypeDecl transformTypeDecl(LocalTypeDecl typeDecl, P param) {
 		return inner.transformTypeDecl(typeDecl, param);
 	}
 
 	@Override
-	public final ImmutableList<DeclType> transformTypeDecls(ImmutableList<DeclType> typeDecl, P param) {
+	public final ImmutableList<LocalTypeDecl> transformTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param) {
 		return inner.transformTypeDecls(typeDecl, param);
 	}
 

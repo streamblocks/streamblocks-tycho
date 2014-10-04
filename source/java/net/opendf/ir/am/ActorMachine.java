@@ -3,7 +3,7 @@ package net.opendf.ir.am;
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
@@ -24,7 +24,7 @@ import net.opendf.ir.util.Lists;
  * {@link ITest test} instructions.
  * 
  * Along with the controller, an actor machine contains a list of scopes, that
- * in turn are lists of {@link DeclVar declarations}. Each of these scopes
+ * in turn are lists of {@link LocalVarDecl declarations}. Each of these scopes
  * represents a set of temporary variable declarations that are referred to by
  * the {@link PredicateCondition predicate conditions} and the
  * {@link Transition transition code}. These bindings are valid until a
@@ -48,7 +48,7 @@ public class ActorMachine extends AbstractIRNode implements PortContainer {
 		return scopes;
 	}
 
-	public ImmutableList<DeclVar> getScope(int i) {
+	public ImmutableList<LocalVarDecl> getScope(int i) {
 		return scopes.get(i).getDeclarations();
 	}
 

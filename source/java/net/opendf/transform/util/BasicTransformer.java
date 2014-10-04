@@ -5,10 +5,11 @@ import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.common.lvalue.LValue;
 import net.opendf.ir.common.stmt.Statement;
@@ -23,11 +24,11 @@ public interface BasicTransformer<P> {
 
 	public LValue transformLValue(LValue lvalue, P param);
 
-	public DeclVar transformVarDecl(DeclVar varDecl, P param);
-	public ImmutableList<DeclVar> transformVarDecls(ImmutableList<DeclVar> varDecl, P param);
+	public LocalVarDecl transformVarDecl(LocalVarDecl varDecl, P param);
+	public ImmutableList<LocalVarDecl> transformVarDecls(ImmutableList<LocalVarDecl> varDecl, P param);
 
-	public DeclType transformTypeDecl(DeclType typeDecl, P param);
-	public ImmutableList<DeclType> transformTypeDecls(ImmutableList<DeclType> typeDecl, P param);
+	public LocalTypeDecl transformTypeDecl(LocalTypeDecl typeDecl, P param);
+	public ImmutableList<LocalTypeDecl> transformTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param);
 
 	public ParDeclValue transformValueParameter(ParDeclValue valueParam, P param);
 	public ImmutableList<ParDeclValue> transformValueParameters(ImmutableList<ParDeclValue> valueParam, P param);

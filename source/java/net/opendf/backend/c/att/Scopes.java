@@ -10,7 +10,8 @@ import net.opendf.backend.c.CType;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.Scope;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprLambda;
 import net.opendf.ir.common.expr.ExprProc;
 import net.opendf.ir.common.expr.Expression;
@@ -24,13 +25,13 @@ public class Scopes extends Module<Scopes.Decls> {
 		public void scopes(ActorMachine actorMachine, PrintWriter writer);
 
 		@Synthesized
-		boolean scopeDeclIsConst(DeclVar varDecl);
+		boolean scopeDeclIsConst(VarDecl varDecl);
 
 		@Synthesized
-		String scopeVarDecl(DeclVar decl);
+		String scopeVarDecl(VarDecl decl);
 
 		@Inherited
-		Scope variableScope(DeclVar varDecl);
+		Scope variableScope(VarDecl varDecl);
 
 		@Synthesized
 		boolean isPersistent(Scope scope);
@@ -39,13 +40,13 @@ public class Scopes extends Module<Scopes.Decls> {
 
 		String simpleExpression(Expression initialValue);
 
-		String variableName(DeclVar decl);
+		String variableName(VarDecl decl);
 
-		CType ctype(DeclVar decl);
+		CType ctype(VarDecl decl);
 
 		Node node(ActorMachine actorMachine);
 
-		String scopeVarInit(Expression expression, DeclVar decl);
+		String scopeVarInit(Expression expression, VarDecl decl);
 
 		Set<Scope> persistentScopes(IRNode node);
 
@@ -53,7 +54,7 @@ public class Scopes extends Module<Scopes.Decls> {
 
 	public void scopes(ActorMachine actorMachine, PrintWriter writer) {
 		for (Scope s : actorMachine.getScopes()) {
-			for (DeclVar decl : s.getDeclarations()) {
+			for (VarDecl decl : s.getDeclarations()) {
 				String d = e().scopeVarDecl(decl);
 				if (d != null)
 					writer.print(d);
@@ -63,7 +64,7 @@ public class Scopes extends Module<Scopes.Decls> {
 		for (Scope s : actorMachine.getScopes()) {
 			int index = e().index(s);
 			writer.println("static void init_n" + node + "s" + index + "(void) {");
-			for (DeclVar decl : s.getDeclarations())
+			for (LocalVarDecl decl : s.getDeclarations())
 				if (decl.getInitialValue() != null && !e().scopeDeclIsConst(decl)) {
 					String simpleExpression = e().simpleExpression(decl.getInitialValue());
 					if (simpleExpression != null) {
@@ -76,7 +77,7 @@ public class Scopes extends Module<Scopes.Decls> {
 		}
 	}
 
-	public boolean scopeDeclIsConst(DeclVar decl) {
+	public boolean scopeDeclIsConst(LocalVarDecl decl) {
 		return !decl.isAssignable() && e().isPersistent(e().variableScope(decl))
 				&& e().simpleExpression(decl.getInitialValue()) != null;
 	}
@@ -94,7 +95,7 @@ public class Scopes extends Module<Scopes.Decls> {
 		return null;
 	}
 
-	public String scopeVarDecl(DeclVar decl) {
+	public String scopeVarDecl(LocalVarDecl decl) {
 		StringBuilder result = new StringBuilder();
 		String value = null;
 		Expression initialValue = decl.getInitialValue();

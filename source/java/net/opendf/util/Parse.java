@@ -108,53 +108,46 @@ public class Parse{
 			Decl decl = declLoader.getDecl(name);
 
 			//		System.out.println("------- " + System.getProperty("user.dir") + "/" + path + "/" + name + " (" +  new java.util.Date() + ") -------");
-			switch(decl.getKind()){
-			case type:
-				System.err.println("Type declaration is not supported");
-			case value:
-				System.err.println("Value declaration is not supported");
-			case entity:
-				if(decl instanceof Actor){
-					Actor actor = (Actor)decl;
+			if(decl instanceof Actor){
+				Actor actor = (Actor)decl;
 //					actor = VariableInitOrderTransformer.transformActor(actor, declLoader);
 
-					if(prettyPrint){
-						PrettyPrint pp = new PrettyPrint();
-						pp.print(actor);
-					}
-					if(am){
-						ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, declLoader);
-
-						if(xml){
-							XMLWriter doc = new XMLWriter(actorMachine, declLoader);
-							doc.print();
-						}
-					} else if(xml){
-						XMLWriter doc = new XMLWriter(actor, declLoader);
-						doc.print();
-					}
-				} else if(decl instanceof NetworkDefinition){
-					NetworkDefinition network = (NetworkDefinition)decl;
-					if(netEval){
-						Network net = BasicNetworkSimulator.prepareNetworkDefinition(network, declLoader);
-						if(xml){
-							XMLWriter doc = new XMLWriter(net, declLoader);
-							doc.print();
-						}
-						if(graph){
-							NetworkToGraphviz.print(net, name, new PrintWriter(System.out));
-						}
-					} else if(xml){
-						XMLWriter doc = new XMLWriter(network);
-						doc.print();
-					}
-					if(prettyPrint){
-						PrettyPrint pp = new PrettyPrint();
-						pp.print(network);
-					}
-				} else {
-					throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + name + "is instance of class" + decl.getClass().getCanonicalName());
+				if(prettyPrint){
+					PrettyPrint pp = new PrettyPrint();
+					pp.print(actor);
 				}
+				if(am){
+					ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, declLoader);
+
+					if(xml){
+						XMLWriter doc = new XMLWriter(actorMachine, declLoader);
+						doc.print();
+					}
+				} else if(xml){
+					XMLWriter doc = new XMLWriter(actor, declLoader);
+					doc.print();
+				}
+			} else if(decl instanceof NetworkDefinition){
+				NetworkDefinition network = (NetworkDefinition)decl;
+				if(netEval){
+					Network net = BasicNetworkSimulator.prepareNetworkDefinition(network, declLoader);
+					if(xml){
+						XMLWriter doc = new XMLWriter(net, declLoader);
+						doc.print();
+					}
+					if(graph){
+						NetworkToGraphviz.print(net, name, new PrintWriter(System.out));
+					}
+				} else if(xml){
+					XMLWriter doc = new XMLWriter(network);
+					doc.print();
+				}
+				if(prettyPrint){
+					PrettyPrint pp = new PrettyPrint();
+					pp.print(network);
+				}
+			} else {
+				throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + name + "is instance of class" + decl.getClass().getCanonicalName());
 			}
 		} catch(CALCompiletimeException e){
 			ErrorModule em = e.getErrorModule();

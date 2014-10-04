@@ -10,7 +10,7 @@ import net.opendf.ir.am.PredicateCondition;
 import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.util.ImmutableList;
 
 public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer<P> implements ActorMachineTransformer<P>, ConditionVisitor<Condition, P>{
@@ -19,7 +19,7 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 	private static final MethodHandle transOutputPort = methodHandle(AbstractActorMachineTransformer.class, PortDecl.class, "transformOutputPort");
 	private static final MethodHandle transTransition = methodHandle(AbstractActorMachineTransformer.class, Transition.class, "transformTransition");
 	private static final MethodHandle transCondition = methodHandle(AbstractActorMachineTransformer.class, Condition.class, "transformCondition");
-	private static final MethodHandle transVarDecl = methodHandle(AbstractActorMachineTransformer.class, DeclVar.class, "transformVarDecl");
+	private static final MethodHandle transVarDecl = methodHandle(AbstractActorMachineTransformer.class, LocalVarDecl.class, "transformVarDecl");
 	private static final MethodHandle transScope = methodHandle(AbstractActorMachineTransformer.class, Scope.class, "transformScope");
 
 	@Override

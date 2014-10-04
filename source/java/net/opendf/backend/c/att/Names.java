@@ -7,8 +7,8 @@ import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.Scope;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclVar;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprLambda;
 import net.opendf.ir.common.expr.ExprProc;
 import net.opendf.ir.net.Connection;
@@ -21,7 +21,7 @@ public class Names extends Module<Names.Decls> {
 		String functionName(IRNode n);
 
 		@Inherited
-		Scope variableScope(DeclVar varDecl);
+		Scope variableScope(VarDecl varDecl);
 
 		@Synthesized
 		String variableName(IRNode var);
@@ -44,7 +44,7 @@ public class Names extends Module<Names.Decls> {
 
 	}
 
-	public String functionName(DeclVar decl) {
+	public String functionName(VarDecl decl) {
 		return e().variableName(decl);
 	}
 
@@ -64,7 +64,7 @@ public class Names extends Module<Names.Decls> {
 		return null;
 	}
 
-	public String variableName(DeclVar decl) {
+	public String variableName(VarDecl decl) {
 		Scope s = e().variableScope(decl);
 		if (s == null) {
 			return decl.getName() + "_";

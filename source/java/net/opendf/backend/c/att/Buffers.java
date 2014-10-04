@@ -9,7 +9,7 @@ import net.opendf.backend.c.CType;
 import net.opendf.ir.am.Condition;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.common.Port;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprInput;
 import net.opendf.ir.common.expr.ExprLiteral;
 import net.opendf.ir.common.expr.Expression;
@@ -33,7 +33,7 @@ public class Buffers extends Module<Buffers.Decls> {
 		public String condition(Condition cond);
 
 		@Synthesized
-		public String scopeVarInit(ExprInput input, DeclVar decl);
+		public String scopeVarInit(ExprInput input, VarDecl decl);
 
 		@Synthesized
 		int bufferSize(Connection conn);
@@ -46,7 +46,7 @@ public class Buffers extends Module<Buffers.Decls> {
 
 		String simpleExpression(Expression value);
 
-		String variableName(DeclVar decl);
+		String variableName(VarDecl decl);
 
 		CType ctype(Connection conn);
 
@@ -144,7 +144,7 @@ public class Buffers extends Module<Buffers.Decls> {
 		}
 	}
 
-	public String scopeVarInit(ExprInput input, DeclVar decl) {
+	public String scopeVarInit(ExprInput input, VarDecl decl) {
 		Connection conn = e().connection(input.getPort());
 		String buffer = e().bufferName(conn);
 		String name = e().variableName(decl);

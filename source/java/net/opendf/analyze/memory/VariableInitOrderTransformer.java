@@ -9,8 +9,9 @@ import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprLambda;
 import net.opendf.ir.common.expr.ExprLet;
 import net.opendf.ir.common.expr.ExprProc;
@@ -131,11 +132,11 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	public Expression visitExprLet(ExprLet let, Set<String> c) {
 		try {
 			Set<String> freeVars = c.getClass().newInstance();
-			ImmutableList<DeclVar> newDecls = transformVarDecls(let.getVarDecls(), freeVars);
+			ImmutableList<LocalVarDecl> newDecls = transformVarDecls(let.getVarDecls(), freeVars);
 
 			Expression body = let.getBody().accept(this, freeVars);
 			// remove the locally declared names
-			for(DeclVar v :let.getVarDecls()){
+			for(VarDecl v :let.getVarDecls()){
 				freeVars.remove(v.getName());
 			}
 			c.addAll(freeVars);
@@ -151,7 +152,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	public Statement visitStmtBlock(StmtBlock block, Set<String> c) {
 		try {
 			Set<String> freeVars = c.getClass().newInstance();
-			ImmutableList<DeclVar> newDecls = transformVarDecls(block.getVarDecls(), freeVars);
+			ImmutableList<LocalVarDecl> newDecls = transformVarDecls(block.getVarDecls(), freeVars);
 
 			ImmutableList.Builder<Statement> bodyBuilder = new ImmutableList.Builder<Statement>();
 			for(Statement stmt : block.getStatements()){
@@ -188,15 +189,15 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	}
 	
 	@Override
-	public ImmutableList<DeclVar> transformVarDecls(ImmutableList<DeclVar> varDecls, Set<String> c){
+	public ImmutableList<LocalVarDecl> transformVarDecls(ImmutableList<LocalVarDecl> varDecls, Set<String> c){
 		assert varDecls != null;
 		Set<String> allFreeVars;
 		try {
-			ImmutableList.Builder<DeclVar> builder = new ImmutableList.Builder<>();
+			ImmutableList.Builder<LocalVarDecl> builder = new ImmutableList.Builder<>();
 			allFreeVars = c.getClass().newInstance();
 			int size = varDecls.size();
 			HashMap<String, Set<String>> freeVarsMap = new HashMap<String, Set<String>>();
-			DeclVar[] newDecls = new DeclVar[size];
+			LocalVarDecl[] newDecls = new LocalVarDecl[size];
 			ScheduleStatus[] status = new ScheduleStatus[size];
 			// compute the free variables for each declaration
 			for(int i=0; i<size; i++){
@@ -211,7 +212,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 				scheduleDecls(i, newDecls, status, freeVarsMap, builder);
 			}
 			
-			for(DeclVar v : varDecls){
+			for(LocalVarDecl v : varDecls){
 				allFreeVars.remove(v.getName());
 			}
 			c.addAll(allFreeVars);
@@ -225,7 +226,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 
 	private enum ScheduleStatus{nop, Visited, Scheduled}
 
-	public void scheduleDecls(int candidateIndex, DeclVar[] decls, ScheduleStatus[] status, Map<String, Set<String>> freeVarsMap, ImmutableList.Builder<DeclVar> builder) {
+	public void scheduleDecls(int candidateIndex, LocalVarDecl[] decls, ScheduleStatus[] status, Map<String, Set<String>> freeVarsMap, ImmutableList.Builder<LocalVarDecl> builder) {
 		switch(status[candidateIndex]){
 		case Visited:
 			// A variable is depending on itself. Find the variables involved in the dependency cycle
@@ -243,11 +244,11 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 		case Scheduled:
 			return;
 		case nop :
-			DeclVar candidate = decls[candidateIndex];
+			LocalVarDecl candidate = decls[candidateIndex];
 			status[candidateIndex] = ScheduleStatus.Visited;
 			for(String freeVar : freeVarsMap.get(candidate.getName())){
 				for(int i=0; i<decls.length; i++){
-					DeclVar decl = decls[i];
+					VarDecl decl = decls[i];
 					if(status[i] != ScheduleStatus.Scheduled && decl.getName().equals(freeVar)){
 						// the candidate is depending on an uninitialized variable. Initialize it first
 						scheduleDecls(i, decls, status, freeVarsMap, builder);

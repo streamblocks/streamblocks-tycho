@@ -5,8 +5,8 @@ import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclType;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalTypeDecl;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
 import net.opendf.ir.common.expr.Expression;
@@ -25,13 +25,13 @@ public interface BasicTraverser<P> {
 
 	public void traverseLValue(LValue lvalue, P param);
 
-	public void traverseVarDecl(DeclVar varDecl, P param);
+	public void traverseVarDecl(LocalVarDecl varDecl, P param);
 
-	public void traverseVarDecls(ImmutableList<DeclVar> varDecl, P param);
+	public void traverseVarDecls(ImmutableList<LocalVarDecl> varDecl, P param);
 
-	public void traverseTypeDecl(DeclType typeDecl, P param);
+	public void traverseTypeDecl(LocalTypeDecl typeDecl, P param);
 
-	public void traverseTypeDecls(ImmutableList<DeclType> typeDecl, P param);
+	public void traverseTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param);
 
 	public void traverseValueParameter(ParDeclValue valueParam, P param);
 

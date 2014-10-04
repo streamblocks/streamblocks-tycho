@@ -11,7 +11,7 @@ import net.opendf.interp.values.ProcProcedure;
 import net.opendf.interp.values.Procedure;
 import net.opendf.interp.values.RefView;
 import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.expr.ExprApplication;
 import net.opendf.ir.common.expr.ExprBinaryOp;
 import net.opendf.ir.common.expr.ExprField;
@@ -129,7 +129,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 		}
 		//FIXME, initialize the variables in a correct order. for a=b, b=1 the order is (b, a)
 		// this assumes that the declaration are ordered in a correct evaluation order
-		for (DeclVar d : expr.getVarDecls()) {
+		for (LocalVarDecl d : expr.getVarDecls()) {
 			stack.push(evaluate(d.getInitialValue(), env));
 		}
 		RefView r = evaluate(expr.getBody(), env);

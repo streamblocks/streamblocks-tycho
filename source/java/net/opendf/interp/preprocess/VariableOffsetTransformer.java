@@ -13,9 +13,10 @@ import net.opendf.ir.am.Scope;
 import net.opendf.ir.common.GeneratorFilter;
 import net.opendf.ir.common.TypeExpr;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.decl.ParDeclType;
 import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprApplication;
 import net.opendf.ir.common.expr.ExprLambda;
 import net.opendf.ir.common.expr.ExprLet;
@@ -139,9 +140,9 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 	
 	@Override
 	public Expression visitExprLet(ExprLet let, LookupTable table) {
-		ImmutableList.Builder<DeclVar> builder = ImmutableList.builder();
+		ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
 
-		for (DeclVar decl : let.getVarDecls()) {
+		for (LocalVarDecl decl : let.getVarDecls()) {
 			builder.add(transformVarDecl(decl, table));
 			if(decl.getInitialValue() == null){
 				error("local variable " + decl.getName() + " in let expression do not have any initialization", decl);
@@ -202,8 +203,8 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 
 	@Override
 	public Statement visitStmtBlock(StmtBlock block, LookupTable table) {
-		ImmutableList.Builder<DeclVar> builderVar = ImmutableList.builder();
-		for (DeclVar decl : block.getVarDecls()) {
+		ImmutableList.Builder<LocalVarDecl> builderVar = ImmutableList.builder();
+		for (LocalVarDecl decl : block.getVarDecls()) {
 			builderVar.add(transformVarDecl(decl, table));
 			table.addName(decl.getName());
 		}
@@ -360,9 +361,9 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 
 		private VariableLocation searchScope(int scopeId, Variable var){
 			String name = var.getName();
-			ImmutableList<DeclVar> declList = scopes.get(scopeId).getDeclarations();
+			ImmutableList<LocalVarDecl> declList = scopes.get(scopeId).getDeclarations();
 			for(int i=0; i<declList.size(); i++){
-				DeclVar v = declList.get(i);
+				VarDecl v = declList.get(i);
 				if(v.getName().equals(name)){
 					return VariableLocation.scopeVariable(var, name, scopeId, i);
 				}
@@ -407,9 +408,9 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 		}
 
 		private Scope buildParamScope(ImmutableList<ParDeclValue> valueParameters) {
-			ImmutableList.Builder<DeclVar> builder = new ImmutableList.Builder<DeclVar>();
+			ImmutableList.Builder<LocalVarDecl> builder = new ImmutableList.Builder<LocalVarDecl>();
 			for(ParDeclValue par : valueParameters){
-				builder.add(new DeclVar(par, par.getType(), par.getName(), null, false));
+				builder.add(new LocalVarDecl(par, par.getType(), par.getName(), null, false));
 			}
 			return new Scope(builder.build());
 		}

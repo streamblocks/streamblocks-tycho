@@ -5,7 +5,8 @@ import java.util.List;
 import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
+import net.opendf.ir.common.decl.VarDecl;
 import net.opendf.ir.common.expr.ExprApplication;
 import net.opendf.ir.common.expr.ExprList;
 import net.opendf.ir.common.expr.ExprVariable;
@@ -15,15 +16,15 @@ public class Lists extends Module<Lists.Decls> {
 
 	public interface Decls {
 		@Synthesized
-		String scopeVarInit(Expression expr, DeclVar varDecl);
+		String scopeVarInit(Expression expr, VarDecl varDecl);
 
 		@Synthesized
 		public String generatorFilter(GeneratorFilter gf, String content);
 
 		@Synthesized
-		public String generator(Expression expr, List<DeclVar> decls, String content);
+		public String generator(Expression expr, List<LocalVarDecl> decls, String content);
 
-		String variableName(DeclVar decl);
+		String variableName(VarDecl decl);
 
 		String simpleExpression(Expression e);
 
@@ -31,7 +32,7 @@ public class Lists extends Module<Lists.Decls> {
 
 	}
 
-	public String scopeVarInit(ExprList list, DeclVar varDecl) {
+	public String scopeVarInit(ExprList list, VarDecl varDecl) {
 		String name = e().variableName(varDecl);
 		if (list.getGenerators().isEmpty()) {
 			StringBuilder result = new StringBuilder();
@@ -65,7 +66,7 @@ public class Lists extends Module<Lists.Decls> {
 		return e().generator(gf.getCollectionExpr(), gf.getVariables(), content);
 	}
 
-	public String generator(ExprApplication coll, List<DeclVar> decls, String content) {
+	public String generator(ExprApplication coll, List<LocalVarDecl> decls, String content) {
 		Expression func = coll.getFunction();
 		if (!(func instanceof ExprVariable))
 			return null;
@@ -74,7 +75,7 @@ public class Lists extends Module<Lists.Decls> {
 			return null;
 		if (decls.size() != 1)
 			return null;
-		DeclVar decl = decls.get(0);
+		VarDecl decl = decls.get(0);
 		String name = e().variableName(decl);
 		String from = e().simpleExpression(coll.getArgs().get(0));
 		String to = e().simpleExpression(coll.getArgs().get(1));

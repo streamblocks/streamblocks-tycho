@@ -4,7 +4,7 @@ import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.LocalVarDecl;
 import net.opendf.ir.common.expr.ExprLiteral;
 import net.opendf.ir.common.expr.ExprVariable;
 import net.opendf.ir.common.expr.Expression;
@@ -25,8 +25,8 @@ public class ConstantPropagation extends Module<ConstantPropagation.Decls> {
 
 	public Integer constantInteger(ExprVariable var) {
 		IRNode decl = e().declaration(var.getVariable());
-		if (decl != null && decl instanceof DeclVar) {
-			DeclVar declVar = (DeclVar) decl;
+		if (decl != null && decl instanceof LocalVarDecl) {
+			LocalVarDecl declVar = (LocalVarDecl) decl;
 			if (!declVar.isAssignable()) {
 				return e().constantInteger(declVar.getInitialValue());
 			}
