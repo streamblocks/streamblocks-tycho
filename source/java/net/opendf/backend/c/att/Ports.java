@@ -8,12 +8,12 @@ import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.ExprInput;
 import net.opendf.ir.common.Port;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.common.StmtConsume;
-import net.opendf.ir.common.StmtOutput;
+import net.opendf.ir.common.expr.ExprInput;
+import net.opendf.ir.common.stmt.StmtConsume;
+import net.opendf.ir.common.stmt.StmtOutput;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 

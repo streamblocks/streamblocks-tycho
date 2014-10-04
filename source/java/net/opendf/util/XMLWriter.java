@@ -40,6 +40,41 @@ import net.opendf.ir.am.State;
 import net.opendf.ir.am.Transition;
 import net.opendf.ir.cal.*;
 import net.opendf.ir.common.*;
+import net.opendf.ir.common.decl.DeclEntity;
+import net.opendf.ir.common.decl.DeclType;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.expr.ExprApplication;
+import net.opendf.ir.common.expr.ExprBinaryOp;
+import net.opendf.ir.common.expr.ExprField;
+import net.opendf.ir.common.expr.ExprIf;
+import net.opendf.ir.common.expr.ExprIndexer;
+import net.opendf.ir.common.expr.ExprInput;
+import net.opendf.ir.common.expr.ExprLambda;
+import net.opendf.ir.common.expr.ExprLet;
+import net.opendf.ir.common.expr.ExprList;
+import net.opendf.ir.common.expr.ExprLiteral;
+import net.opendf.ir.common.expr.ExprMap;
+import net.opendf.ir.common.expr.ExprProc;
+import net.opendf.ir.common.expr.ExprSet;
+import net.opendf.ir.common.expr.ExprUnaryOp;
+import net.opendf.ir.common.expr.ExprVariable;
+import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.common.expr.ExpressionVisitor;
+import net.opendf.ir.common.lvalue.LValueField;
+import net.opendf.ir.common.lvalue.LValueIndexer;
+import net.opendf.ir.common.lvalue.LValueVariable;
+import net.opendf.ir.common.lvalue.LValueVisitor;
+import net.opendf.ir.common.stmt.Statement;
+import net.opendf.ir.common.stmt.StatementVisitor;
+import net.opendf.ir.common.stmt.StmtAssignment;
+import net.opendf.ir.common.stmt.StmtBlock;
+import net.opendf.ir.common.stmt.StmtCall;
+import net.opendf.ir.common.stmt.StmtConsume;
+import net.opendf.ir.common.stmt.StmtForeach;
+import net.opendf.ir.common.stmt.StmtIf;
+import net.opendf.ir.common.stmt.StmtOutput;
+import net.opendf.ir.common.stmt.StmtWhile;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
@@ -674,9 +709,6 @@ InstructionVisitor<Void, Element>{
 		p.appendChild(fieldElem);
 		addSourceCodePosition(f, fieldElem);
 		fieldElem.setAttribute("name", f.getName());
-		if(f.hasOffset()){
-			fieldElem.setAttribute("offset", Integer.toString(f.getOffset()));
-		}
 	}
 
 	private void generateXMLForFreeVariablelist(

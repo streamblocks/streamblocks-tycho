@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.backend.c.util.Joiner;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.ExprApplication;
-import net.opendf.ir.common.ExprVariable;
-import net.opendf.ir.common.Expression;
-import net.opendf.ir.common.StmtCall;
 import net.opendf.ir.common.Variable;
+import net.opendf.ir.common.expr.ExprApplication;
+import net.opendf.ir.common.expr.ExprVariable;
+import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.common.stmt.StmtCall;
 
 public class FunctionApplications extends Module<FunctionApplications.Decls> {
 	public interface Decls {

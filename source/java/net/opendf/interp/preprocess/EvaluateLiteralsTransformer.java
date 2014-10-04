@@ -1,15 +1,16 @@
 package net.opendf.interp.preprocess;
 
 import java.util.Map;
+
 import net.opendf.interp.values.ExprValue;
 import net.opendf.interp.values.RefView;
 import net.opendf.interp.values.predef.Predef;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Actor;
-import net.opendf.ir.common.ExprApplication;
-import net.opendf.ir.common.ExprLiteral;
-import net.opendf.ir.common.Expression;
-import net.opendf.ir.common.ExprVariable;
+import net.opendf.ir.common.expr.ExprApplication;
+import net.opendf.ir.common.expr.ExprLiteral;
+import net.opendf.ir.common.expr.ExprVariable;
+import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.parser.SourceCodeOracle;
 import net.opendf.transform.util.ActorMachineTransformerWrapper;

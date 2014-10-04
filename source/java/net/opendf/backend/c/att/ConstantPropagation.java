@@ -3,11 +3,11 @@ package net.opendf.backend.c.att;
 import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.ExprLiteral;
-import net.opendf.ir.common.ExprVariable;
-import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.Variable;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.expr.ExprLiteral;
+import net.opendf.ir.common.expr.ExprVariable;
+import net.opendf.ir.common.expr.Expression;
 
 public class ConstantPropagation extends Module<ConstantPropagation.Decls> {
 

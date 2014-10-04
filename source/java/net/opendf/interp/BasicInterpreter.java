@@ -1,8 +1,8 @@
 package net.opendf.interp;
 
 import net.opendf.interp.values.RefView;
-import net.opendf.ir.common.Expression;
-import net.opendf.ir.common.Statement;
+import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.common.stmt.Statement;
 
 public class BasicInterpreter implements Interpreter {
 

@@ -17,14 +17,14 @@ import net.opendf.backend.c.CType;
 import net.opendf.backend.c.util.Joiner;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.ExprLambda;
-import net.opendf.ir.common.ExprLet;
-import net.opendf.ir.common.ExprProc;
-import net.opendf.ir.common.Expression;
-import net.opendf.ir.common.ParDeclValue;
-import net.opendf.ir.common.Statement;
 import net.opendf.ir.common.TypeExpr;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.expr.ExprLambda;
+import net.opendf.ir.common.expr.ExprLet;
+import net.opendf.ir.common.expr.ExprProc;
+import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.common.stmt.Statement;
 import net.opendf.ir.util.ImmutableList;
 
 public class Functions extends Module<Functions.Decls> {

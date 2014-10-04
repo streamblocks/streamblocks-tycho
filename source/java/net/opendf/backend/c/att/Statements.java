@@ -3,16 +3,16 @@ package net.opendf.backend.c.att;
 import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.backend.c.CType;
-import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.Statement;
-import net.opendf.ir.common.StmtBlock;
-import net.opendf.ir.common.StmtCall;
-import net.opendf.ir.common.StmtForeach;
-import net.opendf.ir.common.StmtIf;
-import net.opendf.ir.common.StmtWhile;
 import net.opendf.ir.common.TypeExpr;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.common.stmt.Statement;
+import net.opendf.ir.common.stmt.StmtBlock;
+import net.opendf.ir.common.stmt.StmtCall;
+import net.opendf.ir.common.stmt.StmtForeach;
+import net.opendf.ir.common.stmt.StmtIf;
+import net.opendf.ir.common.stmt.StmtWhile;
 
 public class Statements extends Module<Statements.Decls> {
 

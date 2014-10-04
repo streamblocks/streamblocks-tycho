@@ -1,5 +1,6 @@
 package net.opendf.ir.common;
 
+import net.opendf.ir.common.decl.Decl;
 import net.opendf.ir.util.ImmutableList;
 
 

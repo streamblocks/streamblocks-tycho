@@ -3,17 +3,17 @@ package net.opendf.ir.net.ast;
 import java.util.Map.Entry;
 import java.util.Objects;
 
-import net.opendf.ir.common.DeclType;
-import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.NamespaceDecl;
-import net.opendf.ir.common.ParDeclType;
-import net.opendf.ir.common.ParDeclValue;
 import net.opendf.ir.common.PortContainer;
 import net.opendf.ir.common.PortDecl;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
-import net.opendf.ir.common.DeclEntity;
+import net.opendf.ir.common.decl.DeclEntity;
+import net.opendf.ir.common.decl.DeclType;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.ParDeclType;
+import net.opendf.ir.common.decl.ParDeclValue;
 
 /**
  * A NetworkTemplate the internal representation of a .nl file. Basically it is

@@ -9,7 +9,7 @@ import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.cal.Actor;
-import net.opendf.ir.common.Decl;
+import net.opendf.ir.common.decl.Decl;
 import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
 import net.opendf.parser.SourceCodeOracle;

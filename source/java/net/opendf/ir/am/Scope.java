@@ -2,7 +2,7 @@ package net.opendf.ir.am;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.DeclVar;
+import net.opendf.ir.common.decl.DeclVar;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 

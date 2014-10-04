@@ -7,7 +7,7 @@ import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.common.Port;
-import net.opendf.ir.common.Statement;
+import net.opendf.ir.common.stmt.Statement;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 

@@ -2,7 +2,7 @@ package net.opendf.ir.net.ast;
 
 import java.util.Objects;
 
-import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.expr.Expression;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>

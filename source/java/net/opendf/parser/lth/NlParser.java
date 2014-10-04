@@ -17,22 +17,60 @@ import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.net.ToolValueAttribute;
 import net.opendf.ir.common.*;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.ParDecl;
+import net.opendf.ir.common.decl.ParDeclType;
+import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.expr.ExprApplication;
+import net.opendf.ir.common.expr.ExprBinaryOp;
+import net.opendf.ir.common.expr.ExprField;
+import net.opendf.ir.common.expr.ExprIf;
+import net.opendf.ir.common.expr.ExprIndexer;
+import net.opendf.ir.common.expr.ExprLambda;
+import net.opendf.ir.common.expr.ExprLet;
+import net.opendf.ir.common.expr.ExprList;
+import net.opendf.ir.common.expr.ExprLiteral;
+import net.opendf.ir.common.expr.ExprMap;
+import net.opendf.ir.common.expr.ExprProc;
+import net.opendf.ir.common.expr.ExprSet;
+import net.opendf.ir.common.expr.ExprUnaryOp;
+import net.opendf.ir.common.expr.ExprVariable;
+import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.common.lvalue.LValue;
+import net.opendf.ir.common.lvalue.LValueField;
+import net.opendf.ir.common.lvalue.LValueIndexer;
+import net.opendf.ir.common.lvalue.LValueVariable;
+import net.opendf.ir.common.stmt.Statement;
+import net.opendf.ir.common.stmt.StmtAssignment;
+import net.opendf.ir.common.stmt.StmtBlock;
+import net.opendf.ir.common.stmt.StmtCall;
+import net.opendf.ir.common.stmt.StmtForeach;
+import net.opendf.ir.common.stmt.StmtIf;
+import net.opendf.ir.common.stmt.StmtWhile;
+
 import java.util.TreeSet;
 import java.util.ArrayList;
+
 import net.opendf.ir.net.ToolAttribute;
+
 import java.util.Map;
+
 import net.opendf.ir.net.ast.EntityExpr;
 import net.opendf.ir.net.ToolTypeAttribute;
 import beaver.*;
 import net.opendf.ir.net.ast.PortReference;
+
 import java.io.PrintStream;
+
 import net.opendf.ir.net.ast.StructureStatement;
 import net.opendf.ir.net.ast.StructureConnectionStmt;
 import net.opendf.ir.net.ast.EntityIfExpr;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.net.ast.NetworkDefinition;
+
 import java.io.File;
 import java.util.AbstractMap;
+
 import net.opendf.ir.net.ast.StructureIfStmt;
 import net.opendf.errorhandling.BasicErrorModule;
 import net.opendf.ir.net.ast.EntityListExpr;

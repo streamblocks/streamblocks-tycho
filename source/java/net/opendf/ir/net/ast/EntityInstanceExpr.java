@@ -3,7 +3,7 @@ package net.opendf.ir.net.ast;
 import java.util.Map.Entry;
 import java.util.Objects;
 
-import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;

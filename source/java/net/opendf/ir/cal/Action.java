@@ -42,11 +42,11 @@ package net.opendf.ir.cal;
 import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
-import net.opendf.ir.common.DeclType;
-import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.QID;
-import net.opendf.ir.common.Statement;
+import net.opendf.ir.common.decl.DeclType;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.common.stmt.Statement;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 

@@ -6,7 +6,7 @@ import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.Statement;
+import net.opendf.ir.common.stmt.Statement;
 import net.opendf.ir.net.Node;
 
 public class Transitions extends Module<Transitions.Decls> {

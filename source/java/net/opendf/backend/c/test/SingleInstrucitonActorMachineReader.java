@@ -33,12 +33,12 @@ public class SingleInstrucitonActorMachineReader implements NodeReader {
 		this.translator = new ActorToActorMachine() {
 			@Override
 			protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
-				int[] prio = new int[0];
-				try {
-					prio = PriorityListSelector.readIntsFromFile(new File("parseheaders/prio.txt"));
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}
+				//int[] prio = new int[0];
+				//try {
+				//	prio = PriorityListSelector.readIntsFromFile(new File("parseheaders/prio.txt"));
+				//} catch (FileNotFoundException e) {
+				//	e.printStackTrace();
+				//}
 				stateHandler = new PrioritizeCallInstructions<>(stateHandler);
 				stateHandler = new SelectFirstInstruction<>(stateHandler);
 				//stateHandler = new TransitionPriorityStateHandler<>(stateHandler, new SelectMinimumInteger());

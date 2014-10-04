@@ -8,16 +8,16 @@ import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.cal.Action;
 import net.opendf.ir.cal.Actor;
 import net.opendf.ir.cal.InputPattern;
-import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.ExprLambda;
-import net.opendf.ir.common.ExprLet;
-import net.opendf.ir.common.ExprList;
-import net.opendf.ir.common.ExprProc;
 import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.ParDeclValue;
-import net.opendf.ir.common.StmtBlock;
-import net.opendf.ir.common.StmtForeach;
 import net.opendf.ir.common.Variable;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.decl.ParDeclValue;
+import net.opendf.ir.common.expr.ExprLambda;
+import net.opendf.ir.common.expr.ExprLet;
+import net.opendf.ir.common.expr.ExprList;
+import net.opendf.ir.common.expr.ExprProc;
+import net.opendf.ir.common.stmt.StmtBlock;
+import net.opendf.ir.common.stmt.StmtForeach;
 
 public class VariableBinding extends Module<VariableBinding.Decls> {
 

@@ -42,6 +42,7 @@ package net.opendf.ir.common;
 import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
+import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.util.ImmutableEntry;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;

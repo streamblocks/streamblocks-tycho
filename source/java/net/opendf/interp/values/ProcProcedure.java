@@ -2,7 +2,7 @@ package net.opendf.interp.values;
 
 import net.opendf.interp.Environment;
 import net.opendf.interp.Interpreter;
-import net.opendf.ir.common.ExprProc;
+import net.opendf.ir.common.expr.ExprProc;
 
 public class ProcProcedure implements Procedure {
 

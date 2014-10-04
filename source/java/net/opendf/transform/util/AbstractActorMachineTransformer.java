@@ -9,8 +9,8 @@ import net.opendf.ir.am.PortCondition;
 import net.opendf.ir.am.PredicateCondition;
 import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.DeclVar;
 import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.common.decl.DeclVar;
 import net.opendf.ir.util.ImmutableList;
 
 public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer<P> implements ActorMachineTransformer<P>, ConditionVisitor<Condition, P>{

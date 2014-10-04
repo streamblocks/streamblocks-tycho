@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.List;
+
 import javarag.*;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
@@ -15,7 +16,7 @@ import net.opendf.ir.am.Instruction;
 import net.opendf.ir.am.PredicateCondition;
 import net.opendf.ir.am.Scope;
 import net.opendf.ir.am.State;
-import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.net.Node;
 
 public class Controllers extends Module<Controllers.Decls> {

@@ -2,7 +2,7 @@ package net.opendf.ir.am;
 
 import java.util.Objects;
 
-import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.expr.Expression;
 
 /**
  * A predicate condition represents the {@link Condition condition} that a

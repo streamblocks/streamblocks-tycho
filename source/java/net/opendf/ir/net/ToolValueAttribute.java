@@ -1,7 +1,7 @@
 package net.opendf.ir.net;
 import java.util.Objects;
 
-import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.expr.Expression;
 import net.opendf.util.PrettyPrint;
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>

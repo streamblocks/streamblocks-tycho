@@ -10,10 +10,10 @@ import net.opendf.backend.c.CType;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.am.ActorMachine;
 import net.opendf.ir.am.Scope;
-import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.ExprLambda;
-import net.opendf.ir.common.ExprProc;
-import net.opendf.ir.common.Expression;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.expr.ExprLambda;
+import net.opendf.ir.common.expr.ExprProc;
+import net.opendf.ir.common.expr.Expression;
 import net.opendf.ir.net.Node;
 
 public class Scopes extends Module<Scopes.Decls> {

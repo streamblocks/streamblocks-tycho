@@ -1,14 +1,15 @@
 package net.opendf.backend.c.att;
 
 import java.util.List;
+
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.common.DeclVar;
-import net.opendf.ir.common.ExprApplication;
-import net.opendf.ir.common.ExprList;
-import net.opendf.ir.common.ExprVariable;
-import net.opendf.ir.common.Expression;
 import net.opendf.ir.common.GeneratorFilter;
+import net.opendf.ir.common.decl.DeclVar;
+import net.opendf.ir.common.expr.ExprApplication;
+import net.opendf.ir.common.expr.ExprList;
+import net.opendf.ir.common.expr.ExprVariable;
+import net.opendf.ir.common.expr.Expression;
 
 public class Lists extends Module<Lists.Decls> {
 
