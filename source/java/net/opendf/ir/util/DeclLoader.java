@@ -9,6 +9,7 @@ import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.decl.Decl;
+import net.opendf.ir.decl.GlobalEntityDecl;
 import net.opendf.ir.entity.cal.Actor;
 import net.opendf.ir.entity.nl.NetworkDefinition;
 import net.opendf.ir.entity.nl.evaluate.NetDefEvaluator;
@@ -64,7 +65,7 @@ public class DeclLoader implements SourceCodeOracle{
 		ErrorModule em;
 		if(file.exists()){
 			CalParser parser = new CalParser();
-			Actor actor = parser.parse(file, srcPositions, this);
+			GlobalEntityDecl actor = parser.parse(file, srcPositions, this);
 			em = parser.getErrorModule();
 			em.printWarnings();
 			em.abortIfError();
@@ -74,7 +75,7 @@ public class DeclLoader implements SourceCodeOracle{
 			file = new File(filePath + File.separatorChar + name + ".nl");
 			if(file.exists()){
 				NlParser parser = new NlParser();
-				NetworkDefinition net = parser.parse(file, srcPositions, this);
+				GlobalEntityDecl net = parser.parse(file, srcPositions, this);
 				em = parser.getErrorModule();
 				em.printWarnings();
 				em.abortIfError();

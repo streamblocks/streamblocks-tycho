@@ -153,7 +153,7 @@
  *  A compilation unit is always returned, containing all parseProblems encountered during parsing.
  *  If a Parser.exception is thrown a CompilationUnit with an empty AST is returned.
  *******************************************************/
-  private Actor makeEmptyActor(File file){
+  private GlobalEntityDecl makeEmptyEntityDecl(File file){
     String name;
     int lastPeriodPos = file.getName().lastIndexOf('.');
     if(lastPeriodPos >=0){
@@ -161,27 +161,27 @@
     } else {
       name = file.getName();
     }
-    return new Actor(name, null, null, null, null, null, null, null, null, null, null, null);   
+    return new GlobalEntityDecl(name, null);   
   }
   
-  public net.opendf.ir.entity.cal.Actor parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+  public net.opendf.ir.decl.GlobalEntityDecl parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
     return parse(new java.io.File(path + "/" + fileName), srcLocations, scOracle);
   }
-  public net.opendf.ir.entity.cal.Actor parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+  public net.opendf.ir.decl.GlobalEntityDecl parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
      this.file = file;
      this.srcLocations = srcLocations;
      em = new BasicErrorModule(scOracle);
-     Actor actor;
+     GlobalEntityDecl actor;
      java.io.FileReader fr = null;
      try {
        try{
          fr = new java.io.FileReader(file);
   	     CalScanner scanner = new CalScanner(new java.io.BufferedReader(fr));
-         actor = (Actor)parse(scanner);
+         actor = (GlobalEntityDecl)parse(scanner);
        } catch(CalParser.Exception e) {
          // build empty compilation unit for failed error recovery
          // The problem is added to parseProblems[] by the syntaxError() method added to the parser above.
-         actor = makeEmptyActor(file);
+         actor = makeEmptyEntityDecl(file);
        } finally {
          if(fr != null){
            fr.close();
@@ -189,10 +189,10 @@
        }
      } catch (java.io.FileNotFoundException e){
        em.error("file not found: " + e.getMessage(), null);
-       actor = makeEmptyActor(file);
+       actor = makeEmptyEntityDecl(file);
      } catch (java.io.IOException e){
        em.error("error reading file: " + e.getMessage(), null);
-       actor = makeEmptyActor(file);
+       actor = makeEmptyEntityDecl(file);
      }
      return actor;
    }
@@ -396,7 +396,7 @@
 %typeof statement_list_opt = "ImmutableList";
 
 //--- CAL specific
-%typeof goal = "Actor";
+%typeof goal = "GlobalEntityDecl";
 %typeof action_decl = "Action";
 %typeof action_head = "Map.Entry";
 %typeof action_in_pattern = "InputPattern";
@@ -407,7 +407,7 @@
 %typeof action_tag = "QID";
 %typeof action_tag_list = "ImmutableList.Builder";
 %typeof actor_body = "Map.Entry";
-%typeof actor_decl = "Actor";
+%typeof actor_decl = "GlobalEntityDecl";
 %typeof channel_selector = "String";
 %typeof init_action_decl = "Action";
 %typeof fsm_state_transitions = "ImmutableList.Builder";
@@ -656,7 +656,7 @@ actor_decl =
           break;
       }
     }
-    Actor a = new Actor((String)name.value,
+    Actor a = new Actor(
                          typePars,     // typePars,
                          valuePars == null ? null : valuePars.build(), // valuePars,
                          null,      // typeDecls, NOTE, can not be expressed in CAL
@@ -669,7 +669,8 @@ actor_decl =
                          priorities.build(),
                          invariants.build()
                         );
-    return register(start, end, a);
+    GlobalEntityDecl d = new GlobalEntityDecl((String) name.value, a);
+    return register(start, end, d);
   :}
   ;
 

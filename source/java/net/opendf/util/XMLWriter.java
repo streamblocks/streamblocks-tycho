@@ -36,6 +36,7 @@ import net.opendf.ir.decl.GlobalEntityDecl;
 import net.opendf.ir.decl.LocalTypeDecl;
 import net.opendf.ir.decl.LocalVarDecl;
 import net.opendf.ir.decl.ParDeclValue;
+import net.opendf.ir.entity.EntityDefinition;
 import net.opendf.ir.entity.PortDecl;
 import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.ir.entity.am.Condition;
@@ -262,9 +263,11 @@ InstructionVisitor<Void, Element>{
 		Element networkElement = doc.createElement("NetworkDefinition");
 		p.appendChild(networkElement);
 		addSourceCodePosition(network, networkElement);
-		networkElement.setAttribute("name", network.getName());
+		networkElement.setAttribute("name", null); //FIXME
 		//-- type/value parameters, in/out ports, type/value declarations
-		generateXMLForDeclEntity(network, networkElement);
+		generateXMLForEntityDefinition(network, networkElement);
+		generateXMLForDeclTypeList(network.getTypeDecls(), networkElement);
+		generateXMLForDeclVarList(network.getVarDecls(), networkElement);
 		generateXMLForEntityExprList(network.getEntities(), networkElement);
 		generateXMLForStructureStmtList(network.getStructure(), networkElement);
 		generateXMLForToolAttributeList(network.getToolAttributes(), networkElement);
@@ -283,9 +286,11 @@ InstructionVisitor<Void, Element>{
 		p.appendChild(actorElement);
 		addSourceCodePosition(actor, actorElement);
 		doc.appendChild(actorElement);
-		actorElement.setAttribute("name", actor.getName());
+		actorElement.setAttribute("name", null); // FIXME
 		//-- type/value parameters, in/out ports, type/value declarations
-		generateXMLForDeclEntity(actor, actorElement);
+		generateXMLForEntityDefinition(actor, actorElement);
+		generateXMLForDeclTypeList(actor.getTypeDecls(), actorElement);
+		generateXMLForDeclVarList(actor.getVarDecls(), actorElement);
 		generateXMLForActions(actor.getInitializers(), actorElement);
 		generateXMLForActions(actor.getActions(), actorElement);
 		generateXMLForSchedule(actor.getScheduleFSM(), actorElement);
@@ -408,7 +413,7 @@ InstructionVisitor<Void, Element>{
 		}
 	}
 	//-- type/value parameters, in/out ports, type/value declarations
-	public void generateXMLForDeclEntity(GlobalEntityDecl entity, Element top){
+	public void generateXMLForEntityDefinition(EntityDefinition entity, Element top){
 		//-- type parameters 
 		//TODO
 		//-- value parameters 
@@ -417,10 +422,6 @@ InstructionVisitor<Void, Element>{
 		generateXMLForPortDeclList(entity.getInputPorts(), top, "InputPortList");
 		//-- output ports 
 		generateXMLForPortDeclList(entity.getOutputPorts(), top, "OutputPortList");
-		//--- type declaration
-		generateXMLForDeclTypeList(entity.getTypeDecls(), top);
-		//--- variable declaration
-		generateXMLForDeclVarList(entity.getVarDecls(), top);
 	}
 	/******************************************************************************
 	 * Actor Machine

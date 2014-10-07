@@ -14,6 +14,7 @@ import net.opendf.ir.decl.LocalVarDecl;
 import net.opendf.ir.decl.ParDeclType;
 import net.opendf.ir.decl.ParDeclValue;
 import net.opendf.ir.decl.VarDecl;
+import net.opendf.ir.entity.EntityDefinition;
 import net.opendf.ir.entity.PortDecl;
 import net.opendf.ir.entity.cal.*;
 import net.opendf.ir.entity.nl.EntityExpr;
@@ -105,13 +106,14 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		return sb.toString();
 	}
 
-	public void print(NetworkDefinition network){
+	public void print(NetworkDefinition network, String name){
 		indent();
 		if(network == null){
 			out.append("Network is null");
 		}
 		out.append("network ");
-		printEntityDecl(network);
+		out.append(name);
+		printEntityDef(network);
 		//--- variable declaration
 		incIndent();  // actor body
 		if(!network.getVarDecls().isEmpty()){
@@ -168,8 +170,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("}");
 		}
 	}
-	public void printEntityDecl(GlobalEntityDecl entity){
-		out.append(entity.getName());
+	public void printEntityDef(EntityDefinition entity){
 		//--- type parameters
 		if(!entity.getTypeParameters().isEmpty()){
 			String sep = "";
@@ -197,13 +198,14 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append(" : ");
 	}
 
-	public void print(Actor actor){
+	public void print(Actor actor, String name){
 		indent();
 		if(actor == null){
 			out.append("Actor is null");
 		}
 		out.append("Actor ");
-		printEntityDecl(actor);
+		out.append(name);
+		printEntityDef(actor);
 		//TODO DeclType[] typeDecls
 		//--- variable declaration
 		incIndent();  // actor body

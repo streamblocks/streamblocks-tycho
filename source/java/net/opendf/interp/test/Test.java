@@ -30,7 +30,7 @@ public class Test {
 		// File("../dataflow/examples/MPEG4_SP_Decoder/ACPred.cal");
 
 		CalParser parser = new CalParser();
-		Actor actor = parser.parse(calFile, null, null);
+		Actor actor = (Actor) parser.parse(calFile, null, null).getEntity();
 
 //		List<Decl> actorArgs = new ArrayList<Decl>();
 		// actorArgs.add(varDecl("MAXW_IN_MB", lit(121)));

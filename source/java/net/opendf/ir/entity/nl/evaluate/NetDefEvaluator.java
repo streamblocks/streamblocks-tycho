@@ -79,7 +79,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		ImmutableList<ParDeclValue> valuePars = ImmutableList.empty();
 		ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
 		ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
-		return srcNetwork.copy(srcNetwork.getName(), 
+		return srcNetwork.copy(
 				typePars, valuePars, typeDecls, varDecls, 
 				srcNetwork.getInputPorts(), srcNetwork.getOutputPorts(), 
 				ImmutableList.copyOf(entities.entrySet()), ImmutableList.copyOf(structure), srcNetwork.getToolAttributes());

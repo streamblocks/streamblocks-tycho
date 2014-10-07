@@ -1,14 +1,13 @@
 package net.opendf.ir.entity.nl;
 
 import java.util.Map.Entry;
-import java.util.Objects;
 
-import net.opendf.ir.decl.GlobalEntityDecl;
 import net.opendf.ir.decl.LocalTypeDecl;
 import net.opendf.ir.decl.LocalVarDecl;
 import net.opendf.ir.decl.ParDeclType;
 import net.opendf.ir.decl.ParDeclValue;
-import net.opendf.ir.entity.PortContainer;
+import net.opendf.ir.entity.EntityDefinition;
+import net.opendf.ir.entity.EntityVisitor;
 import net.opendf.ir.entity.PortDecl;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.ToolAttribute;
@@ -27,48 +26,51 @@ import net.opendf.ir.util.Lists;
  * 
  */
 
-public class NetworkDefinition extends GlobalEntityDecl implements PortContainer{
-	public NetworkDefinition(String name) {
-		super(null, name, null, null, null, null, null, null);
-	}
-
-	public NetworkDefinition(String name, ImmutableList<ParDeclType> typePars,
+public class NetworkDefinition extends EntityDefinition {
+	public NetworkDefinition(ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Entry<String, EntityExpr>> entities, ImmutableList<StructureStatement> structure,
 			ImmutableList<ToolAttribute> toolAttributes) {
-		this(null, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure,
+		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure,
 				toolAttributes);
 	}
 
-	private NetworkDefinition(NetworkDefinition original, String name,
+	private NetworkDefinition(NetworkDefinition original,
 			ImmutableList<ParDeclType> typePars, ImmutableList<ParDeclValue> valuePars,
 			ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, ImmutableList<PortDecl> inputPorts,
 			ImmutableList<PortDecl> outputPorts, ImmutableList<Entry<String, EntityExpr>> entities,
 			ImmutableList<StructureStatement> structure, ImmutableList<ToolAttribute> toolAttributes) {
 
-		super(original, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
+		super(original, inputPorts, outputPorts, typePars, valuePars);
+		this.typeDecls = typeDecls;
+		this.varDecls = varDecls;
 		this.entities = ImmutableList.copyOf(entities);
 		this.toolAttributes = ImmutableList.copyOf(toolAttributes);
 		this.structure = ImmutableList.copyOf(structure);
 	}
 
-	public NetworkDefinition copy(String name, ImmutableList<ParDeclType> typePars,
+	public NetworkDefinition copy(ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Entry<String, EntityExpr>> entities, ImmutableList<StructureStatement> structure,
 			ImmutableList<ToolAttribute> toolAttributes) {
-		if (Objects.equals(getName(), name)
-				&& Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
+		if (Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
 				&& Lists.equals(getTypeDecls(), typeDecls) && Lists.equals(getVarDecls(), varDecls)
 				&& Lists.equals(getInputPorts(), inputPorts) && Lists.equals(getOutputPorts(), outputPorts)
 				&& Lists.equals(this.entities, entities) && Lists.equals(this.structure, structure)
 				&& Lists.equals(this.toolAttributes, toolAttributes)) {
 			return this;
 		}
-		return new NetworkDefinition(this, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
+		return new NetworkDefinition(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
 				entities, structure, toolAttributes);
 	}
+
+	@Override
+	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
+		return visitor.visitNetworkDefinition(this, param);
+	}
+
 
 	public ImmutableList<Entry<String, EntityExpr>> getEntities() {
 		return entities;
@@ -82,7 +84,17 @@ public class NetworkDefinition extends GlobalEntityDecl implements PortContainer
 		return structure;
 	}
 
-	private ImmutableList<Entry<String, EntityExpr>> entities;
-	private ImmutableList<ToolAttribute> toolAttributes;
-	private ImmutableList<StructureStatement> structure;
+	public ImmutableList<LocalTypeDecl> getTypeDecls() {
+		return typeDecls;
+	}
+
+	public ImmutableList<LocalVarDecl> getVarDecls() {
+		return varDecls;
+	}
+
+	private final ImmutableList<LocalTypeDecl> typeDecls;
+	private final ImmutableList<LocalVarDecl> varDecls;
+	private final ImmutableList<Entry<String, EntityExpr>> entities;
+	private final ImmutableList<ToolAttribute> toolAttributes;
+	private final ImmutableList<StructureStatement> structure;
 }

@@ -413,37 +413,37 @@ public class NlParser extends Parser {
  *  If a Parser.exception is thrown a CompilationUnit with an empty network is returned.
  *******************************************************/
 
-  public NetworkDefinition parse(String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+  public GlobalEntityDecl parse(String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
     return parse(new File(fileName), srcLocations, scOracle);
   }
-  public NetworkDefinition parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+  public GlobalEntityDecl parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
     return parse(new java.io.File(path + File.separatorChar + fileName), srcLocations, scOracle);
   }
-  public NetworkDefinition parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+  public GlobalEntityDecl parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
     this.file = file;
     this.srcLocations = srcLocations;
     em = new BasicErrorModule(scOracle);
-    NetworkDefinition network;
+    GlobalEntityDecl network;
     java.io.FileReader fr = null;
     try {
       try {
         fr = new java.io.FileReader(file);
         NlScanner scanner = new NlScanner(new java.io.BufferedReader(fr));
-        network = (NetworkDefinition)parse(scanner);
+        network = (GlobalEntityDecl)parse(scanner);
         fr.close();
       } catch(CalParser.Exception e) {
         // build empty compilation unit for failed error recovery
         // The problem is added to parseProblems[] by the syntaxError() method added to the parser above.
-        network = new NetworkDefinition(file.getName());
+        network = new GlobalEntityDecl(file.getName(), null);
       } finally {
         if(fr != null){ fr.close(); }
       }
     } catch (java.io.FileNotFoundException e){
       em.error("file not found: " + e.getMessage(), null);
-      network = new NetworkDefinition(file.getName());
+      network = new GlobalEntityDecl(file.getName(), null);
     } catch (java.io.IOException e){
       em.error("error reading file: " + e.getMessage(), null);
-      network = new NetworkDefinition(file.getName());
+      network = new GlobalEntityDecl(file.getName(), null);
     }
     return network;
    }
@@ -565,7 +565,8 @@ public class NlParser extends Parser {
             }
         }
         
-        return register(startSymbol, endSymbol, new NetworkDefinition((String)name.value, 
+        return register(startSymbol, endSymbol, new GlobalEntityDecl((String) name.value,
+        		new NetworkDefinition( 
                           typePars,     // typePars,
                           valuePars == null ? null : valuePars.build(), // valuePars,
                           null,      // typeDecls, NOTE, can not be expressed in NL
@@ -575,7 +576,7 @@ public class NlParser extends Parser {
                           entities.build(), // entities
                           structure.build(), // structure
                           toolAttributes.build()
-                          ));
+                          )));
 			}
 			case 11: // network_body_part = import_part.part
 			{

@@ -26,7 +26,6 @@ public class AbstractActorTransformer<P> extends AbstractBasicTransformer<P> imp
 	@Override
 	public Actor transformActor(Actor actor, P param) {
 		return actor.copy(
-				actor.getName(),
 				transformTypeParameters(actor.getTypeParameters(), param),
 				transformValueParameters(actor.getValueParameters(), param),
 				transformTypeDecls(actor.getTypeDecls(), param),

@@ -46,7 +46,7 @@ public class TestComposition {
 		String fileName = BASE_PATH + actorName.replace('.', '/') + ".cal";
 		File file = new File(fileName);
 		CalParser parser = new CalParser();
-		Actor actor = parser.parse(file, null, null);
+		Actor actor = (Actor) parser.parse(file, null, null).getEntity();
 		ErrorModule errors = parser.getErrorModule();
 		if (errors.hasError()) {
 			errors.printErrors();

@@ -15,6 +15,8 @@ import net.opendf.interp.BasicActorMachineSimulator;
 import net.opendf.interp.BasicNetworkSimulator;
 import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.ir.decl.Decl;
+import net.opendf.ir.decl.GlobalEntityDecl;
+import net.opendf.ir.entity.Entity;
 import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.ir.entity.cal.Actor;
 import net.opendf.ir.entity.nl.NetworkDefinition;
@@ -106,45 +108,47 @@ public class Parse{
 		try{
 			DeclLoader declLoader= new DeclLoader(path);
 			Decl decl = declLoader.getDecl(name);
-
-			//		System.out.println("------- " + System.getProperty("user.dir") + "/" + path + "/" + name + " (" +  new java.util.Date() + ") -------");
-			if(decl instanceof Actor){
-				Actor actor = (Actor)decl;
-//					actor = VariableInitOrderTransformer.transformActor(actor, declLoader);
-
-				if(prettyPrint){
-					PrettyPrint pp = new PrettyPrint();
-					pp.print(actor);
-				}
-				if(am){
-					ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, declLoader);
-
-					if(xml){
-						XMLWriter doc = new XMLWriter(actorMachine, declLoader);
+			if (decl instanceof GlobalEntityDecl) {
+				Entity entity = ((GlobalEntityDecl) decl).getEntity();
+				//		System.out.println("------- " + System.getProperty("user.dir") + "/" + path + "/" + name + " (" +  new java.util.Date() + ") -------");
+				if(entity instanceof Actor){
+					Actor actor = (Actor)entity;
+	//					actor = VariableInitOrderTransformer.transformActor(actor, declLoader);
+	
+					if(prettyPrint){
+						PrettyPrint pp = new PrettyPrint();
+						pp.print(actor, decl.getName());
+					}
+					if(am){
+						ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, declLoader);
+	
+						if(xml){
+							XMLWriter doc = new XMLWriter(actorMachine, declLoader);
+							doc.print();
+						}
+					} else if(xml){
+						XMLWriter doc = new XMLWriter(actor, declLoader);
 						doc.print();
 					}
-				} else if(xml){
-					XMLWriter doc = new XMLWriter(actor, declLoader);
-					doc.print();
-				}
-			} else if(decl instanceof NetworkDefinition){
-				NetworkDefinition network = (NetworkDefinition)decl;
-				if(netEval){
-					Network net = BasicNetworkSimulator.prepareNetworkDefinition(network, declLoader);
-					if(xml){
-						XMLWriter doc = new XMLWriter(net, declLoader);
+				} else if(entity instanceof NetworkDefinition){
+					NetworkDefinition network = (NetworkDefinition)entity;
+					if(netEval){
+						Network net = BasicNetworkSimulator.prepareNetworkDefinition(network, declLoader);
+						if(xml){
+							XMLWriter doc = new XMLWriter(net, declLoader);
+							doc.print();
+						}
+						if(graph){
+							NetworkToGraphviz.print(net, name, new PrintWriter(System.out));
+						}
+					} else if(xml){
+						XMLWriter doc = new XMLWriter(network);
 						doc.print();
 					}
-					if(graph){
-						NetworkToGraphviz.print(net, name, new PrintWriter(System.out));
+					if(prettyPrint){
+						PrettyPrint pp = new PrettyPrint();
+						pp.print(network, decl.getName());
 					}
-				} else if(xml){
-					XMLWriter doc = new XMLWriter(network);
-					doc.print();
-				}
-				if(prettyPrint){
-					PrettyPrint pp = new PrettyPrint();
-					pp.print(network);
 				}
 			} else {
 				throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + name + "is instance of class" + decl.getClass().getCanonicalName());

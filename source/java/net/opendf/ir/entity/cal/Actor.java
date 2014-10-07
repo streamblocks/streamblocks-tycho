@@ -42,35 +42,37 @@ package net.opendf.ir.entity.cal;
 import java.util.Objects;
 
 import net.opendf.ir.QID;
-import net.opendf.ir.decl.GlobalEntityDecl;
 import net.opendf.ir.decl.LocalTypeDecl;
 import net.opendf.ir.decl.LocalVarDecl;
 import net.opendf.ir.decl.ParDeclType;
 import net.opendf.ir.decl.ParDeclValue;
-import net.opendf.ir.entity.PortContainer;
+import net.opendf.ir.entity.EntityDefinition;
+import net.opendf.ir.entity.EntityVisitor;
 import net.opendf.ir.entity.PortDecl;
 import net.opendf.ir.expr.Expression;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
-public class Actor extends GlobalEntityDecl implements PortContainer{
+public class Actor extends EntityDefinition {
 
-	public Actor(String name, ImmutableList<ParDeclType> typePars,
+	public Actor(ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
-		this(null, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
+		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
 				actions, scheduleFSM, priorities, invariants);
 	}
 
-	private Actor(Actor original, String name, ImmutableList<ParDeclType> typePars,
+	private Actor(Actor original, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
-		super(original, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts);
+		super(original, inputPorts, outputPorts, typePars, valuePars);
 
+		this.typeDecls = ImmutableList.copyOf(typeDecls);
+		this.varDecls = ImmutableList.copyOf(varDecls);
 		this.initializers = ImmutableList.copyOf(initializers);
 		this.actions = ImmutableList.copyOf(actions);
 		this.scheduleFSM = scheduleFSM;
@@ -78,13 +80,12 @@ public class Actor extends GlobalEntityDecl implements PortContainer{
 		this.invariants = ImmutableList.copyOf(invariants);
 	}
 
-	public Actor copy(String name, ImmutableList<ParDeclType> typePars,
+	public Actor copy(ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
-		if (Objects.equals(getName(), name)
-				&& Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
+		if (Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
 				&& Lists.equals(getTypeDecls(), typeDecls) && Lists.equals(getVarDecls(), varDecls)
 				&& Lists.equals(getInputPorts(), inputPorts) && Lists.equals(getOutputPorts(), outputPorts)
 				&& Lists.equals(this.initializers, initializers) && Lists.equals(this.actions, actions)
@@ -92,8 +93,21 @@ public class Actor extends GlobalEntityDecl implements PortContainer{
 				&& Lists.equals(this.invariants, invariants)) {
 			return this;
 		}
-		return new Actor(this, name, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
+		return new Actor(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
 				initializers, actions, scheduleFSM, priorities, invariants);
+	}
+
+	@Override
+	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
+		return visitor.visitActor(this, param);
+	}
+
+	public ImmutableList<LocalTypeDecl> getTypeDecls() {
+		return typeDecls;
+	}
+	
+	public ImmutableList<LocalVarDecl> getVarDecls() {
+		return varDecls;
 	}
 
 	public ImmutableList<Action> getActions() {
@@ -116,6 +130,8 @@ public class Actor extends GlobalEntityDecl implements PortContainer{
 		return priorities;
 	}
 
+	private ImmutableList<LocalVarDecl> varDecls;
+	private ImmutableList<LocalTypeDecl> typeDecls;
 	private ImmutableList<Action> actions;
 	private ScheduleFSM scheduleFSM;
 	private ImmutableList<ImmutableList<QID>> priorities;

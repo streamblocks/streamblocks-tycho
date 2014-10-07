@@ -61,7 +61,7 @@ public class SingleInstrucitonActorMachineReader implements NodeReader {
 	public ActorMachine fromFile(File file) {
 		System.out.println(file.getName());
 		CalParser parser = new CalParser();
-		Actor actor = parser.parse(file, null, null);
+		Actor actor = (Actor) parser.parse(file, null, null).getEntity();
 		ErrorModule errors = parser.getErrorModule();
 		if (errors.hasError()) {
 			errors.printErrors();

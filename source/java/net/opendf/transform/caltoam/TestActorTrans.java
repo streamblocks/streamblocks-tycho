@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 import net.opendf.errorhandling.ErrorModule;
+import net.opendf.ir.decl.GlobalEntityDecl;
 import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.ir.entity.am.Condition;
 import net.opendf.ir.entity.am.PortCondition;
@@ -30,8 +31,8 @@ class TestActorTrans {
 		}
 	};
 
-	private Actor parse(File file) {
-		Actor actor = parser.parse(file, null, null);
+	private GlobalEntityDecl parse(File file) {
+		GlobalEntityDecl actor = parser.parse(file, null, null);
 		ErrorModule errors = parser.getErrorModule();
 		if (errors.hasError()) {
 			errors.printErrors();
@@ -46,7 +47,7 @@ class TestActorTrans {
 		//File file = new File("/Users/gustav/Programmering/dataflow-public/codegen/WriteParserOutput.cal");
 		File file = new File("/Users/gustav/Programmering/dataflow/doc/papers/2013 Asilomar -- AM Classification/ex_again/Split.cal");
 		File gv = new File("controller.gv");
-		Actor actor = parse(file);
+		GlobalEntityDecl actor = parse(file);
 		//ActorMachine actorMachine = OutputConditionAdder.addOutputConditions(translate(actor));
 		ActorMachine actorMachine = translate(actor);
 		ControllerToGraphviz.print(new PrintWriter(gv), actorMachine, "controller");
@@ -91,8 +92,8 @@ class TestActorTrans {
 		}
 	}
 	
-	private ActorMachine translate(Actor actor) {
-		return translator.translate(actor);
+	private ActorMachine translate(GlobalEntityDecl actor) {
+		return translator.translate((Actor) actor.getEntity());
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {

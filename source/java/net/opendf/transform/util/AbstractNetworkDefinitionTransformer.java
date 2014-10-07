@@ -39,7 +39,7 @@ public class AbstractNetworkDefinitionTransformer<P> extends AbstractBasicTransf
 		ImmutableList<Map.Entry<String,EntityExpr>> entities = transformEntitiyExprs(net.getEntities(), p);
 		ImmutableList<StructureStatement> structure = transformStructureStmts(net.getStructure(), p);
 		ImmutableList<ToolAttribute> toolAttributes = transformToolAttributes(net.getToolAttributes(), p);
-		return net.copy(net.getName(), typePars, valuePars, typeDecls, varDecls,
+		return net.copy(typePars, valuePars, typeDecls, varDecls,
 				inputPorts, outputPorts, entities, structure, toolAttributes); 
 	}
 	
