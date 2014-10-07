@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import net.opendf.ir.am.Instruction;
-import net.opendf.ir.am.State;
+import net.opendf.ir.entity.am.Instruction;
+import net.opendf.ir.entity.am.State;
 import net.opendf.ir.util.ImmutableList;
 
 public class ControllerGenerator<S> {

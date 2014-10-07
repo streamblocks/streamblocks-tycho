@@ -5,9 +5,9 @@ import java.util.BitSet;
 import net.opendf.interp.exception.CALIndexOutOfBoundsException;
 import net.opendf.interp.values.BasicRef;
 import net.opendf.interp.values.Ref;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Scope;
-import net.opendf.ir.common.Variable;
+import net.opendf.ir.Variable;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.Scope;
 import net.opendf.ir.util.ImmutableList;
 
 public class BasicMemory implements Memory {

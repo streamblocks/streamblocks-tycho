@@ -5,11 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.cal.InputPattern;
-import net.opendf.ir.cal.OutputExpression;
-import net.opendf.ir.common.Port;
-import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.Port;
+import net.opendf.ir.entity.PortDecl;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.cal.InputPattern;
+import net.opendf.ir.entity.cal.OutputExpression;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.transform.util.AbstractActorTransformer;
 

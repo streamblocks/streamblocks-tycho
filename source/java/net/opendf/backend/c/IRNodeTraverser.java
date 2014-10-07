@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 
 import javarag.TreeTraverser;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.PortContainer;
+import net.opendf.ir.entity.PortContainer;
 import net.opendf.ir.net.Connection;
 
 public class IRNodeTraverser implements TreeTraverser<Object> {

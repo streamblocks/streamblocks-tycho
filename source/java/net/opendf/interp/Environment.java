@@ -1,6 +1,6 @@
 package net.opendf.interp;
 
-import net.opendf.ir.common.Variable;
+import net.opendf.ir.Variable;
 import net.opendf.ir.util.ImmutableList;
 
 public interface Environment {

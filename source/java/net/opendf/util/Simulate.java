@@ -10,11 +10,11 @@ import net.opendf.interp.Channel;
 import net.opendf.interp.Environment;
 import net.opendf.interp.Simulator;
 import net.opendf.interp.exception.CALCompiletimeException;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.common.decl.Decl;
+import net.opendf.ir.decl.Decl;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.nl.NetworkDefinition;
 import net.opendf.ir.net.Network;
-import net.opendf.ir.net.ast.NetworkDefinition;
 import net.opendf.ir.util.DeclLoader;
 
 public class Simulate {

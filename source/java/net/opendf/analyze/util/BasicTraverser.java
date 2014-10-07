@@ -1,17 +1,17 @@
 package net.opendf.analyze.util;
 
-import net.opendf.ir.common.Field;
-import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.Port;
-import net.opendf.ir.common.TypeExpr;
-import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.LocalTypeDecl;
-import net.opendf.ir.common.decl.LocalVarDecl;
-import net.opendf.ir.common.decl.ParDeclType;
-import net.opendf.ir.common.decl.ParDeclValue;
-import net.opendf.ir.common.expr.Expression;
-import net.opendf.ir.common.lvalue.LValue;
-import net.opendf.ir.common.stmt.Statement;
+import net.opendf.ir.Field;
+import net.opendf.ir.GeneratorFilter;
+import net.opendf.ir.Port;
+import net.opendf.ir.TypeExpr;
+import net.opendf.ir.Variable;
+import net.opendf.ir.decl.LocalTypeDecl;
+import net.opendf.ir.decl.LocalVarDecl;
+import net.opendf.ir.decl.ParDeclType;
+import net.opendf.ir.decl.ParDeclValue;
+import net.opendf.ir.expr.Expression;
+import net.opendf.ir.stmt.Statement;
+import net.opendf.ir.stmt.lvalue.LValue;
 import net.opendf.ir.util.ImmutableList;
 
 public interface BasicTraverser<P> {

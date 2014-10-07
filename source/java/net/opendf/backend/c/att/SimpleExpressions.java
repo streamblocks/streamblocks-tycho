@@ -1,12 +1,12 @@
 package net.opendf.backend.c.att;
 
-import net.opendf.ir.common.*;
-import net.opendf.ir.common.expr.ExprApplication;
-import net.opendf.ir.common.expr.ExprIf;
-import net.opendf.ir.common.expr.ExprIndexer;
-import net.opendf.ir.common.expr.ExprLiteral;
-import net.opendf.ir.common.expr.ExprVariable;
-import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.Variable;
+import net.opendf.ir.expr.ExprApplication;
+import net.opendf.ir.expr.ExprIf;
+import net.opendf.ir.expr.ExprIndexer;
+import net.opendf.ir.expr.ExprLiteral;
+import net.opendf.ir.expr.ExprVariable;
+import net.opendf.ir.expr.Expression;
 import javarag.Module;
 import javarag.Synthesized;
 

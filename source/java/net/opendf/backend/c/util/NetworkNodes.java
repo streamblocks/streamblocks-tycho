@@ -3,7 +3,7 @@ package net.opendf.backend.c.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.opendf.ir.common.PortContainer;
+import net.opendf.ir.entity.PortContainer;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
 

@@ -6,8 +6,8 @@ import java.nio.file.Path;
 import java.util.Random;
 
 import net.opendf.errorhandling.ErrorModule;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.cal.Actor;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.cal.Actor;
 import net.opendf.parser.lth.CalParser;
 import net.opendf.transform.caltoam.ActorStates;
 import net.opendf.transform.caltoam.ActorToActorMachine;

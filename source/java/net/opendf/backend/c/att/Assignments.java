@@ -2,13 +2,13 @@ package net.opendf.backend.c.att;
 
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.expr.Expression;
-import net.opendf.ir.common.lvalue.LValue;
-import net.opendf.ir.common.lvalue.LValueIndexer;
-import net.opendf.ir.common.lvalue.LValueVariable;
-import net.opendf.ir.common.stmt.Statement;
-import net.opendf.ir.common.stmt.StmtAssignment;
+import net.opendf.ir.Variable;
+import net.opendf.ir.expr.Expression;
+import net.opendf.ir.stmt.Statement;
+import net.opendf.ir.stmt.StmtAssignment;
+import net.opendf.ir.stmt.lvalue.LValue;
+import net.opendf.ir.stmt.lvalue.LValueIndexer;
+import net.opendf.ir.stmt.lvalue.LValueVariable;
 
 public class Assignments extends Module<Assignments.Decls> {
 	

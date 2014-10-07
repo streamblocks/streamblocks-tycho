@@ -6,7 +6,7 @@ import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.ir.net.Node;
 
 public class ActorMachines extends Module<ActorMachines.Decls> {

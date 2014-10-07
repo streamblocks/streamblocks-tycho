@@ -6,19 +6,19 @@ import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.backend.c.CArrayType;
 import net.opendf.backend.c.CType;
-import net.opendf.ir.am.Condition;
-import net.opendf.ir.am.PortCondition;
-import net.opendf.ir.common.Port;
-import net.opendf.ir.common.decl.VarDecl;
-import net.opendf.ir.common.expr.ExprInput;
-import net.opendf.ir.common.expr.ExprLiteral;
-import net.opendf.ir.common.expr.Expression;
-import net.opendf.ir.common.stmt.Statement;
-import net.opendf.ir.common.stmt.StmtConsume;
-import net.opendf.ir.common.stmt.StmtOutput;
+import net.opendf.ir.Port;
+import net.opendf.ir.decl.VarDecl;
+import net.opendf.ir.entity.am.Condition;
+import net.opendf.ir.entity.am.PortCondition;
+import net.opendf.ir.expr.ExprInput;
+import net.opendf.ir.expr.ExprLiteral;
+import net.opendf.ir.expr.Expression;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.net.ToolValueAttribute;
+import net.opendf.ir.stmt.Statement;
+import net.opendf.ir.stmt.StmtConsume;
+import net.opendf.ir.stmt.StmtOutput;
 
 public class Buffers extends Module<Buffers.Decls> {
 

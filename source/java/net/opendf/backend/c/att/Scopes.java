@@ -8,13 +8,13 @@ import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.backend.c.CType;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Scope;
-import net.opendf.ir.common.decl.LocalVarDecl;
-import net.opendf.ir.common.decl.VarDecl;
-import net.opendf.ir.common.expr.ExprLambda;
-import net.opendf.ir.common.expr.ExprProc;
-import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.decl.LocalVarDecl;
+import net.opendf.ir.decl.VarDecl;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.Scope;
+import net.opendf.ir.expr.ExprLambda;
+import net.opendf.ir.expr.ExprProc;
+import net.opendf.ir.expr.Expression;
 import net.opendf.ir.net.Node;
 
 public class Scopes extends Module<Scopes.Decls> {

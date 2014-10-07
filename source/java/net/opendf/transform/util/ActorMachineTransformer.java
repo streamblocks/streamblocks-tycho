@@ -1,10 +1,10 @@
 package net.opendf.transform.util;
 
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Condition;
-import net.opendf.ir.am.Scope;
-import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.entity.PortDecl;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.Condition;
+import net.opendf.ir.entity.am.Scope;
+import net.opendf.ir.entity.am.Transition;
 import net.opendf.ir.util.ImmutableList;
 
 public interface ActorMachineTransformer<P> extends BasicTransformer<P> {

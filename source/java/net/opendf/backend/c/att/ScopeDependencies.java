@@ -13,12 +13,12 @@ import javarag.coll.Builder;
 import javarag.coll.CollectionBuilder;
 import javarag.coll.Collector;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Condition;
-import net.opendf.ir.am.PredicateCondition;
-import net.opendf.ir.am.Scope;
-import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.Variable;
+import net.opendf.ir.Variable;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.Condition;
+import net.opendf.ir.entity.am.PredicateCondition;
+import net.opendf.ir.entity.am.Scope;
+import net.opendf.ir.entity.am.Transition;
 
 public class ScopeDependencies extends Module<ScopeDependencies.Decls> {
 

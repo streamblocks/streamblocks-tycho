@@ -1,6 +1,7 @@
 package net.opendf.transform.caltoam.util;
 
 import static java.util.AbstractMap.SimpleImmutableEntry;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.opendf.ir.common.QID;
+import net.opendf.ir.QID;
 
 public class QIDMap<V> {
 	List<Map.Entry<QID, V>> map;

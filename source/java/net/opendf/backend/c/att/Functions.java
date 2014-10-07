@@ -16,16 +16,16 @@ import javarag.coll.Collector;
 import net.opendf.backend.c.CType;
 import net.opendf.backend.c.util.Joiner;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.common.TypeExpr;
-import net.opendf.ir.common.decl.LocalVarDecl;
-import net.opendf.ir.common.decl.ParDeclValue;
-import net.opendf.ir.common.decl.VarDecl;
-import net.opendf.ir.common.expr.ExprLambda;
-import net.opendf.ir.common.expr.ExprLet;
-import net.opendf.ir.common.expr.ExprProc;
-import net.opendf.ir.common.expr.Expression;
-import net.opendf.ir.common.stmt.Statement;
+import net.opendf.ir.TypeExpr;
+import net.opendf.ir.decl.LocalVarDecl;
+import net.opendf.ir.decl.ParDeclValue;
+import net.opendf.ir.decl.VarDecl;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.expr.ExprLambda;
+import net.opendf.ir.expr.ExprLet;
+import net.opendf.ir.expr.ExprProc;
+import net.opendf.ir.expr.Expression;
+import net.opendf.ir.stmt.Statement;
 import net.opendf.ir.util.ImmutableList;
 
 public class Functions extends Module<Functions.Decls> {

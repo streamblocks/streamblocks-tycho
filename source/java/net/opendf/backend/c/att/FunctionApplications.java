@@ -9,11 +9,11 @@ import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.backend.c.util.Joiner;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.expr.ExprApplication;
-import net.opendf.ir.common.expr.ExprVariable;
-import net.opendf.ir.common.expr.Expression;
-import net.opendf.ir.common.stmt.StmtCall;
+import net.opendf.ir.Variable;
+import net.opendf.ir.expr.ExprApplication;
+import net.opendf.ir.expr.ExprVariable;
+import net.opendf.ir.expr.Expression;
+import net.opendf.ir.stmt.StmtCall;
 
 public class FunctionApplications extends Module<FunctionApplications.Decls> {
 	public interface Decls {

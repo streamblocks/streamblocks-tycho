@@ -6,11 +6,11 @@ import java.io.PrintWriter;
 
 import net.opendf.backend.c.util.NetworkBuilder;
 import net.opendf.errorhandling.ErrorModule;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.common.TypeExpr;
-import net.opendf.ir.common.expr.ExprLiteral;
-import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.TypeExpr;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.expr.ExprLiteral;
+import net.opendf.ir.expr.Expression;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.net.ToolValueAttribute;

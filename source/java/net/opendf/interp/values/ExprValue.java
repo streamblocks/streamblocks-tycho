@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.expr.ExprLiteral;
+import net.opendf.ir.expr.ExprLiteral;
 
 public class ExprValue extends ExprLiteral {
 	RefView value;

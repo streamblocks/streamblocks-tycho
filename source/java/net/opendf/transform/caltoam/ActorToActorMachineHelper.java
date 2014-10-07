@@ -5,26 +5,26 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.opendf.ir.am.Condition;
-import net.opendf.ir.am.PortCondition;
-import net.opendf.ir.am.PredicateCondition;
-import net.opendf.ir.am.Scope;
-import net.opendf.ir.am.Transition;
-import net.opendf.ir.cal.Action;
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.cal.InputPattern;
-import net.opendf.ir.cal.OutputExpression;
-import net.opendf.ir.cal.ScheduleFSM;
-import net.opendf.ir.common.expr.ExprLiteral;
-import net.opendf.ir.common.expr.Expression;
-import net.opendf.ir.common.expr.ExprLiteral.Kind;
-import net.opendf.ir.common.stmt.Statement;
-import net.opendf.ir.common.stmt.StmtBlock;
-import net.opendf.ir.common.stmt.StmtConsume;
-import net.opendf.ir.common.stmt.StmtOutput;
-import net.opendf.ir.common.Port;
-import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.common.QID;
+import net.opendf.ir.Port;
+import net.opendf.ir.QID;
+import net.opendf.ir.entity.PortDecl;
+import net.opendf.ir.entity.am.Condition;
+import net.opendf.ir.entity.am.PortCondition;
+import net.opendf.ir.entity.am.PredicateCondition;
+import net.opendf.ir.entity.am.Scope;
+import net.opendf.ir.entity.am.Transition;
+import net.opendf.ir.entity.cal.Action;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.cal.InputPattern;
+import net.opendf.ir.entity.cal.OutputExpression;
+import net.opendf.ir.entity.cal.ScheduleFSM;
+import net.opendf.ir.expr.ExprLiteral;
+import net.opendf.ir.expr.Expression;
+import net.opendf.ir.expr.ExprLiteral.Kind;
+import net.opendf.ir.stmt.Statement;
+import net.opendf.ir.stmt.StmtBlock;
+import net.opendf.ir.stmt.StmtConsume;
+import net.opendf.ir.stmt.StmtOutput;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.ImmutableList.Builder;
 import net.opendf.transform.caltoam.util.QIDMap;
@@ -223,7 +223,7 @@ class ActorToActorMachineHelper {
 			}
 		} else {
 			QIDMap<Integer> qidMap = getQIDMap();
-			for (net.opendf.ir.cal.Transition t : schedule.getTransitions()) {
+			for (net.opendf.ir.entity.cal.Transition t : schedule.getTransitions()) {
 				String source = t.getSourceState();
 				String destination = t.getDestinationState();
 				for (QID tag : t.getActionTags()) {

@@ -7,16 +7,16 @@ import java.util.List;
 
 import javarag.*;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Condition;
-import net.opendf.ir.am.ICall;
-import net.opendf.ir.am.ITest;
-import net.opendf.ir.am.IWait;
-import net.opendf.ir.am.Instruction;
-import net.opendf.ir.am.PredicateCondition;
-import net.opendf.ir.am.Scope;
-import net.opendf.ir.am.State;
-import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.Condition;
+import net.opendf.ir.entity.am.ICall;
+import net.opendf.ir.entity.am.ITest;
+import net.opendf.ir.entity.am.IWait;
+import net.opendf.ir.entity.am.Instruction;
+import net.opendf.ir.entity.am.PredicateCondition;
+import net.opendf.ir.entity.am.Scope;
+import net.opendf.ir.entity.am.State;
+import net.opendf.ir.expr.Expression;
 import net.opendf.ir.net.Node;
 
 public class Controllers extends Module<Controllers.Decls> {

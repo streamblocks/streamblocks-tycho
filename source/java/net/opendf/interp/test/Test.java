@@ -13,8 +13,8 @@ import net.opendf.interp.Environment;
 import net.opendf.interp.BasicEnvironment;
 import net.opendf.interp.values.BasicRef;
 import net.opendf.interp.values.ConstRef;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.cal.Actor;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.cal.Actor;
 import net.opendf.parser.lth.CalParser;
 
 public class Test {

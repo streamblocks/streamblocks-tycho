@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.Port;
+import net.opendf.ir.Port;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
@@ -14,7 +14,7 @@ import net.opendf.ir.util.Lists;
  * 
  * {@link Connection}s identifies the ports it connects to by linking to the 
  * {@link net.opendf.ir.IRNode.Identifier} of the encapsulating {@link Node} 
- * and a {@link net.opendf.ir.common.Port} object. 
+ * and a {@link net.opendf.ir.Port} object. 
  * 
  * For external ports, i.e. ports belonging to the {@link Network}, 
  * srcNodeId/dstNodeId is <code>null</code>.

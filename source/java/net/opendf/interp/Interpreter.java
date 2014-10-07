@@ -1,8 +1,8 @@
 package net.opendf.interp;
 
 import net.opendf.interp.values.RefView;
-import net.opendf.ir.common.expr.Expression;
-import net.opendf.ir.common.stmt.Statement;
+import net.opendf.ir.expr.Expression;
+import net.opendf.ir.stmt.Statement;
 
 public interface Interpreter {
 	public void execute(Statement stmt, Environment env);

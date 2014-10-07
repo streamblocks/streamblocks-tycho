@@ -5,9 +5,9 @@ import net.opendf.interp.preprocess.VariableOffsetTransformer.LookupTable;
 import net.opendf.interp.values.Collection;
 import net.opendf.interp.values.Iterator;
 import net.opendf.interp.values.RefView;
-import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.decl.LocalVarDecl;
-import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.GeneratorFilter;
+import net.opendf.ir.decl.LocalVarDecl;
+import net.opendf.ir.expr.Expression;
 import net.opendf.ir.util.ImmutableList;
 
 public class GeneratorFilterHelper {

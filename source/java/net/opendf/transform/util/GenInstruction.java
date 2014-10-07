@@ -2,9 +2,9 @@ package net.opendf.transform.util;
 
 import java.util.Map;
 
-import net.opendf.ir.am.ICall;
-import net.opendf.ir.am.ITest;
-import net.opendf.ir.am.IWait;
+import net.opendf.ir.entity.am.ICall;
+import net.opendf.ir.entity.am.ITest;
+import net.opendf.ir.entity.am.IWait;
 
 public abstract class GenInstruction<S> {
 
@@ -31,7 +31,7 @@ public abstract class GenInstruction<S> {
 		return false;
 	}
 
-	public abstract net.opendf.ir.am.Instruction generateInstruction(Map<S, Integer> stateMap);
+	public abstract net.opendf.ir.entity.am.Instruction generateInstruction(Map<S, Integer> stateMap);
 
 	public static class Call<S> extends GenInstruction<S> {
 		private final int t;

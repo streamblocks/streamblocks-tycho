@@ -1,10 +1,9 @@
 import java.io.File;
 
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.net.ast.NetworkDefinition;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.nl.NetworkDefinition;
 import net.opendf.parser.lth.CalParser;
 import net.opendf.parser.lth.NlParser;
-
 import junit.framework.Assert;
 import junit.framework.TestCase;
 

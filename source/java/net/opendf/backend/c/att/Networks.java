@@ -2,14 +2,15 @@ package net.opendf.backend.c.att;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.backend.c.att.Ports.PortKind;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.common.Port;
-import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.Port;
+import net.opendf.ir.entity.PortDecl;
+import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;

@@ -2,8 +2,8 @@ package net.opendf.backend.c.att;
 
 import java.io.PrintWriter;
 
-import net.opendf.ir.am.ICall;
-import net.opendf.ir.am.ITest;
+import net.opendf.ir.entity.am.ICall;
+import net.opendf.ir.entity.am.ITest;
 
 public class ControllersWithStats extends Controllers {
 	@Override

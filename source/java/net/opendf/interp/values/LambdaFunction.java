@@ -2,7 +2,7 @@ package net.opendf.interp.values;
 
 import net.opendf.interp.Environment;
 import net.opendf.interp.Interpreter;
-import net.opendf.ir.common.expr.ExprLambda;
+import net.opendf.ir.expr.ExprLambda;
 
 public class LambdaFunction implements Function {
 

@@ -2,7 +2,7 @@ package net.opendf.util;
 
 import java.io.PrintWriter;
 
-import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.entity.PortDecl;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;

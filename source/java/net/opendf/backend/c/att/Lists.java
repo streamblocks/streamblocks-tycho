@@ -4,13 +4,13 @@ import java.util.List;
 
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.decl.LocalVarDecl;
-import net.opendf.ir.common.decl.VarDecl;
-import net.opendf.ir.common.expr.ExprApplication;
-import net.opendf.ir.common.expr.ExprList;
-import net.opendf.ir.common.expr.ExprVariable;
-import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.GeneratorFilter;
+import net.opendf.ir.decl.LocalVarDecl;
+import net.opendf.ir.decl.VarDecl;
+import net.opendf.ir.expr.ExprApplication;
+import net.opendf.ir.expr.ExprList;
+import net.opendf.ir.expr.ExprVariable;
+import net.opendf.ir.expr.Expression;
 
 public class Lists extends Module<Lists.Decls> {
 

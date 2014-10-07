@@ -1,9 +1,9 @@
 package net.opendf.backend.c;
 
+import net.opendf.ir.Port;
 import net.opendf.ir.IRNode.Identifier;
-import net.opendf.ir.common.Port;
-import net.opendf.ir.common.PortContainer;
-import net.opendf.ir.common.PortDecl;
+import net.opendf.ir.entity.PortContainer;
+import net.opendf.ir.entity.PortDecl;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;

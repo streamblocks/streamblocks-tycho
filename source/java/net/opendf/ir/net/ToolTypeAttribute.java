@@ -1,7 +1,7 @@
 package net.opendf.ir.net;
 import java.util.Objects;
 
-import net.opendf.ir.common.TypeExpr;
+import net.opendf.ir.TypeExpr;
 import net.opendf.util.PrettyPrint;
 
 /**

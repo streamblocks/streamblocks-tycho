@@ -1,7 +1,7 @@
 package net.opendf.interp;
 
 import net.opendf.ir.IRNode;
-import net.opendf.ir.common.Variable;
+import net.opendf.ir.Variable;
 
 public class VariableLocation extends Variable {
 

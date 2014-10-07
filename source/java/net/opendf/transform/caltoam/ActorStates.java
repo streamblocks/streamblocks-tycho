@@ -5,10 +5,10 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
-import net.opendf.ir.am.Condition;
-import net.opendf.ir.am.PortCondition;
-import net.opendf.ir.am.PredicateCondition;
-import net.opendf.ir.common.Port;
+import net.opendf.ir.Port;
+import net.opendf.ir.entity.am.Condition;
+import net.opendf.ir.entity.am.PortCondition;
+import net.opendf.ir.entity.am.PredicateCondition;
 import net.opendf.transform.caltoam.util.BitSets;
 import net.opendf.transform.caltoam.util.TestResult;
 

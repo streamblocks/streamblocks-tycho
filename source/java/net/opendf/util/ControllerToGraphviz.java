@@ -2,13 +2,13 @@ package net.opendf.util;
 
 import java.io.PrintWriter;
 
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.ICall;
-import net.opendf.ir.am.ITest;
-import net.opendf.ir.am.IWait;
-import net.opendf.ir.am.Instruction;
-import net.opendf.ir.am.InstructionVisitor;
-import net.opendf.ir.am.State;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.ICall;
+import net.opendf.ir.entity.am.ITest;
+import net.opendf.ir.entity.am.IWait;
+import net.opendf.ir.entity.am.Instruction;
+import net.opendf.ir.entity.am.InstructionVisitor;
+import net.opendf.ir.entity.am.State;
 
 public class ControllerToGraphviz {
 

@@ -3,22 +3,22 @@ package net.opendf.analyze.names;
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;
+import net.opendf.ir.GeneratorFilter;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.cal.Action;
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.cal.InputPattern;
-import net.opendf.ir.common.GeneratorFilter;
-import net.opendf.ir.common.Variable;
-import net.opendf.ir.common.decl.LocalVarDecl;
-import net.opendf.ir.common.decl.ParDeclValue;
-import net.opendf.ir.common.decl.VarDecl;
-import net.opendf.ir.common.expr.ExprLambda;
-import net.opendf.ir.common.expr.ExprLet;
-import net.opendf.ir.common.expr.ExprList;
-import net.opendf.ir.common.expr.ExprProc;
-import net.opendf.ir.common.stmt.StmtBlock;
-import net.opendf.ir.common.stmt.StmtForeach;
+import net.opendf.ir.Variable;
+import net.opendf.ir.decl.LocalVarDecl;
+import net.opendf.ir.decl.ParDeclValue;
+import net.opendf.ir.decl.VarDecl;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.cal.Action;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.cal.InputPattern;
+import net.opendf.ir.expr.ExprLambda;
+import net.opendf.ir.expr.ExprLet;
+import net.opendf.ir.expr.ExprList;
+import net.opendf.ir.expr.ExprProc;
+import net.opendf.ir.stmt.StmtBlock;
+import net.opendf.ir.stmt.StmtForeach;
 
 public class VariableBinding extends Module<VariableBinding.Decls> {
 

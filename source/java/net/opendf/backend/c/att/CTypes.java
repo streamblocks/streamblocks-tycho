@@ -7,12 +7,12 @@ import javarag.Synthesized;
 import net.opendf.backend.c.CArrayType;
 import net.opendf.backend.c.CNamedType;
 import net.opendf.backend.c.CType;
-import net.opendf.ir.common.Port;
-import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.common.TypeExpr;
-import net.opendf.ir.common.decl.LocalVarDecl;
-import net.opendf.ir.common.expr.ExprInput;
-import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.Port;
+import net.opendf.ir.TypeExpr;
+import net.opendf.ir.decl.LocalVarDecl;
+import net.opendf.ir.entity.PortDecl;
+import net.opendf.ir.expr.ExprInput;
+import net.opendf.ir.expr.Expression;
 import net.opendf.ir.net.Connection;
 
 public class CTypes extends Module<CTypes.Decls> {

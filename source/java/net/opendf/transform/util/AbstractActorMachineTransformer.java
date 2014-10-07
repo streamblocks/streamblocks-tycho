@@ -2,15 +2,15 @@ package net.opendf.transform.util;
 
 import java.lang.invoke.MethodHandle;
 
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Condition;
-import net.opendf.ir.am.ConditionVisitor;
-import net.opendf.ir.am.PortCondition;
-import net.opendf.ir.am.PredicateCondition;
-import net.opendf.ir.am.Scope;
-import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.common.decl.LocalVarDecl;
+import net.opendf.ir.decl.LocalVarDecl;
+import net.opendf.ir.entity.PortDecl;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.Condition;
+import net.opendf.ir.entity.am.ConditionVisitor;
+import net.opendf.ir.entity.am.PortCondition;
+import net.opendf.ir.entity.am.PredicateCondition;
+import net.opendf.ir.entity.am.Scope;
+import net.opendf.ir.entity.am.Transition;
 import net.opendf.ir.util.ImmutableList;
 
 public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer<P> implements ActorMachineTransformer<P>, ConditionVisitor<Condition, P>{

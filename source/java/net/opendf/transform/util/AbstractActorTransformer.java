@@ -2,14 +2,14 @@ package net.opendf.transform.util;
 
 import java.lang.invoke.MethodHandle;
 
-import net.opendf.ir.cal.Action;
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.cal.InputPattern;
-import net.opendf.ir.cal.OutputExpression;
-import net.opendf.ir.cal.ScheduleFSM;
-import net.opendf.ir.cal.Transition;
-import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.common.QID;
+import net.opendf.ir.QID;
+import net.opendf.ir.entity.PortDecl;
+import net.opendf.ir.entity.cal.Action;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.cal.InputPattern;
+import net.opendf.ir.entity.cal.OutputExpression;
+import net.opendf.ir.entity.cal.ScheduleFSM;
+import net.opendf.ir.entity.cal.Transition;
 import net.opendf.ir.util.ImmutableList;
 
 public class AbstractActorTransformer<P> extends AbstractBasicTransformer<P> implements ActorTransformer<P> {

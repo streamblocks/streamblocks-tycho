@@ -1,7 +1,7 @@
 package net.opendf.interp;
 
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.common.Variable;
+import net.opendf.ir.Variable;
+import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.ir.util.ImmutableList;
 
 public class BasicEnvironment implements Environment {

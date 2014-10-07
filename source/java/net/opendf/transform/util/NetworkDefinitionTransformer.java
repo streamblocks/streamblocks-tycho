@@ -2,11 +2,11 @@ package net.opendf.transform.util;
 
 import java.util.Map;
 
-import net.opendf.ir.common.PortDecl;
-import net.opendf.ir.net.ast.NetworkDefinition;
-import net.opendf.ir.net.ast.EntityExpr;
-import net.opendf.ir.net.ast.PortReference;
-import net.opendf.ir.net.ast.StructureStatement;
+import net.opendf.ir.entity.PortDecl;
+import net.opendf.ir.entity.nl.EntityExpr;
+import net.opendf.ir.entity.nl.NetworkDefinition;
+import net.opendf.ir.entity.nl.PortReference;
+import net.opendf.ir.entity.nl.StructureStatement;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.util.ImmutableList;
 

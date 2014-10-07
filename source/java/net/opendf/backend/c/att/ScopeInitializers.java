@@ -12,14 +12,14 @@ import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Condition;
-import net.opendf.ir.am.ICall;
-import net.opendf.ir.am.ITest;
-import net.opendf.ir.am.Instruction;
-import net.opendf.ir.am.Scope;
-import net.opendf.ir.am.State;
-import net.opendf.ir.am.Transition;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.Condition;
+import net.opendf.ir.entity.am.ICall;
+import net.opendf.ir.entity.am.ITest;
+import net.opendf.ir.entity.am.Instruction;
+import net.opendf.ir.entity.am.Scope;
+import net.opendf.ir.entity.am.State;
+import net.opendf.ir.entity.am.Transition;
 import net.opendf.ir.util.ImmutableList;
 
 public class ScopeInitializers extends Module<ScopeInitializers.Decls> {

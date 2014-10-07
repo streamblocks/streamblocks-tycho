@@ -4,9 +4,9 @@ import java.util.Objects;
 
 import net.opendf.ir.AbstractIRNode;
 import net.opendf.ir.IRNode;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.common.PortContainer;
+import net.opendf.ir.entity.PortContainer;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.cal.Actor;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.ir.util.Lists;
 
@@ -14,7 +14,7 @@ import net.opendf.ir.util.Lists;
  * A Node is a basic element in a network. It is a wrapper for a {@link PortContainer}. Usually,
  * this will be either another {@link Network}, a (parameterless) {@link Actor}, an {@link ActorMachine}.
  * 
- * {@link Connection}s identifies the ports it connects to by linking to the {@link net.opendf.ir.IRNode.Identifier} of the encapsulating {@link Node} and a {@link net.opendf.ir.common.Port} object. 
+ * {@link Connection}s identifies the ports it connects to by linking to the {@link net.opendf.ir.IRNode.Identifier} of the encapsulating {@link Node} and a {@link net.opendf.ir.Port} object. 
  * 
  * The name is for human readability and should not be used by tools.
  * Names are not guaranteed to be unique.

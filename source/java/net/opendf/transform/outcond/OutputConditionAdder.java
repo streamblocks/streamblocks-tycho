@@ -1,6 +1,6 @@
 package net.opendf.transform.outcond;
 
-import net.opendf.ir.am.ActorMachine;
+import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.transform.util.ControllerGenerator;
 
 public class OutputConditionAdder {

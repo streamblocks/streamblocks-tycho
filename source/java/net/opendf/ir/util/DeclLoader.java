@@ -8,10 +8,10 @@ import net.opendf.errorhandling.ErrorModule;
 import net.opendf.interp.exception.CALCompiletimeException;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.IRNode.Identifier;
-import net.opendf.ir.cal.Actor;
-import net.opendf.ir.common.decl.Decl;
-import net.opendf.ir.net.ast.NetworkDefinition;
-import net.opendf.ir.net.ast.evaluate.NetDefEvaluator;
+import net.opendf.ir.decl.Decl;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.nl.NetworkDefinition;
+import net.opendf.ir.entity.nl.evaluate.NetDefEvaluator;
 import net.opendf.parser.SourceCodeOracle;
 import net.opendf.parser.lth.CalParser;
 import net.opendf.parser.lth.NlParser;
@@ -20,7 +20,7 @@ import net.opendf.parser.lth.NlParser;
 /**
  * This class manages the global namespace.
  * Given a name it will return a {@link Decl}. The returned {@link Decl} is either an instance of {@link Actor} or {@link NetworkDefinition}.
- * In the simulator the {@link Decl}s is instantiated by {@link NetDefEvaluator}. After this the nodes are represented by {@link net.opendf.ir.am.ActorMachine} and {@link net.opendf.ir.net.Network}
+ * In the simulator the {@link Decl}s is instantiated by {@link NetDefEvaluator}. After this the nodes are represented by {@link net.opendf.ir.entity.am.ActorMachine} and {@link net.opendf.ir.net.Network}
  * 
  * @author pera
  *

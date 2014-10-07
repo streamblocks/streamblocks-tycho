@@ -1,8 +1,8 @@
 package net.opendf.backend.c.test;
 
-import net.opendf.ir.common.TypeExpr;
-import net.opendf.ir.common.expr.ExprLiteral;
-import net.opendf.ir.common.expr.Expression;
+import net.opendf.ir.TypeExpr;
+import net.opendf.ir.expr.ExprLiteral;
+import net.opendf.ir.expr.Expression;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.net.ToolValueAttribute;
 import net.opendf.ir.util.ImmutableEntry;

@@ -1,7 +1,7 @@
 package net.opendf.transform.caltoam;
 
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.cal.Actor;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.cal.Actor;
 import net.opendf.transform.caltoam.ActorStates.State;
 import net.opendf.transform.util.ControllerGenerator;
 import net.opendf.transform.util.StateHandler;

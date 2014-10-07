@@ -5,8 +5,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.Port;
+import net.opendf.ir.Port;
+import net.opendf.ir.entity.am.Transition;
 import net.opendf.transform.caltoam.ActorStates.State;
 import net.opendf.transform.caltoam.util.BitSets;
 import net.opendf.transform.util.GenInstruction;

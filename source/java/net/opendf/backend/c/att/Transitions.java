@@ -4,10 +4,10 @@ import java.io.PrintWriter;
 
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.am.ActorMachine;
-import net.opendf.ir.am.Transition;
-import net.opendf.ir.common.stmt.Statement;
+import net.opendf.ir.entity.am.ActorMachine;
+import net.opendf.ir.entity.am.Transition;
 import net.opendf.ir.net.Node;
+import net.opendf.ir.stmt.Statement;
 
 public class Transitions extends Module<Transitions.Decls> {
 

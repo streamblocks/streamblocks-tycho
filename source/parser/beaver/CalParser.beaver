@@ -2,8 +2,8 @@
 /* 
  *  @author Per Andersson<Per.Andersson@cs.lth.se>, Lund University
  *  To parse a CAL file use one of the methods:
- *  - public net.opendf.ir.cal.Actor parse(String path, String fileName)
- *  - public net.opendf.ir.cal.Actor parse(File file)
+ *  - public net.opendf.ir.entity.cal.Actor parse(String path, String fileName)
+ *  - public net.opendf.ir.entity.cal.Actor parse(File file)
  *
  *  After parsing check for errors in the attribute parseProblems.
  *
@@ -14,13 +14,13 @@
 %import "net.opendf.ir.*";
 %import "net.opendf.ir.util.ImmutableList";
 %import "net.opendf.ir.util.ImmutableEntry";
-%import "net.opendf.ir.common.*";
-%import "net.opendf.ir.common.decl.*";
-%import "net.opendf.ir.common.expr.*";
-%import "net.opendf.ir.common.lvalue.*";
-%import "net.opendf.ir.common.stmt.*";
-%import "net.opendf.ir.cal.*";
-%import "net.opendf.ir.cal.Action";
+%import "net.opendf.ir.decl.*";
+%import "net.opendf.ir.expr.*";
+%import "net.opendf.ir.stmt.lvalue.*";
+%import "net.opendf.ir.stmt.*";
+%import "net.opendf.ir.entity.*";
+%import "net.opendf.ir.entity.cal.*";
+%import "net.opendf.ir.entity.cal.Action";
 %import "java.io.File";
 %import "java.io.PrintStream";
 %import "java.util.TreeSet";
@@ -164,10 +164,10 @@
     return new Actor(name, null, null, null, null, null, null, null, null, null, null, null);   
   }
   
-  public net.opendf.ir.cal.Actor parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+  public net.opendf.ir.entity.cal.Actor parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
     return parse(new java.io.File(path + "/" + fileName), srcLocations, scOracle);
   }
-  public net.opendf.ir.cal.Actor parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
+  public net.opendf.ir.entity.cal.Actor parse(File file, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
      this.file = file;
      this.srcLocations = srcLocations;
      em = new BasicErrorModule(scOracle);

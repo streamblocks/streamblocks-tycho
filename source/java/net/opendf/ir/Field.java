@@ -1,0 +1,27 @@
+package net.opendf.ir;
+
+import java.util.Objects;
+
+public class Field extends AbstractIRNode {
+	private String name;
+
+	public Field(String name) {
+		this(null, name);
+	}
+
+	private Field(Field original, String name) {
+		super(original);
+		this.name = name;
+	}
+
+	public Field copy(String name) {
+		if (Objects.equals(this.name, name)) {
+			return this;
+		}
+		return new Field(this, name);
+	}
+
+	public String getName() {
+		return name;
+	}
+}

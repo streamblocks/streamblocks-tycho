@@ -1,5 +1,5 @@
 import static org.junit.Assert.*;
-import net.opendf.ir.common.QID;
+import net.opendf.ir.QID;
 
 import org.junit.Test;
 
