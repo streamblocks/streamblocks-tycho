@@ -59,4 +59,5 @@ public interface ExpressionVisitor<R,P> {
     public R visitExprSet(ExprSet e, P p);
     public R visitExprUnaryOp(ExprUnaryOp e, P p);
     public R visitExprVariable(ExprVariable e, P p);
+    public R visitGlobalValueReference(GlobalValueReference e, P p);
 }

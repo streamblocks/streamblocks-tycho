@@ -29,6 +29,7 @@ import net.opendf.ir.expr.ExprUnaryOp;
 import net.opendf.ir.expr.ExprVariable;
 import net.opendf.ir.expr.Expression;
 import net.opendf.ir.expr.ExpressionVisitor;
+import net.opendf.ir.expr.GlobalValueReference;
 import net.opendf.ir.util.ImmutableList;
 
 public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environment> {
@@ -202,6 +203,11 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 			value = stack.peek(var.getOffset());
 		}
 		return value;
+	}
+	
+	@Override
+	public RefView visitGlobalValueReference(GlobalValueReference expr, Environment env) {
+		throw notImplemented("Imports are not supported by this evaluator.");
 	}
 
 	private IllegalArgumentException notTransformed(String msg) {

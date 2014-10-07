@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 import net.opendf.ir.Field;
 import net.opendf.ir.GeneratorFilter;
 import net.opendf.ir.Port;
+import net.opendf.ir.QID;
 import net.opendf.ir.TypeExpr;
 import net.opendf.ir.Variable;
 import net.opendf.ir.decl.LocalTypeDecl;
@@ -28,6 +29,7 @@ import net.opendf.ir.expr.ExprUnaryOp;
 import net.opendf.ir.expr.ExprVariable;
 import net.opendf.ir.expr.Expression;
 import net.opendf.ir.expr.ExpressionVisitor;
+import net.opendf.ir.expr.GlobalValueReference;
 import net.opendf.ir.stmt.Statement;
 import net.opendf.ir.stmt.StatementVisitor;
 import net.opendf.ir.stmt.StmtAssignment;
@@ -237,6 +239,16 @@ public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, Ex
 	public Void visitExprVariable(ExprVariable e, P p) {
 		traverseVariable(e.getVariable(), p);
 		return null;
+	}
+	
+	@Override
+	public Void visitGlobalValueReference(GlobalValueReference e, P p) {
+		traverseQualifiedIdentifier(e.getQualifiedIdentifier(), p);
+		return null;
+	}
+	
+	@Override
+	public void traverseQualifiedIdentifier(QID qid, P p) {
 	}
 
 	@Override

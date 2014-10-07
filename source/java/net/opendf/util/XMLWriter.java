@@ -18,12 +18,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
-
 import net.opendf.interp.VariableLocation;
 import net.opendf.ir.Field;
 import net.opendf.ir.GeneratorFilter;
@@ -32,7 +26,6 @@ import net.opendf.ir.Port;
 import net.opendf.ir.QID;
 import net.opendf.ir.TypeExpr;
 import net.opendf.ir.Variable;
-import net.opendf.ir.decl.GlobalEntityDecl;
 import net.opendf.ir.decl.LocalTypeDecl;
 import net.opendf.ir.decl.LocalVarDecl;
 import net.opendf.ir.decl.ParDeclValue;
@@ -50,7 +43,11 @@ import net.opendf.ir.entity.am.PredicateCondition;
 import net.opendf.ir.entity.am.Scope;
 import net.opendf.ir.entity.am.State;
 import net.opendf.ir.entity.am.Transition;
-import net.opendf.ir.entity.cal.*;
+import net.opendf.ir.entity.cal.Action;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.cal.InputPattern;
+import net.opendf.ir.entity.cal.OutputExpression;
+import net.opendf.ir.entity.cal.ScheduleFSM;
 import net.opendf.ir.entity.nl.EntityExpr;
 import net.opendf.ir.entity.nl.EntityExprVisitor;
 import net.opendf.ir.entity.nl.EntityIfExpr;
@@ -80,6 +77,7 @@ import net.opendf.ir.expr.ExprUnaryOp;
 import net.opendf.ir.expr.ExprVariable;
 import net.opendf.ir.expr.Expression;
 import net.opendf.ir.expr.ExpressionVisitor;
+import net.opendf.ir.expr.GlobalValueReference;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
@@ -101,6 +99,12 @@ import net.opendf.ir.stmt.lvalue.LValueVisitor;
 import net.opendf.ir.util.ImmutableList;
 import net.opendf.parser.SourceCodeOracle;
 import net.opendf.parser.SourceCodeOracle.SourceCodePosition;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.sun.org.apache.xml.internal.serialize.OutputFormat;
+import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
 public class XMLWriter implements ExpressionVisitor<Void,Element>, 
 StatementVisitor<Void, Element>, 
@@ -943,6 +947,12 @@ InstructionVisitor<Void, Element>{
 		p.appendChild(var);
 		addSourceCodePosition(e, var);
 		generateXMLForVariable(e.getVariable(), var);
+		return null;
+	}
+	
+	@Override
+	public Void visitGlobalValueReference(GlobalValueReference e, Element p) {
+		// FIXME
 		return null;
 	}
 

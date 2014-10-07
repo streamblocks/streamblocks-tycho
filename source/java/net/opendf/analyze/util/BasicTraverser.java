@@ -3,6 +3,7 @@ package net.opendf.analyze.util;
 import net.opendf.ir.Field;
 import net.opendf.ir.GeneratorFilter;
 import net.opendf.ir.Port;
+import net.opendf.ir.QID;
 import net.opendf.ir.TypeExpr;
 import net.opendf.ir.Variable;
 import net.opendf.ir.decl.LocalTypeDecl;
@@ -52,6 +53,8 @@ public interface BasicTraverser<P> {
 	public void traverseField(Field field, P param);
 
 	public void traversePort(Port port, P param);
+	
+	public void traverseQualifiedIdentifier(QID qid, P param);
 
 	public void traverseTypeExpr(TypeExpr typeExpr, P param);
 

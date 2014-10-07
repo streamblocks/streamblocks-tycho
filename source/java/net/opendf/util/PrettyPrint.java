@@ -9,14 +9,17 @@ import java.util.Map.Entry;
 import net.opendf.ir.GeneratorFilter;
 import net.opendf.ir.QID;
 import net.opendf.ir.TypeExpr;
-import net.opendf.ir.decl.GlobalEntityDecl;
 import net.opendf.ir.decl.LocalVarDecl;
 import net.opendf.ir.decl.ParDeclType;
 import net.opendf.ir.decl.ParDeclValue;
 import net.opendf.ir.decl.VarDecl;
 import net.opendf.ir.entity.EntityDefinition;
 import net.opendf.ir.entity.PortDecl;
-import net.opendf.ir.entity.cal.*;
+import net.opendf.ir.entity.cal.Action;
+import net.opendf.ir.entity.cal.Actor;
+import net.opendf.ir.entity.cal.InputPattern;
+import net.opendf.ir.entity.cal.OutputExpression;
+import net.opendf.ir.entity.cal.Transition;
 import net.opendf.ir.entity.nl.EntityExpr;
 import net.opendf.ir.entity.nl.EntityExprVisitor;
 import net.opendf.ir.entity.nl.EntityIfExpr;
@@ -46,6 +49,7 @@ import net.opendf.ir.expr.ExprUnaryOp;
 import net.opendf.ir.expr.ExprVariable;
 import net.opendf.ir.expr.Expression;
 import net.opendf.ir.expr.ExpressionVisitor;
+import net.opendf.ir.expr.GlobalValueReference;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
 import net.opendf.ir.net.Node;
@@ -685,6 +689,13 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append(e.getVariable().getName());
 		return null;
 	}
+
+	@Override
+	public Void visitGlobalValueReference(GlobalValueReference e, Void p) {
+		out.append(e.getQualifiedIdentifier().toString());
+		return null;
+	}
+
 /******************************************************************************
  * Statement
  */

@@ -7,6 +7,7 @@ import java.lang.invoke.MethodType;
 import net.opendf.ir.Field;
 import net.opendf.ir.GeneratorFilter;
 import net.opendf.ir.Port;
+import net.opendf.ir.QID;
 import net.opendf.ir.TypeExpr;
 import net.opendf.ir.Variable;
 import net.opendf.ir.decl.LocalTypeDecl;
@@ -31,6 +32,7 @@ import net.opendf.ir.expr.ExprUnaryOp;
 import net.opendf.ir.expr.ExprVariable;
 import net.opendf.ir.expr.Expression;
 import net.opendf.ir.expr.ExpressionVisitor;
+import net.opendf.ir.expr.GlobalValueReference;
 import net.opendf.ir.stmt.Statement;
 import net.opendf.ir.stmt.StatementVisitor;
 import net.opendf.ir.stmt.StmtAssignment;
@@ -382,6 +384,15 @@ LValueVisitor<LValue, P> {
 	@Override
 	public Expression visitExprVariable(ExprVariable e, P p) {
 		return e.copy(transformVariable(e.getVariable(), p));
+	}
+	
+	@Override
+	public Expression visitGlobalValueReference(GlobalValueReference e, P p) {
+		return e.copy(transformQualifiedIdentifier(e.getQualifiedIdentifier(), p));
+	}
+
+	private QID transformQualifiedIdentifier(QID qid, P p) {
+		return qid;
 	}
 
 	@Override
