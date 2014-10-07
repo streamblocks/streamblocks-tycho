@@ -5,6 +5,7 @@ import java.util.Set;
 
 import javarag.Inherited;
 import javarag.Module;
+import javarag.Procedural;
 import javarag.Synthesized;
 import net.opendf.backend.c.CType;
 import net.opendf.ir.IRNode;
@@ -21,7 +22,7 @@ public class Scopes extends Module<Scopes.Decls> {
 
 	public interface Decls {
 
-		@Synthesized
+		@Procedural
 		public void scopes(ActorMachine actorMachine, PrintWriter writer);
 
 		@Synthesized

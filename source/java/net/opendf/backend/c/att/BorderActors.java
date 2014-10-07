@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javarag.Module;
+import javarag.Procedural;
 import javarag.Synthesized;
 import net.opendf.backend.c.CType;
 import net.opendf.ir.net.Connection;
@@ -14,16 +15,16 @@ public class BorderActors extends Module<BorderActors.Decls> {
 	
 	public interface Decls {
 
-		@Synthesized
+		@Procedural
 		void inputActor(Connection conn, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		void outputActor(Connection conn, PrintWriter writer);
 
 		@Synthesized
 		List<Connection> borderConnections(Network net);
 
-		@Synthesized
+		@Procedural
 		void borderActors(Network net, PrintWriter writer);
 
 		@Synthesized

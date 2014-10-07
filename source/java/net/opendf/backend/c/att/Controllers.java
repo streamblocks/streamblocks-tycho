@@ -22,13 +22,13 @@ import net.opendf.ir.net.Node;
 public class Controllers extends Module<Controllers.Decls> {
 
 	public interface Decls {
-		@Synthesized
+		@Procedural
 		void controller(ActorMachine actorMachine, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		void initScopes(Instruction i, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		void controllerContinue(ActorMachine actorMachine, PrintWriter writer);
 
 		@Inherited
@@ -37,7 +37,7 @@ public class Controllers extends Module<Controllers.Decls> {
 		@Synthesized
 		String condition(Condition cond);
 
-		@Synthesized
+		@Procedural
 		void controllerInstruction(Instruction instr, PrintWriter writer);
 
 		Node node(ActorMachine actorMachine);

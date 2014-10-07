@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 
 import javarag.Inherited;
 import javarag.Module;
-import javarag.Synthesized;
+import javarag.Procedural;
 import net.opendf.ir.IRNode;
 import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.ir.net.Node;
@@ -15,7 +15,7 @@ public class ActorMachines extends Module<ActorMachines.Decls> {
 		@Inherited
 		ActorMachine actorMachine(IRNode node);
 
-		@Synthesized
+		@Procedural
 		void translateNode(ActorMachine actorMachine, PrintWriter writer);
 
 		Node node(ActorMachine actorMachine);

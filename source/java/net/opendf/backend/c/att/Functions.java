@@ -9,6 +9,7 @@ import java.util.Set;
 
 import javarag.Collected;
 import javarag.Module;
+import javarag.Procedural;
 import javarag.Synthesized;
 import javarag.coll.Builder;
 import javarag.coll.CollectionBuilder;
@@ -41,13 +42,13 @@ public class Functions extends Module<Functions.Decls> {
 		@Synthesized
 		String procedureSignature(ExprProc proc);
 
-		@Synthesized
+		@Procedural
 		void functionDeclarations(ActorMachine actorMachine, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		void functionBody(ExprLet let, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		void functionDefinitions(ActorMachine actorMachine, PrintWriter writer);
 
 		@Collected

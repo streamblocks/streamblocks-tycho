@@ -3,6 +3,7 @@ package net.opendf.backend.c.att;
 import java.io.PrintWriter;
 
 import javarag.Module;
+import javarag.Procedural;
 import javarag.Synthesized;
 import net.opendf.ir.entity.am.ActorMachine;
 import net.opendf.ir.entity.am.Transition;
@@ -13,10 +14,10 @@ public class Transitions extends Module<Transitions.Decls> {
 
 	public interface Decls {
 
-		@Synthesized
+		@Procedural
 		public void transitions(ActorMachine actorMachine, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		void transition(Transition t, PrintWriter writer);
 
 		ActorMachine actorMachine(Transition trans);

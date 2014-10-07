@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javarag.Module;
+import javarag.Procedural;
 import javarag.Synthesized;
 import net.opendf.ir.net.Connection;
 import net.opendf.ir.net.Network;
@@ -14,22 +15,22 @@ public class TranslationUnit extends Module<TranslationUnit.Decls> {
 
 	public interface Decls {
 
-		@Synthesized
+		@Procedural
 		public void translate(Network network, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		public void includes(Network network, PrintWriter writer);
 
 		@Synthesized
 		public String bufferDecl(Connection conn);
 
-		@Synthesized
+		@Procedural
 		public void mainFunction(Network network, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		public void actors(Network network, PrintWriter writer);
 
-		@Synthesized
+		@Procedural
 		public void bufferDecls(Network network, PrintWriter writer);
 
 		public void borderActors(Network network, PrintWriter writer);
