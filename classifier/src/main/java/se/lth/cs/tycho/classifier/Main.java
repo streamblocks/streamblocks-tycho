@@ -2,14 +2,14 @@ package se.lth.cs.tycho.classifier;
 
 import java.io.File;
 
-import net.opendf.errorhandling.ErrorModule;
-import net.opendf.ir.entity.am.ActorMachine;
-import net.opendf.ir.entity.cal.Actor;
-import net.opendf.parser.lth.CalParser;
-import net.opendf.transform.caltoam.ActorStates;
-import net.opendf.transform.caltoam.ActorToActorMachine;
-import net.opendf.transform.filter.PrioritizeCallInstructions;
-import net.opendf.transform.util.StateHandler;
+import se.lth.cs.tycho.errorhandling.ErrorModule;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.parser.lth.CalParser;
+import se.lth.cs.tycho.transform.caltoam.ActorStates;
+import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
+import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
+import se.lth.cs.tycho.transform.util.StateHandler;
 
 public class Main {
 	

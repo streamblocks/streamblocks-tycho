@@ -8,11 +8,11 @@ import javarag.Module;
 import javarag.Synthesized;
 import se.lth.cs.tycho.classifier.util.DecisionPathKnowledge;
 import se.lth.cs.tycho.classifier.util.ImmutableBitSet;
-import net.opendf.ir.entity.am.ActorMachine;
-import net.opendf.ir.entity.am.Condition;
-import net.opendf.ir.entity.am.PortCondition;
-import net.opendf.ir.entity.am.PredicateCondition;
-import net.opendf.ir.entity.am.State;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.Condition;
+import se.lth.cs.tycho.ir.entity.am.PortCondition;
+import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
+import se.lth.cs.tycho.ir.entity.am.State;
 
 public class MonotonicityModule extends Module<MonotonicityModule.Decls> {
 	public interface Decls {

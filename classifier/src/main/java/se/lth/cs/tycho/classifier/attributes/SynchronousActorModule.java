@@ -2,12 +2,12 @@ package se.lth.cs.tycho.classifier.attributes;
 
 import java.util.Map;
 
+import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.Transition;
 import javarag.Cached;
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.entity.am.ActorMachine;
-import net.opendf.ir.entity.am.Transition;
-import net.opendf.ir.entity.PortDecl;
 
 public class SynchronousActorModule extends Module<SynchronousActorModule.Decls> {
 	public interface Decls {

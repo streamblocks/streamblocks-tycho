@@ -4,17 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.entity.PortContainer;
+import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.PortCondition;
+import se.lth.cs.tycho.ir.entity.am.Transition;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.IRNode;
-import net.opendf.ir.entity.am.ActorMachine;
-import net.opendf.ir.entity.am.PortCondition;
-import net.opendf.ir.entity.am.Transition;
-import net.opendf.ir.Port;
-import net.opendf.ir.entity.PortContainer;
-import net.opendf.ir.entity.PortDecl;
-import net.opendf.ir.util.ImmutableList;
 
 public class PortDeclModule extends Module<PortDeclModule.Decls> {
 	public interface Decls {

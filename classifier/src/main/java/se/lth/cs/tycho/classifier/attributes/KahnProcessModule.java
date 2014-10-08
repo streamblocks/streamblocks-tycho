@@ -7,15 +7,15 @@ import javarag.Cached;
 import javarag.Module;
 import javarag.Synthesized;
 import se.lth.cs.tycho.classifier.util.DecisionPathKnowledge;
-import net.opendf.ir.IRNode;
-import net.opendf.ir.entity.am.ActorMachine;
-import net.opendf.ir.entity.am.Condition;
-import net.opendf.ir.entity.am.ICall;
-import net.opendf.ir.entity.am.PortCondition;
-import net.opendf.ir.entity.am.State;
-import net.opendf.ir.entity.am.Transition;
-import net.opendf.ir.Port;
-import net.opendf.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.Condition;
+import se.lth.cs.tycho.ir.entity.am.ICall;
+import se.lth.cs.tycho.ir.entity.am.PortCondition;
+import se.lth.cs.tycho.ir.entity.am.State;
+import se.lth.cs.tycho.ir.entity.am.Transition;
 
 public class KahnProcessModule extends Module<KahnProcessModule.Decls> {
 	public interface Decls {

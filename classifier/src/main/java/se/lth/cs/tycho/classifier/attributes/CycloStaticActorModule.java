@@ -1,11 +1,11 @@
 package se.lth.cs.tycho.classifier.attributes;
 
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.Condition;
+import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
 import javarag.Cached;
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.entity.am.ActorMachine;
-import net.opendf.ir.entity.am.Condition;
-import net.opendf.ir.entity.am.PredicateCondition;
 
 public class CycloStaticActorModule extends Module<CycloStaticActorModule.Decls> {
 	public interface Decls {

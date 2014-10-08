@@ -18,8 +18,8 @@ import se.lth.cs.tycho.classifier.attributes.MonotonicityModule;
 import se.lth.cs.tycho.classifier.attributes.PortDeclModule;
 import se.lth.cs.tycho.classifier.attributes.SynchronousActorModule;
 import se.lth.cs.tycho.classifier.util.ControllerTraverser;
-import net.opendf.ir.IRNode;
-import net.opendf.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 
 public class Classifier {
 	private static Map<String, String> classes = new LinkedHashMap<>();

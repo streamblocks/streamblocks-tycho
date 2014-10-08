@@ -11,10 +11,10 @@ import javarag.coll.Builder;
 import javarag.coll.Builders;
 import javarag.coll.Collector;
 import se.lth.cs.tycho.classifier.util.DecisionPathKnowledge;
-import net.opendf.ir.IRNode;
-import net.opendf.ir.entity.am.ActorMachine;
-import net.opendf.ir.entity.am.ICall;
-import net.opendf.ir.entity.am.State;
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.ICall;
+import se.lth.cs.tycho.ir.entity.am.State;
 
 public class DeterminacyModule extends Module<DeterminacyModule.Decls> {
 	public interface Decls {

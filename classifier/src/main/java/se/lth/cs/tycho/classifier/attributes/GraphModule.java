@@ -1,16 +1,16 @@
 package se.lth.cs.tycho.classifier.attributes;
 
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.Condition;
+import se.lth.cs.tycho.ir.entity.am.ICall;
+import se.lth.cs.tycho.ir.entity.am.ITest;
+import se.lth.cs.tycho.ir.entity.am.IWait;
+import se.lth.cs.tycho.ir.entity.am.State;
+import se.lth.cs.tycho.ir.entity.am.Transition;
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;
-import net.opendf.ir.IRNode;
-import net.opendf.ir.entity.am.ActorMachine;
-import net.opendf.ir.entity.am.Condition;
-import net.opendf.ir.entity.am.ICall;
-import net.opendf.ir.entity.am.ITest;
-import net.opendf.ir.entity.am.IWait;
-import net.opendf.ir.entity.am.State;
-import net.opendf.ir.entity.am.Transition;
 
 public class GraphModule extends Module<GraphModule.Decls> {
 	public interface Decls {

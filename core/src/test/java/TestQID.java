@@ -1,7 +1,8 @@
 import static org.junit.Assert.*;
-import net.opendf.ir.QID;
 
 import org.junit.Test;
+
+import se.lth.cs.tycho.ir.QID;
 
 public class TestQID {
 	@Test
