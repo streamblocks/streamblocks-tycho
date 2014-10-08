@@ -1,0 +1,1535 @@
+
+options {
+	STATIC = false;
+	CHOICE_AMBIGUITY_CHECK = 3;
+	FORCE_LA_CHECK = false;
+	DEBUG_PARSER = false;
+	DEBUG_TOKEN_MANAGER = false;
+	OUTPUT_DIRECTORY = "se/lth/cs/tycho/parsing/cal";
+}
+
+
+
+PARSER_BEGIN(CalParser)
+package se.lth.cs.tycho.parsing.cal;
+
+import java.lang.SuppressWarnings;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
+import se.lth.cs.tycho.ir.*;
+import se.lth.cs.tycho.ir.decl.*;
+import se.lth.cs.tycho.ir.decl.GlobalDecl.Visibility;
+import se.lth.cs.tycho.ir.expr.*;
+import se.lth.cs.tycho.ir.stmt.*;
+import se.lth.cs.tycho.ir.stmt.lvalue.*;
+import se.lth.cs.tycho.ir.entity.cal.*;
+import se.lth.cs.tycho.ir.entity.*;
+import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.ir.util.ImmutableEntry;
+
+@SuppressWarnings("unused")
+public class CalParser {
+
+	public static class TypeAndName {
+		public final TypeExpr type;
+		public final String name;
+		public TypeAndName(TypeExpr type, String name) {
+			this.type = type;
+			this.name = name;
+		}
+	}
+	
+	public static class NameAndDef<T> {
+		public final String name;
+		public final T def;
+		public NameAndDef(String name, T def) {
+			this.name = name;
+			this.def = def;
+		}
+	}
+}
+PARSER_END(CalParser)
+
+/* Whitespace */
+SKIP :
+{
+	" " | "\t" | "\n" | "\r" | "\f"
+}
+
+
+/* Comments */
+MORE :
+{
+  < "//" (~["\n", "\r"])* ("\n" | "\r" | "\r\n") >
+|
+  < "/" ("*")+ "*/" >
+|
+  < "/" ("*")+ > : IN_MULTI_LINE_COMMENT
+}
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT,IN_SINGLE_LINE_COMMENT>
+MORE :
+{
+  < ~[] >
+}
+
+
+/* Keywords */
+TOKEN :
+{
+	< ACTION: "action" >
+|	< ACTOR: "actor" >
+|	< ALL: "all" >
+|	< AND: "and" >
+|	< ANY: "any" >
+|	< AT: "at" >
+|	< AT_STAR: "at*" >
+|	< BEGIN: "begin" >
+|	< CHOOSE: "choose" >
+|	< CONST: "const" >
+|	< DELAY: "delay" >
+|	< DIV: "div" >
+|	< DO: "do" >
+|	< DOM: "dom" >
+|	< ELSE: "else" >
+|	< ELSIF: "elsif" >
+|	< END: "end" >
+|	< ENDACTION: "endaction" >
+|	< ENDACTOR: "endactor" >
+|	< ENDCHOOSE: "endchoose" >
+|	< ENDFOREACH: "endforeach" >
+|	< ENDFUNCTION: "endfunction" >
+|	< ENDIF: "endif" >
+|	< ENDINITIALIZE: "endinitialize" >
+|	< ENDLAMBDA: "endlambda" >
+|	< ENDLET: "endlet" >
+|	< ENDPRIORITY: "endpriority" >
+|	< ENDPROC: "endproc" >
+|	< ENDPROCEDURE: "endprocedure" >
+|	< ENDSCHEDULE: "endschedule" >
+|	< ENDWHILE: "endwhile" >
+|	< ENTITY: "entity" >
+|	< FALSE: "false" >
+|	< FOR: "for" >
+|	< FOREACH: "foreach" >
+|	< FSM: "fsm" >
+|	< FUNCTION: "function" >
+|	< GUARD: "guard" >
+|	< IF: "if" >
+|	< IMPORT: "import" >
+|	< IN: "in" >
+|	< INITIALIZE: "initialize" >
+|	< LAMBDA: "lambda" >
+|	< LET: "let" >
+|	< MAP: "map" >
+|	< MOD: "mod" >
+|	< MULTI: "multi" >
+|	< MUTABLE: "mutable" >
+|	< NAMESPACE: "namespace" >
+|	< NOT: "not" >
+|	< NULL: "null" >
+|	< OLD: "old" >
+|	< OR: "or" >
+|	< PRIORITY: "priority" >
+|	< PROC: "proc" >
+|	< PROCEDURE: "procedure" >
+|	< REGEXP: "regexp" >
+|	< REPEAT: "repeat" >
+|	< RNG: "rng" >
+|	< SCHEDULE: "schedule" >
+|	< THEN: "then" >
+|	< TIME: "time" >
+|	< TRUE: "true" >
+|	< TYPE: "type" >
+|	< VAR: "var" >
+|	< WHILE: "while" >
+
+|	< PACKAGE: "package" >
+|	< UNIT: "unit" >
+
+|	< PUBLIC: "public" >
+|	< PRIVATE: "private" >
+|	< LOCAL: "local" >
+}
+
+/* Delimiters and separators */
+TOKEN: {
+	< COLON: ":" >
+|	< DOT: "." >
+|	< COMMA: "," >
+|	< LONG_DOUBLE_ARROW_RITHT: "==>" >
+|	< LONG_SINGLE_ARROW_RIGHT: "-->" >
+|	< LPAREN: "(" >
+|	< RPAREN: ")" >
+|	< LCURLY: "{" >
+|	< RCURLY: "}" >
+|	< LSQUARE: "[" >
+|	< RSQUARE: "]" >
+}
+
+/* Operators */
+TOKEN: {
+	< EQ: "=" >
+|	< COLON_EQ: ":=" >
+|	< SINGLE_ARROW_RIGHT: "->" >
+|	< VERTICAL_BAR: "|" >
+|	< GREATER_THAN: ">" >
+|	< STAR: "*" >
+|	< DOT_STAR: ".*" >
+|	< CINNAMON_BUN: "@" >
+|	< OP: (["!", "@", "#", "$", "%", "^", "&", "*", "/",
+		"+", "-", "=", "<", ">", "?", "~", "|", "."])+ >
+}
+
+/* String literals */
+TOKEN: {
+	< STRING : "\"" ((~["\""])* ("\\" "\"")*)* "\"" >
+}
+
+
+/* Numeric literals */
+TOKEN: {
+	< INTEGER: <DECIMAL_LITERAL> | <HEXADECIMAL_LITERAL> | <OCTAL_LITERAL> >
+|
+	< REAL:
+			(<DECIMAL_DIGIT>)+ "." (<DECIMAL_DIGIT>)* (<EXPONENT>)?
+		|	"." (<DECIMAL_DIGIT>)+ (<EXPONENT>)?
+		|	(<DECIMAL_DIGIT>)+ <EXPONENT> >
+|
+	< #DECIMAL_LITERAL: <NON_ZERO_DECIMAL_DIGIT> (<DECIMAL_DIGIT>)* >
+|
+	< #HEXADECIMAL_LITERAL: "0" ["x", "X"] (<HEXADECIMAL_DIGIT>)+ >
+|
+	< #OCTAL_LITERAL: "0" (<OCTAL_DIGIT>)* >
+|
+	< #EXPONENT: ["e", "E"] (["+", "-"])? (<DECIMAL_DIGIT>)+ >
+|
+	< #NON_ZERO_DECIMAL_DIGIT: ["1"-"9"] >
+|
+	< #DECIMAL_DIGIT: ["0"-"9"] >
+|
+	< #OCTAL_DIGIT: ["0"-"7"] >
+|
+	< #HEXADECIMAL_DIGIT: ["0"-"9", "a"-"f", "A"-"F"] >
+}
+
+
+/* Identifies */
+TOKEN: {
+	< ID: (["a"-"z", "A"-"Z", "_", "$", "0"-"9"])+ >
+}
+
+NamespaceDecl CompilationUnit() :
+{
+	ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
+	ImmutableList.Builder<GlobalDecl> decls = ImmutableList.builder();
+	NamespaceDecl ns;
+	GlobalDecl d;
+}
+{
+	(
+		d = GlobalDecl() { decls.add(d); }
+	|
+		ns = NamespaceDecl() { nsDecls.add(ns); }
+	)*
+	<EOF>
+	{
+		return new NamespaceDecl(QID.empty(), nsDecls.build(), decls.build());
+	}
+|
+	{
+		QID qid;
+	}
+	"package"
+	qid = QID()
+	";"
+	(
+		d = ImportDecl() { decls.add(d); }
+	)*
+	(
+		ns = OrccUnit() { nsDecls.add(ns); }
+	|
+		d = ActorDecl()  { decls.add(d); }
+	)
+	<EOF>
+	{
+		NamespaceDecl pkg = new NamespaceDecl(qid, nsDecls.build(), decls.build());
+		return pkg;
+	}
+}
+
+NamespaceDecl OrccUnit() :
+{
+	Token id;
+	ImmutableList.Builder<GlobalDecl> decls = ImmutableList.builder();
+	GlobalVarDecl decl;
+}
+{
+	"unit"
+	id = <ID>
+	":"
+	(
+		decl = GlobalVarDecl()
+		{ decls.add(decl); }
+	)*
+	"end"
+	{
+		return new NamespaceDecl(
+				QID.of(id.image),
+				ImmutableList.empty(),
+				decls.build());
+	}
+}
+
+String Annotation() :
+{
+	Token id;
+}
+{
+	"@" id = <ID>
+	{ return id.image; }
+}
+
+NamespaceDecl NamespaceDecl() :
+{
+	ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
+	ImmutableList.Builder<GlobalDecl> decls = ImmutableList.builder();
+	NamespaceDecl ns;
+	GlobalDecl d;
+	QID qid;
+}
+{
+	"namespace"
+	qid = QID()
+	":"
+	(
+		d = GlobalDecl() { decls.add(d); }
+	|
+		ns = NamespaceDecl() { nsDecls.add(ns); }
+	)*
+	"end"
+	{ return new NamespaceDecl(qid, nsDecls.build(), decls.build()); }
+}
+
+QID QID() :
+{
+	QID qid;
+	Token id;
+}
+{
+	id = <ID> { qid = QID.of(id.image); }
+	(
+		LOOKAHEAD(2)
+		"."
+		id = <ID> { qid = qid.concat(QID.of(id.image)); }
+	)*
+	{ return qid; }
+}
+
+GlobalDecl GlobalDecl() :
+{
+	GlobalDecl d;
+}
+{
+	d = GlobalVarDecl() { return d; }
+|
+	d = ActorDecl() { return d; }
+}
+
+/* Declarations */
+Visibility Visibility() :
+{
+}
+{
+	"public" { return Visibility.PUBLIC; }
+|
+	"private" { return Visibility.PRIVATE; }
+|
+	"local" { return Visibility.LOCAL; }
+}
+
+GlobalVarDecl GlobalVarDecl() :
+{
+	Visibility visibility = Visibility.PUBLIC;
+	String name;
+	TypeExpr type = null;
+	Expression expr;
+}
+{
+	(visibility = Visibility())?
+	(
+		{ TypeAndName typeName; }
+		typeName = VarDeclTypeName()
+		"="
+		expr = Expression()
+		{ name = typeName.name; type = typeName.type; }
+	|
+		{ NameAndDef<ExprLambda> fun; }
+		fun = FunDecl()
+		{ name = fun.name; expr = fun.def; }
+	|
+		{ NameAndDef<ExprProc> proc; }
+		proc = ProcDecl()
+		{ name = proc.name; expr = proc.def; }
+	)
+	{
+		return new GlobalVarDecl(type, name, expr, visibility);
+	}
+}
+
+
+LocalVarDecl LocalVarDecl() :
+{
+	TypeExpr type = null;
+	String name;
+	Expression expr = null;
+	boolean assignable = false;
+}
+{
+	(
+		{ TypeAndName typeName; }
+		typeName = VarDeclTypeName()
+		( "=" { assignable = false; } | ":=" { assignable = true; } )
+		expr = Expression()
+		{ name = typeName.name; type = typeName.type; }
+	|
+		{ NameAndDef<ExprLambda> fun; }
+		fun = FunDecl()
+		{ name = fun.name; expr = fun.def; }
+	|
+		{ NameAndDef<ExprProc> proc; }
+		proc = ProcDecl()
+		{ name = proc.name; expr = proc.def; }
+	)
+	{
+		return new LocalVarDecl(type, name, expr, assignable);
+	}
+}
+
+GlobalDecl ImportDecl() :
+{
+	QID qid;
+	Token kind = null;
+	boolean importContents = false;
+}
+{
+	"import"
+	(
+		kind = "type"
+	|
+		kind = "entity"
+	|
+		kind = "var"
+	)?
+	(
+		"all"
+		{ importContents = true; }
+	)?
+	qid = QID()
+	(
+		(".*" | "." "*")
+		{ importContents = true; }
+	)?
+	";"
+	{
+		String name;
+		if (importContents) {
+			name = null;
+		} else {
+			name = qid.getLast().toString();
+		}
+		if (kind == null || kind.image.equals("var")) {
+			return new GlobalVarDecl(null, name, new GlobalValueReference(qid, importContents), Visibility.LOCAL);
+		} else if (kind.image.equals("type")) {
+			return null;
+		} else if (kind.image.equals("entity")) {
+			return new GlobalEntityDecl(name, new GlobalEntityReference(qid, importContents), Visibility.LOCAL);
+		} else {
+			return null;
+		} 
+	}
+}
+
+NameAndDef<ExprLambda> FunDecl() :
+{
+	Token id;
+	ImmutableList<ParDeclValue> valPars;
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	Expression expr;
+	TypeExpr type = null;
+}
+{
+	"function"
+	id = <ID>
+	"("
+	valPars = FormalValuePars()
+	")"
+	(
+		"-->"
+		type = Type()
+	)?
+	(
+		"var"
+		varDecls = LocalVarDecls()
+	)?
+	":"
+	expr = Expression()
+	"end"
+	{
+		if (!varDecls.isEmpty()) {
+			expr = new ExprLet(ImmutableList.empty(), varDecls, expr);
+		}
+		ExprLambda lambda = new ExprLambda(ImmutableList.empty(), valPars, expr, type);
+		return new NameAndDef<ExprLambda>(id.image, lambda);
+	}
+}
+
+NameAndDef<ExprProc> ProcDecl() :
+{
+	Token id;
+	ImmutableList<ParDeclValue> valPars;
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<Statement> stmts;
+}
+{
+	"procedure"
+	id = <ID>
+	"("
+	valPars = FormalValuePars()
+	")"
+	(
+		"var"
+		varDecls = LocalVarDecls()
+	)?
+	("begin" | "do")
+	stmts = Statements()
+	"end"
+	{
+		StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
+		ExprProc proc = new ExprProc(ImmutableList.empty(), valPars, block);
+		return new NameAndDef<ExprProc>(id.image, proc);
+	}
+}
+
+ImmutableList<LocalVarDecl> LocalVarDecls() :
+{
+	ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
+	LocalVarDecl decl;
+}
+{
+	(
+		decl = LocalVarDecl() { builder.add(decl); }
+		( "," decl = LocalVarDecl() { builder.add(decl); })*
+	)?
+	{
+		return builder.build();
+	}
+}
+
+/* ActorDecl */
+GlobalEntityDecl ActorDecl() :
+{
+	Token id;
+	String name;
+	ImmutableList<ParDeclType> typePars = ImmutableList.empty();
+	ImmutableList<ParDeclValue> valuePars;
+	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	LocalVarDecl varDecl;
+	ImmutableList<PortDecl> inputPorts = ImmutableList.empty();
+	ImmutableList<PortDecl> outputPorts = ImmutableList.empty();
+	ImmutableList.Builder<Action> initializers = ImmutableList.builder();
+	ImmutableList.Builder<Action> actions = ImmutableList.builder();
+	Action action;
+	ScheduleFSM scheduleFSM = null;
+	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
+	ImmutableList<Expression> invariants = ImmutableList.empty();
+}
+{
+	"actor"
+	id = <ID> { name = id.image; }
+	"("
+	valuePars = FormalValuePars()
+	")"
+	inputPorts = PortDecls()
+	"==>"
+	outputPorts = PortDecls()
+	("time" Type())?
+	":"
+	(
+		LOOKAHEAD((QID() ":")? "action")
+		action = Action()
+		{ actions.add(action); }
+	|
+		LOOKAHEAD((QID() ":")? "initialize")
+		action = InitializationAction()
+		{ initializers.add(action); }
+	|
+		varDecl = LocalVarDecl() ";"
+		{ varDecls.add(varDecl); }
+	|
+		PriorityOrder(priorities)
+	|
+		{
+			if (scheduleFSM != null) {
+				throw new ParseException("Only one action schedule is allowed.");
+			}
+		}
+		scheduleFSM = ActionSchedule()
+	)*
+	("end" | "endactor")
+	{
+		Actor a = new Actor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, priorities.build(), invariants);
+		return new GlobalEntityDecl(name, a, Visibility.PUBLIC);
+	}
+}
+
+ImmutableList<PortDecl> PortDecls() :
+{
+	ImmutableList.Builder<PortDecl> decls = ImmutableList.builder();
+	PortDecl decl;
+}
+{
+	(
+		decl = PortDecl() { decls.add(decl); }
+		(
+			","
+			decl = PortDecl() { decls.add(decl); }
+		)*
+	)?
+	{ return decls.build(); }
+}
+
+PortDecl PortDecl() :
+{
+	TypeExpr type = null;
+	Token id;
+}
+{
+	(
+		LOOKAHEAD(2)
+		type = Type()
+	)?
+	id = <ID>
+	{ return new PortDecl(id.image, type); }
+}
+
+/* Actions */
+
+Action Action() :
+{
+	QID tag = null;
+	ImmutableList<InputPattern> inputPatterns;
+	ImmutableList<OutputExpression> outputExpressions;
+	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<Expression> guards = ImmutableList.empty();
+	ImmutableList<Statement> body = ImmutableList.empty();
+	Expression delay = null;
+	ImmutableList<Expression> preconditions = ImmutableList.empty();
+	ImmutableList<Expression> postconditions = ImmutableList.empty();
+}
+{
+	( tag = QID() ":" )?
+	"action"
+	inputPatterns = InputPatterns()
+	"==>"
+	outputExpressions = OutputExpressions()
+	("guard" guards = ExpressionList())?
+	("var" varDecls = LocalVarDecls())?
+	("delay" delay = Expression())?
+	("do" body = Statements())?
+	("end" | "endaction")
+	{
+		return new Action(0, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+	}
+}
+
+Action InitializationAction() :
+{
+	QID tag = null;
+	ImmutableList<InputPattern> inputPatterns = ImmutableList.empty();
+	ImmutableList<OutputExpression> outputExpressions;
+	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<Expression> guards = ImmutableList.empty();
+	ImmutableList<Statement> body = ImmutableList.empty();
+	Expression delay = null;
+	ImmutableList<Expression> preconditions = ImmutableList.empty();
+	ImmutableList<Expression> postconditions = ImmutableList.empty();
+}
+{
+	( tag = QID() ":" )?
+	"initialize"
+	"==>"
+	outputExpressions = OutputExpressions()
+	("guard" guards = ExpressionList())?
+	("var" varDecls = LocalVarDecls())?
+	("delay" delay = Expression())?
+	("do" body = Statements())?
+	("end" | "endinitialize")
+	{
+		return new Action(0, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+	}
+}
+
+ImmutableList<InputPattern> InputPatterns() :
+{
+	ImmutableList.Builder<InputPattern> builder = ImmutableList.builder();
+	InputPattern in;
+}
+{
+	(
+		in = InputPattern() { builder.add(in); }
+		("," in = InputPattern() { builder.add(in); })*
+	)?
+	{ return builder.build(); }
+}
+
+InputPattern InputPattern() :
+{
+	Token id;
+	Port port = null;
+	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	Expression repeat = null;
+}
+{
+	( id = <ID> ":" { port = new Port(id.image); })?
+	"["
+	(
+		id = <ID> { varDecls.add(new LocalVarDecl(null, id.image, null, false)); }
+		("," id = <ID> { varDecls.add(new LocalVarDecl(null, id.image, null, false)); } )*
+	)?
+	"]"
+	("repeat" repeat = Expression())?
+	{ return new InputPattern(port, varDecls.build(), repeat); }
+}
+
+ImmutableList<OutputExpression> OutputExpressions() :
+{
+	ImmutableList.Builder<OutputExpression> builder = ImmutableList.builder();
+	OutputExpression out;
+}
+{
+	(
+		out = OutputExpression() { builder.add(out); }
+		("," out = OutputExpression() { builder.add(out); })*
+	)?
+	{ return builder.build(); }
+}
+
+OutputExpression OutputExpression() :
+{
+	Token id;
+	Port port = null;
+	ImmutableList<Expression> exprs;
+	Expression repeat = null;
+}
+{
+	( id = <ID> ":" { port = new Port(id.image); })?
+	"["
+	exprs = ExpressionList()
+	"]"
+	( "repeat" repeat = Expression() )?
+	{
+		return new OutputExpression(port, exprs, repeat);
+	}
+}
+
+/* Action control */
+ScheduleFSM ActionSchedule() :
+{
+	Token init;
+	ImmutableList<Transition> trans;
+}
+{
+	"schedule"
+	("fsm")?
+	init = <ID>
+	":"
+	trans = StateTransitions()
+	("end" | "endschedule")
+	{ return new ScheduleFSM(trans, init.image); }
+}
+
+ImmutableList<Transition> StateTransitions() :
+{
+	ImmutableList.Builder<Transition> builder = ImmutableList.builder();
+}
+{
+	(StateTransition(builder) ";")*
+	{ return builder.build(); }
+}
+
+void StateTransition(ImmutableList.Builder<Transition> builder) :
+{
+	Token src;
+	Token dst;
+	QID qid;
+	ImmutableList.Builder<QID> tags = ImmutableList.builder();
+}
+{
+	src = <ID>
+	"("
+	qid = QID() { tags.add(qid); }
+	( "," qid = QID() { tags.add(qid); } )*
+	")"
+	"-->"
+	dst = <ID>
+	{ builder.add(new Transition(src.image, dst.image, tags.build())); }
+	(
+		{ tags = ImmutableList.builder(); }
+		"|"
+		"("
+		qid = QID() { tags.add(qid); }
+		("," qid = QID() { tags.add(qid); } )*
+		")"
+		"-->"
+		dst = <ID>
+		{ builder.add(new Transition(src.image, dst.image, tags.build())); }
+	)*
+}
+
+void PriorityOrder(ImmutableList.Builder<ImmutableList<QID>> prio) :
+{
+	ImmutableList.Builder<QID> seq;
+	QID qid;
+}
+{
+	"priority"
+	(
+		{ seq = ImmutableList.builder(); }
+		qid = QID() { seq.add(qid); }
+		">"
+		qid = QID() { seq.add(qid); }
+		(
+			">"
+			qid = QID() { seq.add(qid); }
+		)*
+		";"
+		{ prio.add(seq.build()); }
+	)*
+	"end"
+}
+
+/* Expressions */
+
+Expression Expression() :
+{
+	Expression expr;
+	String op;
+	ImmutableList.Builder<String> ops = ImmutableList.builder();
+	ImmutableList.Builder<Expression> exprs = ImmutableList.builder();
+}
+{
+	expr = UnaryOperation() { exprs.add(expr); }
+	(
+		op = BinaryOperator()
+		expr = UnaryOperation()
+		{ ops.add(op); exprs.add(expr); }
+	)*
+	{
+		ImmutableList<String> opList = ops.build();
+		ImmutableList<Expression> exprList = exprs.build();
+		if (opList.isEmpty()) {
+			return expr;
+		} else {
+			return new ExprBinaryOp(opList, exprList);
+		}
+	}
+}
+
+Expression UnaryOperation() :
+{
+	String op;
+	List<String> ops = new ArrayList<String>();
+	Expression expr;
+}
+{
+	(
+		op = UnaryOperator()
+		{ ops.add(op); }
+	)*
+	expr = PrimaryExpression()
+	{
+		Collections.reverse(ops);
+		for (String o : ops) {
+			expr = new ExprUnaryOp(o, expr);
+		}
+		return expr;
+	}
+}
+
+Expression PrimaryExpression() :
+{
+	Expression expr;
+	ImmutableList<Expression> args;
+	Expression index;
+	Field field;
+}
+{
+	expr = SingleExpression()
+	(
+		"(" args = ExpressionList() ")"
+		{ expr = new ExprApplication(expr, args); }
+	|
+		"[" index = Expression() "]"
+		{ expr = new ExprIndexer(expr, index); }
+	|
+		"." field = Field()
+		{ expr = new ExprField(expr, field); }
+	)*
+	{
+		return expr;
+	}
+}
+
+Expression SingleExpression() :
+{
+	Expression expr;
+}
+{
+	(
+		expr = VariableExpression()
+	|
+		expr = ExpressionLiteral()
+	|
+		"(" expr = Expression() ")"
+	|
+		expr = IfExpression()
+	|
+		expr = LambdaExpression()
+	|
+		expr = ProcExpression()
+	|
+		expr = LetExpression()
+	|
+		expr = ListComprehension()
+	|
+		expr = SetComprehension()
+	|
+		expr = MapComprehension()
+	)
+	{ return expr; }
+}
+
+ExprVariable VariableExpression() :
+{
+	Variable var;
+}
+{
+	var = Variable()
+	{
+		return new ExprVariable(var);
+	}
+}
+
+Variable Variable() :
+{
+	Token id;
+}
+{
+	id = <ID>
+	{
+		return Variable.variable(id.image);
+	}
+}
+
+ExprLiteral ExpressionLiteral() :
+{
+	Token lit;
+}
+{
+	lit = <INTEGER> { return new ExprLiteral(ExprLiteral.Kind.Integer, lit.image); }
+|
+	lit = <REAL> { return new ExprLiteral(ExprLiteral.Kind.Real, lit.image); }
+|
+	lit = <TRUE> { return new ExprLiteral(ExprLiteral.Kind.True); }
+|
+	lit = <FALSE> { return new ExprLiteral(ExprLiteral.Kind.False); }
+|
+	lit = <NULL> { return new ExprLiteral(ExprLiteral.Kind.Null); }
+|
+	lit = <STRING> { return new ExprLiteral(ExprLiteral.Kind.String, lit.image); }
+}
+
+
+ImmutableList<Expression> ExpressionList() :
+{
+	ImmutableList.Builder<Expression> list = ImmutableList.builder();
+	Expression expr;
+}
+{
+	(
+		expr = Expression()
+		{ list.add(expr); }
+		(
+			","
+			expr = Expression()
+			{ list.add(expr); }
+		)*
+	)?
+	{
+		return list.build();
+	}
+}
+
+String BinaryOperator() :
+{
+	Token op;
+}
+{
+	(
+		op = <OP> | op = "=" | op = "-->" | op = ">" | op = "|" | op = "*" | op = ".*" | op = "@" // Missing operator "->" because it conflicts with Mapping()
+		| op = "and" | op = "or" | op = "in" | op = "div" | op = "mod"
+	)
+	{ return op.image; }
+}
+
+String UnaryOperator() :
+{
+	Token op;
+}
+{
+	(
+		op = <OP> | op = "=" | op = "-->" | op = "->" | op = ">" | op = "|" | op = "*" | op = ".*" | op = "@"  
+		| op = "not" | op = "dom" | op = "rng"
+	)
+	{ return op.image; }
+}
+
+
+ExprIf IfExpression() :
+{
+	Expression cond;
+	Expression thenExpr;
+	Expression elseExpr;
+}
+{
+	"if" cond = Expression()
+	"then" thenExpr = Expression()
+	(
+		elseExpr = ElseIfExpression()
+	|
+		"else" elseExpr = Expression()
+	)
+	("end" | "endif")
+	{
+		return new ExprIf(cond, thenExpr, elseExpr);
+	}
+}
+
+ExprIf ElseIfExpression() :
+{
+	Expression cond;
+	Expression thenExpr;
+	Expression elseExpr;
+}
+{
+	"elsif"
+	cond = Expression()
+	"then"
+	thenExpr = Expression()
+	(
+		elseExpr = ElseIfExpression()
+	|
+		"else"
+		elseExpr = Expression()
+	)
+	{
+		return new ExprIf(cond, thenExpr, elseExpr);
+	}
+}
+
+ExprLet LetExpression() :
+{
+	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls;
+	Expression expr;
+}
+{
+	<LET>
+	varDecls = LocalVarDecls()
+	":"
+	expr = Expression()
+	("end" | "endlet")
+	{ return new ExprLet(typeDecls, varDecls, expr); }
+}
+
+ExprLambda LambdaExpression() :
+{
+	ImmutableList<ParDeclType> typePars = ImmutableList.empty();
+	ImmutableList<ParDeclValue> valuePars;
+	TypeExpr type = null;
+	Expression expr;
+}
+{
+	<LAMBDA> "(" valuePars = FormalValuePars() ")"
+	("-->" type = Type())?
+	(
+		{
+			ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
+			ImmutableList<LocalVarDecl> varDecls;
+		}
+		"var" varDecls = LocalVarDecls() ":" expr = Expression()
+		{
+			expr = new ExprLet(typeDecls, varDecls, expr);
+		}
+	|
+		":" expr = Expression()
+	)
+	("end" | "endlambda")
+	{
+		return new ExprLambda(typePars, valuePars, expr, type);
+	}
+}
+
+ImmutableList<ParDeclValue> FormalValuePars() :
+{
+	ImmutableList.Builder<ParDeclValue> builder = ImmutableList.builder();
+	ParDeclValue decl;
+}
+{
+	(
+		decl = FormalValueParameter() { builder.add(decl); }
+		( "," decl = FormalValueParameter() { builder.add(decl); } )*
+	)?
+	{
+		return builder.build();
+	}
+}
+
+ParDeclValue FormalValueParameter() :
+{
+	TypeAndName typeName;
+}
+{
+	typeName = VarDeclTypeName()
+	{
+		return new ParDeclValue(typeName.name, typeName.type);
+	}
+}
+
+ExprProc ProcExpression() :
+{
+	ImmutableList<ParDeclType> typePars = ImmutableList.empty();
+	ImmutableList<ParDeclValue> valuePars;
+	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<Statement> stmts;
+}
+{
+	"proc" "(" valuePars = FormalValuePars() ")"
+	( "var" varDecls = LocalVarDecls() )?
+	( "do" | "begin" )
+	stmts = Statements()
+	( "end" | "endproc" )
+	{
+		StmtBlock block = new StmtBlock(typeDecls, varDecls, stmts);
+		return new ExprProc(typePars, valuePars, block);
+	}
+}
+
+ExprSet SetComprehension() :
+{
+	Expression expr;
+	ImmutableList<Expression> exprs;
+	ImmutableList<GeneratorFilter> generatorFilters = null;
+}
+{
+	"{"
+	exprs = ExpressionList()
+	( ":" generatorFilters = GeneratorFilters() )?
+	"}"
+	{ return new ExprSet(exprs, generatorFilters); }
+}
+
+ExprList ListComprehension() :
+{
+	Expression expr;
+	ImmutableList<Expression> exprs;
+	ImmutableList<GeneratorFilter> generatorFilters = null;
+}
+{
+	"["
+	exprs = ExpressionList()
+	( ":" generatorFilters = GeneratorFilters() )?
+	"]"
+	{ return new ExprList(exprs, generatorFilters); }
+}
+
+ExprMap MapComprehension() :
+{
+	ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
+	ImmutableList<GeneratorFilter> generatorFilters = null;
+}
+{
+	"map"
+	"{"
+	mappings = Mappings()
+	( ":" generatorFilters = GeneratorFilters() )?
+	"}"
+	{ return new ExprMap(mappings, generatorFilters); }
+}
+
+ImmutableEntry<Expression, Expression> Mapping() :
+{
+	Expression key;
+	Expression val;
+}
+{
+	key = Expression()
+	"->"
+	val = Expression()
+	{
+		return ImmutableEntry.of(key, val);
+	}
+}
+
+ImmutableList<ImmutableEntry<Expression, Expression>> Mappings() :
+{
+	ImmutableList.Builder<ImmutableEntry<Expression, Expression>> builder = ImmutableList.builder();
+	ImmutableEntry<Expression, Expression> mapping;
+}
+{
+	(
+		mapping = Mapping() { builder.add(mapping); }
+		("," mapping = Mapping() {builder.add(mapping); } )*
+	)?
+	{ return builder.build(); }
+}
+
+ImmutableList<GeneratorFilter> GeneratorFilters() :
+{
+	GeneratorFilter gen;
+	ImmutableList.Builder<GeneratorFilter> builder = ImmutableList.builder();
+}
+{
+	gen = GeneratorFilter() { builder.add(gen); }
+	("," gen = GeneratorFilter() { builder.add(gen); } )*
+	{ return builder.build(); }
+}
+
+GeneratorFilter GeneratorFilter() :
+{
+	TypeExpr type = null;
+	Token var;
+	Expression coll;
+	Expression filter;
+	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
+}
+{
+	( "for" | "foreach" )
+	( LOOKAHEAD(2) type = Type() )?
+	var = <ID> { varDecls.add(new LocalVarDecl(type, var.image, null, false)); }
+	( "," var = <ID> { varDecls.add(new LocalVarDecl(type, var.image, null, false)); } )*
+	"in"
+	coll = Expression()
+	( LOOKAHEAD(2) "," filter = Expression() { filters.add(filter); } )*
+	{
+		return new GeneratorFilter(varDecls.build(), coll, filters.build());
+	}
+}
+
+/* Type expressions */
+TypeExpr Type() :
+{
+	Token name;
+	TypeExpr type;
+}
+{
+	name = <ID>
+	type = ParameterizedType(name.image)
+	{ return type; }
+}
+
+TypeExpr ParameterizedType(String name) :
+{
+	ImmutableList.Builder<ImmutableEntry<String, TypeExpr>> types = ImmutableList.builder();
+	ImmutableList.Builder<ImmutableEntry<String, Expression>> vals = ImmutableList.builder();
+}
+{
+	(
+		"("
+		(
+			AddParameterAssignments(types, vals)
+			("," AddParameterAssignments(types, vals))*
+		)
+		")"
+	)?
+	{ return new TypeExpr(name, types.build(), vals.build()); }
+}
+
+void AddParameterAssignments(
+	ImmutableList.Builder<ImmutableEntry<String, TypeExpr>> types,
+	ImmutableList.Builder<ImmutableEntry<String, Expression>> vals) :
+{
+	Token name;
+	TypeExpr type;
+	Expression expr;
+}
+{
+	(
+		LOOKAHEAD(2)
+		(name = <ID> | name = <TYPE>)
+		":" type = Type()
+		{ types.add(ImmutableEntry.of(name.image, type)); }
+	|
+		name = <ID>
+		"=" expr = Expression()
+		{ vals.add(ImmutableEntry.of(name.image, expr)); }
+	)
+}
+
+TypeAndName VarDeclTypeName() :
+{
+	Token id;
+	TypeExpr type;
+	Expression size;
+}
+{
+	LOOKAHEAD(2)
+	type = Type()
+	id = <ID>
+	(
+		"["
+		size = Expression()
+		"]"
+		{
+			type = new TypeExpr("List",
+					ImmutableList.of(ImmutableEntry.of("type", type)),
+					ImmutableList.of(ImmutableEntry.of("size", size)));
+		}
+	)*
+	{ return new TypeAndName(type, id.image); }
+|
+	id = <ID>
+	{ return new TypeAndName(null, id.image); }
+}
+
+
+/* Statements */
+Statement Statement() :
+{
+	Statement stmt;
+}
+{
+	(
+		LOOKAHEAD(LValue() ":=")
+		stmt = AssignmentStmt()
+	|
+		//LOOKAHEAD(IfStmt())
+		LOOKAHEAD("if")
+		stmt = IfStmt()
+	|
+		stmt = CallStmt()
+	|
+		stmt = BlockStmt()
+	|
+		stmt = WhileStmt()
+	|
+		stmt = ForeachStmt()
+	)
+	{
+		return stmt;
+	}
+}
+
+ImmutableList<Statement> Statements() :
+{
+	ImmutableList.Builder<Statement> stmts = ImmutableList.builder();
+	Statement stmt;
+}
+{
+	( stmt = Statement() { stmts.add(stmt); } )*
+	{ return stmts.build(); }
+}
+
+StmtAssignment AssignmentStmt() :
+{
+	LValue lvalue;
+	Expression rvalue;
+}
+{
+	lvalue = LValue()
+	":="
+	rvalue = Expression()
+	";"
+	{ return new StmtAssignment(lvalue, rvalue); }
+}
+
+LValue LValue() :
+{
+	Variable var;
+	Field field;
+	Expression index;
+	LValue lvalue;
+}
+{
+	var = Variable()
+	{
+		lvalue = new LValueVariable(var);
+	}
+	(
+		(
+			"." field = Field()
+			{ lvalue = new LValueField(lvalue, field); }
+		|
+			"[" index = Expression() "]"
+			{ lvalue = new LValueIndexer(lvalue, index); }
+		)
+	)*
+	{
+		return lvalue;
+	}
+}
+
+Field Field() :
+{
+	Token id;
+}
+{
+	id = <ID>
+	{ return new Field(id.image); }
+}
+
+StmtCall CallStmt() :
+{
+	Expression proc;
+	ImmutableList<Expression> args;
+}
+{
+	proc = PrimaryExpression()
+	";"
+	{
+		if (proc instanceof ExprApplication) {
+			ExprApplication apply = (ExprApplication) proc;
+			return new StmtCall(apply.getFunction(), apply.getArgs());
+		} else {
+			throw new ParseException();
+		}
+	}
+}
+
+StmtBlock BlockStmt() :
+{
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<Statement> stmts;
+}
+{
+	"begin"
+	(
+		"var"
+		varDecls = LocalVarDecls()
+		"do"
+	)?
+	stmts = Statements()
+	"end"
+	{
+		return new StmtBlock(ImmutableList.empty(), varDecls, stmts);
+	}
+}
+
+StmtIf IfStmt() :
+{
+	Expression cond;
+	ImmutableList<Statement> thenStmts;
+	Statement thenStmt;
+	ImmutableList<Statement> elseStmts;
+	Statement elseStmt = null;
+}
+{
+	"if"
+	cond = Expression()
+	"then"
+	thenStmts = Statements()
+	{ thenStmt = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), thenStmts); }
+	(
+		elseStmt = ElseIfStmt()
+	|
+		"else"
+		elseStmts = Statements()
+		{ elseStmt = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), elseStmts); }
+	)?
+	"end"
+	{
+		return new StmtIf(cond, thenStmt, elseStmt);
+	}
+}
+
+Statement ElseIfStmt() :
+{
+	Expression cond;
+	Statement thenStmt;
+	ImmutableList<Statement> thenStmts;
+	Statement elseStmt;
+	ImmutableList<Statement> elseStmts;
+}
+{
+	"elsif"
+	cond = Expression()
+	"then"
+	thenStmts = Statements()
+	{ thenStmt = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), thenStmts); }
+	(
+		elseStmt = ElseIfStmt()
+	|
+		"else"
+		elseStmts = Statements()
+		{ elseStmt = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), elseStmts); }
+	|
+		{ elseStmt = null; }
+	)
+	{
+		return new StmtIf(cond, thenStmt, elseStmt);
+	}	 
+}
+
+StmtWhile WhileStmt() :
+{
+	Expression cond;
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<Statement> statements;
+}
+{
+	"while"
+	cond = Expression()
+	(
+		"var"
+		varDecls = LocalVarDecls()
+	)?
+	"do"
+	statements = Statements()
+	"end"
+	{
+		return new StmtWhile(cond, new StmtBlock(ImmutableList.empty(), varDecls, statements));
+	}
+}
+
+StmtForeach ForeachStmt() :
+{
+	ImmutableList<GeneratorFilter> gens;
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<Statement> stmts;
+}
+{
+	gens = GeneratorFilters()
+	(
+		"var"
+		varDecls = LocalVarDecls()
+	)?
+	"do"
+	stmts = Statements()
+	"end"
+	{
+		return new StmtForeach(gens, new StmtBlock(ImmutableList.empty(), varDecls, stmts));
+	}
+}

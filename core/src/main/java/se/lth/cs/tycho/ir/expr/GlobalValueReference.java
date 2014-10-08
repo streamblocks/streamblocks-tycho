@@ -6,19 +6,26 @@ import se.lth.cs.tycho.ir.QID;
 
 public class GlobalValueReference extends Expression implements GlobalReference {
 	private final QID qid;
+	private final boolean isContentReference;
 
-	public GlobalValueReference(QID qid) {
-		this(null, qid);
+	public GlobalValueReference(QID qid, boolean isContentReference) {
+		this(null, qid, isContentReference);
 	}
 	
-	public GlobalValueReference(IRNode original, QID qid) {
+	public GlobalValueReference(IRNode original, QID qid, boolean isContentReference) {
 		super(original);
 		this.qid = qid;
+		this.isContentReference = isContentReference;
 	}
 
 	@Override
 	public QID getQualifiedIdentifier() {
 		return qid;
+	}
+	
+	@Override
+	public boolean isContentReference() {
+		return isContentReference;
 	}
 
 	@Override
@@ -26,11 +33,11 @@ public class GlobalValueReference extends Expression implements GlobalReference 
 		return visitor.visitGlobalValueReference(this, param);
 	}
 
-	public GlobalValueReference copy(QID qid) {
-		if (this.qid.equals(qid)) {
+	public GlobalValueReference copy(QID qid, boolean isContentReference) {
+		if (this.qid.equals(qid) && this.isContentReference == isContentReference) {
 			return this;
 		} else {
-			return new GlobalValueReference(this, qid);
+			return new GlobalValueReference(this, qid, isContentReference);
 		}
 	}
 
