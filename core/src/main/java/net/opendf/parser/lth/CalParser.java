@@ -17,6 +17,7 @@ import net.opendf.ir.IRNode.Identifier;
 import net.opendf.ir.util.ImmutableList;
 import java.util.TreeSet;
 import java.util.ArrayList;
+import net.opendf.ir.decl.GlobalDecl.Visibility;
 import net.opendf.ir.entity.cal.*;
 import net.opendf.ir.stmt.*;
 import java.util.Map;
@@ -460,7 +461,7 @@ public class CalParser extends Parser {
     } else {
       name = file.getName();
     }
-    return new GlobalEntityDecl(name, null);   
+    return new GlobalEntityDecl(name, null, null);   
   }
   
   public net.opendf.ir.decl.GlobalEntityDecl parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
@@ -950,7 +951,7 @@ public class CalParser extends Parser {
                          priorities.build(),
                          invariants.build()
                         );
-    GlobalEntityDecl d = new GlobalEntityDecl((String) name.value, a);
+    GlobalEntityDecl d = new GlobalEntityDecl((String) name.value, a, Visibility.PUBLIC);
     return register(start, end, d);
 			}
 			case 66: // time = TIME.start type.t

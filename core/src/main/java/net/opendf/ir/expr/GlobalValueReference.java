@@ -7,6 +7,10 @@ import net.opendf.ir.QID;
 public class GlobalValueReference extends Expression implements GlobalReference {
 	private final QID qid;
 
+	public GlobalValueReference(QID qid) {
+		this(null, qid);
+	}
+	
 	public GlobalValueReference(IRNode original, QID qid) {
 		super(original);
 		this.qid = qid;

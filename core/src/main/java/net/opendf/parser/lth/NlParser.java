@@ -20,6 +20,7 @@ import net.opendf.ir.net.ToolValueAttribute;
 import net.opendf.ir.entity.nl.EntityListExpr;
 import java.util.TreeSet;
 import java.util.ArrayList;
+import net.opendf.ir.decl.GlobalDecl.Visibility;
 import net.opendf.ir.net.ToolAttribute;
 import net.opendf.ir.stmt.*;
 import java.util.Map;
@@ -434,16 +435,16 @@ public class NlParser extends Parser {
       } catch(CalParser.Exception e) {
         // build empty compilation unit for failed error recovery
         // The problem is added to parseProblems[] by the syntaxError() method added to the parser above.
-        network = new GlobalEntityDecl(file.getName(), null);
+        network = new GlobalEntityDecl(file.getName(), null, null);
       } finally {
         if(fr != null){ fr.close(); }
       }
     } catch (java.io.FileNotFoundException e){
       em.error("file not found: " + e.getMessage(), null);
-      network = new GlobalEntityDecl(file.getName(), null);
+      network = new GlobalEntityDecl(file.getName(), null, null);
     } catch (java.io.IOException e){
       em.error("error reading file: " + e.getMessage(), null);
-      network = new GlobalEntityDecl(file.getName(), null);
+      network = new GlobalEntityDecl(file.getName(), null, null);
     }
     return network;
    }
@@ -576,7 +577,7 @@ public class NlParser extends Parser {
                           entities.build(), // entities
                           structure.build(), // structure
                           toolAttributes.build()
-                          )));
+                          ), Visibility.PUBLIC));
 			}
 			case 11: // network_body_part = import_part.part
 			{

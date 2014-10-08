@@ -30,20 +30,22 @@ public class GlobalEntityDecl extends AbstractIRNode implements GlobalDecl {
 
 	@Override
 	public Visibility getVisibility() {
-		return Visibility.PUBLIC;
+		return visibility;
 	}
 
-	public GlobalEntityDecl(String name, Entity entity) {
-		this(null, name, entity);
+	public GlobalEntityDecl(String name, Entity entity, Visibility visibility) {
+		this(null, name, entity, visibility);
 	}
 
-	public GlobalEntityDecl(GlobalEntityDecl original, String name, Entity entity) {
+	public GlobalEntityDecl(GlobalEntityDecl original, String name, Entity entity, Visibility visibility) {
 		super(original);
 		this.name = name;
 		this.entity = entity;
+		this.visibility = visibility;
 	}
 
 	private final String name;
 	private final Entity entity;
+	private final Visibility visibility;
 
 }

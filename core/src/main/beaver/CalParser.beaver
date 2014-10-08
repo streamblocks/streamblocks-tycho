@@ -15,6 +15,7 @@
 %import "net.opendf.ir.util.ImmutableList";
 %import "net.opendf.ir.util.ImmutableEntry";
 %import "net.opendf.ir.decl.*";
+%import "net.opendf.ir.decl.GlobalDecl.Visibility";
 %import "net.opendf.ir.expr.*";
 %import "net.opendf.ir.stmt.lvalue.*";
 %import "net.opendf.ir.stmt.*";
@@ -161,7 +162,7 @@
     } else {
       name = file.getName();
     }
-    return new GlobalEntityDecl(name, null);   
+    return new GlobalEntityDecl(name, null, null);   
   }
   
   public net.opendf.ir.decl.GlobalEntityDecl parse(String path, String fileName, Map<Identifier, SourceCodePosition> srcLocations, SourceCodeOracle scOracle){
@@ -669,7 +670,7 @@ actor_decl =
                          priorities.build(),
                          invariants.build()
                         );
-    GlobalEntityDecl d = new GlobalEntityDecl((String) name.value, a);
+    GlobalEntityDecl d = new GlobalEntityDecl((String) name.value, a, Visibility.PUBLIC);
     return register(start, end, d);
   :}
   ;
