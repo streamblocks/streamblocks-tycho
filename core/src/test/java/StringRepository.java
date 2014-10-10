@@ -11,7 +11,7 @@ import se.lth.cs.tycho.ir.decl.DeclKind;
 import se.lth.cs.tycho.ir.decl.GlobalDecl;
 import se.lth.cs.tycho.loader.SourceCodeRepository;
 import se.lth.cs.tycho.loader.SourceCodeUnit;
-import se.lth.cs.tycho.messages.MessageListener;
+import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.parsing.cal.CalParser;
 import se.lth.cs.tycho.parsing.cal.ParseException;
 
@@ -73,7 +73,7 @@ public class StringRepository implements SourceCodeRepository {
 	}
 
 	@Override
-	public boolean checkRepository(MessageListener messages) {
+	public boolean checkRepository(MessageReporter messages) {
 		return true;
 	}
 
@@ -93,7 +93,7 @@ public class StringRepository implements SourceCodeRepository {
 		}
 
 		@Override
-		public NamespaceDecl load(MessageListener listener) {
+		public NamespaceDecl load(MessageReporter messages) {
 			return tree;
 		}
 	}

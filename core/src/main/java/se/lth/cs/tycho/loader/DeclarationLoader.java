@@ -18,7 +18,7 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.messages.Message;
-import se.lth.cs.tycho.messages.MessageListener;
+import se.lth.cs.tycho.messages.MessageReporter;
 
 /**
  * The declaration loader is responsible for loading global declarations and
@@ -35,7 +35,7 @@ public class DeclarationLoader {
 
 	private final Set<SourceCodeUnit> loaded = new HashSet<>();
 	private final List<SourceCodeRepository> repositories = new ArrayList<>();
-	private final MessageListener messages;
+	private final MessageReporter messages;
 
 	/**
 	 * Constructs a new declaration loader that reports problems to the given
@@ -43,7 +43,7 @@ public class DeclarationLoader {
 	 * 
 	 * @param messages the message listener to report to
 	 */
-	public DeclarationLoader(MessageListener messages) {
+	public DeclarationLoader(MessageReporter messages) {
 		this.messages = messages;
 	}
 

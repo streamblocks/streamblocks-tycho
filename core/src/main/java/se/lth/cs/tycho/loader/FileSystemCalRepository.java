@@ -17,7 +17,7 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.messages.Message;
-import se.lth.cs.tycho.messages.MessageListener;
+import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.parsing.cal.CalParser;
 import se.lth.cs.tycho.parsing.cal.ParseException;
 
@@ -60,7 +60,7 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 		}
 	}
 	
-	private static NamespaceDecl parse(Path p, MessageListener m) {
+	private static NamespaceDecl parse(Path p, MessageReporter m) {
 		try {
 			CalParser parser = new CalParser(Files.newBufferedReader(p));
 			return parser.CompilationUnit();
@@ -73,7 +73,7 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 		}
 	}
 
-	private boolean scanFile(Path f, MessageListener messages) {
+	private boolean scanFile(Path f, MessageReporter messages) {
 		CalCompilationUnit unit = new CalCompilationUnit(f);
 		NamespaceDecl ns = parse(f, messages);
 		if (ns == null) {
@@ -102,7 +102,7 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 	}
 
 	@Override
-	public boolean checkRepository(MessageListener messages) {
+	public boolean checkRepository(MessageReporter messages) {
 		try {
 			return Files.walk(basePath).filter(f -> f.getFileName().toString().endsWith(".cal"))
 					.allMatch(f -> scanFile(f, messages));
@@ -120,7 +120,7 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 		}
 
 		@Override
-		public NamespaceDecl load(MessageListener messages) {
+		public NamespaceDecl load(MessageReporter messages) {
 			return parse(path, messages);
 		}
 

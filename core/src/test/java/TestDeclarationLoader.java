@@ -12,7 +12,7 @@ import se.lth.cs.tycho.loader.DeclarationLoader;
 public class TestDeclarationLoader {
 	@Test
 	public void testFindInEmpty() {
-		DeclarationLoader loader = new DeclarationLoader(new NullMessageListener());
+		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		assertNull(loader.loadEntity(QID.parse("a.b.c"), null));
 		assertNull(loader.loadEntity(QID.parse("a.b.c"), null));
 	}
@@ -21,7 +21,7 @@ public class TestDeclarationLoader {
 	public void testFindExistingDecl() {
 		StringRepository repo = new StringRepository();
 		repo.add("namespace a.b: namespace c: public int x = 2; public int y = 4; end end");
-		DeclarationLoader loader = new DeclarationLoader(new NullMessageListener());
+		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		loader.addRepository(repo);
 		GlobalVarDecl x = loader.loadVar(QID.parse("a.b.c.x"), null);
 		assertNotNull(x);

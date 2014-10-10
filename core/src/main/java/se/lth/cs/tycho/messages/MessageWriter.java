@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-public class MessageWriter implements MessageListener {
+public class MessageWriter implements MessageReporter {
 	private final Writer writer;
 
 	public MessageWriter(Writer writer) {

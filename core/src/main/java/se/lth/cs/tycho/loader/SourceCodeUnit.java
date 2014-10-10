@@ -1,7 +1,7 @@
 package se.lth.cs.tycho.loader;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.messages.MessageListener;
+import se.lth.cs.tycho.messages.MessageReporter;
 
 /**
  * Represents a source code unit that can be loaded into the program.
@@ -24,5 +24,5 @@ public interface SourceCodeUnit {
 	 *            the listener to report problems to
 	 * @return the top level namespace declaration of the unit
 	 */
-	public NamespaceDecl load(MessageListener listener);
+	public NamespaceDecl load(MessageReporter listener);
 }

@@ -1,5 +1,5 @@
 package se.lth.cs.tycho.messages;
 
-public interface MessageListener {
+public interface MessageReporter {
 	void report(Message message);
 }

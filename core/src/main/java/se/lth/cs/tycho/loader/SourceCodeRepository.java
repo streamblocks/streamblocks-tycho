@@ -4,7 +4,7 @@ import java.util.List;
 
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.DeclKind;
-import se.lth.cs.tycho.messages.MessageListener;
+import se.lth.cs.tycho.messages.MessageReporter;
 
 /**
  * Repository of source code units.
@@ -33,5 +33,5 @@ public interface SourceCodeRepository {
 	 *            the message listener to report problems to
 	 * @return true if the repository is in good condition
 	 */
-	public boolean checkRepository(MessageListener messages);
+	public boolean checkRepository(MessageReporter messages);
 }
