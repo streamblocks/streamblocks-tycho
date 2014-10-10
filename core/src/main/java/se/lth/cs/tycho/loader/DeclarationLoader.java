@@ -164,6 +164,7 @@ public class DeclarationLoader {
 				.forEach(unit -> {
 					loaded.add(unit);
 					NamespaceDecl ns = unit.load(messages);
+					enclosingNsDecl.put(ns, null);
 					populateCaches(ns, QID.empty(), unit);
 				});
 	}
