@@ -6,16 +6,16 @@ import se.lth.cs.tycho.ir.QID;
 
 public class GlobalValueReference extends Expression implements GlobalReference {
 	private final QID qid;
-	private final boolean isContentReference;
+	private final boolean isNamespaceReference;
 
-	public GlobalValueReference(QID qid, boolean isContentReference) {
-		this(null, qid, isContentReference);
+	public GlobalValueReference(QID qid, boolean isNamespaceReference) {
+		this(null, qid, isNamespaceReference);
 	}
 	
-	public GlobalValueReference(IRNode original, QID qid, boolean isContentReference) {
+	public GlobalValueReference(IRNode original, QID qid, boolean isNamespaceReference) {
 		super(original);
 		this.qid = qid;
-		this.isContentReference = isContentReference;
+		this.isNamespaceReference = isNamespaceReference;
 	}
 
 	@Override
@@ -24,8 +24,8 @@ public class GlobalValueReference extends Expression implements GlobalReference 
 	}
 	
 	@Override
-	public boolean isContentReference() {
-		return isContentReference;
+	public boolean isNamespaceReference() {
+		return isNamespaceReference;
 	}
 
 	@Override
@@ -33,11 +33,11 @@ public class GlobalValueReference extends Expression implements GlobalReference 
 		return visitor.visitGlobalValueReference(this, param);
 	}
 
-	public GlobalValueReference copy(QID qid, boolean isContentReference) {
-		if (this.qid.equals(qid) && this.isContentReference == isContentReference) {
+	public GlobalValueReference copy(QID qid, boolean isNamespaceReference) {
+		if (this.qid.equals(qid) && this.isNamespaceReference == isNamespaceReference) {
 			return this;
 		} else {
-			return new GlobalValueReference(this, qid, isContentReference);
+			return new GlobalValueReference(this, qid, isNamespaceReference);
 		}
 	}
 

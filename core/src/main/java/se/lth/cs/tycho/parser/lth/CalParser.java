@@ -26,7 +26,7 @@ import se.lth.cs.tycho.ir.stmt.*;
 import java.util.Map;
 import se.lth.cs.tycho.parser.SourceCodeOracle;
 import beaver.*;
-import se.lth.cs.tycho.ir.decl.GlobalDecl.Visibility;
+import se.lth.cs.tycho.ir.decl.GlobalDecl.Availability;
 import se.lth.cs.tycho.errorhandling.BasicErrorModule;
 import java.io.PrintStream;
 import java.util.Collection;
@@ -951,7 +951,7 @@ public class CalParser extends Parser {
                          priorities.build(),
                          invariants.build()
                         );
-    GlobalEntityDecl d = new GlobalEntityDecl((String) name.value, a, Visibility.PUBLIC);
+    GlobalEntityDecl d = new GlobalEntityDecl((String) name.value, a, Availability.PUBLIC);
     return register(start, end, d);
 			}
 			case 66: // time = TIME.start type.t

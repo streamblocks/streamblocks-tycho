@@ -14,7 +14,7 @@ public class TestDecoder {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		NetworkConstructor constr = new DecoderNetworkConstructor();
-		NodeReader reader = new SingleInstrucitonActorMachineReader(Paths.get("..", "orc-apps-am", "RVC", "src"));
+		NodeReader reader = new SingleInstrucitonActorMachineReader(Paths.get("..", "..", "orc-apps-am", "RVC", "src"));
 		Network network = constr.constructNetwork(reader);
 		PrintWriter writer = new PrintWriter("decoder.c");
 		Backend.generateCode(network, writer);

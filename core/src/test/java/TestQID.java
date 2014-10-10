@@ -134,6 +134,17 @@ public class TestQID {
 		assertTrue(QID.empty().isPrefixOf(QID.empty()));
 		assertFalse(qid.isPrefixOf(QID.parse("abc")));
 	}
+	
+	@Test
+	public void testGetWithoutPrefix() {
+		QID qid = QID.parse("abc.def.ghi");
+		assertNull(qid.getWithoutPrefix(QID.of("xyz")));
+		assertNull(QID.parse("abc.def").getWithoutPrefix(qid));
+		assertEquals(qid.getWithoutPrefix(qid), QID.empty());
+		assertEquals(qid.getWithoutPrefix(QID.empty()), qid);
+		assertEquals(qid.getWithoutPrefix(qid.getFirst()), qid.getButFirst());
+		assertEquals(qid.getWithoutPrefix(qid.getButLast()), qid.getLast());
+	}
 
 	@Test
 	public void testNotModified() {

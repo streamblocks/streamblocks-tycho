@@ -31,7 +31,7 @@ import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.parser.SourceCodeOracle;
 import beaver.*;
-import se.lth.cs.tycho.ir.decl.GlobalDecl.Visibility;
+import se.lth.cs.tycho.ir.decl.GlobalDecl.Availability;
 import se.lth.cs.tycho.errorhandling.BasicErrorModule;
 import java.io.PrintStream;
 import se.lth.cs.tycho.ir.entity.nl.StructureIfStmt;
@@ -577,7 +577,7 @@ public class NlParser extends Parser {
                           entities.build(), // entities
                           structure.build(), // structure
                           toolAttributes.build()
-                          ), Visibility.PUBLIC));
+                          ), Availability.PUBLIC));
 			}
 			case 11: // network_body_part = import_part.part
 			{

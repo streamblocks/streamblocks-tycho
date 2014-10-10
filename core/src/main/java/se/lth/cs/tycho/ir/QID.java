@@ -128,6 +128,14 @@ public final class QID {
 			return true;
 		}
 	}
+	
+	public QID getWithoutPrefix(QID prefix) {
+		if (prefix.isPrefixOf(this)) {
+			return part(prefix.getNameCount(), this.getNameCount());
+		} else {
+			return null;
+		}
+	}
 
 	/**
 	 * Returns a QID that is the concatenation of this QID and then the given

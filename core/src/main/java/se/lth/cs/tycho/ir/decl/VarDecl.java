@@ -13,8 +13,14 @@ public abstract class VarDecl extends AbstractIRNode implements Decl {
 		return type;
 	}
 	
+	@Override
 	public String getName() {
 		return name;
+	}
+	
+	@Override
+	public DeclKind getKind() {
+		return DeclKind.VAR;
 	}
 
 	public VarDecl(IRNode original, TypeExpr type, String name) {

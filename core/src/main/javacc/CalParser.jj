@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.decl.*;
-import se.lth.cs.tycho.ir.decl.GlobalDecl.Visibility;
+import se.lth.cs.tycho.ir.decl.GlobalDecl.Availability;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.*;
@@ -344,31 +344,32 @@ GlobalDecl GlobalDecl() :
 }
 
 /* Declarations */
-Visibility Visibility() :
+Availability Availability() :
 {
 }
 {
-	"public" { return Visibility.PUBLIC; }
+	"public" { return Availability.PUBLIC; }
 |
-	"private" { return Visibility.PRIVATE; }
+	"private" { return Availability.PRIVATE; }
 |
-	"local" { return Visibility.LOCAL; }
+	"local" { return Availability.LOCAL; }
 }
 
 GlobalVarDecl GlobalVarDecl() :
 {
-	Visibility visibility = Visibility.PUBLIC;
+	Availability availability = Availability.PUBLIC;
 	String name;
 	TypeExpr type = null;
 	Expression expr;
 }
 {
-	(visibility = Visibility())?
+	(availability = Availability())?
 	(
 		{ TypeAndName typeName; }
 		typeName = VarDeclTypeName()
 		"="
 		expr = Expression()
+		";"
 		{ name = typeName.name; type = typeName.type; }
 	|
 		{ NameAndDef<ExprLambda> fun; }
@@ -380,7 +381,7 @@ GlobalVarDecl GlobalVarDecl() :
 		{ name = proc.name; expr = proc.def; }
 	)
 	{
-		return new GlobalVarDecl(type, name, expr, visibility);
+		return new GlobalVarDecl(type, name, expr, availability);
 	}
 }
 
@@ -446,11 +447,11 @@ GlobalDecl ImportDecl() :
 			name = qid.getLast().toString();
 		}
 		if (kind == null || kind.image.equals("var")) {
-			return new GlobalVarDecl(null, name, new GlobalValueReference(qid, importContents), Visibility.LOCAL);
+			return new GlobalVarDecl(null, name, new GlobalValueReference(qid, importContents), Availability.LOCAL);
 		} else if (kind.image.equals("type")) {
 			return null;
 		} else if (kind.image.equals("entity")) {
-			return new GlobalEntityDecl(name, new GlobalEntityReference(qid, importContents), Visibility.LOCAL);
+			return new GlobalEntityDecl(name, new GlobalEntityReference(qid, importContents), Availability.LOCAL);
 		} else {
 			return null;
 		} 
@@ -587,7 +588,7 @@ GlobalEntityDecl ActorDecl() :
 	("end" | "endactor")
 	{
 		Actor a = new Actor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, priorities.build(), invariants);
-		return new GlobalEntityDecl(name, a, Visibility.PUBLIC);
+		return new GlobalEntityDecl(name, a, Availability.PUBLIC);
 	}
 }
 

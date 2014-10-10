@@ -8,35 +8,35 @@ import se.lth.cs.tycho.ir.expr.Expression;
 
 public class GlobalVarDecl extends VarDecl implements GlobalDecl {
 	private final Expression value;
-	private final Visibility visibility;
+	private final Availability availability;
 
 	public Expression getValue() {
 		return value;
 	}
 
 	@Override
-	public Visibility getVisibility() {
-		return visibility;
+	public Availability getAvailability() {
+		return availability;
 	}
 
-	public GlobalVarDecl(TypeExpr type, String name, Expression value, Visibility visibility) {
-		this(null, type, name, value, visibility);
+	public GlobalVarDecl(TypeExpr type, String name, Expression value, Availability availability) {
+		this(null, type, name, value, availability);
 	}
 
-	public GlobalVarDecl(IRNode original, TypeExpr type, String name, Expression value, Visibility visibility) {
+	public GlobalVarDecl(IRNode original, TypeExpr type, String name, Expression value, Availability availability) {
 
 		super(original, type, name);
 
 		this.value = value;
-		this.visibility = visibility;
+		this.availability = availability;
 	}
 
-	public GlobalVarDecl copy(TypeExpr type, String name, Expression value, Visibility visibility) {
+	public GlobalVarDecl copy(TypeExpr type, String name, Expression value, Availability availability) {
 		if (Objects.equals(getType(), type) && Objects.equals(getName(), name)
-				&& Objects.equals(this.value, value) && getVisibility() == visibility) {
+				&& Objects.equals(this.value, value) && getAvailability() == availability) {
 			return this;
 		}
-		return new GlobalVarDecl(this, type, name, value, visibility);
+		return new GlobalVarDecl(this, type, name, value, availability);
 	}
 
 	@Override

@@ -6,21 +6,21 @@ import se.lth.cs.tycho.ir.QID;
 
 public class GlobalEntityReference extends Entity implements GlobalReference {
 	private final QID qid;
-	private final boolean isContentReference;
+	private final boolean isNamespaceReference;
 
-	public GlobalEntityReference(QID qid, boolean isContentReference) {
-		this(null, qid, isContentReference);
+	public GlobalEntityReference(QID qid, boolean isNamespaceReference) {
+		this(null, qid, isNamespaceReference);
 	}
 	
-	public GlobalEntityReference(IRNode original, QID qid, boolean isContentReference) {
+	public GlobalEntityReference(IRNode original, QID qid, boolean isNamespaceReference) {
 		super(original);
 		this.qid = qid;
-		this.isContentReference = isContentReference;
+		this.isNamespaceReference = isNamespaceReference;
 	}
 
 	@Override
-	public boolean isContentReference() {
-		return isContentReference;
+	public boolean isNamespaceReference() {
+		return isNamespaceReference;
 	}
 	
 	@Override
@@ -33,11 +33,11 @@ public class GlobalEntityReference extends Entity implements GlobalReference {
 		return visitor.visitGlobalEntityReference(this, param);
 	}
 
-	public GlobalEntityReference copy(QID qid, boolean isContentReference) {
-		if (this.qid.equals(qid) && this.isContentReference == isContentReference) {
+	public GlobalEntityReference copy(QID qid, boolean isNamespaceReference) {
+		if (this.qid.equals(qid) && this.isNamespaceReference == isNamespaceReference) {
 			return this;
 		} else {
-			return new GlobalEntityReference(this, qid, isContentReference);
+			return new GlobalEntityReference(this, qid, isNamespaceReference);
 		}
 	}
 }

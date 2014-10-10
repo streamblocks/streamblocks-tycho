@@ -388,7 +388,7 @@ LValueVisitor<LValue, P> {
 	
 	@Override
 	public Expression visitGlobalValueReference(GlobalValueReference e, P p) {
-		return e.copy(transformQualifiedIdentifier(e.getQualifiedIdentifier(), p), e.isContentReference());
+		return e.copy(transformQualifiedIdentifier(e.getQualifiedIdentifier(), p), e.isNamespaceReference());
 	}
 
 	private QID transformQualifiedIdentifier(QID qid, P p) {

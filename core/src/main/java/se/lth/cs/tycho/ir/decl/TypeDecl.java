@@ -16,5 +16,10 @@ public abstract class TypeDecl extends AbstractIRNode implements Decl {
 	public String getName() {
 		return name;
 	}
+	
+	@Override
+	public DeclKind getKind() {
+		return DeclKind.TYPE;
+	}
 
 }
