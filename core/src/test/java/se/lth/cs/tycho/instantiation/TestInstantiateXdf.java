@@ -1,3 +1,4 @@
+package se.lth.cs.tycho.instantiation;
 import static org.junit.Assert.*;
 
 import java.nio.file.Paths;
@@ -14,6 +15,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
 import se.lth.cs.tycho.loader.SourceCodeRepository;
+import se.lth.cs.tycho.messages.NullMessageReporter;
 
 
 public class TestInstantiateXdf {

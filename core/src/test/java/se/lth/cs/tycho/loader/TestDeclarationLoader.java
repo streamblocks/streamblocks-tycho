@@ -1,3 +1,4 @@
+package se.lth.cs.tycho.loader;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -8,6 +9,7 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.loader.DeclarationLoader;
+import se.lth.cs.tycho.messages.NullMessageReporter;
 
 
 public class TestDeclarationLoader {

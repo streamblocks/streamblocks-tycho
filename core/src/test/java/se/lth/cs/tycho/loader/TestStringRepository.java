@@ -1,3 +1,4 @@
+package se.lth.cs.tycho.loader;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static se.lth.cs.tycho.ir.decl.DeclKind.ENTITY;

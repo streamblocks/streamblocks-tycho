@@ -1,3 +1,5 @@
+package se.lth.cs.tycho.messages;
+
 import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.MessageReporter;
 

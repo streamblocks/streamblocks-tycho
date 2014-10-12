@@ -1,3 +1,5 @@
+package se.lth.cs.tycho.loader;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -12,6 +14,7 @@ import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
 import se.lth.cs.tycho.messages.MessageWriter;
+import se.lth.cs.tycho.messages.NullMessageReporter;
 
 
 public class TestLoadXdf {

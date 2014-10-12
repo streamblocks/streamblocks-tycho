@@ -1,3 +1,4 @@
+package se.lth.cs.tycho.loader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
