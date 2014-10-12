@@ -10,6 +10,8 @@ package se.lth.cs.tycho.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,6 +19,12 @@ import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -103,45 +111,40 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.parser.SourceCodeOracle;
 import se.lth.cs.tycho.parser.SourceCodeOracle.SourceCodePosition;
 
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
-
 public class XMLWriter implements ExpressionVisitor<Void,Element>, 
 StatementVisitor<Void, Element>, 
 EntityExprVisitor<Void, Element>, 
 StructureStmtVisitor<Void, Element>, 
 LValueVisitor<Void, Element>, 
 InstructionVisitor<Void, Element>{
-	private java.io.PrintStream out = System.out;
 	Document doc;
 	SourceCodeOracle scOracle;
 	
 	public Document getDocument(){ return doc; }
 
-	public void print(){
+	public void print() {
+		print(System.out);
+	}
+	
+	public void print(OutputStream out){
 		try {
-			OutputFormat format = new OutputFormat(doc);
-			format.setIndenting(true);
-			format.setIndent(2);
-			format.setLineWidth(0);
-			XMLSerializer serializer = new XMLSerializer(out, format);
-			serializer.serialize(doc);
-		} catch (IOException e) {
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer transformer = tf.newTransformer();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			
+			transformer.transform(new DOMSource(doc), 
+			         new StreamResult(new OutputStreamWriter(out, "UTF-8")));
+		} catch (IOException | TransformerException e) {
 			e.printStackTrace();
 		}
 	}
 	public String toString(){
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		try {
-			OutputFormat format = new OutputFormat(doc);
-			format.setIndenting(true);
-			format.setIndent(2);
-			format.setLineWidth(0);
-			XMLSerializer serializer = new XMLSerializer(out, format);
-			serializer.serialize(doc);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		print(out);
 		return out.toString();
 	}
 
