@@ -53,9 +53,9 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
-public class Actor extends EntityDefinition {
+public class CalActor extends EntityDefinition {
 
-	public Actor(ImmutableList<ParDeclType> typePars,
+	public CalActor(ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
@@ -64,7 +64,7 @@ public class Actor extends EntityDefinition {
 				actions, scheduleFSM, priorities, invariants);
 	}
 
-	private Actor(Actor original, ImmutableList<ParDeclType> typePars,
+	private CalActor(CalActor original, ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
@@ -80,7 +80,7 @@ public class Actor extends EntityDefinition {
 		this.invariants = ImmutableList.copyOf(invariants);
 	}
 
-	public Actor copy(ImmutableList<ParDeclType> typePars,
+	public CalActor copy(ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
@@ -93,13 +93,13 @@ public class Actor extends EntityDefinition {
 				&& Lists.equals(this.invariants, invariants)) {
 			return this;
 		}
-		return new Actor(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
+		return new CalActor(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
 				initializers, actions, scheduleFSM, priorities, invariants);
 	}
 
 	@Override
 	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
-		return visitor.visitActor(this, param);
+		return visitor.visitCalActor(this, param);
 	}
 
 	public ImmutableList<LocalTypeDecl> getTypeDecls() {

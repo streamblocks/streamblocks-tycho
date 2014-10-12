@@ -15,7 +15,7 @@ import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
 import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
@@ -29,7 +29,7 @@ public class AbstractNetworkDefinitionTransformer<P> extends AbstractBasicTransf
                                                                                                     EntityExprVisitor<EntityExpr, P>,
                                                                                                     StructureStmtVisitor<StructureStatement, P>{
 
-	public NetworkDefinition transformNetworkDefinition(NetworkDefinition net, P p){
+	public NlNetwork transformNetworkDefinition(NlNetwork net, P p){
 		ImmutableList<ParDeclType> typePars = transformTypeParameters(net.getTypeParameters(), p);
 		ImmutableList<ParDeclValue> valuePars = transformValueParameters(net.getValueParameters(), p);
 		ImmutableList<LocalTypeDecl> typeDecls = transformTypeDecls(net.getTypeDecls(), p);

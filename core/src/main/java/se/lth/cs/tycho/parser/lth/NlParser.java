@@ -24,7 +24,7 @@ import java.util.TreeSet;
 import java.util.ArrayList;
 
 import se.lth.cs.tycho.ir.*;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
@@ -368,7 +368,7 @@ public class NlParser extends Parser {
  * - EntityIfExpr
  * - EntityInstanceExpr
  * - EntityListExpr
- * - NetworkDefinition
+ * - NlNetwork
  * - PortReference
  * - StructureConnectionStmt
  * - StructureForeachStmt
@@ -577,7 +577,7 @@ public class NlParser extends Parser {
         }
         
         return register(startSymbol, endSymbol, new GlobalEntityDecl((String) name.value,
-        		new NetworkDefinition( 
+        		new NlNetwork( 
                           typePars,     // typePars,
                           valuePars == null ? null : valuePars.build(), // valuePars,
                           null,      // typeDecls, NOTE, can not be expressed in NL

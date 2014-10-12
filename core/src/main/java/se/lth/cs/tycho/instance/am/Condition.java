@@ -4,7 +4,7 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
 
 /**
  * Conditions are part of {@link ITest test instructions} and describe situations that are either true or false during the execution of
- * an actor machine, viz. the existence of sufficiently many input tokens at a specific port, the existence of sufficient space in a
+ * an calActor machine, viz. the existence of sufficiently many input tokens at a specific port, the existence of sufficient space in a
  * specified output queue, and the value of a boolean predicate that could depend on input tokens and state variables.
  * 
  * @see PortCondition

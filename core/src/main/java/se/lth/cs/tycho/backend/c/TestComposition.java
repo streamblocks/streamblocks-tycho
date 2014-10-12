@@ -11,7 +11,7 @@ import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.instance.net.ToolValueAttribute;
 import se.lth.cs.tycho.ir.TypeExpr;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
@@ -46,14 +46,14 @@ public class TestComposition {
 		String fileName = BASE_PATH + actorName.replace('.', '/') + ".cal";
 		File file = new File(fileName);
 		CalParser parser = new CalParser();
-		Actor actor = (Actor) parser.parse(file, null, null).getEntity();
+		CalActor calActor = (CalActor) parser.parse(file, null, null).getEntity();
 		ErrorModule errors = parser.getErrorModule();
 		if (errors.hasError()) {
 			errors.printErrors();
 			return null;
 		}
-		actor = ActorOpTransformer.transformActor(actor, null);
-		ActorMachine actorMachine = translator.translate(actor);
+		calActor = ActorOpTransformer.transformActor(calActor, null);
+		ActorMachine actorMachine = translator.translate(calActor);
 		actorMachine = OutputConditionAdder.addOutputConditions(actorMachine);
 		actorMachine = PickFirstInstruction.transform(actorMachine);
 		return actorMachine;

@@ -15,7 +15,7 @@ import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.evaluate.NetDefEvaluator;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.DeclLoader;
@@ -34,20 +34,20 @@ public class BasicNetworkSimulator implements Simulator{
 		System.err.println(msg);
 	}
 
-	public static Network prepareNetworkDefinition(NetworkDefinition net, DeclLoader declLoader){
+	public static Network prepareNetworkDefinition(NlNetwork net, DeclLoader declLoader){
 		return prepareNetworkDefinition(net, ImmutableList.<Map.Entry<String,Expression>>empty(), declLoader);
 	}
 
 	/**
-	 * Evaluate a {@link NetworkDefinition} to a {@link Network}. 
-	 * In the evaluated network all {@link Actor}s are evaluated to {@link ActorMachine}s and embedded {@link NetworkDefinition}s to a {@link Network}s
+	 * Evaluate a {@link NlNetwork} to a {@link Network}. 
+	 * In the evaluated network all {@link CalActor}s are evaluated to {@link ActorMachine}s and embedded {@link NlNetwork}s to a {@link Network}s
 	 * @param net
 	 * @param paramAssigns
 	 * @param declLoader
 	 * @return
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static Network prepareNetworkDefinition(NetworkDefinition net, ImmutableList<Map.Entry<String,Expression>> paramAssigns, DeclLoader declLoader) throws CALCompiletimeException {
+	public static Network prepareNetworkDefinition(NlNetwork net, ImmutableList<Map.Entry<String,Expression>> paramAssigns, DeclLoader declLoader) throws CALCompiletimeException {
 		// order variable initializations
 		net = VariableInitOrderTransformer.transformNetworkDefinition(net, declLoader);
 		// replace operators with function calls
@@ -193,7 +193,7 @@ public class BasicNetworkSimulator implements Simulator{
 		// instantiate the nodes
 		for(int nodeIndex=0; nodeIndex<nbrNodes; nodeIndex++){
 			Node node = nodeList.get(nodeIndex);
-			//--- the node is an Actor ---
+			//--- the node is an CalActor ---
 			if(node.getContent() instanceof ActorMachine){
 				ActorMachine am = (ActorMachine)node.getContent();
 				// create the InputEnd[] for the Environment

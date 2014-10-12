@@ -6,16 +6,16 @@ import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-public class XDF extends EntityDefinition {
+public class XDFNetwork extends EntityDefinition {
 
 	private final ImmutableList<XDFInstance> instances;
 	private final ImmutableList<XDFConnection> connections;
 
-	public XDF(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts, ImmutableList<XDFInstance> instances, ImmutableList<XDFConnection> connections) {
+	public XDFNetwork(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts, ImmutableList<XDFInstance> instances, ImmutableList<XDFConnection> connections) {
 		this(null, inputPorts, outputPorts, instances, connections);
 	}
 
-	public XDF(IRNode original, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
+	public XDFNetwork(IRNode original, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<XDFInstance> instances, ImmutableList<XDFConnection> connections) {
 		super(original, outputPorts, outputPorts, ImmutableList.empty(), ImmutableList.empty());
 		this.instances = instances;

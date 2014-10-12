@@ -18,7 +18,7 @@ import org.xml.sax.SAXException;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.xdf.XDF;
+import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.ir.entity.xdf.XDFConnection;
 import se.lth.cs.tycho.ir.entity.xdf.XDFInstance;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -26,18 +26,18 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 public class XDFReader {
 	DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();
 
-	public XDF read(InputStream is) throws ParserConfigurationException, SAXException, IOException {
+	public XDFNetwork read(InputStream is) throws ParserConfigurationException, SAXException, IOException {
 		DocumentBuilder builder = fact.newDocumentBuilder();
 		Document document = builder.parse(is);
 		return buildXDF(document);
 	}
 
-	private XDF buildXDF(Document doc) {
+	private XDFNetwork buildXDF(Document doc) {
 		ImmutableList<XDFInstance> nodes = buildNodes(doc);
 		ImmutableList<XDFConnection> conns = buildConnections(doc, nodes);
 		ImmutableList<PortDecl> inputPorts = buildPorts(doc, true);
 		ImmutableList<PortDecl> outputPorts = buildPorts(doc, false);
-		return new XDF(inputPorts, outputPorts, nodes, conns);
+		return new XDFNetwork(inputPorts, outputPorts, nodes, conns);
 	}
 
 	private ImmutableList<PortDecl> buildPorts(Document doc, boolean isInput) {

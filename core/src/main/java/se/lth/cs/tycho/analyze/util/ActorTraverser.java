@@ -3,7 +3,7 @@ package se.lth.cs.tycho.analyze.util;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
@@ -11,7 +11,7 @@ import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public interface ActorTraverser<P> extends BasicTraverser<P> {
-	public void traverseActor(Actor actor, P param);
+	public void traverseActor(CalActor calActor, P param);
 
 	public void traverseAction(Action action, P param);
 

@@ -3,7 +3,7 @@ package se.lth.cs.tycho.transform.util;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
@@ -11,7 +11,7 @@ import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public interface ActorTransformer<P> extends BasicTransformer<P> {
-	public Actor transformActor(Actor actor, P param);
+	public CalActor transformActor(CalActor calActor, P param);
 
 	public Action transformAction(Action action, P param);
 	public ImmutableList<Action> transformActions(ImmutableList<Action> actions, P param);

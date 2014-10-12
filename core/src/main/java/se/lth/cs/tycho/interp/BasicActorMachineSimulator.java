@@ -25,7 +25,7 @@ import se.lth.cs.tycho.interp.values.Ref;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.parser.SourceCodeOracle;
@@ -43,7 +43,7 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 	private final Environment environment;
 	private final Interpreter interpreter;
 	private final BitSet liveScopes;            // true if all variables in the scope is initialized, i.e. assigned to default values.
-	private final Map<Condition, BitSet> condRequiredScope;   // for each actor machine condition, which scopes are required
+	private final Map<Condition, BitSet> condRequiredScope;   // for each calActor machine condition, which scopes are required
 	private final BitSet[] transRequiredScope;  // for each transition, which scopes are required
 	
 	private final TypeConverter converter;
@@ -51,20 +51,20 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 	private int state;
 
 	/**
-	 * Transform an Actor to an ActorMachine which is prepared for interpretation, i.e. variables are ordered in initialization order, 
+	 * Transform an CalActor to an ActorMachine which is prepared for interpretation, i.e. variables are ordered in initialization order, 
 	 * variable and port offsets are computed, operations are replaced by function calls et.c.
 	 * 
-	 * @param actor
+	 * @param calActor
 	 * @return an ActorMachine ready to be simulated by BasicActorMachineSimulator.
 	 * @throws CALCompiletimeException if an error occurred
 	 */
-	public static ActorMachine prepareActor(Actor actor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+	public static ActorMachine prepareActor(CalActor calActor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
 		// Order variable declarations so they can be initialized in declaration order
-		actor = VariableInitOrderTransformer.transformActor(actor, sourceOracle);
+		calActor = VariableInitOrderTransformer.transformActor(calActor, sourceOracle);
 		// replace BinOp and UnaryOp in all expressions with function calls
-		actor = ActorOpTransformer.transformActor(actor, sourceOracle);
+		calActor = ActorOpTransformer.transformActor(calActor, sourceOracle);
 
-		// translate the actor to an actor machine
+		// translate the calActor to an calActor machine
 		ActorToActorMachine trans = new ActorToActorMachine() {
 			@Override
 			protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
@@ -73,7 +73,7 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 				return stateHandler;
 			}
 		};
-		ActorMachine actorMachine = trans.translate(actor);
+		ActorMachine actorMachine = trans.translate(calActor);
 		
 		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine, sourceOracle);
 
@@ -150,8 +150,8 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 	private void initScopes(BitSet required) {
 		ImmutableList<Scope> scopeList = actorMachine.getScopes();
 		int nbrScopes = scopeList.size();
-		//FIXME, scopes may depend on each other, ensure a correct evaluation order. The order 0..N is likely ok since the actor scope is initialized first.
-		//if the scopes are ordered Actor ..local this code works fine.
+		//FIXME, scopes may depend on each other, ensure a correct evaluation order. The order 0..N is likely ok since the calActor scope is initialized first.
+		//if the scopes are ordered CalActor ..local this code works fine.
 		for(int scopeId=0; scopeId<nbrScopes; scopeId++){
 			if(required.get(scopeId) && !liveScopes.get(scopeId)){
 				ImmutableList<LocalVarDecl> declList = scopeList.get(scopeId).getDeclarations();

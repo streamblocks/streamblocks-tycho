@@ -20,7 +20,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.EntityDefinition;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
@@ -29,7 +29,7 @@ import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
 import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
@@ -110,7 +110,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		return sb.toString();
 	}
 
-	public void print(NetworkDefinition network, String name){
+	public void print(NlNetwork network, String name){
 		indent();
 		if(network == null){
 			out.append("Network is null");
@@ -119,7 +119,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append(name);
 		printEntityDef(network);
 		//--- variable declaration
-		incIndent();  // actor body
+		incIndent();  // calActor body
 		if(!network.getVarDecls().isEmpty()){
 			indent();
 			out.append("var");
@@ -155,7 +155,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			decIndent();
 		}
 		printToolAttributes(network.getToolAttributes());
-		decIndent();  // actor body
+		decIndent();  // calActor body
 		indent();
 		out.append("end network\n");
 	}
@@ -202,38 +202,38 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append(" : ");
 	}
 
-	public void print(Actor actor, String name){
+	public void print(CalActor calActor, String name){
 		indent();
-		if(actor == null){
-			out.append("Actor is null");
+		if(calActor == null){
+			out.append("CalActor is null");
 		}
-		out.append("Actor ");
+		out.append("CalActor ");
 		out.append(name);
-		printEntityDef(actor);
+		printEntityDef(calActor);
 		//TODO DeclType[] typeDecls
 		//--- variable declaration
-		incIndent();  // actor body
-		for(LocalVarDecl v : actor.getVarDecls()){
+		incIndent();  // calActor body
+		for(LocalVarDecl v : calActor.getVarDecls()){
 			indent();
 			print(v);
 			out.append(";");
 		}
 		//--- initializers
-		for(Action a : actor.getInitializers()){
+		for(Action a : calActor.getInitializers()){
 			print(a, "initialize");
 		}
 		//--- action
-		for(Action a : actor.getActions()){
+		for(Action a : calActor.getActions()){
 			print(a);
 		}
 
-		if(actor.getScheduleFSM() != null){
+		if(calActor.getScheduleFSM() != null){
 			indent();
 			out.append("schedule fsm ");
-			out.append(actor.getScheduleFSM().getInitialState());
+			out.append(calActor.getScheduleFSM().getInitialState());
 			out.append(" : ");
 			incIndent();
-			for(Transition t : actor.getScheduleFSM().getTransitions()){
+			for(Transition t : calActor.getScheduleFSM().getTransitions()){
 				indent();
 				out.append(t.getSourceState());
 				out.append("(");
@@ -251,11 +251,11 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			indent();
 			out.append("endschedule");
 		}
-		if(actor.getPriorities() != null && !actor.getPriorities().isEmpty()){
+		if(calActor.getPriorities() != null && !calActor.getPriorities().isEmpty()){
 			indent();
 			out.append("priority");
 			incIndent();
-			for(List<QID> priority : actor.getPriorities()){
+			for(List<QID> priority : calActor.getPriorities()){
 				indent();
 				String sep = "";
 				for(QID qid : priority){
@@ -269,10 +269,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			indent();
 			out.append("end");
 		}
-		if(actor.getInvariants() != null && !actor.getInvariants().isEmpty()){
+		if(calActor.getInvariants() != null && !calActor.getInvariants().isEmpty()){
 			indent();
 			out.append("invariant ");
-			printExpressions(actor.getInvariants());
+			printExpressions(calActor.getInvariants());
 			out.append(" endinvariant");
 		}
 		decIndent();

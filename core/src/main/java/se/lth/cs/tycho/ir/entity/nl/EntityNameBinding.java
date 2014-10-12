@@ -13,7 +13,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class EntityNameBinding implements StructureStmtVisitor<Object, ImmutableList<Entry<String,EntityExpr>>>{
 
-	public EntityNameBinding(NetworkDefinition network){
+	public EntityNameBinding(NlNetwork network){
 		ImmutableList<Entry<String,EntityExpr>> names = network.getEntities();
 		for(StructureStatement s : network.getStructure()){
 			s.accept(this, names);

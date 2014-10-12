@@ -65,6 +65,6 @@ public class EntityInstanceExpr extends se.lth.cs.tycho.ir.entity.nl.EntityExpr 
 		sb.append(")");
 		return sb.toString();
 	}
-	private String entityName; // the name of the actor/network
+	private String entityName; // the name of the calActor/network
 	private ImmutableList<Entry<String, Expression>> parameterAssignments;
 }

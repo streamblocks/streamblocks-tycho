@@ -11,8 +11,8 @@ import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
@@ -54,14 +54,14 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	 * Prints all warnings to System.err and throws an exception if any error occurs.
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static Actor transformActor(Actor actor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+	public static CalActor transformActor(CalActor calActor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
 		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer(sourceOracle);
 		ActorTransformerWrapper<Set<String>> wrapper = new ActorTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
-		actor = wrapper.transformActor(actor, c);
+		calActor = wrapper.transformActor(calActor, c);
 		freeVarTransformer.printWarnings();
 		freeVarTransformer.abortIfError();
-		return actor;
+		return calActor;
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	 * Prints all warnings to System.err and throws an exception if any error occurs.
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+	public static NlNetwork transformNetworkDefinition(NlNetwork net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
 		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer(sourceOracle);
 		NetworkDefinitionTransformerWrapper<Set<String>> wrapper = new NetworkDefinitionTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order

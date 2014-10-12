@@ -1,8 +1,8 @@
 /* 
  *  @author Per Andersson<Per.Andersson@cs.lth.se>, Lund University
  *  To parse a CAL file use one of the methods:
- *  - public se.lth.cs.tycho.ir.entity.cal.Actor parse(String path, String fileName)
- *  - public se.lth.cs.tycho.ir.entity.cal.Actor parse(File file)
+ *  - public se.lth.cs.tycho.ir.entity.cal.CalActor parse(String path, String fileName)
+ *  - public se.lth.cs.tycho.ir.entity.cal.CalActor parse(File file)
  *
  *  After parsing check for errors in the attribute parseProblems.
  *
@@ -402,7 +402,7 @@ public class CalParser extends Parser {
  * - EntityIfExpr
  * - EntityInstanceExpr
  * - EntityListExpr
- * - NetworkDefinition
+ * - NlNetwork
  * - PortReference
  * - StructureConnectionStmt
  * - StructureForeachStmt
@@ -938,7 +938,7 @@ public class CalParser extends Parser {
           break;
       }
     }
-    Actor a = new Actor(
+    CalActor a = new CalActor(
                          typePars,     // typePars,
                          valuePars == null ? null : valuePars.build(), // valuePars,
                          null,      // typeDecls, NOTE, can not be expressed in CAL

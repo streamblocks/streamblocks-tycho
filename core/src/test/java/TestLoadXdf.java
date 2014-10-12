@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.entity.xdf.XDF;
+import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
 import se.lth.cs.tycho.messages.MessageWriter;
@@ -22,10 +22,10 @@ public class TestLoadXdf {
 		loader.addRepository(new FileSystemXdfRepository(Paths.get("src/test/xdf")));
 		GlobalEntityDecl empty = loader.loadEntity(QID.of("empty"), null);
 		assertNotNull(empty);
-		assertTrue(empty.getEntity() instanceof XDF);
+		assertTrue(empty.getEntity() instanceof XDFNetwork);
 		GlobalEntityDecl x = loader.loadEntity(QID.parse("a.b.c.x"), null);
 		assertNotNull(x);
-		assertTrue(x.getEntity() instanceof XDF);
+		assertTrue(x.getEntity() instanceof XDFNetwork);
 	}
 
 	@Test

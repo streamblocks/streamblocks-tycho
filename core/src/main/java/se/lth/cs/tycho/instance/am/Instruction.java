@@ -3,7 +3,7 @@ package se.lth.cs.tycho.instance.am;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 
 /**
- * Classes implementing this interface represent instructions of the actor machine controller. 
+ * Classes implementing this interface represent instructions of the calActor machine controller. 
  * 
  * @see ICall
  * @see ITest

@@ -1,12 +1,12 @@
 package se.lth.cs.tycho.ir.entity;
 
-import se.lth.cs.tycho.ir.entity.cal.Actor;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
-import se.lth.cs.tycho.ir.entity.xdf.XDF;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 
 public interface EntityVisitor<R, P> {
-	public R visitActor(Actor entity, P param);
-	public R visitNetworkDefinition(NetworkDefinition entity, P param);
+	public R visitCalActor(CalActor entity, P param);
+	public R visitNlNetwork(NlNetwork entity, P param);
 	public R visitGlobalEntityReference(GlobalEntityReference entity, P param);
-	public R visitXDF(XDF entity, P param);
+	public R visitXDFNetwork(XDFNetwork entity, P param);
 }

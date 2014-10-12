@@ -7,8 +7,8 @@ import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
@@ -23,7 +23,7 @@ import se.lth.cs.tycho.transform.util.ErrorAwareBasicTransformer;
 import se.lth.cs.tycho.transform.util.NetworkDefinitionTransformerWrapper;
 /**
  * Replaces all BinaryOp and UnaryOp nodes in expressions with corresponding ExprApplication.
- * The transformation is done by calling transformActor(Actor actor).
+ * The transformation is done by calling transformActor(CalActor calActor).
  *
  * Semantic Checks:
  * - warns if an unknown binary operation is used (unknown priority)
@@ -45,13 +45,13 @@ public class ActorOpTransformer extends ErrorAwareBasicTransformer<Map<String, I
 	 * Prints all warnings to System.err and throws an exception if any error occurs.
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static Actor transformActor(Actor actor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+	public static CalActor transformActor(CalActor calActor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
 		ActorOpTransformer transformer = new ActorOpTransformer(sourceOracle);
 		ActorTransformerWrapper<Map<String, Integer>> wrapper = new ActorTransformerWrapper<Map<String, Integer>>(transformer);
-		actor = wrapper.transformActor(actor, BinOpPriorities.getDefaultMapper());
+		calActor = wrapper.transformActor(calActor, BinOpPriorities.getDefaultMapper());
 		transformer.printWarnings();
 		transformer.abortIfError();
-		return actor;
+		return calActor;
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class ActorOpTransformer extends ErrorAwareBasicTransformer<Map<String, I
 	 * Prints all warnings to System.err and throws an exception if any error occurs.
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+	public static NlNetwork transformNetworkDefinition(NlNetwork net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
 		ActorOpTransformer transformer = new ActorOpTransformer(sourceOracle);
 		NetworkDefinitionTransformerWrapper<Map<String, Integer>> wrapper = new NetworkDefinitionTransformerWrapper<Map<String, Integer>>(transformer);
 		net = wrapper.transformNetworkDefinition(net, BinOpPriorities.getDefaultMapper());

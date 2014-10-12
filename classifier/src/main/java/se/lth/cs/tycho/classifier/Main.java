@@ -4,7 +4,7 @@ import java.io.File;
 
 import se.lth.cs.tycho.errorhandling.ErrorModule;
 import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.transform.caltoam.ActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
@@ -41,8 +41,8 @@ public class Main {
 		String name = file.getName();
 		System.out.println(name);
 		System.out.println(name.replaceAll(".", "="));
-		Actor actor = (Actor) parser.parse(file, null, null).getEntity();
-		ActorMachine actorMachine = actorToActorMachine.translate(actor);
+		CalActor calActor = (CalActor) parser.parse(file, null, null).getEntity();
+		ActorMachine actorMachine = actorToActorMachine.translate(calActor);
 		ErrorModule errors = parser.getErrorModule();
 		if (!errors.hasError()) {
 			Classifier classifier = Classifier.getInstance(actorMachine);

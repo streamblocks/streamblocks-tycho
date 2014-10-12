@@ -17,7 +17,7 @@ public interface IRNode {
 	 * - When a IRNode is constructed by transforming another IRNode, then the 
 	 *   new construct should have the same Identifier as the source of the 
 	 *   transformation. For example an ActorMachine has the same Identifier 
-	 *   as the source Actor.
+	 *   as the source CalActor.
 	 *   
 	 * The third property is not a strict requirement. There exist
 	 * situations where the transformed structure should not "inherit" all 

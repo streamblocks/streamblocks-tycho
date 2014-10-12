@@ -14,7 +14,7 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
@@ -41,8 +41,8 @@ class ActorToActorMachineHelper {
 	private ConditionHandler condHandler;
 	private List<String> stateList;
 
-	public ActorToActorMachineHelper(Actor actor) {
-		aveResult = ave.extractVariables(anp.addNumberedPorts(actor));
+	public ActorToActorMachineHelper(CalActor calActor) {
+		aveResult = ave.extractVariables(anp.addNumberedPorts(calActor));
 	}
 	
 	public ActorStateHandler getActorStateHandler() {
@@ -51,8 +51,8 @@ class ActorToActorMachineHelper {
 		return new ActorStateHandler(scheduleHandler, getConditionHandler(), getPriorityHandler(), getTransitions(), actorStates);
 	}
 
-	private Actor getActor() {
-		return aveResult.actor;
+	private CalActor getActor() {
+		return aveResult.calActor;
 	}
 	
 	public ImmutableList<PortDecl> getInputPorts() {
@@ -208,10 +208,10 @@ class ActorToActorMachineHelper {
 	}
 
 	private void createScheduleHandlerAndStateList() {
-		Actor actor = getActor();
-		ScheduleFSM schedule = actor.getScheduleFSM();
-		int numInit = actor.getInitializers().size();
-		int numAction = actor.getActions().size();
+		CalActor calActor = getActor();
+		ScheduleFSM schedule = calActor.getScheduleFSM();
+		int numInit = calActor.getInitializers().size();
+		int numAction = calActor.getActions().size();
 		String initState = schedule == null ? "" : schedule.getInitialState();
 		ScheduleHandler.Builder builder = new ScheduleHandler.Builder(initState);
 		for (int i = 0; i < numInit; i++) {

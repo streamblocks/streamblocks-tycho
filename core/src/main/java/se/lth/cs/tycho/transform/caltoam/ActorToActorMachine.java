@@ -1,7 +1,7 @@
 package se.lth.cs.tycho.transform.caltoam;
 
 import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
 import se.lth.cs.tycho.transform.util.StateHandler;
@@ -12,8 +12,8 @@ public class ActorToActorMachine {
 		return handler;
 	}
 	
-	public final ActorMachine translate(Actor actor) {
-		ActorToActorMachineHelper helper = new ActorToActorMachineHelper(actor);
+	public final ActorMachine translate(CalActor calActor) {
+		ActorToActorMachineHelper helper = new ActorToActorMachineHelper(calActor);
 		StateHandler<State> stateHandler = getStateHandler(helper.getActorStateHandler());
 		ControllerGenerator<State> generator = ControllerGenerator.generate(stateHandler);
 		return new ActorMachine(

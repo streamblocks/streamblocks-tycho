@@ -10,8 +10,8 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.evaluate.NetDefEvaluator;
 import se.lth.cs.tycho.parser.SourceCodeOracle;
 import se.lth.cs.tycho.parser.lth.CalParser;
@@ -20,7 +20,7 @@ import se.lth.cs.tycho.parser.lth.NlParser;
 
 /**
  * This class manages the global namespace.
- * Given a name it will return a {@link Decl}. The returned {@link Decl} is either an instance of {@link Actor} or {@link NetworkDefinition}.
+ * Given a name it will return a {@link Decl}. The returned {@link Decl} is either an instance of {@link CalActor} or {@link NlNetwork}.
  * In the simulator the {@link Decl}s is instantiated by {@link NetDefEvaluator}. After this the nodes are represented by {@link se.lth.cs.tycho.instance.am.ActorMachine} and {@link se.lth.cs.tycho.instance.net.Network}
  * 
  * @author pera
@@ -38,7 +38,7 @@ public class DeclLoader implements SourceCodeOracle{
 	}
 
 	/**
-	 * Fetch the {@link Actor} or {@link NetworkDefinition} associated with the name in the global namespace.
+	 * Fetch the {@link CalActor} or {@link NlNetwork} associated with the name in the global namespace.
 	 * If the {@link Decl} is not cached then it is loaded from the file system.
 	 * 
 	 * @param name

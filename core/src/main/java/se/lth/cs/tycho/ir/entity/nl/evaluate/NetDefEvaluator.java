@@ -24,8 +24,8 @@ import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
 import se.lth.cs.tycho.interp.values.ExprValue;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.GeneratorFilter;
-import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
@@ -33,13 +33,13 @@ import se.lth.cs.tycho.ir.decl.ParDeclType;
 import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
 import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
@@ -52,7 +52,7 @@ import se.lth.cs.tycho.ir.util.DeclLoader;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environment>, StructureStmtVisitor<StructureStatement, Environment>{
-	NetworkDefinition srcNetwork;
+	NlNetwork srcNetwork;
 	private final Interpreter interpreter;
 	private final TypeConverter converter;
 	private final GeneratorFilterHelper gen;
@@ -63,7 +63,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	private ArrayList<StructureStatement> structure;
 	private Memory mem;
 
-	public NetDefEvaluator(NetworkDefinition network, Interpreter interpreter, DeclLoader entityLoader){
+	public NetDefEvaluator(NlNetwork network, Interpreter interpreter, DeclLoader entityLoader){
 		this.srcNetwork = network;
 		this.interpreter = interpreter;
 		this.converter = TypeConverter.getInstance();
@@ -73,7 +73,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	}
 
 
-	public NetworkDefinition getNetworkDefinition(){
+	public NlNetwork getNetworkDefinition(){
 		assert evaluated;
 		ImmutableList<ParDeclType> typePars = ImmutableList.empty();
 		ImmutableList<ParDeclValue> valuePars = ImmutableList.empty();
@@ -125,10 +125,10 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			//e.getParameterAssignments();
 			PortContainer payload = null; 
 			decl = declLoader.getDecl(e.getEntityName());
-			if(decl instanceof Actor){
-				payload = BasicActorMachineSimulator.prepareActor((Actor)decl, declLoader);
-			} else if(decl instanceof NetworkDefinition){
-				payload = BasicNetworkSimulator.prepareNetworkDefinition((NetworkDefinition)decl, e.getParameterAssignments(), declLoader);
+			if(decl instanceof CalActor){
+				payload = BasicActorMachineSimulator.prepareActor((CalActor)decl, declLoader);
+			} else if(decl instanceof NlNetwork){
+				payload = BasicNetworkSimulator.prepareNetworkDefinition((NlNetwork)decl, e.getParameterAssignments(), declLoader);
 			} else {
 				throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
 			}
@@ -139,7 +139,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 
 		@Override
 		public Void visitEntityIfExpr(EntityIfExpr e, String p) {
-			throw new RuntimeException("The NetworkDefinition is not evalated befor the Network is created.");
+			throw new RuntimeException("The NlNetwork is not evalated befor the Network is created.");
 		}
 
 		@Override
@@ -208,7 +208,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		}
 		@Override
 		public Void visitStructureIfStmt(StructureIfStmt stmt, String p) {
-			throw new RuntimeException("The NetworkDefinition is not evalated befor the Network is created.");
+			throw new RuntimeException("The NlNetwork is not evalated befor the Network is created.");
 		}
 		@Override
 		public Void visitStructureForeachStmt(StructureForeachStmt stmt, String p) {

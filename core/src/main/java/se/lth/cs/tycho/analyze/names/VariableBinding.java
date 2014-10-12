@@ -8,7 +8,7 @@ import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
@@ -105,12 +105,12 @@ public class VariableBinding extends Module<VariableBinding.Decls> {
 		return e().lookupVariable(action, name);
 	}
 
-	public IRNode lookupVariable(Actor actor, String name) {
-		IRNode varDecl = lookupInList(actor.getVarDecls(), name);
+	public IRNode lookupVariable(CalActor calActor, String name) {
+		IRNode varDecl = lookupInList(calActor.getVarDecls(), name);
 		if (varDecl != null) {
 			return varDecl;
 		}
-		IRNode parDecl = lookupInList(actor.getValueParameters(), name);
+		IRNode parDecl = lookupInList(calActor.getValueParameters(), name);
 		if (parDecl != null) {
 			return parDecl;
 		}

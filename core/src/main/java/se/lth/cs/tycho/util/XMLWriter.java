@@ -51,7 +51,7 @@ import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.entity.EntityDefinition;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
@@ -60,7 +60,7 @@ import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
 import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
@@ -158,14 +158,14 @@ InstructionVisitor<Void, Element>{
 		}
 	}
 	
-	public XMLWriter(Actor actor, SourceCodeOracle scOracle){
+	public XMLWriter(CalActor calActor, SourceCodeOracle scOracle){
 		this.scOracle = scOracle;
 		try{
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 			doc = docBuilder.newDocument();
 			Element top = doc.createElement("wrapper");
-			generateXMLForActor(actor, top);
+			generateXMLForActor(calActor, top);
 		}catch(ParserConfigurationException pce){
 			pce.printStackTrace();
 		}
@@ -239,18 +239,18 @@ InstructionVisitor<Void, Element>{
 		top.setAttribute("id", node.getIdentifier().toString());
 		Object content = node.getContent();
 		generateXMLForToolAttributeList(node.getToolAttributes(), top);
-		if(content instanceof Actor){
-			generateXMLForActor((Actor)content, top);
+		if(content instanceof CalActor){
+			generateXMLForActor((CalActor)content, top);
 		} else if(content instanceof ActorMachine){
 			generateXMLForActorMachine((ActorMachine)content, top);
-		} else if(content instanceof NetworkDefinition){
-			generateXMLForNetworkDefinition((NetworkDefinition)content, top);
+		} else if(content instanceof NlNetwork){
+			generateXMLForNetworkDefinition((NlNetwork)content, top);
 		} else if(content instanceof Network){
 			generateXMLForNetwork((Network)content, top);
 		}
 	}
 	
-	public XMLWriter(NetworkDefinition network){
+	public XMLWriter(NlNetwork network){
 		try{
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -263,8 +263,8 @@ InstructionVisitor<Void, Element>{
 			pce.printStackTrace();
 		}
 	}
-	private void generateXMLForNetworkDefinition(NetworkDefinition network, Element p) {
-		Element networkElement = doc.createElement("NetworkDefinition");
+	private void generateXMLForNetworkDefinition(NlNetwork network, Element p) {
+		Element networkElement = doc.createElement("NlNetwork");
 		p.appendChild(networkElement);
 		addSourceCodePosition(network, networkElement);
 		networkElement.setAttribute("name", null); //FIXME
@@ -285,21 +285,21 @@ InstructionVisitor<Void, Element>{
 		}
 	}
 	
-	private void generateXMLForActor(Actor actor, Element p) {
-		Element actorElement = doc.createElement("Actor");
+	private void generateXMLForActor(CalActor calActor, Element p) {
+		Element actorElement = doc.createElement("CalActor");
 		p.appendChild(actorElement);
-		addSourceCodePosition(actor, actorElement);
+		addSourceCodePosition(calActor, actorElement);
 		doc.appendChild(actorElement);
 		actorElement.setAttribute("name", null); // FIXME
 		//-- type/value parameters, in/out ports, type/value declarations
-		generateXMLForEntityDefinition(actor, actorElement);
-		generateXMLForDeclTypeList(actor.getTypeDecls(), actorElement);
-		generateXMLForDeclVarList(actor.getVarDecls(), actorElement);
-		generateXMLForActions(actor.getInitializers(), actorElement);
-		generateXMLForActions(actor.getActions(), actorElement);
-		generateXMLForSchedule(actor.getScheduleFSM(), actorElement);
-		generateXMLForPriorityList(actor.getPriorities(), actorElement);
-		generateXMLForExpressionList(actor.getInvariants(), actorElement, "InvariantList");		
+		generateXMLForEntityDefinition(calActor, actorElement);
+		generateXMLForDeclTypeList(calActor.getTypeDecls(), actorElement);
+		generateXMLForDeclVarList(calActor.getVarDecls(), actorElement);
+		generateXMLForActions(calActor.getInitializers(), actorElement);
+		generateXMLForActions(calActor.getActions(), actorElement);
+		generateXMLForSchedule(calActor.getScheduleFSM(), actorElement);
+		generateXMLForPriorityList(calActor.getPriorities(), actorElement);
+		generateXMLForExpressionList(calActor.getInvariants(), actorElement, "InvariantList");		
 	}
 	private void generateXMLForSchedule(ScheduleFSM scheduleFSM, Element p) {
 		if(scheduleFSM == null) return;
@@ -428,7 +428,7 @@ InstructionVisitor<Void, Element>{
 		generateXMLForPortDeclList(entity.getOutputPorts(), top, "OutputPortList");
 	}
 	/******************************************************************************
-	 * Actor Machine
+	 * CalActor Machine
 	 */
 	public XMLWriter(ActorMachine am, SourceCodeOracle scOracle){
 		this.scOracle = scOracle;

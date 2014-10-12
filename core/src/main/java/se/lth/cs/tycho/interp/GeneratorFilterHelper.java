@@ -23,7 +23,7 @@ public class GeneratorFilterHelper {
 	}
 
 	/**
-	 * Called during the interpretation of an actor machine.
+	 * Called during the interpretation of an calActor machine.
 	 * Called by {@link ExpressionEvaluator} and {@link StatementExecutor}.
 	 * NOTE, the stack must be modified in the same order by both interpret() and memoryLayout()
 	 * 
@@ -73,7 +73,7 @@ public class GeneratorFilterHelper {
 	}
 
 	/**
-	 * Called when an actor machine is prepared for interpretation.
+	 * Called when an calActor machine is prepared for interpretation.
 	 * The purpose is to find the offset on the stack for all variables.
 	 * Called by {@link VariableOffsetTransformer}.
 	 * NOTE, the stack must be modified in the same order by both interpret() and setVariableOffsets()

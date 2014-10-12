@@ -13,7 +13,7 @@ import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
@@ -28,35 +28,35 @@ import se.lth.cs.tycho.transform.util.AbstractActorTransformer;
 
 class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtractor.Variables> {
 
-	public Result extractVariables(Actor actor) {
+	public Result extractVariables(CalActor calActor) {
 		Variables data = new Variables();
-		Actor resultActor = transformActor(actor, data);
+		CalActor resultActor = transformActor(calActor, data);
 		ImmutableList<Scope> scopes = generateScopes(resultActor);
 		ImmutableList<Integer> transientScopes = transientScopes(resultActor);
 		return new Result(resultActor, scopes, transientScopes);
 	}
 
-	private ImmutableList<Integer> transientScopes(Actor actor) {
+	private ImmutableList<Integer> transientScopes(CalActor calActor) {
 		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
-		int nbrOfActions = actor.getActions().size() + actor.getInitializers().size();
+		int nbrOfActions = calActor.getActions().size() + calActor.getInitializers().size();
 		for (int i = 1; i <= nbrOfActions; i++) {
 			builder.add(i);
 		}
 		return builder.build();
 	}
 
-	private ImmutableList<Scope> generateScopes(Actor actor) {
+	private ImmutableList<Scope> generateScopes(CalActor calActor) {
 		ImmutableList.Builder<Scope> result = ImmutableList.builder();
-		result.add(new Scope(actor.getVarDecls()));
+		result.add(new Scope(calActor.getVarDecls()));
 		ImmutableList<Action> actions = ImmutableList.<Action> builder()
-				.addAll(actor.getInitializers())
-				.addAll(actor.getActions())
+				.addAll(calActor.getInitializers())
+				.addAll(calActor.getActions())
 				.build();
 		for (Action a : actions) {
 			ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
 			int port = 0;
 			for (InputPattern in : a.getInputPatterns()) {
-				PortDecl portDecl = getPortDecl(actor, port, in);
+				PortDecl portDecl = getPortDecl(calActor, port, in);
 				port += 1;
 				addInputVarDecls(portDecl, in, builder);
 			}
@@ -66,19 +66,19 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		return result.build();
 	}
 
-	private PortDecl getPortDecl(Actor actor, int port, InputPattern in) {
+	private PortDecl getPortDecl(CalActor calActor, int port, InputPattern in) {
 		if(in.getPort() != null) {
 			if (in.getPort().hasLocation()) {
-				return actor.getInputPorts().get(in.getPort().getOffset());
+				return calActor.getInputPorts().get(in.getPort().getOffset());
 			} else {
-				for (PortDecl d : actor.getInputPorts()) {
+				for (PortDecl d : calActor.getInputPorts()) {
 					if (d.getName().equals(in.getPort().getName())) {
 						return d;
 					}
 				}
 			}
 		} else {
-			return actor.getInputPorts().get(port);
+			return calActor.getInputPorts().get(port);
 		}
 		return null;
 	}
@@ -110,11 +110,11 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	}
 
 	@Override
-	public Actor transformActor(Actor actor, Variables vars) {
-		for (VarDecl var : actor.getVarDecls()) {
+	public CalActor transformActor(CalActor calActor, Variables vars) {
+		for (VarDecl var : calActor.getVarDecls()) {
 			vars.addStaticVar(var.getName());
 		}
-		Actor result = super.transformActor(actor, vars);
+		CalActor result = super.transformActor(calActor, vars);
 		return result;
 	}
 
@@ -179,13 +179,13 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	}
 
 	public static class Result {
-		public final Actor actor;
+		public final CalActor calActor;
 		public final ImmutableList<Scope> scopes;
 		public final ImmutableList<Integer> transientScopes;
 
-		public Result(Actor actor, ImmutableList<Scope> scopes,
+		public Result(CalActor calActor, ImmutableList<Scope> scopes,
 				ImmutableList<Integer> persistentScopes) {
-			this.actor = actor;
+			this.calActor = calActor;
 			this.scopes = scopes;
 			this.transientScopes = persistentScopes;
 		}

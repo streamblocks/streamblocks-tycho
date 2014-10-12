@@ -13,8 +13,8 @@ import se.lth.cs.tycho.interp.Environment;
 import se.lth.cs.tycho.interp.Simulator;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.util.DeclLoader;
 
 public class Simulate {
@@ -37,20 +37,20 @@ public class Simulate {
 		Simulator simulator;
 		try{
 			Decl e = declLoader.getDecl(entityName);
-			if(e instanceof NetworkDefinition){
-				NetworkDefinition netDef = (NetworkDefinition)e;
+			if(e instanceof NlNetwork){
+				NlNetwork netDef = (NlNetwork)e;
 				Network net = BasicNetworkSimulator.prepareNetworkDefinition(netDef, declLoader);
 				simulator = new BasicNetworkSimulator(net, defaultChannelSize, defaultStackSize);
-			} else if(e instanceof Actor){
-				Actor actor = (Actor)e;
-				ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, declLoader);
+			} else if(e instanceof CalActor){
+				CalActor calActor = (CalActor)e;
+				ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(calActor, declLoader);
 
-				Channel.OutputEnd[] sourceChannelOutputEnd = new Channel.OutputEnd[actor.getInputPorts().size()];
+				Channel.OutputEnd[] sourceChannelOutputEnd = new Channel.OutputEnd[calActor.getInputPorts().size()];
 				for(int i=0; i<sourceChannelOutputEnd.length; i++){
 					Channel channel = new BasicChannel(0);  // no one is writing to this channel, so set size to 0
 					sourceChannelOutputEnd[i] = channel.createOutputEnd();
 				}
-				Channel.InputEnd[] sinkChannelInputEnd = new Channel.InputEnd[actor.getOutputPorts().size()];
+				Channel.InputEnd[] sinkChannelInputEnd = new Channel.InputEnd[calActor.getOutputPorts().size()];
 				for(int i=0; i<sinkChannelInputEnd.length; i++){
 					Channel channel = new BasicChannel(defaultChannelSize);
 					sinkChannelInputEnd[i] = channel.getInputEnd();
@@ -58,7 +58,7 @@ public class Simulate {
 				Environment env = new BasicEnvironment(sinkChannelInputEnd, sourceChannelOutputEnd, actorMachine);
 				simulator = new BasicActorMachineSimulator(actorMachine, env, new BasicInterpreter(defaultStackSize));
 			} else {
-				System.err.println(entityName + " is not a network or actor.");
+				System.err.println(entityName + " is not a network or calActor.");
 				return;
 			}
 		} catch(CALCompiletimeException error){

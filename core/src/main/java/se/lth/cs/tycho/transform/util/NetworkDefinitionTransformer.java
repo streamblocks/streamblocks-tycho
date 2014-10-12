@@ -5,14 +5,14 @@ import java.util.Map;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public interface NetworkDefinitionTransformer<P> extends BasicTransformer<P> {
 
-	public NetworkDefinition transformNetworkDefinition(NetworkDefinition net, P p);
+	public NlNetwork transformNetworkDefinition(NlNetwork net, P p);
 
 	public ImmutableList<PortDecl> transformInputPorts(ImmutableList<PortDecl> port, P param);
 	public PortDecl transformInputPort(PortDecl port, P param);

@@ -12,7 +12,7 @@ import se.lth.cs.tycho.instance.am.PredicateCondition;
 import se.lth.cs.tycho.instance.am.State;
 import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
 import se.lth.cs.tycho.transform.util.StateHandler;
@@ -48,7 +48,7 @@ class TestActorTrans {
 		File file = new File("/Users/gustav/Programmering/dataflow/doc/papers/2013 Asilomar -- AM Classification/ex_again/Split.cal");
 		File gv = new File("controller.gv");
 		GlobalEntityDecl actor = parse(file);
-		//ActorMachine actorMachine = OutputConditionAdder.addOutputConditions(translate(actor));
+		//ActorMachine actorMachine = OutputConditionAdder.addOutputConditions(translate(calActor));
 		ActorMachine actorMachine = translate(actor);
 		ControllerToGraphviz.print(new PrintWriter(gv), actorMachine, "controller");
 		
@@ -93,7 +93,7 @@ class TestActorTrans {
 	}
 	
 	private ActorMachine translate(GlobalEntityDecl actor) {
-		return translator.translate((Actor) actor.getEntity());
+		return translator.translate((CalActor) actor.getEntity());
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {

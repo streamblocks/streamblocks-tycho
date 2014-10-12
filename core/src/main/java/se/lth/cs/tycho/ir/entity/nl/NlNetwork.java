@@ -18,7 +18,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  * A NetworkTemplate the internal representation of a .nl file. Basically it is
  * a AST derived straight from the .nl grammar.
  * 
- * A NetworkDefinition is a flat structure, i.e. sub-networks are represented by their name.
+ * A NlNetwork is a flat structure, i.e. sub-networks are represented by their name.
  * NetworkDefinitions are instantiated to {@link Network}s.
  * {@link Network}s can be hierarchical, i.e. sub-networks are represented as {@link Network}s.
  * 
@@ -26,8 +26,8 @@ import se.lth.cs.tycho.ir.util.Lists;
  * 
  */
 
-public class NetworkDefinition extends EntityDefinition {
-	public NetworkDefinition(ImmutableList<ParDeclType> typePars,
+public class NlNetwork extends EntityDefinition {
+	public NlNetwork(ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Entry<String, EntityExpr>> entities, ImmutableList<StructureStatement> structure,
@@ -36,7 +36,7 @@ public class NetworkDefinition extends EntityDefinition {
 				toolAttributes);
 	}
 
-	private NetworkDefinition(NetworkDefinition original,
+	private NlNetwork(NlNetwork original,
 			ImmutableList<ParDeclType> typePars, ImmutableList<ParDeclValue> valuePars,
 			ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, ImmutableList<PortDecl> inputPorts,
 			ImmutableList<PortDecl> outputPorts, ImmutableList<Entry<String, EntityExpr>> entities,
@@ -50,7 +50,7 @@ public class NetworkDefinition extends EntityDefinition {
 		this.structure = ImmutableList.copyOf(structure);
 	}
 
-	public NetworkDefinition copy(ImmutableList<ParDeclType> typePars,
+	public NlNetwork copy(ImmutableList<ParDeclType> typePars,
 			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Entry<String, EntityExpr>> entities, ImmutableList<StructureStatement> structure,
@@ -62,13 +62,13 @@ public class NetworkDefinition extends EntityDefinition {
 				&& Lists.equals(this.toolAttributes, toolAttributes)) {
 			return this;
 		}
-		return new NetworkDefinition(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
+		return new NlNetwork(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
 				entities, structure, toolAttributes);
 	}
 
 	@Override
 	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
-		return visitor.visitNetworkDefinition(this, param);
+		return visitor.visitNlNetwork(this, param);
 	}
 
 

@@ -8,8 +8,8 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 /**
- * This class contains a description of an actor machine. The central structure
- * inside an actor machine is its controller.
+ * This class contains a description of an calActor machine. The central structure
+ * inside an calActor machine is its controller.
  * 
  * The controller is a list that contains for each index (the <it>controller
  * state</it>) a (possibly empty) list of {@link Instruction instructions} that
@@ -23,7 +23,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  * The actual code that is executed is contained with the {@link ICall call} and
  * {@link ITest test} instructions.
  * 
- * Along with the controller, an actor machine contains a list of scopes, that
+ * Along with the controller, an calActor machine contains a list of scopes, that
  * in turn are lists of {@link LocalVarDecl declarations}. Each of these scopes
  * represents a set of temporary variable declarations that are referred to by
  * the {@link PredicateCondition predicate conditions} and the

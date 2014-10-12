@@ -7,7 +7,7 @@ import java.util.Random;
 
 import se.lth.cs.tycho.errorhandling.ErrorModule;
 import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.transform.caltoam.ActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
@@ -61,14 +61,14 @@ public class SingleInstrucitonActorMachineReader implements NodeReader {
 	public ActorMachine fromFile(File file) {
 		System.out.println(file.getName());
 		CalParser parser = new CalParser();
-		Actor actor = (Actor) parser.parse(file, null, null).getEntity();
+		CalActor calActor = (CalActor) parser.parse(file, null, null).getEntity();
 		ErrorModule errors = parser.getErrorModule();
 		if (errors.hasError()) {
 			errors.printErrors();
 			return null;
 		}
-		actor = ActorOpTransformer.transformActor(actor, null);
-		ActorMachine actorMachine = translator.translate(actor);
+		calActor = ActorOpTransformer.transformActor(calActor, null);
+		ActorMachine actorMachine = translator.translate(calActor);
 		System.out.println("States: " + actorMachine.getController().size());
 		actorMachine = OutputConditionAdder.addOutputConditions(actorMachine);
 		actorMachine = PickFirstInstruction.transform(actorMachine);

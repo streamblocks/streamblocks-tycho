@@ -7,7 +7,7 @@ import java.util.Map;
 
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -15,8 +15,8 @@ import se.lth.cs.tycho.transform.util.AbstractActorTransformer;
 
 class AddNumberedPorts extends AbstractActorTransformer<AddNumberedPorts.PortMap> {
 	
-	public Actor addNumberedPorts(Actor actor) {
-		return transformActor(actor, new PortMap());
+	public CalActor addNumberedPorts(CalActor calActor) {
+		return transformActor(calActor, new PortMap());
 	}
 
 	@Override

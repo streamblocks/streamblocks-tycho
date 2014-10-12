@@ -14,7 +14,7 @@ import se.lth.cs.tycho.interp.Environment;
 import se.lth.cs.tycho.interp.Simulator;
 import se.lth.cs.tycho.interp.values.BasicRef;
 import se.lth.cs.tycho.interp.values.ConstRef;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.parser.lth.CalParser;
 
 public class Test {
@@ -30,7 +30,7 @@ public class Test {
 		// File("../dataflow/examples/MPEG4_SP_Decoder/ACPred.cal");
 
 		CalParser parser = new CalParser();
-		Actor actor = (Actor) parser.parse(calFile, null, null).getEntity();
+		CalActor calActor = (CalActor) parser.parse(calFile, null, null).getEntity();
 
 //		List<Decl> actorArgs = new ArrayList<Decl>();
 		// actorArgs.add(varDecl("MAXW_IN_MB", lit(121)));
@@ -38,7 +38,7 @@ public class Test {
 		// actorArgs.add(varDecl("SAMPLE_SZ", lit(13)));
 //		Scope argScope = new Scope(ScopeKind.Persistent, actorArgs);
 
-		ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, null);
+		ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(calActor, null);
 
 //		XMLWriter doc = new XMLWriter(actorMachine);		doc.print();
 

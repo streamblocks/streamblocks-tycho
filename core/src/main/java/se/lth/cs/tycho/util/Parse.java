@@ -18,8 +18,8 @@ import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.util.DeclLoader;
 import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.parser.lth.CalScanner;
@@ -33,7 +33,7 @@ public class Parse{
 			"\n-pp pretty print" +
 			"\n-xml print an xml representation of the IR" +
 			"\n-graph graphviz representation of the evaluated network. Implies -net" +
-			"\n-am transform actor to actor machine, done before xml printing" +
+			"\n-am transform calActor to calActor machine, done before xml printing" +
 			"\n-net evaluate the network and create the Network object before xml printing. Actors and subgraphs are inlined."
 			;
 
@@ -111,27 +111,27 @@ public class Parse{
 			if (decl instanceof GlobalEntityDecl) {
 				Entity entity = ((GlobalEntityDecl) decl).getEntity();
 				//		System.out.println("------- " + System.getProperty("user.dir") + "/" + path + "/" + name + " (" +  new java.util.Date() + ") -------");
-				if(entity instanceof Actor){
-					Actor actor = (Actor)entity;
-	//					actor = VariableInitOrderTransformer.transformActor(actor, declLoader);
+				if(entity instanceof CalActor){
+					CalActor calActor = (CalActor)entity;
+	//					calActor = VariableInitOrderTransformer.transformActor(calActor, declLoader);
 	
 					if(prettyPrint){
 						PrettyPrint pp = new PrettyPrint();
-						pp.print(actor, decl.getName());
+						pp.print(calActor, decl.getName());
 					}
 					if(am){
-						ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(actor, declLoader);
+						ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(calActor, declLoader);
 	
 						if(xml){
 							XMLWriter doc = new XMLWriter(actorMachine, declLoader);
 							doc.print();
 						}
 					} else if(xml){
-						XMLWriter doc = new XMLWriter(actor, declLoader);
+						XMLWriter doc = new XMLWriter(calActor, declLoader);
 						doc.print();
 					}
-				} else if(entity instanceof NetworkDefinition){
-					NetworkDefinition network = (NetworkDefinition)entity;
+				} else if(entity instanceof NlNetwork){
+					NlNetwork network = (NlNetwork)entity;
 					if(netEval){
 						Network net = BasicNetworkSimulator.prepareNetworkDefinition(network, declLoader);
 						if(xml){

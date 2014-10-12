@@ -5,7 +5,7 @@ import java.lang.invoke.MethodHandle;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
@@ -24,19 +24,19 @@ public class AbstractActorTransformer<P> extends AbstractBasicTransformer<P> imp
 	private static final MethodHandle transOutputPort = methodHandle(AbstractActorTransformer.class, PortDecl.class, "transformOutputPort");
 
 	@Override
-	public Actor transformActor(Actor actor, P param) {
-		return actor.copy(
-				transformTypeParameters(actor.getTypeParameters(), param),
-				transformValueParameters(actor.getValueParameters(), param),
-				transformTypeDecls(actor.getTypeDecls(), param),
-				transformVarDecls(actor.getVarDecls(), param),
-				transformInputPorts(actor.getInputPorts(), param),
-				transformOutputPorts(actor.getOutputPorts(), param),
-				transformActions(actor.getInitializers(), param),
-				transformActions(actor.getActions(), param),
-				transformSchedule(actor.getScheduleFSM(), param),
-				transformPriorities(actor.getPriorities(), param),
-				transformExpressions(actor.getInvariants(), param));
+	public CalActor transformActor(CalActor calActor, P param) {
+		return calActor.copy(
+				transformTypeParameters(calActor.getTypeParameters(), param),
+				transformValueParameters(calActor.getValueParameters(), param),
+				transformTypeDecls(calActor.getTypeDecls(), param),
+				transformVarDecls(calActor.getVarDecls(), param),
+				transformInputPorts(calActor.getInputPorts(), param),
+				transformOutputPorts(calActor.getOutputPorts(), param),
+				transformActions(calActor.getInitializers(), param),
+				transformActions(calActor.getActions(), param),
+				transformSchedule(calActor.getScheduleFSM(), param),
+				transformPriorities(calActor.getPriorities(), param),
+				transformExpressions(calActor.getInvariants(), param));
 	}
 
 	@Override

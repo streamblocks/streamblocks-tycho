@@ -6,8 +6,8 @@ import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.interp.values.ExprValue;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.interp.values.predef.Predef;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
@@ -34,10 +34,10 @@ public class EvaluateLiteralsTransformer extends ErrorAwareBasicTransformer<Map<
 		super(sourceOracle);
 	}
 
-	public static Actor transformActor(Actor actor, SourceCodeOracle sourceOracle){
+	public static CalActor transformActor(CalActor calActor, SourceCodeOracle sourceOracle){
 		EvaluateLiteralsTransformer freeVarTransformer = new EvaluateLiteralsTransformer(sourceOracle);
 		ActorTransformerWrapper<Map<String, RefView>> wrapper = new ActorTransformerWrapper<Map<String, RefView>>(freeVarTransformer);
-		return wrapper.transformActor(actor, Predef.predef());
+		return wrapper.transformActor(calActor, Predef.predef());
 	}
 
 	public static ActorMachine transformActorMachine(ActorMachine actorMachine, SourceCodeOracle sourceOracle){
@@ -46,7 +46,7 @@ public class EvaluateLiteralsTransformer extends ErrorAwareBasicTransformer<Map<
 		return wrapper.transformActorMachine(actorMachine, Predef.predef());
 	}
 
-	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net, SourceCodeOracle sourceOracle){
+	public static NlNetwork transformNetworkDefinition(NlNetwork net, SourceCodeOracle sourceOracle){
 		EvaluateLiteralsTransformer freeVarTransformer = new EvaluateLiteralsTransformer(sourceOracle);
 		NetworkDefinitionTransformerWrapper<Map<String, RefView>> wrapper = new NetworkDefinitionTransformerWrapper<Map<String, RefView>>(freeVarTransformer);
 		return wrapper.transformNetworkDefinition(net, Predef.predef());

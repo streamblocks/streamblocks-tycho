@@ -3,7 +3,7 @@ package se.lth.cs.tycho.analyze.util;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
@@ -13,18 +13,18 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 public abstract class AbstractActorTraverser<P> extends AbstractBasicTraverser<P> implements ActorTraverser<P> {
 
 	@Override
-	public void traverseActor(Actor actor, P param) {
-		traverseTypeParameters(actor.getTypeParameters(), param);
-		traverseValueParameters(actor.getValueParameters(), param);
-		traverseInputPorts(actor.getInputPorts(), param);
-		traverseOutputPorts(actor.getOutputPorts(), param);
-		traverseTypeDecls(actor.getTypeDecls(), param);
-		traverseVarDecls(actor.getVarDecls(), param);
-		traverseExpressions(actor.getInvariants(), param);
-		traverseActions(actor.getInitializers(), param);
-		traverseActions(actor.getActions(), param);
-		traverseSchedule(actor.getScheduleFSM(), param);
-		traversePriorities(actor.getPriorities(), param);
+	public void traverseActor(CalActor calActor, P param) {
+		traverseTypeParameters(calActor.getTypeParameters(), param);
+		traverseValueParameters(calActor.getValueParameters(), param);
+		traverseInputPorts(calActor.getInputPorts(), param);
+		traverseOutputPorts(calActor.getOutputPorts(), param);
+		traverseTypeDecls(calActor.getTypeDecls(), param);
+		traverseVarDecls(calActor.getVarDecls(), param);
+		traverseExpressions(calActor.getInvariants(), param);
+		traverseActions(calActor.getInitializers(), param);
+		traverseActions(calActor.getActions(), param);
+		traverseSchedule(calActor.getScheduleFSM(), param);
+		traversePriorities(calActor.getPriorities(), param);
 	}
 
 	@Override

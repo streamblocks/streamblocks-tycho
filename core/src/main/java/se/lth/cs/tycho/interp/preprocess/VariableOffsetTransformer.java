@@ -20,7 +20,7 @@ import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
@@ -73,8 +73,8 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 
 	/**
 	 * 
-	 * globalScopeId - scope in which names for the network/actor global variables are located. Use -1 not to search for global variables, i.e. when transforming {@link ActorMachines}
-	 * paramScopeId - scope in which names for the network/actor parameters are located. Use -1 not to search for parameters
+	 * globalScopeId - scope in which names for the network/calActor global variables are located. Use -1 not to search for global variables, i.e. when transforming {@link ActorMachines}
+	 * paramScopeId - scope in which names for the network/calActor parameters are located. Use -1 not to search for parameters
 	 */
 	private int globalScopeId = -1;
 	private int paramScopeId = -1;
@@ -88,7 +88,7 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 	 * @return
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static NetworkDefinition transformNetworkDefinition(NetworkDefinition net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+	public static NlNetwork transformNetworkDefinition(NlNetwork net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
 		VariableOffsetTransformer transformer = new VariableOffsetTransformer(sourceOracle);
 		NetDefVarOffsetTransformer wrapper = transformer.new NetDefVarOffsetTransformer(transformer);
 
@@ -278,7 +278,7 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 					if(result != null){
 						return result;
 					}
-					// This should not happen. The actor machine translator has given a scopeId to a variable, but the scope do not declare the name.
+					// This should not happen. The calActor machine translator has given a scopeId to a variable, but the scope do not declare the name.
 					throw new RuntimeException("unknown scope variable: " + name);
 
 				} else {
@@ -393,7 +393,7 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 		}
 
 		@Override
-		public NetworkDefinition transformNetworkDefinition(NetworkDefinition net, LookupTable table){
+		public NlNetwork transformNetworkDefinition(NlNetwork net, LookupTable table){
 			globalScopeId = NetworkGlobalScopeId;
 			paramScopeId = NetworkParamScopeId;
 			Scope globalScope[] = new Scope[Math.max(paramScopeId, globalScopeId)+1];

@@ -6,13 +6,13 @@ import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.PortContainer;
-import se.lth.cs.tycho.ir.entity.cal.Actor;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 /**
  * A Node is a basic element in a network. It is a wrapper for a {@link PortContainer}. Usually,
- * this will be either another {@link Network}, a (parameterless) {@link Actor}, an {@link ActorMachine}.
+ * this will be either another {@link Network}, a (parameterless) {@link CalActor}, an {@link ActorMachine}.
  * 
  * {@link Connection}s identifies the ports it connects to by linking to the {@link se.lth.cs.tycho.ir.IRNode.Identifier} of the encapsulating {@link Node} and a {@link se.lth.cs.tycho.ir.Port} object. 
  * 

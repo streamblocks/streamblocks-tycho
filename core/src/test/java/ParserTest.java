@@ -1,7 +1,7 @@
 import java.io.File;
 
-import se.lth.cs.tycho.ir.entity.cal.Actor;
-import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.parser.lth.NlParser;
 import junit.framework.Assert;
@@ -57,7 +57,7 @@ public class ParserTest extends TestCase{
 		if(fileName.endsWith(".cal")){
 			System.out.println("  parsing cal-file " + file.getName());
 			CalParser parser = new CalParser();
-			Actor actor = (Actor) parser.parse(file, null, null).getEntity();
+			CalActor calActor = (CalActor) parser.parse(file, null, null).getEntity();
 			if(parser.getErrorModule().hasProblem()){
 				parser.getErrorModule().printMessages();
 				Assert.fail("compile error while loading " + fileName + " in directory " + file.getParent());
@@ -65,7 +65,7 @@ public class ParserTest extends TestCase{
 		} else if(fileName.endsWith(".nl")){
 			System.out.println("  parsing nl-file " + file.getName());
 			NlParser parser = new NlParser();
-			NetworkDefinition network = (NetworkDefinition) parser.parse(file, null, null).getEntity();
+			NlNetwork network = (NlNetwork) parser.parse(file, null, null).getEntity();
 			if(parser.getErrorModule().hasProblem()){
 				parser.getErrorModule().printMessages();
 				Assert.fail("compile error while loading " + fileName + " in directory " + file.getParent());

@@ -17,7 +17,7 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.DeclKind;
 import se.lth.cs.tycho.ir.decl.GlobalDecl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.entity.xdf.XDF;
+import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.MessageReporter;
@@ -72,8 +72,8 @@ public class FileSystemXdfRepository implements SourceCodeRepository {
 		@Override
 		public NamespaceDecl load(MessageReporter messages) {
 			try {
-				XDF xdf = reader.read(Files.newInputStream(path));
-				GlobalEntityDecl decl = new GlobalEntityDecl(qid.getLast().toString(), xdf, Availability.PUBLIC);
+				XDFNetwork xDFNetwork = reader.read(Files.newInputStream(path));
+				GlobalEntityDecl decl = new GlobalEntityDecl(qid.getLast().toString(), xDFNetwork, Availability.PUBLIC);
 				return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.of(decl));
 			} catch (ParserConfigurationException | SAXException | IOException e) {
 				messages.report(Message.error(e.getMessage()));
