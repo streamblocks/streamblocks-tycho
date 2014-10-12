@@ -6,6 +6,7 @@ import java.lang.invoke.MethodType;
 
 import se.lth.cs.tycho.ir.Field;
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
@@ -14,7 +15,6 @@ import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParDeclType;
 import se.lth.cs.tycho.ir.decl.ParDeclValue;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprField;
@@ -218,16 +218,16 @@ LValueVisitor<LValue, P> {
 		if (typeExpr == null) {
 			return null;
 		}
-		ImmutableList.Builder<ImmutableEntry<String, TypeExpr>> typeParBuilder = ImmutableList.builder();
-		for (ImmutableEntry<String, TypeExpr> entry : typeExpr.getTypeParameters()) {
-			typeParBuilder.add(ImmutableEntry.of(
-					entry.getKey(),
+		ImmutableList.Builder<Parameter<TypeExpr>> typeParBuilder = ImmutableList.builder();
+		for (Parameter<TypeExpr> entry : typeExpr.getTypeParameters()) {
+			typeParBuilder.add(new Parameter<>(
+					entry.getName(),
 					transformTypeExpr(entry.getValue(), param)));
 		}
-		ImmutableList.Builder<ImmutableEntry<String, Expression>> valParBuilder = ImmutableList.builder();
-		for (ImmutableEntry<String, Expression> entry : typeExpr.getValueParameters()) {
-			valParBuilder.add(ImmutableEntry.of(
-					entry.getKey(),
+		ImmutableList.Builder<Parameter<Expression>> valParBuilder = ImmutableList.builder();
+		for (Parameter<Expression> entry : typeExpr.getValueParameters()) {
+			valParBuilder.add(new Parameter<>(
+					entry.getName(),
 					transformExpression(entry.getValue(), param)));
 		}
 		return typeExpr.copy(typeExpr.getName(), typeParBuilder.build(), valParBuilder.build());

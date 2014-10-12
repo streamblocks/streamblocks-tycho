@@ -10,11 +10,11 @@ import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.instance.net.ToolValueAttribute;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.transform.caltoam.ActorStates;
@@ -56,7 +56,7 @@ public class TestMotion8x8Comp {
 	
 	private TypeExpr sizedType(String name, int size) {
 		Expression s = new ExprLiteral(ExprLiteral.Kind.Integer, Integer.toString(size));
-		return new TypeExpr(name, null, ImmutableList.of(ImmutableEntry.of("size", s)));
+		return new TypeExpr(name, null, ImmutableList.of(new Parameter<>("size", s)));
 	}
 
 	private ActorMachine actorMachine(String actorName) {
@@ -78,7 +78,7 @@ public class TestMotion8x8Comp {
 
 	private TypeExpr uint(int size) {
 		Expression s = new ExprLiteral(ExprLiteral.Kind.Integer, Integer.toString(size));
-		return new TypeExpr("uint", null, ImmutableList.of(ImmutableEntry.of("size", s)));
+		return new TypeExpr("uint", null, ImmutableList.of(new Parameter<>("size", s)));
 	}
 
 	private ImmutableList<ToolAttribute> bufferSize(int size) {

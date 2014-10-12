@@ -4,6 +4,7 @@ import java.util.Map.Entry;
 
 import se.lth.cs.tycho.ir.Field;
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
@@ -45,7 +46,6 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVisitor;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, ExpressionVisitor<Void, P>,
@@ -368,15 +368,15 @@ public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, Ex
 	public void traverseTypeExpr(TypeExpr typeExpr, P param) {
 		if (typeExpr == null)
 			return;
-		ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters = typeExpr.getTypeParameters();
+		ImmutableList<Parameter<TypeExpr>> typeParameters = typeExpr.getTypeParameters();
 		if (typeParameters != null) {
-			for (Entry<String, TypeExpr> typeParam : typeParameters) {
+			for (Parameter<TypeExpr> typeParam : typeParameters) {
 				traverseTypeExpr(typeParam.getValue(), param);
 			}
 		}
-		ImmutableList<ImmutableEntry<String, Expression>> valueParameters = typeExpr.getValueParameters();
+		ImmutableList<Parameter<Expression>> valueParameters = typeExpr.getValueParameters();
 		if (valueParameters != null) {
-			for (Entry<String, Expression> valParam : valueParameters) {
+			for (Parameter<Expression> valParam : valueParameters) {
 				traverseExpression(valParam.getValue(), param);
 			}
 		}

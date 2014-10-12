@@ -56,11 +56,11 @@ public class TypeExpr extends AbstractIRNode {
 		return name;
 	}
 
-	public ImmutableList<ImmutableEntry<String, TypeExpr>> getTypeParameters() {
+	public ImmutableList<Parameter<TypeExpr>> getTypeParameters() {
 		return typeParameters;
 	}
 
-	public ImmutableList<ImmutableEntry<String, Expression>> getValueParameters() {
+	public ImmutableList<Parameter<Expression>> getValueParameters() {
 		return valueParameters;
 	}
 
@@ -68,13 +68,13 @@ public class TypeExpr extends AbstractIRNode {
 		this(null, name, null, null);
 	}
 
-	public TypeExpr(String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
-			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
+	public TypeExpr(String name, ImmutableList<Parameter<TypeExpr>> typeParameters,
+			ImmutableList<Parameter<Expression>> valueParameters) {
 		this(null, name, typeParameters, valueParameters);
 	}
 
-	private TypeExpr(TypeExpr original, String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
-			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
+	private TypeExpr(TypeExpr original, String name, ImmutableList<Parameter<TypeExpr>> typeParameters,
+			ImmutableList<Parameter<Expression>> valueParameters) {
 		super(original);
 		this.name = name;
 		this.typeParameters = ImmutableList.copyOf(typeParameters);
@@ -85,8 +85,8 @@ public class TypeExpr extends AbstractIRNode {
 		return copy(name, null, null);
 	}
 
-	public TypeExpr copy(String name, ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters,
-			ImmutableList<ImmutableEntry<String, Expression>> valueParameters) {
+	public TypeExpr copy(String name, ImmutableList<Parameter<TypeExpr>> typeParameters,
+			ImmutableList<Parameter<Expression>> valueParameters) {
 		if (Objects.equals(this.name, name) && Lists.equals(this.typeParameters, typeParameters)
 				&& Lists.equals(this.valueParameters, valueParameters)) {
 			return this;
@@ -95,7 +95,7 @@ public class TypeExpr extends AbstractIRNode {
 	}
 
 	private final String name;
-	private final ImmutableList<ImmutableEntry<String, TypeExpr>> typeParameters;
-	private final ImmutableList<ImmutableEntry<String, Expression>> valueParameters;
+	private final ImmutableList<Parameter<TypeExpr>> typeParameters;
+	private final ImmutableList<Parameter<Expression>> valueParameters;
 
 }

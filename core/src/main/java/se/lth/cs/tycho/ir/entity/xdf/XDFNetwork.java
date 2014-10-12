@@ -32,8 +32,7 @@ public class XDFNetwork extends EntityDefinition {
 
 	@Override
 	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
-		// TODO Auto-generated method stub
-		return null;
+		return visitor.visitXDFNetwork(this, param);
 	}
 
 }

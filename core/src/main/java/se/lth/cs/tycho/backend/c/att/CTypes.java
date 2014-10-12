@@ -1,19 +1,18 @@
 package se.lth.cs.tycho.backend.c.att;
 
-import java.util.Map.Entry;
-
+import javarag.Module;
+import javarag.Synthesized;
 import se.lth.cs.tycho.backend.c.CArrayType;
 import se.lth.cs.tycho.backend.c.CNamedType;
 import se.lth.cs.tycho.backend.c.CType;
 import se.lth.cs.tycho.instance.net.Connection;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.Expression;
-import javarag.Module;
-import javarag.Synthesized;
 
 public class CTypes extends Module<CTypes.Decls> {
 
@@ -75,14 +74,14 @@ public class CTypes extends Module<CTypes.Decls> {
 			return new CNamedType("_Bool");
 		case "List":
 			CType elementType = null;
-			for (Entry<String, TypeExpr> entry : type.getTypeParameters()) {
-				if (entry.getKey().equals("type")) {
+			for (Parameter<TypeExpr> entry : type.getTypeParameters()) {
+				if (entry.getName().equals("type")) {
 					elementType = e().ctype(entry.getValue());
 				}
 			}
 			String listSize = null;
-			for (Entry<String, Expression> entry : type.getValueParameters()) {
-				if (entry.getKey().equals("size")) {
+			for (Parameter<Expression> entry : type.getValueParameters()) {
+				if (entry.getName().equals("size")) {
 					listSize = e().simpleExpression(entry.getValue());
 				}
 			}

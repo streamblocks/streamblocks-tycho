@@ -11,6 +11,7 @@ import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
@@ -440,17 +441,17 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
    				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
 			out.append("(");
 			String sep = "";
-			for(ImmutableEntry<String, Expression>par : type.getValueParameters()){
+			for(Parameter<Expression> par : type.getValueParameters()){
 				out.append(sep);
 				sep = ", ";
-				out.append(par.getKey());
+				out.append(par.getName());
 				out.append("=");
 				par.getValue().accept(this, null);
 			}
-			for(ImmutableEntry<String, TypeExpr>par : type.getTypeParameters()){
+			for(Parameter<TypeExpr> par : type.getTypeParameters()){
 				out.append(sep);
 				sep = ", ";
-				out.append(par.getKey());
+				out.append(par.getName());
 				out.append(":");
 				print(par.getValue());
 			}

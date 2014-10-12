@@ -2,10 +2,10 @@ package se.lth.cs.tycho.backend.c.test;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.instance.net.ToolValueAttribute;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class Util {
@@ -23,7 +23,7 @@ public class Util {
 	
 	private static TypeExpr sizedType(String name, int size) {
 		Expression s = new ExprLiteral(ExprLiteral.Kind.Integer, Integer.toString(size));
-		return new TypeExpr(name, null, ImmutableList.of(ImmutableEntry.of("size", s)));
+		return new TypeExpr(name, null, ImmutableList.of(new Parameter<>("size", s)));
 	}
 
 	public static ImmutableList<ToolAttribute> bufferSize(int size) {

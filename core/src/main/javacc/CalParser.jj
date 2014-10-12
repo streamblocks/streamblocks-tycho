@@ -1254,8 +1254,8 @@ TypeExpr Type() :
 
 TypeExpr ParameterizedType(String name) :
 {
-	ImmutableList.Builder<ImmutableEntry<String, TypeExpr>> types = ImmutableList.builder();
-	ImmutableList.Builder<ImmutableEntry<String, Expression>> vals = ImmutableList.builder();
+	ImmutableList.Builder<Parameter<TypeExpr>> types = ImmutableList.builder();
+	ImmutableList.Builder<Parameter<Expression>> vals = ImmutableList.builder();
 }
 {
 	(
@@ -1270,8 +1270,8 @@ TypeExpr ParameterizedType(String name) :
 }
 
 void AddParameterAssignments(
-	ImmutableList.Builder<ImmutableEntry<String, TypeExpr>> types,
-	ImmutableList.Builder<ImmutableEntry<String, Expression>> vals) :
+	ImmutableList.Builder<Parameter<TypeExpr>> types,
+	ImmutableList.Builder<Parameter<Expression>> vals) :
 {
 	Token name;
 	TypeExpr type;
@@ -1282,11 +1282,11 @@ void AddParameterAssignments(
 		LOOKAHEAD(2)
 		(name = <ID> | name = <TYPE>)
 		":" type = Type()
-		{ types.add(ImmutableEntry.of(name.image, type)); }
+		{ types.add(new Parameter<TypeExpr>(name.image, type)); }
 	|
 		name = <ID>
 		"=" expr = Expression()
-		{ vals.add(ImmutableEntry.of(name.image, expr)); }
+		{ vals.add(new Parameter<Expression>(name.image, expr)); }
 	)
 }
 
@@ -1306,8 +1306,8 @@ TypeAndName VarDeclTypeName() :
 		"]"
 		{
 			type = new TypeExpr("List",
-					ImmutableList.of(ImmutableEntry.of("type", type)),
-					ImmutableList.of(ImmutableEntry.of("size", size)));
+					ImmutableList.of(new Parameter<TypeExpr>("type", type)),
+					ImmutableList.of(new Parameter<Expression>("size", size)));
 		}
 	)*
 	{ return new TypeAndName(type, id.image); }
