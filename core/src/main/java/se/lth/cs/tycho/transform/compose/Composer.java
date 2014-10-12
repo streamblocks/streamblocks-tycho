@@ -1,13 +1,12 @@
 package se.lth.cs.tycho.transform.compose;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.management.RuntimeErrorException;
-
+import javarag.AttributeEvaluator;
+import javarag.AttributeRegister;
+import javarag.impl.reg.BasicAttributeRegister;
 import se.lth.cs.tycho.backend.c.IRNodeTraverser;
 import se.lth.cs.tycho.backend.c.att.Ports;
 import se.lth.cs.tycho.instance.am.ActorMachine;
@@ -17,25 +16,16 @@ import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
+import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.transform.compose.CompositionStateHandler.State;
-import se.lth.cs.tycho.transform.filter.SelectFirstInstruction;
 import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
-import se.lth.cs.tycho.transform.reduction.FixedInstructionWeight;
-import se.lth.cs.tycho.transform.reduction.PriorityListSelector;
-import se.lth.cs.tycho.transform.reduction.Selector;
-import se.lth.cs.tycho.transform.reduction.ShortestPathStateHandler;
-import se.lth.cs.tycho.transform.reduction.TransitionPriorityStateHandler;
 import se.lth.cs.tycho.transform.util.AbstractActorMachineTransformer;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
 import se.lth.cs.tycho.transform.util.StateHandler;
-import javarag.AttributeEvaluator;
-import javarag.AttributeRegister;
-import javarag.impl.reg.BasicAttributeRegister;
 
 public class Composer {
 	private final AttributeRegister register;
@@ -143,7 +133,7 @@ public class Composer {
 			Map<Port, Integer> outputRates = transformTokenRates(transition.getOutputRates(), eval);
 			return transition.copy(inputRates, outputRates,
 					eval.<ImmutableList<Integer>> evaluate("scopesToKill", transition),
-					transformStatement(transition.getBody(), eval));
+					transformStatement(transition.getBody(), eval), transition.getLocation());
 		}
 		private Map<Port, Integer> transformTokenRates(Map<Port, Integer> rates, AttributeEvaluator eval) {
 			Map<Port, Integer> result = new HashMap<>();

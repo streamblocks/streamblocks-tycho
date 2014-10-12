@@ -2,6 +2,7 @@ package se.lth.cs.tycho.instance.am;
 
 import java.util.Objects;
 
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 /**
@@ -27,22 +28,29 @@ public class PredicateCondition extends Condition {
 	public Expression getExpression() {
 		return expression;
 	}
-
-	public PredicateCondition(Expression expression) {
-		this(null, expression);
+	
+	public NamespaceDecl getLocation() {
+		return location;
 	}
 
-	private PredicateCondition(PredicateCondition original, Expression expression) {
+	public PredicateCondition(Expression expression, NamespaceDecl origin) {
+		this(null, expression, origin);
+	}
+
+	private PredicateCondition(PredicateCondition original, Expression expression, NamespaceDecl origin) {
 		super(original);
 		this.expression = expression;
+		this.location = origin;
 	}
 
-	public PredicateCondition copy(Expression expression) {
-		if (Objects.equals(this.expression, expression)) {
+	public PredicateCondition copy(Expression expression, NamespaceDecl origin) {
+		if (Objects.equals(this.expression, expression) && Objects.equals(this.location, origin)) {
 			return this;
 		}
-		return new PredicateCondition(this, expression);
+		return new PredicateCondition(this, expression, origin);
 	}
 
 	private Expression expression;
+	private final NamespaceDecl location;
+
 }

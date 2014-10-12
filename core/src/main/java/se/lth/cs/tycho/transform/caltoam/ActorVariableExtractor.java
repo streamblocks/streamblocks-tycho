@@ -47,7 +47,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 
 	private ImmutableList<Scope> generateScopes(CalActor calActor) {
 		ImmutableList.Builder<Scope> result = ImmutableList.builder();
-		result.add(new Scope(calActor.getVarDecls()));
+		result.add(new Scope(calActor.getVarDecls(), null)); // FIXME get the correct namespace decl
 		ImmutableList<Action> actions = ImmutableList.<Action> builder()
 				.addAll(calActor.getInitializers())
 				.addAll(calActor.getActions())
@@ -61,7 +61,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 				addInputVarDecls(portDecl, in, builder);
 			}
 			builder.addAll(a.getVarDecls());
-			result.add(new Scope(builder.build()));
+			result.add(new Scope(builder.build(), null)); // FIXME get the correct namespace decl
 		}
 		return result.build();
 	}

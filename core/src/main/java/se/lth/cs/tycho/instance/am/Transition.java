@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -23,6 +24,10 @@ import se.lth.cs.tycho.ir.util.Lists;
  */
 
 public class Transition extends AbstractIRNode {
+
+	public NamespaceDecl getLocation() {
+		return location;
+	}
 
 	public Map<Port, Integer> getInputRates() {
 		return inputRates;
@@ -57,30 +62,32 @@ public class Transition extends AbstractIRNode {
 	}
 
 	public Transition(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates, ImmutableList<Integer> kill,
-			Statement body) {
-		this(null, inputRates, outputRates, kill, body);
+			Statement body, NamespaceDecl origin) {
+		this(null, inputRates, outputRates, kill, body, origin);
 	}
 
 	private Transition(Transition original, Map<Port, Integer> inputRates, Map<Port, Integer> outputRates,
-			ImmutableList<Integer> kill, Statement body) {
+			ImmutableList<Integer> kill, Statement body, NamespaceDecl origin) {
 		super(original);
 		this.inputRates = Collections.unmodifiableMap(new HashMap<>(inputRates));
 		this.outputRates = Collections.unmodifiableMap(new HashMap<>(outputRates));
 		this.kill = ImmutableList.copyOf(kill);
 		this.body = body;
+		this.location = origin;
 	}
 
 	public Transition copy(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates,
-			ImmutableList<Integer> kill, Statement body) {
+			ImmutableList<Integer> kill, Statement body, NamespaceDecl origin) {
 		if (Objects.equals(this.inputRates, inputRates) && Objects.equals(this.outputRates, outputRates)
-				&& Lists.equals(this.kill, kill) && Objects.equals(this.body, body)) {
+				&& Lists.equals(this.kill, kill) && Objects.equals(this.body, body) && Objects.equals(this.location, origin)) {
 			return this;
 		}
-		return new Transition(this, inputRates, outputRates, kill, body);
+		return new Transition(this, inputRates, outputRates, kill, body, origin);
 	}
 
-	private ImmutableList<Integer> kill;
-	private Statement body;
-	private Map<Port, Integer> inputRates;
-	private Map<Port, Integer> outputRates;
+	private final ImmutableList<Integer> kill;
+	private final Statement body;
+	private final Map<Port, Integer> inputRates;
+	private final Map<Port, Integer> outputRates;
+	private final NamespaceDecl location;
 }

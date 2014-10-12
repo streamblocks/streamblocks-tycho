@@ -397,7 +397,7 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 			globalScopeId = NetworkGlobalScopeId;
 			paramScopeId = NetworkParamScopeId;
 			Scope globalScope[] = new Scope[Math.max(paramScopeId, globalScopeId)+1];
-			globalScope[globalScopeId] = new Scope(net.getVarDecls());
+			globalScope[globalScopeId] = new Scope(net.getVarDecls(), null);
 			//FIXME this is a bit over engineered. The generated list of declarations is not saved.
 			globalScope[paramScopeId] = buildParamScope(net.getValueParameters());
 			scopes = ImmutableList.copyOf(globalScope);
@@ -412,7 +412,7 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 			for(ParDeclValue par : valueParameters){
 				builder.add(new LocalVarDecl(par, par.getType(), par.getName(), null, false));
 			}
-			return new Scope(builder.build());
+			return new Scope(builder.build(), null);
 		}
 
 		@Override
