@@ -1,10 +1,10 @@
 package se.lth.cs.tycho.backend.c.test;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.instance.net.ToolValueAttribute;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.net.ToolAttribute;
-import se.lth.cs.tycho.ir.net.ToolValueAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 

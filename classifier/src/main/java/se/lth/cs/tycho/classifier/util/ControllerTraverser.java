@@ -5,14 +5,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Condition;
+import se.lth.cs.tycho.instance.am.Instruction;
+import se.lth.cs.tycho.instance.am.PortCondition;
+import se.lth.cs.tycho.instance.am.State;
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.Instruction;
-import se.lth.cs.tycho.ir.entity.am.PortCondition;
-import se.lth.cs.tycho.ir.entity.am.State;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import javarag.TreeTraverser;
 
 public class ControllerTraverser implements TreeTraverser<IRNode> {

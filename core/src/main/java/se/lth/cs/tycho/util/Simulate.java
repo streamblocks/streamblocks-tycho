@@ -1,6 +1,8 @@
 package se.lth.cs.tycho.util;
 
 import se.lth.cs.tycho.errorhandling.ErrorModule;
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.interp.BasicActorMachineSimulator;
 import se.lth.cs.tycho.interp.BasicChannel;
 import se.lth.cs.tycho.interp.BasicEnvironment;
@@ -11,10 +13,8 @@ import se.lth.cs.tycho.interp.Environment;
 import se.lth.cs.tycho.interp.Simulator;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Actor;
 import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
-import se.lth.cs.tycho.ir.net.Network;
 import se.lth.cs.tycho.ir.util.DeclLoader;
 
 public class Simulate {

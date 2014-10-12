@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.ir.net;
+package se.lth.cs.tycho.instance.net;
 import java.util.Objects;
 
 import se.lth.cs.tycho.ir.expr.Expression;

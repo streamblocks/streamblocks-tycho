@@ -3,12 +3,12 @@ package se.lth.cs.tycho.transform.siam;
 import java.util.Collections;
 import java.util.List;
 
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.ICall;
-import se.lth.cs.tycho.ir.entity.am.ITest;
-import se.lth.cs.tycho.ir.entity.am.IWait;
-import se.lth.cs.tycho.ir.entity.am.Instruction;
-import se.lth.cs.tycho.ir.entity.am.State;
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.ICall;
+import se.lth.cs.tycho.instance.am.ITest;
+import se.lth.cs.tycho.instance.am.IWait;
+import se.lth.cs.tycho.instance.am.Instruction;
+import se.lth.cs.tycho.instance.am.State;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.transform.util.GenInstruction;
 import se.lth.cs.tycho.transform.util.StateHandler;

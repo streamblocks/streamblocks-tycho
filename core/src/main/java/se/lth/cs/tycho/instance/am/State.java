@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.ir.entity.am;
+package se.lth.cs.tycho.instance.am;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;

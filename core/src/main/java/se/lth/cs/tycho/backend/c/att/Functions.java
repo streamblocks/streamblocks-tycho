@@ -9,12 +9,12 @@ import java.util.Set;
 
 import se.lth.cs.tycho.backend.c.CType;
 import se.lth.cs.tycho.backend.c.util.Joiner;
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;

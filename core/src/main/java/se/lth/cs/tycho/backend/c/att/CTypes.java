@@ -5,13 +5,13 @@ import java.util.Map.Entry;
 import se.lth.cs.tycho.backend.c.CArrayType;
 import se.lth.cs.tycho.backend.c.CNamedType;
 import se.lth.cs.tycho.backend.c.CType;
+import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.net.Connection;
 import javarag.Module;
 import javarag.Synthesized;
 

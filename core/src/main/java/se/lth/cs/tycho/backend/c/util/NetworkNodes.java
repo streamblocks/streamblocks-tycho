@@ -3,9 +3,9 @@ package se.lth.cs.tycho.backend.c.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.lth.cs.tycho.instance.net.Network;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.entity.PortContainer;
-import se.lth.cs.tycho.ir.net.Network;
-import se.lth.cs.tycho.ir.net.Node;
 
 public class NetworkNodes {
 	public static List<Node> getByName(Network network, String nodeName) {

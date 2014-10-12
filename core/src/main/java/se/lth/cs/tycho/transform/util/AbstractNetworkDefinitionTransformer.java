@@ -4,6 +4,7 @@ import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParDeclType;
@@ -22,7 +23,6 @@ import se.lth.cs.tycho.ir.entity.nl.StructureIfStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
 import se.lth.cs.tycho.ir.entity.nl.StructureStmtVisitor;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.net.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class AbstractNetworkDefinitionTransformer<P> extends AbstractBasicTransformer<P> implements NetworkDefinitionTransformer<P>, 

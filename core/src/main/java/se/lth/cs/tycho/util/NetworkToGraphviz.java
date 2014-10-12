@@ -2,10 +2,10 @@ package se.lth.cs.tycho.util;
 
 import java.io.PrintWriter;
 
+import se.lth.cs.tycho.instance.net.Connection;
+import se.lth.cs.tycho.instance.net.Network;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.net.Connection;
-import se.lth.cs.tycho.ir.net.Network;
-import se.lth.cs.tycho.ir.net.Node;
 
 public class NetworkToGraphviz {
 	private PrintWriter printWriter;

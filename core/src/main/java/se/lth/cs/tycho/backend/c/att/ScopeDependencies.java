@@ -3,13 +3,13 @@ package se.lth.cs.tycho.backend.c.att;
 import java.util.HashSet;
 import java.util.Set;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Condition;
+import se.lth.cs.tycho.instance.am.PredicateCondition;
+import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
-import se.lth.cs.tycho.ir.entity.am.Scope;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import javarag.Bottom;
 import javarag.Circular;
 import javarag.Collected;

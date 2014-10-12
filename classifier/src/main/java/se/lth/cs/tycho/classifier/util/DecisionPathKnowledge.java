@@ -3,7 +3,7 @@ package se.lth.cs.tycho.classifier.util;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-import se.lth.cs.tycho.ir.entity.am.ICall;
+import se.lth.cs.tycho.instance.am.ICall;
 
 public class DecisionPathKnowledge {
 	private final ImmutableBitSet trueConds;

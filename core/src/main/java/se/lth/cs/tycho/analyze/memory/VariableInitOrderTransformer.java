@@ -5,12 +5,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Actor;
 import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
 import se.lth.cs.tycho.ir.expr.ExprLambda;

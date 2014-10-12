@@ -2,9 +2,9 @@ package se.lth.cs.tycho.classifier.attributes;
 
 import java.util.Map;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import javarag.Cached;
 import javarag.Module;
 import javarag.Synthesized;

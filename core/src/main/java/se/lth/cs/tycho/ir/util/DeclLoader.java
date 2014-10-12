@@ -21,7 +21,7 @@ import se.lth.cs.tycho.parser.lth.NlParser;
 /**
  * This class manages the global namespace.
  * Given a name it will return a {@link Decl}. The returned {@link Decl} is either an instance of {@link Actor} or {@link NetworkDefinition}.
- * In the simulator the {@link Decl}s is instantiated by {@link NetDefEvaluator}. After this the nodes are represented by {@link se.lth.cs.tycho.ir.entity.am.ActorMachine} and {@link se.lth.cs.tycho.ir.net.Network}
+ * In the simulator the {@link Decl}s is instantiated by {@link NetDefEvaluator}. After this the nodes are represented by {@link se.lth.cs.tycho.instance.am.ActorMachine} and {@link se.lth.cs.tycho.instance.net.Network}
  * 
  * @author pera
  *

@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import se.lth.cs.tycho.ir.entity.am.Instruction;
-import se.lth.cs.tycho.ir.entity.am.State;
+import se.lth.cs.tycho.instance.am.Instruction;
+import se.lth.cs.tycho.instance.am.State;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class ControllerGenerator<S> {

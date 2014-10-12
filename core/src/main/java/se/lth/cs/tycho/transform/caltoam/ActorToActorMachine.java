@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.transform.caltoam;
 
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Actor;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;

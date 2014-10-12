@@ -8,7 +8,7 @@ import se.lth.cs.tycho.backend.c.test.Fib100NetworkConstructor;
 import se.lth.cs.tycho.backend.c.test.NetworkConstructor;
 import se.lth.cs.tycho.backend.c.test.NodeReader;
 import se.lth.cs.tycho.backend.c.test.SingleInstrucitonActorMachineReader;
-import se.lth.cs.tycho.ir.net.Network;
+import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.transform.compose.Composer;
 
 public class TestFib100 {

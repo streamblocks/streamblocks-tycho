@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.interp.BasicActorMachineSimulator;
 import se.lth.cs.tycho.interp.BasicChannel;
 import se.lth.cs.tycho.interp.BasicEnvironment;
@@ -13,7 +14,6 @@ import se.lth.cs.tycho.interp.Environment;
 import se.lth.cs.tycho.interp.Simulator;
 import se.lth.cs.tycho.interp.values.BasicRef;
 import se.lth.cs.tycho.interp.values.ConstRef;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Actor;
 import se.lth.cs.tycho.parser.lth.CalParser;
 

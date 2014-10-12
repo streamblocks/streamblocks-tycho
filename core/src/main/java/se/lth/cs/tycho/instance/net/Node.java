@@ -1,11 +1,11 @@
-package se.lth.cs.tycho.ir.net;
+package se.lth.cs.tycho.instance.net;
 
 import java.util.Objects;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.PortContainer;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Actor;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;

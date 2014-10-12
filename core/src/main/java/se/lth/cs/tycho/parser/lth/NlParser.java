@@ -11,35 +11,45 @@
  
 package se.lth.cs.tycho.parser.lth;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.instance.net.ToolTypeAttribute;
+import se.lth.cs.tycho.instance.net.ToolValueAttribute;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.*;
+
 import java.util.TreeSet;
 import java.util.ArrayList;
+
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
-import se.lth.cs.tycho.ir.net.ToolTypeAttribute;
 import se.lth.cs.tycho.ir.stmt.*;
+
 import java.util.Map;
-import se.lth.cs.tycho.ir.net.ToolValueAttribute;
+
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.parser.SourceCodeOracle;
 import beaver.*;
 import se.lth.cs.tycho.ir.decl.GlobalDecl.Availability;
 import se.lth.cs.tycho.errorhandling.BasicErrorModule;
+
 import java.io.PrintStream;
+
 import se.lth.cs.tycho.ir.entity.nl.StructureIfStmt;
-import se.lth.cs.tycho.ir.net.ToolAttribute;
 import se.lth.cs.tycho.errorhandling.ErrorModule;
+
 import java.io.File;
+
 import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
+
 import java.util.AbstractMap;
+
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.parser.SourceCodeOracle.SourceCodePosition;

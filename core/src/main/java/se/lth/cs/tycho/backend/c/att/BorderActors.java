@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.lth.cs.tycho.backend.c.CType;
-import se.lth.cs.tycho.ir.net.Connection;
-import se.lth.cs.tycho.ir.net.Network;
+import se.lth.cs.tycho.instance.net.Connection;
+import se.lth.cs.tycho.instance.net.Network;
 import javarag.Module;
 import javarag.Procedural;
 import javarag.Synthesized;

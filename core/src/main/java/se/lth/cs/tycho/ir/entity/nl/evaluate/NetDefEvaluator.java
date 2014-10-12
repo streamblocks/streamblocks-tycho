@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import se.lth.cs.tycho.instance.net.Connection;
+import se.lth.cs.tycho.instance.net.Network;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.interp.BasicActorMachineSimulator;
 import se.lth.cs.tycho.interp.BasicEnvironment;
 import se.lth.cs.tycho.interp.BasicMemory;
@@ -45,9 +48,6 @@ import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
 import se.lth.cs.tycho.ir.entity.nl.StructureStmtVisitor;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.net.Connection;
-import se.lth.cs.tycho.ir.net.Network;
-import se.lth.cs.tycho.ir.net.Node;
 import se.lth.cs.tycho.ir.util.DeclLoader;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 

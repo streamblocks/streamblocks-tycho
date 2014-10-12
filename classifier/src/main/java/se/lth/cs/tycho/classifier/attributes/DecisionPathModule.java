@@ -9,11 +9,11 @@ import javarag.Circular;
 import javarag.Module;
 import javarag.Synthesized;
 import se.lth.cs.tycho.classifier.util.DecisionPathKnowledge;
-import se.lth.cs.tycho.ir.entity.am.ICall;
-import se.lth.cs.tycho.ir.entity.am.ITest;
-import se.lth.cs.tycho.ir.entity.am.IWait;
-import se.lth.cs.tycho.ir.entity.am.Instruction;
-import se.lth.cs.tycho.ir.entity.am.State;
+import se.lth.cs.tycho.instance.am.ICall;
+import se.lth.cs.tycho.instance.am.ITest;
+import se.lth.cs.tycho.instance.am.IWait;
+import se.lth.cs.tycho.instance.am.Instruction;
+import se.lth.cs.tycho.instance.am.State;
 
 public class DecisionPathModule extends Module<DecisionPathModule.Decls> {
 

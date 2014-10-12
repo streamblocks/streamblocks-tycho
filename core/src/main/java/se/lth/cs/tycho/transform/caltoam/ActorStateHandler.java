@@ -5,8 +5,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map.Entry;
 
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.util.BitSets;
 import se.lth.cs.tycho.transform.util.GenInstruction;

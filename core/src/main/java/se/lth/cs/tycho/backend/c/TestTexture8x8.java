@@ -8,7 +8,7 @@ import se.lth.cs.tycho.backend.c.test.NetworkConstructor;
 import se.lth.cs.tycho.backend.c.test.NodeReader;
 import se.lth.cs.tycho.backend.c.test.SingleInstrucitonActorMachineReader;
 import se.lth.cs.tycho.backend.c.test.Texture8x8NetworkConstructor;
-import se.lth.cs.tycho.ir.net.Network;
+import se.lth.cs.tycho.instance.net.Network;
 
 public class TestTexture8x8 {
 

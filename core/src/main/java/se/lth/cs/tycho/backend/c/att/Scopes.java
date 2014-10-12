@@ -4,15 +4,15 @@ import java.io.PrintWriter;
 import java.util.Set;
 
 import se.lth.cs.tycho.backend.c.CType;
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.net.Node;
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Procedural;

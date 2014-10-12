@@ -5,18 +5,18 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.List;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Condition;
+import se.lth.cs.tycho.instance.am.ICall;
+import se.lth.cs.tycho.instance.am.ITest;
+import se.lth.cs.tycho.instance.am.IWait;
+import se.lth.cs.tycho.instance.am.Instruction;
+import se.lth.cs.tycho.instance.am.PredicateCondition;
+import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.instance.am.State;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.ICall;
-import se.lth.cs.tycho.ir.entity.am.ITest;
-import se.lth.cs.tycho.ir.entity.am.IWait;
-import se.lth.cs.tycho.ir.entity.am.Instruction;
-import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
-import se.lth.cs.tycho.ir.entity.am.Scope;
-import se.lth.cs.tycho.ir.entity.am.State;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.net.Node;
 import javarag.*;
 
 public class Controllers extends Module<Controllers.Decls> {

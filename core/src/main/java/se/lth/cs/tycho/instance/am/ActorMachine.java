@@ -1,8 +1,8 @@
-package se.lth.cs.tycho.ir.entity.am;
+package se.lth.cs.tycho.instance.am;
 
+import se.lth.cs.tycho.instance.InstanceDefinition;
+import se.lth.cs.tycho.instance.InstanceVisitor;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.entity.EntityDefinition;
-import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -34,7 +34,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  * 
  */
 
-public class ActorMachine extends EntityDefinition {
+public class ActorMachine extends InstanceDefinition {
 
 	public ImmutableList<State> getController() {
 		return controller;
@@ -69,7 +69,7 @@ public class ActorMachine extends EntityDefinition {
 	}
 
 	@Override
-	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
+	public <R, P> R accept(InstanceVisitor<R, P> visitor, P param) {
 		return visitor.visitActorMachine(this, param);
 	}
 
@@ -83,7 +83,7 @@ public class ActorMachine extends EntityDefinition {
 			ImmutableList<PortDecl> outputPorts, ImmutableList<Scope> scopes,
 			ImmutableList<State> controller, ImmutableList<Transition> transitions,
 			ImmutableList<Condition> conditions) {
-		super(original, inputPorts, outputPorts, ImmutableList.empty(), ImmutableList.empty());
+		super(original, inputPorts, outputPorts);
 		this.scopes = ImmutableList.copyOf(scopes);
 		this.controller = ImmutableList.copyOf(controller);
 		this.transitions = ImmutableList.copyOf(transitions);

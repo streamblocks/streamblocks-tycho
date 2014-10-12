@@ -3,7 +3,7 @@ package se.lth.cs.tycho.classifier;
 import java.io.File;
 
 import se.lth.cs.tycho.errorhandling.ErrorModule;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Actor;
 import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.transform.caltoam.ActorStates;

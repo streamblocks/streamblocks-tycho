@@ -26,7 +26,7 @@ import se.lth.cs.tycho.backend.c.att.Statements;
 import se.lth.cs.tycho.backend.c.att.Transitions;
 import se.lth.cs.tycho.backend.c.att.TranslationUnit;
 import se.lth.cs.tycho.backend.c.att.Utilities;
-import se.lth.cs.tycho.ir.net.Network;
+import se.lth.cs.tycho.instance.net.Network;
 import javarag.AttributeEvaluator;
 import javarag.TreeTraverser;
 import javarag.impl.reg.BasicAttributeRegister;

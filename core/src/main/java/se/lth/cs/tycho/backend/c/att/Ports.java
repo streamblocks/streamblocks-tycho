@@ -1,16 +1,16 @@
 package se.lth.cs.tycho.backend.c.att;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.PortCondition;
+import se.lth.cs.tycho.instance.am.Transition;
+import se.lth.cs.tycho.instance.net.Connection;
+import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.PortCondition;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.expr.ExprInput;
-import se.lth.cs.tycho.ir.net.Connection;
-import se.lth.cs.tycho.ir.net.Network;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtOutput;
 import javarag.Inherited;

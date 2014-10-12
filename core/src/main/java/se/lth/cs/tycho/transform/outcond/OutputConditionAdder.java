@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.transform.outcond;
 
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
 
 public class OutputConditionAdder {

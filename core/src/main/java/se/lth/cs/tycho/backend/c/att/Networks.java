@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.lth.cs.tycho.backend.c.att.Ports.PortKind;
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.net.Connection;
+import se.lth.cs.tycho.instance.net.Network;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.net.Connection;
-import se.lth.cs.tycho.ir.net.Network;
-import se.lth.cs.tycho.ir.net.Node;
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;

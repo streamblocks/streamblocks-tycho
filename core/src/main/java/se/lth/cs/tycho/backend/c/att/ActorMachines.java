@@ -2,9 +2,9 @@ package se.lth.cs.tycho.backend.c.att;
 
 import java.io.PrintWriter;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.net.Node;
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Procedural;

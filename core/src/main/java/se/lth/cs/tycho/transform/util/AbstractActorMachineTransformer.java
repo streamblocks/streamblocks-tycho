@@ -2,15 +2,15 @@ package se.lth.cs.tycho.transform.util;
 
 import java.lang.invoke.MethodHandle;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Condition;
+import se.lth.cs.tycho.instance.am.ConditionVisitor;
+import se.lth.cs.tycho.instance.am.PortCondition;
+import se.lth.cs.tycho.instance.am.PredicateCondition;
+import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.ConditionVisitor;
-import se.lth.cs.tycho.ir.entity.am.PortCondition;
-import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
-import se.lth.cs.tycho.ir.entity.am.Scope;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer<P> implements ActorMachineTransformer<P>, ConditionVisitor<Condition, P>{

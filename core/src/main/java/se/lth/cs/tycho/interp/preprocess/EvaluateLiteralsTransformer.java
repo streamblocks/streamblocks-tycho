@@ -2,10 +2,10 @@ package se.lth.cs.tycho.interp.preprocess;
 
 import java.util.Map;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.interp.values.ExprValue;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.interp.values.predef.Predef;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Actor;
 import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
 import se.lth.cs.tycho.ir.expr.ExprApplication;

@@ -1,7 +1,7 @@
 package se.lth.cs.tycho.backend.c.test;
 
 import se.lth.cs.tycho.backend.c.util.NetworkBuilder;
-import se.lth.cs.tycho.ir.net.Network;
+import se.lth.cs.tycho.instance.net.Network;
 
 public class DecoderNetworkConstructor implements NetworkConstructor {
 

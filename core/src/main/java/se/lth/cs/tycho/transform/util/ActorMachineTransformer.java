@@ -1,10 +1,10 @@
 package se.lth.cs.tycho.transform.util;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Condition;
+import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.Scope;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public interface ActorMachineTransformer<P> extends BasicTransformer<P> {

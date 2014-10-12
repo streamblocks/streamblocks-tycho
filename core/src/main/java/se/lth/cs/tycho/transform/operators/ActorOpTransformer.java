@@ -3,10 +3,10 @@ package se.lth.cs.tycho.transform.operators;
 import java.util.LinkedList;
 import java.util.Map;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Actor;
 import se.lth.cs.tycho.ir.entity.nl.NetworkDefinition;
 import se.lth.cs.tycho.ir.expr.ExprApplication;

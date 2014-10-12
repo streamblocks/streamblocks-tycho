@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.PortContainer;
-import se.lth.cs.tycho.ir.net.Connection;
 import javarag.TreeTraverser;
 
 public class IRNodeTraverser implements TreeTraverser<Object> {

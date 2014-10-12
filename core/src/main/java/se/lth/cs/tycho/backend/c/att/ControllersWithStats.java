@@ -2,8 +2,8 @@ package se.lth.cs.tycho.backend.c.att;
 
 import java.io.PrintWriter;
 
-import se.lth.cs.tycho.ir.entity.am.ICall;
-import se.lth.cs.tycho.ir.entity.am.ITest;
+import se.lth.cs.tycho.instance.am.ICall;
+import se.lth.cs.tycho.instance.am.ITest;
 
 public class ControllersWithStats extends Controllers {
 	@Override

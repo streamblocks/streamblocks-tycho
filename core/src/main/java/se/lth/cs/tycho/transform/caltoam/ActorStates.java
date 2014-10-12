@@ -5,10 +5,10 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+import se.lth.cs.tycho.instance.am.Condition;
+import se.lth.cs.tycho.instance.am.PortCondition;
+import se.lth.cs.tycho.instance.am.PredicateCondition;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.PortCondition;
-import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
 import se.lth.cs.tycho.transform.caltoam.util.BitSets;
 import se.lth.cs.tycho.transform.caltoam.util.TestResult;
 

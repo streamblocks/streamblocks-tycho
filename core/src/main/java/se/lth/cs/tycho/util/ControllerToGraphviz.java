@@ -2,13 +2,13 @@ package se.lth.cs.tycho.util;
 
 import java.io.PrintWriter;
 
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.ICall;
-import se.lth.cs.tycho.ir.entity.am.ITest;
-import se.lth.cs.tycho.ir.entity.am.IWait;
-import se.lth.cs.tycho.ir.entity.am.Instruction;
-import se.lth.cs.tycho.ir.entity.am.InstructionVisitor;
-import se.lth.cs.tycho.ir.entity.am.State;
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.ICall;
+import se.lth.cs.tycho.instance.am.ITest;
+import se.lth.cs.tycho.instance.am.IWait;
+import se.lth.cs.tycho.instance.am.Instruction;
+import se.lth.cs.tycho.instance.am.InstructionVisitor;
+import se.lth.cs.tycho.instance.am.State;
 
 public class ControllerToGraphviz {
 

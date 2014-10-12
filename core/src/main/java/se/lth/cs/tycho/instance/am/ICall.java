@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.ir.entity.am;
+package se.lth.cs.tycho.instance.am;
 
 /**
  * This class represents the call instruction, which has two components: the

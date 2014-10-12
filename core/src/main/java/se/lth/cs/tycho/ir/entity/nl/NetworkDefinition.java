@@ -2,6 +2,8 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Map.Entry;
 
+import se.lth.cs.tycho.instance.net.Network;
+import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParDeclType;
@@ -9,8 +11,6 @@ import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.entity.EntityDefinition;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.net.Network;
-import se.lth.cs.tycho.ir.net.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 

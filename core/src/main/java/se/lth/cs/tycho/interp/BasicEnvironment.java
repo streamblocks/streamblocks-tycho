@@ -1,7 +1,7 @@
 package se.lth.cs.tycho.interp;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class BasicEnvironment implements Environment {

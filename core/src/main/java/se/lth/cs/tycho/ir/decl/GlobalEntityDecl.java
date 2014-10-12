@@ -1,9 +1,9 @@
 package se.lth.cs.tycho.ir.decl;
 
+import se.lth.cs.tycho.instance.net.Network;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.net.Network;
-import se.lth.cs.tycho.ir.net.Node;
 
 /**
  * PortContainer is the common base class of things that contain input and

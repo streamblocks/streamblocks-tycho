@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir;
 
-import se.lth.cs.tycho.ir.net.ToolAttribute;
+import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 /**

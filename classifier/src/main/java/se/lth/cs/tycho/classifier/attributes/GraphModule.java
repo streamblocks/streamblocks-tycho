@@ -1,13 +1,13 @@
 package se.lth.cs.tycho.classifier.attributes;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Condition;
+import se.lth.cs.tycho.instance.am.ICall;
+import se.lth.cs.tycho.instance.am.ITest;
+import se.lth.cs.tycho.instance.am.IWait;
+import se.lth.cs.tycho.instance.am.State;
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.ICall;
-import se.lth.cs.tycho.ir.entity.am.ITest;
-import se.lth.cs.tycho.ir.entity.am.IWait;
-import se.lth.cs.tycho.ir.entity.am.State;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import javarag.Inherited;
 import javarag.Module;
 import javarag.Synthesized;

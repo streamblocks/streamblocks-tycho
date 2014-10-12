@@ -1,8 +1,8 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.net.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 /**

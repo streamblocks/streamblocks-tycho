@@ -2,9 +2,9 @@ package se.lth.cs.tycho.transform.util;
 
 import java.util.Map;
 
-import se.lth.cs.tycho.ir.entity.am.ICall;
-import se.lth.cs.tycho.ir.entity.am.ITest;
-import se.lth.cs.tycho.ir.entity.am.IWait;
+import se.lth.cs.tycho.instance.am.ICall;
+import se.lth.cs.tycho.instance.am.ITest;
+import se.lth.cs.tycho.instance.am.IWait;
 
 public abstract class GenInstruction<S> {
 
@@ -31,7 +31,7 @@ public abstract class GenInstruction<S> {
 		return false;
 	}
 
-	public abstract se.lth.cs.tycho.ir.entity.am.Instruction generateInstruction(Map<S, Integer> stateMap);
+	public abstract se.lth.cs.tycho.instance.am.Instruction generateInstruction(Map<S, Integer> stateMap);
 
 	public static class Call<S> extends GenInstruction<S> {
 		private final int t;

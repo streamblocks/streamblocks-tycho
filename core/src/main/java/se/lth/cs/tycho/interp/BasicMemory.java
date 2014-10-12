@@ -2,12 +2,12 @@ package se.lth.cs.tycho.interp;
 
 import java.util.BitSet;
 
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.interp.exception.CALIndexOutOfBoundsException;
 import se.lth.cs.tycho.interp.values.BasicRef;
 import se.lth.cs.tycho.interp.values.Ref;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class BasicMemory implements Memory {

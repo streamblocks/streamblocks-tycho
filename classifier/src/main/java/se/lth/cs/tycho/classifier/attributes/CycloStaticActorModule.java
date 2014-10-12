@@ -1,8 +1,8 @@
 package se.lth.cs.tycho.classifier.attributes;
 
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.Condition;
+import se.lth.cs.tycho.instance.am.PredicateCondition;
 import javarag.Cached;
 import javarag.Module;
 import javarag.Synthesized;

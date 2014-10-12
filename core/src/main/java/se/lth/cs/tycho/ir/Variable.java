@@ -7,7 +7,7 @@ import java.util.Objects;
  * 
  * For all variables in Actors isScopeVariable() == false.
  * 
- * Static variables are variables declared in a {@link se.lth.cs.tycho.ir.entity.am.Scope}
+ * Static variables are variables declared in a {@link se.lth.cs.tycho.instance.am.Scope}
  * and {@link #getScopeId()} returns an identifier for the scope where the variable is
  * declared.
  */
