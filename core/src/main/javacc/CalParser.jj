@@ -94,7 +94,7 @@ TOKEN :
 |	< BEGIN: "begin" >
 |	< CHOOSE: "choose" >
 |	< CONST: "const" >
-|	< DELAY: "delay" >
+//|	< DELAY: "delay" >
 |	< DIV: "div" >
 |	< DO: "do" >
 |	< DOM: "dom" >
@@ -108,10 +108,10 @@ TOKEN :
 |	< ENDFUNCTION: "endfunction" >
 |	< ENDIF: "endif" >
 |	< ENDINITIALIZE: "endinitialize" >
-|	< ENDLAMBDA: "endlambda" >
+//|	< ENDLAMBDA: "endlambda" >
 |	< ENDLET: "endlet" >
 |	< ENDPRIORITY: "endpriority" >
-|	< ENDPROC: "endproc" >
+//|	< ENDPROC: "endproc" >
 |	< ENDPROCEDURE: "endprocedure" >
 |	< ENDSCHEDULE: "endschedule" >
 |	< ENDWHILE: "endwhile" >
@@ -126,7 +126,7 @@ TOKEN :
 |	< IMPORT: "import" >
 |	< IN: "in" >
 |	< INITIALIZE: "initialize" >
-|	< LAMBDA: "lambda" >
+//|	< LAMBDA: "lambda" >
 |	< LET: "let" >
 |	< MAP: "map" >
 |	< MOD: "mod" >
@@ -138,7 +138,7 @@ TOKEN :
 |	< OLD: "old" >
 |	< OR: "or" >
 |	< PRIORITY: "priority" >
-|	< PROC: "proc" >
+//|	< PROC: "proc" >
 |	< PROCEDURE: "procedure" >
 |	< REGEXP: "regexp" >
 |	< REPEAT: "repeat" >
@@ -158,7 +158,10 @@ TOKEN :
 |	< PRIVATE: "private" >
 |	< LOCAL: "local" >
 
-|	< INVARIANT: "invariant" >
+|	< NETWORK: "network" >
+|	< ENTITIES: "entities" >
+|	< STRUCTURE: "structure" >
+|	< EXTERNAL: "external" >
 }
 
 /* Delimiters and separators */
@@ -187,7 +190,7 @@ TOKEN: {
 |	< DOT_STAR: ".*" >
 |	< CINNAMON_BUN: "@" >
 |	< OP: (["!", "@", "#", "$", "%", "^", "&", "*", "/",
-		"+", "-", "=", "<", ">", "?", "~", "|", "."])+ >
+		"+", "-", "<", ">", "?", "~", "|", "."])+ >
 }
 
 /* String literals */
@@ -200,10 +203,14 @@ TOKEN: {
 TOKEN: {
 	< INTEGER: <DECIMAL_LITERAL> | <HEXADECIMAL_LITERAL> | <OCTAL_LITERAL> >
 |
-	< REAL:
-			(<DECIMAL_DIGIT>)+ "." (<DECIMAL_DIGIT>)* (<EXPONENT>)?
-		|	"." (<DECIMAL_DIGIT>)+ (<EXPONENT>)?
-		|	(<DECIMAL_DIGIT>)+ <EXPONENT> >
+	<REAL:
+			(<DECIMAL_DIGIT>)+ "." (<DECIMAL_DIGIT>)+ (<EXPONENT>)?
+		|	(<DECIMAL_DIGIT>)+ "." <EXPONENT> >
+//|
+//	< REAL:
+//			(<DECIMAL_DIGIT>)+ "." (<DECIMAL_DIGIT>)* (<EXPONENT>)?
+//		|	"." (<DECIMAL_DIGIT>)+ (<EXPONENT>)?
+//		|	(<DECIMAL_DIGIT>)+ <EXPONENT> >
 |
 	< #DECIMAL_LITERAL: <NON_ZERO_DECIMAL_DIGIT> (<DECIMAL_DIGIT>)* >
 |
@@ -237,11 +244,12 @@ NamespaceDecl CompilationUnit() :
 }
 {
 	(
-		d = ImportDecl() { decls.add(d); }
-	|
-		d = GlobalDecl() { decls.add(d); }
-	|
-		ns = NamespaceDecl() { nsDecls.add(ns); }
+		(Annotation())*
+		(
+			d = GlobalDecl() { decls.add(d); }
+		|
+			ns = NamespaceDecl() { nsDecls.add(ns); }
+		)
 	)*
 	<EOF>
 	{
@@ -255,8 +263,9 @@ NamespaceDecl CompilationUnit() :
 	qid = QID()
 	";"
 	(
-		d = ImportDecl() { decls.add(d); }
+		d = GlobalImportDecl() { decls.add(d); }
 	)*
+	(Annotation())*
 	(
 		ns = OrccUnit() { nsDecls.add(ns); }
 	|
@@ -280,6 +289,7 @@ NamespaceDecl OrccUnit() :
 	id = <ID>
 	":"
 	(
+		(Annotation())*
 		decl = GlobalDecl()
 		{ decls.add(decl); }
 	)*
@@ -295,9 +305,18 @@ NamespaceDecl OrccUnit() :
 Annotation Annotation() :
 {
 	Token id;
+	Token par;
 }
 {
 	"@" id = <ID>
+	(
+		"("
+		(
+			<ID> "=" Expression()
+			("," <ID> "=" Expression())*
+		)?
+		")"
+	)?
 	{ return new Annotation(id.image, ImmutableList.empty()); }
 }
 
@@ -314,9 +333,12 @@ NamespaceDecl NamespaceDecl() :
 	qid = QID()
 	":"
 	(
-		d = GlobalDecl() { decls.add(d); }
-	|
-		ns = NamespaceDecl() { nsDecls.add(ns); }
+		(Annotation())*
+		(
+			d = GlobalDecl() { decls.add(d); }
+		|
+			ns = NamespaceDecl() { nsDecls.add(ns); }
+		)
 	)*
 	"end"
 	{ return new NamespaceDecl(qid, nsDecls.build(), decls.build()); }
@@ -343,12 +365,14 @@ GlobalDecl GlobalDecl() :
 }
 {
 	(
-		Annotation()
-	)?
-	(
+		d = GlobalImportDecl() { return d; }
+	|
+		LOOKAHEAD(2)
+		d = ActorDecl() { return d; }
+	|
 		d = GlobalVarDecl() { return d; }
 	|
-		d = ActorDecl() { return d; }
+		d = NetworkDecl() { return d; }
 	)
 }
 
@@ -381,6 +405,7 @@ GlobalVarDecl GlobalVarDecl() :
 		";"
 		{ name = typeName.name; type = typeName.type; }
 	|
+		LOOKAHEAD(2)
 		{ NameAndDef<ExprLambda> fun; }
 		fun = FunDecl()
 		{ name = fun.name; expr = fun.def; }
@@ -416,6 +441,7 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 		)?
 		{ name = typeName.name; type = typeName.type; }
 	|
+		LOOKAHEAD(2)
 		{ NameAndDef<ExprLambda> fun; }
 		fun = FunDecl()
 		{ name = fun.name; expr = fun.def; }
@@ -429,7 +455,7 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 	}
 }
 
-GlobalDecl ImportDecl() :
+GlobalDecl GlobalImportDecl() :
 {
 	QID qid;
 	Token kind = null;
@@ -482,6 +508,7 @@ NameAndDef<ExprLambda> FunDecl() :
 	TypeExpr type = null;
 }
 {
+	("external")?
 	"function"
 	id = <ID>
 	"("
@@ -498,8 +525,12 @@ NameAndDef<ExprLambda> FunDecl() :
 	(
 		":"
 		expr = Expression()
-	)?
-	"end"
+		"end"
+	|
+		";"
+	|
+		"end"
+	)
 	{
 		if (!varDecls.isEmpty()) {
 			expr = new ExprLet(ImmutableList.empty(), varDecls, expr);
@@ -517,6 +548,7 @@ NameAndDef<ExprProc> ProcDecl() :
 	ImmutableList<Statement> stmts = ImmutableList.empty();
 }
 {
+	("external")?
 	"procedure"
 	id = <ID>
 	"("
@@ -529,8 +561,12 @@ NameAndDef<ExprProc> ProcDecl() :
 	(
 		("begin" | "do")
 		stmts = Statements()
-	)?
-	"end"
+		"end"
+	|
+		"end"
+	|
+		";"
+	)
 	{
 		StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
 		ExprProc proc = new ExprProc(ImmutableList.empty(), valPars, block);
@@ -553,6 +589,58 @@ ImmutableList<LocalVarDecl> LocalVarDecls() :
 	}
 }
 
+GlobalEntityDecl NetworkDecl() :
+{
+	Token id;
+	ImmutableList<ParDeclValue> valuePars;
+	ImmutableList<PortDecl> inputPorts;
+	ImmutableList<PortDecl> outputPorts;
+	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	LocalVarDecl varDecl;
+}
+{
+	"network"
+	id = <ID>
+	"("
+	valuePars = FormalValuePars()
+	")"
+	inputPorts = PortDecls()
+	"==>"
+	outputPorts = PortDecls()
+	":"
+	(
+		"var"
+		(
+			varDecl = LocalVarDecl(true)
+			{ varDecls.add(varDecl); }
+		)*
+	)?
+	("entities" EntityInstanceDecls())?
+	("structure" (QID() "-->" QID() ("{" (<ID> (":" Type() | "=" Expression()) ";")* "}")?";")*)?
+	"end"
+	
+	
+	{ return null; }
+}
+
+void EntityInstanceDecls() :
+{
+}
+{
+	(
+		<ID>
+		"="
+		<ID>
+		"("
+		(
+			<ID> "=" Expression()
+			("," <ID> "=" Expression())*
+		)?
+		")"
+		";"
+	)*
+}
+
 /* ActorDecl */
 GlobalEntityDecl ActorDecl() :
 {
@@ -573,6 +661,7 @@ GlobalEntityDecl ActorDecl() :
 	ImmutableList.Builder<Expression> invariants = ImmutableList.builder();
 }
 {
+	("external")?
 	"actor"
 	id = <ID> { name = id.image; }
 	"("
@@ -582,40 +671,33 @@ GlobalEntityDecl ActorDecl() :
 	"==>"
 	outputPorts = PortDecls()
 	("time" Type())?
-	":"
 	(
-		LOOKAHEAD((QID() ":")? "action")
-		action = Action()
-		{ actions.add(action); }
-	|
-		LOOKAHEAD((QID() ":")? "initialize")
-		action = InitializationAction()
-		{ initializers.add(action); }
-	|
-		varDecl = LocalVarDecl(true)
-		{ varDecls.add(varDecl); }
-	|
-		PriorityOrder(priorities)
-	|
-		{
-			if (scheduleFSM != null) {
-				throw new ParseException("Only one action schedule is allowed.");
-			}
-		}
-		scheduleFSM = ActionSchedule()
-	|
-		{ Expression invariant; }
-		"invariant"
-		invariant = Expression()
-		{ invariants.add(invariant); }
+		":"
 		(
-			","
-			invariant = Expression()
-			{ invariants.add(invariant); }
+			LOOKAHEAD((QID() ":")? "action")
+			action = Action()
+			{ actions.add(action); }
+		|
+			LOOKAHEAD((QID() ":")? "initialize")
+			action = InitializationAction()
+			{ initializers.add(action); }
+		|
+			varDecl = LocalVarDecl(true)
+			{ varDecls.add(varDecl); }
+		|
+			PriorityOrder(priorities)
+		|
+			{
+				if (scheduleFSM != null) {
+					throw new ParseException("Only one action schedule is allowed.");
+				}
+			}
+			scheduleFSM = ActionSchedule()
 		)*
-		"end"
-	)*
-	("end" | "endactor")
+		("end" | "endactor")
+	|
+		";"
+	)
 	{
 		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, priorities.build(), invariants.build());
 		return new GlobalEntityDecl(name, a, Availability.PUBLIC);
@@ -675,7 +757,7 @@ Action Action() :
 	"==>"
 	outputExpressions = OutputExpressions()
 	("guard" guards = ExpressionList())?
-	("delay" delay = Expression())?
+//	("delay" delay = Expression())?
 	("var" varDecls = LocalVarDecls())?
 	("do" body = Statements())?
 	("end" | "endaction")
@@ -704,7 +786,7 @@ Action InitializationAction() :
 	outputExpressions = OutputExpressions()
 	("guard" guards = ExpressionList())?
 	("var" varDecls = LocalVarDecls())?
-	("delay" delay = Expression())?
+//	("delay" delay = Expression())?
 	("do" body = Statements())?
 	("end" | "endinitialize")
 	{
@@ -943,10 +1025,10 @@ Expression SingleExpression() :
 		"(" expr = Expression() ")"
 	|
 		expr = IfExpression()
-	|
-		expr = LambdaExpression()
-	|
-		expr = ProcExpression()
+//	|
+//		expr = LambdaExpression()
+//	|
+//		expr = ProcExpression()
 	|
 		expr = LetExpression()
 	|
@@ -1102,6 +1184,7 @@ ExprLet LetExpression() :
 	{ return new ExprLet(typeDecls, varDecls, expr); }
 }
 
+/*
 ExprLambda LambdaExpression() :
 {
 	ImmutableList<ParDeclType> typePars = ImmutableList.empty();
@@ -1129,6 +1212,7 @@ ExprLambda LambdaExpression() :
 		return new ExprLambda(typePars, valuePars, expr, type);
 	}
 }
+*/
 
 ImmutableList<ParDeclValue> FormalValuePars() :
 {
@@ -1156,6 +1240,7 @@ ParDeclValue FormalValueParameter() :
 	}
 }
 
+/*
 ExprProc ProcExpression() :
 {
 	ImmutableList<ParDeclType> typePars = ImmutableList.empty();
@@ -1175,6 +1260,7 @@ ExprProc ProcExpression() :
 		return new ExprProc(typePars, valuePars, block);
 	}
 }
+*/
 
 ExprSet SetComprehension() :
 {
@@ -1301,6 +1387,7 @@ TypeExpr ParameterizedType(String name) :
 	ImmutableList.Builder<Parameter<TypeExpr>> types = ImmutableList.builder();
 	ImmutableList.Builder<Parameter<Expression>> vals = ImmutableList.builder();
 	TypeExpr type;
+	Expression size;
 }
 {
 	(
@@ -1308,12 +1395,22 @@ TypeExpr ParameterizedType(String name) :
 		AddParameterAssignments(types, vals)
 		("," AddParameterAssignments(types, vals))*
 		")"
-	|
-		"["
-		type = Type() { types.add(new Parameter("type", type)); }
-		"]"
 	)?
-	{ return new TypeExpr(name, types.build(), vals.build()); }
+	{
+		type = new TypeExpr(name, types.build(), vals.build());
+	}
+	(
+		"["
+		size = Expression()
+		"]"
+		{
+			type = new TypeExpr(
+					"List",
+					ImmutableList.of(new Parameter("type", type)),
+					ImmutableList.of(new Parameter("size", size)));
+		}
+	)*
+	{ return type; }
 }
 
 void AddParameterAssignments(
