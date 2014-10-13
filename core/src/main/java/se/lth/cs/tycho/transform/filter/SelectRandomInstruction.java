@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 
 /**
@@ -14,23 +14,23 @@ import se.lth.cs.tycho.transform.util.StateHandler;
  *
  * @param <S>
  */
-public class SelectRandomInstruction<S> implements StateHandler<S> {
+public class SelectRandomInstruction<S> implements ActorMachineState<S> {
 
 	private final Random random;
-	private final StateHandler<S> stateHandler;
+	private final ActorMachineState<S> actorMachineState;
 
-	public SelectRandomInstruction(StateHandler<S> stateHandler, Random random) {
+	public SelectRandomInstruction(ActorMachineState<S> stateHandler, Random random) {
 		this.random = random;
-		this.stateHandler = stateHandler;
+		this.actorMachineState = stateHandler;
 	}
 
-	public SelectRandomInstruction(StateHandler<S> stateHandler) {
+	public SelectRandomInstruction(ActorMachineState<S> stateHandler) {
 		this(stateHandler, new Random());
 	}
 
 	@Override
 	public List<GenInstruction<S>> getInstructions(S state) {
-		List<GenInstruction<S>> instructions = stateHandler.getInstructions(state);
+		List<GenInstruction<S>> instructions = actorMachineState.getInstructions(state);
 		List<GenInstruction<S>> selected = new ArrayList<>(1);
 		selected.add(instructions.get(random.nextInt(instructions.size())));
 		return selected;
@@ -38,6 +38,6 @@ public class SelectRandomInstruction<S> implements StateHandler<S> {
 
 	@Override
 	public S initialState() {
-		return stateHandler.initialState();
+		return actorMachineState.initialState();
 	}
 }

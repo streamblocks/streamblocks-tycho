@@ -25,7 +25,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
-import se.lth.cs.tycho.transform.util.StateHandler.FilterConstructor;
+import se.lth.cs.tycho.transform.util.ActorMachineState.Transformer;
 import se.lth.cs.tycho.values.Type;
 import se.lth.cs.tycho.values.Value;
 
@@ -37,10 +37,10 @@ public class Instantiator {
 	public Instantiator(DeclarationLoader loader) {
 		this(loader, Collections.emptyList());
 	}
-	public Instantiator(DeclarationLoader loader, List<FilterConstructor<State>> stateFilters) {
+	public Instantiator(DeclarationLoader loader, List<Transformer<State, State>> stateTransformers) {
 		this.loader = loader;
 		this.visitor = new Visitor();
-		this.translator = new ActorToActorMachine(stateFilters);
+		this.translator = new ActorToActorMachine(stateTransformers);
 	}
 
 	public Instance instantiate(QID qid, List<Parameter<Type>> typeParameters,

@@ -7,29 +7,29 @@ import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 public class ActorToActorMachine {
 	
-	private final List<StateHandler.FilterConstructor<State>> filterConstructors;
+	private final List<ActorMachineState.Transformer<State, State>> transformers;
 	
 	public ActorToActorMachine() {
 		this(Collections.emptyList());
 	}
-	public ActorToActorMachine(List<StateHandler.FilterConstructor<State>> filterCreators) {
-		this.filterConstructors = filterCreators;
+	public ActorToActorMachine(List<ActorMachineState.Transformer<State, State>> filterCreators) {
+		this.transformers = filterCreators;
 	}
 
-	protected StateHandler<State> getStateHandler(StateHandler<State> handler) {
-		for (StateHandler.FilterConstructor<State> creator : filterConstructors) {
-			handler = creator.createStateFilter(handler);
+	protected ActorMachineState<State> getStateHandler(ActorMachineState<State> handler) {
+		for (ActorMachineState.Transformer<State, State> creator : transformers) {
+			handler = creator.transform(handler);
 		}
 		return handler;
 	}
 	
 	public final ActorMachine translate(CalActor calActor) {
 		ActorToActorMachineHelper helper = new ActorToActorMachineHelper(calActor);
-		StateHandler<State> stateHandler = getStateHandler(helper.getActorStateHandler());
+		ActorMachineState<State> stateHandler = getStateHandler(helper.getActorStateHandler());
 		ControllerGenerator<State> generator = ControllerGenerator.generate(stateHandler);
 		return new ActorMachine(
 				helper.getInputPorts(),

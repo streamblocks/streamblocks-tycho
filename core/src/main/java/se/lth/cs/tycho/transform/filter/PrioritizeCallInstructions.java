@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 /**
  * State handler that filters the instructions by picking only Call instructions
@@ -14,16 +14,16 @@ import se.lth.cs.tycho.transform.util.StateHandler;
  * 
  * @param <S>
  */
-public class PrioritizeCallInstructions<S> implements StateHandler<S> {
-	private final StateHandler<S> stateHandler;
+public class PrioritizeCallInstructions<S> implements ActorMachineState<S> {
+	private final ActorMachineState<S> actorMachineState;
 
-	public PrioritizeCallInstructions(StateHandler<S> stateHandler) {
-		this.stateHandler = stateHandler;
+	public PrioritizeCallInstructions(ActorMachineState<S> stateHandler) {
+		this.actorMachineState = stateHandler;
 	}
 
 	@Override
 	public List<GenInstruction<S>> getInstructions(S state) {
-		List<GenInstruction<S>> instructions = stateHandler.getInstructions(state);
+		List<GenInstruction<S>> instructions = actorMachineState.getInstructions(state);
 		for (GenInstruction<S> instr : instructions) {
 			if (instr.isCall()) {
 				return getCalls(instructions);
@@ -44,6 +44,6 @@ public class PrioritizeCallInstructions<S> implements StateHandler<S> {
 
 	@Override
 	public S initialState() {
-		return stateHandler.initialState();
+		return actorMachineState.initialState();
 	}
 }

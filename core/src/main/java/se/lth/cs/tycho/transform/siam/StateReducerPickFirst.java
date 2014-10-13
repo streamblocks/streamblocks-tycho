@@ -11,12 +11,12 @@ import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.am.State;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
-public class StateReducerPickFirst implements StateHandler<Integer> {
+public class StateReducerPickFirst implements ActorMachineState<Integer> {
 	
 	private final ImmutableList<State> controller;
 	

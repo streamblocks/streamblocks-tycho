@@ -15,7 +15,7 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 import se.lth.cs.tycho.util.ControllerToGraphviz;
 import se.lth.cs.tycho.util.PrettyPrint;
 
@@ -24,7 +24,7 @@ class TestActorTrans {
 	private PrettyPrint prettyPrint = new PrettyPrint();
 	private ActorToActorMachine translator = new ActorToActorMachine() {
 		@Override
-		protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
+		protected ActorMachineState<ActorStates.State> getStateHandler(ActorMachineState<ActorStates.State> stateHandler) {
 			stateHandler = new PrioritizeCallInstructions<>(stateHandler);
 			//stateHandler = new SelectRandomInstruction<>(stateHandler);
 			return stateHandler;

@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
-public class CachedStateHandler<S> implements StateHandler<S> {
-	private final StateHandler<S> stateHandler;
+public class CachedStateHandler<S> implements ActorMachineState<S> {
+	private final ActorMachineState<S> actorMachineState;
 	private final Map<S, List<GenInstruction<S>>> cache;
 
-	public CachedStateHandler(StateHandler<S> stateHandler) {
-		this.stateHandler = stateHandler;
+	public CachedStateHandler(ActorMachineState<S> stateHandler) {
+		this.actorMachineState = stateHandler;
 		this.cache = new HashMap<>();
 	}
 
@@ -21,7 +21,7 @@ public class CachedStateHandler<S> implements StateHandler<S> {
 		if (cache.containsKey(state)) {
 			return cache.get(state);
 		} else {
-			List<GenInstruction<S>> instrs = stateHandler.getInstructions(state);
+			List<GenInstruction<S>> instrs = actorMachineState.getInstructions(state);
 			cache.put(state, instrs);
 			return instrs;
 		}
@@ -29,7 +29,7 @@ public class CachedStateHandler<S> implements StateHandler<S> {
 
 	@Override
 	public S initialState() {
-		return stateHandler.initialState();
+		return actorMachineState.initialState();
 	}
 
 }

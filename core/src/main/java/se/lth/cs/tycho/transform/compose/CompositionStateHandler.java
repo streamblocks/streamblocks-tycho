@@ -25,12 +25,12 @@ import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
-public class CompositionStateHandler implements StateHandler<CompositionStateHandler.State> {
+public class CompositionStateHandler implements ActorMachineState<CompositionStateHandler.State> {
 	private final Network network;
 
 	public CompositionStateHandler(Network network) {

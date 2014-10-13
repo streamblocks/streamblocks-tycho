@@ -25,7 +25,7 @@ import se.lth.cs.tycho.transform.compose.CompositionStateHandler.State;
 import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
 import se.lth.cs.tycho.transform.util.AbstractActorMachineTransformer;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 public class Composer {
 	private final AttributeRegister register;
@@ -81,7 +81,7 @@ public class Composer {
 			inputPorts.addAll(transformer.transformInputPorts(am.getInputPorts(), evaluator));
 			outputPorts.addAll(transformer.transformOutputPorts(am.getOutputPorts(), evaluator));
 		}
-		StateHandler<State> stateHandler = new CompositionStateHandler(net);
+		ActorMachineState<State> stateHandler = new CompositionStateHandler(net);
 		//try {
 		//	Selector<Integer> selector = new PriorityListSelector(PriorityListSelector.readIntsFromFile(new File("dcrecon.prio.txt")));
 		//	stateHandler = new TransitionPriorityStateHandler<>(stateHandler, selector);

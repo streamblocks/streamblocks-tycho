@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 
 /**
@@ -13,17 +13,17 @@ import se.lth.cs.tycho.transform.util.StateHandler;
  *
  * @param <S>
  */
-public class SelectFirstInstruction<S> implements StateHandler<S> {
+public class SelectFirstInstruction<S> implements ActorMachineState<S> {
 
-	private final StateHandler<S> stateHandler;
+	private final ActorMachineState<S> actorMachineState;
 
-	public SelectFirstInstruction(StateHandler<S> stateHandler) {
-		this.stateHandler = stateHandler;
+	public SelectFirstInstruction(ActorMachineState<S> stateHandler) {
+		this.actorMachineState = stateHandler;
 	}
 
 	@Override
 	public List<GenInstruction<S>> getInstructions(S state) {
-		List<GenInstruction<S>> instructions = stateHandler.getInstructions(state);
+		List<GenInstruction<S>> instructions = actorMachineState.getInstructions(state);
 		List<GenInstruction<S>> selected = new ArrayList<>(1);
 		selected.add(instructions.get(0));
 		return selected;
@@ -31,6 +31,6 @@ public class SelectFirstInstruction<S> implements StateHandler<S> {
 
 	@Override
 	public S initialState() {
-		return stateHandler.initialState();
+		return actorMachineState.initialState();
 	}
 }

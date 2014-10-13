@@ -34,7 +34,7 @@ import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
 import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
 import se.lth.cs.tycho.transform.operators.ActorOpTransformer;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 public class BasicActorMachineSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
 		ConditionVisitor<Boolean, Environment> {
@@ -67,7 +67,7 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		// translate the calActor to an calActor machine
 		ActorToActorMachine trans = new ActorToActorMachine() {
 			@Override
-			protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
+			protected ActorMachineState<ActorStates.State> getStateHandler(ActorMachineState<ActorStates.State> stateHandler) {
 				stateHandler = new PrioritizeCallInstructions<>(stateHandler);
 				stateHandler = new SelectRandomInstruction<>(stateHandler);
 				return stateHandler;

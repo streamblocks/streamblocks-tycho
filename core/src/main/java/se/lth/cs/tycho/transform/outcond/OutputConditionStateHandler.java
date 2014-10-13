@@ -17,12 +17,12 @@ import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.transform.caltoam.util.TestResult;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
-public class OutputConditionStateHandler implements StateHandler<OutputConditionState> {
+public class OutputConditionStateHandler implements ActorMachineState<OutputConditionState> {
 
 	private final ActorMachine actorMachine;
 	private final ImmutableList.Builder<Condition> conditions;

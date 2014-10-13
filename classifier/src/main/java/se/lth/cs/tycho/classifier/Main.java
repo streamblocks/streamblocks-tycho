@@ -9,7 +9,7 @@ import se.lth.cs.tycho.parser.lth.CalParser;
 import se.lth.cs.tycho.transform.caltoam.ActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 public class Main {
 	
@@ -18,7 +18,7 @@ public class Main {
 	public Main() {
 		actorToActorMachine = new ActorToActorMachine() {
 			@Override
-			protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
+			protected ActorMachineState<ActorStates.State> getStateHandler(ActorMachineState<ActorStates.State> stateHandler) {
 				return new PrioritizeCallInstructions<>(stateHandler);
 			}
 		};

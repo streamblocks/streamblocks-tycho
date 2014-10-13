@@ -36,12 +36,12 @@ public class ControllerGenerator<S> {
 	}
 
 	/**
-	 * Generates a controller with its interpretation from a StateHandler.
+	 * Generates a controller with its interpretation from a ActorMachineState.
 	 * 
 	 * @param stateHandler
 	 * @return the controller
 	 */
-	public static <S> ControllerGenerator<S> generate(StateHandler<S> stateHandler) {
+	public static <S> ControllerGenerator<S> generate(ActorMachineState<S> stateHandler) {
 		Map<S, Integer> states = new HashMap<>();
 		Queue<S> queue = new LinkedList<>();
 		List<List<GenInstruction<S>>> controller = new ArrayList<>();

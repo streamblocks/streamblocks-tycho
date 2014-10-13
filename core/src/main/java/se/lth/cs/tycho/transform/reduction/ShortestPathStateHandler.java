@@ -9,18 +9,18 @@ import java.util.Map;
 import java.util.Set;
 
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 import se.lth.cs.tycho.transform.util.GenInstruction.Visitor;
 
-public class ShortestPathStateHandler<S> implements StateHandler<S> {
+public class ShortestPathStateHandler<S> implements ActorMachineState<S> {
 
 	private final GenInstruction.Visitor<S, Integer, Void> weight;
-	private final StateHandler<S> stateHandler;
+	private final ActorMachineState<S> actorMachineState;
 	private final Map<S, GenInstruction<S>> decisions;
 
-	public ShortestPathStateHandler(Visitor<S, Integer, Void> weight, StateHandler<S> stateHandler) {
+	public ShortestPathStateHandler(Visitor<S, Integer, Void> weight, ActorMachineState<S> stateHandler) {
 		this.weight = weight;
-		this.stateHandler = stateHandler;
+		this.actorMachineState = stateHandler;
 		decisions = new HashMap<>();
 	}
 
@@ -33,7 +33,7 @@ public class ShortestPathStateHandler<S> implements StateHandler<S> {
 			Edge waitEdge = null;
 			for (S s : states) {
 				final int dist = pred.containsKey(s) ? pred.get(s).distance : 0;
-				for (GenInstruction<S> i : stateHandler.getInstructions(s)) {
+				for (GenInstruction<S> i : actorMachineState.getInstructions(s)) {
 					if (i.isTest()) {
 						for (S dest : i.destinations()) {
 							int d = dist + i.accept(weight);
@@ -82,7 +82,7 @@ public class ShortestPathStateHandler<S> implements StateHandler<S> {
 
 	@Override
 	public S initialState() {
-		return stateHandler.initialState();
+		return actorMachineState.initialState();
 	}
 
 	private List<S> topSortBasicSection(S state) {
@@ -95,7 +95,7 @@ public class ShortestPathStateHandler<S> implements StateHandler<S> {
 	private void topSortUtil(S state, LinkedList<S> result, Set<S> visited) {
 		if (!visited.contains(state)) {
 			visited.add(state);
-			for (GenInstruction<S> i : stateHandler.getInstructions(state)) {
+			for (GenInstruction<S> i : actorMachineState.getInstructions(state)) {
 				if (i.isTest()) {
 					for (S d : i.destinations()) {
 						topSortUtil(d, result, visited);

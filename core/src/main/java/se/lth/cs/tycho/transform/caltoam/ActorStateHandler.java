@@ -10,9 +10,9 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.util.BitSets;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
-public class ActorStateHandler implements StateHandler<State> {
+public class ActorStateHandler implements ActorMachineState<State> {
 	private ScheduleHandler scheduleHandler;
 	private ConditionHandler conditionHandler;
 	private PriorityHandler priorityHandler;

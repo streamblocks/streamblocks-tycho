@@ -22,7 +22,7 @@ import se.lth.cs.tycho.transform.reduction.SelectMinimumInteger;
 import se.lth.cs.tycho.transform.reduction.ShortestPathStateHandler;
 import se.lth.cs.tycho.transform.reduction.TransitionPriorityStateHandler;
 import se.lth.cs.tycho.transform.siam.PickFirstInstruction;
-import se.lth.cs.tycho.transform.util.StateHandler;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 public class SingleInstrucitonActorMachineReader implements NodeReader {
 	private final Path basePath;
@@ -32,7 +32,7 @@ public class SingleInstrucitonActorMachineReader implements NodeReader {
 		this.basePath = basePath;
 		this.translator = new ActorToActorMachine() {
 			@Override
-			protected StateHandler<ActorStates.State> getStateHandler(StateHandler<ActorStates.State> stateHandler) {
+			protected ActorMachineState<ActorStates.State> getStateHandler(ActorMachineState<ActorStates.State> stateHandler) {
 				//int[] prio = new int[0];
 				//try {
 				//	prio = PriorityListSelector.readIntsFromFile(new File("parseheaders/prio.txt"));
