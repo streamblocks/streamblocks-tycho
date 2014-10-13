@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -84,6 +85,21 @@ public class FileSystemXdfRepository implements SourceCodeRepository {
 		@Override
 		public String getLocationDescription() {
 			return path.toAbsolutePath().toString();
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof XdfCompilationUnit) {
+				XdfCompilationUnit that = (XdfCompilationUnit) obj;
+				return Objects.equals(this.qid, that.qid) && Objects.equals(this.path, that.path);
+			} else {
+				return false;
+			}
+		}
+		
+		@Override
+		public int hashCode() {
+			return Objects.hash(qid, path);
 		}
 
 	}

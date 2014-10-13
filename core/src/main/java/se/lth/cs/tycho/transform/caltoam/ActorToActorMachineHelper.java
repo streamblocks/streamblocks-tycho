@@ -201,10 +201,13 @@ class ActorToActorMachineHelper {
 	private int getRepeatMultiplier(Expression repeat) {
 		if (repeat == null)
 			return 1;
-		assert repeat instanceof ExprLiteral;
-		ExprLiteral lit = (ExprLiteral) repeat;
-		assert lit.getKind() == Kind.Integer;
-		return Integer.parseInt(lit.getText());
+		if (repeat instanceof ExprLiteral) {
+			ExprLiteral lit = (ExprLiteral) repeat;
+			assert lit.getKind() == Kind.Integer;
+			return Integer.parseInt(lit.getText());
+		} else {
+			throw new Error("Repeat expressions must be integer literals.");
+		}
 	}
 
 	private void createScheduleHandlerAndStateList() {

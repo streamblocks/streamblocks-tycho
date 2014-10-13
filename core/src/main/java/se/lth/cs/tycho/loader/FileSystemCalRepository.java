@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
@@ -87,13 +88,16 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 	private void buildRepo(SourceCodeUnit unit, QID parent, NamespaceDecl ns) {
 		QID qid = parent.concat(ns.getQID());
 		for (Decl d : ns.getDecls()) {
-			QID declId = qid.concat(QID.of(d.getName()));
-			if (d instanceof GlobalEntityDecl) {
-				addToRepo(entities, declId, unit);
-			} else if (d instanceof LocalVarDecl) {
-				addToRepo(vars, declId, unit);
-			} else if (d instanceof LocalTypeDecl) {
-				addToRepo(types, declId, unit);
+			String name = d.getName();
+			if (name != null) {
+				QID declId = qid.concat(QID.of(name));
+				if (d instanceof GlobalEntityDecl) {
+					addToRepo(entities, declId, unit);
+				} else if (d instanceof LocalVarDecl) {
+					addToRepo(vars, declId, unit);
+				} else if (d instanceof LocalTypeDecl) {
+					addToRepo(types, declId, unit);
+				}
 			}
 		}
 		for (NamespaceDecl child : ns.getNamespaceDecls()) {
@@ -128,6 +132,21 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 		public String getLocationDescription() {
 			return path.toAbsolutePath().toString();
 		}
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof CalCompilationUnit) {
+				CalCompilationUnit that = (CalCompilationUnit) obj;
+				return Objects.equals(this.path, that.path);
+			} else {
+				return false;
+			}
+		}
+		
+		@Override
+		public int hashCode() {
+			return path.hashCode();
+		}
+
 
 	}
 

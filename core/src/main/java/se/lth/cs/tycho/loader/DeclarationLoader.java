@@ -179,8 +179,10 @@ public class DeclarationLoader {
 		for (GlobalDecl decl : ns.getDecls()) {
 			enclosingNsDecl.put(decl, ns);
 			sourceCodeUnit.put(decl, unit);
-			QID declQid = qid.concat(QID.of(decl.getName()));
-			getDeclCacheEntry(declQid).add(decl);
+			if (decl.getName() != null) {
+				QID declQid = qid.concat(QID.of(decl.getName()));
+				getDeclCacheEntry(declQid).add(decl);
+			}
 		}
 	}
 

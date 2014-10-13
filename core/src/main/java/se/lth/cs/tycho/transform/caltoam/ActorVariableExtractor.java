@@ -106,7 +106,11 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	}
 
 	private int evalRepeat(Expression expr) {
-		return Integer.parseInt(((ExprLiteral) expr).getText());
+		if (expr instanceof ExprLiteral) {
+			return Integer.parseInt(((ExprLiteral) expr).getText());
+		} else {
+			throw new Error("Repeat expressions must be integer literals");
+		}
 	}
 
 	@Override

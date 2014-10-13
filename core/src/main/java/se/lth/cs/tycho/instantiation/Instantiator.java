@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.instantiation;
 
+import java.util.List;
+
 import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
@@ -20,51 +22,54 @@ import se.lth.cs.tycho.ir.entity.xdf.XDFInstance;
 import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.loader.DeclarationLoader;
+import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.values.Type;
 import se.lth.cs.tycho.values.Value;
 
 public class Instantiator {
 	private final DeclarationLoader loader;
 	private final Visitor visitor;
+	private final ActorToActorMachine translator;
 
 	public Instantiator(DeclarationLoader loader) {
 		this.loader = loader;
 		this.visitor = new Visitor();
+		this.translator = new ActorToActorMachine();
 	}
 
-	public Instance instantiate(QID qid, ImmutableList<Parameter<Type>> typeParameters,
-			ImmutableList<Parameter<Value>> valueParameters) {
+	public Instance instantiate(QID qid, List<Parameter<Type>> typeParameters,
+			List<Parameter<Value>> valueParameters) {
 		return instantiate(qid, typeParameters, valueParameters, null);
 	}
 
-	public Instance instantiate(QID qid, ImmutableList<Parameter<Type>> typeParameters,
-			ImmutableList<Parameter<Value>> valueParameters, NamespaceDecl location) {
+	public Instance instantiate(QID qid, List<Parameter<Type>> typeParameters,
+			List<Parameter<Value>> valueParameters, NamespaceDecl location) {
 		GlobalEntityDecl decl = loader.loadEntity(qid, location);
 		return instantiate(decl.getEntity(), typeParameters, valueParameters, loader.getLocation(decl));
 	}
 
-	public Instance instantiate(Entity entity, ImmutableList<Parameter<Type>> typeParameters,
-			ImmutableList<Parameter<Value>> valueParameters) {
+	public Instance instantiate(Entity entity, List<Parameter<Type>> typeParameters,
+			List<Parameter<Value>> valueParameters) {
 		return instantiate(entity, typeParameters, valueParameters, null);
 	}
 
-	public Instance instantiate(Entity entity, ImmutableList<Parameter<Type>> typeParameters,
-			ImmutableList<Parameter<Value>> valueParameters, NamespaceDecl location) {
+	public Instance instantiate(Entity entity, List<Parameter<Type>> typeParameters,
+			List<Parameter<Value>> valueParameters, NamespaceDecl location) {
 		return entity.accept(visitor, new Context(typeParameters, valueParameters, location));
 	}
 
-	protected Instance instantiateCalActor(CalActor entity, ImmutableList<Parameter<Type>> typeParameters,
-			ImmutableList<Parameter<Value>> valueParameters, NamespaceDecl location) {
-		throw new UnsupportedOperationException("Cal actors are not yet supported.");
+	protected Instance instantiateCalActor(CalActor entity, List<Parameter<Type>> typeParameters,
+			List<Parameter<Value>> valueParameters, NamespaceDecl location) {
+		return translator.translate(entity);
 	}
 
-	protected Instance instantiateNlNetwork(NlNetwork entity, ImmutableList<Parameter<Type>> typeParameters,
-			ImmutableList<Parameter<Value>> valueParameters, NamespaceDecl location) {
+	protected Instance instantiateNlNetwork(NlNetwork entity, List<Parameter<Type>> typeParameters,
+			List<Parameter<Value>> valueParameters, NamespaceDecl location) {
 		throw new UnsupportedOperationException("Nl networks are not yet supported.");
 	}
 
-	protected Instance instantiateXDFNetwork(XDFNetwork entity, ImmutableList<Parameter<Type>> typeParameters,
-			ImmutableList<Parameter<Value>> valueParameters, NamespaceDecl location) {
+	protected Instance instantiateXDFNetwork(XDFNetwork entity, List<Parameter<Type>> typeParameters,
+			List<Parameter<Value>> valueParameters, NamespaceDecl location) {
 		ImmutableList.Builder<Node> nodeBuilder = ImmutableList.builder();
 		for (XDFInstance inst : entity.getInstances()) {
 			Instance result = instantiate(inst.getEntity(), ImmutableList.empty(), ImmutableList.empty(), location);
@@ -73,8 +78,8 @@ public class Instantiator {
 		ImmutableList<Node> nodes = nodeBuilder.build();
 		ImmutableList.Builder<Connection> connBuilder = ImmutableList.builder();
 		for (XDFConnection conn : entity.getConnections()) {
-			Identifier src = findNode(conn.getSourceInstance(), nodes).getIdentifier();
-			Identifier dst = findNode(conn.getDestinaitonInstance(), nodes).getIdentifier();
+			Identifier src = findNode(conn.getSourceInstance(), nodes);
+			Identifier dst = findNode(conn.getDestinaitonInstance(), nodes);
 			connBuilder.add(new Connection(src, conn.getSourcePort(), dst, conn.getDestinationPort(),
 					ImmutableList.empty()));
 		}
@@ -90,7 +95,7 @@ public class Instantiator {
 	}
 
 	protected Instance instantiateGlobalEntityReference(GlobalEntityReference entity,
-			ImmutableList<Parameter<Type>> typeParameters, ImmutableList<Parameter<Value>> valueParameters,
+			List<Parameter<Type>> typeParameters, List<Parameter<Value>> valueParameters,
 			NamespaceDecl location) {
 		if (entity.isNamespaceReference()) {
 			throw new Error("Can not create an entity instance of a global namespace reference.");
@@ -98,14 +103,17 @@ public class Instantiator {
 		return instantiate(entity.getQualifiedIdentifier(), typeParameters, valueParameters, location);
 	}
 
-	private Node findNode(String name, ImmutableList<Node> nodes) {
+	private Identifier findNode(String name, List<Node> nodes) {
+		if (name == null || name.isEmpty()) {
+			return null;
+		}
 		for (Node node : nodes) {
 			if (node.getName()
 					.equals(name)) {
-				return node;
+				return node.getIdentifier();
 			}
 		}
-		return null;
+		throw new RuntimeException("Unknown node: " + name);
 	}
 
 	private class Visitor implements EntityVisitor<Instance, Context> {
@@ -131,11 +139,11 @@ public class Instantiator {
 	}
 
 	private static class Context {
-		private final ImmutableList<Parameter<Type>> typeParameters;
-		private final ImmutableList<Parameter<Value>> valueParameters;
+		private final List<Parameter<Type>> typeParameters;
+		private final List<Parameter<Value>> valueParameters;
 		private final NamespaceDecl location;
 
-		public Context(ImmutableList<Parameter<Type>> typeParameters, ImmutableList<Parameter<Value>> valueParameters,
+		public Context(List<Parameter<Type>> typeParameters, List<Parameter<Value>> valueParameters,
 				NamespaceDecl location) {
 			this.typeParameters = typeParameters;
 			this.valueParameters = valueParameters;
