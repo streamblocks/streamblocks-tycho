@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Test;
@@ -15,6 +16,9 @@ import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemCalRepository;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
 import se.lth.cs.tycho.messages.NullMessageReporter;
+import se.lth.cs.tycho.transform.caltoam.ActorStates;
+import se.lth.cs.tycho.transform.filter.SelectFirstInstruction;
+import se.lth.cs.tycho.transform.util.StateHandler;
 
 public class TestInstantiateRVC {
 
@@ -26,7 +30,8 @@ public class TestInstantiateRVC {
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		loader.addRepository(new FileSystemXdfRepository(RVC_PATH));
 		loader.addRepository(new FileSystemCalRepository(RVC_PATH));
-		Instantiator instantiator = new Instantiator(loader);
+		StateHandler.FilterConstructor<ActorStates.State> filter = SelectFirstInstruction<ActorStates.State>::new;
+		Instantiator instantiator = new Instantiator(loader, Arrays.asList(filter));
 		Instance net = instantiator.instantiate(DECODER, Collections.emptyList(), Collections.emptyList());
 		assertTrue(net instanceof Network);
 		Network network = (Network) net;

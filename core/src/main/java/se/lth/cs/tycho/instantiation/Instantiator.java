@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.instantiation;
 
+import java.util.Collections;
 import java.util.List;
 
 import se.lth.cs.tycho.instance.Instance;
@@ -22,7 +23,9 @@ import se.lth.cs.tycho.ir.entity.xdf.XDFInstance;
 import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.loader.DeclarationLoader;
+import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
+import se.lth.cs.tycho.transform.util.StateHandler.FilterConstructor;
 import se.lth.cs.tycho.values.Type;
 import se.lth.cs.tycho.values.Value;
 
@@ -32,9 +35,12 @@ public class Instantiator {
 	private final ActorToActorMachine translator;
 
 	public Instantiator(DeclarationLoader loader) {
+		this(loader, Collections.emptyList());
+	}
+	public Instantiator(DeclarationLoader loader, List<FilterConstructor<State>> stateFilters) {
 		this.loader = loader;
 		this.visitor = new Visitor();
-		this.translator = new ActorToActorMachine();
+		this.translator = new ActorToActorMachine(stateFilters);
 	}
 
 	public Instance instantiate(QID qid, List<Parameter<Type>> typeParameters,
