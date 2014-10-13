@@ -3,7 +3,6 @@ package se.lth.cs.tycho.interp.preprocess;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import se.lth.cs.tycho.backend.c.att.ActorMachines;
 import se.lth.cs.tycho.errorhandling.ErrorModule;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.Scope;

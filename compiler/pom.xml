@@ -14,6 +14,11 @@
 	<name>Tycho Dataflow Compiler</name>
 	<dependencies>
 		<dependency>
+			<groupId>se.lth.cs.tycho</groupId>
+			<artifactId>core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>

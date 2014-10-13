@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.backend.c.att;
+package se.lth.cs.tycho.analyze;
 
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.PortCondition;

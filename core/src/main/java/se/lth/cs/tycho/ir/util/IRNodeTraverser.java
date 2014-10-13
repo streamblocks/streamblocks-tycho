@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.backend.c;
+package se.lth.cs.tycho.ir.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

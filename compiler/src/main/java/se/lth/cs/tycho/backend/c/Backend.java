@@ -2,6 +2,7 @@ package se.lth.cs.tycho.backend.c;
 
 import java.io.PrintWriter;
 
+import se.lth.cs.tycho.analyze.Ports;
 import se.lth.cs.tycho.analyze.names.VariableBinding;
 import se.lth.cs.tycho.backend.c.att.ActorMachines;
 import se.lth.cs.tycho.backend.c.att.Assignments;
@@ -17,7 +18,6 @@ import se.lth.cs.tycho.backend.c.att.Functions;
 import se.lth.cs.tycho.backend.c.att.Lists;
 import se.lth.cs.tycho.backend.c.att.Names;
 import se.lth.cs.tycho.backend.c.att.Networks;
-import se.lth.cs.tycho.backend.c.att.Ports;
 import se.lth.cs.tycho.backend.c.att.ScopeDependencies;
 import se.lth.cs.tycho.backend.c.att.ScopeInitializers;
 import se.lth.cs.tycho.backend.c.att.Scopes;
@@ -27,6 +27,7 @@ import se.lth.cs.tycho.backend.c.att.Transitions;
 import se.lth.cs.tycho.backend.c.att.TranslationUnit;
 import se.lth.cs.tycho.backend.c.att.Utilities;
 import se.lth.cs.tycho.instance.net.Network;
+import se.lth.cs.tycho.ir.util.IRNodeTraverser;
 import javarag.AttributeEvaluator;
 import javarag.TreeTraverser;
 import javarag.impl.reg.BasicAttributeRegister;

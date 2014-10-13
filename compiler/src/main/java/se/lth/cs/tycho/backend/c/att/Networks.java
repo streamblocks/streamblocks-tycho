@@ -3,7 +3,7 @@ package se.lth.cs.tycho.backend.c.att;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.lth.cs.tycho.backend.c.att.Ports.PortKind;
+import se.lth.cs.tycho.analyze.Ports.PortKind;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
