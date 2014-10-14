@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.junit.Test;
 
@@ -31,7 +30,7 @@ public class TestInstantiateRVC {
 		loader.addRepository(new FileSystemCalRepository(RVC_PATH));
 		Instantiator instantiator = new Instantiator(loader,
 				Arrays.asList(SelectFirstInstruction<ActorStates.State>::new));
-		Instance net = instantiator.instantiate(DECODER, Collections.emptyList(), Collections.emptyList());
+		Instance net = instantiator.instantiate(DECODER, null);
 		assertTrue(net instanceof Network);
 		Network network = (Network) net;
 	}

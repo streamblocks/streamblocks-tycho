@@ -9,7 +9,6 @@ import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -26,8 +25,6 @@ import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.util.ActorMachineState.Transformer;
-import se.lth.cs.tycho.values.Type;
-import se.lth.cs.tycho.values.Value;
 
 public class Instantiator {
 	private final DeclarationLoader loader;
@@ -44,52 +41,61 @@ public class Instantiator {
 		this.translator = new ActorToActorMachine(stateTransformers);
 	}
 
-	public Instance instantiate(QID qid, List<Parameter<Type>> typeParameters, List<Parameter<Value>> valueParameters) {
-		return instantiate(qid, typeParameters, valueParameters, null);
+	/**
+	 * Instantiates the entity into the namespace declaration.
+	 * 
+	 * @param entity
+	 *            the entity to instantiate
+	 * @param location
+	 *            the namespace declaration from where the instance is created
+	 * @return an instance of the specified entity
+	 */
+	public Instance instantiate(Entity entity, NamespaceDecl location) {
+		return entity.accept(visitor, location);
 	}
 
-	public Instance instantiate(QID qid, List<Parameter<Type>> typeParameters, List<Parameter<Value>> valueParameters,
-			NamespaceDecl location) {
+	/**
+	 * Loads and instantiates the entity with the specified qualified identifier
+	 * into the namespace declaration location.
+	 * 
+	 * @param qid
+	 *            the entity to instantiate
+	 * @param location
+	 *            the namespace declaration from where the instance is created
+	 * @return an instance of the specified entity
+	 */
+	public Instance instantiate(QID qid, NamespaceDecl location) {
 		GlobalEntityDecl decl = loader.loadEntity(qid, location);
-		return instantiate(decl.getEntity(), typeParameters, valueParameters, loader.getLocation(decl));
+		return instantiate(decl.getEntity(), loader.getLocation(decl));
 	}
 
-	public Instance instantiate(Entity entity, List<Parameter<Type>> typeParameters,
-			List<Parameter<Value>> valueParameters) {
-		return instantiate(entity, typeParameters, valueParameters, null);
-	}
-
-	public Instance instantiate(Entity entity, List<Parameter<Type>> typeParameters,
-			List<Parameter<Value>> valueParameters, NamespaceDecl location) {
-		return entity.accept(visitor, new Context(typeParameters, valueParameters, location));
-	}
-
-	private class Visitor implements EntityVisitor<Instance, Context> {
+	private class Visitor implements EntityVisitor<Instance, NamespaceDecl> {
 		@Override
-		public Instance visitCalActor(CalActor entity, Context param) {
+		public Instance visitCalActor(CalActor entity, NamespaceDecl location) {
+			if (!entity.getValueParameters().isEmpty() || !entity.getTypeParameters().isEmpty()) {
+				throw new UnsupportedOperationException("Can not instantiate an actor with parameters.");
+			}
 			return translator.translate(entity);
 		}
 
 		@Override
-		public Instance visitNlNetwork(NlNetwork entity, Context param) {
+		public Instance visitNlNetwork(NlNetwork entity, NamespaceDecl location) {
 			throw new UnsupportedOperationException("Nl networks are not yet supported.");
 		}
 
 		@Override
-		public Instance visitGlobalEntityReference(GlobalEntityReference entity, Context param) {
+		public Instance visitGlobalEntityReference(GlobalEntityReference entity, NamespaceDecl location) {
 			if (entity.isNamespaceReference()) {
 				throw new Error("Can not create an entity instance of a global namespace reference.");
 			}
-			return instantiate(entity.getQualifiedIdentifier(), param.typeParameters, param.valueParameters,
-					param.location);
+			return instantiate(entity.getQualifiedIdentifier(), location);
 		}
 
 		@Override
-		public Instance visitXDFNetwork(XDFNetwork entity, Context param) {
+		public Instance visitXDFNetwork(XDFNetwork entity, NamespaceDecl location) {
 			ImmutableList.Builder<Node> nodeBuilder = ImmutableList.builder();
 			for (XDFInstance inst : entity.getInstances()) {
-				Instance result = instantiate(inst.getEntity(), ImmutableList.empty(), ImmutableList.empty(),
-						param.location);
+				Instance result = instantiate(inst.getEntity(), location);
 				nodeBuilder.add(new Node(inst.getName(), result, ImmutableList.empty()));
 			}
 			ImmutableList<Node> nodes = nodeBuilder.build();
@@ -116,8 +122,7 @@ public class Instantiator {
 				return null;
 			}
 			for (Node node : nodes) {
-				if (node.getName()
-						.equals(name)) {
+				if (node.getName().equals(name)) {
 					return node.getIdentifier();
 				}
 			}
@@ -125,19 +130,4 @@ public class Instantiator {
 		}
 
 	}
-
-	private static class Context {
-		private final List<Parameter<Type>> typeParameters;
-		private final List<Parameter<Value>> valueParameters;
-		private final NamespaceDecl location;
-
-		public Context(List<Parameter<Type>> typeParameters, List<Parameter<Value>> valueParameters,
-				NamespaceDecl location) {
-			this.typeParameters = typeParameters;
-			this.valueParameters = valueParameters;
-			this.location = location;
-		}
-
-	}
-
 }
