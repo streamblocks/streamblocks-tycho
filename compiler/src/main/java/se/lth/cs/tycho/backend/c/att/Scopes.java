@@ -47,7 +47,7 @@ public class Scopes extends Module<Scopes.Decls> {
 
 		Node node(ActorMachine actorMachine);
 
-		String scopeVarInit(Expression expression, VarDecl decl);
+		String varInit(Expression expression, String name);
 
 		Set<Scope> persistentScopes(IRNode node);
 
@@ -71,7 +71,7 @@ public class Scopes extends Module<Scopes.Decls> {
 					if (simpleExpression != null) {
 						writer.println(e().variableName(decl) + " = " + simpleExpression + ";");
 					} else {
-						writer.print(e().scopeVarInit(decl.getInitialValue(), decl));
+						writer.print(e().varInit(decl.getInitialValue(), e().variableName(decl)));
 					}
 				}
 			writer.println("}");
@@ -79,7 +79,7 @@ public class Scopes extends Module<Scopes.Decls> {
 	}
 
 	public boolean scopeDeclIsConst(LocalVarDecl decl) {
-		return !decl.isAssignable() && e().isPersistent(e().variableScope(decl))
+		return !decl.isAssignable() && e().isPersistent(e().variableScope(decl)) && decl.getInitialValue() != null
 				&& e().simpleExpression(decl.getInitialValue()) != null;
 	}
 

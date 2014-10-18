@@ -1,8 +1,10 @@
 package se.lth.cs.tycho.network.flatten.attr;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import se.lth.cs.tycho.network.flatten.attr.ConnectionPaths;
 import se.lth.cs.tycho.network.flatten.attr.Connections;
@@ -22,6 +24,9 @@ public class ConnectionPaths extends Module<ConnectionPaths.Attributes> {
 		@Synthesized
 		List<List<Connection>> pathsFromPort(PortDecl port);
 
+		@Synthesized
+		List<List<Connection>> pathsFromConnection(Connection conn);
+
 		@Collected
 		Set<List<List<Connection>>> connectionPaths(TreeRoot<?> root);
 	}
@@ -39,22 +44,23 @@ public class ConnectionPaths extends Module<ConnectionPaths.Attributes> {
 
 	public List<List<Connection>> pathsFromPort(PortDecl port) {
 		Set<Connection> outgoing = e().outgoingConnections(port);
-		List<List<Connection>> result = new ArrayList<>();
-		for (Connection c : outgoing) {
-			PortDecl dest = e().destinationPort(c);
-			List<List<Connection>> paths = e().pathsFromPort(dest);
-			prependAndCollect(c, paths, result);
-		}
-		return result;
+		return outgoing.stream().flatMap(conn -> e().pathsFromConnection(conn).stream()).collect(Collectors.toList());
 	}
-
-	private <C> void prependAndCollect(C c, List<List<C>> paths,
-			List<List<C>> result) {
-		for (List<C> path : paths) {
-			List<C> newPath = new ArrayList<>();
-			newPath.add(c);
-			newPath.addAll(path);
-			result.add(newPath);
+	
+	public List<List<Connection>> pathsFromConnection(Connection conn) {
+		PortDecl dest = e().destinationPort(conn);
+		List<List<Connection>> paths = e().pathsFromPort(dest);
+		if (paths.isEmpty()) {
+			return Collections.singletonList(Collections.singletonList(conn));
+		} else {
+			return paths.stream().map(path -> prepend(conn, path)).collect(Collectors.toList());
 		}
+	}
+	
+	private <E> List<E> prepend(E e, List<E> list) {
+		List<E> result = new ArrayList<>();
+		result.add(e);
+		result.addAll(list);
+		return result;
 	}
 }

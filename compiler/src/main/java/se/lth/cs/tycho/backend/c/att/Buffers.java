@@ -2,6 +2,8 @@ package se.lth.cs.tycho.backend.c.att;
 
 import java.util.List;
 
+import javarag.Module;
+import javarag.Synthesized;
 import se.lth.cs.tycho.backend.c.CArrayType;
 import se.lth.cs.tycho.backend.c.CType;
 import se.lth.cs.tycho.instance.am.Condition;
@@ -17,8 +19,6 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtOutput;
-import javarag.Module;
-import javarag.Synthesized;
 
 public class Buffers extends Module<Buffers.Decls> {
 
@@ -33,7 +33,7 @@ public class Buffers extends Module<Buffers.Decls> {
 		public String condition(Condition cond);
 
 		@Synthesized
-		public String scopeVarInit(ExprInput input, VarDecl decl);
+		public String varInit(Expression e, String name);
 
 		@Synthesized
 		int bufferSize(Connection conn);
@@ -49,6 +49,10 @@ public class Buffers extends Module<Buffers.Decls> {
 		String variableName(VarDecl decl);
 
 		CType ctype(Connection conn);
+
+		CType ctype(Expression expr);
+
+		String tempVariableName(Object object);
 
 	}
 
@@ -144,10 +148,9 @@ public class Buffers extends Module<Buffers.Decls> {
 		}
 	}
 
-	public String scopeVarInit(ExprInput input, VarDecl decl) {
+	public String varInit(ExprInput input, String name) {
 		Connection conn = e().connection(input.getPort());
 		String buffer = e().bufferName(conn);
-		String name = e().variableName(decl);
 		if (input.hasRepeat()) {
 			StringBuilder result = new StringBuilder();
 			final int offset = input.getOffset();

@@ -34,7 +34,7 @@ public class Functions extends Module<Functions.Decls> {
 
 	public interface Decls {
 		@Synthesized
-		String scopeVarInit(Expression expr, VarDecl varDecl);
+		String varInit(Expression expr, String name);
 
 		@Synthesized
 		String lambdaSignature(ExprLambda lambda);
@@ -76,11 +76,11 @@ public class Functions extends Module<Functions.Decls> {
 		String blockified(Statement s);
 	}
 
-	public String scopeVarInit(ExprLambda lambda, VarDecl varDecl) {
+	public String varInit(ExprLambda lambda, String name) {
 		return "";
 	}
 
-	public String scopeVarInit(ExprProc procedure, VarDecl varDecl) {
+	public String varInit(ExprProc procedure, String name) {
 		return "";
 	}
 
@@ -121,6 +121,13 @@ public class Functions extends Module<Functions.Decls> {
 		}
 	}
 
+	public void functionBody(Expression expr, PrintWriter writer) {
+		writer.println("{");
+		String value = e().simpleExpression(expr);
+		writer.println("return " + value + ";");
+		writer.println("}");
+	}
+	
 	public void functionBody(ExprLet let, PrintWriter writer) {
 		writer.println("{");
 		for (LocalVarDecl decl : let.getVarDecls()) {

@@ -16,7 +16,7 @@ public class Lists extends Module<Lists.Decls> {
 
 	public interface Decls {
 		@Synthesized
-		String scopeVarInit(Expression expr, VarDecl varDecl);
+		String varInit(Expression expr, String name);
 
 		@Synthesized
 		public String generatorFilter(GeneratorFilter gf, String content);
@@ -32,8 +32,7 @@ public class Lists extends Module<Lists.Decls> {
 
 	}
 
-	public String scopeVarInit(ExprList list, VarDecl varDecl) {
-		String name = e().variableName(varDecl);
+	public String varInit(ExprList list, String name) {
 		if (list.getGenerators().isEmpty()) {
 			StringBuilder result = new StringBuilder();
 			int index = 0;
