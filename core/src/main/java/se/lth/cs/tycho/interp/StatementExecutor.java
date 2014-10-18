@@ -5,7 +5,7 @@ import se.lth.cs.tycho.interp.values.List;
 import se.lth.cs.tycho.interp.values.Procedure;
 import se.lth.cs.tycho.interp.values.Ref;
 import se.lth.cs.tycho.interp.values.RefView;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StatementVisitor;
@@ -98,9 +98,9 @@ public class StatementExecutor implements StatementVisitor<Void, Environment>, L
 		if(!stmt.getTypeDecls().isEmpty()) {
 			throw new UnsupportedOperationException();
 		}
-		for (LocalVarDecl d : stmt.getVarDecls()) {
-			if(d.getInitialValue() != null){
-				stack.push(interpreter.evaluate(d.getInitialValue(), env));				
+		for (VarDecl d : stmt.getVarDecls()) {
+			if(d.getValue() != null){
+				stack.push(interpreter.evaluate(d.getValue(), env));				
 			} else {
 				stack.push();
 			}

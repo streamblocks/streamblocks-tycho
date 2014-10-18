@@ -43,25 +43,25 @@ import java.util.Objects;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 public class InputPattern extends AbstractIRNode {
 
-	public InputPattern(Port port, ImmutableList<LocalVarDecl> variables, Expression repeatExpr) {
+	public InputPattern(Port port, ImmutableList<VarDecl> variables, Expression repeatExpr) {
 		this(null, port, variables, repeatExpr);
 	}
 
-	private InputPattern(InputPattern original, Port port, ImmutableList<LocalVarDecl> variables, Expression repeatExpr) {
+	private InputPattern(InputPattern original, Port port, ImmutableList<VarDecl> variables, Expression repeatExpr) {
 		super(original);
 		this.port = port;
 		this.variables = ImmutableList.copyOf(variables);
 		this.repeatExpr = repeatExpr;
 	}
 
-	public InputPattern copy(Port port, ImmutableList<LocalVarDecl> variables, Expression repeatExpr) {
+	public InputPattern copy(Port port, ImmutableList<VarDecl> variables, Expression repeatExpr) {
 		if (Objects.equals(this.port, port) && Lists.equals(this.variables, variables)
 				&& Objects.equals(this.repeatExpr, repeatExpr)) {
 			return this;
@@ -73,7 +73,7 @@ public class InputPattern extends AbstractIRNode {
 		return port;
 	}
 
-	public ImmutableList<LocalVarDecl> getVariables() {
+	public ImmutableList<VarDecl> getVariables() {
 		return variables;
 	}
 
@@ -82,7 +82,7 @@ public class InputPattern extends AbstractIRNode {
 	}
 
 	private Port port;
-	private ImmutableList<LocalVarDecl> variables;
+	private ImmutableList<VarDecl> variables;
 	private Expression repeatExpr;
 
 }

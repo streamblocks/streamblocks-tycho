@@ -6,7 +6,7 @@ import se.lth.cs.tycho.interp.values.Collection;
 import se.lth.cs.tycho.interp.values.Iterator;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.GeneratorFilter;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
@@ -92,8 +92,8 @@ public class GeneratorFilterHelper {
 			// first evaluate all values this generator should iterate over. At this point the local names are not visible
 			Expression collectionExpr = transformer.transformExpression(gen.getCollectionExpr(), lookupTable);
 			// introduce all local names by pushing the values to the stack
-			for(LocalVarDecl decl : gen.getVariables()){
-				assert decl.getInitialValue() == null;  // initial value is not allowed, the generator creates the values
+			for(VarDecl decl : gen.getVariables()){
+				assert decl.getValue() == null;  // initial value is not allowed, the generator creates the values
 				lookupTable.addName(decl.getName());
 			}
 			// evaluate the filters

@@ -4,8 +4,8 @@ import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -120,10 +120,10 @@ public class VariableBinding extends Module<VariableBinding.Decls> {
 	private IRNode lookupInList(Iterable<? extends IRNode> decls, String name) {
 		for (IRNode node : decls) {
 			String declName = null;
-			if (node instanceof LocalVarDecl) {
+			if (node instanceof VarDecl) {
 				declName = ((VarDecl) node).getName();
-			} else if (node instanceof ParDeclValue) {
-				declName = ((ParDeclValue) node).getName();
+			} else if (node instanceof VarDecl) {
+				declName = ((VarDecl) node).getName();
 			}
 			if (declName != null && declName.equals(name)) {
 				return node;

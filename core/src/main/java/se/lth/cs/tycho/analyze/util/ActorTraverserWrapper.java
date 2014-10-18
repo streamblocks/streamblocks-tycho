@@ -5,10 +5,10 @@ import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
@@ -48,42 +48,42 @@ public class ActorTraverserWrapper<P> extends AbstractActorTraverser<P> implemen
 	}
 
 	@Override
-	public final void traverseVarDecl(LocalVarDecl varDecl, P param) {
+	public final void traverseVarDecl(VarDecl varDecl, P param) {
 		inner.traverseVarDecl(varDecl, param);
 	}
 
 	@Override
-	public final void traverseVarDecls(ImmutableList<LocalVarDecl> varDecl, P param) {
+	public final void traverseVarDecls(ImmutableList<VarDecl> varDecl, P param) {
 		inner.traverseVarDecls(varDecl, param);
 	}
 
 	@Override
-	public final void traverseTypeDecl(LocalTypeDecl typeDecl, P param) {
+	public final void traverseTypeDecl(TypeDecl typeDecl, P param) {
 		inner.traverseTypeDecl(typeDecl, param);
 	}
 
 	@Override
-	public final void traverseTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param) {
+	public final void traverseTypeDecls(ImmutableList<TypeDecl> typeDecl, P param) {
 		inner.traverseTypeDecls(typeDecl, param);
 	}
 
 	@Override
-	public final void traverseValueParameter(ParDeclValue valueParam, P param) {
+	public final void traverseValueParameter(VarDecl valueParam, P param) {
 		inner.traverseValueParameter(valueParam, param);
 	}
 
 	@Override
-	public final void traverseValueParameters(ImmutableList<ParDeclValue> valueParam, P param) {
+	public final void traverseValueParameters(ImmutableList<VarDecl> valueParam, P param) {
 		inner.traverseValueParameters(valueParam, param);
 	}
 
 	@Override
-	public final void traverseTypeParameter(ParDeclType typeParam, P param) {
+	public final void traverseTypeParameter(TypeDecl typeParam, P param) {
 		inner.traverseTypeParameter(typeParam, param);
 	}
 
 	@Override
-	public final void traverseTypeParameters(ImmutableList<ParDeclType> typeParam, P param) {
+	public final void traverseTypeParameters(ImmutableList<TypeDecl> typeParam, P param) {
 		inner.traverseTypeParameters(typeParam, param);
 	}
 

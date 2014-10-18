@@ -9,10 +9,10 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprField;
@@ -285,48 +285,48 @@ public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, Ex
 	}
 
 	@Override
-	public void traverseVarDecl(LocalVarDecl varDecl, P param) {
+	public void traverseVarDecl(VarDecl varDecl, P param) {
 		traverseTypeExpr(varDecl.getType(), param);
-		traverseExpression(varDecl.getInitialValue(), param);
+		traverseExpression(varDecl.getValue(), param);
 	}
 
 	@Override
-	public void traverseVarDecls(ImmutableList<LocalVarDecl> varDecl, P param) {
-		for (LocalVarDecl v : varDecl) {
+	public void traverseVarDecls(ImmutableList<VarDecl> varDecl, P param) {
+		for (VarDecl v : varDecl) {
 			traverseVarDecl(v, param);
 		}
 	}
 
 	@Override
-	public void traverseTypeDecl(LocalTypeDecl typeDecl, P param) {
+	public void traverseTypeDecl(TypeDecl typeDecl, P param) {
 	}
 
 	@Override
-	public void traverseTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param) {
-		for (LocalTypeDecl d : typeDecl) {
+	public void traverseTypeDecls(ImmutableList<TypeDecl> typeDecl, P param) {
+		for (TypeDecl d : typeDecl) {
 			traverseTypeDecl(d, param);
 		}
 	}
 
 	@Override
-	public void traverseValueParameter(ParDeclValue valueParam, P param) {
+	public void traverseValueParameter(VarDecl valueParam, P param) {
 		traverseTypeExpr(valueParam.getType(), param);
 	}
 
 	@Override
-	public void traverseValueParameters(ImmutableList<ParDeclValue> valueParam, P param) {
-		for (ParDeclValue p : valueParam) {
+	public void traverseValueParameters(ImmutableList<VarDecl> valueParam, P param) {
+		for (VarDecl p : valueParam) {
 			traverseValueParameter(p, param);
 		}
 	}
 
 	@Override
-	public void traverseTypeParameter(ParDeclType typeParam, P param) {
+	public void traverseTypeParameter(TypeDecl typeParam, P param) {
 	}
 
 	@Override
-	public void traverseTypeParameters(ImmutableList<ParDeclType> typeParam, P param) {
-		for (ParDeclType p : typeParam) {
+	public void traverseTypeParameters(ImmutableList<TypeDecl> typeParam, P param) {
+		for (TypeDecl p : typeParam) {
 			traverseTypeParameter(p, param);
 		}
 	}

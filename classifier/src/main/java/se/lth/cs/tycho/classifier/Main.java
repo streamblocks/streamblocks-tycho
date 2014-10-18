@@ -1,11 +1,13 @@
 package se.lth.cs.tycho.classifier;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
-import se.lth.cs.tycho.errorhandling.ErrorModule;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
-import se.lth.cs.tycho.parser.lth.CalParser;
+import se.lth.cs.tycho.parsing.cal.CalParser;
+import se.lth.cs.tycho.parsing.cal.ParseException;
 import se.lth.cs.tycho.transform.caltoam.ActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
@@ -24,7 +26,7 @@ public class Main {
 		};
 	}
 	
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws FileNotFoundException, ParseException {
 		if (args.length == 0) {
 			printUsage();
 			System.exit(1);
@@ -35,26 +37,21 @@ public class Main {
 		}
 	}
 
-	private void analyze(String arg) {
-		CalParser parser = new CalParser();
+	private void analyze(String arg) throws FileNotFoundException, ParseException {
 		File file = new File(arg);
+		CalParser parser = new CalParser(new FileInputStream(file));
 		String name = file.getName();
 		System.out.println(name);
 		System.out.println(name.replaceAll(".", "="));
-		CalActor calActor = (CalActor) parser.parse(file, null, null).getEntity();
+		CalActor calActor = (CalActor) parser.ActorDecl().getEntity();
 		ActorMachine actorMachine = actorToActorMachine.translate(calActor);
-		ErrorModule errors = parser.getErrorModule();
-		if (!errors.hasError()) {
-			Classifier classifier = Classifier.getInstance(actorMachine);
-			for (String c : classifier.getClasses()) {
-				long t = System.nanoTime();
-				System.out.println(c + ": " + classifier.isOfClass(c) + " [" + (System.nanoTime()-t)/1000000 + " ms]");
-			}
-			System.out.println();
-		} else {
-			errors.printErrors();
-			System.out.println();
+		//ErrorModule errors = parser.getErrorModule();
+		Classifier classifier = Classifier.getInstance(actorMachine);
+		for (String c : classifier.getClasses()) {
+			long t = System.nanoTime();
+			System.out.println(c + ": " + classifier.isOfClass(c) + " [" + (System.nanoTime()-t)/1000000 + " ms]");
 		}
+		System.out.println();
 	}
 
 	private static void printUsage() {

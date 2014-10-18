@@ -1,18 +1,18 @@
 package se.lth.cs.tycho.ir.entity;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public abstract class EntityDefinition extends Entity implements PortContainer {
 	private final ImmutableList<PortDecl> inputPorts;
 	private final ImmutableList<PortDecl> outputPorts;
-	private final ImmutableList<ParDeclType> typeParameters;
-	private final ImmutableList<ParDeclValue> valueParameters;
+	private final ImmutableList<TypeDecl> typeParameters;
+	private final ImmutableList<VarDecl> valueParameters;
 	
 	public EntityDefinition(IRNode original, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
-			ImmutableList<ParDeclType> typeParameters, ImmutableList<ParDeclValue> valueParameters) {
+			ImmutableList<TypeDecl> typeParameters, ImmutableList<VarDecl> valueParameters) {
 		super(original);
 		this.inputPorts = inputPorts;
 		this.outputPorts = outputPorts;
@@ -28,11 +28,11 @@ public abstract class EntityDefinition extends Entity implements PortContainer {
 		return outputPorts;
 	}
 
-	public ImmutableList<ParDeclType> getTypeParameters() {
+	public ImmutableList<TypeDecl> getTypeParameters() {
 		return typeParameters;
 	}
 
-	public ImmutableList<ParDeclValue> getValueParameters() {
+	public ImmutableList<VarDecl> getValueParameters() {
 		return valueParameters;
 	}
 	

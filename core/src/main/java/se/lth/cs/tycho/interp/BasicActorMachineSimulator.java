@@ -24,16 +24,14 @@ import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
 import se.lth.cs.tycho.interp.values.Ref;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.parser.SourceCodeOracle;
 import se.lth.cs.tycho.transform.caltoam.ActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
 import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
-import se.lth.cs.tycho.transform.operators.ActorOpTransformer;
 import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 public class BasicActorMachineSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
@@ -58,11 +56,9 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 	 * @return an ActorMachine ready to be simulated by BasicActorMachineSimulator.
 	 * @throws CALCompiletimeException if an error occurred
 	 */
-	public static ActorMachine prepareActor(CalActor calActor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
+	public static ActorMachine prepareActor(CalActor calActor) throws CALCompiletimeException {
 		// Order variable declarations so they can be initialized in declaration order
-		calActor = VariableInitOrderTransformer.transformActor(calActor, sourceOracle);
-		// replace BinOp and UnaryOp in all expressions with function calls
-		calActor = ActorOpTransformer.transformActor(calActor, sourceOracle);
+		calActor = VariableInitOrderTransformer.transformActor(calActor);
 
 		// translate the calActor to an calActor machine
 		ActorToActorMachine trans = new ActorToActorMachine() {
@@ -75,16 +71,16 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		};
 		ActorMachine actorMachine = trans.translate(calActor);
 		
-		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine, sourceOracle);
+		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine);
 
 		return actorMachine;
 	}
 	
-	public static ActorMachine prepareActorMachine(ActorMachine actorMachine, SourceCodeOracle sourceOracle){
+	public static ActorMachine prepareActorMachine(ActorMachine actorMachine){
 		// replace ExprLiteral with ExprValue. This removes the global variables for predefined functions, i.e. $BinaryOperation.+ 
-		actorMachine = EvaluateLiteralsTransformer.transformActorMachine(actorMachine, sourceOracle);
+		actorMachine = EvaluateLiteralsTransformer.transformActorMachine(actorMachine);
 		// memory layout (stack offset)
-		actorMachine = VariableOffsetTransformer.transformActorMachine(actorMachine, sourceOracle);
+		actorMachine = VariableOffsetTransformer.transformActorMachine(actorMachine);
 
 		return actorMachine;
 	}
@@ -154,11 +150,11 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		//if the scopes are ordered CalActor ..local this code works fine.
 		for(int scopeId=0; scopeId<nbrScopes; scopeId++){
 			if(required.get(scopeId) && !liveScopes.get(scopeId)){
-				ImmutableList<LocalVarDecl> declList = scopeList.get(scopeId).getDeclarations();
+				ImmutableList<VarDecl> declList = scopeList.get(scopeId).getDeclarations();
 				//FIXME, find a correct evaluation order, variables can be dependent on each other.
 				for(int declOffset=0; declOffset<declList.size() ; declOffset++){
 					Ref memCell = environment.getMemory().declare(scopeId, declOffset);
-					Expression initExpr = declList.get(declOffset).getInitialValue();
+					Expression initExpr = declList.get(declOffset).getValue();
 					if(initExpr != null){
 						interpreter.evaluate(initExpr, environment).assignTo(memCell);
 					}
@@ -220,7 +216,7 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		for(int scopeId=0; scopeId<scopeList.size(); scopeId++){
 			if(liveScopes.get(scopeId)){
 				sb.append("{\n");
-				ImmutableList<LocalVarDecl> declList = scopeList.get(scopeId).getDeclarations();
+				ImmutableList<VarDecl> declList = scopeList.get(scopeId).getDeclarations();
 				for(int declId=0; declId<declList.size(); declId++){
 					VariableLocation var = VariableLocation.scopeVariable(actorMachine, declList.get(declId).getName(), scopeId, declId);
 					sb.append("  " + var.getName() + " : ");

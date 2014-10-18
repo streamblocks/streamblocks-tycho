@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 import org.junit.Test;
 
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
@@ -23,10 +23,10 @@ public class TestLoadXdf {
 	public void testLoadXdf() {
 		DeclarationLoader loader = new DeclarationLoader(new MessageWriter());
 		loader.addRepository(new FileSystemXdfRepository(Paths.get("src/test/xdf")));
-		GlobalEntityDecl empty = loader.loadEntity(QID.of("empty"), null);
+		EntityDecl empty = loader.loadEntity(QID.of("empty"), null);
 		assertNotNull(empty);
 		assertTrue(empty.getEntity() instanceof XDFNetwork);
-		GlobalEntityDecl x = loader.loadEntity(QID.parse("a.b.c.x"), null);
+		EntityDecl x = loader.loadEntity(QID.parse("a.b.c.x"), null);
 		assertNotNull(x);
 		assertTrue(x.getEntity() instanceof XDFNetwork);
 	}
@@ -35,7 +35,7 @@ public class TestLoadXdf {
 	public void testLoadNoXdf() {
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		loader.addRepository(new FileSystemXdfRepository(Paths.get("src/test/xdf")));
-		GlobalEntityDecl noDecl = loader.loadEntity(QID.parse("does.not.exist"), null);
+		EntityDecl noDecl = loader.loadEntity(QID.parse("does.not.exist"), null);
 		assertNull(noDecl);
 	}
 }

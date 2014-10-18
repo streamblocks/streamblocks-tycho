@@ -3,20 +3,19 @@ package se.lth.cs.tycho.backend.c.att;
 import java.io.PrintWriter;
 import java.util.Set;
 
+import javarag.Inherited;
+import javarag.Module;
+import javarag.Procedural;
+import javarag.Synthesized;
 import se.lth.cs.tycho.backend.c.CType;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.Expression;
-import javarag.Inherited;
-import javarag.Module;
-import javarag.Procedural;
-import javarag.Synthesized;
 
 public class Scopes extends Module<Scopes.Decls> {
 
@@ -65,22 +64,22 @@ public class Scopes extends Module<Scopes.Decls> {
 		for (Scope s : actorMachine.getScopes()) {
 			int index = e().index(s);
 			writer.println("static void init_n" + node + "s" + index + "(void) {");
-			for (LocalVarDecl decl : s.getDeclarations())
-				if (decl.getInitialValue() != null && !e().scopeDeclIsConst(decl)) {
-					String simpleExpression = e().simpleExpression(decl.getInitialValue());
+			for (VarDecl decl : s.getDeclarations())
+				if (decl.getValue() != null && !e().scopeDeclIsConst(decl)) {
+					String simpleExpression = e().simpleExpression(decl.getValue());
 					if (simpleExpression != null) {
 						writer.println(e().variableName(decl) + " = " + simpleExpression + ";");
 					} else {
-						writer.print(e().varInit(decl.getInitialValue(), e().variableName(decl)));
+						writer.print(e().varInit(decl.getValue(), e().variableName(decl)));
 					}
 				}
 			writer.println("}");
 		}
 	}
 
-	public boolean scopeDeclIsConst(LocalVarDecl decl) {
-		return !decl.isAssignable() && e().isPersistent(e().variableScope(decl)) && decl.getInitialValue() != null
-				&& e().simpleExpression(decl.getInitialValue()) != null;
+	public boolean scopeDeclIsConst(VarDecl decl) {
+		return decl.isConstant() && e().isPersistent(e().variableScope(decl)) && decl.getValue() != null
+				&& e().simpleExpression(decl.getValue()) != null;
 	}
 
 	public boolean isPersistent(Scope s) {
@@ -96,10 +95,10 @@ public class Scopes extends Module<Scopes.Decls> {
 		return null;
 	}
 
-	public String scopeVarDecl(LocalVarDecl decl) {
+	public String scopeVarDecl(VarDecl decl) {
 		StringBuilder result = new StringBuilder();
 		String value = null;
-		Expression initialValue = decl.getInitialValue();
+		Expression initialValue = decl.getValue();
 		if (initialValue != null) {
 			value = e().simpleExpression(initialValue);
 			if (initialValue instanceof ExprLambda || initialValue instanceof ExprProc) {

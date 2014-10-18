@@ -2,7 +2,7 @@ package se.lth.cs.tycho.instance.am;
 
 import se.lth.cs.tycho.instance.InstanceDefinition;
 import se.lth.cs.tycho.instance.InstanceVisitor;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -24,7 +24,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  * {@link ITest test} instructions.
  * 
  * Along with the controller, an calActor machine contains a list of scopes, that
- * in turn are lists of {@link LocalVarDecl declarations}. Each of these scopes
+ * in turn are lists of {@link VarDecl declarations}. Each of these scopes
  * represents a set of temporary variable declarations that are referred to by
  * the {@link PredicateCondition predicate conditions} and the
  * {@link Transition transition code}. These bindings are valid until a
@@ -48,7 +48,7 @@ public class ActorMachine extends InstanceDefinition {
 		return scopes;
 	}
 
-	public ImmutableList<LocalVarDecl> getScope(int i) {
+	public ImmutableList<VarDecl> getScope(int i) {
 		return scopes.get(i).getDeclarations();
 	}
 

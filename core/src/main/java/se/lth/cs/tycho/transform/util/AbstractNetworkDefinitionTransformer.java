@@ -5,10 +5,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
@@ -30,10 +30,10 @@ public class AbstractNetworkDefinitionTransformer<P> extends AbstractBasicTransf
                                                                                                     StructureStmtVisitor<StructureStatement, P>{
 
 	public NlNetwork transformNetworkDefinition(NlNetwork net, P p){
-		ImmutableList<ParDeclType> typePars = transformTypeParameters(net.getTypeParameters(), p);
-		ImmutableList<ParDeclValue> valuePars = transformValueParameters(net.getValueParameters(), p);
-		ImmutableList<LocalTypeDecl> typeDecls = transformTypeDecls(net.getTypeDecls(), p);
-		ImmutableList<LocalVarDecl> varDecls = transformVarDecls(net.getVarDecls(), p);
+		ImmutableList<TypeDecl> typePars = transformTypeParameters(net.getTypeParameters(), p);
+		ImmutableList<VarDecl> valuePars = transformValueParameters(net.getValueParameters(), p);
+		ImmutableList<TypeDecl> typeDecls = transformTypeDecls(net.getTypeDecls(), p);
+		ImmutableList<VarDecl> varDecls = transformVarDecls(net.getVarDecls(), p);
 		ImmutableList<PortDecl> inputPorts = transformInputPorts(net.getInputPorts(), p);
 		ImmutableList<PortDecl> outputPorts = transformOutputPorts(net.getOutputPorts(), p);
 		ImmutableList<Map.Entry<String,EntityExpr>> entities = transformEntitiyExprs(net.getEntities(), p);

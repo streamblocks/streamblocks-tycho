@@ -12,11 +12,10 @@ import java.util.stream.Collectors;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.DeclKind;
-import se.lth.cs.tycho.ir.decl.GlobalDecl;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
-import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.MessageReporter;
 
@@ -28,7 +27,7 @@ import se.lth.cs.tycho.messages.MessageReporter;
  *
  */
 public class DeclarationLoader {
-	private final Map<QID, List<GlobalDecl>> declCache = new HashMap<>();
+	private final Map<QID, List<Decl>> declCache = new HashMap<>();
 
 	private final Map<Object, SourceCodeUnit> sourceCodeUnit = new IdentityHashMap<>();
 	private final Map<Object, NamespaceDecl> enclosingNsDecl = new IdentityHashMap<>();
@@ -74,8 +73,8 @@ public class DeclarationLoader {
 	 *            the namespace declaration to where it is loaded
 	 * @return the entity declaration
 	 */
-	public GlobalEntityDecl loadEntity(QID qid, NamespaceDecl ns) {
-		return (GlobalEntityDecl) load(qid, DeclKind.ENTITY, ns);
+	public EntityDecl loadEntity(QID qid, NamespaceDecl ns) {
+		return (EntityDecl) load(qid, DeclKind.ENTITY, ns);
 	}
 
 	/**
@@ -88,8 +87,8 @@ public class DeclarationLoader {
 	 *            the namespace declaration to where it is loaded
 	 * @return the type declaration
 	 */
-	public GlobalTypeDecl loadType(QID qid, NamespaceDecl ns) {
-		return (GlobalTypeDecl) load(qid, DeclKind.TYPE, ns);
+	public Decl loadType(QID qid, NamespaceDecl ns) {
+		return (Decl) load(qid, DeclKind.TYPE, ns);
 	}
 
 	/**
@@ -102,19 +101,19 @@ public class DeclarationLoader {
 	 *            the namespace declaration to where it is loaded
 	 * @return the variable declaration
 	 */
-	public GlobalVarDecl loadVar(QID qid, NamespaceDecl ns) {
-		return (GlobalVarDecl) load(qid, DeclKind.VAR, ns);
+	public VarDecl loadVar(QID qid, NamespaceDecl ns) {
+		return (VarDecl) load(qid, DeclKind.VAR, ns);
 	}
 
-	private GlobalDecl load(QID qid, DeclKind kind, NamespaceDecl ns) {
+	private Decl load(QID qid, DeclKind kind, NamespaceDecl ns) {
 		loadUnits(qid, kind);
 		return getFromCache(qid, kind, ns);
 	}
 
-	private GlobalDecl getFromCache(QID qid, DeclKind kind, NamespaceDecl ns) {
-		List<GlobalDecl> candidates = declCache.getOrDefault(qid, Collections.emptyList())
+	private Decl getFromCache(QID qid, DeclKind kind, NamespaceDecl ns) {
+		List<Decl> candidates = declCache.getOrDefault(qid, Collections.emptyList())
 				.stream()
-				.filter(d -> d.getKind() == kind)
+				.filter(d -> d.getDeclKind() == kind)
 				.filter(d -> isAvailableFrom(d, ns))
 				.collect(Collectors.toList());
 		if (candidates.size() == 1) {
@@ -135,7 +134,7 @@ public class DeclarationLoader {
 		}
 	}
 
-	private boolean isAvailableFrom(GlobalDecl d, NamespaceDecl ns) {
+	private boolean isAvailableFrom(Decl d, NamespaceDecl ns) {
 		switch (d.getAvailability()) {
 		case PUBLIC:
 			return true;
@@ -176,7 +175,7 @@ public class DeclarationLoader {
 			enclosingNsDecl.put(child, ns);
 			populateCaches(child, qid, unit);
 		}
-		for (GlobalDecl decl : ns.getDecls()) {
+		for (Decl decl : ns.getDecls()) {
 			enclosingNsDecl.put(decl, ns);
 			sourceCodeUnit.put(decl, unit);
 			if (decl.getName() != null) {
@@ -186,7 +185,7 @@ public class DeclarationLoader {
 		}
 	}
 
-	private List<GlobalDecl> getDeclCacheEntry(QID qid) {
+	private List<Decl> getDeclCacheEntry(QID qid) {
 		if (!declCache.containsKey(qid)) {
 			declCache.put(qid, new ArrayList<>());
 		}
@@ -200,7 +199,7 @@ public class DeclarationLoader {
 	 *            the global declaration
 	 * @return the fully qualified name
 	 */
-	public QID getQID(GlobalDecl decl) {
+	public QID getQID(Decl decl) {
 		return getQID(getLocation(decl)).concat(QID.of(decl.getName()));
 	}
 
@@ -226,7 +225,7 @@ public class DeclarationLoader {
 	 *            the global declaration
 	 * @return the location of the global declaration
 	 */
-	public NamespaceDecl getLocation(GlobalDecl decl) {
+	public NamespaceDecl getLocation(Decl decl) {
 		return getEnclosingNsDecl(decl);
 	}
 

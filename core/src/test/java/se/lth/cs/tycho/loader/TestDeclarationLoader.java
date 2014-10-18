@@ -7,8 +7,7 @@ import org.junit.Test;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
-import se.lth.cs.tycho.loader.DeclarationLoader;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.messages.NullMessageReporter;
 
 
@@ -26,10 +25,10 @@ public class TestDeclarationLoader {
 		repo.add("namespace a.b: namespace c: public int x = 2; public int y = 4; end end");
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		loader.addRepository(repo);
-		GlobalVarDecl x = loader.loadVar(QID.parse("a.b.c.x"), null);
+		VarDecl x = loader.loadVar(QID.parse("a.b.c.x"), null);
 		assertNotNull(x);
 		assertEquals("x", x.getName());
-		GlobalVarDecl y = loader.loadVar(QID.parse("a.b.c.y"), null);
+		VarDecl y = loader.loadVar(QID.parse("a.b.c.y"), null);
 		assertNotNull(y);
 		assertEquals("y", y.getName());
 	}
@@ -40,7 +39,7 @@ public class TestDeclarationLoader {
 		repo.add("namespace a: namespace b: int x = 2; end end");
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		loader.addRepository(repo);
-		GlobalVarDecl x = loader.loadVar(QID.parse("a.b.x"), null);
+		VarDecl x = loader.loadVar(QID.parse("a.b.x"), null);
 		assertNotNull(x);
 		assertEquals(QID.parse("a.b.x"), loader.getQID(x));
 		NamespaceDecl b = loader.getLocation(x);

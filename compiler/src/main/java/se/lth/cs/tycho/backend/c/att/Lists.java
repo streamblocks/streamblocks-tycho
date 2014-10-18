@@ -3,7 +3,7 @@ package se.lth.cs.tycho.backend.c.att;
 import java.util.List;
 
 import se.lth.cs.tycho.ir.GeneratorFilter;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprList;
@@ -22,7 +22,7 @@ public class Lists extends Module<Lists.Decls> {
 		public String generatorFilter(GeneratorFilter gf, String content);
 
 		@Synthesized
-		public String generator(Expression expr, List<LocalVarDecl> decls, String content);
+		public String generator(Expression expr, List<VarDecl> decls, String content);
 
 		String variableName(VarDecl decl);
 
@@ -65,7 +65,7 @@ public class Lists extends Module<Lists.Decls> {
 		return e().generator(gf.getCollectionExpr(), gf.getVariables(), content);
 	}
 
-	public String generator(ExprApplication coll, List<LocalVarDecl> decls, String content) {
+	public String generator(ExprApplication coll, List<VarDecl> decls, String content) {
 		Expression func = coll.getFunction();
 		if (!(func instanceof ExprVariable))
 			return null;

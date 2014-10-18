@@ -24,13 +24,13 @@ import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
 import se.lth.cs.tycho.interp.values.ExprValue;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -48,22 +48,22 @@ import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
 import se.lth.cs.tycho.ir.entity.nl.StructureStmtVisitor;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.DeclLoader;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.loader.DeclarationLoader;
 
 public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environment>, StructureStmtVisitor<StructureStatement, Environment>{
 	NlNetwork srcNetwork;
 	private final Interpreter interpreter;
 	private final TypeConverter converter;
 	private final GeneratorFilterHelper gen;
-	private DeclLoader declLoader;
+	private DeclarationLoader declLoader;
 	private boolean evaluated;
 
 	private HashMap<String, EntityExpr> entities;
 	private ArrayList<StructureStatement> structure;
 	private Memory mem;
 
-	public NetDefEvaluator(NlNetwork network, Interpreter interpreter, DeclLoader entityLoader){
+	public NetDefEvaluator(NlNetwork network, Interpreter interpreter, DeclarationLoader entityLoader){
 		this.srcNetwork = network;
 		this.interpreter = interpreter;
 		this.converter = TypeConverter.getInstance();
@@ -75,10 +75,10 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 
 	public NlNetwork getNetworkDefinition(){
 		assert evaluated;
-		ImmutableList<ParDeclType> typePars = ImmutableList.empty();
-		ImmutableList<ParDeclValue> valuePars = ImmutableList.empty();
-		ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
-		ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+		ImmutableList<TypeDecl> typePars = ImmutableList.empty();
+		ImmutableList<VarDecl> valuePars = ImmutableList.empty();
+		ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
+		ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 		return srcNetwork.copy(
 				typePars, valuePars, typeDecls, varDecls, 
 				srcNetwork.getInputPorts(), srcNetwork.getOutputPorts(), 
@@ -98,7 +98,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 	}
 
 	private void error(String msg) {
-		throw new CALCompiletimeException(msg, null);
+		throw new CALCompiletimeException(msg);
 	}
 
 	private int findPortIndex(String portName, ImmutableList<PortDecl> portList) {
@@ -119,14 +119,14 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 
 		@Override
 		public Void visitEntityInstanceExpr(EntityInstanceExpr e, String p) {
-			Decl decl = null;
+			Entity decl = null;
 			String entityName = e.getEntityName() + ":" + p;
 			// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
 			//e.getParameterAssignments();
 			PortContainer payload = null; 
-			decl = declLoader.getDecl(e.getEntityName());
+			decl = declLoader.loadEntity(QID.of(e.getEntityName()), null).getEntity();
 			if(decl instanceof CalActor){
-				payload = BasicActorMachineSimulator.prepareActor((CalActor)decl, declLoader);
+				payload = BasicActorMachineSimulator.prepareActor((CalActor)decl);
 			} else if(decl instanceof NlNetwork){
 				payload = BasicNetworkSimulator.prepareNetworkDefinition((NlNetwork)decl, e.getParameterAssignments(), declLoader);
 			} else {
@@ -230,15 +230,15 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		mem = new BasicMemory(config);
 		Environment env = new BasicEnvironment(new Channel.InputEnd[0], new Channel.OutputEnd[0], mem);    // no expressions will read from the ports while instantiating/flattening this network
 		// declarations, compute initial values
-		ImmutableList<LocalVarDecl> declList = srcNetwork.getVarDecls();
+		ImmutableList<VarDecl> declList = srcNetwork.getVarDecls();
 		int scopeOffset=0;
 		for(scopeOffset=0; scopeOffset<declList.size(); scopeOffset++){
-			LocalVarDecl decl = declList.get(scopeOffset);
-			RefView value = interpreter.evaluate(decl.getInitialValue(), env);
+			VarDecl decl = declList.get(scopeOffset);
+			RefView value = interpreter.evaluate(decl.getValue(), env);
 			value.assignTo(mem.declare(VariableOffsetTransformer.NetworkGlobalScopeId, scopeOffset));
 		}
 		// value parameters, compute values and store in paramScopeId memory
-		ImmutableList<ParDeclValue> parList = srcNetwork.getValueParameters();
+		ImmutableList<VarDecl> parList = srcNetwork.getValueParameters();
 		for(Entry<String, Expression> assignment : parameterAssignments){
 			String name = assignment.getKey();
 			scopeOffset = -1;
@@ -248,7 +248,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				}
 			}
 			if(scopeOffset<0) {
-				throw new CALCompiletimeException("unknown parameter name: " + name, null);
+				throw new CALCompiletimeException("unknown parameter name: " + name);
 			}
 			RefView value = interpreter.evaluate(assignment.getValue(), env);
 			value.assignTo(mem.declare(VariableOffsetTransformer.NetworkParamScopeId, scopeOffset));
@@ -278,7 +278,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			return e.copy(e.getEntityName(), builder.build(), e.getToolAttributes());
 		} catch(se.lth.cs.tycho.interp.exception.CALIndexOutOfBoundsException error){
 			String msg = error.getMessage();
-			throw new se.lth.cs.tycho.interp.exception.CALIndexOutOfBoundsException(msg + " at " + declLoader.getSrcLocations(e.getIdentifier()));
+			throw new se.lth.cs.tycho.interp.exception.CALIndexOutOfBoundsException(msg);
 		}
 	}
 
@@ -371,7 +371,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		StringBuffer sb = new StringBuffer();
 		if(srcNetwork != null){
 			sb.append("vars\n");
-			ImmutableList<LocalVarDecl> vars = srcNetwork.getVarDecls();
+			ImmutableList<VarDecl> vars = srcNetwork.getVarDecls();
 			for(int i = 0; i<vars.size(); i++){
 				sb.append("  ");
 				sb.append(vars.get(i).getName());

@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.util;
 
-import se.lth.cs.tycho.errorhandling.ErrorModule;
+import java.nio.file.Paths;
+
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.interp.BasicActorMachineSimulator;
@@ -12,10 +13,14 @@ import se.lth.cs.tycho.interp.Channel;
 import se.lth.cs.tycho.interp.Environment;
 import se.lth.cs.tycho.interp.Simulator;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
-import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
-import se.lth.cs.tycho.ir.util.DeclLoader;
+import se.lth.cs.tycho.loader.DeclarationLoader;
+import se.lth.cs.tycho.loader.FileSystemCalRepository;
+import se.lth.cs.tycho.loader.FileSystemXdfRepository;
+import se.lth.cs.tycho.messages.MessageWriter;
 
 public class Simulate {
 	static final String usage = "Correct use: java se.lth.cs.tycho.util.Simulate path entityName" +
@@ -33,17 +38,19 @@ public class Simulate {
 
 		String path = args[index++];
 		String entityName = args[index++];
-		DeclLoader declLoader= new DeclLoader(path);
+		DeclarationLoader declLoader= new DeclarationLoader(new MessageWriter());
+		declLoader.addRepository(new FileSystemCalRepository(Paths.get(".")));
+		declLoader.addRepository(new FileSystemXdfRepository(Paths.get(".")));
 		Simulator simulator;
 		try{
-			Decl e = declLoader.getDecl(entityName);
+			Entity e = declLoader.loadEntity(QID.of(entityName), null).getEntity();
 			if(e instanceof NlNetwork){
 				NlNetwork netDef = (NlNetwork)e;
 				Network net = BasicNetworkSimulator.prepareNetworkDefinition(netDef, declLoader);
 				simulator = new BasicNetworkSimulator(net, defaultChannelSize, defaultStackSize);
 			} else if(e instanceof CalActor){
 				CalActor calActor = (CalActor)e;
-				ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(calActor, declLoader);
+				ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(calActor);
 
 				Channel.OutputEnd[] sourceChannelOutputEnd = new Channel.OutputEnd[calActor.getInputPorts().size()];
 				for(int i=0; i<sourceChannelOutputEnd.length; i++){
@@ -62,12 +69,7 @@ public class Simulate {
 				return;
 			}
 		} catch(CALCompiletimeException error){
-			ErrorModule em = error.getErrorModule();
-			if(em != null){
-				em.printErrors();
-			} else {
-				System.err.println("ERROR: " + error.getMessage());
-			}
+			System.err.println("ERROR: " + error.getMessage());
 			System.err.println("Problems occured while compiling, aborting before simulation.");
 			return;
 		}

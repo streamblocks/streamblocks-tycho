@@ -9,7 +9,7 @@ import se.lth.cs.tycho.instance.am.PortCondition;
 import se.lth.cs.tycho.instance.am.PredicateCondition;
 import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.instance.am.Transition;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
@@ -19,7 +19,7 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 	private static final MethodHandle transOutputPort = methodHandle(AbstractActorMachineTransformer.class, PortDecl.class, "transformOutputPort");
 	private static final MethodHandle transTransition = methodHandle(AbstractActorMachineTransformer.class, Transition.class, "transformTransition");
 	private static final MethodHandle transCondition = methodHandle(AbstractActorMachineTransformer.class, Condition.class, "transformCondition");
-	private static final MethodHandle transVarDecl = methodHandle(AbstractActorMachineTransformer.class, LocalVarDecl.class, "transformVarDecl");
+	private static final MethodHandle transVarDecl = methodHandle(AbstractActorMachineTransformer.class, VarDecl.class, "transformVarDecl");
 	private static final MethodHandle transScope = methodHandle(AbstractActorMachineTransformer.class, Scope.class, "transformScope");
 
 	@Override

@@ -42,8 +42,8 @@ package se.lth.cs.tycho.ir.expr;
 import java.util.Objects;
 
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -54,7 +54,7 @@ public class ExprProc extends Expression {
 		return v.visitExprProc(this, p);
 	}
 
-	public ExprProc(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body) {
+	public ExprProc(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Statement body) {
 		this(null, typeParams, valueParams, body, ImmutableList.<Variable>empty(), false);
 	}
 
@@ -65,11 +65,11 @@ public class ExprProc extends Expression {
 	 * @param body
 	 * @param freeVariables
 	 */
-	public ExprProc(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body, ImmutableList<Variable> freeVariables) {
+	public ExprProc(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Statement body, ImmutableList<Variable> freeVariables) {
 		this(null, typeParams, valueParams, body, freeVariables, true);
 	}
 	
-	private ExprProc(ExprProc original, ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body, 
+	private ExprProc(ExprProc original, ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Statement body, 
 			         ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
 		super(original);
 		assert typeParams != null && valueParams != null && body!= null && freeVariables != null;
@@ -80,7 +80,7 @@ public class ExprProc extends Expression {
 		this.isFreeVariablesComputed = isFreeVariablesComputed;
 	}
 	
-	public ExprProc copy(ImmutableList<ParDeclType> typeParams, ImmutableList<ParDeclValue> valueParams, Statement body, 
+	public ExprProc copy(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Statement body, 
 			             ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
 		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams) && Objects.equals(this.body, body)
 				 && this.isFreeVariablesComputed==isFreeVariablesComputed && Lists.equals(this.freeVariables, freeVariables)) {
@@ -90,11 +90,11 @@ public class ExprProc extends Expression {
 	}
 
 
-	public ImmutableList<ParDeclType> getTypeParameters() {
+	public ImmutableList<TypeDecl> getTypeParameters() {
 		return typeParameters;
 	}
 
-	public ImmutableList<ParDeclValue> getValueParameters() {
+	public ImmutableList<VarDecl> getValueParameters() {
 		return valueParameters;
 	}
 
@@ -115,8 +115,8 @@ public class ExprProc extends Expression {
 		return body;
 	}
 
-	private ImmutableList<ParDeclType> typeParameters;
-	private ImmutableList<ParDeclValue> valueParameters;
+	private ImmutableList<TypeDecl> typeParameters;
+	private ImmutableList<VarDecl> valueParameters;
 	private ImmutableList<Variable> freeVariables;
 	private boolean isFreeVariablesComputed;
 	private Statement body;

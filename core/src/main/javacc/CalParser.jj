@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.HashMap;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.decl.*;
-import se.lth.cs.tycho.ir.decl.GlobalDecl.Availability;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.*;
@@ -318,9 +317,9 @@ TOKEN: {
 NamespaceDecl CompilationUnit() :
 {
 	ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
-	ImmutableList.Builder<GlobalDecl> decls = ImmutableList.builder();
+	ImmutableList.Builder<Decl> decls = ImmutableList.builder();
 	NamespaceDecl ns;
-	GlobalDecl d;
+	Decl d;
 }
 {
 	(
@@ -361,8 +360,8 @@ NamespaceDecl CompilationUnit() :
 NamespaceDecl OrccUnit() :
 {
 	Token id;
-	ImmutableList.Builder<GlobalDecl> decls = ImmutableList.builder();
-	GlobalDecl decl;
+	ImmutableList.Builder<Decl> decls = ImmutableList.builder();
+	Decl decl;
 }
 {
 	"unit"
@@ -403,9 +402,9 @@ Annotation Annotation() :
 NamespaceDecl NamespaceDecl() :
 {
 	ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
-	ImmutableList.Builder<GlobalDecl> decls = ImmutableList.builder();
+	ImmutableList.Builder<Decl> decls = ImmutableList.builder();
 	NamespaceDecl ns;
-	GlobalDecl d;
+	Decl d;
 	QID qid;
 }
 {
@@ -439,9 +438,9 @@ QID QID() :
 	{ return qid; }
 }
 
-GlobalDecl GlobalDecl() :
+Decl GlobalDecl() :
 {
-	GlobalDecl d;
+	Decl d;
 }
 {
 	(
@@ -468,7 +467,7 @@ Availability Availability() :
 	"local" { return Availability.LOCAL; }
 }
 
-GlobalVarDecl GlobalVarDecl() :
+VarDecl GlobalVarDecl() :
 {
 	Availability availability = Availability.PUBLIC;
 	String name;
@@ -495,12 +494,12 @@ GlobalVarDecl GlobalVarDecl() :
 		{ name = proc.name; expr = proc.def; }
 	)
 	{
-		return new GlobalVarDecl(type, name, expr, availability);
+		return VarDecl.global(availability, type, name, expr);
 	}
 }
 
 
-LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
+VarDecl LocalVarDecl(boolean endWithSemicolon) :
 {
 	TypeExpr type = null;
 	String name;
@@ -531,11 +530,11 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 		{ name = proc.name; expr = proc.def; }
 	)
 	{
-		return new LocalVarDecl(type, name, expr, assignable);
+		return VarDecl.local(type, name, !assignable, expr);
 	}
 }
 
-GlobalDecl GlobalImportDecl() :
+Decl GlobalImportDecl() :
 {
 	QID qid;
 	Token kind = null;
@@ -568,11 +567,11 @@ GlobalDecl GlobalImportDecl() :
 			name = qid.getLast().toString();
 		}
 		if (kind == null || kind.image.equals("var")) {
-			return new GlobalVarDecl(null, name, new GlobalValueReference(qid, importContents), Availability.LOCAL);
+			return VarDecl.global(Availability.LOCAL, null, name, new GlobalValueReference(qid, importContents));
 		} else if (kind.image.equals("type")) {
 			return null;
 		} else if (kind.image.equals("entity")) {
-			return new GlobalEntityDecl(name, new GlobalEntityReference(qid, importContents), Availability.LOCAL);
+			return EntityDecl.global(Availability.LOCAL, name, new GlobalEntityReference(qid, importContents));
 		} else {
 			return null;
 		} 
@@ -582,8 +581,8 @@ GlobalDecl GlobalImportDecl() :
 NameAndDef<ExprLambda> FunDecl() :
 {
 	Token id;
-	ImmutableList<ParDeclValue> valPars;
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> valPars;
+	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	Expression expr = null;
 	TypeExpr type = null;
 }
@@ -600,7 +599,7 @@ NameAndDef<ExprLambda> FunDecl() :
 	)?
 	(
 		"var"
-		varDecls = LocalVarDecls()
+		varDecls = VarDecls()
 	)?
 	(
 		":"
@@ -623,8 +622,8 @@ NameAndDef<ExprLambda> FunDecl() :
 NameAndDef<ExprProc> ProcDecl() :
 {
 	Token id;
-	ImmutableList<ParDeclValue> valPars;
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> valPars;
+	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts = ImmutableList.empty();
 }
 {
@@ -636,7 +635,7 @@ NameAndDef<ExprProc> ProcDecl() :
 	")"
 	(
 		"var"
-		varDecls = LocalVarDecls()
+		varDecls = VarDecls()
 	)?
 	(
 		("begin" | "do")
@@ -654,10 +653,10 @@ NameAndDef<ExprProc> ProcDecl() :
 	}
 }
 
-ImmutableList<LocalVarDecl> LocalVarDecls() :
+ImmutableList<VarDecl> VarDecls() :
 {
-	ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
-	LocalVarDecl decl;
+	ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
+	VarDecl decl;
 }
 {
 	(
@@ -669,14 +668,14 @@ ImmutableList<LocalVarDecl> LocalVarDecls() :
 	}
 }
 
-GlobalEntityDecl NetworkDecl() :
+EntityDecl NetworkDecl() :
 {
 	Token id;
-	ImmutableList<ParDeclValue> valuePars;
+	ImmutableList<VarDecl> valuePars;
 	ImmutableList<PortDecl> inputPorts;
 	ImmutableList<PortDecl> outputPorts;
-	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
-	LocalVarDecl varDecl;
+	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	VarDecl varDecl;
 }
 {
 	"network"
@@ -722,15 +721,15 @@ void EntityInstanceDecls() :
 }
 
 /* ActorDecl */
-GlobalEntityDecl ActorDecl() :
+EntityDecl ActorDecl() :
 {
 	Token id;
 	String name;
-	ImmutableList<ParDeclType> typePars = ImmutableList.empty();
-	ImmutableList<ParDeclValue> valuePars;
-	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
-	LocalVarDecl varDecl;
+	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
+	ImmutableList<VarDecl> valuePars;
+	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	VarDecl varDecl;
 	ImmutableList<PortDecl> inputPorts = ImmutableList.empty();
 	ImmutableList<PortDecl> outputPorts = ImmutableList.empty();
 	ImmutableList.Builder<Action> initializers = ImmutableList.builder();
@@ -780,7 +779,7 @@ GlobalEntityDecl ActorDecl() :
 	)
 	{
 		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, priorities.build(), invariants.build());
-		return new GlobalEntityDecl(name, a, Availability.PUBLIC);
+		return EntityDecl.global(Availability.PUBLIC, name, a);
 	}
 }
 
@@ -822,8 +821,8 @@ Action Action() :
 	QID tag = null;
 	ImmutableList<InputPattern> inputPatterns;
 	ImmutableList<OutputExpression> outputExpressions;
-	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Expression> guards = ImmutableList.empty();
 	ImmutableList<Statement> body = ImmutableList.empty();
 	Expression delay = null;
@@ -838,7 +837,7 @@ Action Action() :
 	outputExpressions = OutputExpressions()
 	("guard" guards = ExpressionList())?
 //	("delay" delay = Expression())?
-	("var" varDecls = LocalVarDecls())?
+	("var" varDecls = VarDecls())?
 	("do" body = Statements())?
 	("end" | "endaction")
 	{
@@ -851,8 +850,8 @@ Action InitializationAction() :
 	QID tag = null;
 	ImmutableList<InputPattern> inputPatterns = ImmutableList.empty();
 	ImmutableList<OutputExpression> outputExpressions;
-	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Expression> guards = ImmutableList.empty();
 	ImmutableList<Statement> body = ImmutableList.empty();
 	Expression delay = null;
@@ -865,7 +864,7 @@ Action InitializationAction() :
 	"==>"
 	outputExpressions = OutputExpressions()
 	("guard" guards = ExpressionList())?
-	("var" varDecls = LocalVarDecls())?
+	("var" varDecls = VarDecls())?
 //	("delay" delay = Expression())?
 	("do" body = Statements())?
 	("end" | "endinitialize")
@@ -891,15 +890,15 @@ InputPattern InputPattern() :
 {
 	Token id;
 	Port port = null;
-	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 	Expression repeat = null;
 }
 {
 	( id = <ID> ":" { port = new Port(id.image); })?
 	"["
 	(
-		id = <ID> { varDecls.add(new LocalVarDecl(null, id.image, null, false)); }
-		("," id = <ID> { varDecls.add(new LocalVarDecl(null, id.image, null, false)); } )*
+		id = <ID> { varDecls.add(VarDecl.local(null, id.image, true, null)); }
+		("," id = <ID> { varDecls.add(VarDecl.local(null, id.image, true, null)); } )*
 	)?
 	"]"
 	("repeat" repeat = Expression())?
@@ -1261,13 +1260,13 @@ ExprIf ElseIfExpression() :
 
 ExprLet LetExpression() :
 {
-	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<LocalVarDecl> varDecls;
+	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> varDecls;
 	Expression expr;
 }
 {
 	<LET>
-	varDecls = LocalVarDecls()
+	varDecls = VarDecls()
 	":"
 	expr = Expression()
 	("end" | "endlet")
@@ -1277,8 +1276,8 @@ ExprLet LetExpression() :
 /*
 ExprLambda LambdaExpression() :
 {
-	ImmutableList<ParDeclType> typePars = ImmutableList.empty();
-	ImmutableList<ParDeclValue> valuePars;
+	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
+	ImmutableList<VarDecl> valuePars;
 	TypeExpr type = null;
 	Expression expr;
 }
@@ -1287,10 +1286,10 @@ ExprLambda LambdaExpression() :
 	("-->" type = Type())?
 	(
 		{
-			ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
-			ImmutableList<LocalVarDecl> varDecls;
+			ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
+			ImmutableList<VarDecl> varDecls;
 		}
-		"var" varDecls = LocalVarDecls() ":" expr = Expression()
+		"var" varDecls = VarDecls() ":" expr = Expression()
 		{
 			expr = new ExprLet(typeDecls, varDecls, expr);
 		}
@@ -1304,10 +1303,10 @@ ExprLambda LambdaExpression() :
 }
 */
 
-ImmutableList<ParDeclValue> FormalValuePars() :
+ImmutableList<VarDecl> FormalValuePars() :
 {
-	ImmutableList.Builder<ParDeclValue> builder = ImmutableList.builder();
-	ParDeclValue decl;
+	ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
+	VarDecl decl;
 }
 {
 	(
@@ -1319,29 +1318,29 @@ ImmutableList<ParDeclValue> FormalValuePars() :
 	}
 }
 
-ParDeclValue FormalValueParameter() :
+VarDecl FormalValueParameter() :
 {
 	TypeAndName typeName;
 }
 {
 	typeName = VarDeclTypeName()
 	{
-		return new ParDeclValue(typeName.name, typeName.type);
+		return VarDecl.parameter(typeName.type, typeName.name);
 	}
 }
 
 /*
 ExprProc ProcExpression() :
 {
-	ImmutableList<ParDeclType> typePars = ImmutableList.empty();
-	ImmutableList<ParDeclValue> valuePars;
-	ImmutableList<LocalTypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
+	ImmutableList<VarDecl> valuePars;
+	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts;
 }
 {
 	"proc" "(" valuePars = FormalValuePars() ")"
-	( "var" varDecls = LocalVarDecls() )?
+	( "var" varDecls = VarDecls() )?
 	( "do" | "begin" )
 	stmts = Statements()
 	( "end" | "endproc" )
@@ -1438,7 +1437,7 @@ GeneratorFilter GeneratorFilter() :
 	Token var;
 	Expression coll;
 	Expression filter;
-	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
 }
 {
@@ -1450,8 +1449,8 @@ GeneratorFilter GeneratorFilter() :
 	|
 		var = <ID>
 	)
-	{ varDecls.add(new LocalVarDecl(type, var.image, null, false)); }
-	( "," var = <ID> { varDecls.add(new LocalVarDecl(type, var.image, null, false)); } )*
+	{ varDecls.add(VarDecl.local(type, var.image, true, null)); }
+	( "," var = <ID> { varDecls.add(VarDecl.local(type, var.image, true, null)); } )*
 	"in"
 	coll = Expression()
 	( LOOKAHEAD(2) "," filter = Expression() { filters.add(filter); } )*
@@ -1496,8 +1495,8 @@ TypeExpr ParameterizedType(String name) :
 		{
 			type = new TypeExpr(
 					"List",
-					ImmutableList.of(new Parameter("type", type)),
-					ImmutableList.of(new Parameter("size", size)));
+					ImmutableList.of(Parameter.of("type", type)),
+					ImmutableList.of(Parameter.of("size", size)));
 		}
 	)*
 	{ return type; }
@@ -1516,11 +1515,11 @@ void AddParameterAssignments(
 		LOOKAHEAD(2)
 		(name = <ID> | name = <TYPE>)
 		":" type = Type()
-		{ types.add(new Parameter<TypeExpr>(name.image, type)); }
+		{ types.add(Parameter.of(name.image, type)); }
 	|
 		name = <ID>
 		"=" expr = Expression()
-		{ vals.add(new Parameter<Expression>(name.image, expr)); }
+		{ vals.add(Parameter.of(name.image, expr)); }
 	)
 }
 
@@ -1540,8 +1539,8 @@ TypeAndName VarDeclTypeName() :
 		"]"
 		{
 			type = new TypeExpr("List",
-					ImmutableList.of(new Parameter<TypeExpr>("type", type)),
-					ImmutableList.of(new Parameter<Expression>("size", size)));
+					ImmutableList.of(Parameter.of("type", type)),
+					ImmutableList.of(Parameter.of("size", size)));
 		}
 	)*
 	{ return new TypeAndName(type, id.image); }
@@ -1663,14 +1662,14 @@ StmtCall CallStmt() :
 
 StmtBlock BlockStmt() :
 {
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts;
 }
 {
 	"begin"
 	(
 		"var"
-		varDecls = LocalVarDecls()
+		varDecls = VarDecls()
 		"do"
 	)?
 	stmts = Statements()
@@ -1738,7 +1737,7 @@ Statement ElseIfStmt() :
 StmtWhile WhileStmt() :
 {
 	Expression cond;
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> statements;
 }
 {
@@ -1746,7 +1745,7 @@ StmtWhile WhileStmt() :
 	cond = Expression()
 	(
 		"var"
-		varDecls = LocalVarDecls()
+		varDecls = VarDecls()
 	)?
 	"do"
 	statements = Statements()
@@ -1759,14 +1758,14 @@ StmtWhile WhileStmt() :
 StmtForeach ForeachStmt() :
 {
 	ImmutableList<GeneratorFilter> gens;
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts;
 }
 {
 	gens = GeneratorFilters()
 	(
 		"var"
-		varDecls = LocalVarDecls()
+		varDecls = VarDecls()
 	)?
 	"do"
 	stmts = Statements()

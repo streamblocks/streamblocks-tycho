@@ -13,9 +13,7 @@ import org.junit.Test;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.GlobalDecl;
-import se.lth.cs.tycho.loader.SourceCodeRepository;
-import se.lth.cs.tycho.loader.SourceCodeUnit;
+import se.lth.cs.tycho.ir.decl.Decl;
 
 public class TestStringRepository {
 
@@ -35,7 +33,7 @@ public class TestStringRepository {
 		List<SourceCodeUnit> units = repo.findUnits(a_b_x, VAR);
 		assertEquals(1, units.size());
 		NamespaceDecl ns = units.get(0).load(null);
-		List<GlobalDecl> decls = findDecls(ns, a_b_x).collect(Collectors.toList());
+		List<Decl> decls = findDecls(ns, a_b_x).collect(Collectors.toList());
 		assertEquals(1, decls.size());
 		assertEquals("x", decls.get(0).getName());
 	}
@@ -50,7 +48,7 @@ public class TestStringRepository {
 		assertTrue(repo.findUnits(QID.parse("x"), VAR).isEmpty());
 	}
 
-	public Stream<GlobalDecl> findDecls(NamespaceDecl ns, QID qid) {
+	public Stream<Decl> findDecls(NamespaceDecl ns, QID qid) {
 		QID relative = qid.getWithoutPrefix(ns.getQID());
 		if (relative == null) {
 			return Stream.empty();

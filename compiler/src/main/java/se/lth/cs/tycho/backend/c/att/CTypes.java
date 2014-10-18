@@ -9,7 +9,7 @@ import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -33,11 +33,11 @@ public class CTypes extends Module<CTypes.Decls> {
 	}
 
 	@Synthesized
-	public CType ctype(LocalVarDecl varDecl) {
+	public CType ctype(VarDecl varDecl) {
 		if (varDecl.getType() != null) {
 			return e().ctype(varDecl.getType());
 		} else {
-			return e().ctype(varDecl.getInitialValue());
+			return e().ctype(varDecl.getValue());
 		}
 	}
 

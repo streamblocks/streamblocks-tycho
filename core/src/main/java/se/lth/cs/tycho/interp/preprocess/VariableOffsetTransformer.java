@@ -3,7 +3,6 @@ package se.lth.cs.tycho.interp.preprocess;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import se.lth.cs.tycho.errorhandling.ErrorModule;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.instance.net.Network;
@@ -13,9 +12,7 @@ import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
@@ -32,9 +29,8 @@ import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.parser.SourceCodeOracle;
+import se.lth.cs.tycho.transform.util.AbstractBasicTransformer;
 import se.lth.cs.tycho.transform.util.ActorMachineTransformerWrapper;
-import se.lth.cs.tycho.transform.util.ErrorAwareBasicTransformer;
 import se.lth.cs.tycho.transform.util.NetworkDefinitionTransformerWrapper;
 
 /**
@@ -61,11 +57,7 @@ import se.lth.cs.tycho.transform.util.NetworkDefinitionTransformerWrapper;
  * 
  * @author pera
  */
-public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<VariableOffsetTransformer.LookupTable> implements ErrorModule {
-	public VariableOffsetTransformer(SourceCodeOracle sourceOracle) {
-		super(sourceOracle);
-	}
-
+public class VariableOffsetTransformer extends AbstractBasicTransformer<VariableOffsetTransformer.LookupTable> {
 	public static final int NetworkGlobalScopeId = 0;
 	public static final int NetworkParamScopeId = 1;
 
@@ -87,14 +79,12 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 	 * @return
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static NlNetwork transformNetworkDefinition(NlNetwork net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
-		VariableOffsetTransformer transformer = new VariableOffsetTransformer(sourceOracle);
+	public static NlNetwork transformNetworkDefinition(NlNetwork net) throws CALCompiletimeException {
+		VariableOffsetTransformer transformer = new VariableOffsetTransformer();
 		NetDefVarOffsetTransformer wrapper = transformer.new NetDefVarOffsetTransformer(transformer);
 
 		LookupTable table = transformer.new LookupTable();
 		net = wrapper.transformNetworkDefinition(net, table);
-		transformer.printWarnings();
-		transformer.abortIfError();
 		return net;
 	}
 
@@ -104,16 +94,14 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 	 * @return
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static ActorMachine transformActorMachine(ActorMachine actorMachine, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
-		VariableOffsetTransformer transformer = new VariableOffsetTransformer(sourceOracle);
+	public static ActorMachine transformActorMachine(ActorMachine actorMachine) throws CALCompiletimeException {
+		VariableOffsetTransformer transformer = new VariableOffsetTransformer();
 		ActorMachineTransformerWrapper<VariableOffsetTransformer.LookupTable> wrapper = new ActorMachineTransformerWrapper<VariableOffsetTransformer.LookupTable>(transformer);
 
 		transformer.scopes = actorMachine.getScopes();
 		LookupTable table = transformer.new LookupTable();
 		actorMachine = wrapper.transformActorMachine(actorMachine, table);
 		assert table.isEmpty();
-		transformer.printWarnings();
-		transformer.abortIfError();
 		return actorMachine;
 	}
 	
@@ -139,12 +127,12 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 	
 	@Override
 	public Expression visitExprLet(ExprLet let, LookupTable table) {
-		ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
+		ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
 
-		for (LocalVarDecl decl : let.getVarDecls()) {
+		for (VarDecl decl : let.getVarDecls()) {
 			builder.add(transformVarDecl(decl, table));
-			if(decl.getInitialValue() == null){
-				error("local variable " + decl.getName() + " in let expression do not have any initialization", decl);
+			if(decl.getValue() == null){
+				throw new RuntimeException("local variable " + decl.getName() + " in let expression do not have any initialization");
 			}
 			table.addName(decl.getName());
 		}
@@ -159,11 +147,11 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 
 	@Override
 	public Expression visitExprLambda(ExprLambda lambda, LookupTable table) {
-		ImmutableList<ParDeclType> typeParameters = transformTypeParameters(lambda.getTypeParameters(), table);
-		ImmutableList<ParDeclValue> valueParameters = transformValueParameters(lambda.getValueParameters(), table);
+		ImmutableList<TypeDecl> typeParameters = transformTypeParameters(lambda.getTypeParameters(), table);
+		ImmutableList<VarDecl> valueParameters = transformValueParameters(lambda.getValueParameters(), table);
 
 		LookupTable frame = table.startClosure();		
-		for (ParDeclValue par : lambda.getValueParameters()) {
+		for (VarDecl par : lambda.getValueParameters()) {
 			frame.addName(par.getName());
 		}		
 		Expression body = transformExpression(lambda.getBody(), frame);
@@ -189,11 +177,11 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 
 	@Override
 	public Expression visitExprProc(ExprProc proc, LookupTable table) {
-		ImmutableList<ParDeclType> typeParameters = transformTypeParameters(proc.getTypeParameters(), table);
-		ImmutableList<ParDeclValue> valueParameters = transformValueParameters(proc.getValueParameters(), table);
+		ImmutableList<TypeDecl> typeParameters = transformTypeParameters(proc.getTypeParameters(), table);
+		ImmutableList<VarDecl> valueParameters = transformValueParameters(proc.getValueParameters(), table);
 
 		LookupTable frame = table.startClosure();
-		for (ParDeclValue par : proc.getValueParameters()) {
+		for (VarDecl par : proc.getValueParameters()) {
 			frame.addName(par.getName());
 		}
 		Statement body = transformStatement(proc.getBody(), frame);
@@ -202,8 +190,8 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 
 	@Override
 	public Statement visitStmtBlock(StmtBlock block, LookupTable table) {
-		ImmutableList.Builder<LocalVarDecl> builderVar = ImmutableList.builder();
-		for (LocalVarDecl decl : block.getVarDecls()) {
+		ImmutableList.Builder<VarDecl> builderVar = ImmutableList.builder();
+		for (VarDecl decl : block.getVarDecls()) {
 			builderVar.add(transformVarDecl(decl, table));
 			table.addName(decl.getName());
 		}
@@ -299,8 +287,7 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 						return result;
 					}
 				}
-				error("unknown variable name " + name, var);
-				return var;
+				throw new RuntimeException("unknown variable name " + name);
 			} else {
 				// inside lambda/procedure expression
 				// is var in the static scope? Then we do not search the stack for the name.
@@ -308,8 +295,7 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 					// all variables in a scope is part of the closure, add it
 					VariableLocation closureVar = searchScope(var.getScopeId(), var);
 					if(closureVar == null){
-						error("unknown variable name " + name, var);
-						return var;
+						throw new RuntimeException("unknown variable name " + name);
 					}
 					int colosureOffset = addToClosure(closureVar);
 					// the closure has scopeId 0
@@ -354,13 +340,12 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 					}
 				}
 			}
-			error("unknown variable name " + name, var);
-			return var;
+			throw new RuntimeException("unknown variable name " + name);
 		}
 
 		private VariableLocation searchScope(int scopeId, Variable var){
 			String name = var.getName();
-			ImmutableList<LocalVarDecl> declList = scopes.get(scopeId).getDeclarations();
+			ImmutableList<VarDecl> declList = scopes.get(scopeId).getDeclarations();
 			for(int i=0; i<declList.size(); i++){
 				VarDecl v = declList.get(i);
 				if(v.getName().equals(name)){
@@ -384,8 +369,8 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 	
 	public class NetDefVarOffsetTransformer extends NetworkDefinitionTransformerWrapper<VariableOffsetTransformer.LookupTable>{
 
-		public NetDefVarOffsetTransformer(SourceCodeOracle sourceOracle) {
-			super(new VariableOffsetTransformer(sourceOracle));
+		public NetDefVarOffsetTransformer() {
+			super(new VariableOffsetTransformer());
 		}
 		public NetDefVarOffsetTransformer(VariableOffsetTransformer innerT) {
 			super(innerT);
@@ -406,10 +391,10 @@ public class VariableOffsetTransformer extends ErrorAwareBasicTransformer<Variab
 			return net;
 		}
 
-		private Scope buildParamScope(ImmutableList<ParDeclValue> valueParameters) {
-			ImmutableList.Builder<LocalVarDecl> builder = new ImmutableList.Builder<LocalVarDecl>();
-			for(ParDeclValue par : valueParameters){
-				builder.add(new LocalVarDecl(par, par.getType(), par.getName(), null, false));
+		private Scope buildParamScope(ImmutableList<VarDecl> valueParameters) {
+			ImmutableList.Builder<VarDecl> builder = new ImmutableList.Builder<VarDecl>();
+			for(VarDecl par : valueParameters){
+				builder.add(VarDecl.parameter(par.getType(), par.getName()));
 			}
 			return new Scope(builder.build(), null);
 		}

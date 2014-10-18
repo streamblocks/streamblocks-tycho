@@ -23,6 +23,10 @@ public class Parameter<T> extends AbstractIRNode {
 	public T getValue() {
 		return value;
 	}
+	
+	public static <T> Parameter<T> of(String name, T value) {
+		return new Parameter<>(name, value);
+	}
 
 	public Parameter<T> copy(String name, T value) {
 		if (Objects.equals(this.name, name) && Objects.equals(this.value, value)) {

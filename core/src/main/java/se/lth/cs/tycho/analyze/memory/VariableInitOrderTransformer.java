@@ -8,8 +8,6 @@ import java.util.TreeSet;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
@@ -20,10 +18,9 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.parser.SourceCodeOracle;
+import se.lth.cs.tycho.transform.util.AbstractBasicTransformer;
 import se.lth.cs.tycho.transform.util.ActorMachineTransformerWrapper;
 import se.lth.cs.tycho.transform.util.ActorTransformerWrapper;
-import se.lth.cs.tycho.transform.util.ErrorAwareBasicTransformer;
 import se.lth.cs.tycho.transform.util.NetworkDefinitionTransformerWrapper;
 
 /**
@@ -41,12 +38,8 @@ import se.lth.cs.tycho.transform.util.NetworkDefinitionTransformerWrapper;
  * @author pera
  */
 
-public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set<String>> {
+public class VariableInitOrderTransformer extends AbstractBasicTransformer<Set<String>> {
 
-	
-	public VariableInitOrderTransformer(SourceCodeOracle sourceOracle) {
-		super(sourceOracle);
-	}
 
 	//--- wrappers ------------------------------------------------------------
 	/**
@@ -54,13 +47,11 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	 * Prints all warnings to System.err and throws an exception if any error occurs.
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static CalActor transformActor(CalActor calActor, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
-		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer(sourceOracle);
+	public static CalActor transformActor(CalActor calActor) throws CALCompiletimeException {
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
 		ActorTransformerWrapper<Set<String>> wrapper = new ActorTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
 		calActor = wrapper.transformActor(calActor, c);
-		freeVarTransformer.printWarnings();
-		freeVarTransformer.abortIfError();
 		return calActor;
 	}
 
@@ -69,13 +60,11 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	 * Prints all warnings to System.err and throws an exception if any error occurs.
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static ActorMachine transformActorMachine(ActorMachine actorMachine, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
-		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer(sourceOracle);
+	public static ActorMachine transformActorMachine(ActorMachine actorMachine) throws CALCompiletimeException {
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
 		ActorMachineTransformerWrapper<Set<String>> wrapper = new ActorMachineTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
 		actorMachine = wrapper.transformActorMachine(actorMachine, c);
-		freeVarTransformer.printWarnings();
-		freeVarTransformer.abortIfError();
 		return actorMachine;
 	}
 
@@ -84,13 +73,11 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	 * Prints all warnings to System.err and throws an exception if any error occurs.
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static NlNetwork transformNetworkDefinition(NlNetwork net, SourceCodeOracle sourceOracle) throws CALCompiletimeException {
-		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer(sourceOracle);
+	public static NlNetwork transformNetworkDefinition(NlNetwork net) throws CALCompiletimeException {
+		VariableInitOrderTransformer freeVarTransformer = new VariableInitOrderTransformer();
 		NetworkDefinitionTransformerWrapper<Set<String>> wrapper = new NetworkDefinitionTransformerWrapper<Set<String>>(freeVarTransformer);
 		Set<String> c = new TreeSet<String>();  //sort the free variables in alphabetic order
 		net = wrapper.transformNetworkDefinition(net, c);
-		freeVarTransformer.printWarnings();
-		freeVarTransformer.abortIfError();
 		return net;
 	}
 
@@ -111,7 +98,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 		try {
 			Set<String> freeVars = c.getClass().newInstance();
 			Expression body = lambda.getBody().accept(this, freeVars);
-			for(ParDeclValue v :lambda.getValueParameters()){
+			for(VarDecl v :lambda.getValueParameters()){
 				freeVars.remove(v.getName());
 			}
 			ImmutableList.Builder<Variable> builder = new ImmutableList.Builder<Variable>();
@@ -132,7 +119,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	public Expression visitExprLet(ExprLet let, Set<String> c) {
 		try {
 			Set<String> freeVars = c.getClass().newInstance();
-			ImmutableList<LocalVarDecl> newDecls = transformVarDecls(let.getVarDecls(), freeVars);
+			ImmutableList<VarDecl> newDecls = transformVarDecls(let.getVarDecls(), freeVars);
 
 			Expression body = let.getBody().accept(this, freeVars);
 			// remove the locally declared names
@@ -152,7 +139,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	public Statement visitStmtBlock(StmtBlock block, Set<String> c) {
 		try {
 			Set<String> freeVars = c.getClass().newInstance();
-			ImmutableList<LocalVarDecl> newDecls = transformVarDecls(block.getVarDecls(), freeVars);
+			ImmutableList<VarDecl> newDecls = transformVarDecls(block.getVarDecls(), freeVars);
 
 			ImmutableList.Builder<Statement> bodyBuilder = new ImmutableList.Builder<Statement>();
 			for(Statement stmt : block.getStatements()){
@@ -172,7 +159,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 		try {
 			Set<String> freeVars = c.getClass().newInstance();
 			Statement body = transformStatement(proc.getBody(), freeVars);
-			for(ParDeclValue v : proc.getValueParameters()){
+			for(VarDecl v : proc.getValueParameters()){
 				freeVars.remove(v.getName());
 			}
 			ImmutableList.Builder<Variable> builder = new ImmutableList.Builder<Variable>();
@@ -189,15 +176,15 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 	}
 	
 	@Override
-	public ImmutableList<LocalVarDecl> transformVarDecls(ImmutableList<LocalVarDecl> varDecls, Set<String> c){
+	public ImmutableList<VarDecl> transformVarDecls(ImmutableList<VarDecl> varDecls, Set<String> c){
 		assert varDecls != null;
 		Set<String> allFreeVars;
 		try {
-			ImmutableList.Builder<LocalVarDecl> builder = new ImmutableList.Builder<>();
+			ImmutableList.Builder<VarDecl> builder = new ImmutableList.Builder<>();
 			allFreeVars = c.getClass().newInstance();
 			int size = varDecls.size();
 			HashMap<String, Set<String>> freeVarsMap = new HashMap<String, Set<String>>();
-			LocalVarDecl[] newDecls = new LocalVarDecl[size];
+			VarDecl[] newDecls = new VarDecl[size];
 			ScheduleStatus[] status = new ScheduleStatus[size];
 			// compute the free variables for each declaration
 			for(int i=0; i<size; i++){
@@ -212,7 +199,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 				scheduleDecls(i, newDecls, status, freeVarsMap, builder);
 			}
 			
-			for(LocalVarDecl v : varDecls){
+			for(VarDecl v : varDecls){
 				allFreeVars.remove(v.getName());
 			}
 			c.addAll(allFreeVars);
@@ -226,7 +213,7 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 
 	private enum ScheduleStatus{nop, Visited, Scheduled}
 
-	public void scheduleDecls(int candidateIndex, LocalVarDecl[] decls, ScheduleStatus[] status, Map<String, Set<String>> freeVarsMap, ImmutableList.Builder<LocalVarDecl> builder) {
+	public void scheduleDecls(int candidateIndex, VarDecl[] decls, ScheduleStatus[] status, Map<String, Set<String>> freeVarsMap, ImmutableList.Builder<VarDecl> builder) {
 		switch(status[candidateIndex]){
 		case Visited:
 			// A variable is depending on itself. Find the variables involved in the dependency cycle
@@ -239,12 +226,11 @@ public class VariableInitOrderTransformer extends ErrorAwareBasicTransformer<Set
 					sep = ", ";
 				}
 			}
-			error("Cyclic dependency when initializing variables. Dependent variables: " + sb, decls[candidateIndex]);
-			return;
+			throw new RuntimeException("Cyclic dependency when initializing variables. Dependent variables: " + sb);
 		case Scheduled:
 			return;
 		case nop :
-			LocalVarDecl candidate = decls[candidateIndex];
+			VarDecl candidate = decls[candidateIndex];
 			status[candidateIndex] = ScheduleStatus.Visited;
 			for(String freeVar : freeVarsMap.get(candidate.getName())){
 				for(int i=0; i<decls.length; i++){

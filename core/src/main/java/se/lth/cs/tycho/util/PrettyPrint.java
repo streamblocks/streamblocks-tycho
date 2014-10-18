@@ -14,9 +14,7 @@ import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.EntityDefinition;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -69,7 +67,6 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVisitor;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisitor<Void, Void>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Void> {
@@ -125,7 +122,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			indent();
 			out.append("var");
 			incIndent();
-			for(LocalVarDecl v : network.getVarDecls()){
+			for(VarDecl v : network.getVarDecls()){
 				indent();
 				print(v);
 				out.append(";");
@@ -180,7 +177,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		if(!entity.getTypeParameters().isEmpty()){
 			String sep = "";
 			out.append(" [");
-			for(ParDeclType param : entity.getTypeParameters()){
+			for(TypeDecl param : entity.getTypeParameters()){
 				out.append(sep);
 				sep = ", ";
 				print(param);
@@ -190,7 +187,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		//--- value parameters
 		out.append(" (");
 		String sep = "";
-		for(ParDeclValue param : entity.getValueParameters()){
+		for(VarDecl param : entity.getValueParameters()){
 			out.append(sep);
 			sep = ", ";
 			print(param);
@@ -214,7 +211,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		//TODO DeclType[] typeDecls
 		//--- variable declaration
 		incIndent();  // calActor body
-		for(LocalVarDecl v : calActor.getVarDecls()){
+		for(VarDecl v : calActor.getVarDecls()){
 			indent();
 			print(v);
 			out.append(";");
@@ -374,24 +371,24 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append(p.getName());
 		}
 	}
-	public void print(LocalVarDecl var){
+	public void print(VarDecl var){
 		if(var.getType() != null){
 			print(var.getType());
 			out.append(" ");
 		}
 		out.append(var.getName());
-		if(var.getInitialValue() != null){
-			if(var.isAssignable()){
-				out.append(" := ");
-			} else {
+		if(var.getValue() != null){
+			if(var.isConstant()){
 				out.append(" = ");
+			} else {
+				out.append(" := ");
 			}
-			var.getInitialValue().accept(this, null);
+			var.getValue().accept(this, null);
 		}
 	}
-	public void printVarDecls(Iterable<LocalVarDecl> varDecls) { // comma separated list
+	public void printVarDecls(Iterable<VarDecl> varDecls) { // comma separated list
 		String sep = "";
-		for(LocalVarDecl v : varDecls){
+		for(VarDecl v : varDecls){
 			out.append(sep);
 			sep = ", ";
 			print(v);
@@ -416,14 +413,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		}
 	}
 
-	public void print(ParDeclType param){
-		out.append(param.getName());
-	}
-	public void print(ParDeclValue param){
-		if(param.getType() != null){
-			print(param.getType());
-			out.append(" ");
-		}
+	public void print(TypeDecl param){
 		out.append(param.getName());
 	}
 	public void print(Statement s) {
@@ -581,7 +571,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		//TODO out.append("const ");
 		out.append("lambda(");
 		String sep = "";
-		for(ParDeclValue param : e.getValueParameters()){
+		for(VarDecl param : e.getValueParameters()){
 			out.append(sep);
 			sep = ", ";
 			print(param);
@@ -646,7 +636,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	public Void visitExprProc(ExprProc e, Void p) {
 		out.append("proc(");
 		String sep = "";
-		for(ParDeclValue param : e.getValueParameters()){
+		for(VarDecl param : e.getValueParameters()){
 			out.append(sep);
 			sep = ", ";
 			print(param);

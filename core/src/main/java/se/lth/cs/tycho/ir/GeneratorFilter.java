@@ -40,14 +40,14 @@ package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
 
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 public class GeneratorFilter extends AbstractIRNode {
 
-	public ImmutableList<LocalVarDecl> getVariables() {
+	public ImmutableList<VarDecl> getVariables() {
 		return variables;
 	}
 
@@ -59,12 +59,12 @@ public class GeneratorFilter extends AbstractIRNode {
 		return filters;
 	}
 
-	public GeneratorFilter(ImmutableList<LocalVarDecl> variables, Expression collectionExpr,
+	public GeneratorFilter(ImmutableList<VarDecl> variables, Expression collectionExpr,
 			ImmutableList<Expression> filters) {
 		this(null, variables, collectionExpr, filters);
 	}
 
-	private GeneratorFilter(GeneratorFilter original, ImmutableList<LocalVarDecl> variables, Expression collectionExpr,
+	private GeneratorFilter(GeneratorFilter original, ImmutableList<VarDecl> variables, Expression collectionExpr,
 			ImmutableList<Expression> filters) {
 		super(original);
 		this.variables = ImmutableList.copyOf(variables);
@@ -72,7 +72,7 @@ public class GeneratorFilter extends AbstractIRNode {
 		this.filters = ImmutableList.copyOf(filters);
 	}
 
-	public GeneratorFilter copy(ImmutableList<LocalVarDecl> variables, Expression collectionExpr,
+	public GeneratorFilter copy(ImmutableList<VarDecl> variables, Expression collectionExpr,
 			ImmutableList<Expression> filters) {
 		if (Lists.equals(this.variables, variables) && Objects.equals(this.collectionExpr, collectionExpr)
 				&& Lists.equals(this.filters, filters)) {
@@ -81,7 +81,7 @@ public class GeneratorFilter extends AbstractIRNode {
 		return new GeneratorFilter(this, variables, collectionExpr, filters);
 	}
 
-	private ImmutableList<LocalVarDecl> variables;
+	private ImmutableList<VarDecl> variables;
 	private Expression collectionExpr;
 	private ImmutableList<Expression> filters;
 }

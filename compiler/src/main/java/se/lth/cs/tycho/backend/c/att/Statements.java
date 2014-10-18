@@ -3,7 +3,7 @@ package se.lth.cs.tycho.backend.c.att;
 import se.lth.cs.tycho.backend.c.CType;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.TypeExpr;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
@@ -40,12 +40,12 @@ public class Statements extends Module<Statements.Decls> {
 	public String statement(StmtBlock block) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("{\n");
-		for (LocalVarDecl decl : block.getVarDecls()) {
+		for (VarDecl decl : block.getVarDecls()) {
 			CType type = e().ctype(decl.getType());
 			String name = e().variableName(decl);
 			builder.append(type.variableType(name));
-			if (decl.getInitialValue() != null) {
-				String value = e().simpleExpression(decl.getInitialValue());
+			if (decl.getValue() != null) {
+				String value = e().simpleExpression(decl.getValue());
 				builder.append(" = ");
 				builder.append(value);
 			}

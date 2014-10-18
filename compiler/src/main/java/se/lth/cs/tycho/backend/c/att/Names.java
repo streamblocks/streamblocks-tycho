@@ -6,7 +6,7 @@ import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprProc;
@@ -75,10 +75,6 @@ public class Names extends Module<Names.Decls> {
 			int v = e().index(s);
 			return decl.getName() + "_n" + n + "v" + v;
 		}
-	}
-
-	public String variableName(ParDeclValue decl) {
-		return decl.getName() + "_";
 	}
 
 	public String variableName(Variable var) {

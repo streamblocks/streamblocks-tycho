@@ -11,10 +11,8 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprField;
@@ -103,10 +101,10 @@ LValueVisitor<LValue, P> {
 
 	private static final MethodHandle transExpr = methodHandle(AbstractBasicTransformer.class, Expression.class, "transformExpression");
 	private static final MethodHandle transStmt = methodHandle(AbstractBasicTransformer.class, Statement.class, "transformStatement");
-	private static final MethodHandle transVarDecl = methodHandle(AbstractBasicTransformer.class, LocalVarDecl.class, "transformVarDecl");
-	private static final MethodHandle transTypeDecl = methodHandle(AbstractBasicTransformer.class, LocalTypeDecl.class, "transformTypeDecl");
-	private static final MethodHandle transValueParam = methodHandle(AbstractBasicTransformer.class, ParDeclValue.class, "transformValueParameter");
-	private static final MethodHandle transTypeParam = methodHandle(AbstractBasicTransformer.class, ParDeclType.class, "transformTypeParameter");
+	private static final MethodHandle transVarDecl = methodHandle(AbstractBasicTransformer.class, VarDecl.class, "transformVarDecl");
+	private static final MethodHandle transTypeDecl = methodHandle(AbstractBasicTransformer.class, TypeDecl.class, "transformTypeDecl");
+	private static final MethodHandle transValueParam = methodHandle(AbstractBasicTransformer.class, VarDecl.class, "transformValueParameter");
+	private static final MethodHandle transTypeParam = methodHandle(AbstractBasicTransformer.class, TypeDecl.class, "transformTypeParameter");
 	private static final MethodHandle transGenerator = methodHandle(AbstractBasicTransformer.class, GeneratorFilter.class, "transformGenerator");
 
 	@Override
@@ -139,56 +137,56 @@ LValueVisitor<LValue, P> {
 	}
 
 	@Override
-	public LocalVarDecl transformVarDecl(LocalVarDecl varDecl, P param) {
+	public VarDecl transformVarDecl(VarDecl varDecl, P param) {
 		assert varDecl != null;
-		return varDecl.copy(
+		return varDecl.copyAsLocal(
 				transformTypeExpr(varDecl.getType(), param),
 				varDecl.getName(),
-				transformExpression(varDecl.getInitialValue(), param),
-				varDecl.isAssignable());
+				varDecl.isConstant(),
+				transformExpression(varDecl.getValue(), param));
 	}
 
 	@Override
-	public ImmutableList<LocalVarDecl> transformVarDecls(ImmutableList<LocalVarDecl> varDecl, P param) {
+	public ImmutableList<VarDecl> transformVarDecls(ImmutableList<VarDecl> varDecl, P param) {
 		return transformList(transVarDecl, varDecl, param);
 	}
 
 	@Override
-	public LocalTypeDecl transformTypeDecl(LocalTypeDecl typeDecl, P param) {
+	public TypeDecl transformTypeDecl(TypeDecl typeDecl, P param) {
 		return typeDecl;
 	}
 
 	@Override
-	public ImmutableList<LocalTypeDecl> transformTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param) {
+	public ImmutableList<TypeDecl> transformTypeDecls(ImmutableList<TypeDecl> typeDecl, P param) {
 		return transformList(transTypeDecl, typeDecl, param);
 	}
 
 	@Override
-	public ParDeclValue transformValueParameter(ParDeclValue valueParam, P param) {
-		return valueParam.copy(
-				valueParam.getName(),
-				transformTypeExpr(valueParam.getType(), param));
+	public VarDecl transformValueParameter(VarDecl valueParam, P param) {
+		return valueParam.copyAsParameter(
+				transformTypeExpr(valueParam.getType(), param),
+				valueParam.getName());
 	}
 
 	@Override
-	public ImmutableList<ParDeclValue> transformValueParameters(ImmutableList<ParDeclValue> valueParam, P param) {
+	public ImmutableList<VarDecl> transformValueParameters(ImmutableList<VarDecl> valueParam, P param) {
 		return transformList(transValueParam, valueParam, param);
 	}
 
 	@Override
-	public ParDeclType transformTypeParameter(ParDeclType typeParam, P param) {
+	public TypeDecl transformTypeParameter(TypeDecl typeParam, P param) {
 		return typeParam;
 	}
 
 	@Override
-	public ImmutableList<ParDeclType> transformTypeParameters(ImmutableList<ParDeclType> typeParam, P param) {
+	public ImmutableList<TypeDecl> transformTypeParameters(ImmutableList<TypeDecl> typeParam, P param) {
 		return transformList(transTypeParam, typeParam, param);
 	}
 
 	@Override
 	public GeneratorFilter transformGenerator(GeneratorFilter generator, P param) {
 		Expression collection = transformExpression(generator.getCollectionExpr(), param);
-		ImmutableList<LocalVarDecl> variables = transformVarDecls(generator.getVariables(), param);
+		ImmutableList<VarDecl> variables = transformVarDecls(generator.getVariables(), param);
 		ImmutableList<Expression> filters = transformExpressions(generator.getFilters(), param);
 		return generator.copy(variables, collection, filters);
 	}

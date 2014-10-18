@@ -8,10 +8,8 @@ import java.util.Map;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.DeclKind;
-import se.lth.cs.tycho.ir.decl.GlobalDecl;
-import se.lth.cs.tycho.loader.SourceCodeRepository;
-import se.lth.cs.tycho.loader.SourceCodeUnit;
 import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.parsing.cal.CalParser;
 import se.lth.cs.tycho.parsing.cal.ParseException;
@@ -42,9 +40,9 @@ public class StringRepository implements SourceCodeRepository {
 		for (NamespaceDecl child : ns.getNamespaceDecls()) {
 			add(child, qid, unit);
 		}
-		for (GlobalDecl decl : ns.getDecls()) {
+		for (Decl decl : ns.getDecls()) {
 			QID declQID = qid.concat(QID.of(decl.getName()));
-			createOrGetList(declQID, decl.getKind()).add(unit);
+			createOrGetList(declQID, decl.getDeclKind()).add(unit);
 		}
 	}
 

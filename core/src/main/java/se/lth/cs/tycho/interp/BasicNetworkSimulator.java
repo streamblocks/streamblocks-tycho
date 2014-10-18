@@ -15,13 +15,12 @@ import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.evaluate.NetDefEvaluator;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.DeclLoader;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.parser.SourceCodeOracle;
-import se.lth.cs.tycho.transform.operators.ActorOpTransformer;
+import se.lth.cs.tycho.loader.DeclarationLoader;
 
 public class BasicNetworkSimulator implements Simulator{
 	private int defaultStackSize;
@@ -34,7 +33,7 @@ public class BasicNetworkSimulator implements Simulator{
 		System.err.println(msg);
 	}
 
-	public static Network prepareNetworkDefinition(NlNetwork net, DeclLoader declLoader){
+	public static Network prepareNetworkDefinition(NlNetwork net, DeclarationLoader declLoader){
 		return prepareNetworkDefinition(net, ImmutableList.<Map.Entry<String,Expression>>empty(), declLoader);
 	}
 
@@ -47,15 +46,13 @@ public class BasicNetworkSimulator implements Simulator{
 	 * @return
 	 * @throws CALCompiletimeException if an error occurs
 	 */
-	public static Network prepareNetworkDefinition(NlNetwork net, ImmutableList<Map.Entry<String,Expression>> paramAssigns, DeclLoader declLoader) throws CALCompiletimeException {
+	public static Network prepareNetworkDefinition(NlNetwork net, ImmutableList<Map.Entry<String,Expression>> paramAssigns, DeclarationLoader declLoader) throws CALCompiletimeException {
 		// order variable initializations
-		net = VariableInitOrderTransformer.transformNetworkDefinition(net, declLoader);
-		// replace operators with function calls
-		net = ActorOpTransformer.transformNetworkDefinition(net, declLoader);
+		net = VariableInitOrderTransformer.transformNetworkDefinition(net);
 		// replace global variables with constants, i.e. $BinaryOperation.+ with ExprValue(ConstRef.of(new IntFunctions.Add()))
-		net = EvaluateLiteralsTransformer.transformNetworkDefinition(net, declLoader);
+		net = EvaluateLiteralsTransformer.transformNetworkDefinition(net);
 		// compute variable offsets
-		net = VariableOffsetTransformer.transformNetworkDefinition(net, declLoader);
+		net = VariableOffsetTransformer.transformNetworkDefinition(net);
 		
 
 		Interpreter interpreter = new BasicInterpreter(100);
@@ -161,7 +158,7 @@ public class BasicNetworkSimulator implements Simulator{
 					if(externalSourcePortChannel[srcPortIndex] != null){
 						if(externalSinkPortChannel[dstPortIndex] != null){
 							//TODO we have two channels instances to connect. Merge channels
-							throw new CALCompiletimeException("multiple writers to the same port port.", null);
+							throw new CALCompiletimeException("multiple writers to the same port port.");
 						} else {
 							// mark the input port as writer to the output port to detect multiple writers.
 							externalSourcePortChannel[srcPortIndex] = externalSinkPortChannel[dstPortIndex];

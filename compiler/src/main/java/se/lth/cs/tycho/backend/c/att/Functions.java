@@ -7,20 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import se.lth.cs.tycho.backend.c.CType;
-import se.lth.cs.tycho.backend.c.util.Joiner;
-import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.TypeExpr;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
-import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.expr.ExprLambda;
-import se.lth.cs.tycho.ir.expr.ExprLet;
-import se.lth.cs.tycho.ir.expr.ExprProc;
-import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.stmt.Statement;
-import se.lth.cs.tycho.ir.util.ImmutableList;
 import javarag.Collected;
 import javarag.Module;
 import javarag.Procedural;
@@ -28,6 +14,18 @@ import javarag.Synthesized;
 import javarag.coll.Builder;
 import javarag.coll.CollectionBuilder;
 import javarag.coll.Collector;
+import se.lth.cs.tycho.backend.c.CType;
+import se.lth.cs.tycho.backend.c.util.Joiner;
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.expr.ExprLambda;
+import se.lth.cs.tycho.ir.expr.ExprLet;
+import se.lth.cs.tycho.ir.expr.ExprProc;
+import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.stmt.Statement;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class Functions extends Module<Functions.Decls> {
 	private final Joiner pars = new Joiner("(", ", ", ")");
@@ -63,9 +61,7 @@ public class Functions extends Module<Functions.Decls> {
 
 		String functionName(ExprProc proc);
 
-		String variableName(ParDeclValue par);
-
-		String variableName(VarDecl decl);
+		String variableName(VarDecl par);
 
 		CType ctype(TypeExpr type);
 
@@ -130,10 +126,10 @@ public class Functions extends Module<Functions.Decls> {
 	
 	public void functionBody(ExprLet let, PrintWriter writer) {
 		writer.println("{");
-		for (LocalVarDecl decl : let.getVarDecls()) {
+		for (VarDecl decl : let.getVarDecls()) {
 			CType type = e().ctype(decl.getType());
 			String name = e().variableName(decl);
-			String value = e().simpleExpression(decl.getInitialValue());
+			String value = e().simpleExpression(decl.getValue());
 			writer.print("const ");
 			writer.print(type.variableType(name));
 			writer.print(" = ");
@@ -159,9 +155,9 @@ public class Functions extends Module<Functions.Decls> {
 		}
 	}
 
-	private List<String> parList(ImmutableList<ParDeclValue> pars) {
+	private List<String> parList(ImmutableList<VarDecl> pars) {
 		List<String> parList = new ArrayList<>();
-		for (ParDeclValue par : pars) {
+		for (VarDecl par : pars) {
 			String name = e().variableName(par);
 			CType type = e().ctype(par.getType());
 			parList.add(type.variableType(name));

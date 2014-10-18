@@ -8,8 +8,8 @@ import java.util.Set;
 import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
@@ -53,7 +53,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 				.addAll(calActor.getActions())
 				.build();
 		for (Action a : actions) {
-			ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
+			ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
 			int port = 0;
 			for (InputPattern in : a.getInputPatterns()) {
 				PortDecl portDecl = getPortDecl(calActor, port, in);
@@ -83,16 +83,16 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		return null;
 	}
 
-	private void addInputVarDecls(PortDecl portDecl, InputPattern input, ImmutableList.Builder<LocalVarDecl> builder) {
+	private void addInputVarDecls(PortDecl portDecl, InputPattern input, ImmutableList.Builder<VarDecl> builder) {
 		int offset = 0;
-		for (LocalVarDecl var : input.getVariables()) {
+		for (VarDecl var : input.getVariables()) {
 			Expression read;
 			if (input.getRepeatExpr() == null) {
 				read = new ExprInput(copyPort(input.getPort()), offset);
 			} else {
 				read = new ExprInput(copyPort(input.getPort()), offset, evalRepeat(input.getRepeatExpr()), input.getVariables().size());
 			}
-			builder.add(var.copy(null, var.getName(), read, false));
+			builder.add(var.copyAsLocal(null, var.getName(), true, read));
 			offset += 1;
 		}
 	}
@@ -166,13 +166,13 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 	}
 
 	@Override
-	public LocalVarDecl transformVarDecl(LocalVarDecl varDecl, Variables vars) {
+	public VarDecl transformVarDecl(VarDecl varDecl, Variables vars) {
 		vars.declare(varDecl.getName());
 		return super.transformVarDecl(varDecl, vars);
 	}
 
 	@Override
-	public ParDeclValue transformValueParameter(ParDeclValue valueParam, Variables vars) {
+	public VarDecl transformValueParameter(VarDecl valueParam, Variables vars) {
 		vars.declare(valueParam.getName());
 		return super.transformValueParameter(valueParam, vars);
 	}

@@ -42,10 +42,10 @@ package se.lth.cs.tycho.ir.entity.cal;
 import java.util.Objects;
 
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.EntityDefinition;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -55,8 +55,8 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class CalActor extends EntityDefinition {
 
-	public CalActor(ImmutableList<ParDeclType> typePars,
-			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
+	public CalActor(ImmutableList<TypeDecl> typePars,
+			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
@@ -64,8 +64,8 @@ public class CalActor extends EntityDefinition {
 				actions, scheduleFSM, priorities, invariants);
 	}
 
-	private CalActor(CalActor original, ImmutableList<ParDeclType> typePars,
-			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
+	private CalActor(CalActor original, ImmutableList<TypeDecl> typePars,
+			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
@@ -80,8 +80,8 @@ public class CalActor extends EntityDefinition {
 		this.invariants = ImmutableList.copyOf(invariants);
 	}
 
-	public CalActor copy(ImmutableList<ParDeclType> typePars,
-			ImmutableList<ParDeclValue> valuePars, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
+	public CalActor copy(ImmutableList<TypeDecl> typePars,
+			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
@@ -102,11 +102,11 @@ public class CalActor extends EntityDefinition {
 		return visitor.visitCalActor(this, param);
 	}
 
-	public ImmutableList<LocalTypeDecl> getTypeDecls() {
+	public ImmutableList<TypeDecl> getTypeDecls() {
 		return typeDecls;
 	}
 	
-	public ImmutableList<LocalVarDecl> getVarDecls() {
+	public ImmutableList<VarDecl> getVarDecls() {
 		return varDecls;
 	}
 
@@ -130,8 +130,8 @@ public class CalActor extends EntityDefinition {
 		return priorities;
 	}
 
-	private ImmutableList<LocalVarDecl> varDecls;
-	private ImmutableList<LocalTypeDecl> typeDecls;
+	private ImmutableList<VarDecl> varDecls;
+	private ImmutableList<TypeDecl> typeDecls;
 	private ImmutableList<Action> actions;
 	private ScheduleFSM scheduleFSM;
 	private ImmutableList<ImmutableList<QID>> priorities;

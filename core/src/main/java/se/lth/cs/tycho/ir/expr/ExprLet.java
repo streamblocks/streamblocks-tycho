@@ -41,8 +41,8 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -52,11 +52,11 @@ public class ExprLet extends Expression {
 		return v.visitExprLet(this, p);
 	}
 
-	public ExprLet(ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, Expression body) {
+	public ExprLet(ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls, Expression body) {
 		this(null, typeDecls, varDecls, body);
 	}
 
-	private ExprLet(ExprLet original, ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
+	private ExprLet(ExprLet original, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			Expression body) {
 		super(original);
 		this.body = body;
@@ -64,7 +64,7 @@ public class ExprLet extends Expression {
 		this.varDecls = ImmutableList.copyOf(varDecls);
 	}
 
-	public ExprLet copy(ImmutableList<LocalTypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, Expression body) {
+	public ExprLet copy(ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls, Expression body) {
 		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
 				&& Objects.equals(this.body, body)) {
 			return this;
@@ -72,11 +72,11 @@ public class ExprLet extends Expression {
 		return new ExprLet(this, typeDecls, varDecls, body);
 	}
 
-	public ImmutableList<LocalTypeDecl> getTypeDecls() {
+	public ImmutableList<TypeDecl> getTypeDecls() {
 		return typeDecls;
 	}
 
-	public ImmutableList<LocalVarDecl> getVarDecls() {
+	public ImmutableList<VarDecl> getVarDecls() {
 		return varDecls;
 	}
 
@@ -84,7 +84,7 @@ public class ExprLet extends Expression {
 		return body;
 	}
 
-	private ImmutableList<LocalTypeDecl> typeDecls;
-	private ImmutableList<LocalVarDecl> varDecls;
+	private ImmutableList<TypeDecl> typeDecls;
+	private ImmutableList<VarDecl> varDecls;
 	private Expression body;
 }

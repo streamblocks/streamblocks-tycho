@@ -5,10 +5,10 @@ import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
@@ -75,42 +75,42 @@ public class NetworkDefinitionTransformerWrapper<P> extends AbstractNetworkDefin
 	}
 
 	@Override
-	public final LocalVarDecl transformVarDecl(LocalVarDecl varDecl, P param) {
+	public final VarDecl transformVarDecl(VarDecl varDecl, P param) {
 		return inner.transformVarDecl(varDecl, param);
 	}
 
 	@Override
-	public final ImmutableList<LocalVarDecl> transformVarDecls(ImmutableList<LocalVarDecl> varDecl, P param) {
+	public final ImmutableList<VarDecl> transformVarDecls(ImmutableList<VarDecl> varDecl, P param) {
 		return inner.transformVarDecls(varDecl, param);
 	}
 
 	@Override
-	public final LocalTypeDecl transformTypeDecl(LocalTypeDecl typeDecl, P param) {
+	public final TypeDecl transformTypeDecl(TypeDecl typeDecl, P param) {
 		return inner.transformTypeDecl(typeDecl, param);
 	}
 
 	@Override
-	public final ImmutableList<LocalTypeDecl> transformTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param) {
+	public final ImmutableList<TypeDecl> transformTypeDecls(ImmutableList<TypeDecl> typeDecl, P param) {
 		return inner.transformTypeDecls(typeDecl, param);
 	}
 
 	@Override
-	public final ParDeclValue transformValueParameter(ParDeclValue valueParam, P param) {
+	public final VarDecl transformValueParameter(VarDecl valueParam, P param) {
 		return inner.transformValueParameter(valueParam, param);
 	}
 
 	@Override
-	public final ImmutableList<ParDeclValue> transformValueParameters(ImmutableList<ParDeclValue> valueParam, P param) {
+	public final ImmutableList<VarDecl> transformValueParameters(ImmutableList<VarDecl> valueParam, P param) {
 		return inner.transformValueParameters(valueParam, param);
 	}
 
 	@Override
-	public final ParDeclType transformTypeParameter(ParDeclType typeParam, P param) {
+	public final TypeDecl transformTypeParameter(TypeDecl typeParam, P param) {
 		return inner.transformTypeParameter(typeParam, param);
 	}
 
 	@Override
-	public final ImmutableList<ParDeclType> transformTypeParameters(ImmutableList<ParDeclType> typeParam, P param) {
+	public final ImmutableList<TypeDecl> transformTypeParameters(ImmutableList<TypeDecl> typeParam, P param) {
 		return inner.transformTypeParameters(typeParam, param);
 	}
 

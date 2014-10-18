@@ -14,9 +14,9 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.DeclKind;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.parsing.cal.CalParser;
@@ -92,11 +92,11 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 			String name = d.getName();
 			if (name != null) {
 				QID declId = qid.concat(QID.of(name));
-				if (d instanceof GlobalEntityDecl) {
+				if (d instanceof EntityDecl) {
 					addToRepo(entities, declId, unit);
-				} else if (d instanceof LocalVarDecl) {
+				} else if (d instanceof VarDecl) {
 					addToRepo(vars, declId, unit);
-				} else if (d instanceof LocalTypeDecl) {
+				} else if (d instanceof TypeDecl) {
 					addToRepo(types, declId, unit);
 				}
 			}

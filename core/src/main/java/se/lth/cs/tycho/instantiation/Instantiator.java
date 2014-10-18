@@ -10,7 +10,7 @@ import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.GlobalEntityReference;
@@ -65,7 +65,7 @@ public class Instantiator {
 	 * @return an instance of the specified entity
 	 */
 	public Instance instantiate(QID qid, NamespaceDecl location) {
-		GlobalEntityDecl decl = loader.loadEntity(qid, location);
+		EntityDecl decl = loader.loadEntity(qid, location);
 		return instantiate(decl.getEntity(), loader.getLocation(decl));
 	}
 

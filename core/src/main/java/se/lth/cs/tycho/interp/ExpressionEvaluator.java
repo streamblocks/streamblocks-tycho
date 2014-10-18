@@ -11,7 +11,7 @@ import se.lth.cs.tycho.interp.values.ProcProcedure;
 import se.lth.cs.tycho.interp.values.Procedure;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.GeneratorFilter;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprField;
@@ -130,8 +130,8 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 		}
 		//FIXME, initialize the variables in a correct order. for a=b, b=1 the order is (b, a)
 		// this assumes that the declaration are ordered in a correct evaluation order
-		for (LocalVarDecl d : expr.getVarDecls()) {
-			stack.push(evaluate(d.getInitialValue(), env));
+		for (VarDecl d : expr.getVarDecls()) {
+			stack.push(evaluate(d.getValue(), env));
 		}
 		RefView r = evaluate(expr.getBody(), env);
 		stack.remove(expr.getVarDecls().size());

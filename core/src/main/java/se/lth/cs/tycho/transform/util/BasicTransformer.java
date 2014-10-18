@@ -5,10 +5,10 @@ import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.LocalTypeDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.ParDeclType;
-import se.lth.cs.tycho.ir.decl.ParDeclValue;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
@@ -24,17 +24,17 @@ public interface BasicTransformer<P> {
 
 	public LValue transformLValue(LValue lvalue, P param);
 
-	public LocalVarDecl transformVarDecl(LocalVarDecl varDecl, P param);
-	public ImmutableList<LocalVarDecl> transformVarDecls(ImmutableList<LocalVarDecl> varDecl, P param);
+	public VarDecl transformVarDecl(VarDecl varDecl, P param);
+	public ImmutableList<VarDecl> transformVarDecls(ImmutableList<VarDecl> varDecl, P param);
 
-	public LocalTypeDecl transformTypeDecl(LocalTypeDecl typeDecl, P param);
-	public ImmutableList<LocalTypeDecl> transformTypeDecls(ImmutableList<LocalTypeDecl> typeDecl, P param);
+	public TypeDecl transformTypeDecl(TypeDecl typeDecl, P param);
+	public ImmutableList<TypeDecl> transformTypeDecls(ImmutableList<TypeDecl> typeDecl, P param);
 
-	public ParDeclValue transformValueParameter(ParDeclValue valueParam, P param);
-	public ImmutableList<ParDeclValue> transformValueParameters(ImmutableList<ParDeclValue> valueParam, P param);
+	public VarDecl transformValueParameter(VarDecl valueParam, P param);
+	public ImmutableList<VarDecl> transformValueParameters(ImmutableList<VarDecl> valueParam, P param);
 
-	public ParDeclType transformTypeParameter(ParDeclType typeParam, P param);
-	public ImmutableList<ParDeclType> transformTypeParameters(ImmutableList<ParDeclType> typeParam, P param);
+	public TypeDecl transformTypeParameter(TypeDecl typeParam, P param);
+	public ImmutableList<TypeDecl> transformTypeParameters(ImmutableList<TypeDecl> typeParam, P param);
 
 	public GeneratorFilter transformGenerator(GeneratorFilter generator, P param);
 	public ImmutableList<GeneratorFilter> transformGenerators(ImmutableList<GeneratorFilter> generator, P param);

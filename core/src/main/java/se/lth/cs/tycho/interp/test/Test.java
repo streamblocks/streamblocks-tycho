@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.interp.test;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -15,10 +16,11 @@ import se.lth.cs.tycho.interp.Simulator;
 import se.lth.cs.tycho.interp.values.BasicRef;
 import se.lth.cs.tycho.interp.values.ConstRef;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
-import se.lth.cs.tycho.parser.lth.CalParser;
+import se.lth.cs.tycho.parsing.cal.CalParser;
+import se.lth.cs.tycho.parsing.cal.ParseException;
 
 public class Test {
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws FileNotFoundException, ParseException {
 		File calFile = new File("../dataflow/examples/Test/My.cal");
 		try {
 			System.out.println(calFile.getCanonicalPath());
@@ -29,8 +31,8 @@ public class Test {
 		// File calFile = new
 		// File("../dataflow/examples/MPEG4_SP_Decoder/ACPred.cal");
 
-		CalParser parser = new CalParser();
-		CalActor calActor = (CalActor) parser.parse(calFile, null, null).getEntity();
+		CalParser parser = new CalParser(new FileInputStream(calFile));
+		CalActor calActor = (CalActor) parser.ActorDecl().getEntity();
 
 //		List<Decl> actorArgs = new ArrayList<Decl>();
 		// actorArgs.add(varDecl("MAXW_IN_MB", lit(121)));
@@ -38,7 +40,7 @@ public class Test {
 		// actorArgs.add(varDecl("SAMPLE_SZ", lit(13)));
 //		Scope argScope = new Scope(ScopeKind.Persistent, actorArgs);
 
-		ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(calActor, null);
+		ActorMachine actorMachine = BasicActorMachineSimulator.prepareActor(calActor);
 
 //		XMLWriter doc = new XMLWriter(actorMachine);		doc.print();
 
