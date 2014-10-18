@@ -17,7 +17,7 @@ public class XDFNetwork extends EntityDefinition {
 
 	public XDFNetwork(IRNode original, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<XDFInstance> instances, ImmutableList<XDFConnection> connections) {
-		super(original, outputPorts, outputPorts, ImmutableList.empty(), ImmutableList.empty());
+		super(original, inputPorts, outputPorts, ImmutableList.empty(), ImmutableList.empty());
 		this.instances = instances;
 		this.connections = connections;
 	}
