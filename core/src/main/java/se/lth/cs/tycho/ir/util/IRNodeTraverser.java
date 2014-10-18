@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import javarag.TreeTraverser;
 
@@ -35,7 +36,8 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 			if (IRNode.class.isAssignableFrom(returnType) || Iterable.class.isAssignableFrom(returnType)
 					|| Entry.class.isAssignableFrom(returnType) || PortContainer.class.isAssignableFrom(returnType)
 					|| IRNode.Identifier.class.isAssignableFrom(returnType)
-					|| Map.class.isAssignableFrom(returnType)) {
+					|| Map.class.isAssignableFrom(returnType)
+					|| Parameter.class.isAssignableFrom(returnType)) {
 				try {
 					Object child = m.invoke(root);
 					addChildren(children, child);
@@ -48,7 +50,10 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 	}
 
 	private void addChildren(Collection<Object> list, Object child) {
-		if (child instanceof IRNode) {
+		if (child instanceof Parameter) {
+			Parameter<?> p = (Parameter<?>) child;
+			addChildren(list, p.getValue());
+		} else if (child instanceof IRNode) {
 			list.add((IRNode) child);
 		} else if (child instanceof IRNode.Identifier) {
 			list.add(child);
