@@ -15,8 +15,11 @@ package se.lth.cs.tycho.parsing.cal;
 
 import java.lang.SuppressWarnings;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
+import java.util.HashMap;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.decl.GlobalDecl.Availability;
@@ -30,6 +33,40 @@ import se.lth.cs.tycho.ir.util.ImmutableEntry;
 
 @SuppressWarnings("unused")
 public class CalParser {
+
+	private Map<String, Integer> operatorPriorities = null;
+	
+	public void setOperatorPriorities(Map<String, Integer> priorities) {
+		operatorPriorities = priorities;
+	}
+	
+	public static Map<String, Integer> defaultPriorities() {
+		Map<String, Integer> prio = new HashMap<String, Integer>();
+		prio.put("or", 4);
+		prio.put("||", 4);
+		prio.put("and", 5);
+		prio.put("&&", 5);
+		prio.put("|", 6);
+		prio.put("^", 7);
+		prio.put("&", 8);
+		prio.put("=", 9);
+		prio.put("!=", 9);
+		prio.put("<", 10);
+		prio.put("<=", 10);
+		prio.put(">", 10);
+		prio.put(">=", 10);
+		prio.put("..", 11);
+		prio.put("in", 11);
+		prio.put("<<", 11);
+		prio.put(">>", 11);
+		prio.put("+", 12);
+		prio.put("-", 12);
+		prio.put("div", 13);
+		prio.put("mod", 13);
+		prio.put("*", 13);
+		prio.put("/", 13);
+		return prio;
+	}
 
 	public static class TypeAndName {
 		public final TypeExpr type;
@@ -48,6 +85,48 @@ public class CalParser {
 			this.def = def;
 		}
 	}
+
+	private int getPriority(String op) throws ParseException {
+		if (operatorPriorities.containsKey(op)) {
+			return operatorPriorities.get(op);
+		} else {
+			throw new ParseException("Unknown binary operation " + op);
+		}
+	}
+	
+	private Expression shuntingYard(ImmutableList<String> operations, ImmutableList<Expression> operands) throws ParseException {
+		LinkedList<Expression> out = new LinkedList<Expression>();
+		LinkedList<String> ops = new LinkedList<String>();
+		int i = 0;
+		out.add(operands.get(i));
+		while (i < operations.size()) {
+			int prec = getPriority(operations.get(i));
+			while (!ops.isEmpty() && prec <= getPriority(ops.getLast())) {
+				transformOperator(out, ops);
+			}
+			ops.addLast(operations.get(i));
+			i += 1;
+			out.add(operands.get(i));
+		}
+		while (!ops.isEmpty()) {
+			transformOperator(out, ops);
+		}
+		assert out.size() == 1;
+		return out.getFirst();
+	}
+
+	private void transformOperator(LinkedList<Expression> out, LinkedList<String> ops) {
+		String operator = ops.removeLast();
+		String function = "$BinaryOperation." + operator;
+		Variable funcVar = Variable.variable(function);
+		ExprVariable func = new ExprVariable(funcVar);  // use the same Identifier as for funcVar
+		Expression right = out.removeLast();
+		Expression left = out.removeLast();
+		ImmutableList<Expression> args = ImmutableList.of(left, right);
+		Expression result = new ExprApplication(func, args);
+		out.add(result);
+	}
+
 }
 PARSER_END(CalParser)
 
@@ -189,8 +268,9 @@ TOKEN: {
 |	< STAR: "*" >
 |	< DOT_STAR: ".*" >
 |	< CINNAMON_BUN: "@" >
-|	< OP: (["!", "@", "#", "$", "%", "^", "&", "*", "/",
-		"+", "-", "<", ">", "?", "~", "|", "."])+ >
+|	< OP: <OP_CHAR> (<OP_CHAR> | "=")* >
+|	< #OP_CHAR: ["!", "@", "#", "$", "%", "^", "&", "*", "/",
+		"+", "-", "<", ">", "?", "~", "|", "."] >
 }
 
 /* String literals */
@@ -955,7 +1035,11 @@ Expression Expression() :
 		if (opList.isEmpty()) {
 			return expr;
 		} else {
-			return new ExprBinaryOp(opList, exprList);
+			if (operatorPriorities == null) {
+				return new ExprBinaryOp(opList, exprList);
+			} else {
+				return shuntingYard(opList, exprList);
+			}
 		}
 	}
 }
@@ -975,7 +1059,13 @@ Expression UnaryOperation() :
 	{
 		Collections.reverse(ops);
 		for (String o : ops) {
-			expr = new ExprUnaryOp(o, expr);
+			if (operatorPriorities != null) {
+				String funcName = "$UnaryOperation." + o;
+				ExprVariable func = new ExprVariable(Variable.variable(funcName));
+				expr = new ExprApplication(func, ImmutableList.of(expr));
+			} else {
+				expr = new ExprUnaryOp(o, expr);
+			}
 		}
 		return expr;
 	}

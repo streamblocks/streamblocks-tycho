@@ -61,9 +61,10 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 		}
 	}
 	
-	private static NamespaceDecl parse(Path p, MessageReporter m) {
+	private static NamespaceDecl parse(Path p, MessageReporter m, boolean withOpParsing) {
 		try {
 			CalParser parser = new CalParser(Files.newBufferedReader(p));
+			if (withOpParsing) parser.setOperatorPriorities(CalParser.defaultPriorities());
 			return parser.CompilationUnit();
 		} catch (IOException e) {
 			m.report(new Message(e.getMessage(), Message.Kind.ERROR));
@@ -76,7 +77,7 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 
 	private boolean scanFile(Path f, MessageReporter messages) {
 		CalCompilationUnit unit = new CalCompilationUnit(f);
-		NamespaceDecl ns = parse(f, messages);
+		NamespaceDecl ns = parse(f, messages, false);
 		if (ns == null) {
 			return false;
 		} else {
@@ -125,7 +126,7 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 
 		@Override
 		public NamespaceDecl load(MessageReporter messages) {
-			return parse(path, messages);
+			return parse(path, messages, true);
 		}
 
 		@Override
