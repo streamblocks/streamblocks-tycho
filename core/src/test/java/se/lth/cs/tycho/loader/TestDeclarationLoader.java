@@ -13,14 +13,14 @@ import se.lth.cs.tycho.messages.NullMessageReporter;
 
 public class TestDeclarationLoader {
 	@Test
-	public void testFindInEmpty() {
+	public void testFindInEmpty() throws AmbiguityException {
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		assertNull(loader.loadEntity(QID.parse("a.b.c"), null));
 		assertNull(loader.loadEntity(QID.parse("a.b.c"), null));
 	}
 	
 	@Test
-	public void testLoadPublicDecl() {
+	public void testLoadPublicDecl() throws AmbiguityException {
 		StringRepository repo = new StringRepository();
 		repo.add("namespace a.b: namespace c: public int x = 2; public int y = 4; end end");
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
@@ -34,7 +34,7 @@ public class TestDeclarationLoader {
 	}
 	
 	@Test
-	public void testGetLocationAndQID() {
+	public void testGetLocationAndQID() throws AmbiguityException {
 		StringRepository repo = new StringRepository();
 		repo.add("namespace a: namespace b: int x = 2; end end");
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());

@@ -72,9 +72,10 @@ public class DeclarationLoader {
 	 *            the name of the entity
 	 * @param ns
 	 *            the namespace declaration to where it is loaded
-	 * @return the entity declaration
+	 * @return the entity declaration or null of no declaration is available
+	 * @throws AmbiguityException if more than one declaration is available
 	 */
-	public EntityDecl loadEntity(QID qid, NamespaceDecl ns) {
+	public EntityDecl loadEntity(QID qid, NamespaceDecl ns) throws AmbiguityException {
 		return (EntityDecl) load(qid, DeclKind.ENTITY, ns);
 	}
 
@@ -86,9 +87,10 @@ public class DeclarationLoader {
 	 *            the name of the type
 	 * @param ns
 	 *            the namespace declaration to where it is loaded
-	 * @return the type declaration
+	 * @return the type declaration or null of no declaration is available
+	 * @throws AmbiguityException if more than one declaration is available
 	 */
-	public TypeDecl loadType(QID qid, NamespaceDecl ns) {
+	public TypeDecl loadType(QID qid, NamespaceDecl ns) throws AmbiguityException {
 		return (TypeDecl) load(qid, DeclKind.TYPE, ns);
 	}
 
@@ -100,18 +102,19 @@ public class DeclarationLoader {
 	 *            the name of the variable
 	 * @param ns
 	 *            the namespace declaration to where it is loaded
-	 * @return the variable declaration
+	 * @return the variable declaration or null of no declaration is available
+	 * @throws AmbiguityException if more than one declaration is available
 	 */
-	public VarDecl loadVar(QID qid, NamespaceDecl ns) {
+	public VarDecl loadVar(QID qid, NamespaceDecl ns) throws AmbiguityException {
 		return (VarDecl) load(qid, DeclKind.VAR, ns);
 	}
 
-	private Decl load(QID qid, DeclKind kind, NamespaceDecl ns) {
+	private Decl load(QID qid, DeclKind kind, NamespaceDecl ns) throws AmbiguityException {
 		loadUnits(qid, kind);
 		return getFromCache(qid, kind, ns);
 	}
 
-	private Decl getFromCache(QID qid, DeclKind kind, NamespaceDecl ns) {
+	private Decl getFromCache(QID qid, DeclKind kind, NamespaceDecl ns) throws AmbiguityException {
 		List<Decl> candidates = declCache.getOrDefault(qid, Collections.emptyList())
 				.stream()
 				.filter(d -> d.getDeclKind() == kind)

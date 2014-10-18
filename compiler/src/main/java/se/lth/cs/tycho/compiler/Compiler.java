@@ -15,6 +15,7 @@ import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instantiation.Instantiator;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemCalRepository;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
@@ -51,7 +52,12 @@ public class Compiler {
 			Instantiator instantiator = new Instantiator(loader,
 					Arrays.asList(SelectFirstInstruction<ActorStates.State>::new));
 			QID qid = QID.parse(opts.valueOf(entity));
-			Instance inst = instantiator.instantiate(qid, null);
+			Instance inst;
+			try {
+				inst = instantiator.instantiate(qid, null);
+			} catch (AmbiguityException e) {
+				throw new RuntimeException(e);
+			}
 			Path outputFile = opts.valueOf(outputDir).toPath().resolve(qid.getLast().toString() + ".c");
 			PrintWriter out = new PrintWriter(Files.newBufferedWriter(outputFile), true);
 			Backend.generateCode((Network) inst, out);

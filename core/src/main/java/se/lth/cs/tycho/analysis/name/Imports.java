@@ -59,6 +59,6 @@ public class Imports extends Module<Imports.Decls> {
 	}
 
 	private interface Loader<T> {
-		T load(DeclarationLoader loader, QID qid, NamespaceDecl ns);
+		T load(DeclarationLoader loader, QID qid, NamespaceDecl ns) throws AmbiguityException;
 	}
 }

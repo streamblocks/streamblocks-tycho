@@ -17,6 +17,7 @@ import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemCalRepository;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
@@ -121,7 +122,7 @@ public class Parse{
 			} else {
 				throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + name + "is instance of class" + decl.getClass().getCanonicalName());
 			}
-		} catch(CALCompiletimeException e){
+		} catch(CALCompiletimeException | AmbiguityException e){
 			System.err.println("ERROR: " + e.getMessage());
 		}
 	}

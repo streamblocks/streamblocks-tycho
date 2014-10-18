@@ -17,6 +17,7 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemCalRepository;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
@@ -68,7 +69,7 @@ public class Simulate {
 				System.err.println(entityName + " is not a network or calActor.");
 				return;
 			}
-		} catch(CALCompiletimeException error){
+		} catch(CALCompiletimeException | AmbiguityException error){
 			System.err.println("ERROR: " + error.getMessage());
 			System.err.println("Problems occured while compiling, aborting before simulation.");
 			return;

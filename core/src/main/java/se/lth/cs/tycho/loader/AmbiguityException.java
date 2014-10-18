@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.DeclKind;
 
-public class AmbiguityException extends RuntimeException {
+public class AmbiguityException extends Exception {
 	private static final long serialVersionUID = 2335537397415197940L;
 	private final DeclKind kind;
 	private final QID qid;

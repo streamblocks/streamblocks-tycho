@@ -20,7 +20,7 @@ import se.lth.cs.tycho.messages.NullMessageReporter;
 public class TestLoadXdf {
 
 	@Test
-	public void testLoadXdf() {
+	public void testLoadXdf() throws AmbiguityException {
 		DeclarationLoader loader = new DeclarationLoader(new MessageWriter());
 		loader.addRepository(new FileSystemXdfRepository(Paths.get("src/test/xdf")));
 		EntityDecl empty = loader.loadEntity(QID.of("empty"), null);
@@ -32,7 +32,7 @@ public class TestLoadXdf {
 	}
 
 	@Test
-	public void testLoadNoXdf() {
+	public void testLoadNoXdf() throws AmbiguityException {
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		loader.addRepository(new FileSystemXdfRepository(Paths.get("src/test/xdf")));
 		EntityDecl noDecl = loader.loadEntity(QID.parse("does.not.exist"), null);

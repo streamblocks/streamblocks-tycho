@@ -20,6 +20,7 @@ import se.lth.cs.tycho.ir.entity.xdf.XDFConnection;
 import se.lth.cs.tycho.ir.entity.xdf.XDFInstance;
 import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
@@ -62,8 +63,9 @@ public class Instantiator {
 	 * @param location
 	 *            the namespace declaration from where the instance is created
 	 * @return an instance of the specified entity
+	 * @throws AmbiguityException if there is more than one entity available
 	 */
-	public Instance instantiate(QID qid, NamespaceDecl location) {
+	public Instance instantiate(QID qid, NamespaceDecl location) throws AmbiguityException {
 		EntityDecl decl = loader.loadEntity(qid, location);
 		return instantiate(decl.getEntity(), loader.getLocation(decl));
 	}
@@ -86,7 +88,12 @@ public class Instantiator {
 		public Instance visitXDFNetwork(XDFNetwork entity, NamespaceDecl location) {
 			ImmutableList.Builder<Node> nodeBuilder = ImmutableList.builder();
 			for (XDFInstance inst : entity.getInstances()) {
-				Instance result = instantiate(inst.getEntity(), location);
+				Instance result;
+				try {
+					result = instantiate(inst.getEntity(), location);
+				} catch (AmbiguityException e) {
+					throw new RuntimeException(e);
+				}
 				nodeBuilder.add(new Node(inst.getName(), result, ImmutableList.empty()));
 			}
 			ImmutableList<Node> nodes = nodeBuilder.build();

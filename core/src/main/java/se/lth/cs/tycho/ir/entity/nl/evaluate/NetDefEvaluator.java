@@ -24,10 +24,9 @@ import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
 import se.lth.cs.tycho.interp.values.ExprValue;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.GeneratorFilter;
-import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -49,6 +48,7 @@ import se.lth.cs.tycho.ir.entity.nl.StructureStmtVisitor;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 
 public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environment>, StructureStmtVisitor<StructureStatement, Environment>{
@@ -124,7 +124,11 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
 			//e.getParameterAssignments();
 			PortContainer payload = null; 
-			decl = declLoader.loadEntity(QID.of(e.getEntityName()), null).getEntity();
+			try {
+				decl = declLoader.loadEntity(QID.of(e.getEntityName()), null).getEntity();
+			} catch (AmbiguityException e1) {
+				throw new RuntimeException(e1);
+			}
 			if(decl instanceof CalActor){
 				payload = BasicActorMachineSimulator.prepareActor((CalActor)decl);
 			} else if(decl instanceof NlNetwork){

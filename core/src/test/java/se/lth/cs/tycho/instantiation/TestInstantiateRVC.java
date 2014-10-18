@@ -11,6 +11,7 @@ import org.junit.Test;
 import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemCalRepository;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
@@ -24,7 +25,7 @@ public class TestInstantiateRVC {
 	private static final Path RVC_PATH = Paths.get("../../orc-apps/RVC/src");
 
 	@Test
-	public void testInstantiateRVC() {
+	public void testInstantiateRVC() throws AmbiguityException {
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());
 		loader.addRepository(new FileSystemXdfRepository(RVC_PATH));
 		loader.addRepository(new FileSystemCalRepository(RVC_PATH));
