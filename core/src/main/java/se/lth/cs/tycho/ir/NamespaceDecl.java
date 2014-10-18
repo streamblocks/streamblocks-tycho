@@ -7,7 +7,7 @@ import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-public class NamespaceDecl {
+public class NamespaceDecl extends AbstractIRNode {
 	private final QID qid;
 	private final ImmutableList<NamespaceDecl> namespaceDecls;
 	private final ImmutableList<Import> imports;
@@ -17,6 +17,12 @@ public class NamespaceDecl {
 
 	public NamespaceDecl(QID qid, ImmutableList<NamespaceDecl> namespaceDecls, ImmutableList<Import> imports, ImmutableList<VarDecl> varDecls,
 			ImmutableList<EntityDecl> entityDecls, ImmutableList<TypeDecl> typeDecls) {
+		this(null, qid, namespaceDecls, imports, varDecls, entityDecls, typeDecls);
+	}
+	
+	private NamespaceDecl(IRNode original, QID qid, ImmutableList<NamespaceDecl> namespaceDecls, ImmutableList<Import> imports, ImmutableList<VarDecl> varDecls,
+			ImmutableList<EntityDecl> entityDecls, ImmutableList<TypeDecl> typeDecls) {
+		super(original);
 		this.qid = qid;
 		this.namespaceDecls = namespaceDecls;
 		this.imports = imports;
