@@ -15,8 +15,8 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.DeclKind;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.MessageReporter;
 
 /**
@@ -47,7 +47,7 @@ public class DeclarationLoader {
 		this.messages = messages;
 	}
 
-/**
+	/**
 	 * Adds a repository of source code units to this declaration loader. The
 	 * repository is added if {@code repo.checkRepository(...) is successful. 
 	 * 
@@ -88,8 +88,8 @@ public class DeclarationLoader {
 	 *            the namespace declaration to where it is loaded
 	 * @return the type declaration
 	 */
-	public Decl loadType(QID qid, NamespaceDecl ns) {
-		return (Decl) load(qid, DeclKind.TYPE, ns);
+	public TypeDecl loadType(QID qid, NamespaceDecl ns) {
+		return (TypeDecl) load(qid, DeclKind.TYPE, ns);
 	}
 
 	/**
@@ -120,18 +120,10 @@ public class DeclarationLoader {
 		if (candidates.size() == 1) {
 			return candidates.get(0);
 		} else if (candidates.isEmpty()) {
-			messages.report(Message.error(kind + " " + qid + " is not available"));
 			return null;
 		} else {
-			String units = candidates.stream()
-					.map(sourceCodeUnit::get)
-					.distinct()
-					.map(SourceCodeUnit::getLocationDescription)
-					.collect(Collectors.joining("\n"));
-			String message = "There are several definitions available for " + kind + " " + qid
-					+ " in the following unit\n" + units;
-			messages.report(Message.error(message));
-			return null;
+			List<String> list = candidates.stream().map(sourceCodeUnit::get).map(SourceCodeUnit::getLocationDescription).collect(Collectors.toList());
+			throw new AmbiguityException(kind, qid, list);
 		}
 	}
 

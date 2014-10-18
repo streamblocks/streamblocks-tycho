@@ -19,7 +19,8 @@ public class Import extends AbstractIRNode {
 	}
 
 	public static Import singleImport(DeclKind kind, QID qid, String alias) {
-		return new Import(null, kind, qid, false, alias);
+		String name = alias == null ? qid.getLast().toString() : alias;
+		return new Import(null, kind, qid, false, name);
 	}
 
 	public static Import namespaceImport(DeclKind kind, QID qid) {
@@ -38,7 +39,7 @@ public class Import extends AbstractIRNode {
 		return namespaceImport;
 	}
 
-	public String getAlias() {
+	public String getName() {
 		return alias;
 	}
 
