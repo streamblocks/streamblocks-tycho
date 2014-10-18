@@ -1,12 +1,12 @@
 package se.lth.cs.tycho.ir.entity.xdf;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.entity.EntityDefinition;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-public class XDFNetwork extends EntityDefinition {
+public class XDFNetwork extends Entity {
 
 	private final ImmutableList<XDFInstance> instances;
 	private final ImmutableList<XDFConnection> connections;

@@ -55,7 +55,7 @@ public class TestStringRepository {
 		} else {
 			if (relative.getNameCount() == 1) {
 				String name = relative.toString();
-				return ns.getDecls().stream()
+				return ns.getAllDecls().stream()
 						.filter(d -> d.getName().equals(name));
 			} else {
 				return ns.getNamespaceDecls().stream()

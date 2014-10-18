@@ -29,7 +29,6 @@ import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.ExpressionVisitor;
-import se.lth.cs.tycho.ir.expr.GlobalValueReference;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environment> {
@@ -205,11 +204,6 @@ public class ExpressionEvaluator implements ExpressionVisitor<RefView, Environme
 		return value;
 	}
 	
-	@Override
-	public RefView visitGlobalValueReference(GlobalValueReference expr, Environment env) {
-		throw notImplemented("Imports are not supported by this evaluator.");
-	}
-
 	private IllegalArgumentException notTransformed(String msg) {
 		return new IllegalArgumentException(msg);
 	}

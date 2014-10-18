@@ -40,13 +40,14 @@ public class DeclarationLoader {
 	 * Constructs a new declaration loader that reports problems to the given
 	 * message listener.
 	 * 
-	 * @param messages the message listener to report to
+	 * @param messages
+	 *            the message listener to report to
 	 */
 	public DeclarationLoader(MessageReporter messages) {
 		this.messages = messages;
 	}
 
-	/**
+/**
 	 * Adds a repository of source code units to this declaration loader. The
 	 * repository is added if {@code repo.checkRepository(...) is successful. 
 	 * 
@@ -175,7 +176,7 @@ public class DeclarationLoader {
 			enclosingNsDecl.put(child, ns);
 			populateCaches(child, qid, unit);
 		}
-		for (Decl decl : ns.getDecls()) {
+		for (Decl decl : ns.getAllDecls()) {
 			enclosingNsDecl.put(decl, ns);
 			sourceCodeUnit.put(decl, unit);
 			if (decl.getName() != null) {

@@ -88,7 +88,7 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 
 	private void buildRepo(SourceCodeUnit unit, QID parent, NamespaceDecl ns) {
 		QID qid = parent.concat(ns.getQID());
-		for (Decl d : ns.getDecls()) {
+		for (Decl d : ns.getAllDecls()) {
 			String name = d.getName();
 			if (name != null) {
 				QID declId = qid.concat(QID.of(name));

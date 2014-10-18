@@ -54,7 +54,7 @@ import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.EntityDefinition;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -90,7 +90,6 @@ import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.ExpressionVisitor;
-import se.lth.cs.tycho.ir.expr.GlobalValueReference;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StatementVisitor;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
@@ -390,7 +389,7 @@ InstructionVisitor<Void, Element>{
 		}
 	}
 	//-- type/value parameters, in/out ports, type/value declarations
-	public void generateXMLForEntityDefinition(EntityDefinition entity, Element top){
+	public void generateXMLForEntityDefinition(Entity entity, Element top){
 		//-- type parameters 
 		//TODO
 		//-- value parameters 
@@ -889,12 +888,6 @@ InstructionVisitor<Void, Element>{
 		return null;
 	}
 	
-	@Override
-	public Void visitGlobalValueReference(GlobalValueReference e, Element p) {
-		// FIXME
-		return null;
-	}
-
 	/******************************************************************************
 	 * LValue
 	 */

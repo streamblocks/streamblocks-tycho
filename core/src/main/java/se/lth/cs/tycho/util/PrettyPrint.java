@@ -16,7 +16,7 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.EntityDefinition;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -52,7 +52,6 @@ import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.ExpressionVisitor;
-import se.lth.cs.tycho.ir.expr.GlobalValueReference;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StatementVisitor;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
@@ -172,7 +171,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("}");
 		}
 	}
-	public void printEntityDef(EntityDefinition entity){
+	public void printEntityDef(Entity entity){
 		//--- type parameters
 		if(!entity.getTypeParameters().isEmpty()){
 			String sep = "";
@@ -678,12 +677,6 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 	}
 	public Void visitExprVariable(ExprVariable e, Void p) {
 		out.append(e.getVariable().getName());
-		return null;
-	}
-
-	@Override
-	public Void visitGlobalValueReference(GlobalValueReference e, Void p) {
-		out.append(e.getQualifiedIdentifier().toString());
 		return null;
 	}
 

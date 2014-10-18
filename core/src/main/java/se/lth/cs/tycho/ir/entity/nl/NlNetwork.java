@@ -6,9 +6,7 @@ import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.EntityDefinition;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -26,7 +24,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  * 
  */
 
-public class NlNetwork extends EntityDefinition {
+public class NlNetwork extends Entity {
 	public NlNetwork(ImmutableList<TypeDecl> typePars,
 			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,

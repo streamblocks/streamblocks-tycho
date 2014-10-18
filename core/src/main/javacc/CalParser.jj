@@ -316,43 +316,37 @@ TOKEN: {
 
 NamespaceDecl CompilationUnit() :
 {
-	ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
-	ImmutableList.Builder<Decl> decls = ImmutableList.builder();
 	NamespaceDecl ns;
-	Decl d;
 }
 {
-	(
-		(Annotation())*
-		(
-			d = GlobalDecl() { decls.add(d); }
-		|
-			ns = NamespaceDecl() { nsDecls.add(ns); }
-		)
-	)*
+	ns = NamespaceDeclContents(QID.empty())
 	<EOF>
 	{
-		return new NamespaceDecl(QID.empty(), nsDecls.build(), decls.build());
+		return ns;
 	}
 |
 	{
+		ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
+		ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
+		VarDecl v;
+		EntityDecl e;
 		QID qid;
 	}
 	"package"
 	qid = QID()
 	";"
 	(
-		d = GlobalImportDecl() { decls.add(d); }
+		Import()
 	)*
 	(Annotation())*
 	(
 		ns = OrccUnit() { nsDecls.add(ns); }
 	|
-		d = ActorDecl()  { decls.add(d); }
+		e = ActorDecl()  { entityDecls.add(e); }
 	)
 	<EOF>
 	{
-		NamespaceDecl pkg = new NamespaceDecl(qid, nsDecls.build(), decls.build());
+		NamespaceDecl pkg = new NamespaceDecl(qid, nsDecls.build(), ImmutableList.empty(), ImmutableList.empty(), entityDecls.build(), ImmutableList.empty());
 		return pkg;
 	}
 }
@@ -360,8 +354,8 @@ NamespaceDecl CompilationUnit() :
 NamespaceDecl OrccUnit() :
 {
 	Token id;
-	ImmutableList.Builder<Decl> decls = ImmutableList.builder();
-	Decl decl;
+	ImmutableList.Builder<VarDecl> decls = ImmutableList.builder();
+	VarDecl decl;
 }
 {
 	"unit"
@@ -369,7 +363,7 @@ NamespaceDecl OrccUnit() :
 	":"
 	(
 		(Annotation())*
-		decl = GlobalDecl()
+		decl = GlobalVarDecl()
 		{ decls.add(decl); }
 	)*
 	"end"
@@ -377,7 +371,10 @@ NamespaceDecl OrccUnit() :
 		return new NamespaceDecl(
 				QID.of(id.image),
 				ImmutableList.empty(),
-				decls.build());
+				ImmutableList.empty(),
+				decls.build(),
+				ImmutableList.empty(),
+				ImmutableList.empty());
 	}
 }
 
@@ -401,26 +398,49 @@ Annotation Annotation() :
 
 NamespaceDecl NamespaceDecl() :
 {
-	ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
-	ImmutableList.Builder<Decl> decls = ImmutableList.builder();
-	NamespaceDecl ns;
-	Decl d;
 	QID qid;
+	NamespaceDecl ns;
 }
 {
 	"namespace"
 	qid = QID()
 	":"
-	(
-		(Annotation())*
-		(
-			d = GlobalDecl() { decls.add(d); }
-		|
-			ns = NamespaceDecl() { nsDecls.add(ns); }
-		)
-	)*
+	ns = NamespaceDeclContents(qid)
 	"end"
-	{ return new NamespaceDecl(qid, nsDecls.build(), decls.build()); }
+	{ return ns; }
+}
+
+NamespaceDecl NamespaceDeclContents(QID name) :
+{
+	ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
+	ImmutableList.Builder<Import> imports = ImmutableList.builder();
+	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
+	ImmutableList.Builder<TypeDecl> typeDecls = ImmutableList.builder();
+	
+	NamespaceDecl ns;
+	Import i;
+	VarDecl v;
+	EntityDecl e;
+	TypeDecl t;
+}
+{
+	(Annotation())*
+	(
+		ns = NamespaceDecl() { nsDecls.add(ns); }
+	|
+		i = Import() { imports.add(i); }
+	|
+		LOOKAHEAD(2)
+		v = GlobalVarDecl() { varDecls.add(v); }
+	|
+		e = ActorDecl() { entityDecls.add(e); }
+	|
+		e = NetworkDecl() { entityDecls.add(e); }
+	)*
+	{
+		return new NamespaceDecl(name, nsDecls.build(), imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
+	}
 }
 
 QID QID() :
@@ -436,23 +456,6 @@ QID QID() :
 		id = <ID> { qid = qid.concat(QID.of(id.image)); }
 	)*
 	{ return qid; }
-}
-
-Decl GlobalDecl() :
-{
-	Decl d;
-}
-{
-	(
-		d = GlobalImportDecl() { return d; }
-	|
-		LOOKAHEAD(2)
-		d = ActorDecl() { return d; }
-	|
-		d = GlobalVarDecl() { return d; }
-	|
-		d = NetworkDecl() { return d; }
-	)
 }
 
 /* Declarations */
@@ -534,11 +537,11 @@ VarDecl LocalVarDecl(boolean endWithSemicolon) :
 	}
 }
 
-Decl GlobalImportDecl() :
+Import Import() :
 {
 	QID qid;
 	Token kind = null;
-	boolean importContents = false;
+	boolean namespaceImport = false;
 }
 {
 	"import"
@@ -551,30 +554,28 @@ Decl GlobalImportDecl() :
 	)?
 	(
 		"all"
-		{ importContents = true; }
+		{ namespaceImport = true; }
 	)?
 	qid = QID()
 	(
 		(".*" | "." "*")
-		{ importContents = true; }
+		{ namespaceImport = true; }
 	)?
 	";"
 	{
-		String name;
-		if (importContents) {
-			name = null;
-		} else {
-			name = qid.getLast().toString();
-		}
+		DeclKind declKind;
 		if (kind == null || kind.image.equals("var")) {
-			return VarDecl.global(Availability.LOCAL, null, name, new GlobalValueReference(qid, importContents));
+			declKind = DeclKind.VAR;
 		} else if (kind.image.equals("type")) {
-			return null;
-		} else if (kind.image.equals("entity")) {
-			return EntityDecl.global(Availability.LOCAL, name, new GlobalEntityReference(qid, importContents));
+			declKind = DeclKind.TYPE;
 		} else {
-			return null;
-		} 
+			declKind = DeclKind.ENTITY;
+		}
+		if (namespaceImport) {
+			return Import.namespaceImport(declKind, qid);
+		} else {
+			return Import.singleImport(declKind, qid, qid.getLast().toString());
+		}
 	}
 }
 

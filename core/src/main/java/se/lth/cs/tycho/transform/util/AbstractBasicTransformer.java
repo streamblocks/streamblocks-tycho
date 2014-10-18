@@ -30,7 +30,6 @@ import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.ExpressionVisitor;
-import se.lth.cs.tycho.ir.expr.GlobalValueReference;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StatementVisitor;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
@@ -384,11 +383,6 @@ LValueVisitor<LValue, P> {
 		return e.copy(transformVariable(e.getVariable(), p));
 	}
 	
-	@Override
-	public Expression visitGlobalValueReference(GlobalValueReference e, P p) {
-		return e.copy(transformQualifiedIdentifier(e.getQualifiedIdentifier(), p), e.isNamespaceReference());
-	}
-
 	private QID transformQualifiedIdentifier(QID qid, P p) {
 		return qid;
 	}

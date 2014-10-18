@@ -46,9 +46,7 @@ public class FileSystemXdfRepository implements SourceCodeRepository {
 	}
 
 	private Path getPath(QID qid) {
-		String rel = qid.parts().stream()
-				.map(QID::toString)
-				.collect(Collectors.joining(File.separator, "", ".xdf"));
+		String rel = qid.parts().stream().map(QID::toString).collect(Collectors.joining(File.separator, "", ".xdf"));
 		return path.resolve(rel);
 	}
 
@@ -75,7 +73,8 @@ public class FileSystemXdfRepository implements SourceCodeRepository {
 			try {
 				XDFNetwork xDFNetwork = reader.read(Files.newInputStream(path));
 				EntityDecl decl = EntityDecl.global(Availability.PUBLIC, qid.getLast().toString(), xDFNetwork);
-				return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.of(decl));
+				return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
+						ImmutableList.of(decl), ImmutableList.empty());
 			} catch (ParserConfigurationException | SAXException | IOException e) {
 				messages.report(Message.error(e.getMessage()));
 				return null;
@@ -86,7 +85,7 @@ public class FileSystemXdfRepository implements SourceCodeRepository {
 		public String getLocationDescription() {
 			return path.toAbsolutePath().toString();
 		}
-		
+
 		@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof XdfCompilationUnit) {
@@ -96,7 +95,7 @@ public class FileSystemXdfRepository implements SourceCodeRepository {
 				return false;
 			}
 		}
-		
+
 		@Override
 		public int hashCode() {
 			return Objects.hash(qid, path);

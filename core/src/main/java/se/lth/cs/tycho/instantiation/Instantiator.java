@@ -13,7 +13,6 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
-import se.lth.cs.tycho.ir.entity.GlobalEntityReference;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
@@ -81,14 +80,6 @@ public class Instantiator {
 		@Override
 		public Instance visitNlNetwork(NlNetwork entity, NamespaceDecl location) {
 			throw new UnsupportedOperationException("Nl networks are not yet supported.");
-		}
-
-		@Override
-		public Instance visitGlobalEntityReference(GlobalEntityReference entity, NamespaceDecl location) {
-			if (entity.isNamespaceReference()) {
-				throw new Error("Can not create an entity instance of a global namespace reference.");
-			}
-			return instantiate(entity.getQualifiedIdentifier(), location);
 		}
 
 		@Override

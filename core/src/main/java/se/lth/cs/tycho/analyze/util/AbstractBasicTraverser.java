@@ -11,8 +11,6 @@ import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprField;
@@ -30,7 +28,6 @@ import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.ExpressionVisitor;
-import se.lth.cs.tycho.ir.expr.GlobalValueReference;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StatementVisitor;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
@@ -238,12 +235,6 @@ public abstract class AbstractBasicTraverser<P> implements BasicTraverser<P>, Ex
 	@Override
 	public Void visitExprVariable(ExprVariable e, P p) {
 		traverseVariable(e.getVariable(), p);
-		return null;
-	}
-	
-	@Override
-	public Void visitGlobalValueReference(GlobalValueReference e, P p) {
-		traverseQualifiedIdentifier(e.getQualifiedIdentifier(), p);
 		return null;
 	}
 	
