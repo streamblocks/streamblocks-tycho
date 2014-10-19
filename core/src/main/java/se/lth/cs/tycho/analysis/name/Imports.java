@@ -4,19 +4,21 @@ import java.util.Optional;
 
 import javarag.Module;
 import javarag.Synthesized;
+import se.lth.cs.tycho.analysis.util.TreeRoot;
+import se.lth.cs.tycho.analysis.util.TreeRootModule;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.Import;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.loader.AmbiguityException;
-import se.lth.cs.tycho.loader.DeclarationLoader;
-import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.util.Result;
 
-public class Imports extends Module<Imports.Decls> {
-	public interface Decls extends DeclarationLoaderInterface, NamespaceDeclInterface {
+public class Imports extends Module<Imports.Attributes> {
+
+	public interface Attributes extends Decls, TreeRootModule.Declarations, NamespaceDecls.Declarations {}
+	
+	public interface Decls {
 		@Synthesized
 		Result<Optional<VarDecl>> importVar(Import imp, String name);
 
@@ -28,37 +30,37 @@ public class Imports extends Module<Imports.Decls> {
 	}
 
 	public Result<Optional<VarDecl>> importVar(Import imp, String name) {
-		return importWith(DeclarationLoader::loadVar, imp, name);
+		return importWith(e()::globalVar, imp, name);
 	}
 
 	public Result<Optional<TypeDecl>> importType(Import imp, String name) {
-		return importWith(DeclarationLoader::loadType, imp, name);
+		return importWith(e()::globalType, imp, name);
 	}
 
 	public Result<Optional<EntityDecl>> importEntity(Import imp, String name) {
-		return importWith(DeclarationLoader::loadEntity, imp, name);
+		return importWith(e()::globalEntity, imp, name);
 	}
 
-	private <T> Result<Optional<T>> importWith(Loader<T> load, Import imp, String name) {
+	private <T> Result<Optional<T>> importWith(Loading<T> load, Import imp, String name) {
 		QID qid;
 		if (imp.isNamespaceImport()) {
-			qid = imp.getQID().concat(QID.of(name));
+			// FIXME ugly hack!
+			try {
+				QID last = QID.of(name);
+				qid = imp.getQID().concat(last);
+			} catch (IllegalArgumentException e) {
+				return Result.success(Optional.empty());
+			}
 		} else if (imp.getName().equals(name)) {
 			qid = imp.getQID();
 		} else {
 			return Result.success(Optional.empty());
 		}
-		DeclarationLoader loader = e().declarationLoader(imp);
 		NamespaceDecl ns = e().enclosingNamespaceDecl(imp);
-		try {
-			T decl = load.load(loader, qid, ns);
-			return Result.success(Optional.ofNullable(decl));
-		} catch (AmbiguityException e) {
-			return Result.failure(Message.error(e.getMessage()));
-		}
+		return load.load(e().treeRoot(imp), qid, ns);
 	}
 
-	private interface Loader<T> {
-		T load(DeclarationLoader loader, QID qid, NamespaceDecl ns) throws AmbiguityException;
+	private interface Loading<T> {
+		Result<Optional<T>> load(TreeRoot root, QID qid, NamespaceDecl ns);
 	}
 }

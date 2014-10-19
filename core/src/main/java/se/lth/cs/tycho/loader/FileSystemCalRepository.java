@@ -47,7 +47,12 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 
 	@Override
 	public List<SourceCodeUnit> findUnits(QID name, DeclKind kind) {
-		return get(entities, name);
+		switch(kind) {
+		case ENTITY: return get(entities, name);
+		case TYPE: return get(types, name);
+		case VAR: return get(vars, name);
+		}
+		return Collections.emptyList();
 	}
 
 	private void addToRepo(Map<QID, List<SourceCodeUnit>> repo, QID qid, SourceCodeUnit unit) {
@@ -87,6 +92,9 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 	}
 
 	private void buildRepo(SourceCodeUnit unit, QID parent, NamespaceDecl ns) {
+		if (unit.getLocationDescription().contains("ConstantsBtype")) {
+			System.nanoTime();
+		}
 		QID qid = parent.concat(ns.getQID());
 		for (Decl d : ns.getAllDecls()) {
 			String name = d.getName();

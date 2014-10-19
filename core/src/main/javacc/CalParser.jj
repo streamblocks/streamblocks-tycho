@@ -328,15 +328,17 @@ NamespaceDecl CompilationUnit() :
 	{
 		ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
 		ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
+		ImmutableList.Builder<Import> imports = ImmutableList.builder();
 		VarDecl v;
 		EntityDecl e;
+		Import imprt;
 		QID qid;
 	}
 	"package"
 	qid = QID()
 	";"
 	(
-		Import()
+		imprt = Import() { imports.add(imprt); }
 	)*
 	(Annotation())*
 	(
@@ -346,7 +348,7 @@ NamespaceDecl CompilationUnit() :
 	)
 	<EOF>
 	{
-		NamespaceDecl pkg = new NamespaceDecl(qid, nsDecls.build(), ImmutableList.empty(), ImmutableList.empty(), entityDecls.build(), ImmutableList.empty());
+		NamespaceDecl pkg = new NamespaceDecl(qid, nsDecls.build(), imports.build(), ImmutableList.empty(), entityDecls.build(), ImmutableList.empty());
 		return pkg;
 	}
 }

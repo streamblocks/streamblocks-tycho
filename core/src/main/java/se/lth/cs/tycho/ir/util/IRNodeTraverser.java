@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import javarag.TreeTraverser;
@@ -23,6 +24,14 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 		if (root instanceof Connection) {
 			Connection c = (Connection) root;
 			return Arrays.asList(c.getIdentifier(), c.getSrcPort(), c.getDstPort());
+		}
+		if (root instanceof NamespaceDecl) {
+			NamespaceDecl ns = (NamespaceDecl) root;
+			List<IRNode> children = new ArrayList<>();
+			children.addAll(ns.getImports());
+			children.addAll(ns.getAllDecls());
+			children.addAll(ns.getNamespaceDecls());
+			return children;
 		}
 		Class<?> type = root.getClass();
 		List<Object> children = new ArrayList<>();
