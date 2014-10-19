@@ -6,6 +6,7 @@ options {
 	DEBUG_PARSER = false;
 	DEBUG_TOKEN_MANAGER = false;
 	OUTPUT_DIRECTORY = "se/lth/cs/tycho/parsing/cal";
+	UNICODE_INPUT = true;
 }
 
 
@@ -139,11 +140,11 @@ SKIP :
 /* Comments */
 MORE :
 {
-  < "//" (~["\n", "\r"])* ("\n" | "\r" | "\r\n") >
+  < "//" (~["\n", "\r"])* >
 |
   < "/" ("*")+ "*/" >
 |
-  < "/" ("*")+ > : IN_MULTI_LINE_COMMENT
+  < "/" "*" (<OP>)* > : IN_MULTI_LINE_COMMENT
 }
 
 <IN_MULTI_LINE_COMMENT>
@@ -268,7 +269,7 @@ TOKEN: {
 |	< DOT_STAR: ".*" >
 |	< CINNAMON_BUN: "@" >
 |	< OP: <OP_CHAR> (<OP_CHAR> | "=")* >
-|	< #OP_CHAR: ["!", "@", "#", "$", "%", "^", "&", "*", "/",
+|	< #OP_CHAR: ["!", "#", "$", "%", "^", "&", "*", "/",
 		"+", "-", "<", ">", "?", "~", "|", "."] >
 }
 
@@ -390,12 +391,22 @@ Annotation Annotation() :
 	(
 		"("
 		(
-			<ID> "=" Expression()
-			("," <ID> "=" Expression())*
+			AnnotationParameter()
+			("," AnnotationParameter())*
 		)?
 		")"
 	)?
 	{ return new Annotation(id.image, ImmutableList.empty()); }
+}
+
+void AnnotationParameter() :
+{
+}
+{
+	LOOKAHEAD(2)
+	<ID> "=" Expression()
+|
+	Expression()	
 }
 
 NamespaceDecl NamespaceDecl() :
@@ -756,25 +767,30 @@ EntityDecl ActorDecl() :
 	(
 		":"
 		(
-			LOOKAHEAD((QID() ":")? "action")
-			action = Action()
-			{ actions.add(action); }
-		|
-			LOOKAHEAD((QID() ":")? "initialize")
-			action = InitializationAction()
-			{ initializers.add(action); }
-		|
-			varDecl = LocalVarDecl(true)
-			{ varDecls.add(varDecl); }
-		|
-			PriorityOrder(priorities)
-		|
-			{
-				if (scheduleFSM != null) {
-					throw new ParseException("Only one action schedule is allowed.");
+			(
+				Annotation()
+			)*
+			(
+				LOOKAHEAD((QID() ":")? "action")
+				action = Action()
+				{ actions.add(action); }
+			|
+				LOOKAHEAD((QID() ":")? "initialize")
+				action = InitializationAction()
+				{ initializers.add(action); }
+			|
+				varDecl = LocalVarDecl(true)
+				{ varDecls.add(varDecl); }
+			|
+				PriorityOrder(priorities)
+			|
+				{
+					if (scheduleFSM != null) {
+						throw new ParseException("Only one action schedule is allowed.");
+					}
 				}
-			}
-			scheduleFSM = ActionSchedule()
+				scheduleFSM = ActionSchedule()
+			)
 		)*
 		("end" | "endactor")
 	|
@@ -808,13 +824,18 @@ PortDecl PortDecl() :
 	Token id;
 }
 {
-	LOOKAHEAD(2)
-	type = Type()
-	id = <ID>
-	{ return new PortDecl(id.image, type); }
-|
-	id = <ID>
-	{ return new PortDecl(id.image, null); }
+	(
+		Annotation()
+	)*
+	(
+		LOOKAHEAD(2)
+		type = Type()
+		id = <ID>
+		{ return new PortDecl(id.image, type); }
+	|
+		id = <ID>
+		{ return new PortDecl(id.image, null); }
+	)
 }
 
 /* Actions */
@@ -1200,7 +1221,7 @@ String BinaryOperator() :
 }
 {
 	(
-		op = <OP> | op = "=" | op = "-->" | op = ">" | op = "|" | op = "*" | op = ".*" | op = "@" // Missing operator "->" because it conflicts with Mapping()
+		op = <OP> | op = "=" | op = "-->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@" | "->"
 		| op = "and" | op = "or" | op = "in" | op = "div" | op = "mod"
 	)
 	{ return op.image; }
@@ -1212,7 +1233,7 @@ String UnaryOperator() :
 }
 {
 	(
-		op = <OP> | op = "=" | op = "-->" | op = "->" | op = ">" | op = "|" | op = "*" | op = ".*" | op = "@"  
+		op = <OP> | op = "=" | op = "-->" | op = "->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@"  
 		| op = "not" | op = "dom" | op = "rng" | op = "old"
 	)
 	{ return op.image; }
@@ -1327,6 +1348,7 @@ VarDecl FormalValueParameter() :
 }
 {
 	typeName = VarDeclTypeName()
+	("=" Expression())?
 	{
 		return VarDecl.parameter(typeName.type, typeName.name);
 	}
@@ -1559,6 +1581,7 @@ Statement Statement() :
 	Statement stmt;
 }
 {
+	( Annotation() )*	
 	(
 		LOOKAHEAD(LValue() ":=")
 		stmt = AssignmentStmt()
@@ -1651,15 +1674,13 @@ StmtCall CallStmt() :
 	ImmutableList<Expression> args;
 }
 {
-	proc = PrimaryExpression()
+	proc = VariableExpression() // should be any expression, but is not because of conflict with annotations on statements
+	"("
+	args = ExpressionList()
+	")"
 	";"
 	{
-		if (proc instanceof ExprApplication) {
-			ExprApplication apply = (ExprApplication) proc;
-			return new StmtCall(apply.getFunction(), apply.getArgs());
-		} else {
-			throw new ParseException();
-		}
+		return new StmtCall(proc, args);
 	}
 }
 
