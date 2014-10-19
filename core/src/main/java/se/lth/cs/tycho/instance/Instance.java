@@ -3,13 +3,28 @@ package se.lth.cs.tycho.instance;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.PortContainer;
+import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public abstract class Instance extends AbstractIRNode implements PortContainer {
 	
+	protected final ImmutableList<PortDecl> inputPorts;
+	protected final ImmutableList<PortDecl> outputPorts;
+
 	public abstract <R, P> R accept(InstanceVisitor<R, P> visitor, P param);
 
-	public Instance(IRNode original) {
+	public ImmutableList<PortDecl> getInputPorts() {
+		return inputPorts;
+	}
+
+	public ImmutableList<PortDecl> getOutputPorts() {
+		return outputPorts;
+	}
+
+	public Instance(IRNode original, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) {
 		super(original);
+		this.inputPorts = inputPorts;
+		this.outputPorts = outputPorts;
 	}
 
 }

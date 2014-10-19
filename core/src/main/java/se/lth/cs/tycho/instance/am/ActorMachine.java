@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.instance.am;
 
-import se.lth.cs.tycho.instance.InstanceDefinition;
+import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.InstanceVisitor;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -34,7 +34,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  * 
  */
 
-public class ActorMachine extends InstanceDefinition {
+public class ActorMachine extends Instance {
 
 	public ImmutableList<State> getController() {
 		return controller;

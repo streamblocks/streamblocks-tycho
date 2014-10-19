@@ -2,7 +2,7 @@ package se.lth.cs.tycho.instance.net;
 
 import java.util.Objects;
 
-import se.lth.cs.tycho.instance.InstanceDefinition;
+import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.InstanceVisitor;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.PortContainer;
@@ -23,7 +23,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  *
  */
 
-public class Network extends InstanceDefinition implements PortContainer {
+public class Network extends Instance {
 
 	@Override
 	public <R, P> R accept(InstanceVisitor<R, P> visitor, P param) {
