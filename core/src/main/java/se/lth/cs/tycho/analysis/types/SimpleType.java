@@ -23,6 +23,21 @@ public class SimpleType implements Type {
 	public <R, P> R accept(TypeVisitor<R, P> visitor, P param) {
 		return visitor.visitSimpleType(this, param);
 	}
+	
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof SimpleType) {
+			SimpleType that = (SimpleType) obj;
+			return this.name.equals(that.name);
+		} else {
+			return false;
+		}
+	}
 
 	private static class LeastUpperBound implements LeastUpperBoundVisitor<SimpleType> {
 		@Override

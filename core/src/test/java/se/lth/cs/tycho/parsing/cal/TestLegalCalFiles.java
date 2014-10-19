@@ -21,7 +21,7 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 @RunWith(Parameterized.class)
 public class TestLegalCalFiles {
 	private static List<Path> roots() {
-		return Arrays.asList(Paths.get("../../orc-apps/RVC/src/org/sc29/wg11/mpeg4/part2")/*, Paths.get("../../caltoopia/org.caltoopia.tests/cal-src")*/);
+		return Arrays.asList(Paths.get("../../orc-apps"), Paths.get("../../caltoopia/org.caltoopia.tests/cal-src"));
 	}
 
 	@Parameters(name = "{index}: Parsing {0}")

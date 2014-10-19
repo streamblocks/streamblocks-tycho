@@ -15,5 +15,15 @@ public class BottomType implements Type {
 	public <R, P> R accept(TypeVisitor<R, P> visitor, P param) {
 		return visitor.visitBottomType(this, param);
 	}
+	
+	@Override
+	public int hashCode() {
+		return 0;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return (obj instanceof BottomType);
+	}
 
 }

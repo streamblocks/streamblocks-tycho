@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.analysis.types;
 
+import java.util.Objects;
 import java.util.OptionalInt;
 
 public class IntType implements Type {
@@ -35,6 +36,26 @@ public class IntType implements Type {
 	@Override
 	public <R, P> R accept(TypeVisitor<R, P> visitor, P param) {
 		return visitor.visitIntType(this, param);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(signed, size);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof IntType) {
+			IntType that = (IntType) obj;
+			return this.signed == that.signed && this.size.equals(that.size);
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "IntType [size=" + size + ", signed=" + signed + "]";
 	}
 
 	private static class LeastUpperBound implements LeastUpperBoundVisitor<IntType> {

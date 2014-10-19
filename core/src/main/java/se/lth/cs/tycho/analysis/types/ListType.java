@@ -31,6 +31,14 @@ public class ListType implements Type {
 	public Type greatestLowerBound(Type that) {
 		return that.accept(greatestLowerBound, this);
 	}
+	
+	public Type getElementType() {
+		return elements;
+	}
+	
+	public OptionalInt getSize() {
+		return size;
+	}
 
 	@Override
 	public <R, P> R accept(TypeVisitor<R, P> visitor, P param) {
