@@ -4,17 +4,23 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.lth.cs.tycho.analysis.util.TreeRoot;
+import se.lth.cs.tycho.analysis.util.TreeRootModule;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
+import se.lth.cs.tycho.ir.IRNode;
 import javarag.Module;
 import javarag.Procedural;
 import javarag.Synthesized;
 
 public class TranslationUnit extends Module<TranslationUnit.Decls> {
 
-	public interface Decls {
-
+	public interface Decls extends TreeRootModule.Declarations {
+		
+		@Procedural
+		public void translate(TreeRoot root, PrintWriter writer);
+		
 		@Procedural
 		public void translate(Network network, PrintWriter writer);
 
@@ -41,6 +47,11 @@ public class TranslationUnit extends Module<TranslationUnit.Decls> {
 
 		public String bufferName(Connection conn);
 
+	}
+	
+	public void translate(TreeRoot root, PrintWriter writer) {
+		IRNode mainTree = e().mainTree(root);
+		translate((Network) mainTree, writer);
 	}
 
 	public void bufferDecls(Network network, PrintWriter writer) {

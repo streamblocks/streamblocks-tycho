@@ -1,5 +1,8 @@
 package se.lth.cs.tycho.backend.c.att;
 
+import javarag.Inherited;
+import javarag.Module;
+import javarag.Synthesized;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.instance.net.Connection;
@@ -7,12 +10,9 @@ import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprProc;
-import javarag.Inherited;
-import javarag.Module;
-import javarag.Synthesized;
+import se.lth.cs.tycho.messages.util.Result;
 
 public class Names extends Module<Names.Decls> {
 
@@ -34,7 +34,7 @@ public class Names extends Module<Names.Decls> {
 
 		int index(Object o);
 
-		IRNode declaration(Variable var);
+		Result<IRNode> variableDeclaration(Variable var);
 
 		IRNode parent(IRNode o);
 
@@ -78,9 +78,9 @@ public class Names extends Module<Names.Decls> {
 	}
 
 	public String variableName(Variable var) {
-		IRNode declaration = e().declaration(var);
-		if (declaration != null) {
-			return e().variableName(declaration);
+		Result<IRNode> declaration = e().variableDeclaration(var);
+		if (declaration.isSuccess()) {
+			return e().variableName(declaration.get());
 		} else {
 			return var.getName();
 		}

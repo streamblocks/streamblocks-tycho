@@ -26,7 +26,7 @@ public class CTypes extends Module<CTypes.Decls> {
 
 		String simpleExpression(Expression value);
 
-		PortDecl declaration(Port port);
+		PortDecl portDeclaration(Port port);
 
 		Integer constantInteger(Expression expr);
 
@@ -43,11 +43,11 @@ public class CTypes extends Module<CTypes.Decls> {
 
 	@Synthesized
 	public CType ctype(Connection conn) {
-		PortDecl src = e().declaration(conn.getSrcPort());
+		PortDecl src = e().portDeclaration(conn.getSrcPort());
 		if (src.getType() != null) {
 			return e().ctype(src.getType());
 		}
-		PortDecl dst = e().declaration(conn.getDstPort());
+		PortDecl dst = e().portDeclaration(conn.getDstPort());
 		if (dst.getType() != null) {
 			return e().ctype(dst.getType());
 		}
@@ -93,7 +93,7 @@ public class CTypes extends Module<CTypes.Decls> {
 
 	@Synthesized
 	public CType ctype(ExprInput input) {
-		PortDecl port = e().declaration(input.getPort());
+		PortDecl port = e().portDeclaration(input.getPort());
 		CType type = e().ctype(port.getType());
 		if (input.hasRepeat()) {
 			int r = input.getRepeat();

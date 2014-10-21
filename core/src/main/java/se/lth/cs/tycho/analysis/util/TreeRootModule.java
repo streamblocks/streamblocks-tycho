@@ -6,6 +6,7 @@ import javarag.Inherited;
 import javarag.Module;
 import javarag.NonTerminal;
 import javarag.Synthesized;
+import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
@@ -26,6 +27,10 @@ public class TreeRootModule extends Module<TreeRootModule.Declarations> {
 		@Synthesized
 		@NonTerminal
 		NamespaceDecl compilationUnit(TreeRoot root, NamespaceDecl ns);
+		
+		@Synthesized
+		@NonTerminal
+		Instance instanceToCompile(TreeRoot root, Instance inst);
 
 		@Synthesized
 		Result<Optional<EntityDecl>> globalEntity(TreeRoot root, QID qid, NamespaceDecl ns);
@@ -98,6 +103,14 @@ public class TreeRootModule extends Module<TreeRootModule.Declarations> {
 	public IRNode getMainTree(Decl decl, TreeRoot root) {
 		getCompilationUnit(decl, root);
 		return decl;
+	}
+	
+	public IRNode getMainTree(Instance inst, TreeRoot root) {
+		return e().instanceToCompile(root, inst);
+	}
+	
+	public Instance instanceToCompile(TreeRoot root, Instance inst) {
+		return inst;
 	}
 
 }

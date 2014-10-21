@@ -60,7 +60,7 @@ public class Compiler {
 			}
 			Path outputFile = opts.valueOf(outputDir).toPath().resolve(qid.getLast().toString() + ".c");
 			PrintWriter out = new PrintWriter(Files.newBufferedWriter(outputFile), true);
-			Backend.generateCode((Network) inst, out);
+			Backend.generateCode(loader, (Network) inst, out);
 		} else {
 			System.out.println("Usage: java " + Compiler.class.getCanonicalName() + " [options] entity");
 			System.out.println();

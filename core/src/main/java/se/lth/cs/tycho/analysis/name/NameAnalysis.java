@@ -17,10 +17,12 @@ import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.Import;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
@@ -49,6 +51,7 @@ public class NameAnalysis extends Module<NameAnalysis.Attributes> {
 		
 		@Collected
 		public Set<Message> nameErrors(TreeRoot root);
+		
 	}
 	
 	public Builder<Set<Message>, Message> nameErrors(TreeRoot root) {
@@ -98,7 +101,7 @@ public class NameAnalysis extends Module<NameAnalysis.Attributes> {
 	public Result<VarDecl> lookupVariable(TreeRoot root, Variable var) {
 		String name = var.getName();
 		if (name.startsWith("$UnaryOperation.") || name.startsWith("$BinaryOperation.")) {
-			return Result.success(null);
+			return Result.failure(Message.error("Could not find operator " + name + "."));
 		}
 		
  		return Result.failure(Message.error("Declaration for variable " + var.getName() + " not found"));

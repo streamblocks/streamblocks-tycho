@@ -10,6 +10,7 @@ import javarag.AttributeEvaluator;
 import javarag.AttributeRegister;
 import javarag.impl.reg.BasicAttributeRegister;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import se.lth.cs.tycho.analysis.name.Imports;
@@ -33,6 +34,7 @@ public class TestTypeAnalysis {
 	private static final QID PARSER = QID.parse("org.sc29.wg11.mpeg4.part2.sp.parser.Algo_SynP");
 	private static final Path RVC_PATH = Paths.get("../../orc-apps/RVC/src");
 
+	@Ignore
 	@Test
 	public void testTypeAnalysisOnRVCParser() throws AmbiguityException {
 		DeclarationLoader loader = new DeclarationLoader(new NullMessageReporter());

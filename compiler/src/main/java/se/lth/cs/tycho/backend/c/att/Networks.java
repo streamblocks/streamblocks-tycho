@@ -25,26 +25,18 @@ public class Networks extends Module<Networks.Decls> {
 		Node lookupNode(ActorMachine actorMachine);
 
 		@Synthesized
-		List<Connection> connections(PortDecl p);
+		List<Connection> outgoingConnections(PortDecl p);
 
 		@Synthesized
-		List<Connection> connections(Port p);
-
-		@Synthesized
-		Connection connection(PortDecl p);
-
-		@Synthesized
-		Connection connection(Port p);
+		Connection incomingConnection(PortDecl p);
 
 		@Inherited
-		List<Connection> lookupConnectionsToPort(IRNode node, PortDecl decl);
+		List<Connection> lookupOutgoingConnections(IRNode node, PortDecl decl);
 
 		@Inherited
-		List<Connection> lookupConnectionsToNode(IRNode node, IRNode container, PortDecl port);
+		Connection lookupIncomingConnection(IRNode node, PortDecl decl);
 
-		PortDecl declaration(Port p);
-
-		PortKind portKind(PortDecl port);
+		PortDecl portDeclaration(Port p);
 
 	}
 
@@ -60,47 +52,30 @@ public class Networks extends Module<Networks.Decls> {
 		return null;
 	}
 
-	public Connection connection(Port port) {
-		return e().connection(e().declaration(port));
+	public Connection incomingConnection(PortDecl decl) {
+		return e().lookupIncomingConnection(decl, decl);
 	}
 
-	public List<Connection> connections(Port port) {
-		return e().connections(e().declaration(port));
+	public List<Connection> outgoingConnections(PortDecl decl) {
+		return e().lookupOutgoingConnections(decl, decl);
 	}
-
-	public Connection connection(PortDecl decl) {
-		List<Connection> conns = e().connections(decl);
-		if (conns.isEmpty())
-			return null;
-		if (conns.size() > 1)
-			throw new Error();
-		return conns.get(0);
-	}
-
-	public List<Connection> connections(PortDecl decl) {
-		return e().lookupConnectionsToPort(decl, decl);
-	}
-
-	public List<Connection> lookupConnectionsToPort(Node node, PortDecl port) {
-		return e().lookupConnectionsToNode(node, node, port);
-	}
-
-	public List<Connection> lookupConnectionsToNode(Network net, IRNode container, PortDecl port) {
-		List<Connection> result = new ArrayList<>();
-		PortKind kind = e().portKind(port);
-		if (kind == PortKind.INPUT) {
-			for (Connection conn : net.getConnections()) {
-				if (conn.getDstNodeId() == container.getIdentifier()
-						&& conn.getDstPort().getName().equals(port.getName())) {
-					result.add(conn);
-				}
+	
+	public Connection lookupIncomingConnection(Network net, PortDecl port) {
+		for (Connection conn : net.getConnections()) {
+			PortDecl dst = e().portDeclaration(conn.getDstPort());
+			if (dst == port) {
+				return conn;
 			}
-		} else if (kind == PortKind.OUTPUT) {
-			for (Connection conn : net.getConnections()) {
-				if (conn.getSrcNodeId() == container.getIdentifier()
-						&& conn.getSrcPort().getName().equals(port.getName())) {
-					result.add(conn);
-				}
+		}
+		throw new Error();
+	}
+	
+	public List<Connection> lookupOutgoingConnections(Network net, PortDecl port) {
+		List<Connection> result = new ArrayList<>();
+		for (Connection conn : net.getConnections()) {
+			PortDecl src = e().portDeclaration(conn.getSrcPort());
+			if (src == port) {
+				result.add(conn);
 			}
 		}
 		return result;

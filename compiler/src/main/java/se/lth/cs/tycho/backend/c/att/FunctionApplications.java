@@ -12,6 +12,7 @@ import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtCall;
+import se.lth.cs.tycho.messages.util.Result;
 import javarag.Module;
 import javarag.Synthesized;
 
@@ -23,7 +24,7 @@ public class FunctionApplications extends Module<FunctionApplications.Decls> {
 		@Synthesized
 		public String procedureCall(ExprVariable proc, StmtCall call);
 
-		IRNode declaration(Variable var);
+		Result<IRNode> variableDeclaration(Variable var);
 
 		String parenthesizedExpression(Expression e);
 
@@ -75,8 +76,8 @@ public class FunctionApplications extends Module<FunctionApplications.Decls> {
 
 	public String functionApplication(ExprVariable func, ExprApplication apply) {
 		assert func == apply.getFunction();
-		IRNode decl = e().declaration(func.getVariable());
-		if (decl == null) {
+		Result<IRNode> decl = e().variableDeclaration(func.getVariable());
+		if (decl.isFailure()) {
 			int numArgs = apply.getArgs().size();
 			String name = func.getVariable().getName();
 			if (numArgs == 2 && binOps.containsKey(name)) {
@@ -92,7 +93,7 @@ public class FunctionApplications extends Module<FunctionApplications.Decls> {
 				throw new Error();
 			}
 		} else {
-			String name = e().functionName(decl);
+			String name = e().functionName(decl.get());
 			ArrayList<String> args = new ArrayList<>();
 			for (Expression arg : apply.getArgs()) {
 				args.add(e().simpleExpression(arg));
@@ -102,7 +103,7 @@ public class FunctionApplications extends Module<FunctionApplications.Decls> {
 	}
 
 	public String procedureCall(ExprVariable proc, StmtCall call) {
-		IRNode decl = e().declaration(proc.getVariable());
+		IRNode decl = e().variableDeclaration(proc.getVariable()).get();
 		String name = e().functionName(decl);
 		ArrayList<String> args = new ArrayList<>();
 		for (Expression arg : call.getArgs()) {

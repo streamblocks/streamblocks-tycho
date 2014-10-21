@@ -15,7 +15,7 @@ public class ConstantPropagation extends Module<ConstantPropagation.Decls> {
 		@Synthesized
 		Integer constantInteger(Expression e);
 
-		IRNode declaration(Variable v);
+		IRNode variableDeclaration(Variable v);
 
 	}
 
@@ -24,7 +24,7 @@ public class ConstantPropagation extends Module<ConstantPropagation.Decls> {
 	}
 
 	public Integer constantInteger(ExprVariable var) {
-		IRNode decl = e().declaration(var.getVariable());
+		IRNode decl = e().variableDeclaration(var.getVariable());
 		if (decl != null && decl instanceof VarDecl) {
 			VarDecl declVar = (VarDecl) decl;
 			if (declVar.isConstant()) {
