@@ -227,7 +227,11 @@ public class Copy implements BasicTransformer<Void>, ActorTransformer<Void>, Exp
 	public Port transformPort(Port port, Void param) {
 		if (port == null)
 			return null;
-		return new Port(port.getName(), port.getOffset());
+		if (port.hasLocation()) {
+			return new Port(port.getName(), port.getOffset());
+		} else {
+			return new Port(port.getName());	
+		}
 	}
 
 	@Override
