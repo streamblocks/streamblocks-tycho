@@ -33,14 +33,14 @@ public class PredicateCondition extends Condition {
 		return location;
 	}
 
-	public PredicateCondition(Expression expression, NamespaceDecl origin) {
-		this(null, expression, origin);
+	public PredicateCondition(Expression expression, NamespaceDecl location) {
+		this(null, expression, location);
 	}
 
-	private PredicateCondition(PredicateCondition original, Expression expression, NamespaceDecl origin) {
+	private PredicateCondition(PredicateCondition original, Expression expression, NamespaceDecl location) {
 		super(original);
 		this.expression = expression;
-		this.location = origin;
+		this.location = location;
 	}
 
 	public PredicateCondition copy(Expression expression, NamespaceDecl origin) {

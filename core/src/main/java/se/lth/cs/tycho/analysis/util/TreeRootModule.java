@@ -68,6 +68,7 @@ public class TreeRootModule extends Module<TreeRootModule.Declarations> {
 	public Result<Optional<EntityDecl>> globalEntity(TreeRoot root, QID qid, NamespaceDecl ns) {
 		try {
 			EntityDecl decl = root.getLoader().loadEntity(qid, ns);
+			if (decl != null) getCompilationUnit(decl, root);
 			return Result.success(Optional.ofNullable(decl));
 		} catch (AmbiguityException e) {
 			return Result.failure(Message.error(e.getMessage()));
@@ -77,6 +78,7 @@ public class TreeRootModule extends Module<TreeRootModule.Declarations> {
 	public Result<Optional<VarDecl>> globalVar(TreeRoot root, QID qid, NamespaceDecl ns) {
 		try {
 			VarDecl decl = root.getLoader().loadVar(qid, ns);
+			if (decl != null) getCompilationUnit(decl, root);
 			return Result.success(Optional.ofNullable(decl));
 		} catch (AmbiguityException e) {
 			return Result.failure(Message.error(e.getMessage()));
@@ -86,6 +88,7 @@ public class TreeRootModule extends Module<TreeRootModule.Declarations> {
 	public Result<Optional<TypeDecl>> globalType(TreeRoot root, QID qid, NamespaceDecl ns) {
 		try {
 			TypeDecl decl = root.getLoader().loadType(qid, ns);
+			if (decl != null) getCompilationUnit(decl, root);
 			return Result.success(Optional.ofNullable(decl));
 		} catch (AmbiguityException e) {
 			return Result.failure(Message.error(e.getMessage()));

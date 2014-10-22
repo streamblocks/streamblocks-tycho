@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -28,10 +29,10 @@ import se.lth.cs.tycho.transform.util.AbstractActorTransformer;
 
 class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtractor.Variables> {
 
-	public Result extractVariables(CalActor calActor) {
+	public Result extractVariables(CalActor calActor, NamespaceDecl location) {
 		Variables data = new Variables();
 		CalActor resultActor = transformActor(calActor, data);
-		ImmutableList<Scope> scopes = generateScopes(resultActor);
+		ImmutableList<Scope> scopes = generateScopes(resultActor, location);
 		ImmutableList<Integer> transientScopes = transientScopes(resultActor);
 		return new Result(resultActor, scopes, transientScopes);
 	}
@@ -45,9 +46,9 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 		return builder.build();
 	}
 
-	private ImmutableList<Scope> generateScopes(CalActor calActor) {
+	private ImmutableList<Scope> generateScopes(CalActor calActor, NamespaceDecl location) {
 		ImmutableList.Builder<Scope> result = ImmutableList.builder();
-		result.add(new Scope(calActor.getVarDecls(), null)); // FIXME get the correct namespace decl
+		result.add(new Scope(calActor.getVarDecls(), location)); // FIXME get the correct namespace decl
 		ImmutableList<Action> actions = ImmutableList.<Action> builder()
 				.addAll(calActor.getInitializers())
 				.addAll(calActor.getActions())

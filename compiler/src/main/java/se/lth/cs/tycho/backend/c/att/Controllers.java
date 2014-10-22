@@ -67,7 +67,7 @@ public class Controllers extends Module<Controllers.Decls> {
 		int state = 0;
 		for (State s : actorMachine.getController()) {
 			writer.println("S" + state + ":");
-			writer.println("AM_TRACE_STATE(" + state + ");");
+			writer.println("AM_TRACE_STATE(" + node + ", " + state + ");");
 			Instruction i = s.getInstructions().get(0);
 			e().initScopes(i, writer);
 			e().controllerInstruction(i, writer);
@@ -110,24 +110,34 @@ public class Controllers extends Module<Controllers.Decls> {
 	}
 
 	public void controllerInstruction(ITest test, PrintWriter writer) {
-		writer.println("AM_TRACE_TEST(" + test.C() + ");");
+		ActorMachine am = e().actorMachine(test);
+		Node node = e().node(am);
+		int n = e().index(node);
 		writer.print("if (");
 		writer.print(e().condition(e().getCondition(test, test.C())));
-		writer.println(") goto S" + test.S1() + ";");
-		writer.println("else goto S" + test.S0() + ";");
+		writer.println(") {");
+		writer.println("AM_TRACE_TEST(" + n + ", " + test.C() + ", true);");
+		writer.println("goto S" + test.S1() + ";");
+		writer.println("} else {");
+		writer.println("AM_TRACE_TEST(" + n + ", " + test.C() + ", false);");
+		writer.println("goto S" + test.S0() + ";");
+		writer.println("}");
 	}
 
 	public void controllerInstruction(IWait wait, PrintWriter writer) {
-		writer.println("AM_TRACE_WAIT();");
+		ActorMachine am = e().actorMachine(wait);
+		Node node = e().node(am);
+		int n = e().index(node);
+		writer.println("AM_TRACE_WAIT("+ n + ");");
 		writer.println("state = " + wait.S() + ";");
 		writer.println("return progress;");
 	}
 
 	public void controllerInstruction(ICall call, PrintWriter writer) {
-		writer.println("AM_TRACE_CALL(" + call.T() + ");");
 		ActorMachine am = e().actorMachine(call);
 		Node node = e().node(am);
 		int n = e().index(node);
+		writer.println("AM_TRACE_CALL(" + n + "," + call.T() + ");");
 		writer.println("transition_n" + n + "t" + call.T() + "();");
 		writer.println("progress = true;");
 		writer.println("goto S" + call.S() + ";");

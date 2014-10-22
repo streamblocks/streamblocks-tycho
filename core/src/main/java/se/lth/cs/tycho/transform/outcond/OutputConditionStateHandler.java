@@ -103,7 +103,8 @@ public class OutputConditionStateHandler implements ActorMachineState<OutputCond
 			return conditionMap.get(condition);
 		} else {
 			conditionMap.put(condition, nextCondition);
-			conditions.add(new PortCondition(port, tokens, false));
+			Port copy = new Port(port.getName(), port.getOffset());
+			conditions.add(new PortCondition(copy, tokens, false));
 			return nextCondition++;
 		}
 	}

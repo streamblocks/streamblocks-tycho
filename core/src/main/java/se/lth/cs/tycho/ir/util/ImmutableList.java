@@ -2,6 +2,11 @@ package se.lth.cs.tycho.ir.util;
 
 import java.util.AbstractList;
 import java.util.Arrays;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 /**
  * Immutable lists.
@@ -156,6 +161,14 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	public static <E> ImmutableList<E> covariance(ImmutableList<? extends E> list) {
 		return (ImmutableList<E>) list;
 	}
+	
+	public static <E> Collector<E, Builder<E>, ImmutableList<E>> collector() {
+		Supplier<Builder<E>> supplier = Builder::new;
+		BiConsumer<Builder<E>, E> accumulator = Builder::add;
+		BinaryOperator<Builder<E>> combiner = (b1, b2) -> b1.addAll(b2.build());
+		Function<Builder<E>, ImmutableList<E>> finisher = Builder::build;
+		return Collector.of(supplier, accumulator, combiner, finisher); 
+	}
 
 	/**
 	 * A class for constructing ImmutableLists.
@@ -230,5 +243,5 @@ public final class ImmutableList<E> extends AbstractList<E> {
 			return new ImmutableList<E>(list, size);
 		}
 	}
-
+	
 }

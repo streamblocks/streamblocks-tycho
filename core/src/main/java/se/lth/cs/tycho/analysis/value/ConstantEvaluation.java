@@ -31,6 +31,10 @@ public class ConstantEvaluation extends Module<ConstantEvaluation.Attributes> {
 	public Optional<Object> constant(ExprLiteral lit) {
 		switch (lit.getKind()) {
 		case Integer:
+			String text = lit.getText();
+			if (text.startsWith("0x") || text.startsWith("0X")) {
+				return Optional.of(Integer.parseInt(text.substring(2), 16));
+			}
 			return Optional.of(Integer.parseInt(lit.getText()));
 		case True:
 			return Optional.of(true);
@@ -61,6 +65,12 @@ public class ConstantEvaluation extends Module<ConstantEvaluation.Attributes> {
 				break;
 			case "$BinaryOperation.-":
 				binOp = (a, b) -> a - b;
+				break;
+			case "$BinaryOperation.*":
+				binOp = (a, b) -> a * b;
+				break;
+			case "$BinaryOperation./":
+				binOp = (a, b) -> a / b;
 				break;
 			case "$UnaryOperation.-":
 				unOp = a -> -a;

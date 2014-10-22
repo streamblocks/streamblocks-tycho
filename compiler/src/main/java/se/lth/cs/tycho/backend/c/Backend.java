@@ -50,7 +50,6 @@ public class Backend {
 		register.register(Buffers.class);
 		register.register(ConstantPropagation.class);
 		register.register(Controllers.class);
-		// register.register(ControllersWithStats.class);
 		register.register(ControllerGraph.class);
 		register.register(CTypes.class);
 		register.register(FunctionApplications.class);
@@ -58,7 +57,6 @@ public class Backend {
 		register.register(Lists.class);
 		register.register(Names.class);
 		register.register(Networks.class);
-//		register.register(Ports.class);
 		register.register(ScopeDependencies.class);
 		register.register(ScopeInitializers.class);
 		register.register(Scopes.class);
@@ -68,7 +66,6 @@ public class Backend {
 		register.register(TranslationUnit.class);
 		register.register(Utilities.class);
 		
-//		register.register(VariableBinding.class);
 		register.register(Imports.class);
 		register.register(NameAnalysis.class);
 		register.register(NamespaceDecls.class);
@@ -76,7 +73,7 @@ public class Backend {
 		register.register(ConstantEvaluation.class);
 		register.register(TreeRootModule.class);
 		register.register(PortAnalysis.class);
-		TreeRoot root = new TreeRoot(null, network);
+		TreeRoot root = new TreeRoot(loader, network);
 		AttributeEvaluator evaluator = register.getEvaluator(root, traverser);
 		evaluator.evaluate("translate", root, out);
 		out.flush();

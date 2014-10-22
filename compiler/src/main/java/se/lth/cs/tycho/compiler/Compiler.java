@@ -25,7 +25,7 @@ import se.lth.cs.tycho.transform.caltoam.ActorStates;
 import se.lth.cs.tycho.transform.filter.SelectFirstInstruction;
 
 public class Compiler {
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		OptionParser parser = new OptionParser();
 		OptionSpec<File> outputDir = parser.accepts("output-dir", "Output directory for the compilaiton")
 				.withRequiredArg()
@@ -61,6 +61,7 @@ public class Compiler {
 			Path outputFile = opts.valueOf(outputDir).toPath().resolve(qid.getLast().toString() + ".c");
 			PrintWriter out = new PrintWriter(Files.newBufferedWriter(outputFile), true);
 			Backend.generateCode(loader, (Network) inst, out);
+			out.close();
 		} else {
 			System.out.println("Usage: java " + Compiler.class.getCanonicalName() + " [options] entity");
 			System.out.println();

@@ -1,6 +1,8 @@
 package se.lth.cs.tycho.backend.c.att;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javarag.Module;
 import javarag.Synthesized;
@@ -12,14 +14,18 @@ import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.instance.net.ToolValueAttribute;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.expr.ExprIf;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
+import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtOutput;
+import se.lth.cs.tycho.messages.util.Result;
 
 public class Buffers extends Module<Buffers.Decls> {
 
@@ -57,6 +63,10 @@ public class Buffers extends Module<Buffers.Decls> {
 
 		String tempVariableName(Object object);
 
+		Result<VarDecl> variableDeclaration(Variable v);
+
+		Optional<Object> constant(Expression e);
+
 	}
 
 	public int bufferSize(Connection conn) {
@@ -89,6 +99,26 @@ public class Buffers extends Module<Buffers.Decls> {
 				"static size_t head" + name + " = 0;\n" +
 				"static size_t tokens" + name + " = 0;\n";
 	}
+	
+	private String initIfExpr(ExprIf i, String var) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("if (" + e().simpleExpression(i.getCondition()) + ") {\n");
+		String thn = e().simpleExpression(i.getThenExpr());
+		if (thn == null) {
+			builder.append(e().varInit(i.getThenExpr(), var));
+		} else {
+			builder.append(var + " = " + thn + "\n");
+		}
+		builder.append("} else {\n");
+		String els = e().simpleExpression(i.getElseExpr());
+		if (els == null) {
+			builder.append(e().varInit(i.getThenExpr(), var));
+		} else {
+			builder.append(var + " = " + els + "\n");
+		}
+		builder.append("}\n");
+		return builder.toString();
+	}
 
 	public String statement(StmtOutput output) {
 		if (output.hasRepeat()) {
@@ -97,10 +127,29 @@ public class Buffers extends Module<Buffers.Decls> {
 				String name = e().bufferName(conn);
 				int j = 0;
 				String format = "buffer%1$s[(head%1$s + tokens%1$s + %2$d) %% size%1$s] = %3$s[%4$d];\n";
-				for (int i = 0; i < output.getRepeat(); i++) {
-					for (Expression e : output.getValues()) {
+				List<String> vars = new ArrayList<>();
+				for (Expression e : output.getValues()) {
+					if (e instanceof ExprVariable) {
+						ExprVariable var = (ExprVariable) e;
+						Result<VarDecl> decl = e().variableDeclaration(var.getVariable());
+						vars.add(e().variableName(decl.get()));
+					} else {
+						String temp = e().tempVariableName(e);
+						vars.add(temp);
+						result.append(e().ctype(e).variableType(temp) + ";\n");
 						String value = e().simpleExpression(e);
-						result.append(String.format(format, name, j, value, i));
+						if (e instanceof ExprIf) {
+							result.append(initIfExpr((ExprIf) e, temp));
+						} else if (value == null) {						
+							result.append(e().varInit(e, temp));
+						} else {
+							result.append(temp + "=" + value + ";\n");
+						}
+					}
+				}
+				for (int i = 0; i < output.getRepeat(); i++) {
+					for (String v : vars) {
+						result.append(String.format(format, name, j, v, i));
 						j++;
 					}
 				}
@@ -114,7 +163,15 @@ public class Buffers extends Module<Buffers.Decls> {
 				int index = 0;
 				String pattern = "buffer%1$s[(head%1$s + tokens%1$s + %2$d) %% size%1$s] = %3$s;\n";
 				for (Expression value : output.getValues()) {
-					sb.append(String.format(pattern, name, index, e().simpleExpression(value)));
+					if (value instanceof ExprVariable) {
+						String varName = ((ExprVariable) value).getVariable().getName();
+						if (varName.equals("NEWVOP") || varName.equals("INTRA") || varName.equals("SKIP")) {
+							Optional<Object> constant = e().constant(value);
+							constant.isPresent();
+						}
+					}
+					String val = e().simpleExpression(value);
+					sb.append(String.format(pattern, name, index, val));
 					index += 1;
 				}
 				sb.append("tokens" + name + " += " + output.getValues().size() + ";\n");

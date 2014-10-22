@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.backend.c.att;
 
+import java.util.Optional;
+
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprIf;
@@ -23,6 +25,8 @@ public class SimpleExpressions extends Module<SimpleExpressions.Decls> {
 		String functionApplication(Expression function, ExprApplication application);
 
 		String variableName(Variable variable);
+
+		Optional<Object> constant(Expression expr);
 
 	}
 
@@ -55,6 +59,15 @@ public class SimpleExpressions extends Module<SimpleExpressions.Decls> {
 	}
 
 	public String simpleExpression(ExprVariable expr) {
+		Optional<Object> constant = e().constant(expr);
+		if (constant.isPresent()) {
+			Object c = constant.get();
+			if (c instanceof Integer) {
+				return c.toString();
+			} else if (c instanceof Boolean) {
+				return c.toString();
+			}
+		}
 		return e().variableName(expr.getVariable());
 	}
 

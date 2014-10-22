@@ -3,6 +3,7 @@ package se.lth.cs.tycho.analysis.name;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import javarag.Collected;
 import javarag.Inherited;
@@ -14,6 +15,9 @@ import javarag.coll.Collector;
 import se.lth.cs.tycho.analysis.util.TreeRoot;
 import se.lth.cs.tycho.analysis.util.TreeRootModule;
 import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.PredicateCondition;
+import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -32,6 +36,7 @@ import se.lth.cs.tycho.ir.expr.ExprList;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
+import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.util.Result;
 
@@ -51,6 +56,9 @@ public class NameAnalysis extends Module<NameAnalysis.Attributes> {
 		
 		@Collected
 		public Set<Message> nameErrors(TreeRoot root);
+		
+		@Synthesized
+		public Result<VarDecl> lookupVariableInLocation(NamespaceDecl ns, Variable var);
 		
 	}
 	
@@ -107,7 +115,36 @@ public class NameAnalysis extends Module<NameAnalysis.Attributes> {
  		return Result.failure(Message.error("Declaration for variable " + var.getName() + " not found"));
 	}
 	
-	public Result<VarDecl> lookupVariable(NamespaceDecl ns, Variable var) {
+	private <T extends IRNode> Result<VarDecl> lookupVariableHelper(T scope, Function<T, NamespaceDecl> getLocation, Variable var) {
+		NamespaceDecl unit = getLocation.apply(scope);
+		TreeRoot root = e().treeRoot(scope);
+		DeclarationLoader loader = root.getLoader();
+		while (unit != null && loader.getLocation(unit) != null) {
+			unit = loader.getLocation(unit);
+		}
+		if (unit != null) {
+			e().compilationUnit(root, unit);
+			return e().lookupVariableInLocation(getLocation.apply(scope), var);
+		} else {
+			return Result.failure(Message.error("Declaration for variable " + var.getName() + " not found"));
+		}
+
+	}
+	
+	public Result<VarDecl> lookupVariable(Scope scope, Variable var) {
+		return lookupVariableHelper(scope, Scope::getLocation, var);
+	}
+	
+	public Result<VarDecl> lookupVariable(Transition transition, Variable var) {
+		return lookupVariableHelper(transition, Transition::getLocation, var);
+	}
+
+	public Result<VarDecl> lookupVariable(PredicateCondition cond, Variable var) {
+		return lookupVariableHelper(cond, PredicateCondition::getLocation, var);
+
+	}
+
+	public Result<VarDecl> lookupVariableInLocation(NamespaceDecl ns, Variable var) {
 		for (Import imp : ns.getImports()) {
 			Result<Optional<VarDecl>> imported = e().importVar(imp, var.getName());
 			if (imported.isFailure()) {
@@ -121,6 +158,10 @@ public class NameAnalysis extends Module<NameAnalysis.Attributes> {
 			return Result.success(decl);
 		}
 		return e().lookupVariable(ns, var);
+	}
+	
+	public Result<VarDecl> lookupVariable(NamespaceDecl ns, Variable var) {
+		return e().lookupVariableInLocation(ns, var);
 	}
 
 	public Result<VarDecl> lookupVariable(ExprLet let, Variable var) {

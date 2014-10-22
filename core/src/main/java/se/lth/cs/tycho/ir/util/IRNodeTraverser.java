@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javarag.TreeTraverser;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.entity.PortContainer;
-import javarag.TreeTraverser;
 
 public class IRNodeTraverser implements TreeTraverser<Object> {
 
@@ -39,6 +39,8 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 			if (!Modifier.isPublic(m.getModifiers()))
 				continue;
 			if (m.getParameterTypes().length > 0)
+				continue;
+			if (m.getName().equals("getLocation") && m.getReturnType() == NamespaceDecl.class)
 				continue;
 
 			Class<?> returnType = m.getReturnType();

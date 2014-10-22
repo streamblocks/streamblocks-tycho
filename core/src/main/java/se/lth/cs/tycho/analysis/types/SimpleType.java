@@ -18,6 +18,10 @@ public class SimpleType implements Type {
 	public Type greatestLowerBound(Type that) {
 		return that.accept(greatestLowerBound, this);
 	}
+	
+	public String getName() {
+		return name;
+	}
 
 	@Override
 	public <R, P> R accept(TypeVisitor<R, P> visitor, P param) {

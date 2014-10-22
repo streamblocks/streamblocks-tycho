@@ -17,6 +17,7 @@ import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import javarag.Bottom;
+import javarag.Cached;
 import javarag.Circular;
 import javarag.Inherited;
 import javarag.Module;
@@ -27,6 +28,10 @@ public class ScopeInitializers extends Module<ScopeInitializers.Decls> {
 	public interface Decls {
 		@Inherited
 		Set<Scope> persistentScopes(IRNode s);
+		
+		@Synthesized
+		@Cached
+		Set<Scope> computePersistentScopes(ActorMachine am);
 
 		@Synthesized
 		Set<Scope> scopesToKill(Instruction i);
@@ -69,8 +74,12 @@ public class ScopeInitializers extends Module<ScopeInitializers.Decls> {
 		Set<Scope> scopeDependencies(Scope s);
 
 	}
-
+	
 	public Set<Scope> persistentScopes(ActorMachine am) {
+		return e().computePersistentScopes(am);
+	}
+
+	public Set<Scope> computePersistentScopes(ActorMachine am) {
 		Set<Scope> result = new HashSet<>();
 		result.addAll(am.getScopes());
 		for (Transition t : am.getTransitions()) {

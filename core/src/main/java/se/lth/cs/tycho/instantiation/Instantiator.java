@@ -1,9 +1,11 @@
 package se.lth.cs.tycho.instantiation;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import se.lth.cs.tycho.instance.Instance;
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
@@ -24,6 +26,11 @@ import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
+import se.lth.cs.tycho.transform.copy.Copy;
+import se.lth.cs.tycho.transform.filter.SelectFirstInstruction;
+import se.lth.cs.tycho.transform.outcond.OutputConditionAdder;
+import se.lth.cs.tycho.transform.outcond.OutputConditionState;
+import se.lth.cs.tycho.transform.util.ActorMachineState;
 import se.lth.cs.tycho.transform.util.ActorMachineState.Transformer;
 
 public class Instantiator {
@@ -51,7 +58,8 @@ public class Instantiator {
 	 * @return an instance of the specified entity
 	 */
 	public Instance instantiate(Entity entity, NamespaceDecl location) {
-		return entity.accept(visitor, location);
+		Entity copy = entity.accept(Copy.transformer(), null);
+		return copy.accept(visitor, location);
 	}
 
 	/**
@@ -76,7 +84,9 @@ public class Instantiator {
 			if (!entity.getValueParameters().isEmpty() || !entity.getTypeParameters().isEmpty()) {
 				throw new UnsupportedOperationException("Can not instantiate an actor with parameters.");
 			}
-			return translator.translate(entity);
+			ActorMachine result = translator.translate(entity, location);
+			result = OutputConditionAdder.addOutputConditions(result, Arrays.asList(SelectFirstInstruction<OutputConditionState>::new));
+			return result;
 		}
 
 		@Override

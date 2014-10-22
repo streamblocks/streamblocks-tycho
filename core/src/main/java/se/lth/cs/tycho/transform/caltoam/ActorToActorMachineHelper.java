@@ -10,6 +10,7 @@ import se.lth.cs.tycho.instance.am.PortCondition;
 import se.lth.cs.tycho.instance.am.PredicateCondition;
 import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.instance.am.Transition;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -40,9 +41,11 @@ class ActorToActorMachineHelper {
 	private ImmutableList<Condition> conditions;
 	private ConditionHandler condHandler;
 	private List<String> stateList;
+	private final NamespaceDecl location;
 
-	public ActorToActorMachineHelper(CalActor calActor) {
-		aveResult = ave.extractVariables(anp.addNumberedPorts(calActor));
+	public ActorToActorMachineHelper(CalActor calActor, NamespaceDecl location) {
+		aveResult = ave.extractVariables(anp.addNumberedPorts(calActor), location);
+		this.location = location;
 	}
 	
 	public ActorStateHandler getActorStateHandler() {
@@ -101,7 +104,7 @@ class ActorToActorMachineHelper {
 			}
 			int firstPredCond = condNbr;
 			for (Expression guard : action.getGuards()) {
-				PredicateCondition c = new PredicateCondition(guard, null); //FIXME add namespace decl
+				PredicateCondition c = new PredicateCondition(guard, location);
 				handler.addCondition(actionNbr, condNbr);
 				conditions.add(c);
 				condNbr += 1;
@@ -149,7 +152,7 @@ class ActorToActorMachineHelper {
 		addConsumeStmts(builder, action.getInputPatterns());
 		StmtBlock body = new StmtBlock(null, null, builder.build());
 		return new Transition(getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()),
-				aveResult.transientScopes, body, null); //FIXME find the correct namespace decl
+				aveResult.transientScopes, body, location);
 	}
 
 	private void addConsumeStmts(Builder<Statement> builder, ImmutableList<InputPattern> inputPatterns) {

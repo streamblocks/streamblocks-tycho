@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.analysis.types;
 
+import java.util.Objects;
 import java.util.OptionalInt;
 
 public class ListType implements Type {
@@ -38,6 +39,21 @@ public class ListType implements Type {
 	
 	public OptionalInt getSize() {
 		return size;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(elements, size);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ListType) {
+			ListType that = (ListType) obj;
+			return this.elements.equals(that.elements) && this.size.equals(that.size);
+		} else {
+			return false;
+		}
 	}
 
 	@Override

@@ -115,28 +115,28 @@ public class TranslationUnit extends Module<TranslationUnit.Decls> {
 			arg += 1;
 		}
 
-		writer.println("	clock_t io_time = 0, actor_time = 0, t0, t1;");
+		//writer.println("	clock_t io_time = 0, actor_time = 0, t0, t1;");
 
 		writer.println("	_Bool progress = true;");
-		writer.println("	t0 = clock();");
+		//writer.println("	t0 = clock();");
 		writer.println("	while (progress) {");
 		writer.println("		progress = false;");
 		for (String actor : e().borderActorNames(network)) {
 			writer.println("		progress |= " + actor + "();");
 		}
-		writer.println("		t1 = clock();");
-		writer.println("		io_time += t1 - t0;");
-		writer.println("		t0 = t1;");
+		//writer.println("		t1 = clock();");
+		//writer.println("		io_time += t1 - t0;");
+		//writer.println("		t0 = t1;");
 		for (int i = 0; i < network.getNodes().size(); i++) {
 			writer.println("		progress |= actor_n" + i + "();");
 		}
-		writer.println("		t1 = clock();");
-		writer.println("		actor_time += t1 - t0;");
-		writer.println("		t0 = t1;");
+		//writer.println("		t1 = clock();");
+		//writer.println("		actor_time += t1 - t0;");
+		//writer.println("		t0 = t1;");
 		writer.println("	}");
 
-		writer.println("	fprintf(stdout, \"Time spent in I/0 actors: %lu ns\\n\", io_time*1000*1000*1000 / CLOCKS_PER_SEC);");
-		writer.println("	fprintf(stdout, \"Time spent in real actors: %lu ns\\n\", actor_time*1000*1000*1000 / CLOCKS_PER_SEC);");
+		//writer.println("	fprintf(stdout, \"Time spent in I/0 actors: %lu ns\\n\", io_time*1000*1000*1000 / CLOCKS_PER_SEC);");
+		//writer.println("	fprintf(stdout, \"Time spent in real actors: %lu ns\\n\", actor_time*1000*1000*1000 / CLOCKS_PER_SEC);");
 
 		for (Connection conn : network.getConnections()) {
 			String name = e().bufferName(conn);
@@ -154,7 +154,6 @@ public class TranslationUnit extends Module<TranslationUnit.Decls> {
 		writer.println("#include <stdbool.h>");
 		writer.println("#include <stdlib.h>");
 		writer.println("#include <time.h>");
-		writer.println("#include \"mpeg_constants.h\"");
 		writer.println();
 		writer.println("#ifdef TRACE_ALL");
 		writer.println("#define TRACE_STATE");
@@ -168,27 +167,27 @@ public class TranslationUnit extends Module<TranslationUnit.Decls> {
 		writer.println("#endif");
 		writer.println();
 		writer.println("#ifdef TRACE_STATE");
-		writer.println("#define AM_TRACE_STATE(s) printf(\"state %d\\n\", s)");
+		writer.println("#define AM_TRACE_STATE(a, s) printf(\"state actor %d state %d\\n\", a, s)");
 		writer.println("#else");
-		writer.println("#define AM_TRACE_STATE(s)");
+		writer.println("#define AM_TRACE_STATE(a, s)");
 		writer.println("#endif");
 		writer.println();
 		writer.println("#ifdef TRACE_CALL");
-		writer.println("#define AM_TRACE_CALL(s) printf(\"call %d\\n\", s)");
+		writer.println("#define AM_TRACE_CALL(a, t) printf(\"call actor %d transition %d\\n\", a, t)");
 		writer.println("#else");
-		writer.println("#define AM_TRACE_CALL(s)");
+		writer.println("#define AM_TRACE_CALL(a, t)");
 		writer.println("#endif");
 		writer.println();
 		writer.println("#ifdef TRACE_TEST");
-		writer.println("#define AM_TRACE_TEST(s) printf(\"test %d\\n\", s)");
+		writer.println("#define AM_TRACE_TEST(a, c, r) printf(\"test actor %d condition %d result %d\\n\", a, c, r)");
 		writer.println("#else");
-		writer.println("#define AM_TRACE_TEST(s)");
+		writer.println("#define AM_TRACE_TEST(a, c, r)");
 		writer.println("#endif");
 		writer.println();
 		writer.println("#ifdef TRACE_WAIT");
-		writer.println("#define AM_TRACE_WAIT() printf(\"wait\\n\")");
+		writer.println("#define AM_TRACE_WAIT(a) printf(\"wait actor %d\\n\", a)");
 		writer.println("#else");
-		writer.println("#define AM_TRACE_WAIT()");
+		writer.println("#define AM_TRACE_WAIT(a)");
 		writer.println("#endif");
 	}
 

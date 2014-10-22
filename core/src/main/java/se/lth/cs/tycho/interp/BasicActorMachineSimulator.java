@@ -69,7 +69,7 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 				return stateHandler;
 			}
 		};
-		ActorMachine actorMachine = trans.translate(calActor);
+		ActorMachine actorMachine = trans.translate(calActor, null);
 		
 		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine);
 

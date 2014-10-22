@@ -44,7 +44,7 @@ public class Main {
 		System.out.println(name);
 		System.out.println(name.replaceAll(".", "="));
 		CalActor calActor = (CalActor) parser.ActorDecl().getEntity();
-		ActorMachine actorMachine = actorToActorMachine.translate(calActor);
+		ActorMachine actorMachine = actorToActorMachine.translate(calActor, null);
 		//ErrorModule errors = parser.getErrorModule();
 		Classifier classifier = Classifier.getInstance(actorMachine);
 		for (String c : classifier.getClasses()) {

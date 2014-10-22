@@ -32,6 +32,18 @@ public class IntType implements Type {
 	public Type greatestLowerBound(Type that) {
 		return that.accept(greatestLowerBound, this);
 	}
+	
+	public boolean hasSize() {
+		return size.isPresent();
+	}
+	
+	public int getSize() {
+		return size.getAsInt();
+	}
+
+	public boolean isSigned() {
+		return signed;
+	}
 
 	@Override
 	public <R, P> R accept(TypeVisitor<R, P> visitor, P param) {
@@ -95,5 +107,4 @@ public class IntType implements Type {
 			return new IntType(signed, size);
 		}
 	}
-
 }

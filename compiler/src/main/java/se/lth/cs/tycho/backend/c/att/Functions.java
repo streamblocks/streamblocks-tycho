@@ -14,6 +14,7 @@ import javarag.Synthesized;
 import javarag.coll.Builder;
 import javarag.coll.CollectionBuilder;
 import javarag.coll.Collector;
+import se.lth.cs.tycho.analysis.types.Type;
 import se.lth.cs.tycho.backend.c.CType;
 import se.lth.cs.tycho.backend.c.util.Joiner;
 import se.lth.cs.tycho.instance.am.ActorMachine;
@@ -64,6 +65,10 @@ public class Functions extends Module<Functions.Decls> {
 		String variableName(VarDecl par);
 
 		CType ctype(TypeExpr type);
+		
+		CType ctype(VarDecl par);
+		
+		Type type(TypeExpr type);
 
 		String simpleExpression(Expression e);
 
@@ -127,7 +132,7 @@ public class Functions extends Module<Functions.Decls> {
 	public void functionBody(ExprLet let, PrintWriter writer) {
 		writer.println("{");
 		for (VarDecl decl : let.getVarDecls()) {
-			CType type = e().ctype(decl.getType());
+			CType type = e().ctype(decl);
 			String name = e().variableName(decl);
 			String value = e().simpleExpression(decl.getValue());
 			writer.print("const ");
@@ -159,7 +164,7 @@ public class Functions extends Module<Functions.Decls> {
 		List<String> parList = new ArrayList<>();
 		for (VarDecl par : pars) {
 			String name = e().variableName(par);
-			CType type = e().ctype(par.getType());
+			CType type = e().ctype(par);
 			parList.add(type.variableType(name));
 		}
 		return parList;
