@@ -30,7 +30,7 @@ public class TestInstantiateXdf {
 	
 	@Test
 	public void testEmpty() throws AmbiguityException {
-		Instance instance = instantiator.instantiate(QID.of("empty"), null);
+		Instance instance = instantiator.instantiate(QID.of("empty"), null, QID.empty());
 		assertTrue(instance instanceof Network);
 		Network net = (Network) instance;
 		assertTrue(net.getConnections().isEmpty());

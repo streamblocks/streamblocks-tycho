@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.instantiation;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,14 +23,11 @@ import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
-import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
+import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
+import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.copy.Copy;
-import se.lth.cs.tycho.transform.filter.SelectFirstInstruction;
-import se.lth.cs.tycho.transform.outcond.OutputConditionAdder;
-import se.lth.cs.tycho.transform.outcond.OutputConditionState;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
-import se.lth.cs.tycho.transform.util.ActorMachineState.Transformer;
+import se.lth.cs.tycho.transform.util.Controller;
 
 public class Instantiator {
 	private final DeclarationLoader loader;
@@ -42,7 +38,8 @@ public class Instantiator {
 		this(loader, Collections.emptyList());
 	}
 
-	public Instantiator(DeclarationLoader loader, List<Transformer<State, State>> stateTransformers) {
+	public Instantiator(DeclarationLoader loader,
+			List<Transformation<Controller<CalActorStates.State>>> stateTransformers) {
 		this.loader = loader;
 		this.visitor = new Visitor();
 		this.translator = new ActorToActorMachine(stateTransformers);
@@ -57,50 +54,51 @@ public class Instantiator {
 	 *            the namespace declaration from where the instance is created
 	 * @return an instance of the specified entity
 	 */
-	public Instance instantiate(Entity entity, NamespaceDecl location) {
+	public Instance instantiate(Entity entity, NamespaceDecl location, QID instanceId) {
 		Entity copy = entity.accept(Copy.transformer(), null);
-		return copy.accept(visitor, location);
+		return copy.accept(visitor, new Data(location, instanceId));
 	}
 
 	/**
 	 * Loads and instantiates the entity with the specified qualified identifier
 	 * into the namespace declaration location.
 	 * 
-	 * @param qid
+	 * @param entityId
 	 *            the entity to instantiate
 	 * @param location
 	 *            the namespace declaration from where the instance is created
 	 * @return an instance of the specified entity
-	 * @throws AmbiguityException if there is more than one entity available
+	 * @throws AmbiguityException
+	 *             if there is more than one entity available
 	 */
-	public Instance instantiate(QID qid, NamespaceDecl location) throws AmbiguityException {
-		EntityDecl decl = loader.loadEntity(qid, location);
-		return instantiate(decl.getEntity(), loader.getLocation(decl));
+	public Instance instantiate(QID entityId, NamespaceDecl location, QID instanceId) throws AmbiguityException {
+		EntityDecl decl = loader.loadEntity(entityId, location);
+		return instantiate(decl.getEntity(), loader.getLocation(decl), instanceId);
 	}
 
-	private class Visitor implements EntityVisitor<Instance, NamespaceDecl> {
+	private class Visitor implements EntityVisitor<Instance, Data> {
 		@Override
-		public Instance visitCalActor(CalActor entity, NamespaceDecl location) {
+		public Instance visitCalActor(CalActor entity, Data data) {
 			if (!entity.getValueParameters().isEmpty() || !entity.getTypeParameters().isEmpty()) {
 				throw new UnsupportedOperationException("Can not instantiate an actor with parameters.");
 			}
-			ActorMachine result = translator.translate(entity, location);
-			result = OutputConditionAdder.addOutputConditions(result, Arrays.asList(SelectFirstInstruction<OutputConditionState>::new));
+			ActorMachine result = translator.translate(entity, data.location, data.instanceId);
 			return result;
 		}
 
 		@Override
-		public Instance visitNlNetwork(NlNetwork entity, NamespaceDecl location) {
+		public Instance visitNlNetwork(NlNetwork entity, Data data) {
 			throw new UnsupportedOperationException("Nl networks are not yet supported.");
 		}
 
 		@Override
-		public Instance visitXDFNetwork(XDFNetwork entity, NamespaceDecl location) {
+		public Instance visitXDFNetwork(XDFNetwork entity, Data data) {
 			ImmutableList.Builder<Node> nodeBuilder = ImmutableList.builder();
 			for (XDFInstance inst : entity.getInstances()) {
 				Instance result;
 				try {
-					result = instantiate(inst.getEntity(), location);
+					String name = inst.getName();
+					result = instantiate(inst.getEntity(), data.location, data.instanceId.concat(QID.of(name)));
 				} catch (AmbiguityException e) {
 					throw new RuntimeException(e);
 				}
@@ -138,4 +136,16 @@ public class Instantiator {
 		}
 
 	}
+	private static class Data {
+
+		private final NamespaceDecl location;
+		private final QID instanceId;
+
+		public Data(NamespaceDecl location, QID instanceId) {
+			this.location = location;
+			this.instanceId = instanceId;
+		}
+
+	}
+
 }

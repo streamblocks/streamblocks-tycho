@@ -8,24 +8,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
+import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.GenInstruction.Visitor;
 
-public class ShortestPathStateHandler<S> implements ActorMachineState<S> {
+public class ShortestPathFilteredController<S> implements Controller<S> {
 
 	private final GenInstruction.Visitor<S, Integer, Void> weight;
-	private final ActorMachineState<S> actorMachineState;
+	private final Controller<S> controller;
 	private final Map<S, GenInstruction<S>> decisions;
 
-	public ShortestPathStateHandler(Visitor<S, Integer, Void> weight, ActorMachineState<S> stateHandler) {
+	public ShortestPathFilteredController(Visitor<S, Integer, Void> weight, Controller<S> controller) {
 		this.weight = weight;
-		this.actorMachineState = stateHandler;
+		this.controller = controller;
 		decisions = new HashMap<>();
 	}
 
 	@Override
-	public List<GenInstruction<S>> getInstructions(S state) {
+	public List<GenInstruction<S>> instructions(S state) {
 		if (!decisions.containsKey(state)) {
 			List<S> states = topSortBasicSection(state);
 			Map<S, Edge> pred = new HashMap<>();
@@ -33,7 +34,7 @@ public class ShortestPathStateHandler<S> implements ActorMachineState<S> {
 			Edge waitEdge = null;
 			for (S s : states) {
 				final int dist = pred.containsKey(s) ? pred.get(s).distance : 0;
-				for (GenInstruction<S> i : actorMachineState.getInstructions(s)) {
+				for (GenInstruction<S> i : controller.instructions(s)) {
 					if (i.isTest()) {
 						for (S dest : i.destinations()) {
 							int d = dist + i.accept(weight);
@@ -82,7 +83,7 @@ public class ShortestPathStateHandler<S> implements ActorMachineState<S> {
 
 	@Override
 	public S initialState() {
-		return actorMachineState.initialState();
+		return controller.initialState();
 	}
 
 	private List<S> topSortBasicSection(S state) {
@@ -95,7 +96,7 @@ public class ShortestPathStateHandler<S> implements ActorMachineState<S> {
 	private void topSortUtil(S state, LinkedList<S> result, Set<S> visited) {
 		if (!visited.contains(state)) {
 			visited.add(state);
-			for (GenInstruction<S> i : actorMachineState.getInstructions(state)) {
+			for (GenInstruction<S> i : controller.instructions(state)) {
 				if (i.isTest()) {
 					for (S d : i.destinations()) {
 						topSortUtil(d, result, visited);
@@ -104,6 +105,11 @@ public class ShortestPathStateHandler<S> implements ActorMachineState<S> {
 			}
 			result.addLast(state);
 		}
+	}
+
+	@Override
+	public QID instanceId() {
+		return controller.instanceId();
 	}
 
 }

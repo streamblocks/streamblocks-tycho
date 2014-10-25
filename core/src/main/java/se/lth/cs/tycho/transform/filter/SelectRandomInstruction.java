@@ -4,33 +4,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
-
+import se.lth.cs.tycho.transform.util.Controller;
 
 /**
  * State handler that filters the instructions by picking one at random.
+ * 
  * @author gustav
  *
  * @param <S>
  */
-public class SelectRandomInstruction<S> implements ActorMachineState<S> {
+public class SelectRandomInstruction<S> implements Controller<S> {
 
 	private final Random random;
-	private final ActorMachineState<S> actorMachineState;
+	private final Controller<S> controller;
 
-	public SelectRandomInstruction(ActorMachineState<S> stateHandler, Random random) {
+	public SelectRandomInstruction(Controller<S> stateHandler, Random random) {
 		this.random = random;
-		this.actorMachineState = stateHandler;
+		this.controller = stateHandler;
 	}
 
-	public SelectRandomInstruction(ActorMachineState<S> stateHandler) {
+	@Override
+	public QID instanceId() {
+		return controller.instanceId();
+	}
+
+	public SelectRandomInstruction(Controller<S> stateHandler) {
 		this(stateHandler, new Random());
 	}
 
 	@Override
-	public List<GenInstruction<S>> getInstructions(S state) {
-		List<GenInstruction<S>> instructions = actorMachineState.getInstructions(state);
+	public List<GenInstruction<S>> instructions(S state) {
+		List<GenInstruction<S>> instructions = controller.instructions(state);
 		List<GenInstruction<S>> selected = new ArrayList<>(1);
 		selected.add(instructions.get(random.nextInt(instructions.size())));
 		return selected;
@@ -38,6 +45,10 @@ public class SelectRandomInstruction<S> implements ActorMachineState<S> {
 
 	@Override
 	public S initialState() {
-		return actorMachineState.initialState();
+		return controller.initialState();
+	}
+	
+	public static <S> Transformation<Controller<S>> transformation(Random random) {
+		return (Controller<S> controller) -> new SelectRandomInstruction<>(controller, random);
 	}
 }

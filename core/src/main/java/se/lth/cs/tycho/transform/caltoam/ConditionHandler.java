@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
-import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
+import se.lth.cs.tycho.transform.caltoam.CalActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.util.BitSets;
 import se.lth.cs.tycho.transform.caltoam.util.TestResult;
 import se.lth.cs.tycho.util.DAG;

@@ -5,13 +5,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.parsing.cal.CalParser;
 import se.lth.cs.tycho.parsing.cal.ParseException;
-import se.lth.cs.tycho.transform.caltoam.ActorStates;
+import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
+import se.lth.cs.tycho.transform.util.Controller;
 
 public class Main {
 	
@@ -20,7 +21,7 @@ public class Main {
 	public Main() {
 		actorToActorMachine = new ActorToActorMachine() {
 			@Override
-			protected ActorMachineState<ActorStates.State> getStateHandler(ActorMachineState<ActorStates.State> stateHandler) {
+			protected Controller<CalActorStates.State> getStateHandler(Controller<CalActorStates.State> stateHandler) {
 				return new PrioritizeCallInstructions<>(stateHandler);
 			}
 		};
@@ -44,7 +45,7 @@ public class Main {
 		System.out.println(name);
 		System.out.println(name.replaceAll(".", "="));
 		CalActor calActor = (CalActor) parser.ActorDecl().getEntity();
-		ActorMachine actorMachine = actorToActorMachine.translate(calActor, null);
+		ActorMachine actorMachine = actorToActorMachine.translate(calActor, null, QID.empty());
 		//ErrorModule errors = parser.getErrorModule();
 		Classifier classifier = Classifier.getInstance(actorMachine);
 		for (String c : classifier.getClasses()) {

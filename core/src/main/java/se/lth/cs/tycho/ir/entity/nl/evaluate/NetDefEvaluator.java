@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
@@ -30,7 +31,6 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
@@ -123,7 +123,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			String entityName = e.getEntityName() + ":" + p;
 			// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
 			//e.getParameterAssignments();
-			PortContainer payload = null; 
+			Instance payload = null; 
 			try {
 				decl = declLoader.loadEntity(QID.of(e.getEntityName()), null).getEntity();
 			} catch (AmbiguityException e1) {

@@ -13,37 +13,44 @@ import se.lth.cs.tycho.instance.am.IWait;
 import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.am.PortCondition;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.transform.caltoam.util.TestResult;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
+import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
-public class OutputConditionStateHandler implements ActorMachineState<OutputConditionState> {
+public class OutputConditionStateHandler implements Controller<OutputConditionState> {
 
 	private final ActorMachine actorMachine;
 	private final ImmutableList.Builder<Condition> conditions;
 	private int nextCondition;
 	private final Map<Entry<Integer, Integer>, Integer> conditionMap;
+	private final QID instanceId;
 
-	public OutputConditionStateHandler(ActorMachine actorMachine) {
+	public OutputConditionStateHandler(ActorMachine actorMachine, QID instanceId) {
 		this.actorMachine = actorMachine;
-		this.conditions = ImmutableList.builder(); 
+		this.instanceId = instanceId;
+		this.conditions = ImmutableList.builder();
 		ImmutableList<Condition> oldConds = actorMachine.getConditions();
 		this.conditions.addAll(oldConds);
 		this.nextCondition = oldConds.size();
 		this.conditionMap = new HashMap<>();
 	}
-	
+
+	public QID instanceId() {
+		return instanceId;
+	}
+
 	public ImmutableList<Condition> getConditions() {
 		return conditions.build();
 	}
 
 	@Override
-	public List<GenInstruction<OutputConditionState>> getInstructions(OutputConditionState state) {
+	public List<GenInstruction<OutputConditionState>> instructions(OutputConditionState state) {
 		ImmutableList<Instruction> instructions = actorMachine.getInstructions(state.getInnerState());
 		ImmutableList.Builder<GenInstruction<OutputConditionState>> builder = ImmutableList.builder();
 		for (Instruction i : instructions) {
@@ -65,8 +72,9 @@ public class OutputConditionStateHandler implements ActorMachineState<OutputCond
 			return result;
 		}
 	}
-	
-	private ImmutableList<GenInstruction<OutputConditionState>> getInstructionsFromCall(OutputConditionState state, ICall call) {
+
+	private ImmutableList<GenInstruction<OutputConditionState>> getInstructionsFromCall(OutputConditionState state,
+			ICall call) {
 		ImmutableList.Builder<GenInstruction<OutputConditionState>> builder = ImmutableList.builder();
 		TestResult totalResult = TestResult.True;
 		for (Entry<Port, Integer> entry : getOutputRates(call).entrySet()) {
@@ -96,7 +104,7 @@ public class OutputConditionStateHandler implements ActorMachineState<OutputCond
 		}
 		return builder.build();
 	}
-	
+
 	private int getCondition(Port port, int tokens) {
 		Entry<Integer, Integer> condition = ImmutableEntry.of(port.getOffset(), tokens);
 		if (conditionMap.containsKey(condition)) {

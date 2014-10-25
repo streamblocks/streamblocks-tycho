@@ -16,7 +16,7 @@ import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemCalRepository;
 import se.lth.cs.tycho.loader.FileSystemXdfRepository;
 import se.lth.cs.tycho.messages.NullMessageReporter;
-import se.lth.cs.tycho.transform.caltoam.ActorStates;
+import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.filter.SelectFirstInstruction;
 
 public class TestInstantiateRVC {
@@ -30,8 +30,8 @@ public class TestInstantiateRVC {
 		loader.addRepository(new FileSystemXdfRepository(RVC_PATH));
 		loader.addRepository(new FileSystemCalRepository(RVC_PATH));
 		Instantiator instantiator = new Instantiator(loader,
-				Arrays.asList(SelectFirstInstruction<ActorStates.State>::new));
-		Instance net = instantiator.instantiate(DECODER, null);
+				Arrays.asList(SelectFirstInstruction<CalActorStates.State>::new));
+		Instance net = instantiator.instantiate(DECODER, null, QID.empty());
 		assertTrue(net instanceof Network);
 		Network network = (Network) net;
 	}

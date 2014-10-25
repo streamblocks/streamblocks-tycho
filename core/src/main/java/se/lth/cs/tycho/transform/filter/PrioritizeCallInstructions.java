@@ -3,8 +3,10 @@ package se.lth.cs.tycho.transform.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
+import se.lth.cs.tycho.transform.util.Controller;
 
 /**
  * State handler that filters the instructions by picking only Call instructions
@@ -14,16 +16,21 @@ import se.lth.cs.tycho.transform.util.ActorMachineState;
  * 
  * @param <S>
  */
-public class PrioritizeCallInstructions<S> implements ActorMachineState<S> {
-	private final ActorMachineState<S> actorMachineState;
+public class PrioritizeCallInstructions<S> implements Controller<S> {
+	private final Controller<S> controller;
 
-	public PrioritizeCallInstructions(ActorMachineState<S> stateHandler) {
-		this.actorMachineState = stateHandler;
+	public PrioritizeCallInstructions(Controller<S> stateHandler) {
+		this.controller = stateHandler;
+	}
+	
+	@Override
+	public QID instanceId() {
+		return controller.instanceId();
 	}
 
 	@Override
-	public List<GenInstruction<S>> getInstructions(S state) {
-		List<GenInstruction<S>> instructions = actorMachineState.getInstructions(state);
+	public List<GenInstruction<S>> instructions(S state) {
+		List<GenInstruction<S>> instructions = controller.instructions(state);
 		for (GenInstruction<S> instr : instructions) {
 			if (instr.isCall()) {
 				return getCalls(instructions);
@@ -44,6 +51,10 @@ public class PrioritizeCallInstructions<S> implements ActorMachineState<S> {
 
 	@Override
 	public S initialState() {
-		return actorMachineState.initialState();
+		return controller.initialState();
+	}
+	
+	public static <S> Transformation<Controller<S>> transformation() {
+		return (Controller<S> controller) -> new PrioritizeCallInstructions<>(controller);
 	}
 }

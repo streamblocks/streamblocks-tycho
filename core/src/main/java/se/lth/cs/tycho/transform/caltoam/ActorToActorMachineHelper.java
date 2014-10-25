@@ -42,16 +42,18 @@ class ActorToActorMachineHelper {
 	private ConditionHandler condHandler;
 	private List<String> stateList;
 	private final NamespaceDecl location;
+	private final QID instanceId;
 
-	public ActorToActorMachineHelper(CalActor calActor, NamespaceDecl location) {
+	public ActorToActorMachineHelper(CalActor calActor, NamespaceDecl location, QID instanceId) {
 		aveResult = ave.extractVariables(anp.addNumberedPorts(calActor), location);
 		this.location = location;
+		this.instanceId = instanceId;
 	}
 	
-	public ActorStateHandler getActorStateHandler() {
+	public CalActorController getActorStateHandler() {
 		ScheduleHandler scheduleHandler = getScheduleHandler();
-		ActorStates actorStates = new ActorStates(getConditions(), getStateList(), scheduleHandler.initialState(), getActor().getInputPorts().size());
-		return new ActorStateHandler(scheduleHandler, getConditionHandler(), getPriorityHandler(), getTransitions(), actorStates);
+		CalActorStates calActorStates = new CalActorStates(getConditions(), getStateList(), scheduleHandler.initialState(), getActor().getInputPorts().size());
+		return new CalActorController(scheduleHandler, getConditionHandler(), getPriorityHandler(), getTransitions(), calActorStates, instanceId);
 	}
 
 	private CalActor getActor() {

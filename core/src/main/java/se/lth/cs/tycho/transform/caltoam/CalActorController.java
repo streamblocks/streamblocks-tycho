@@ -7,29 +7,31 @@ import java.util.Map.Entry;
 
 import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
+import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.transform.caltoam.CalActorStates.State;
 import se.lth.cs.tycho.transform.caltoam.util.BitSets;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
+import se.lth.cs.tycho.transform.util.Controller;
 
-public class ActorStateHandler implements ActorMachineState<State> {
+public class CalActorController implements Controller<State> {
 	private ScheduleHandler scheduleHandler;
 	private ConditionHandler conditionHandler;
 	private PriorityHandler priorityHandler;
 	private List<Transition> transitions;
-	private ActorStates actorStates;
+	private CalActorStates calActorStates;
+	private QID instanceId;
 
-	public ActorStateHandler(ScheduleHandler scheduleHandler, ConditionHandler conditionHandler,
-			PriorityHandler priorityHandler, List<Transition> transitions, ActorStates actorStates) {
+	public CalActorController(ScheduleHandler scheduleHandler, ConditionHandler conditionHandler,
+			PriorityHandler priorityHandler, List<Transition> transitions, CalActorStates calActorStates, QID instanceId) {
 		this.scheduleHandler = scheduleHandler;
 		this.conditionHandler = conditionHandler;
 		this.priorityHandler = priorityHandler;
 		this.transitions = transitions;
-		this.actorStates = actorStates;
+		this.calActorStates = calActorStates;
 	}
 
 	@Override
-	public List<GenInstruction<State>> getInstructions(State state) {
+	public List<GenInstruction<State>> instructions(State state) {
 		BitSet actions = scheduleHandler.scheduledActions(state.getSchedulerState());
 		conditionHandler.removeDisabledActions(state, actions);
 		priorityHandler.keepHighestPrio(actions);
@@ -66,6 +68,11 @@ public class ActorStateHandler implements ActorMachineState<State> {
 
 	@Override
 	public State initialState() {
-		return actorStates.initialState();
+		return calActorStates.initialState();
+	}
+	
+	@Override
+	public QID instanceId() {
+		return instanceId;
 	}
 }

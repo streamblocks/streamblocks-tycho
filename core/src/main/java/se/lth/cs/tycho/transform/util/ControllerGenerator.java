@@ -36,12 +36,12 @@ public class ControllerGenerator<S> {
 	}
 
 	/**
-	 * Generates a controller with its interpretation from a ActorMachineState.
+	 * Generates a controller with its interpretation from a Controller.
 	 * 
 	 * @param stateHandler
 	 * @return the controller
 	 */
-	public static <S> ControllerGenerator<S> generate(ActorMachineState<S> stateHandler) {
+	public static <S> ControllerGenerator<S> generate(Controller<S> stateHandler) {
 		Map<S, Integer> states = new HashMap<>();
 		Queue<S> queue = new LinkedList<>();
 		List<List<GenInstruction<S>>> controller = new ArrayList<>();
@@ -55,7 +55,7 @@ public class ControllerGenerator<S> {
 			assert states.size() == queue.size() + controller.size();
 
 			S source = queue.poll();
-			List<GenInstruction<S>> instructions = stateHandler.getInstructions(source);
+			List<GenInstruction<S>> instructions = stateHandler.instructions(source);
 			assert states.get(source).equals(controller.size());
 			controller.add(instructions);
 			interpretationBuilder.add(source);

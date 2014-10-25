@@ -2,6 +2,7 @@ package se.lth.cs.tycho.instance.net;
 
 import java.util.Objects;
 
+import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -22,24 +23,24 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class Node extends AbstractIRNode {
 	
-	public PortContainer  getContent() { return content; }
+	public Instance  getContent() { return content; }
 	
 	public String getName(){ return name; }
 	//
 	// Ctor
 	//
 	
-	public Node(String name, PortContainer content, ImmutableList<ToolAttribute> ta) {
+	public Node(String name, Instance content, ImmutableList<ToolAttribute> ta) {
 		this(null, name, content, ta);
 	}
 	
-	protected Node(IRNode original, String name, PortContainer content, ImmutableList<ToolAttribute> ta) {
+	protected Node(IRNode original, String name, Instance content, ImmutableList<ToolAttribute> ta) {
 		super (original, ta);
 		this.name = name;
 		this.content = content;
 	}
 	
-	public Node copy(String name, PortContainer content, ImmutableList<ToolAttribute> ta){
+	public Node copy(String name, Instance content, ImmutableList<ToolAttribute> ta){
 		if(Objects.equals(this.name, name) && Objects.equals(this.content, content) && Lists.equals(getToolAttributes(), ta)){
 			return this;
 		}
@@ -47,7 +48,7 @@ public class Node extends AbstractIRNode {
 	}
 	
 	private String name;
-	private PortContainer content;
+	private Instance content;
 
 	public String toString(){
 		return name;

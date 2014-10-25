@@ -19,26 +19,33 @@ import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.instance.net.ToolValueAttribute;
-import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
-import se.lth.cs.tycho.ir.entity.PortContainer;
+import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
-public class CompositionStateHandler implements ActorMachineState<CompositionStateHandler.State> {
+public class CompositionController implements Controller<CompositionController.State> {
 	private final Network network;
+	private final QID compositionId;
 
-	public CompositionStateHandler(Network network) {
+	public CompositionController(Network network, QID compositionId) {
 		this.network = network;
+		this.compositionId = compositionId;
 	}
-
+	
 	@Override
-	public List<GenInstruction<State>> getInstructions(State state) {
+	public QID instanceId() {
+		return compositionId;
+	}
+	
+	@Override
+	public List<GenInstruction<State>> instructions(State state) {
 		List<Call<State>> calls = getCallInstrucitons(state);
 		if (!calls.isEmpty()) return listCovariance(calls);
 		List<Test<State>> tests = getTestInstructions(state);
@@ -311,8 +318,8 @@ public class CompositionStateHandler implements ActorMachineState<CompositionSta
 			return true;
 		}
 
-		private CompositionStateHandler getOuterType() {
-			return CompositionStateHandler.this;
+		private CompositionController getOuterType() {
+			return CompositionController.this;
 		}
 
 		@Override

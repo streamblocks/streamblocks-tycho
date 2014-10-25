@@ -5,32 +5,34 @@ import java.util.List;
 
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
-import se.lth.cs.tycho.transform.caltoam.ActorStates.State;
+import se.lth.cs.tycho.transform.Transformation;
+import se.lth.cs.tycho.transform.caltoam.CalActorStates.State;
+import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 public class ActorToActorMachine {
 	
-	private final List<ActorMachineState.Transformer<State, State>> transformers;
+	private final List<Transformation<Controller<CalActorStates.State>>> transformations;
 	
 	public ActorToActorMachine() {
 		this(Collections.emptyList());
 	}
-	public ActorToActorMachine(List<ActorMachineState.Transformer<State, State>> filterCreators) {
-		this.transformers = filterCreators;
+	public ActorToActorMachine(List<Transformation<Controller<CalActorStates.State>>> filterCreators) {
+		this.transformations = filterCreators;
 	}
 
-	protected ActorMachineState<State> getStateHandler(ActorMachineState<State> handler) {
-		for (ActorMachineState.Transformer<State, State> creator : transformers) {
-			handler = creator.transform(handler);
+	protected Controller<CalActorStates.State> getStateHandler(Controller<CalActorStates.State> handler) {
+		for (Transformation<Controller<CalActorStates.State>> creator : transformations) {
+			handler = creator.apply(handler);
 		}
 		return handler;
 	}
 	
-	public final ActorMachine translate(CalActor calActor, NamespaceDecl location) {
-		ActorToActorMachineHelper helper = new ActorToActorMachineHelper(calActor, location);
-		ActorMachineState<State> stateHandler = getStateHandler(helper.getActorStateHandler());
+	public final ActorMachine translate(CalActor calActor, NamespaceDecl location, QID instanceId) {
+		ActorToActorMachineHelper helper = new ActorToActorMachineHelper(calActor, location, instanceId);
+		Controller<State> stateHandler = getStateHandler(helper.getActorStateHandler());
 		ControllerGenerator<State> generator = ControllerGenerator.generate(stateHandler);
 		return new ActorMachine(
 				helper.getInputPorts(),

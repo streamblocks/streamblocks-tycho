@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 import javarag.AttributeEvaluator;
 import javarag.AttributeRegister;
 import javarag.impl.reg.BasicAttributeRegister;
-import se.lth.cs.tycho.ir.util.IRNodeTraverser;
 import se.lth.cs.tycho.analyze.Ports;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.Condition;
@@ -18,14 +17,16 @@ import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode.Identifier;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.util.IRNodeTraverser;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.transform.compose.CompositionStateHandler.State;
+import se.lth.cs.tycho.transform.compose.CompositionController.State;
 import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
 import se.lth.cs.tycho.transform.util.AbstractActorMachineTransformer;
+import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
 
 public class Composer {
 	private final AttributeRegister register;
@@ -39,10 +40,10 @@ public class Composer {
 		transformer = new Transformer();
 	}
 	
-	public Network composeNetwork(Network net, String name) {
+	public Network composeNetwork(Network net, QID instanceId) {
 		AttributeEvaluator evaluator = register.getEvaluator(net, traverser);
-		ActorMachine composed = compose(net, evaluator);
-		Node n = new Node(name, composed, null);
+		ActorMachine composed = compose(net, evaluator, instanceId);
+		Node n = new Node(instanceId.getLast().toString(), composed, null);
 		ImmutableList<Connection> conns = connections(net, n, evaluator);
 		return net.copy(ImmutableList.of(n), conns, net.getInputPorts(), net.getOutputPorts());
 	}
@@ -67,7 +68,7 @@ public class Composer {
 		return connections.build();
 	}
 
-	private ActorMachine compose(Network net, AttributeEvaluator evaluator) {
+	private ActorMachine compose(Network net, AttributeEvaluator evaluator, QID instanceId) {
 		ImmutableList.Builder<PortDecl> inputPorts = ImmutableList.builder();
 		ImmutableList.Builder<PortDecl> outputPorts = ImmutableList.builder();
 		ImmutableList.Builder<Scope> scopes = ImmutableList.builder();
@@ -81,11 +82,11 @@ public class Composer {
 			inputPorts.addAll(transformer.transformInputPorts(am.getInputPorts(), evaluator));
 			outputPorts.addAll(transformer.transformOutputPorts(am.getOutputPorts(), evaluator));
 		}
-		ActorMachineState<State> stateHandler = new CompositionStateHandler(net);
+		Controller<State> stateHandler = new CompositionController(net, instanceId);
 		//try {
 		//	Selector<Integer> selector = new PriorityListSelector(PriorityListSelector.readIntsFromFile(new File("dcrecon.prio.txt")));
 		//	stateHandler = new TransitionPriorityStateHandler<>(stateHandler, selector);
-		//	stateHandler = new ShortestPathStateHandler<>(new FixedInstructionWeight<State>(1, 1, 1), stateHandler);
+		//	stateHandler = new ShortestPathFilteredController<>(new FixedInstructionWeight<State>(1, 1, 1), stateHandler);
 		//} catch (FileNotFoundException e) {
 		//	throw new RuntimeException(e);
 		//}

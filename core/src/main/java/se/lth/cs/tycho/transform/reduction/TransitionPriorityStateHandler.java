@@ -10,25 +10,26 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
+import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
-public class TransitionPriorityStateHandler<S> implements ActorMachineState<S> {
-	private final ActorMachineState<S> actorMachineState;
+public class TransitionPriorityStateHandler<S> implements Controller<S> {
+	private final Controller<S> controller;
 	private final Selector<Integer> transitionSelector;
 	private final Map<S, List<GenInstruction<S>>> decisions;
 
-	public TransitionPriorityStateHandler(ActorMachineState<S> stateHandler, Selector<Integer> transitionSelector) {
-		this.actorMachineState = stateHandler;
+	public TransitionPriorityStateHandler(Controller<S> stateHandler, Selector<Integer> transitionSelector) {
+		this.controller = stateHandler;
 		this.transitionSelector = transitionSelector;
 		decisions = new HashMap<>();
 	}
 
 	@Override
-	public List<GenInstruction<S>> getInstructions(S state) {
+	public List<GenInstruction<S>> instructions(S state) {
 		if (!decisions.containsKey(state)) {
 			Set<Integer> transitions = getReachableTransitions(state);
 			Integer transition = transitionSelector.select(transitions);
@@ -36,7 +37,7 @@ public class TransitionPriorityStateHandler<S> implements ActorMachineState<S> {
 		}
 		List<GenInstruction<S>> instructions = decisions.get(state);
 		if (instructions == null || instructions.isEmpty()) {
-			List<GenInstruction<S>> shouldBeWait = actorMachineState.getInstructions(state);
+			List<GenInstruction<S>> shouldBeWait = controller.instructions(state);
 			switch (shouldBeWait.size()) {
 			case 0: return shouldBeWait;
 			case 1: if (shouldBeWait.get(0) instanceof Wait) return shouldBeWait;
@@ -50,7 +51,7 @@ public class TransitionPriorityStateHandler<S> implements ActorMachineState<S> {
 	private boolean addPathsToTransition(S state, int transition) {
 		boolean leadsToTransition = false;
 		Set<GenInstruction<S>> localDecisions = new LinkedHashSet<>();
-		for(GenInstruction<S> instruction : actorMachineState.getInstructions(state)) {
+		for(GenInstruction<S> instruction : controller.instructions(state)) {
 			if (instruction instanceof Call) {
 				Call<S> call = (Call<S>) instruction;
 				if (call.T() == transition) {
@@ -80,7 +81,7 @@ public class TransitionPriorityStateHandler<S> implements ActorMachineState<S> {
 		visited.add(sourceState);
 		while (!queue.isEmpty()) {
 			S state = queue.remove();
-			for (GenInstruction<S> instruction : actorMachineState.getInstructions(state)) {
+			for (GenInstruction<S> instruction : controller.instructions(state)) {
 				if (instruction instanceof Call) {
 					result.add(((Call<S>) instruction).T());
 				} else if (instruction.isTest()) {
@@ -97,7 +98,12 @@ public class TransitionPriorityStateHandler<S> implements ActorMachineState<S> {
 
 	@Override
 	public S initialState() {
-		return actorMachineState.initialState();
+		return controller.initialState();
+	}
+
+	@Override
+	public QID instanceId() {
+		return controller.instanceId();
 	}
 
 }

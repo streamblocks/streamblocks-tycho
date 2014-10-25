@@ -28,11 +28,11 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.transform.caltoam.ActorStates;
+import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
 import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
+import se.lth.cs.tycho.transform.util.Controller;
 
 public class BasicActorMachineSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
 		ConditionVisitor<Boolean, Environment> {
@@ -63,13 +63,13 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		// translate the calActor to an calActor machine
 		ActorToActorMachine trans = new ActorToActorMachine() {
 			@Override
-			protected ActorMachineState<ActorStates.State> getStateHandler(ActorMachineState<ActorStates.State> stateHandler) {
+			protected Controller<CalActorStates.State> getStateHandler(Controller<CalActorStates.State> stateHandler) {
 				stateHandler = new PrioritizeCallInstructions<>(stateHandler);
 				stateHandler = new SelectRandomInstruction<>(stateHandler);
 				return stateHandler;
 			}
 		};
-		ActorMachine actorMachine = trans.translate(calActor, null);
+		ActorMachine actorMachine = trans.translate(calActor, null, null);
 		
 		actorMachine = BasicActorMachineSimulator.prepareActorMachine(actorMachine);
 

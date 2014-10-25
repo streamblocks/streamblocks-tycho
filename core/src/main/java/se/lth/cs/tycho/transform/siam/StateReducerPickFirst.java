@@ -9,23 +9,26 @@ import se.lth.cs.tycho.instance.am.ITest;
 import se.lth.cs.tycho.instance.am.IWait;
 import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.am.State;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.GenInstruction;
-import se.lth.cs.tycho.transform.util.ActorMachineState;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
-public class StateReducerPickFirst implements ActorMachineState<Integer> {
+public class StateReducerPickFirst implements Controller<Integer> {
 	
 	private final ImmutableList<State> controller;
+	private final QID instanceId;
 	
-	public StateReducerPickFirst(ActorMachine am) {
+	public StateReducerPickFirst(ActorMachine am, QID instanceId) {
+		this.instanceId = instanceId;
 		controller = am.getController();
 	}
 
 	@Override
-	public List<GenInstruction<Integer>> getInstructions(Integer state) {
+	public List<GenInstruction<Integer>> instructions(Integer state) {
 		Instruction i = controller.get(state).getInstructions().get(0);
 		if (i instanceof ICall) {
 			ICall c = (ICall) i;
@@ -47,6 +50,11 @@ public class StateReducerPickFirst implements ActorMachineState<Integer> {
 	@Override
 	public Integer initialState() {
 		return 0;
+	}
+
+	@Override
+	public QID instanceId() {
+		return instanceId;
 	}
 
 }

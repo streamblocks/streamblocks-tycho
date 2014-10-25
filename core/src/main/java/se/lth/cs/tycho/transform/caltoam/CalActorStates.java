@@ -12,13 +12,13 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.transform.caltoam.util.BitSets;
 import se.lth.cs.tycho.transform.caltoam.util.TestResult;
 
-public class ActorStates {
+public class CalActorStates {
 	private final List<Condition> conditions;
 	private final List<String> stateList;
 	private final int nbrOfPorts;
 	private final BitSet scheduleInit;
 
-	public ActorStates(List<Condition> conditions, List<String> stateList, BitSet scheduleInit, int nbrOfPorts) {
+	public CalActorStates(List<Condition> conditions, List<String> stateList, BitSet scheduleInit, int nbrOfPorts) {
 		this.conditions = conditions;
 		this.stateList = stateList;
 		this.nbrOfPorts = nbrOfPorts;
@@ -200,8 +200,8 @@ public class ActorStates {
 			return true;
 		}
 
-		private ActorStates getOuterType() {
-			return ActorStates.this;
+		private CalActorStates getOuterType() {
+			return CalActorStates.this;
 		}
 
 		private String predicatesToString() {
