@@ -19,7 +19,7 @@ public class CalActorController implements Controller<State> {
 	private PriorityHandler priorityHandler;
 	private List<Transition> transitions;
 	private CalActorStates calActorStates;
-	private QID instanceId;
+	private final QID instanceId;
 
 	public CalActorController(ScheduleHandler scheduleHandler, ConditionHandler conditionHandler,
 			PriorityHandler priorityHandler, List<Transition> transitions, CalActorStates calActorStates, QID instanceId) {
@@ -28,6 +28,7 @@ public class CalActorController implements Controller<State> {
 		this.priorityHandler = priorityHandler;
 		this.transitions = transitions;
 		this.calActorStates = calActorStates;
+		this.instanceId = instanceId;
 	}
 
 	@Override

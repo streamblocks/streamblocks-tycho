@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,7 @@ import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
 import se.lth.cs.tycho.transform.net.NetworkUtils;
 import se.lth.cs.tycho.transform.outcond.OutputConditionAdder;
 import se.lth.cs.tycho.transform.outcond.OutputConditionState;
+import se.lth.cs.tycho.transform.reduction.ConditionProbabilityController;
 import se.lth.cs.tycho.transform.util.Controller;
 
 public class Compiler {
@@ -94,6 +96,10 @@ public class Compiler {
 									+ ". Ignoring this reducer."));
 						}
 					}
+				} else if (reducer.startsWith("max-cond-prob(") && reducer.endsWith(")")) {
+					String param = reducer.substring("max-cond-prob(".length(), reducer.length()-1);
+					Path path = Paths.get(param);
+					ctrlTrans.add(ConditionProbabilityController.transformation(path, msg));
 				} else {
 					msg.report(Message.warning("Ignoring unknown reducer \"" + reducer + "\"."));
 				}
@@ -119,7 +125,7 @@ public class Compiler {
 			
 			// Output conditions
 			
-			NetworkUtils.transformNodes(net, (Node node) -> {
+			net = NetworkUtils.transformNodes(net, (Node node) -> {
 				Instance inst = node.getContent();
 				if (inst instanceof ActorMachine) {
 					ActorMachine actorMachine = (ActorMachine) inst;
