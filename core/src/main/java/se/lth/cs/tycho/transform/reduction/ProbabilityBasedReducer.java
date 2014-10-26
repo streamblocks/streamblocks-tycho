@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import se.lth.cs.tycho.ir.QID;
@@ -47,13 +49,25 @@ public abstract class ProbabilityBasedReducer<S> implements Controller<S> {
 		initialized = true;
 		try (BufferedReader reader = Files.newBufferedReader(file)) {
 			probabilities = reader.lines()
-					.map(s -> s.split("\\s+"))
-					.collect(Collectors.toMap(s -> Integer.parseInt(s[0]), s -> Double.parseDouble(s[1])));
-			if (probabilities.values().stream().anyMatch(d -> d < 0.0 || d > 1.0)) {
-				msg.report(Message.error("Error probability out of range in data file " + file));
+					.map(this::parseLine)
+					.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+		} catch (IOException e) {
+			msg.report(Message.error("Could not read input data for reducer: " + e.getMessage()));
+		}
+	}
+	
+	private Entry<Integer, Double> parseLine(String line) {
+		try {
+			String[] split = line.split("\\s+");
+			Integer key = Integer.valueOf(split[0]);
+			Double value = Double.valueOf(split[1]);
+			if (value < 0.0 || value > 1.0) {
+				msg.report(Message.error("Probability out of range in data file \"" + file + "\""));
 			}
-		} catch (NumberFormatException | IOException e) {
-			msg.report(Message.error("Error reading input data for reducer: " + e.getMessage()));
+			return new AbstractMap.SimpleImmutableEntry<>(key, value);
+		} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+			msg.report(Message.error("Could not parse probability record \"" + line + "\" in file \"" + file + "\""));
+			return null;
 		}
 	}
 
