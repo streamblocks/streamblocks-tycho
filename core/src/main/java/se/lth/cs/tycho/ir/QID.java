@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.ir;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -203,6 +205,15 @@ public final class QID {
 	 */
 	public static QID empty() {
 		return new QID(Collections.emptyList());
+	}
+	
+	/**
+	 * Returns a Path with the same sequence of names as this QID. 
+	 * @return a Path from this QID
+	 * @throws java.nio.file.InvalidPathException if the QID can not be converted to a Path 
+	 */
+	public Path toPath() {
+		return Paths.get("", parts.toArray(new String[parts.size()]));
 	}
 
 	/**

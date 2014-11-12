@@ -30,8 +30,8 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
-import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
-import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
+import se.lth.cs.tycho.transform.reduction.PrioritizeCallReducer;
+import se.lth.cs.tycho.transform.reduction.SelectRandomReducer;
 import se.lth.cs.tycho.transform.util.Controller;
 
 public class BasicActorMachineSimulator implements Simulator, InstructionVisitor<Integer, Environment>,
@@ -64,8 +64,8 @@ public class BasicActorMachineSimulator implements Simulator, InstructionVisitor
 		ActorToActorMachine trans = new ActorToActorMachine() {
 			@Override
 			protected Controller<CalActorStates.State> getStateHandler(Controller<CalActorStates.State> stateHandler) {
-				stateHandler = new PrioritizeCallInstructions<>(stateHandler);
-				stateHandler = new SelectRandomInstruction<>(stateHandler);
+				stateHandler = new PrioritizeCallReducer<>(stateHandler);
+				stateHandler = new SelectRandomReducer<>(stateHandler);
 				return stateHandler;
 			}
 		};

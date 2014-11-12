@@ -23,7 +23,7 @@ import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.IRNodeTraverser;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.transform.compose.CompositionController.State;
-import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
+import se.lth.cs.tycho.transform.reduction.SelectRandomReducer;
 import se.lth.cs.tycho.transform.util.AbstractActorMachineTransformer;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
@@ -90,8 +90,8 @@ public class Composer {
 		//} catch (FileNotFoundException e) {
 		//	throw new RuntimeException(e);
 		//}
-		stateHandler = new SelectRandomInstruction<>(stateHandler);
-		//stateHandler = new SelectFirstInstruction<>(stateHandler);
+		stateHandler = new SelectRandomReducer<>(stateHandler);
+		//stateHandler = new SelectFirstReducer<>(stateHandler);
 		
 		ControllerGenerator<State> controller = ControllerGenerator.generate(stateHandler);
 		//printControllerInterpretation(controller);

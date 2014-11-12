@@ -11,7 +11,7 @@ import se.lth.cs.tycho.parsing.cal.CalParser;
 import se.lth.cs.tycho.parsing.cal.ParseException;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
-import se.lth.cs.tycho.transform.filter.PrioritizeCallInstructions;
+import se.lth.cs.tycho.transform.reduction.PrioritizeCallReducer;
 import se.lth.cs.tycho.transform.util.Controller;
 
 public class Main {
@@ -22,7 +22,7 @@ public class Main {
 		actorToActorMachine = new ActorToActorMachine() {
 			@Override
 			protected Controller<CalActorStates.State> getStateHandler(Controller<CalActorStates.State> stateHandler) {
-				return new PrioritizeCallInstructions<>(stateHandler);
+				return new PrioritizeCallReducer<>(stateHandler);
 			}
 		};
 	}

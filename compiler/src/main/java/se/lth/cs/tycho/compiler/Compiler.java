@@ -31,12 +31,12 @@ import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.messages.MessageWriter;
 import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
-import se.lth.cs.tycho.transform.filter.SelectFirstInstruction;
-import se.lth.cs.tycho.transform.filter.SelectRandomInstruction;
 import se.lth.cs.tycho.transform.net.NetworkUtils;
 import se.lth.cs.tycho.transform.outcond.OutputConditionAdder;
 import se.lth.cs.tycho.transform.outcond.OutputConditionState;
-import se.lth.cs.tycho.transform.reduction.ConditionProbabilityController;
+import se.lth.cs.tycho.transform.reduction.ConditionProbabilityReducer;
+import se.lth.cs.tycho.transform.reduction.SelectFirstReducer;
+import se.lth.cs.tycho.transform.reduction.SelectRandomReducer;
 import se.lth.cs.tycho.transform.util.Controller;
 
 public class Compiler {
@@ -82,15 +82,15 @@ public class Compiler {
 			List<Transformation<Controller<CalActorStates.State>>> ctrlTrans = new ArrayList<>();
 			for (String reducer : opts.valuesOf(reducers)) {
 				if (reducer.equals("select-first")) {
-					ctrlTrans.add(SelectFirstInstruction.transformation());
+					ctrlTrans.add(SelectFirstReducer.transformation());
 				} else if (reducer.startsWith("select-random(") && reducer.endsWith(")")) {
 					String param = reducer.substring("select-random(".length(), reducer.length() - 1);
 					if (param.isEmpty()) {
-						ctrlTrans.add(SelectRandomInstruction.transformation(new Random()));
+						ctrlTrans.add(SelectRandomReducer.transformation(new Random()));
 					} else {
 						try {
 							long seed = Long.parseLong(param);
-							ctrlTrans.add(SelectRandomInstruction.transformation(new Random(seed)));
+							ctrlTrans.add(SelectRandomReducer.transformation(new Random(seed)));
 						} catch (NumberFormatException e) {
 							msg.report(Message.warning("Illegal argument to reducer " + reducer
 									+ ". Ignoring this reducer."));
@@ -99,7 +99,7 @@ public class Compiler {
 				} else if (reducer.startsWith("max-cond-prob(") && reducer.endsWith(")")) {
 					String param = reducer.substring("max-cond-prob(".length(), reducer.length()-1);
 					Path path = Paths.get(param);
-					ctrlTrans.add(ConditionProbabilityController.transformation(path, msg));
+					ctrlTrans.add(ConditionProbabilityReducer.transformation(path, 0.1, msg));
 				} else {
 					msg.report(Message.warning("Ignoring unknown reducer \"" + reducer + "\"."));
 				}
@@ -134,7 +134,7 @@ public class Compiler {
 							OutputConditionAdder.addOutputConditions(
 									actorMachine,
 									QID.of(node.getName()),
-									Collections.singletonList(SelectFirstInstruction.<OutputConditionState> transformation())),
+									Collections.singletonList(SelectFirstReducer.<OutputConditionState> transformation())),
 							node.getToolAttributes());
 				} else {
 					return node;

@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.transform.filter;
+package se.lth.cs.tycho.transform.reduction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +16,10 @@ import se.lth.cs.tycho.transform.util.Controller;
  * 
  * @param <S>
  */
-public class PrioritizeCallInstructions<S> implements Controller<S> {
+public class PrioritizeCallReducer<S> implements Controller<S> {
 	private final Controller<S> controller;
 
-	public PrioritizeCallInstructions(Controller<S> stateHandler) {
+	public PrioritizeCallReducer(Controller<S> stateHandler) {
 		this.controller = stateHandler;
 	}
 	
@@ -55,6 +55,6 @@ public class PrioritizeCallInstructions<S> implements Controller<S> {
 	}
 	
 	public static <S> Transformation<Controller<S>> transformation() {
-		return (Controller<S> controller) -> new PrioritizeCallInstructions<>(controller);
+		return (Controller<S> controller) -> new PrioritizeCallReducer<>(controller);
 	}
 }
