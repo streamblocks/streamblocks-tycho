@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.messages.util.Result;
 import se.lth.cs.tycho.transform.Transformation;

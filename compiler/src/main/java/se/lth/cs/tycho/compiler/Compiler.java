@@ -35,6 +35,7 @@ import se.lth.cs.tycho.transform.net.NetworkUtils;
 import se.lth.cs.tycho.transform.outcond.OutputConditionAdder;
 import se.lth.cs.tycho.transform.outcond.OutputConditionState;
 import se.lth.cs.tycho.transform.reduction.ConditionProbabilityReducer;
+import se.lth.cs.tycho.transform.reduction.NearestExecReducer;
 import se.lth.cs.tycho.transform.reduction.SelectFirstReducer;
 import se.lth.cs.tycho.transform.reduction.SelectRandomReducer;
 import se.lth.cs.tycho.transform.util.Controller;
@@ -100,6 +101,10 @@ public class Compiler {
 					String param = reducer.substring("max-cond-prob(".length(), reducer.length()-1);
 					Path path = Paths.get(param);
 					ctrlTrans.add(ConditionProbabilityReducer.transformation(path, 0.1, msg));
+				} else if (reducer.startsWith("max-trans-prob(") && reducer.endsWith(")")) {
+					String param = reducer.substring("max-trans-prob(".length(), reducer.length()-1);
+					Path path = Paths.get(param);
+					ctrlTrans.add(NearestExecReducer.transformation(path, msg));
 				} else {
 					msg.report(Message.warning("Ignoring unknown reducer \"" + reducer + "\"."));
 				}
