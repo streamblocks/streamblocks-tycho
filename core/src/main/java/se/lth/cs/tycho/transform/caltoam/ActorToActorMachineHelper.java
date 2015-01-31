@@ -53,7 +53,7 @@ class ActorToActorMachineHelper {
 	public CalActorController getActorStateHandler() {
 		ScheduleHandler scheduleHandler = getScheduleHandler();
 		CalActorStates calActorStates = new CalActorStates(getConditions(), getStateList(), scheduleHandler.initialState(), getActor().getInputPorts().size());
-		return new CalActorController(scheduleHandler, getConditionHandler(), getPriorityHandler(), getTransitions(), calActorStates, instanceId);
+		return new CalActorController(scheduleHandler, getConditionHandler(), getPriorityHandler(), getTransitions(), getConditions(), calActorStates, instanceId);
 	}
 
 	private CalActor getActor() {

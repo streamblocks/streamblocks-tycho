@@ -4,16 +4,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.transform.util.GenInstruction;
 import se.lth.cs.tycho.transform.util.Controller;
+import se.lth.cs.tycho.transform.util.FilteredController;
 
-public class CachedController<S> implements Controller<S> {
-	private final Controller<S> controller;
+public class CachedController<S> extends FilteredController<S> {
 	private final Map<S, List<GenInstruction<S>>> cache;
 
 	public CachedController(Controller<S> stateHandler) {
-		this.controller = stateHandler;
+		super(stateHandler);
 		this.cache = new HashMap<>();
 	}
 
@@ -22,20 +21,10 @@ public class CachedController<S> implements Controller<S> {
 		if (cache.containsKey(state)) {
 			return cache.get(state);
 		} else {
-			List<GenInstruction<S>> instrs = controller.instructions(state);
+			List<GenInstruction<S>> instrs = original.instructions(state);
 			cache.put(state, instrs);
 			return instrs;
 		}
-	}
-
-	@Override
-	public S initialState() {
-		return controller.initialState();
-	}
-
-	@Override
-	public QID instanceId() {
-		return controller.instanceId();
 	}
 
 }

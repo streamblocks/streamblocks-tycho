@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map.Entry;
+import se.lth.cs.tycho.instance.am.Condition;
 
 import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.Port;
@@ -18,15 +19,17 @@ public class CalActorController implements Controller<State> {
 	private ConditionHandler conditionHandler;
 	private PriorityHandler priorityHandler;
 	private List<Transition> transitions;
+	private List<Condition> conditions;
 	private CalActorStates calActorStates;
 	private final QID instanceId;
 
 	public CalActorController(ScheduleHandler scheduleHandler, ConditionHandler conditionHandler,
-			PriorityHandler priorityHandler, List<Transition> transitions, CalActorStates calActorStates, QID instanceId) {
+			PriorityHandler priorityHandler, List<Transition> transitions, List<Condition> conditions, CalActorStates calActorStates, QID instanceId) {
 		this.scheduleHandler = scheduleHandler;
 		this.conditionHandler = conditionHandler;
 		this.priorityHandler = priorityHandler;
 		this.transitions = transitions;
+		this.conditions = conditions;
 		this.calActorStates = calActorStates;
 		this.instanceId = instanceId;
 	}
@@ -75,5 +78,15 @@ public class CalActorController implements Controller<State> {
 	@Override
 	public QID instanceId() {
 		return instanceId;
+	}
+
+	@Override
+	public Condition getCondition(int c) {
+		return conditions.get(c);
+	}
+
+	@Override
+	public Transition getTransition(int t) {
+		return transitions.get(t);
 	}
 }

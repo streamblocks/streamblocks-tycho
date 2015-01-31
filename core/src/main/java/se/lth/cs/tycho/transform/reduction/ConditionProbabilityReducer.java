@@ -4,17 +4,17 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.messages.util.Result;
 import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.util.Controller;
+import se.lth.cs.tycho.transform.util.FilteredController;
 import se.lth.cs.tycho.transform.util.GenInstruction;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
-public class ConditionProbabilityReducer<S> implements Controller<S> {
+public class ConditionProbabilityReducer<S> extends FilteredController<S> {
 	private final Score score = new Score();
 	
 	private static final double CALL_SCORE = 2.0;
@@ -23,12 +23,10 @@ public class ConditionProbabilityReducer<S> implements Controller<S> {
 	
 	private final double margin;
 
-	private final Controller<S> controller;
-
 	private final ProbabilityTable table;
 
 	public ConditionProbabilityReducer(Controller<S> controller, ProbabilityTable table, double margin) {
-		this.controller = controller;
+		super(controller);
 		this.table = table;
 		this.margin = margin;
 
@@ -76,19 +74,9 @@ public class ConditionProbabilityReducer<S> implements Controller<S> {
 
 	@Override
 	public List<GenInstruction<S>> instructions(S state) {
-		List<GenInstruction<S>> instructions = controller.instructions(state);
+		List<GenInstruction<S>> instructions = original.instructions(state);
 		double max = instructions.stream().mapToDouble(this::score).max().orElse(WAIT_SCORE);
 		return instructions.stream().filter(i -> score(i) + margin >= max).collect(Collectors.toList());
-	}
-
-	@Override
-	public S initialState() {
-		return controller.initialState();
-	}
-
-	@Override
-	public QID instanceId() {
-		return controller.instanceId();
 	}
 
 }

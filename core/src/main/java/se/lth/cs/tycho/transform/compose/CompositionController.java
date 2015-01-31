@@ -77,6 +77,21 @@ public class CompositionController implements Controller<CompositionController.S
 		return startIndex + call.T();
 	}
 	
+	@Override
+	public Transition getTransition(int t) {
+		int i = 0;
+		while (true) {
+			ActorMachine actorMachine = getActorMachine(i);
+			int numTrans = actorMachine.getTransitions().size();
+			if (t >= numTrans) {
+				t -= numTrans;
+				i += 1;
+			} else {
+				return actorMachine.getTransition(t);
+			}
+		}
+	}
+	
 	private int conditionNumber(int n, ITest test) {
 		int startIndex = 0;
 		for (int i = 0; i < n; i++) {
@@ -84,6 +99,21 @@ public class CompositionController implements Controller<CompositionController.S
 			startIndex += actorMachine.getConditions().size();
 		}
 		return startIndex + test.C();
+	}
+
+	@Override
+	public Condition getCondition(int c) {
+		int i = 0;
+		while (true) {
+			ActorMachine actorMachine = getActorMachine(i);
+			int numTrans = actorMachine.getConditions().size();
+			if (c >= numTrans) {
+				c -= numTrans;
+				i += 1;
+			} else {
+				return actorMachine.getCondition(c);
+			}
+		}
 	}
 
 	private State callDest(State state, int n, ICall call) {

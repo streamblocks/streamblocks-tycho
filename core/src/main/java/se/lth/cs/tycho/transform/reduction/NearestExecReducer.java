@@ -7,28 +7,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.messages.util.Result;
 import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.util.Controller;
+import se.lth.cs.tycho.transform.util.FilteredController;
 import se.lth.cs.tycho.transform.util.GenInstruction;
 
-public class NearestExecReducer<S> implements Controller<S> {
+public class NearestExecReducer<S> extends FilteredController<S> {
 
-	private final Controller<S> controller;
 	private final Map<S, Length> distance = new HashMap<>();
 	private final ProbabilityTable table;
 
 	public NearestExecReducer(Controller<S> controller, ProbabilityTable table) {
-		this.controller = controller;
+		super(controller);
 		this.table = table;
 	}
 
 	@Override
 	public List<GenInstruction<S>> instructions(S state) {
 		Length dist = distance(state);
-		return controller.instructions(state).stream()
+		return original.instructions(state).stream()
 				.filter(i -> Length.comparator().compare(distance(i), dist) <= 0)
 				.collect(Collectors.toList());
 	}
@@ -37,7 +36,7 @@ public class NearestExecReducer<S> implements Controller<S> {
 		if (distance.containsKey(s)) {
 			return distance.get(s);
 		} else {
-			Length dist = controller.instructions(s).stream()
+			Length dist = original.instructions(s).stream()
 					.map(this::distance)
 					.min(Length.comparator())
 					.orElse(Length.waitLength());
@@ -54,16 +53,6 @@ public class NearestExecReducer<S> implements Controller<S> {
 		} else {
 			return Length.testLength(Arrays.stream(i.destinations()).map(this::distance).min(Length.comparator()).get());
 		}
-	}
-
-	@Override
-	public S initialState() {
-		return controller.initialState();
-	}
-
-	@Override
-	public QID instanceId() {
-		return controller.instanceId();
 	}
 
 	public static <S> Transformation<Controller<S>> transformation(Path path, MessageReporter msg) {

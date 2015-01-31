@@ -12,6 +12,7 @@ import se.lth.cs.tycho.instance.am.ITest;
 import se.lth.cs.tycho.instance.am.IWait;
 import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.am.PortCondition;
+import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
@@ -124,6 +125,16 @@ public class OutputConditionStateHandler implements Controller<OutputConditionSt
 	@Override
 	public OutputConditionState initialState() {
 		return new OutputConditionState(0, actorMachine.getOutputPorts().size());
+	}
+
+	@Override
+	public Condition getCondition(int c) {
+		return actorMachine.getCondition(c);
+	}
+
+	@Override
+	public Transition getTransition(int t) {
+		return actorMachine.getTransition(t);
 	}
 
 }
