@@ -47,6 +47,8 @@ public class TranslationUnit extends Module<TranslationUnit.Decls> {
 
 		public String bufferName(Connection conn);
 
+		public String bufferFunctions(Network network);
+
 	}
 	
 	public void translate(TreeRoot root, PrintWriter writer) {
@@ -189,6 +191,8 @@ public class TranslationUnit extends Module<TranslationUnit.Decls> {
 		writer.println("#else");
 		writer.println("#define AM_TRACE_WAIT(a)");
 		writer.println("#endif");
+		
+		writer.println(e().bufferFunctions(network));
 	}
 
 	public void translate(Network network, PrintWriter writer) {

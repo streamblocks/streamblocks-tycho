@@ -11,6 +11,7 @@ import se.lth.cs.tycho.backend.c.CType;
 import se.lth.cs.tycho.instance.am.Condition;
 import se.lth.cs.tycho.instance.am.PortCondition;
 import se.lth.cs.tycho.instance.net.Connection;
+import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.instance.net.ToolValueAttribute;
 import se.lth.cs.tycho.ir.Port;
@@ -30,6 +31,9 @@ import se.lth.cs.tycho.messages.util.Result;
 public class Buffers extends Module<Buffers.Decls> {
 
 	public interface Decls {
+		@Synthesized
+		String bufferFunctions(Network net);
+		
 		@Synthesized
 		String bufferDecl(Connection conn);
 
@@ -119,14 +123,22 @@ public class Buffers extends Module<Buffers.Decls> {
 		builder.append("}\n");
 		return builder.toString();
 	}
+	
+	public String bufferFunctions(Network net) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("#define WRITE(id, value) buffer##id[((head##id) + tokens##id++) % (size##id)] = (value)\n");
+		builder.append("#define PEEK(id, pos) (buffer##id[(head##id + pos) % size##id])\n");
+		builder.append("#define CONSUME(id, n) tokens##id -= n; head##id = ((head##id + n) % (size##id))\n");
+		builder.append("#define SPACE(id, n) (size##id - tokens##id >= n)\n");
+		builder.append("#define TOKENS(id, n) (tokens##id >= n)");
+		return builder.toString();
+	}
 
 	public String statement(StmtOutput output) {
 		if (output.hasRepeat()) {
 			StringBuilder result = new StringBuilder();
 			for (Connection conn : e().outgoingConnections(e().portDeclaration(output.getPort()))) {
 				String name = e().bufferName(conn);
-				int j = 0;
-				String format = "buffer%1$s[(head%1$s + tokens%1$s + %2$d) %% size%1$s] = %3$s[%4$d];\n";
 				List<String> vars = new ArrayList<>();
 				for (Expression e : output.getValues()) {
 					if (e instanceof ExprVariable) {
@@ -149,32 +161,19 @@ public class Buffers extends Module<Buffers.Decls> {
 				}
 				for (int i = 0; i < output.getRepeat(); i++) {
 					for (String v : vars) {
-						result.append(String.format(format, name, j, v, i));
-						j++;
+						result.append(String.format("WRITE(%s, %s[%d]);\n", name, v, i));
 					}
 				}
-				result.append("tokens").append(name).append(" += ").append(j).append(";\n");
 			}
 			return result.toString();
 		} else {
 			StringBuilder sb = new StringBuilder();
 			for (Connection conn : e().outgoingConnections(e().portDeclaration(output.getPort()))) {
 				String name = e().bufferName(conn);
-				int index = 0;
-				String pattern = "buffer%1$s[(head%1$s + tokens%1$s + %2$d) %% size%1$s] = %3$s;\n";
 				for (Expression value : output.getValues()) {
-					if (value instanceof ExprVariable) {
-						String varName = ((ExprVariable) value).getVariable().getName();
-						if (varName.equals("NEWVOP") || varName.equals("INTRA") || varName.equals("SKIP")) {
-							Optional<Object> constant = e().constant(value);
-							constant.isPresent();
-						}
-					}
 					String val = e().simpleExpression(value);
-					sb.append(String.format(pattern, name, index, val));
-					index += 1;
+					sb.append("WRITE("+name+", "+val+");\n");
 				}
-				sb.append("tokens" + name + " += " + output.getValues().size() + ";\n");
 			}
 			return sb.toString();
 		}
@@ -183,27 +182,30 @@ public class Buffers extends Module<Buffers.Decls> {
 	public String statement(StmtConsume consume) {
 		String name = e().bufferName(e().incomingConnection(e().portDeclaration(consume.getPort())));
 		int tokens = consume.getNumberOfTokens();
-		return "tokens" + name + " -= " + tokens + ";\n" +
-				"head" + name + " = (head" + name + " + " + tokens + ") % size" + name + ";\n";
+		return "CONSUME("+name+", "+tokens+");\n";
 	}
 
 	public String condition(PortCondition cond) {
 		if (cond.isInputCondition()) {
 			Connection conn = e().incomingConnection(e().portDeclaration(cond.getPortName()));
 			String name = e().bufferName(conn);
-			return "tokens" + name + " >= " + cond.N();
+			return "TOKENS(" + name + ", " + cond.N() + ")";
 		} else {
 			StringBuilder result = new StringBuilder();
 			List<Connection> connections = e().outgoingConnections(e().portDeclaration(cond.getPortName()));
 			if (connections.isEmpty()) {
 				System.nanoTime();
 			}
+			boolean first = true;
 			for (Connection conn : connections) {
+				if (first) {
+					first = false;
+				} else {
+					result.append(" && ");
+				}
 				String name = e().bufferName(conn);
-				result.append("(tokens").append(name).append(" + ")
-						.append(cond.N()).append(" <= size").append(name).append(") && ");
+				result.append("SPACE(" + name + ", " + cond.N() + ")");
 			}
-			result.append("true");
 			return result.toString();
 		}
 	}
@@ -217,20 +219,11 @@ public class Buffers extends Module<Buffers.Decls> {
 			final int repeat = input.getRepeat();
 			final int pattern = input.getPatternLength();
 			for (int i = 0; i < repeat; i++) {
-				result.append(name).append("[").append(i).append("] = buffer")
-						.append(buffer).append("[(head").append(buffer).append(" + ").append(i * pattern + offset)
-						.append(") % size").append(buffer).append("];\n");
+				result.append(name + "[" + i + "] = PEEK(" + buffer + ", " + (i * pattern + offset) + ");\n");
 			}
 			return result.toString();
 		} else {
-			String index = null;
-			int offset = input.getOffset();
-			if (offset > 0) {
-				index = "(head" + buffer + " + " + offset + ") % size" + buffer;
-			} else {
-				index = "head" + buffer;
-			}
-			return name + " = buffer" + buffer + "[" + index + "];\n";
+			return name + " = PEEK(" + buffer + ", " + input.getOffset() + ");\n";
 		}
 	}
 
