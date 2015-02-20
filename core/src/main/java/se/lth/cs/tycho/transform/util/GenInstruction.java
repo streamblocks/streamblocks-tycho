@@ -30,6 +30,18 @@ public abstract class GenInstruction<S> {
 	public boolean isWait() {
 		return false;
 	}
+	
+	public Call<S> asCall() {
+		throw new ClassCastException();
+	}
+	
+	public Test<S> asTest() {
+		throw new ClassCastException();
+	}
+	
+	public Wait<S> asWait() {
+		throw new ClassCastException();
+	}
 
 	public abstract se.lth.cs.tycho.instance.am.Instruction generateInstruction(Map<S, Integer> stateMap);
 
@@ -65,6 +77,11 @@ public abstract class GenInstruction<S> {
 		@Override
 		public boolean isCall() {
 			return true;
+		}
+		
+		@Override
+		public Call<S> asCall() {
+			return this;
 		}
 
 		@Override
@@ -112,6 +129,11 @@ public abstract class GenInstruction<S> {
 		public boolean isTest() {
 			return true;
 		}
+		
+		@Override
+		public Test<S> asTest() {
+			return this;
+		}
 
 		@Override
 		public ITest generateInstruction(Map<S, Integer> stateMap) {
@@ -144,6 +166,11 @@ public abstract class GenInstruction<S> {
 		@Override
 		public boolean isWait() {
 			return true;
+		}
+		
+		@Override
+		public Wait<S> asWait() {
+			return this;
 		}
 
 		@Override

@@ -1,9 +1,6 @@
 package se.lth.cs.tycho.transform.reduction;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import se.lth.cs.tycho.instance.am.Condition;
 import se.lth.cs.tycho.instance.am.Condition.ConditionKind;
 import se.lth.cs.tycho.instance.am.PortCondition;
@@ -21,26 +18,19 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 
 	@Override
 	public List<GenInstruction<S>> instructions(S state) {
-		List<GenInstruction<S>> input = original.instructions(state);
-		Optional<GenInstruction<S>> max = input.stream().max(this::compare);
-		if (max.isPresent()) {
-			return input.stream()
-					.filter(i -> compare(max.get(), i) == 0)
-					.collect(Collectors.toList());
-		} else {
-			return Collections.emptyList();
-		}
+		return original.instructions(state).stream().collect(Extremes.maxBy(this::compare));
 	}
-	
+
 	protected abstract int compare(GenInstruction<S> a, GenInstruction<S> b);
-	
+
 	private static abstract class SelectIsMax<S> extends SelectMaximum<S> {
+
 		SelectIsMax(Controller<S> original) {
 			super(original);
 		}
-		
+
 		protected abstract boolean isMax(GenInstruction<S> i);
-		
+
 		@Override
 		protected int compare(GenInstruction<S> a, GenInstruction<S> b) {
 			boolean aIsMax = isMax(a);
@@ -54,8 +44,8 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 			}
 		}
 	}
-	
-	public static <S> Transformation<Controller<S>> selectCall() {
+
+	public static <S> ControllerWrapper<S, S> selectCall() {
 		return ctrl -> new SelectIsMax<S>(ctrl) {
 			@Override
 			protected boolean isMax(GenInstruction<S> i) {
@@ -64,7 +54,7 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 		};
 	}
 
-	public static <S> Transformation<Controller<S>> selectTest() {
+	public static <S> ControllerWrapper<S, S> selectTest() {
 		return ctrl -> new SelectIsMax<S>(ctrl) {
 			@Override
 			protected boolean isMax(GenInstruction<S> i) {
@@ -73,7 +63,7 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 		};
 	}
 
-	public static <S> Transformation<Controller<S>> selectWait() {
+	public static <S> ControllerWrapper<S, S> selectWait() {
 		return ctrl -> new SelectIsMax<S>(ctrl) {
 			@Override
 			protected boolean isMax(GenInstruction<S> i) {
@@ -81,8 +71,8 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 			}
 		};
 	}
-	
-	public static <S> Transformation<Controller<S>> selectPredicateTest() {
+
+	public static <S> ControllerWrapper<S, S> selectPredicateTest() {
 		return ctrl -> new SelectIsMax<S>(ctrl) {
 			@Override
 			protected boolean isMax(GenInstruction<S> i) {
@@ -96,8 +86,7 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 		};
 	}
 
-	
-	public static <S> Transformation<Controller<S>> selectInputTest() {
+	public static <S> ControllerWrapper<S, S> selectInputTest() {
 		return ctrl -> new SelectIsMax<S>(ctrl) {
 			@Override
 			protected boolean isMax(GenInstruction<S> i) {
@@ -110,13 +99,14 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 			}
 		};
 	}
-	
-	public static <S> Transformation<Controller<S>> selectTestOfManyTokens() {
+
+	public static <S> ControllerWrapper<S, S> selectTestOfManyTokens() {
 		return ctrl -> new SelectMaximum<S>(ctrl) {
 			@Override
 			protected int compare(GenInstruction<S> a, GenInstruction<S> b) {
 				return Integer.compare(score(a), score(b));
 			}
+
 			private int score(GenInstruction<S> i) {
 				if (i instanceof GenInstruction.Test) {
 					GenInstruction.Test<?> t = (GenInstruction.Test<?>) i;
@@ -127,17 +117,18 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 				}
 				return 0;
 			}
-			
+
 		};
-		
+
 	}
 
-	public static <S> Transformation<Controller<S>> selectTestOfFewTokens() {
+	public static <S> ControllerWrapper<S, S> selectTestOfFewTokens() {
 		return ctrl -> new SelectMaximum<S>(ctrl) {
 			@Override
 			protected int compare(GenInstruction<S> a, GenInstruction<S> b) {
 				return Integer.compare(score(a), score(b));
 			}
+
 			private int score(GenInstruction<S> i) {
 				if (i instanceof GenInstruction.Test) {
 					GenInstruction.Test<?> t = (GenInstruction.Test<?>) i;
@@ -148,9 +139,9 @@ public abstract class SelectMaximum<S> extends FilteredController<S> {
 				}
 				return Integer.MIN_VALUE;
 			}
-			
+
 		};
-		
+
 	}
 
 }

@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import se.lth.cs.tycho.transform.Transformation;
-import se.lth.cs.tycho.transform.util.GenInstruction;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.FilteredController;
+import se.lth.cs.tycho.transform.util.GenInstruction;
 
 /**
  * State handler that filters the instructions by picking one at random.
@@ -37,7 +36,7 @@ public class SelectRandomReducer<S> extends FilteredController<S> {
 		return selected;
 	}
 	
-	public static <S> Transformation<Controller<S>> transformation(Random random) {
-		return (Controller<S> controller) -> new SelectRandomReducer<>(controller, random);
+	public static <S> ControllerWrapper<S, S> wrapper(Random random) {
+		return controller -> new SelectRandomReducer<>(controller, random);
 	}
 }

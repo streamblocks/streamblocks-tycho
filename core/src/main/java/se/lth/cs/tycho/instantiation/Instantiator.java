@@ -23,11 +23,10 @@ import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
-import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.copy.Copy;
-import se.lth.cs.tycho.transform.util.Controller;
+import se.lth.cs.tycho.transform.reduction.ControllerWrapper;
 
 public class Instantiator {
 	private final DeclarationLoader loader;
@@ -39,7 +38,7 @@ public class Instantiator {
 	}
 
 	public Instantiator(DeclarationLoader loader,
-			List<Transformation<Controller<CalActorStates.State>>> stateTransformers) {
+			List<ControllerWrapper<CalActorStates.State, CalActorStates.State>> stateTransformers) {
 		this.loader = loader;
 		this.visitor = new Visitor();
 		this.translator = new ActorToActorMachine(stateTransformers);

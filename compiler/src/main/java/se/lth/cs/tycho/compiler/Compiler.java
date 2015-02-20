@@ -29,16 +29,18 @@ import se.lth.cs.tycho.loader.FileSystemXdfRepository;
 import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.messages.MessageWriter;
-import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.net.NetworkUtils;
 import se.lth.cs.tycho.transform.outcond.OutputConditionAdder;
 import se.lth.cs.tycho.transform.outcond.OutputConditionState;
 import se.lth.cs.tycho.transform.reduction.ConditionProbabilityReducer;
+import se.lth.cs.tycho.transform.reduction.ControllerWrapper;
+import se.lth.cs.tycho.transform.reduction.MaxDiffOfReachableActions;
+import se.lth.cs.tycho.transform.reduction.MinDiffOfReachableActions;
 import se.lth.cs.tycho.transform.reduction.NearestExecReducer;
 import se.lth.cs.tycho.transform.reduction.SelectFirstReducer;
+import se.lth.cs.tycho.transform.reduction.SelectMaximum;
 import se.lth.cs.tycho.transform.reduction.SelectRandomReducer;
-import se.lth.cs.tycho.transform.util.Controller;
 
 public class Compiler {
 	public static void main(String[] args) throws IOException, InterruptedException {
@@ -80,31 +82,49 @@ public class Compiler {
 
 			// Controller transformation building
 
-			List<Transformation<Controller<CalActorStates.State>>> ctrlTrans = new ArrayList<>();
+			List<ControllerWrapper<CalActorStates.State, CalActorStates.State>> wrappers = new ArrayList<>();
 			for (String reducer : opts.valuesOf(reducers)) {
 				if (reducer.equals("select-first")) {
-					ctrlTrans.add(SelectFirstReducer.transformation());
+					wrappers.add(SelectFirstReducer.wrapper());
 				} else if (reducer.startsWith("select-random(") && reducer.endsWith(")")) {
 					String param = reducer.substring("select-random(".length(), reducer.length() - 1);
 					if (param.isEmpty()) {
-						ctrlTrans.add(SelectRandomReducer.transformation(new Random()));
+						wrappers.add(SelectRandomReducer.wrapper(new Random()));
 					} else {
 						try {
 							long seed = Long.parseLong(param);
-							ctrlTrans.add(SelectRandomReducer.transformation(new Random(seed)));
+							wrappers.add(SelectRandomReducer.wrapper(new Random(seed)));
 						} catch (NumberFormatException e) {
 							msg.report(Message.warning("Illegal argument to reducer " + reducer
 									+ ". Ignoring this reducer."));
 						}
 					}
-				} else if (reducer.startsWith("max-cond-prob(") && reducer.endsWith(")")) {
-					String param = reducer.substring("max-cond-prob(".length(), reducer.length()-1);
+				} else if (reducer.startsWith("prioritize-probable-conditions(") && reducer.endsWith(")")) {
+					String param = reducer.substring("prioritize-probable-conditions(".length(), reducer.length()-1);
 					Path path = Paths.get(param);
-					ctrlTrans.add(ConditionProbabilityReducer.transformation(path, 0.1, msg));
-				} else if (reducer.startsWith("max-trans-prob(") && reducer.endsWith(")")) {
-					String param = reducer.substring("max-trans-prob(".length(), reducer.length()-1);
+					wrappers.add(ConditionProbabilityReducer.wrapper(path, 0.1, msg));
+				} else if (reducer.startsWith("shortest-path-to-most-probable-action(") && reducer.endsWith(")")) {
+					String param = reducer.substring("shortest-path-to-most-probable-action(".length(), reducer.length()-1);
 					Path path = Paths.get(param);
-					ctrlTrans.add(NearestExecReducer.transformation(path, msg));
+					wrappers.add(NearestExecReducer.wrapper(path, msg));
+				} else if (reducer.equals("prioritize-call")) {
+					wrappers.add(SelectMaximum.selectCall());
+				} else if (reducer.equals("prioritize-test")) {
+					wrappers.add(SelectMaximum.selectTest());
+				} else if (reducer.equals("prioritize-wait")) {
+					wrappers.add(SelectMaximum.selectWait());
+				} else if (reducer.equals("prioritize-input-test")) {
+					wrappers.add(SelectMaximum.selectInputTest());
+				} else if (reducer.equals("prioritize-guard-test")) {
+					wrappers.add(SelectMaximum.selectPredicateTest());
+				} else if (reducer.equals("prioritize-input-test-for-many-tokens")) {
+					wrappers.add(SelectMaximum.selectTestOfManyTokens());
+				} else if (reducer.equals("prioritize-input-test-for-few-tokens")) {
+					wrappers.add(SelectMaximum.selectTestOfFewTokens());
+				} else if (reducer.equals("prioritize-diverging-tests")) {
+					wrappers.add(MaxDiffOfReachableActions.wrapper());
+				} else if (reducer.equals("prioritize-non-diverging-tests")) {
+					wrappers.add(MinDiffOfReachableActions.wrapper());
 				} else {
 					msg.report(Message.warning("Ignoring unknown reducer \"" + reducer + "\"."));
 				}
@@ -112,7 +132,7 @@ public class Compiler {
 
 			// Instantiation of network and actor machines
 
-			Instantiator instantiator = new Instantiator(loader, ctrlTrans);
+			Instantiator instantiator = new Instantiator(loader, wrappers);
 			QID qid = QID.parse(opts.valueOf(entity));
 			Network net;
 			try {
@@ -139,7 +159,7 @@ public class Compiler {
 							OutputConditionAdder.addOutputConditions(
 									actorMachine,
 									QID.of(node.getName()),
-									Collections.singletonList(SelectFirstReducer.<OutputConditionState> transformation())),
+									Collections.singletonList(SelectFirstReducer.<OutputConditionState> wrapper())),
 							node.getToolAttributes());
 				} else {
 					return node;

@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.messages.util.Result;
-import se.lth.cs.tycho.transform.Transformation;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.FilteredController;
 import se.lth.cs.tycho.transform.util.GenInstruction;
@@ -59,7 +58,7 @@ public class ConditionProbabilityReducer<S> extends FilteredController<S> {
 
 	}
 	
-	public static <S> Transformation<Controller<S>> transformation(Path path, double margin, MessageReporter msg) {
+	public static <S> ControllerWrapper<S, S> wrapper(Path path, double margin, MessageReporter msg) {
 		return controller -> {
 			Path input = path.resolve(controller.instanceId().toPath()).resolve("condition-prob.txt");
 			Result<ProbabilityTable> table = ProbabilityTable.fromFile(input, 0.0);
