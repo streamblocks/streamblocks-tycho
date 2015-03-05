@@ -42,7 +42,7 @@ public class CalActorController implements Controller<State> {
 		
 		BitSet conditions = conditionHandler.getNextConditions(state, actions);
 		BitSet calls = BitSets.copyOf(actions);
-		conditionHandler.keepEnabledActions(state, calls);
+		conditionHandler.keepFirableActions(state, calls);
 		
 		List<GenInstruction<State>> result = new ArrayList<>();
 		
@@ -51,7 +51,11 @@ public class CalActorController implements Controller<State> {
 			for (Entry<Port, Integer> entry : transitions.get(call).getInputRates().entrySet()) {
 				destination = destination.removeTokens(entry.getKey(), entry.getValue());
 			}
+			for (Entry<Port, Integer> entry : transitions.get(call).getOutputRates().entrySet()) {
+				destination = destination.removeSpace(entry.getKey(), entry.getValue());
+			}
 			destination = destination.clearAbsentTokenResults();
+			destination = destination.clearSpaceResults();
 			destination = destination.setSchedulerState(scheduleHandler.destinations(state.getSchedulerState(), call));
 			destination = destination.clearPredicateResults();
 			result.add(new GenInstruction.Call<>(call, destination));
@@ -64,7 +68,7 @@ public class CalActorController implements Controller<State> {
 		}
 
 		if (result.isEmpty()) {
-			result.add(new GenInstruction.Wait<>(state.clearAbsentTokenResults()));
+			result.add(new GenInstruction.Wait<>(state.clearAbsentTokenResults().clearAbsentSpaceResults()));
 		}
 		
 		return result;

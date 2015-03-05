@@ -52,7 +52,7 @@ class ActorToActorMachineHelper {
 	
 	public CalActorController getActorStateHandler() {
 		ScheduleHandler scheduleHandler = getScheduleHandler();
-		CalActorStates calActorStates = new CalActorStates(getConditions(), getStateList(), scheduleHandler.initialState(), getActor().getInputPorts().size());
+		CalActorStates calActorStates = new CalActorStates(getConditions(), getStateList(), scheduleHandler.initialState(), getActor().getInputPorts().size(), getActor().getOutputPorts().size());
 		return new CalActorController(scheduleHandler, getConditionHandler(), getPriorityHandler(), getTransitions(), getConditions(), calActorStates, instanceId);
 	}
 
@@ -116,6 +116,12 @@ class ActorToActorMachineHelper {
 					handler.addDependency(portCond, predCond);
 				}
 			}
+			for (OutputExpression output : action.getOutputExpressions()) {
+				PortCondition c = portCond(output);
+				handler.addOutputCondition(actionNbr, condNbr);
+				conditions.add(c);
+				condNbr += 1;
+			}
 			actionNbr += 1;
 		}
 		this.condHandler = handler.build();
@@ -127,7 +133,12 @@ class ActorToActorMachineHelper {
 		int rep = getRepeatMultiplier(input.getRepeatExpr());
 		return new PortCondition(input.getPort(), vars * rep);
 	}
-	
+
+	private PortCondition portCond(OutputExpression output) {
+		int exprs = output.getExpressions().size();
+		int rep = getRepeatMultiplier(output.getRepeatExpr());
+		return new PortCondition(output.getPort(), exprs * rep, false);
+	}
 	
 
 	public ImmutableList<Transition> getTransitions() {

@@ -15,13 +15,15 @@ import se.lth.cs.tycho.transform.caltoam.util.TestResult;
 public class CalActorStates {
 	private final List<Condition> conditions;
 	private final List<String> stateList;
-	private final int nbrOfPorts;
+	private final int nbrOfInputPorts;
+	private final int nbrOfOutputPorts;
 	private final BitSet scheduleInit;
 
-	public CalActorStates(List<Condition> conditions, List<String> stateList, BitSet scheduleInit, int nbrOfPorts) {
+	public CalActorStates(List<Condition> conditions, List<String> stateList, BitSet scheduleInit, int nbrOfInputPorts, int nbrOfOutputPorts) {
 		this.conditions = conditions;
 		this.stateList = stateList;
-		this.nbrOfPorts = nbrOfPorts;
+		this.nbrOfInputPorts = nbrOfInputPorts;
+		this.nbrOfOutputPorts = nbrOfOutputPorts;
 		this.scheduleInit = scheduleInit;
 	}
 
@@ -31,16 +33,18 @@ public class CalActorStates {
 
 	public class State {
 		private State() {
-			this(scheduleInit, BigInteger.ZERO, BigInteger.ZERO, new int[nbrOfPorts], new int[nbrOfPorts]);
+			this(scheduleInit, BigInteger.ZERO, BigInteger.ZERO, new int[nbrOfInputPorts], new int[nbrOfInputPorts], new int[nbrOfOutputPorts], new int[nbrOfOutputPorts]);
 		}
 
 		private State(BitSet states, BigInteger predCondTrue, BigInteger predCondFalse,
-				int[] presentTokens, int[] absentTokens) {
+				int[] presentTokens, int[] absentTokens, int[] presentSpace, int[] absentSpace) {
 			this.states = states;
 			this.predCondTrue = predCondTrue;
 			this.predCondFalse = predCondFalse;
 			this.presentTokens = presentTokens;
 			this.absentTokens = absentTokens;
+			this.presentSpace = presentSpace;
+			this.absentSpace = absentSpace;
 		}
 
 		private final BitSet states;
@@ -48,6 +52,8 @@ public class CalActorStates {
 		private final BigInteger predCondFalse;
 		private int[] presentTokens;
 		private int[] absentTokens;
+		private int[] presentSpace;
+		private int[] absentSpace;
 
 		public BitSet getSchedulerState() {
 			return BitSets.copyOf(states);
@@ -65,13 +71,21 @@ public class CalActorStates {
 			return TestResult.Unknown;
 		}
 
-		private TestResult getPortTestResult(Port port, int tokens) {
+		private TestResult getPortTestResult(Port port, int tokens, boolean inputPort) {
+			int[] present, absent;
+			if (inputPort) {
+				present = presentTokens;
+				absent = absentTokens;
+			} else {
+				present = presentSpace;
+				absent = absentSpace;
+			}
 			int offset = port.getOffset();
-			if (presentTokens[offset] >= tokens) {
+			if (present[offset] >= tokens) {
 				return TestResult.True;
 			}
-			int absent = absentTokens[offset];
-			if (absent > 0 && absent <= tokens) {
+			int nbrOfAbsent = absent[offset];
+			if (nbrOfAbsent > 0 && nbrOfAbsent <= tokens) {
 				return TestResult.False;
 			}
 			return TestResult.Unknown;
@@ -84,7 +98,7 @@ public class CalActorStates {
 			}
 			if (c instanceof PortCondition) {
 				PortCondition portCond = (PortCondition) c;
-				return getPortTestResult(portCond.getPortName(), portCond.N());
+				return getPortTestResult(portCond.getPortName(), portCond.N(), portCond.isInputCondition());
 			}
 			assert false;
 			return TestResult.Unknown;
@@ -102,7 +116,7 @@ public class CalActorStates {
 					assert !predCondTrue.testBit(condition);
 					predCondFalse = predCondFalse.setBit(condition);
 				}
-				return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens);
+				return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens, presentSpace, absentSpace);
 			}
 			if (c instanceof PortCondition) {
 				PortCondition portCond = (PortCondition) c;
@@ -110,48 +124,92 @@ public class CalActorStates {
 				int tokens = portCond.N();
 				int[] presentTokens = this.presentTokens;
 				int[] absentTokens = this.absentTokens;
-				if (result) {
-					presentTokens = Arrays.copyOf(presentTokens, nbrOfPorts);
-					presentTokens[port.getOffset()] = tokens;
+				int[] presentSpace = this.presentSpace;
+				int[] absentSpace = this.absentSpace;
+				
+				if (portCond.isInputCondition()) {
+					if (result) {
+						presentTokens = Arrays.copyOf(presentTokens, presentTokens.length);
+						presentTokens[port.getOffset()] = tokens;
+					} else {
+						absentTokens = Arrays.copyOf(absentTokens, absentTokens.length);
+						absentTokens[port.getOffset()] = tokens;
+					}
 				} else {
-					absentTokens = Arrays.copyOf(absentTokens, nbrOfPorts);
-					absentTokens[port.getOffset()] = tokens;
+					if (result) {
+						presentSpace = Arrays.copyOf(presentSpace, presentSpace.length);
+						presentSpace[port.getOffset()] = tokens;
+					} else {
+						absentSpace = Arrays.copyOf(absentSpace, absentSpace.length);
+						absentSpace[port.getOffset()] = tokens;
+					}
 				}
-				return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens);
+				return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens, presentSpace, absentSpace);
 			}
 			assert false;
 			return null;
 		}
 
 		public State clearPredicateResults() {
-			return new State(states, BigInteger.ZERO, BigInteger.ZERO, presentTokens, absentTokens);
+			return new State(states, BigInteger.ZERO, BigInteger.ZERO, presentTokens, absentTokens, presentSpace, absentSpace);
+		}
+		
+		public State clearTokenResults() {
+			return new State(states, predCondTrue, predCondFalse, new int[nbrOfInputPorts], new int[nbrOfInputPorts], presentSpace, absentSpace);
 		}
 
 		public State clearAbsentTokenResults() {
-			return new State(states, predCondTrue, predCondFalse, presentTokens, new int[nbrOfPorts]);
+			return new State(states, predCondTrue, predCondFalse, presentTokens, new int[nbrOfInputPorts], presentSpace, absentSpace);
+		}
+		
+		public State clearAbsentSpaceResults() {
+			return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens, presentSpace, new int[nbrOfOutputPorts]);
+		}
+
+		public State clearSpaceResults() {
+			return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens, new int[nbrOfOutputPorts], new int[nbrOfOutputPorts]);
 		}
 
 		public State removeTokens(Port port, int n) {
 			int[] presentTokens = this.presentTokens;
 			int offset = port.getOffset();
 			if (presentTokens[offset] > 0) {
-				presentTokens = Arrays.copyOf(presentTokens, nbrOfPorts);
+				presentTokens = Arrays.copyOf(presentTokens, nbrOfInputPorts);
 				int tokens = presentTokens[offset] - n;
 				assert tokens >= 0;
 				presentTokens[offset] = tokens;
 			}
 			int[] absentTokens = this.absentTokens;
 			if (absentTokens[offset] > 0) {
-				absentTokens = Arrays.copyOf(absentTokens, nbrOfPorts);
+				absentTokens = Arrays.copyOf(absentTokens, nbrOfInputPorts);
 				int tokens = absentTokens[offset] - n;
 				assert tokens > 0;
 				absentTokens[offset] = tokens;
 			}
-			return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens);
+			return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens, presentSpace, absentSpace);
+		}
+		
+		public State removeSpace(Port port, int n) {
+			int[] presentSpace = this.presentSpace;
+			int offset = port.getOffset();
+			if (presentSpace[offset] > 0) {
+				presentSpace = Arrays.copyOf(presentSpace, presentSpace.length);
+				int space = presentSpace[offset] - n;
+				assert space >= 0;
+				presentSpace[offset] = space;
+			}
+			int[] absentSpace = this.absentSpace;
+			if (absentSpace[offset] > 0) {
+				absentSpace = Arrays.copyOf(absentSpace, absentSpace.length);
+				int space = absentSpace[offset] - n;
+				assert space > 0;
+				absentSpace[offset] = space;
+			}
+			return new State(states, predCondTrue, predCondFalse, presentTokens, absentTokens, presentSpace, absentSpace);
 		}
 
 		public State setSchedulerState(BitSet scheduleStates) {
-			return new State(BitSets.copyOf(scheduleStates), predCondTrue, predCondFalse, presentTokens, absentTokens);
+			return new State(BitSets.copyOf(scheduleStates), predCondTrue, predCondFalse, presentTokens, absentTokens, presentSpace, absentSpace);
 		}
 
 		@Override
@@ -159,10 +217,12 @@ public class CalActorStates {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
-			result = prime * result + Arrays.hashCode(absentTokens);
 			result = prime * result + ((predCondFalse == null) ? 0 : predCondFalse.hashCode());
 			result = prime * result + ((predCondTrue == null) ? 0 : predCondTrue.hashCode());
 			result = prime * result + Arrays.hashCode(presentTokens);
+			result = prime * result + Arrays.hashCode(absentTokens);
+			result = prime * result + Arrays.hashCode(presentSpace);
+			result = prime * result + Arrays.hashCode(absentSpace);
 			result = prime * result + ((states == null) ? 0 : states.hashCode());
 			return result;
 		}
@@ -178,8 +238,6 @@ public class CalActorStates {
 			State other = (State) obj;
 			if (!getOuterType().equals(other.getOuterType()))
 				return false;
-			if (!Arrays.equals(absentTokens, other.absentTokens))
-				return false;
 			if (predCondFalse == null) {
 				if (other.predCondFalse != null)
 					return false;
@@ -191,6 +249,12 @@ public class CalActorStates {
 			} else if (!predCondTrue.equals(other.predCondTrue))
 				return false;
 			if (!Arrays.equals(presentTokens, other.presentTokens))
+				return false;
+			if (!Arrays.equals(absentTokens, other.absentTokens))
+				return false;
+			if (!Arrays.equals(presentSpace, other.presentSpace)) 
+				return false;
+			if (!Arrays.equals(absentSpace, other.absentSpace))
 				return false;
 			if (states == null) {
 				if (other.states != null)
@@ -234,7 +298,7 @@ public class CalActorStates {
 		private String tokensToString() {
 			StringBuilder sb = new StringBuilder();
 			sb.append('[');
-			for (int p = 0; p < nbrOfPorts; p++) {
+			for (int p = 0; p < nbrOfInputPorts; p++) {
 				if (p > 0) {
 					sb.append(", ");
 				}

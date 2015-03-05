@@ -19,6 +19,20 @@ public class BitSets {
 		return bitSet;
 	}
 	
+	public static BitSet union(BitSet a, BitSet b) {
+		BitSet result = new BitSet();
+		result.or(a);
+		result.or(b);
+		return result;
+	}
+	
+	public static BitSet intersection(BitSet a, BitSet b) {
+		BitSet result = new BitSet();
+		result.or(a);
+		result.and(b);
+		return result;
+	}
+	
 	public static BitSet copyOf(BitSet original) {
 		BitSet copy = new BitSet();
 		if (original == null) return copy;

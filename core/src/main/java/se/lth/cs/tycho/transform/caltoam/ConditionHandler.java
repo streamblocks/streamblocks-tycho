@@ -16,10 +16,12 @@ import se.lth.cs.tycho.util.DAG;
 class ConditionHandler {
 	private DAG dependencies;
 	private BitSet[] actionConditions;
+	private BitSet[] actionOutputConditions;
 
-	private ConditionHandler(BitSet[] actionConditions, DAG dependencies) {
+	private ConditionHandler(BitSet[] actionConditions, DAG dependencies, BitSet[] actionOutputConditions) {
 		this.actionConditions = actionConditions;
 		this.dependencies = dependencies;
+		this.actionOutputConditions = actionOutputConditions;
 	}
 
 	/** The conjunction of all test results for <code>action</code>. */
@@ -60,6 +62,18 @@ class ConditionHandler {
 			}
 		}
 		dependencies.keepLeavesOf(conds);
+		for (int cond : BitSets.iterable(actionOutputConditions[action])) {
+			TestResult r = state.getResult(cond);
+			switch (r) {
+			case Unknown:
+				conds.set(cond);
+				break;
+			case False:
+				conds.clear();
+				return conds;
+			case True:
+			}
+		}
 		return conds;
 	}
 
@@ -95,12 +109,13 @@ class ConditionHandler {
 	 * Removes all elements in <code>actions</code> for which the conjunction of
 	 * its test results is not <code>True</code>.
 	 */
-	public void keepEnabledActions(State state, BitSet actions) {
+	public void keepFirableActions(State state, BitSet actions) {
 		Iterator<Integer> iter = BitSets.iterator(actions);
 		while (iter.hasNext()) {
 			int action = iter.next();
 			boolean keep = true;
-			for (int cond : BitSets.iterable(actionConditions[action])) {
+			BitSet allConds = BitSets.union(actionConditions[action], actionOutputConditions[action]);
+			for (int cond : BitSets.iterable(allConds)) {
 				if (state.getResult(cond) != TestResult.True) {
 					keep = false;
 					break;
@@ -117,12 +132,14 @@ class ConditionHandler {
 		private int nbrOfActions;
 
 		private Map<Integer, BitSet> conds;
+		private Map<Integer, BitSet> outConds;
 		private List<Map.Entry<Integer, Integer>> deps;
 				
 		public Builder() {
 			nbrOfConds = 0;
 			nbrOfActions = 0;
 			conds = new HashMap<>();
+			outConds = new HashMap<>();
 			deps = new ArrayList<>();
 		}
 		
@@ -130,11 +147,16 @@ class ConditionHandler {
 			nbrOfActions = Math.max(action+1, nbrOfActions);
 			assert !conds.containsKey(action);
 			conds.put(action, new BitSet());
+			outConds.put(action, new BitSet());
 		}
 		
 		public void addCondition(int action, int condition) {
 			nbrOfConds = Math.max(condition+1, nbrOfConds);
 			conds.get(action).set(condition);
+		}
+		
+		public void addOutputCondition(int action, int condition) {
+			outConds.get(action).set(condition);
 		}
 		
 		public void addDependency(int required, int condition) {
@@ -150,11 +172,19 @@ class ConditionHandler {
 					actionConditions[i].or(c);
 				}
 			}
+			BitSet[] actionOutputConditions = new BitSet[nbrOfActions];
+			for (int i = 0; i < nbrOfActions; i++) {
+				BitSet c = outConds.get(i);
+				actionOutputConditions[i] = new BitSet();
+				if (c != null) {
+					actionOutputConditions[i].or(c);
+				}
+			}
 			DAG.Builder dependencies = new DAG.Builder(nbrOfConds);
 			for (Map.Entry<Integer, Integer> entry : deps) {
 				dependencies.addArc(entry.getKey(), entry.getValue());
 			}
-			return new ConditionHandler(actionConditions, dependencies.build());
+			return new ConditionHandler(actionConditions, dependencies.build(), actionOutputConditions);
 		}
 	}
 
