@@ -11,6 +11,11 @@ public class MinDiffOfReachableActions<S> extends MaxDiffOfReachableActions<S> {
 	protected MinDiffOfReachableActions(Controller<S> original) {
 		super(original);
 	}
+	@Override
+	protected int extreme() {
+		return Integer.MAX_VALUE;
+	}
+	@Override
 	protected int cmp(int a, int b) {
 		return -Integer.compare(a, b);
 	}

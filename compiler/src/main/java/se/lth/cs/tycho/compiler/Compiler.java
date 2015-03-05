@@ -41,6 +41,7 @@ import se.lth.cs.tycho.transform.reduction.NearestExecReducer;
 import se.lth.cs.tycho.transform.reduction.SelectFirstReducer;
 import se.lth.cs.tycho.transform.reduction.SelectMaximum;
 import se.lth.cs.tycho.transform.reduction.SelectRandomReducer;
+import se.lth.cs.tycho.util.ControllerToGraphviz;
 
 public class Compiler {
 	public static void main(String[] args) throws IOException, InterruptedException {
@@ -63,6 +64,11 @@ public class Compiler {
 				.defaultsTo("select-first");
 		OptionSpec<Void> printActorNames = parser.accepts("print-instance-names",
 				"Prints the names of the nodes of the flattened network.");
+		OptionSpec<File> printControllers = parser.accepts("print-controller-graphs",
+				"Writes a graphviz file for each controller")
+				.withOptionalArg()
+				.ofType(File.class)
+				.defaultsTo(new File("."));
 
 		OptionSpec<String> entity = parser.nonOptions("The qualified identifier of the entity to compile.");
 
@@ -172,6 +178,15 @@ public class Compiler {
 				int i = 0;
 				for (Node n : net.getNodes()) {
 					msg.report(Message.note(String.format("Instance %d: %s", i++, n.getName())));
+				}
+			}
+			
+			// Graphviz printing
+			
+			if (opts.has(printControllers)) {
+				for (Node n : net.getNodes()) {
+					File f = opts.valueOf(printControllers).toPath().resolve(n.getName() + ".gv").toFile();
+					ControllerToGraphviz.print(new PrintWriter(f), (ActorMachine) n.getContent(), n.getName());
 				}
 			}
 

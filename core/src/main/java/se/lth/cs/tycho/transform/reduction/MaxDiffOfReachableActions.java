@@ -27,7 +27,7 @@ public class MaxDiffOfReachableActions<S> extends FilteredController<S> {
 
 	@Override
 	public List<GenInstruction<S>> instructions(S state) {
-		int branchXorSize = 0;
+		int branchXorSize = extreme();
 		List<GenInstruction<S>> tests = new ArrayList<>();
 		List<GenInstruction<S>> instructions = original.instructions(state);
 		for (GenInstruction<S> i : instructions) {
@@ -36,12 +36,13 @@ public class MaxDiffOfReachableActions<S> extends FilteredController<S> {
 				BitSet diff = new BitSet();
 				diff.or(reachable(test.S0()));
 				diff.xor(reachable(test.S1()));
-				int size = diff.size();
+				int size = diff.cardinality();
 				if (cmp(size, branchXorSize) == 0) {
 					tests.add(i);
 				} else if (cmp(size, branchXorSize) > 0) {
 					tests.clear();
 					tests.add(i);
+					branchXorSize = size;
 				}
 			}
 		}
@@ -50,6 +51,10 @@ public class MaxDiffOfReachableActions<S> extends FilteredController<S> {
 		} else {
 			return tests;
 		}
+	}
+	
+	protected int extreme() {
+		return 0;
 	}
 	
 	protected int cmp(int a, int b) {

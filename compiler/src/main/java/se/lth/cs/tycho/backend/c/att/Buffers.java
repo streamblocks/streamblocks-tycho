@@ -74,7 +74,7 @@ public class Buffers extends Module<Buffers.Decls> {
 	}
 
 	public int bufferSize(Connection conn) {
-		ToolAttribute attribute = conn.getToolAttribute("buffer_size");
+		ToolAttribute attribute = conn.getToolAttribute("buffer-size");
 		if (attribute instanceof ToolValueAttribute) {
 			ToolValueAttribute valueAttribute = (ToolValueAttribute) attribute;
 			Expression value = valueAttribute.getValue();
@@ -97,7 +97,7 @@ public class Buffers extends Module<Buffers.Decls> {
 		int size = e().bufferSize(conn);
 		CType elementType = e().ctype(conn);
 		CType type = new CArrayType(elementType, "size" + name);
-		return "// " + conn.getDstPort().getName() + "\n" +
+		return "// " + conn.getSrcPort().getName() + " -> " + conn.getDstPort().getName() + "\n" +
 				"#define size" + name + " " + size + "\n" +
 				"static " + type.variableType("buffer" + name) + ";\n" +
 				"static size_t head" + name + " = 0;\n" +

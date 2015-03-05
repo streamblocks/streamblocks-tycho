@@ -109,7 +109,7 @@ public class Instantiator {
 				Identifier src = findNode(conn.getSourceInstance(), nodes);
 				Identifier dst = findNode(conn.getDestinaitonInstance(), nodes);
 				connBuilder.add(new Connection(src, conn.getSourcePort(), dst, conn.getDestinationPort(),
-						ImmutableList.empty()));
+						conn.getToolAttributes()));
 			}
 			ImmutableList.Builder<PortDecl> inputPorts = ImmutableList.builder();
 			for (PortDecl in : entity.getInputPorts()) {

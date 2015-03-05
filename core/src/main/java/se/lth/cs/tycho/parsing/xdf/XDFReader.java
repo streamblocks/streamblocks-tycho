@@ -15,12 +15,15 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.instance.net.ToolValueAttribute;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 import se.lth.cs.tycho.ir.entity.xdf.XDFConnection;
 import se.lth.cs.tycho.ir.entity.xdf.XDFInstance;
+import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
+import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class XDFReader {
@@ -58,7 +61,14 @@ public class XDFReader {
 			Port srcPort = new Port(conn.getAttribute("src-port"));
 			String dst = conn.getAttribute("dst");
 			Port dstPort = new Port(conn.getAttribute("dst-port"));
-			result.add(new XDFConnection(src, srcPort, dst, dstPort));
+			ImmutableList<ToolAttribute> attributes;
+			String bufferSize = conn.getAttribute("buffer-size");
+			if (bufferSize.equals("")) {
+				attributes = ImmutableList.empty();
+			} else {
+				attributes = ImmutableList.of(new ToolValueAttribute("buffer-size", new ExprLiteral(ExprLiteral.Kind.Integer, bufferSize)));
+			}
+			result.add(new XDFConnection(null, src, srcPort, dst, dstPort, attributes));
 		}
 		return result.build();
 	}

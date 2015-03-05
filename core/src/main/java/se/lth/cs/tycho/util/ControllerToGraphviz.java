@@ -3,11 +3,14 @@ package se.lth.cs.tycho.util;
 import java.io.PrintWriter;
 
 import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.am.ConditionVisitor;
 import se.lth.cs.tycho.instance.am.ICall;
 import se.lth.cs.tycho.instance.am.ITest;
 import se.lth.cs.tycho.instance.am.IWait;
 import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.am.InstructionVisitor;
+import se.lth.cs.tycho.instance.am.PortCondition;
+import se.lth.cs.tycho.instance.am.PredicateCondition;
 import se.lth.cs.tycho.instance.am.State;
 
 public class ControllerToGraphviz {
@@ -17,7 +20,7 @@ public class ControllerToGraphviz {
 		pv.print();
 	}
 
-	static class PrintVisitor implements InstructionVisitor<Void, Void> {
+	static class PrintVisitor implements InstructionVisitor<Void, Void>, ConditionVisitor<String, Integer> {
 		private PrintWriter printWriter;
 		private ActorMachine am;
 		private String name;
@@ -54,7 +57,7 @@ public class ControllerToGraphviz {
 		}
 
 		public Void visitTest(ITest i, Void v) {
-			printWriter.print("  i" + instrCount + "[shape=diamond,label=\"" + i.C() + "\"];");
+			printWriter.print("  i" + instrCount + "[shape=diamond,label=\"" + am.getCondition(i.C()).accept(this, i.C()) + "\"];");
 			printWriter.print(" " + currentState + " -> i" + instrCount + ";");
 			printWriter.print(" i" + instrCount + " -> " + i.S0() + " [style=dashed];");
 			printWriter.println(" i" + instrCount + " -> " + i.S1() + ";");
@@ -65,6 +68,21 @@ public class ControllerToGraphviz {
 			printWriter.print("  i" + instrCount + "[shape=rectangle,label=\"" + i.T() + "\"];");
 			printWriter.println(" " + currentState + " -> i" + instrCount + " -> " + i.S() + ";");
 			return null;
+		}
+
+		@Override
+		public String visitInputCondition(PortCondition c, Integer p) {
+			return "tokens(" + c.getPortName().getName() + ", " + c.N() + ")";
+		}
+
+		@Override
+		public String visitOutputCondition(PortCondition c, Integer p) {
+			return "space(" + c.getPortName().getName() + ", " + c.N() + ")";
+		}
+
+		@Override
+		public String visitPredicateCondition(PredicateCondition c, Integer p) {
+			return "(guard)";
 		}
 
 	}
