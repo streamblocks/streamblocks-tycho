@@ -102,9 +102,15 @@ public class Compiler {
 						}
 					}
 				} else if (reducer.startsWith("prioritize-probable-conditions(") && reducer.endsWith(")")) {
-					String param = reducer.substring("prioritize-probable-conditions(".length(), reducer.length() - 1);
-					Path path = Paths.get(param);
-					wrappers.add(ConditionProbabilityReducer.wrapper(path, 0.1, msg));
+					String params = reducer.substring("prioritize-probable-conditions(".length(), reducer.length() - 1);
+					String[] paramArray = params.split("\\s*,\\s*");
+					if (paramArray.length == 2) {					
+						Path path = Paths.get(paramArray[0]);
+						double delta = Double.parseDouble(paramArray[1]);
+						wrappers.add(ConditionProbabilityReducer.wrapper(path, delta, msg));
+					} else {
+						msg.report(Message.warning("Wrong number of parameters, expected prioritize-probable-conditions(path, delta)."));
+					}
 				} else if (reducer.startsWith("shortest-path-to-most-probable-action(") && reducer.endsWith(")")) {
 					String param = reducer.substring("shortest-path-to-most-probable-action(".length(),
 							reducer.length() - 1);
