@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.transform.reduction;
+package se.lth.cs.tycho.transform.reduction.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,6 +34,10 @@ public class ProbabilityTable {
 		} catch (ProbabilityReaderException e) {
 			return Result.failure(Message.error(e.getMessage()));
 		}
+	}
+	
+	public static ProbabilityTable empty(double defaultValue) {
+		return new ProbabilityTable(new double[0], defaultValue);
 	}
 	
 	public double probability(int index) {

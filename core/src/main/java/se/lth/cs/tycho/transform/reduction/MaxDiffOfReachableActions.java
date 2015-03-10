@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.FilteredController;
 import se.lth.cs.tycho.transform.util.GenInstruction;

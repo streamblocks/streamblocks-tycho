@@ -7,7 +7,10 @@ package se.lth.cs.tycho.transform.reduction;
 
 import java.math.BigInteger;
 import java.util.Random;
+
 import org.junit.Test;
+
+import se.lth.cs.tycho.transform.reduction.util.Rational;
 import static org.junit.Assert.*;
 
 /**

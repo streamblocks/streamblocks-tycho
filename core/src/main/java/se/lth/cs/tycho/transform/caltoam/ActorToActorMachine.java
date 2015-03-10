@@ -8,7 +8,7 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates.State;
-import se.lth.cs.tycho.transform.reduction.ControllerWrapper;
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.ControllerGenerator;
 

@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.transform.reduction;
+package se.lth.cs.tycho.transform.reduction.util;
 
 import se.lth.cs.tycho.transform.util.Controller;
 

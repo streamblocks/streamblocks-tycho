@@ -2,6 +2,8 @@ package se.lth.cs.tycho.transform.reduction;
 
 import java.util.Optional;
 
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
+import se.lth.cs.tycho.transform.reduction.util.Rational;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.GenInstruction.Call;
 import se.lth.cs.tycho.transform.util.GenInstruction.Test;

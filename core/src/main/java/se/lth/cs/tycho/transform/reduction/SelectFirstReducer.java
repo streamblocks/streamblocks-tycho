@@ -3,6 +3,7 @@ package se.lth.cs.tycho.transform.reduction;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.FilteredController;
 import se.lth.cs.tycho.transform.util.GenInstruction;

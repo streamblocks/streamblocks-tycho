@@ -30,13 +30,16 @@ import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.messages.MessageWriter;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.reduction.ConditionProbabilityReducer;
-import se.lth.cs.tycho.transform.reduction.ControllerWrapper;
+import se.lth.cs.tycho.transform.reduction.LateOutputConditions;
 import se.lth.cs.tycho.transform.reduction.MaxDiffOfReachableActions;
 import se.lth.cs.tycho.transform.reduction.MinDiffOfReachableActions;
 import se.lth.cs.tycho.transform.reduction.NearestExecReducer;
 import se.lth.cs.tycho.transform.reduction.SelectFirstReducer;
 import se.lth.cs.tycho.transform.reduction.SelectMaximum;
 import se.lth.cs.tycho.transform.reduction.SelectRandomReducer;
+import se.lth.cs.tycho.transform.reduction.ShortestExpectedDistance;
+import se.lth.cs.tycho.transform.reduction.ShortestMinimumDistance;
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
 import se.lth.cs.tycho.util.ControllerToGraphviz;
 
 public class Compiler {
@@ -134,6 +137,12 @@ public class Compiler {
 					wrappers.add(MaxDiffOfReachableActions.wrapper());
 				} else if (reducer.equals("prioritize-non-diverging-tests")) {
 					wrappers.add(MinDiffOfReachableActions.wrapper());
+				} else if (reducer.equals("late-output-conditions")) {
+					wrappers.add(LateOutputConditions.wrapper());
+				} else if (reducer.equals("fewest-average-tests")) {
+					wrappers.add(ShortestExpectedDistance.wrapper());
+				} else if (reducer.equals("fewest-minimum-tests")) {
+					wrappers.add(ShortestMinimumDistance.wrapper());
 				} else {
 					msg.report(Message.warning("Ignoring unknown reducer \"" + reducer + "\"."));
 				}

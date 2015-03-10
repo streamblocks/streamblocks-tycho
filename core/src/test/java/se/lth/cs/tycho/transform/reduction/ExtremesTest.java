@@ -13,7 +13,10 @@ import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.junit.Test;
+
+import se.lth.cs.tycho.transform.reduction.util.Extremes;
 import static org.junit.Assert.*;
 
 /**

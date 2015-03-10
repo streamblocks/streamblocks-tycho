@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import se.lth.cs.tycho.messages.MessageReporter;
 import se.lth.cs.tycho.messages.util.Result;
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
+import se.lth.cs.tycho.transform.reduction.util.ProbabilityTable;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.FilteredController;
 import se.lth.cs.tycho.transform.util.GenInstruction;

@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import se.lth.cs.tycho.instance.am.Condition;
 import se.lth.cs.tycho.instance.am.PortCondition;
@@ -298,15 +299,17 @@ public class CalActorStates {
 		private String tokensToString() {
 			StringBuilder sb = new StringBuilder();
 			sb.append('[');
-			for (int p = 0; p < nbrOfInputPorts; p++) {
+			int[] present = IntStream.concat(IntStream.of(presentTokens), IntStream.of(presentSpace)).toArray();
+			int[] absent = IntStream.concat(IntStream.of(absentTokens), IntStream.of(absentSpace)).toArray();
+			for (int p = 0; p < present.length; p++) {
 				if (p > 0) {
 					sb.append(", ");
 				}
 				sb.append('(');
-				sb.append(presentTokens[p]);
+				sb.append(present[p]);
 				sb.append(", ");
-				int absent = absentTokens[p];
-				sb.append(absent > 0 ? absent : "inf");
+				int isAbsent = absent[p];
+				sb.append(isAbsent > 0 ? isAbsent : "inf");
 				sb.append(")");
 			}
 			sb.append("]");

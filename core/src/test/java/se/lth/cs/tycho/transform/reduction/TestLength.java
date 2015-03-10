@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import se.lth.cs.tycho.transform.reduction.util.Length;
+
 public class TestLength {
 	@Test
 	public void testCompareExecExec() {

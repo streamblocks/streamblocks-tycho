@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.lth.cs.tycho.transform.reduction;
+package se.lth.cs.tycho.transform.reduction.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

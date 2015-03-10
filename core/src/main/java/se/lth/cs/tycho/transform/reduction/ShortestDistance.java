@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.transform.reduction;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -31,15 +30,10 @@ public abstract class ShortestDistance<S, D extends Comparable<? super D>> exten
 		} else {
 			List<GenInstruction<S>> result;
 			Optional<D> min = distanceFromState(state);
-			if (min.isPresent()) {
-				D m = min.get();
-				result = original.instructions(state)
-						.stream()
-						.filter(i -> distanceFromInstruction(i).equals(m))
-						.collect(Collectors.toList());
-			} else {
-				result = Collections.emptyList();
-			}
+			result = original.instructions(state)
+					.stream()
+					.filter(i -> distanceFromInstruction(i).equals(min))
+					.collect(Collectors.toList());
 			cache.put(state, result);
 			return result;
 		}

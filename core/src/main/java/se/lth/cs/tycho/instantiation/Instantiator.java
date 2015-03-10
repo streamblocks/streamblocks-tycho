@@ -26,7 +26,7 @@ import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.copy.Copy;
-import se.lth.cs.tycho.transform.reduction.ControllerWrapper;
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
 
 public class Instantiator {
 	private final DeclarationLoader loader;

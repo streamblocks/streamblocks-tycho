@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.transform.reduction;
 
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
 import se.lth.cs.tycho.transform.util.Controller;
 
 /**

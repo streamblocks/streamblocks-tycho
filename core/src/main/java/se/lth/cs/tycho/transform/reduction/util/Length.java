@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.transform.reduction;
+package se.lth.cs.tycho.transform.reduction.util;
 
 import java.util.OptionalDouble;
 

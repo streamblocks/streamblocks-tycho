@@ -1,11 +1,13 @@
 package se.lth.cs.tycho.transform.reduction;
 
 import java.util.List;
+
 import se.lth.cs.tycho.instance.am.Condition;
 import se.lth.cs.tycho.instance.am.Condition.ConditionKind;
 import se.lth.cs.tycho.instance.am.PortCondition;
-
 import se.lth.cs.tycho.transform.Transformation;
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
+import se.lth.cs.tycho.transform.reduction.util.Extremes;
 import se.lth.cs.tycho.transform.util.Controller;
 import se.lth.cs.tycho.transform.util.FilteredController;
 import se.lth.cs.tycho.transform.util.GenInstruction;
