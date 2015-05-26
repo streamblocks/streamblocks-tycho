@@ -48,21 +48,11 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
  */
 public abstract class AbstractIRNode implements IRNode {
 
-	@Override
-	public Identifier getIdentifier() {
-		return identifier;
-	}
-
 	public AbstractIRNode(IRNode original) {
 		this(original, null);
 	}
 
 	public AbstractIRNode(IRNode original, ImmutableList<ToolAttribute> attributes) {
-		if (original == null) {
-			identifier = new Identifier();
-		} else {
-			identifier = original.getIdentifier();
-		}
 		if(attributes == null){
 			toolAttributes = ImmutableList.empty();
 		} else {
@@ -83,6 +73,5 @@ public abstract class AbstractIRNode implements IRNode {
 		return toolAttributes;
 	}
 	
-	private final Identifier identifier;
 	private ImmutableList<ToolAttribute> toolAttributes;
 }

@@ -2,14 +2,11 @@ package se.lth.cs.tycho.network.flatten.attr;
 
 import java.util.Set;
 
-import se.lth.cs.tycho.network.flatten.attr.Connections;
-import se.lth.cs.tycho.network.flatten.attr.Ports;
-import se.lth.cs.tycho.network.flatten.attr.TreeStructure;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.IRNode.Identifier;
+import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import javarag.Collected;
 import javarag.Module;

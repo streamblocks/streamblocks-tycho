@@ -55,11 +55,11 @@ public class EntityNameBinding implements StructureStmtVisitor<Object, Immutable
 				}
 			}
 			//TODO store entity expression somewhere !!!
-			if(entity == null){
-				System.err.println("Unknown name: " + entityName);
-			} else {
-				System.err.println("bound: " + entityName + " -> " + entity.getIdentifier());				
-			}
+//			if(entity == null){
+//				System.err.println("Unknown name: " + entityName);
+//			} else {
+//				System.err.println("bound: " + entityName + " -> " + entity.getIdentifier());
+//			}
 		} else{
 			//local port
 		}

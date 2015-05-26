@@ -8,7 +8,7 @@ import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
-import se.lth.cs.tycho.ir.IRNode.Identifier;
+import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.EntityDecl;

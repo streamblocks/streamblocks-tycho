@@ -15,7 +15,7 @@ import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
-import se.lth.cs.tycho.ir.IRNode.Identifier;
+import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;

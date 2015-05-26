@@ -10,7 +10,7 @@ import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.IRNode.Identifier;
+import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import javarag.Cached;
@@ -42,9 +42,6 @@ public class PortNames extends Module<PortNames.Decls> {
 
 		@Inherited
 		Object identifierOwner(Identifier identifier);
-
-		@Synthesized
-		public Port translatePort(Port port);
 	}
 
 	public Object identifierOwner(Object owner) {
@@ -97,9 +94,4 @@ public class PortNames extends Module<PortNames.Decls> {
 		return translator.get(pc).get(decl);
 	}
 
-	public Port translatePort(Port port) {
-		Port originalPort = (Port) e().identifierOwner(port.getIdentifier());
-		String portName = e().uniquePortName(originalPort);
-		return port.copy(portName);
-	}
 }

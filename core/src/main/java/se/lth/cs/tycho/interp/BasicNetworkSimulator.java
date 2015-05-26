@@ -12,7 +12,7 @@ import se.lth.cs.tycho.interp.Channel.OutputEnd;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.interp.preprocess.EvaluateLiteralsTransformer;
 import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
-import se.lth.cs.tycho.ir.IRNode.Identifier;
+import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;

@@ -19,7 +19,7 @@ import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.instance.net.ToolValueAttribute;
-import se.lth.cs.tycho.ir.IRNode.Identifier;
+import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;

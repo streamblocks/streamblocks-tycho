@@ -23,16 +23,8 @@ public class ScopeNumbers extends Module<ScopeNumbers.Decls> {
 		int scopeOffset(IRNode node , ActorMachine am);
 
 		@Inherited
-		int lookupScopeNumber(Object node, int scopeId);
-
-		@Synthesized
-		Variable translateVariable(Variable var);
-
-		@Inherited
 		ActorMachine actorMachine(IRNode node);
 		
-		@Synthesized
-		public ImmutableList<Integer> scopesToKill(Transition transition);
 	}
 	
 	public int numberOfScopes(ActorMachine actorMachine) {
@@ -49,32 +41,9 @@ public class ScopeNumbers extends Module<ScopeNumbers.Decls> {
 		}
 		throw new Error();
 	}
-	
-	public int lookupScopeNumber(ActorMachine am, int scope) {
-		return e().scopeOffset(am, am) + scope;
-	}
-	
-	public Variable translateVariable(Variable var) {
-		if (var.isScopeVariable()) {
-			int id = e().lookupScopeNumber(var.getIdentifier(), var.getScopeId());
-			return var.copy(var.getName(), id);
-		} else {
-			return var;
-		}
-	}
-	
+
 	public ActorMachine actorMachine(ActorMachine am) {
 		return am;
 	}
 	
-	public ImmutableList<Integer> scopesToKill(Transition transition) {
-		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
-		ActorMachine am = e().actorMachine(transition);
-		int offset = e().scopeOffset(transition, am);
-		for (int s : transition.getScopesToKill()) {
-			builder.add(offset + s);
-		}
-		return builder.build();
-	}
-
 }

@@ -30,7 +30,7 @@ public class Network extends Instance {
 		return visitor.visitNetwork(this, param);
 	}
 
-	public Node getNode(Identifier id) {
+	public Node getNode(Node.Identifier id) {
 		for (Node node : nodes) {
 			if (node.getIdentifier() == id) {
 				return node;

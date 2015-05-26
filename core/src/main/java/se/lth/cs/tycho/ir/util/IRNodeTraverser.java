@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 
 import javarag.TreeTraverser;
 import se.lth.cs.tycho.instance.net.Connection;
+import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Parameter;
@@ -23,7 +24,7 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 	public Iterable<? extends Object> getChildren(Object root) {
 		if (root instanceof Connection) {
 			Connection c = (Connection) root;
-			return Arrays.asList(c.getIdentifier(), c.getSrcPort(), c.getDstPort());
+			return Arrays.asList(c.getSrcPort(), c.getDstPort());
 		}
 		if (root instanceof NamespaceDecl) {
 			NamespaceDecl ns = (NamespaceDecl) root;
@@ -46,7 +47,7 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 			Class<?> returnType = m.getReturnType();
 			if (IRNode.class.isAssignableFrom(returnType) || Iterable.class.isAssignableFrom(returnType)
 					|| Entry.class.isAssignableFrom(returnType) || PortContainer.class.isAssignableFrom(returnType)
-					|| IRNode.Identifier.class.isAssignableFrom(returnType)
+					|| Node.Identifier.class.isAssignableFrom(returnType)
 					|| Map.class.isAssignableFrom(returnType)
 					|| Parameter.class.isAssignableFrom(returnType)) {
 				try {
@@ -66,7 +67,7 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 			addChildren(list, p.getValue());
 		} else if (child instanceof IRNode) {
 			list.add((IRNode) child);
-		} else if (child instanceof IRNode.Identifier) {
+		} else if (child instanceof Node.Identifier) {
 			list.add(child);
 		} else if (child instanceof Entry) {
 			Entry<?, ?> e = (Entry<?, ?>) child;

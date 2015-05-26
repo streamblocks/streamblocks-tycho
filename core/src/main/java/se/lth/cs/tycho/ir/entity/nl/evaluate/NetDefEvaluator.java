@@ -25,7 +25,7 @@ import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
 import se.lth.cs.tycho.interp.values.ExprValue;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.GeneratorFilter;
-import se.lth.cs.tycho.ir.IRNode.Identifier;
+import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
