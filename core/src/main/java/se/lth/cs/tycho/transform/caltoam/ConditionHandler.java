@@ -25,7 +25,7 @@ class ConditionHandler {
 	}
 
 	/** The conjunction of all test results for <code>action</code>. */
-	public TestResult testActionConditions(State state, int action) {
+	private TestResult testActionConditions(State state, int action) {
 		TestResult result = TestResult.True;
 		for (int cond : BitSets.iterable(actionConditions[action])) {
 			TestResult r = state.getResult(cond);

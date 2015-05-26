@@ -29,7 +29,7 @@ public class ShortestExpectedDistance<S> extends ShortestDistance<S, Rational> {
 	protected Optional<Rational> distanceFromTest(Test<S> i) {
 		Optional<Rational> s0 = distanceFromState(i.S0());
 		Optional<Rational> s1 = distanceFromState(i.S1());
-		return average(s0, s1);
+		return average(s0, s1).map(x -> x.add(Rational.ONE));
 	}
 
 	private Optional<Rational> average(Optional<Rational> s0, Optional<Rational> s1) {

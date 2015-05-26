@@ -28,7 +28,7 @@ public class ShortestMinimumDistance<S> extends ShortestDistance<S, Integer> {
 	protected Optional<Integer> distanceFromTest(Test<S> i) {
 		Optional<Integer> s0 = distanceFromState(i.S0());
 		Optional<Integer> s1 = distanceFromState(i.S1());
-		return min(s0, s1);
+		return min(s0, s1).map(x -> x + 1);
 	}
 
 	private Optional<Integer> min(Optional<Integer> s0, Optional<Integer> s1) {

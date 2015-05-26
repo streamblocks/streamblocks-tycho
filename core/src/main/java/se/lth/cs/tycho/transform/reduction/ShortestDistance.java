@@ -15,12 +15,14 @@ import se.lth.cs.tycho.transform.util.GenInstruction.Test;
 import se.lth.cs.tycho.transform.util.GenInstruction.Wait;
 
 public abstract class ShortestDistance<S, D extends Comparable<? super D>> extends FilteredController<S> {
-	
+
 	private final Map<S, List<GenInstruction<S>>> cache;
+	private final Map<S, Optional<D>> distanceCache;
 
 	public ShortestDistance(Controller<S> original) {
-		super(original);
+		super(new CachedController<>(original));
 		this.cache = new HashMap<>();
+		this.distanceCache = new HashMap<>();
 	}
 
 	@Override
@@ -40,12 +42,12 @@ public abstract class ShortestDistance<S, D extends Comparable<? super D>> exten
 	}
 
 	protected Optional<D> distanceFromState(S state) {
-		return original.instructions(state)
+		return distanceCache.computeIfAbsent(state, s -> original.instructions(s)
 				.stream()
 				.map(i -> distanceFromInstruction(i))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
-				.min(Comparator.naturalOrder());
+				.min(Comparator.naturalOrder()));
 	}
 
 	protected Optional<D> distanceFromInstruction(GenInstruction<S> i) {
