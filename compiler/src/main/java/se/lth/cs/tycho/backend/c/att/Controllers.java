@@ -1,23 +1,28 @@
 package se.lth.cs.tycho.backend.c.att;
 
-import java.io.PrintWriter;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.List;
-
-import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.instance.am.Condition;
-import se.lth.cs.tycho.instance.am.ICall;
-import se.lth.cs.tycho.instance.am.ITest;
-import se.lth.cs.tycho.instance.am.IWait;
-import se.lth.cs.tycho.instance.am.Instruction;
-import se.lth.cs.tycho.instance.am.PredicateCondition;
-import se.lth.cs.tycho.instance.am.Scope;
+import javarag.Cached;
+import javarag.Inherited;
+import javarag.Module;
+import javarag.Procedural;
+import javarag.Synthesized;
+import se.lth.cs.tycho.backend.c.ScopeInitialization;
+import se.lth.cs.tycho.instance.am.*;
 import se.lth.cs.tycho.instance.am.State;
+import se.lth.cs.tycho.instance.am.ctrl.*;
+import se.lth.cs.tycho.instance.am.ctrl.Transition;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
-import javarag.*;
+
+import java.io.PrintWriter;
+import java.util.ArrayDeque;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Controllers extends Module<Controllers.Decls> {
 
@@ -51,7 +56,69 @@ public class Controllers extends Module<Controllers.Decls> {
 		int index(IRNode node);
 
 		Set<Scope> persistentScopes(IRNode node);
+
+		@Synthesized
+		@Cached
+		ScopeInitialization scopeInitialization(ActorMachine am);
+
 	}
+
+//	public void controllerNew(ActorMachine actorMachine, PrintWriter writer) {
+//		int node = e().index(e().node(actorMachine));
+//		Map<se.lth.cs.tycho.instance.am.ctrl.State, Integer> stateNumbers;
+//		{
+//			stateNumbers = new HashMap<>();
+//			int i = 0;
+//			for (se.lth.cs.tycho.instance.am.ctrl.State s : actorMachine.controller().getAllStates()) {
+//				stateNumbers.put(s, i++);
+//			}
+//		}
+//		int[] waitTargets = actorMachine.controller().getAllStates().stream()
+//				.flatMap(s -> s.getTransitions().stream())
+//				.filter(t -> t.getKind() == TransitionKind.WAIT)
+//				.map(t -> ((Wait) t).target())
+//				.mapToInt(stateNumbers::get)
+//				.sorted()
+//				.distinct()
+//				.toArray();
+//
+//		BitSet persistentScopes;
+//		{
+//			persistentScopes = new BitSet();
+//			persistentScopes.set(0, actorMachine.getScopes().size());
+//			actorMachine.getTransitions().stream()
+//					.flatMapToInt(t -> t.getScopesToKill().stream().mapToInt(Integer::intValue))
+//					.distinct()
+//					.forEach(persistentScopes::clear);
+//		}
+//
+//		writer.println("static _Bool actor_n" + node + "(void) {");
+//		writer.println("_Bool progress = false;");
+//		writer.println("static int state = -1;");
+//
+//		writer.println("switch (state) {");
+//		writer.println("case -1: break;");
+//		for (int s : waitTargets) {
+//			writer.println("case " + s + ": goto S" + s + ";");
+//		}
+//		writer.println("}");
+//
+//		persistentScopes.stream().forEach(
+//				scope -> writer.println("init_n" + node + "s" + scope + "();")
+//		);
+//
+//		int state = 0;
+//		for (se.lth.cs.tycho.instance.am.ctrl.State s : actorMachine.controller().getAllStates()) {
+//			writer.println("S" + state + ":");
+//			writer.println("AM_TRACE_STATE(" + node + ", " + state + ");");
+//			Transition i = s.getTransitions().get(0);
+//
+//			// FIXME e().initScopes(i, writer);
+//			// FIXME e().controllerInstruction(i, writer);
+//			state += 1;
+//		}
+//		writer.println("}");
+//	}
 
 	public void controller(ActorMachine actorMachine, PrintWriter writer) {
 		int node = e().index(e().node(actorMachine));
@@ -59,10 +126,13 @@ public class Controllers extends Module<Controllers.Decls> {
 		writer.println("_Bool progress = false;");
 		writer.println("static int state = -1;");
 		e().controllerContinue(actorMachine, writer);
-		for (Scope s : e().persistentScopes(actorMachine.getController().get(0))) {
-			int scope = e().index(s);
-			writer.println("init_n" + node + "s" + scope + "();");
-		}
+		e().scopeInitialization(actorMachine)
+				.persistentScopes().stream()
+				.forEach(scope -> writer.println("init_n" + node + "s" + scope + "();"));
+//		for (Scope s : e().persistentScopes(actorMachine.getController().get(0))) {
+//			int scope = e().index(s);
+//			writer.println("init_n" + node + "s" + scope + "();");
+//		}
 
 		int state = 0;
 		for (State s : actorMachine.getController()) {
@@ -76,12 +146,25 @@ public class Controllers extends Module<Controllers.Decls> {
 		writer.println("}");
 	}
 
-	public void initScopes(Instruction i, PrintWriter writer) {
+	public ScopeInitialization scopeInitialization(ActorMachine am) {
+		return new ScopeInitialization(am);
+	}
+
+	private void initScopesOld(Instruction i, PrintWriter writer) {
 		int node = e().index(e().node(e().actorMachine(i)));
 		for (Scope s : e().scopesToInit(i)) {
 			int scope = e().index(s);
 			writer.println("init_n" + node + "s" + scope + "();");
 		}
+	}
+
+	public void initScopes(Instruction i, PrintWriter writer) {
+		ActorMachine actorMachine = e().actorMachine(i);
+		int node = e().index(e().node(actorMachine));
+		ScopeInitialization init = e().scopeInitialization(actorMachine);
+		init.scopesToInitialize(i).stream().forEach(scope -> {
+			writer.println("init_n" + node + "s" + scope + "();");
+		});
 	}
 
 	public void controllerContinue(ActorMachine actorMachine, PrintWriter writer) {
@@ -128,7 +211,7 @@ public class Controllers extends Module<Controllers.Decls> {
 		ActorMachine am = e().actorMachine(wait);
 		Node node = e().node(am);
 		int n = e().index(node);
-		writer.println("AM_TRACE_WAIT("+ n + ");");
+		writer.println("AM_TRACE_WAIT(" + n + ");");
 		writer.println("state = " + wait.S() + ";");
 		writer.println("return progress;");
 	}

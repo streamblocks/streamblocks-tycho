@@ -2,6 +2,8 @@ package se.lth.cs.tycho.instance.am;
 
 import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.InstanceVisitor;
+import se.lth.cs.tycho.instance.am.ctrl.Controller;
+import se.lth.cs.tycho.instance.am.ctrl.LegacyAdaptor;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -38,6 +40,10 @@ public class ActorMachine extends Instance {
 
 	public ImmutableList<State> getController() {
 		return controller;
+	}
+
+	public Controller controller() {
+		return adaptor;
 	}
 
 	public ImmutableList<Instruction> getInstructions(int n) {
@@ -88,6 +94,7 @@ public class ActorMachine extends Instance {
 		this.controller = ImmutableList.copyOf(controller);
 		this.transitions = ImmutableList.copyOf(transitions);
 		this.conditions = ImmutableList.copyOf(conditions);
+		adaptor = new LegacyAdaptor(controller, conditions, transitions);
 	}
 
 	public ActorMachine copy(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
@@ -105,4 +112,5 @@ public class ActorMachine extends Instance {
 	private final ImmutableList<State> controller;
 	private final ImmutableList<Transition> transitions;
 	private final ImmutableList<Condition> conditions;
+	private final Controller adaptor;
 }

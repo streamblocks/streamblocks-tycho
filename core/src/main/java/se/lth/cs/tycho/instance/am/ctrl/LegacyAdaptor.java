@@ -8,6 +8,7 @@ import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.am.InstructionVisitor;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,9 @@ public class LegacyAdaptor implements Controller {
 		return states.get(0);
 	}
 
+	@Override
+	public List<State> getAllStates() { return Collections.unmodifiableList(states); }
+
 	private Transition convert(Instruction i) {
 		return i.accept(converter);
 	}
@@ -41,7 +45,7 @@ public class LegacyAdaptor implements Controller {
 		}
 
 		@Override
-		public Collection<Transition> getTransitions() {
+		public List<Transition> getTransitions() {
 			if (transitions == null) {
 				transitions = state.getInstructions().stream().map(LegacyAdaptor.this::convert).collect(Collectors.toList());
 			}

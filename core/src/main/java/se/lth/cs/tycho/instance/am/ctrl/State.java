@@ -1,7 +1,7 @@
 package se.lth.cs.tycho.instance.am.ctrl;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface State {
-	Collection<Transition> getTransitions();
+	List<Transition> getTransitions();
 }
