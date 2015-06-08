@@ -94,7 +94,7 @@ public class ActorMachine extends Instance {
 		this.controller = ImmutableList.copyOf(controller);
 		this.transitions = ImmutableList.copyOf(transitions);
 		this.conditions = ImmutableList.copyOf(conditions);
-		adaptor = new LegacyAdaptor(controller, conditions, transitions);
+		adaptor = new LegacyAdaptor(controller);
 	}
 
 	public ActorMachine copy(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,

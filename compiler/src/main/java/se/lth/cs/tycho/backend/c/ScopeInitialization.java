@@ -1,33 +1,24 @@
 package se.lth.cs.tycho.backend.c;
 
 import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.instance.am.ICall;
-import se.lth.cs.tycho.instance.am.ITest;
-import se.lth.cs.tycho.instance.am.IWait;
-import se.lth.cs.tycho.instance.am.Instruction;
-import se.lth.cs.tycho.instance.am.State;
 
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-public class ScopeInitialization {
-	private final ActorMachine actorMachine;
-	private final ScopeDependencies scopeDependencies;
+public abstract class ScopeInitialization<State, Instruction> {
 	private final Map<Instruction, BitSet> initSets;
 	private final BitSet persistentScopes;
 
-	public ScopeInitialization(ActorMachine actorMachine) {
-		this.actorMachine = actorMachine;
-		this.scopeDependencies = new ScopeDependencies(actorMachine);
+	public ScopeInitialization() {
 		this.initSets = new HashMap<>();
 		persistentScopes = new BitSet();
-		init();
 	}
 
 	public BitSet scopesToInitialize(Instruction i) {
@@ -35,25 +26,22 @@ public class ScopeInitialization {
 		return copy(init);
 	}
 
-	private void init() {
+	protected void init() {
 		Map<Instruction, BitSet> killSets = new HashMap<>();
 		Map<State, Set<Instruction>> predecessors = new HashMap<>();
 
-		persistentScopes.set(0, actorMachine.getScopes().size());
-		for (State s : actorMachine.getController()) {
-			for (Instruction i : s.getInstructions()) {
-				if (i instanceof ICall) {
-					BitSet killSet = toBitSet(actorMachine.getTransition(((ICall) i).T()).getScopesToKill());
-					killSets.put(i, killSet);
-					persistentScopes.andNot(killSet);
-				} else {
-					killSets.put(i, new BitSet());
-				}
+		persistentScopes.set(0, numberOfScopes());
+		for (State s : getStates()) {
+			for (Instruction i : getInstructions(s)) {
+				BitSet killSet;
+				killSet = killSet(i);
+				killSets.put(i, killSet);
+				persistentScopes.andNot(killSet);
 			}
 		}
 
-		for (State s : actorMachine.getController()) {
-			for (Instruction i : s.getInstructions()) {
+		for (State s : getStates()) {
+			for (Instruction i : getInstructions(s)) {
 				for (State t : targets(i)) {
 					predecessors.computeIfAbsent(t, z -> new HashSet()).add(i);
 				}
@@ -65,8 +53,8 @@ public class ScopeInitialization {
 		Set<State> inQueue = new HashSet<>();
 		Queue<State> queue = new ArrayDeque<>();
 
-		queue.addAll(actorMachine.getController());
-		inQueue.addAll(actorMachine.getController());
+		queue.addAll(getStates());
+		inQueue.addAll(getStates());
 
 		while (!queue.isEmpty()) {
 			State state = queue.remove();
@@ -76,13 +64,13 @@ public class ScopeInitialization {
 					.reduce(this::union)
 					.orElse(persistentScopes);
 
-			for (Instruction t : state.getInstructions()) {
+			for (Instruction t : getInstructions(state)) {
 
-				BitSet init = scopeDependencies.dependencies(t);
+				BitSet init = getDependencies(t);
 				init.andNot(alive);
 				initSets.put(t, init);
 
-				BitSet out = scopeDependencies.dependencies(t);
+				BitSet out = getDependencies(t);
 				out.or(alive);
 				out.andNot(killSets.get(t));
 
@@ -99,18 +87,21 @@ public class ScopeInitialization {
 		}
 	}
 
+	protected abstract int numberOfScopes();
+
+	protected abstract BitSet getDependencies(Instruction t);
+
+	protected abstract List<Instruction> getInstructions(State s);
+
+	protected abstract Collection<? extends State> getStates();
+
+	protected abstract BitSet killSet(Instruction i);
+
 	private BitSet union(BitSet a, BitSet b) {
 		BitSet result = new BitSet();
 		result.or(a);
 		result.and(b);
 		return result;
-	}
-
-
-	private BitSet toBitSet(Collection<Integer> integers) {
-		return integers.stream()
-				.mapToInt(Integer::intValue)
-				.collect(BitSet::new, BitSet::set, BitSet::or);
 	}
 
 
@@ -120,24 +111,7 @@ public class ScopeInitialization {
 		return copy;
 	}
 
-	private State[] targets(Instruction i) {
-		if (i instanceof ICall) {
-			return new State[]{
-					actorMachine.getController().get(((ICall) i).S())
-			};
-		} else if (i instanceof ITest) {
-			return new State[]{
-					actorMachine.getController().get(((ITest) i).S0()),
-					actorMachine.getController().get(((ITest) i).S1())
-			};
-		} else if (i instanceof IWait) {
-			return new State[]{
-					actorMachine.getController().get(((IWait) i).S())
-			};
-		} else {
-			throw new Error();
-		}
-	}
+	protected abstract State[] targets(Instruction i);
 
 	public BitSet persistentScopes() {
 		return copy(persistentScopes);

@@ -1,11 +1,9 @@
 package se.lth.cs.tycho.instance.am.ctrl;
 
-import se.lth.cs.tycho.instance.am.Condition;
-
 public interface Test extends Transition {
-	static Test of(Condition cond, State targetTrue, State targetFalse) {
+	static Test of(int cond, State targetTrue, State targetFalse) {
 		return new Test() {
-			public Condition condition() {
+			public int condition() {
 				return cond;
 			}
 
@@ -28,10 +26,14 @@ public interface Test extends Transition {
 		return TransitionKind.TEST;
 	}
 
-	Condition condition();
+	int condition();
 
 	State targetTrue();
 
 	State targetFalse();
 
+	@Override
+	default State[] targets() {
+		return new State[] { targetTrue(), targetFalse() };
+	}
 }

@@ -9,6 +9,10 @@ import se.lth.cs.tycho.instance.am.ITest;
 import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.instance.am.Transition;
+import se.lth.cs.tycho.instance.am.ctrl.Exec;
+import se.lth.cs.tycho.instance.am.ctrl.Test;
+import se.lth.cs.tycho.instance.am.ctrl.TransitionVisitor;
+import se.lth.cs.tycho.instance.am.ctrl.Wait;
 import se.lth.cs.tycho.ir.Variable;
 
 import java.util.BitSet;
@@ -57,6 +61,26 @@ public class ScopeDependencies {
 		} else {
 			return new BitSet();
 		}
+	}
+
+	public BitSet dependencies(se.lth.cs.tycho.instance.am.ctrl.Transition transition) {
+		return transition.accept(new TransitionVisitor<BitSet, Void>() {
+
+			@Override
+			public BitSet visitExec(Exec t, Void v) {
+				return dependencies(actorMachine.getTransition(t.transition()));
+			}
+
+			@Override
+			public BitSet visitTest(Test t, Void v) {
+				return dependencies(actorMachine.getCondition(t.condition()));
+			}
+
+			@Override
+			public BitSet visitWait(Wait t, Void v) {
+				return new BitSet();
+			}
+		});
 	}
 
 	public BitSet dependencies(Scope scope) {

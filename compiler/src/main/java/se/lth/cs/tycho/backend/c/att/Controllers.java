@@ -6,6 +6,8 @@ import javarag.Module;
 import javarag.Procedural;
 import javarag.Synthesized;
 import se.lth.cs.tycho.backend.c.ScopeInitialization;
+import se.lth.cs.tycho.backend.c.ScopeInitializationNew;
+import se.lth.cs.tycho.backend.c.ScopeInitializationOld;
 import se.lth.cs.tycho.instance.am.*;
 import se.lth.cs.tycho.instance.am.State;
 import se.lth.cs.tycho.instance.am.ctrl.*;
@@ -59,7 +61,7 @@ public class Controllers extends Module<Controllers.Decls> {
 
 		@Synthesized
 		@Cached
-		ScopeInitialization scopeInitialization(ActorMachine am);
+		ScopeInitializationNew scopeInitialization(ActorMachine am);
 
 	}
 
@@ -134,6 +136,22 @@ public class Controllers extends Module<Controllers.Decls> {
 //			writer.println("init_n" + node + "s" + scope + "();");
 //		}
 
+//		int state = 0;
+//		for (se.lth.cs.tycho.instance.am.ctrl.State s : actorMachine.controller().getAllStates()) {
+//			writer.println("S" + state + ":");
+//			writer.println("AM_TRACE_STATE(" + node + ", " + state + ");");
+//			se.lth.cs.tycho.instance.am.ctrl.Transition i = s.getTransitions().get(0);
+//
+//			ScopeInitializationNew init = e().scopeInitialization(actorMachine);
+//			init.scopesToInitialize(i).stream().forEach(scope -> {
+//				writer.println("init_n" + node + "s" + scope + "();");
+//			});
+//
+//			e().controllerInstructionNew(i, writer);
+//			state += 1;
+//		}
+
+
 		int state = 0;
 		for (State s : actorMachine.getController()) {
 			writer.println("S" + state + ":");
@@ -146,8 +164,8 @@ public class Controllers extends Module<Controllers.Decls> {
 		writer.println("}");
 	}
 
-	public ScopeInitialization scopeInitialization(ActorMachine am) {
-		return new ScopeInitialization(am);
+	public ScopeInitializationNew scopeInitialization(ActorMachine am) {
+		return new ScopeInitializationNew(am);
 	}
 
 	private void initScopesOld(Instruction i, PrintWriter writer) {

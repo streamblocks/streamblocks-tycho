@@ -19,4 +19,9 @@ public interface Wait extends Transition {
 	}
 
 	State target();
+
+	@Override
+	default State[] targets() {
+		return new State[] { target() };
+	}
 }

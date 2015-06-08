@@ -1,9 +1,9 @@
 package se.lth.cs.tycho.instance.am.ctrl;
 
 public interface Exec extends Transition {
-	static Exec of(se.lth.cs.tycho.instance.am.Transition transition, State target) {
+	static Exec of(int transition, State target) {
 		return new Exec() {
-			public se.lth.cs.tycho.instance.am.Transition transition() {
+			public int transition() {
 				return transition;
 			}
 
@@ -22,9 +22,12 @@ public interface Exec extends Transition {
 		return TransitionKind.EXEC;
 	}
 
-	se.lth.cs.tycho.instance.am.Transition transition();
+	int transition();
 
 	State target();
 
-
+	@Override
+	default State[] targets() {
+		return new State[] { target() };
+	}
 }

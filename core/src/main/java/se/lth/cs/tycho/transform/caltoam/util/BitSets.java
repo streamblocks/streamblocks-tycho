@@ -7,8 +7,14 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.IntStream;
 
 public class BitSets {
+
+	public static BitSet collect(IntStream stream) {
+		return stream.collect(BitSet::new, BitSet::set, BitSet::or);
+	}
+
 	public static BitSet fromIterable(Iterable<Integer> ints) {
 		BitSet bitSet = new BitSet();
 		for (Integer i : ints) {
