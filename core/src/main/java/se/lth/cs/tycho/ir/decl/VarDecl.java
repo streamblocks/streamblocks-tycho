@@ -1,8 +1,10 @@
 package se.lth.cs.tycho.ir.decl;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
 
@@ -13,23 +15,30 @@ public class VarDecl extends Decl {
 	private final boolean constant;
 
 	private VarDecl(IRNode original, LocationKind locationKind, Availability availability, TypeExpr type, String name,
-			boolean constant, Expression value) {
-		super(original, locationKind, availability, DeclKind.VAR, name);
+			boolean constant, Expression value, QID qualifiedIdentifier) {
+		super(original, locationKind, availability, DeclKind.VAR, name, qualifiedIdentifier);
 		this.type = type;
 		this.value = value;
 		this.constant = constant;
 	}
 
 	public static VarDecl global(Availability availability, TypeExpr type, String name, Expression value) {
-		return new VarDecl(null, LocationKind.GLOBAL, availability, type, name, true, value);
+		return new VarDecl(null, LocationKind.GLOBAL, availability, type, name, true, value, null);
 	}
 
 	public static VarDecl local(TypeExpr type, String name, boolean constant, Expression value) {
-		return new VarDecl(null, LocationKind.LOCAL, Availability.LOCAL, type, name, constant, value);
+		return new VarDecl(null, LocationKind.LOCAL, Availability.LOCAL, type, name, constant, value, null);
 	}
 
 	public static VarDecl parameter(TypeExpr type, String name) {
-		return new VarDecl(null, LocationKind.PARAMETER, Availability.LOCAL, type, name, true, null);
+		return new VarDecl(null, LocationKind.PARAMETER, Availability.LOCAL, type, name, true, null, null);
+	}
+
+	public static VarDecl importDecl(QID qid, String name) {
+		if (name == null) {
+			name = qid.getLast().toString();
+		}
+		return new VarDecl(null, LocationKind.GLOBAL, Availability.LOCAL, null, name, true, null, qid);
 	}
 
 	public VarDecl copyAsGlobal(Availability availability, TypeExpr type, String name, Expression value) {
@@ -66,4 +75,9 @@ public class VarDecl extends Decl {
 		return constant;
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		if (type != null) action.accept(type);
+		if (value != null) action.accept(value);
+	}
 }

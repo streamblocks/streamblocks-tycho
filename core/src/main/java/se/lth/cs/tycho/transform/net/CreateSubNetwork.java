@@ -43,7 +43,7 @@ public class CreateSubNetwork {
 	}
 	
 	private Network network(Map<NodePort, String> inputPorts, Map<NodePort, String> outputPorts, Network subnet) {
-		Node subnetNode = new Node(name, subnet, null);
+		Node subnetNode = new Node(name, subnet);
 		ImmutableList<Connection> connectionList = connections(inputPorts, outputPorts, subnetNode);
 		ImmutableList<Node> nodeList = nodes(subnetNode);
 		return network.copy(nodeList, connectionList, network.getInputPorts(), network.getOutputPorts());

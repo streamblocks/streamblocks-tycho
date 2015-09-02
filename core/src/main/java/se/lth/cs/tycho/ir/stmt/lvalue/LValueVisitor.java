@@ -1,7 +1,10 @@
 package se.lth.cs.tycho.ir.stmt.lvalue;
 
 public interface LValueVisitor<R, P> {
-	public R visitLValueVariable(LValueVariable lvalue, P parameter);
-	public R visitLValueIndexer(LValueIndexer lvalue, P parameter);
-	public R visitLValueField(LValueField lvalue, P parameter);
+	default R visitLValue(LValue lvalue, P parameter) {
+		return lvalue.accept(this, parameter);
+	}
+	R visitLValueVariable(LValueVariable lvalue, P parameter);
+	R visitLValueIndexer(LValueIndexer lvalue, P parameter);
+	R visitLValueField(LValueField lvalue, P parameter);
 }

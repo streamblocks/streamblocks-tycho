@@ -6,6 +6,8 @@ import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.function.Consumer;
+
 public abstract class Entity extends AbstractIRNode {
 
 	protected final ImmutableList<PortDecl> inputPorts;
@@ -40,4 +42,11 @@ public abstract class Entity extends AbstractIRNode {
 		return valueParameters;
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		inputPorts.forEach(action);
+		outputPorts.forEach(action);
+		typeParameters.forEach(action);
+		valueParameters.forEach(action);
+	}
 }

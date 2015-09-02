@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.instance.am;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -38,4 +39,8 @@ public class Scope extends AbstractIRNode {
 		return location;
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		declarations.forEach(action);
+	}
 }

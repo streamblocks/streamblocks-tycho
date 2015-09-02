@@ -40,8 +40,10 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -95,4 +97,9 @@ public class Transition extends AbstractIRNode {
 	private String sourceState;
 	private String destinationState;
 	private ImmutableList<QID> actionTags;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
+	}
 }

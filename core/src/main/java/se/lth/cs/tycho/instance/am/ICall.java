@@ -1,5 +1,9 @@
 package se.lth.cs.tycho.instance.am;
 
+import se.lth.cs.tycho.ir.IRNode;
+
+import java.util.function.Consumer;
+
 /**
  * This class represents the call instruction, which has two components: the
  * {@link Transition transition} to be executed during the call, and the
@@ -49,4 +53,9 @@ public class ICall extends Instruction {
 
 	private int t;
 	private int s;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
+	}
 }

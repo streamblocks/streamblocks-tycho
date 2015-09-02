@@ -2,30 +2,30 @@ package se.lth.cs.tycho.ir;
 
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
-import se.lth.cs.tycho.ir.decl.Import;
+import se.lth.cs.tycho.ir.decl.StarImport;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.function.Consumer;
+
 public class NamespaceDecl extends AbstractIRNode {
 	private final QID qid;
-	private final ImmutableList<NamespaceDecl> namespaceDecls;
-	private final ImmutableList<Import> imports;
+	private final ImmutableList<StarImport> starImports;
 	private final ImmutableList<VarDecl> varDecls;
 	private final ImmutableList<EntityDecl> entityDecls;
 	private final ImmutableList<TypeDecl> typeDecls;
 
-	public NamespaceDecl(QID qid, ImmutableList<NamespaceDecl> namespaceDecls, ImmutableList<Import> imports, ImmutableList<VarDecl> varDecls,
+	public NamespaceDecl(QID qid, ImmutableList<StarImport> starImports, ImmutableList<VarDecl> varDecls,
 			ImmutableList<EntityDecl> entityDecls, ImmutableList<TypeDecl> typeDecls) {
-		this(null, qid, namespaceDecls, imports, varDecls, entityDecls, typeDecls);
+		this(null, qid, starImports, varDecls, entityDecls, typeDecls);
 	}
 	
-	private NamespaceDecl(IRNode original, QID qid, ImmutableList<NamespaceDecl> namespaceDecls, ImmutableList<Import> imports, ImmutableList<VarDecl> varDecls,
+	private NamespaceDecl(IRNode original, QID qid, ImmutableList<StarImport> starImports, ImmutableList<VarDecl> varDecls,
 			ImmutableList<EntityDecl> entityDecls, ImmutableList<TypeDecl> typeDecls) {
 		super(original);
 		this.qid = qid;
-		this.namespaceDecls = namespaceDecls;
-		this.imports = imports;
+		this.starImports = starImports;
 		this.varDecls = varDecls;
 		this.entityDecls = entityDecls;
 		this.typeDecls = typeDecls;
@@ -43,12 +43,8 @@ public class NamespaceDecl extends AbstractIRNode {
 		return builder.build();
 	}
 
-	public ImmutableList<NamespaceDecl> getNamespaceDecls() {
-		return namespaceDecls;
-	}
-	
-	public ImmutableList<Import> getImports() {
-		return imports;
+	public ImmutableList<StarImport> getStarImports() {
+		return starImports;
 	}
 
 	public ImmutableList<VarDecl> getVarDecls() {
@@ -63,4 +59,11 @@ public class NamespaceDecl extends AbstractIRNode {
 		return typeDecls;
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		varDecls.forEach(action);
+		typeDecls.forEach(action);
+		entityDecls.forEach(action);
+		starImports.forEach(action);
+	}
 }

@@ -5,6 +5,8 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.function.Consumer;
+
 public class State extends AbstractIRNode {
 	private final ImmutableList<Instruction> instructions;
 
@@ -28,4 +30,8 @@ public class State extends AbstractIRNode {
 		return instructions;
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		instructions.forEach(action);
+	}
 }

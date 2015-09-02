@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 /**
@@ -12,12 +14,6 @@ import se.lth.cs.tycho.ir.expr.Expression;
 public class EntityIfExpr extends EntityExpr {
 
 	public EntityIfExpr(Expression condition, EntityExpr trueEntity, EntityExpr falseEntity) {
-		this(null, condition, trueEntity, falseEntity);
-	}
-
-	private EntityIfExpr(EntityIfExpr original, Expression condition, EntityExpr trueEntity, EntityExpr falseEntity) {
-		//TODO tool attributes
-		super(original, null);
 		this.condition = condition;
 		this.trueEntity = trueEntity;
 		this.falseEntity = falseEntity;
@@ -28,7 +24,7 @@ public class EntityIfExpr extends EntityExpr {
 				&& Objects.equals(this.falseEntity, falseEntity)) {
 			return this;
 		}
-		return new EntityIfExpr(this, condition, trueEntity, falseEntity);
+		return new EntityIfExpr(condition, trueEntity, falseEntity);
 	}
 
 	public Expression getCondition() {
@@ -50,4 +46,11 @@ public class EntityIfExpr extends EntityExpr {
 
 	private EntityExpr trueEntity, falseEntity;
 	private Expression condition;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(condition);
+		action.accept(trueEntity);
+		action.accept(falseEntity);
+	}
 }

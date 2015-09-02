@@ -1,8 +1,10 @@
 package se.lth.cs.tycho.ir.entity;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeExpr;
 
 /**
@@ -65,4 +67,8 @@ public class PortDecl extends AbstractIRNode {
 		return type;
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(type);
+	}
 }

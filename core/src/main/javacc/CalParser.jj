@@ -35,11 +35,11 @@ import se.lth.cs.tycho.ir.util.ImmutableEntry;
 public class CalParser {
 
 	private Map<String, Integer> operatorPriorities = null;
-	
+
 	public void setOperatorPriorities(Map<String, Integer> priorities) {
 		operatorPriorities = priorities;
 	}
-	
+
 	public static Map<String, Integer> defaultPriorities() {
 		Map<String, Integer> prio = new HashMap<String, Integer>();
 		prio.put("or", 4);
@@ -76,7 +76,7 @@ public class CalParser {
 			this.name = name;
 		}
 	}
-	
+
 	public static class NameAndDef<T> {
 		public final String name;
 		public final T def;
@@ -93,7 +93,7 @@ public class CalParser {
 			throw new ParseException("Unknown binary operation " + op);
 		}
 	}
-	
+
 	private Expression shuntingYard(ImmutableList<String> operations, ImmutableList<Expression> operands) throws ParseException {
 		LinkedList<Expression> out = new LinkedList<Expression>();
 		LinkedList<String> ops = new LinkedList<String>();
@@ -327,29 +327,37 @@ NamespaceDecl CompilationUnit() :
 	}
 |
 	{
-		ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
+		ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 		ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
-		ImmutableList.Builder<Import> imports = ImmutableList.builder();
-		VarDecl v;
+		ImmutableList.Builder<StarImport> starImports = ImmutableList.builder();
+		VarDecl varDecl;
 		EntityDecl e;
-		Import imprt;
+		NamespaceDecl unit;
+		StarImport starImport;
 		QID qid;
 	}
 	"package"
 	qid = QID()
 	";"
 	(
-		imprt = Import() { imports.add(imprt); }
+		LOOKAHEAD(StarImport())
+		starImport = StarImport() { starImports.add(starImport); }
+	|
+		varDecl = VarImport() { varDecls.add(varDecl); }
 	)*
 	(Annotation())*
 	(
-		ns = OrccUnit() { nsDecls.add(ns); }
+		unit = OrccUnit()
+		{
+			qid = qid.concat(unit.getQID());
+			varDecls.addAll(unit.getVarDecls());
+		}
 	|
 		e = ActorDecl()  { entityDecls.add(e); }
 	)
 	<EOF>
 	{
-		NamespaceDecl pkg = new NamespaceDecl(qid, nsDecls.build(), imports.build(), ImmutableList.empty(), entityDecls.build(), ImmutableList.empty());
+		NamespaceDecl pkg = new NamespaceDecl(qid, starImports.build(), varDecls.build(), entityDecls.build(), ImmutableList.empty());
 		return pkg;
 	}
 }
@@ -373,7 +381,6 @@ NamespaceDecl OrccUnit() :
 	{
 		return new NamespaceDecl(
 				QID.of(id.image),
-				ImmutableList.empty(),
 				ImmutableList.empty(),
 				decls.build(),
 				ImmutableList.empty(),
@@ -406,7 +413,7 @@ void AnnotationParameter() :
 	LOOKAHEAD(2)
 	<ID> "=" Expression()
 |
-	Expression()	
+	Expression()
 }
 
 NamespaceDecl NamespaceDecl() :
@@ -425,14 +432,12 @@ NamespaceDecl NamespaceDecl() :
 
 NamespaceDecl NamespaceDeclContents(QID name) :
 {
-	ImmutableList.Builder<NamespaceDecl> nsDecls = ImmutableList.builder();
-	ImmutableList.Builder<Import> imports = ImmutableList.builder();
+	ImmutableList.Builder<StarImport> starImports = ImmutableList.builder();
 	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
 	ImmutableList.Builder<TypeDecl> typeDecls = ImmutableList.builder();
-	
-	NamespaceDecl ns;
-	Import i;
+
+	StarImport i;
 	VarDecl v;
 	EntityDecl e;
 	TypeDecl t;
@@ -440,9 +445,17 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 {
 	(Annotation())*
 	(
-		ns = NamespaceDecl() { nsDecls.add(ns); }
+		LOOKAHEAD(StarImport())
+		i = StarImport() { starImports.add(i); }
 	|
-		i = Import() { imports.add(i); }
+		LOOKAHEAD(2)
+		v = VarImport() { varDecls.add(v); }
+	|
+		LOOKAHEAD(2)
+		e = EntityImport() { entityDecls.add(e); }
+	|
+		LOOKAHEAD(2)
+		t = TypeImport() { typeDecls.add(t); }
 	|
 		LOOKAHEAD(2)
 		v = GlobalVarDecl() { varDecls.add(v); }
@@ -452,7 +465,7 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 		e = NetworkDecl() { entityDecls.add(e); }
 	)*
 	{
-		return new NamespaceDecl(name, nsDecls.build(), imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
+		return new NamespaceDecl(name, starImports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
 	}
 }
 
@@ -550,45 +563,76 @@ VarDecl LocalVarDecl(boolean endWithSemicolon) :
 	}
 }
 
-Import Import() :
+VarDecl VarImport() :
 {
 	QID qid;
-	Token kind = null;
-	boolean namespaceImport = false;
+	Token id = null;
+	String name;
 }
 {
 	"import"
+	("var")?
+	qid = QID() { name = qid.getLast().toString(); }
 	(
-		kind = "type"
-	|
-		kind = "entity"
-	|
-		kind = "var"
-	)?
-	(
-		"all"
-		{ namespaceImport = true; }
-	)?
-	qid = QID()
-	(
-		(".*" | "." "*")
-		{ namespaceImport = true; }
+		"="
+		id = <ID> { name = id.image; }
 	)?
 	";"
 	{
-		DeclKind declKind;
-		if (kind == null || kind.image.equals("var")) {
-			declKind = DeclKind.VAR;
-		} else if (kind.image.equals("type")) {
-			declKind = DeclKind.TYPE;
-		} else {
-			declKind = DeclKind.ENTITY;
-		}
-		if (namespaceImport) {
-			return Import.namespaceImport(declKind, qid);
-		} else {
-			return Import.singleImport(declKind, qid, qid.getLast().toString());
-		}
+		return VarDecl.importDecl(qid, name);
+	}
+}
+
+TypeDecl TypeImport() :
+{
+	QID qid;
+	Token id = null;
+}
+{
+	"import"
+	"type"
+	qid = QID()
+	(
+		"="
+		id = <ID>
+	)?
+	";"
+	{
+		return null;
+	}
+}
+
+EntityDecl EntityImport() :
+{
+	QID qid;
+	Token id = null;
+}
+{
+	"import"
+	"entity"
+	qid = QID()
+	(
+		"="
+		id = <ID>
+	)?
+	";"
+	{
+		return null;
+	}
+}
+
+StarImport StarImport() :
+{
+	QID qid;
+	Token kind = null;
+}
+{
+	"import"
+	qid = QID()
+	(".*" | "." "*")
+	";"
+	{
+		return new StarImport(qid);
 	}
 }
 
@@ -711,8 +755,8 @@ EntityDecl NetworkDecl() :
 	("entities" EntityInstanceDecls())?
 	("structure" (QID() "-->" QID() ("{" (<ID> (":" Type() | "=" Expression()) ";")* "}")?";")*)?
 	"end"
-	
-	
+
+
 	{ return null; }
 }
 
@@ -1233,7 +1277,7 @@ String UnaryOperator() :
 }
 {
 	(
-		op = <OP> | op = "=" | op = "-->" | op = "->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@"  
+		op = <OP> | op = "=" | op = "-->" | op = "->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@"
 		| op = "not" | op = "dom" | op = "rng" | op = "old"
 	)
 	{ return op.image; }
@@ -1581,7 +1625,7 @@ Statement Statement() :
 	Statement stmt;
 }
 {
-	( Annotation() )*	
+	( Annotation() )*
 	(
 		LOOKAHEAD(LValue() ":=")
 		stmt = AssignmentStmt()
@@ -1755,7 +1799,7 @@ Statement ElseIfStmt() :
 	)
 	{
 		return new StmtIf(cond, thenStmt, elseStmt);
-	}	 
+	}
 }
 
 StmtWhile WhileStmt() :

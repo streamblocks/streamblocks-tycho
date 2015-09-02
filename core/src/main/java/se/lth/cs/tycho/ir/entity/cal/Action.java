@@ -40,8 +40,10 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -160,5 +162,18 @@ public class Action extends AbstractIRNode {
 		// Utility.arrayToString(this.outputExpressions);
 		// Utility.decreaseTabDepth(2);
 		// return result;
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		inputPatterns.forEach(action);
+		outputExpressions.forEach(action);
+		typeDecls.forEach(action);
+		varDecls.forEach(action);
+		guards.forEach(action);
+		body.forEach(action);
+		if (delay != null) action.accept(delay);
+		preconditions.forEach(action);
+		postconditions.forEach(action);
 	}
 }

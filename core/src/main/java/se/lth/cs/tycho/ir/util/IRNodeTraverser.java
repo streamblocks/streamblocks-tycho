@@ -29,9 +29,8 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 		if (root instanceof NamespaceDecl) {
 			NamespaceDecl ns = (NamespaceDecl) root;
 			List<IRNode> children = new ArrayList<>();
-			children.addAll(ns.getImports());
+			children.addAll(ns.getStarImports());
 			children.addAll(ns.getAllDecls());
-			children.addAll(ns.getNamespaceDecls());
 			return children;
 		}
 		Class<?> type = root.getClass();

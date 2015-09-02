@@ -37,9 +37,6 @@ public class StringRepository implements SourceCodeRepository {
 
 	private void add(NamespaceDecl ns, QID parent, SourceCodeUnit unit) {
 		QID qid = parent.concat(ns.getQID());
-		for (NamespaceDecl child : ns.getNamespaceDecls()) {
-			add(child, qid, unit);
-		}
 		for (Decl decl : ns.getAllDecls()) {
 			QID declQID = qid.concat(QID.of(decl.getName()));
 			createOrGetList(declQID, decl.getDeclKind()).add(unit);

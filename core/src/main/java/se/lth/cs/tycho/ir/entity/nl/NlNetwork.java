@@ -1,9 +1,11 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -95,4 +97,13 @@ public class NlNetwork extends Entity {
 	private final ImmutableList<Entry<String, EntityExpr>> entities;
 	private final ImmutableList<ToolAttribute> toolAttributes;
 	private final ImmutableList<StructureStatement> structure;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		super.forEachChild(action);
+		typeDecls.forEach(action);
+		varDecls.forEach(action);
+		entities.forEach(entry -> action.accept(entry.getValue()));
+		structure.forEach(action);
+	}
 }

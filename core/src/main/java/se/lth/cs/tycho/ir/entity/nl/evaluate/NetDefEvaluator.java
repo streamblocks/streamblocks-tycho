@@ -137,7 +137,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				throw new UnsupportedOperationException("DeclLoader returned an unexpected type during network evaluation." + entityName + "is instance of class" + decl.getClass().getCanonicalName());
 			}
 			//TODO parameters for actors
-			nodes.put(p, new Node(entityName, payload, e.getToolAttributes()));
+			nodes.put(p, new Node(entityName, payload));
 			return null;
 		}
 
@@ -279,7 +279,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				//TODO support for values that can not be represented as strings, i.e. ExprLambda
 				builder.add(new AbstractMap.SimpleEntry<String, Expression>(pa.getKey(), new ExprValue(pa.getValue(), ExprLiteral.Kind.Integer, value.toString(), value)));
 			}
-			return e.copy(e.getEntityName(), builder.build(), e.getToolAttributes());
+			return e.copy(e.getEntityName(), builder.build());
 		} catch(se.lth.cs.tycho.interp.exception.CALIndexOutOfBoundsException error){
 			String msg = error.getMessage();
 			throw new se.lth.cs.tycho.interp.exception.CALIndexOutOfBoundsException(msg);
@@ -351,7 +351,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				builder.add(s.accept(this,env));
 			}
 		}
-		return new StructureForeachStmt(stmt, ImmutableList.<GeneratorFilter>empty(), builder.build());
+		return new StructureForeachStmt(ImmutableList.<GeneratorFilter>empty(), builder.build());
 	}
 
 	@Override

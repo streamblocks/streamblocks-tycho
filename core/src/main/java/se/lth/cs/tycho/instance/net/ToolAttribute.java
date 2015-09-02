@@ -1,6 +1,9 @@
 package se.lth.cs.tycho.instance.net;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
+
+import java.util.function.Consumer;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
@@ -24,4 +27,9 @@ public abstract class ToolAttribute extends AbstractIRNode {
 	abstract public void print(java.io.PrintStream out);
 
 	String name;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		throw new Error("Not implemented");
+	}
 }

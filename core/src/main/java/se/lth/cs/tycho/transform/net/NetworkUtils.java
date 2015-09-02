@@ -13,8 +13,7 @@ public class NetworkUtils {
 								Node transformed = transformation.apply(node);
 								return node.copy(
 										transformed.getName(),
-										transformed.getContent(),
-										transformed.getToolAttributes());
+										transformed.getContent());
 						})
 						.collect(ImmutableList.collector()),
 				network.getConnections(),

@@ -40,7 +40,9 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -120,4 +122,11 @@ public class ExprProc extends Expression {
 	private ImmutableList<Variable> freeVariables;
 	private boolean isFreeVariablesComputed;
 	private Statement body;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		typeParameters.forEach(action);
+		valueParameters.forEach(action);
+		action.accept(body);
+	}
 }

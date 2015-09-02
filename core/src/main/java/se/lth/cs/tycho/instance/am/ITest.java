@@ -1,5 +1,9 @@
 package se.lth.cs.tycho.instance.am;
 
+import se.lth.cs.tycho.ir.IRNode;
+
+import java.util.function.Consumer;
+
 /**
  * This class represents the test instruction, which has three components: the
  * {@link Condition condition} to be tested, and the controller states to go to
@@ -57,4 +61,9 @@ public class ITest extends Instruction {
 	private int c;
 	private int s1;
 	private int s0;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
+	}
 }

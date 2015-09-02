@@ -40,9 +40,12 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.function.Consumer;
 
 /**
  * @author Jorn W. Janneck <jwj@acm.org>
@@ -87,4 +90,13 @@ public class ExprMap extends Expression {
 
 	private ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
 	private ImmutableList<GeneratorFilter> generators;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		mappings.forEach(entry -> {
+			action.accept(entry.getKey());
+			action.accept(entry.getValue());
+		});
+		generators.forEach(action);
+	}
 }

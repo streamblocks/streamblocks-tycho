@@ -4,10 +4,13 @@ import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.InstanceVisitor;
 import se.lth.cs.tycho.instance.am.ctrl.Controller;
 import se.lth.cs.tycho.instance.am.ctrl.LegacyAdaptor;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.function.Consumer;
 
 /**
  * This class contains a description of an calActor machine. The central structure
@@ -113,4 +116,13 @@ public class ActorMachine extends Instance {
 	private final ImmutableList<Transition> transitions;
 	private final ImmutableList<Condition> conditions;
 	private final Controller adaptor;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		super.forEachChild(action);
+		scopes.forEach(action);
+		controller.forEach(action);
+		transitions.forEach(action);
+		conditions.forEach(action);
+	}
 }

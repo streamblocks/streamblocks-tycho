@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 
 public class ExprInput extends Expression {
@@ -84,4 +86,9 @@ public class ExprInput extends Expression {
 	private int offset;
 	private int repeat;
 	private int patternLength;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(port);
+	}
 }

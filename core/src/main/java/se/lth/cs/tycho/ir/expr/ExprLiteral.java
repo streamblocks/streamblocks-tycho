@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
 
@@ -95,6 +96,11 @@ public class ExprLiteral extends Expression {
 	 * This will be any of the litXYZ constants defined below.
 	 */
 	private Kind kind;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
+	}
 
 	public static enum Kind {
 		Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), String(null), Function(null);

@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 
 public class StmtConsume extends Statement {
@@ -36,5 +38,10 @@ public class StmtConsume extends Statement {
 			return this;
 		}
 		return new StmtConsume(this, port, tokens);
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(port);
 	}
 }

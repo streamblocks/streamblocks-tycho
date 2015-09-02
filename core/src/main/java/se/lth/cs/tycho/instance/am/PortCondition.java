@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.instance.am;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 
 /**
@@ -74,4 +76,9 @@ public class PortCondition extends Condition {
 	private boolean isInputCondition;
 	private Port port;
 	private int n;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(port);
+	}
 }

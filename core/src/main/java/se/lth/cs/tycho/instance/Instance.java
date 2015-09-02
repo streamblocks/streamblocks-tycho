@@ -6,6 +6,8 @@ import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.function.Consumer;
+
 public abstract class Instance extends AbstractIRNode implements PortContainer {
 	
 	protected final ImmutableList<PortDecl> inputPorts;
@@ -27,4 +29,9 @@ public abstract class Instance extends AbstractIRNode implements PortContainer {
 		this.outputPorts = outputPorts;
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		inputPorts.forEach(action);
+		outputPorts.forEach(action);
+	}
 }

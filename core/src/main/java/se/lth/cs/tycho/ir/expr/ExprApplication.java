@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -80,4 +81,9 @@ public class ExprApplication extends Expression {
 	private Expression function;
 	private ImmutableList<Expression> args;
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(function);
+		args.forEach(action);
+	}
 }

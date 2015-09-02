@@ -40,8 +40,10 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -85,4 +87,10 @@ public class OutputExpression extends AbstractIRNode {
 	private ImmutableList<Expression> values;
 	private Expression repeatExpr;
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(port);
+		values.forEach(action);
+		if (repeatExpr != null) action.accept(repeatExpr);
+	}
 }

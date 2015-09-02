@@ -43,7 +43,7 @@ public class Composer {
 	public Network composeNetwork(Network net, QID instanceId) {
 		AttributeEvaluator evaluator = register.getEvaluator(net, traverser);
 		ActorMachine composed = compose(net, evaluator, instanceId);
-		Node n = new Node(instanceId.getLast().toString(), composed, null);
+		Node n = new Node(instanceId.getLast().toString(), composed);
 		ImmutableList<Connection> conns = connections(net, n, evaluator);
 		return net.copy(ImmutableList.of(n), conns, net.getInputPorts(), net.getOutputPorts());
 	}

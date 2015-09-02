@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -62,4 +64,10 @@ public class StmtOutput extends Statement {
 	private boolean			hasRepeat;
 	private Port			port;
 	private int				repeat;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(port);
+		values.forEach(action);
+	}
 }

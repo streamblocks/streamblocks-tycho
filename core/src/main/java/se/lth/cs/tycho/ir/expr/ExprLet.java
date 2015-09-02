@@ -40,7 +40,9 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -87,4 +89,11 @@ public class ExprLet extends Expression {
 	private ImmutableList<TypeDecl> typeDecls;
 	private ImmutableList<VarDecl> varDecls;
 	private Expression body;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		typeDecls.forEach(action);
+		varDecls.forEach(action);
+		action.accept(body);
+	}
 }

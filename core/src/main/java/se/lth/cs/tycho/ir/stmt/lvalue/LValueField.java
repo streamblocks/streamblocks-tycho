@@ -1,8 +1,10 @@
 package se.lth.cs.tycho.ir.stmt.lvalue;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.Field;
+import se.lth.cs.tycho.ir.IRNode;
 
 /**
  * An LValue for assigning to a field of a structure.
@@ -59,4 +61,9 @@ public class LValueField extends LValue {
 		return visitor.visitLValueField(this, parameter);
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(structure);
+		action.accept(field);
+	}
 }

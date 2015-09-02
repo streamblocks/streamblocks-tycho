@@ -1,5 +1,9 @@
 package se.lth.cs.tycho.instance.am;
 
+import se.lth.cs.tycho.ir.IRNode;
+
+import java.util.function.Consumer;
+
 /**
  * This class represents the wait instruction, which contains the controller
  * state to transition to.
@@ -43,4 +47,9 @@ public class IWait extends Instruction {
 	}
 
 	private int s;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
+	}
 }

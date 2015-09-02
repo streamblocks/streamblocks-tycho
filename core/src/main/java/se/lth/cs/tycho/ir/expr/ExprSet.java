@@ -40,8 +40,11 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.function.Consumer;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -83,4 +86,9 @@ public class ExprSet extends Expression {
 	private ImmutableList<Expression> elements;
 	private ImmutableList<GeneratorFilter> generators;
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		elements.forEach(action);
+		generators.forEach(action);
+	}
 }

@@ -4,6 +4,7 @@ import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -32,6 +33,13 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	private void checkBounds(int index) {
 		if (index < 0 || index >= size) {
 			throw new IndexOutOfBoundsException();
+		}
+	}
+
+	@Override
+	public void forEach(Consumer<? super E> action) {
+		for (int i = 0; i < size; i++) {
+			action.accept(list[i]);
 		}
 	}
 

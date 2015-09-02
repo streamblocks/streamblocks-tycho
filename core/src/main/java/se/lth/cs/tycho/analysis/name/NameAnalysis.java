@@ -21,12 +21,10 @@ import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.Import;
+import se.lth.cs.tycho.ir.decl.StarImport;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
@@ -145,7 +143,7 @@ public class NameAnalysis extends Module<NameAnalysis.Attributes> {
 	}
 
 	public Result<VarDecl> lookupVariableInLocation(NamespaceDecl ns, Variable var) {
-		for (Import imp : ns.getImports()) {
+		for (StarImport imp : ns.getStarImports()) {
 			Result<Optional<VarDecl>> imported = e().importVar(imp, var.getName());
 			if (imported.isFailure()) {
 				return Result.failure(imported.getMessage());

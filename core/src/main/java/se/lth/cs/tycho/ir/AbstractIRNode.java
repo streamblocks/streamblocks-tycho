@@ -49,29 +49,29 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 public abstract class AbstractIRNode implements IRNode {
 
 	public AbstractIRNode(IRNode original) {
-		this(original, null);
+		//this(original, null);
 	}
 
-	public AbstractIRNode(IRNode original, ImmutableList<ToolAttribute> attributes) {
-		if(attributes == null){
-			toolAttributes = ImmutableList.empty();
-		} else {
-			this.toolAttributes = attributes;
-		}
-	}
+	//public AbstractIRNode(IRNode original, ImmutableList<ToolAttribute> attributes) {
+	//	if(attributes == null){
+	//		toolAttributes = ImmutableList.empty();
+	//	} else {
+	//		this.toolAttributes = attributes;
+	//	}
+	//}
 
-	public ToolAttribute getToolAttribute(String name){
-		for(ToolAttribute ta : toolAttributes){
-			if(ta.getName().equals(name)){
-				return ta;
-			}
-		}
-		return null;
-	}
+	//public ToolAttribute getToolAttribute(String name){
+	//	for(ToolAttribute ta : toolAttributes){
+	//		if(ta.getName().equals(name)){
+	//			return ta;
+	//		}
+	//	}
+	//	return null;
+	//}
 	
-	public ImmutableList<ToolAttribute> getToolAttributes(){
-		return toolAttributes;
-	}
+	//public ImmutableList<ToolAttribute> getToolAttributes(){
+	//	return toolAttributes;
+	//}
 	
-	private ImmutableList<ToolAttribute> toolAttributes;
+	//private ImmutableList<ToolAttribute> toolAttributes;
 }

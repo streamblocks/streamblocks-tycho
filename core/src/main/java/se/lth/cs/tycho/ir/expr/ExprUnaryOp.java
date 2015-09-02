@@ -4,7 +4,10 @@
 
 package se.lth.cs.tycho.ir.expr;
 
+import se.lth.cs.tycho.ir.IRNode;
+
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class ExprUnaryOp extends Expression {
 
@@ -39,4 +42,9 @@ public class ExprUnaryOp extends Expression {
 
 	private String operation;
 	private Expression operand;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(operand);
+	}
 }

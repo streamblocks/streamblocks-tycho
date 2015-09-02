@@ -43,7 +43,7 @@ public class NetworkBuilder {
     }
 
     public void addNode(String name, Instance node, ImmutableList<ToolAttribute> toolAttributes) {
-        nodes.put(name, new Node(name, node, toolAttributes));
+        nodes.put(name, new Node(name, node));
     }
 
     public void addConnection(String src, String srcPort, String dst, String dstPort) {

@@ -40,7 +40,9 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -78,4 +80,10 @@ public class StmtCall extends Statement {
 
 	private Expression procedure;
 	private ImmutableList<Expression> args;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(procedure);
+		args.forEach(action);
+	}
 }

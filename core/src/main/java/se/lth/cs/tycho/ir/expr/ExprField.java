@@ -1,8 +1,10 @@
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.Field;
+import se.lth.cs.tycho.ir.IRNode;
 
 public class ExprField extends Expression {
 	private Expression structure;
@@ -38,4 +40,9 @@ public class ExprField extends Expression {
 		return v.visitExprField(this, p);
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(structure);
+		action.accept(field);
+	}
 }

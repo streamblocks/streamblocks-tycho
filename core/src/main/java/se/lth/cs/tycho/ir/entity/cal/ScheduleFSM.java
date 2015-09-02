@@ -40,8 +40,10 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -81,4 +83,8 @@ public class ScheduleFSM extends AbstractIRNode {
 	private ImmutableList<Transition> transitions;
 	private String initialState;
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		transitions.forEach(action);
+	}
 }

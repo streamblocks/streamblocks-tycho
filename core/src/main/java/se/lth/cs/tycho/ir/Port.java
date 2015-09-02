@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * A Port node that refers to a port either by name or by location. The location
@@ -108,6 +109,10 @@ public class Port extends AbstractIRNode {
 			return false;
 		}
 	}
-	
 
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
+	}
 }

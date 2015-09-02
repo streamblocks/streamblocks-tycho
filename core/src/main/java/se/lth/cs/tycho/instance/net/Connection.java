@@ -1,8 +1,10 @@
 package se.lth.cs.tycho.instance.net;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -20,7 +22,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  * srcNodeId/dstNodeId is <code>null</code>.
  */
 
-public class Connection extends AbstractIRNode {
+public class Connection extends AttributableIRNode {
 	
 	public Port getSrcPort() { return srcPort; }
 
@@ -34,11 +36,7 @@ public class Connection extends AbstractIRNode {
 	// 
 	
 	public Connection(Node.Identifier srcNodeId, Port srcPort, Node.Identifier dstNodeId, Port dstPort, ImmutableList<ToolAttribute> ta) {
-		this(null, srcNodeId, srcPort, dstNodeId, dstPort, ta);
-	}
-	
-	protected Connection(IRNode original, Node.Identifier srcNodeId, Port srcPort, Node.Identifier dstNodeId, Port dstPort, ImmutableList<ToolAttribute> ta) {
-		super(original, ta);
+		super(ta);
 		assert srcPort != null;
 		assert dstPort != null;
 		this.srcNodeId = srcNodeId;
@@ -52,9 +50,15 @@ public class Connection extends AbstractIRNode {
 				&& Objects.equals(this.dstPort,  dstPort) && Lists.equals(getToolAttributes(), ta)){
 			return this;
 		}
-		return new Connection(this, srcNodeId, srcPort, dstNodeId, dstPort, ta);
+		return new Connection(srcNodeId, srcPort, dstNodeId, dstPort, ta);
 	}
 	
 	private Port srcPort, dstPort;
 	private Node.Identifier srcNodeId, dstNodeId;  // null for external ports in the network.
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(srcPort);
+		action.accept(dstPort);
+	}
 }

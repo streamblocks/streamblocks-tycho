@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
@@ -70,5 +71,10 @@ public class ExprVariable extends Expression {
 
 	public Variable getVariable() {
 		return var;
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(var);
 	}
 }

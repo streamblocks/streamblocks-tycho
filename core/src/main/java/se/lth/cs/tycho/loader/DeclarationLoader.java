@@ -167,10 +167,6 @@ public class DeclarationLoader {
 	private void populateCaches(NamespaceDecl ns, QID parent, SourceCodeUnit unit) {
 		sourceCodeUnit.put(ns, unit);
 		QID qid = parent.concat(ns.getQID());
-		for (NamespaceDecl child : ns.getNamespaceDecls()) {
-			enclosingNsDecl.put(child, ns);
-			populateCaches(child, qid, unit);
-		}
 		for (Decl decl : ns.getAllDecls()) {
 			enclosingNsDecl.put(decl, ns);
 			sourceCodeUnit.put(decl, unit);

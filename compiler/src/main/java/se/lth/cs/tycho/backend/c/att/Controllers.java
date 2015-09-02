@@ -61,7 +61,7 @@ public class Controllers extends Module<Controllers.Decls> {
 
 		@Synthesized
 		@Cached
-		ScopeInitializationNew scopeInitialization(ActorMachine am);
+		ScopeInitializationOld scopeInitialization(ActorMachine am);
 
 	}
 
@@ -164,8 +164,8 @@ public class Controllers extends Module<Controllers.Decls> {
 		writer.println("}");
 	}
 
-	public ScopeInitializationNew scopeInitialization(ActorMachine am) {
-		return new ScopeInitializationNew(am);
+	public ScopeInitializationOld scopeInitialization(ActorMachine am) {
+		return new ScopeInitializationOld(am);
 	}
 
 	private void initScopesOld(Instruction i, PrintWriter writer) {

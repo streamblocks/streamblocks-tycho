@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class Field extends AbstractIRNode {
 	private String name;
@@ -23,5 +24,10 @@ public class Field extends AbstractIRNode {
 
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
 	}
 }

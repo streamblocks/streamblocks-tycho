@@ -1,8 +1,10 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -14,12 +16,7 @@ import se.lth.cs.tycho.ir.util.Lists;
 public class StructureConnectionStmt extends StructureStatement {
 
 	public StructureConnectionStmt(PortReference src, PortReference dst, ImmutableList<ToolAttribute> toolAttributes) {
-		this(null, src, dst, toolAttributes);
-	}
-
-	private StructureConnectionStmt(StructureConnectionStmt original, PortReference src, PortReference dst,
-			ImmutableList<ToolAttribute> toolAttributes) {
-		super(original, toolAttributes);
+		super(toolAttributes);
 		this.src = src;
 		this.dst = dst;
 	}
@@ -30,7 +27,7 @@ public class StructureConnectionStmt extends StructureStatement {
 				&& Lists.equals(getToolAttributes(), toolAttributes)) {
 			return this;
 		}
-		return new StructureConnectionStmt(this, src, dst, toolAttributes);
+		return new StructureConnectionStmt(src, dst, toolAttributes);
 	}
 
 	public PortReference getSrc() {
@@ -51,4 +48,10 @@ public class StructureConnectionStmt extends StructureStatement {
 	}
 
 	private PortReference src, dst;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(src);
+		action.accept(dst);
+	}
 }

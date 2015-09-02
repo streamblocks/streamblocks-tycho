@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.instance.am;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 
@@ -53,4 +55,8 @@ public class PredicateCondition extends Condition {
 	private Expression expression;
 	private final NamespaceDecl location;
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(expression);
+	}
 }

@@ -4,6 +4,7 @@ import java.util.function.BiFunction;
 
 import se.lth.cs.tycho.ir.Field;
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
@@ -73,7 +74,7 @@ public class Copy implements BasicTransformer<Void>, ActorTransformer<Void>, Exp
 		return input.stream().map(a -> func.apply(a, param)).collect(ImmutableList.collector());
 	}
 
-	public <A, P, B> BiFunction<Parameter<A>, P, Parameter<B>> liftParameter(BiFunction<A, P, B> func) {
+	public <A extends IRNode, P, B extends IRNode> BiFunction<Parameter<A>, P, Parameter<B>> liftParameter(BiFunction<A, P, B> func) {
 		return (Parameter<A> p1, P p2) -> new Parameter<>(p1.getName(), func.apply(p1.getValue(), p2));
 	}
 

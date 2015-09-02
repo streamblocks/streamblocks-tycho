@@ -217,7 +217,6 @@ InstructionVisitor<Void, Element>{
 		top.setAttribute("name", node.getName());
 		top.setAttribute("id", node.getIdentifier().toString());
 		Object content = node.getContent();
-		generateXMLForToolAttributeList(node.getToolAttributes(), top);
 		if(content instanceof CalActor){
 			generateXMLForActor((CalActor)content, top);
 		} else if(content instanceof ActorMachine){
@@ -1050,7 +1049,6 @@ InstructionVisitor<Void, Element>{
 		p.appendChild(top);
 		top.setAttribute("name", entity.getEntityName());
 		generateXMLForParameterAssignmentList(entity.getParameterAssignments(), top);
-		generateXMLForToolAttributeList(entity.getToolAttributes(), top);
 		return null;
 	}
 	public Void visitEntityIfExpr(EntityIfExpr e, Element p) {

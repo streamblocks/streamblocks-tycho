@@ -33,9 +33,10 @@ public class TestStringRepository {
 		List<SourceCodeUnit> units = repo.findUnits(a_b_x, VAR);
 		assertEquals(1, units.size());
 		NamespaceDecl ns = units.get(0).load(null);
-		List<Decl> decls = findDecls(ns, a_b_x).collect(Collectors.toList());
+		List<Decl> decls = ns.getVarDecls().stream()
+				.filter(varDecl -> varDecl.getName().equals("x"))
+				.collect(Collectors.toList());
 		assertEquals(1, decls.size());
-		assertEquals("x", decls.get(0).getName());
 	}
 
 	@Test
@@ -46,22 +47,6 @@ public class TestStringRepository {
 		assertTrue(repo.findUnits(QID.parse("a.b.x"), TYPE).isEmpty());
 		assertTrue(repo.findUnits(QID.parse("a.x"), VAR).isEmpty());
 		assertTrue(repo.findUnits(QID.parse("x"), VAR).isEmpty());
-	}
-
-	public Stream<Decl> findDecls(NamespaceDecl ns, QID qid) {
-		QID relative = qid.getWithoutPrefix(ns.getQID());
-		if (relative == null) {
-			return Stream.empty();
-		} else {
-			if (relative.getNameCount() == 1) {
-				String name = relative.toString();
-				return ns.getAllDecls().stream()
-						.filter(d -> d.getName().equals(name));
-			} else {
-				return ns.getNamespaceDecls().stream()
-						.flatMap(child -> findDecls(child, relative));
-			}
-		}
 	}
 
 }

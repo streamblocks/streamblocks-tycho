@@ -101,7 +101,7 @@ public class Instantiator {
 				} catch (AmbiguityException e) {
 					throw new RuntimeException(e);
 				}
-				nodeBuilder.add(new Node(inst.getName(), result, ImmutableList.empty()));
+				nodeBuilder.add(new Node(inst.getName(), result));
 			}
 			ImmutableList<Node> nodes = nodeBuilder.build();
 			ImmutableList.Builder<Connection> connBuilder = ImmutableList.builder();

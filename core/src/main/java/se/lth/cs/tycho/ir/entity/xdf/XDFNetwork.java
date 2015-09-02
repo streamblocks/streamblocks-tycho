@@ -6,6 +6,8 @@ import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.function.Consumer;
+
 public class XDFNetwork extends Entity {
 
 	private final ImmutableList<XDFInstance> instances;
@@ -35,4 +37,10 @@ public class XDFNetwork extends Entity {
 		return visitor.visitXDFNetwork(this, param);
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		super.forEachChild(action);
+		instances.forEach(action);
+		connections.forEach(action);
+	}
 }

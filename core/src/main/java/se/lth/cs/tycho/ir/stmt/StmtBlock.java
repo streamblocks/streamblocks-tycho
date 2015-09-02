@@ -39,10 +39,13 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.stmt;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.function.Consumer;
 
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
@@ -91,4 +94,11 @@ public class StmtBlock extends Statement {
 	private ImmutableList<TypeDecl> typeDecls;
 	private ImmutableList<VarDecl> varDecls;
 	private ImmutableList<Statement> statements;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		typeDecls.forEach(action);
+		varDecls.forEach(action);
+		statements.forEach(action);
+	}
 }

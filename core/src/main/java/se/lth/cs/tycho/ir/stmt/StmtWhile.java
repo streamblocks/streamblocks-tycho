@@ -40,7 +40,9 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 /**
@@ -80,4 +82,10 @@ public class StmtWhile extends Statement {
 
 	private Expression condition;
 	private Statement body;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(condition);
+		action.accept(body);
+	}
 }

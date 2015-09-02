@@ -5,16 +5,12 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.function.Consumer;
+
 public class StructureForeachStmt extends StructureStatement {
 
 	public StructureForeachStmt(ImmutableList<GeneratorFilter> generators, ImmutableList<StructureStatement> statements) {
-		this(null, generators, statements);
-	}
-
-	public StructureForeachStmt(IRNode original, ImmutableList<GeneratorFilter> generators,
-			ImmutableList<StructureStatement> statements) {
-		//TODO tool attributes
-		super(original, null);
+		super(null);
 		this.generators = ImmutableList.copyOf(generators);
 		this.statements = ImmutableList.copyOf(statements);
 	}
@@ -24,7 +20,7 @@ public class StructureForeachStmt extends StructureStatement {
 		if (Lists.equals(this.generators, generators) && Lists.equals(this.statements, statements)) {
 			return this;
 		}
-		return new StructureForeachStmt(this, generators, statements);
+		return new StructureForeachStmt(generators, statements);
 	}
 
 	public ImmutableList<StructureStatement> getStatements() {
@@ -43,4 +39,9 @@ public class StructureForeachStmt extends StructureStatement {
 		return v.visitStructureForeachStmt(this, p);
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		generators.forEach(action);
+		statements.forEach(action);
+	}
 }

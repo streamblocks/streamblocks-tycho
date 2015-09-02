@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.stmt.lvalue;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
@@ -45,5 +46,10 @@ public class LValueVariable extends LValue {
 	@Override
 	public <R, P> R accept(LValueVisitor<R, P> visitor, P parameter) {
 		return visitor.visitLValueVariable(this, parameter);
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(variable);
 	}
 }

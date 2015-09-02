@@ -821,7 +821,6 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			sep = ", ";
 		}
 		out.append(")");
-		printToolAttributes(e.getToolAttributes());
 		return null;
 	}
 	public Void visitEntityIfExpr(EntityIfExpr e, Void p) {

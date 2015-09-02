@@ -73,7 +73,7 @@ public class FileSystemXdfRepository implements SourceCodeRepository {
 			try {
 				XDFNetwork xDFNetwork = reader.read(Files.newInputStream(path));
 				EntityDecl decl = EntityDecl.global(Availability.PUBLIC, qid.getLast().toString(), xDFNetwork);
-				return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
+				return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.empty(),
 						ImmutableList.of(decl), ImmutableList.empty());
 			} catch (ParserConfigurationException | SAXException | IOException e) {
 				messages.report(Message.error(e.getMessage()));

@@ -4,6 +4,8 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 
+import java.util.function.Consumer;
+
 public class XDFInstance extends AbstractIRNode {
 	private final String name;
 	private final QID entity;
@@ -26,4 +28,8 @@ public class XDFInstance extends AbstractIRNode {
 		return entity;
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
+	}
 }

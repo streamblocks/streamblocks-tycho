@@ -2,8 +2,10 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -15,26 +17,17 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class EntityInstanceExpr extends se.lth.cs.tycho.ir.entity.nl.EntityExpr {
 
-	public EntityInstanceExpr(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments,
-			ImmutableList<ToolAttribute> toolAttributes) {
-		this(null, entityName, parameterAssignments, toolAttributes);
-	}
-
-	private EntityInstanceExpr(EntityInstanceExpr original, String entityName,
-			ImmutableList<Entry<String, Expression>> parameterAssignments, ImmutableList<ToolAttribute> toolAttributes) {
-		super(original, toolAttributes);
+	public EntityInstanceExpr(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments) {
 		this.entityName = entityName;
 		this.parameterAssignments = ImmutableList.copyOf(parameterAssignments);
 	}
 
-	public EntityInstanceExpr copy(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments,
-			ImmutableList<ToolAttribute> toolAttributes) {
+	public EntityInstanceExpr copy(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments) {
 		if (Objects.equals(this.entityName, entityName)
-				&& Lists.equals(this.parameterAssignments, parameterAssignments)
-				&& Lists.equals(getToolAttributes(), toolAttributes)) {
+				&& Lists.equals(this.parameterAssignments, parameterAssignments)) {
 			return this;
 		}
-		return new EntityInstanceExpr(this, entityName, parameterAssignments, toolAttributes);
+		return new EntityInstanceExpr(entityName, parameterAssignments);
 	}
 
 	public String getEntityName() {
@@ -67,4 +60,9 @@ public class EntityInstanceExpr extends se.lth.cs.tycho.ir.entity.nl.EntityExpr 
 	}
 	private String entityName; // the name of the calActor/network
 	private ImmutableList<Entry<String, Expression>> parameterAssignments;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		parameterAssignments.forEach(entry -> action.accept(entry.getValue()));
+	}
 }

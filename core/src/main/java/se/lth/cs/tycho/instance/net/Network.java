@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.instance.net;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.InstanceVisitor;
@@ -73,4 +74,11 @@ public class Network extends Instance {
 
 	private ImmutableList<Node> nodes;
 	private ImmutableList<Connection> connections;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		super.forEachChild(action);
+		nodes.forEach(action);
+		connections.forEach(action);
+	}
 }

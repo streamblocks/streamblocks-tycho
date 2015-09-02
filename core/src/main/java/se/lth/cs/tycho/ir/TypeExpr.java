@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
@@ -98,4 +99,9 @@ public class TypeExpr extends AbstractIRNode {
 	private final ImmutableList<Parameter<TypeExpr>> typeParameters;
 	private final ImmutableList<Parameter<Expression>> valueParameters;
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		typeParameters.forEach(action);
+		valueParameters.forEach(action);
+	}
 }

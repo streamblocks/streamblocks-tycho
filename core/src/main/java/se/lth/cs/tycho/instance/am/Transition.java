@@ -4,8 +4,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.stmt.Statement;
@@ -90,4 +92,9 @@ public class Transition extends AbstractIRNode {
 	private final Map<Port, Integer> inputRates;
 	private final Map<Port, Integer> outputRates;
 	private final NamespaceDecl location;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(body);
+	}
 }

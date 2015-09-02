@@ -1,8 +1,10 @@
 package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -39,4 +41,10 @@ public class StmtForeach extends Statement {
 
 	private ImmutableList<GeneratorFilter> generators;
 	private Statement body;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		generators.forEach(action);
+		action.accept(body);
+	}
 }

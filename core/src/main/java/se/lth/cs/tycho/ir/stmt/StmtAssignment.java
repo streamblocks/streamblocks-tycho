@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 
@@ -60,4 +62,9 @@ public class StmtAssignment extends Statement {
 		return v.visitStmtAssignment(this, p);
 	}
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(lvalue);
+		action.accept(expression);
+	}
 }

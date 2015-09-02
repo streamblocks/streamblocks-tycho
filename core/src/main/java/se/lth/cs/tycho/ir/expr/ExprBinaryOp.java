@@ -11,6 +11,8 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.function.Consumer;
+
 public class ExprBinaryOp extends Expression {
 
 	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
@@ -46,4 +48,9 @@ public class ExprBinaryOp extends Expression {
 
 	private ImmutableList<String> operations;
 	private ImmutableList<Expression> operands;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		operands.forEach(action);
+	}
 }

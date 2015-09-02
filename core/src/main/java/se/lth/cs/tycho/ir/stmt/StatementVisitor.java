@@ -43,13 +43,15 @@ package se.lth.cs.tycho.ir.stmt;
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 public interface StatementVisitor<R,P> {
-
-    public R visitStmtAssignment(StmtAssignment s, P p);
-    public R visitStmtBlock(StmtBlock s, P p);
-    public R visitStmtIf(StmtIf s, P p);
-    public R visitStmtCall(StmtCall s, P p);
-    public R visitStmtOutput(StmtOutput s, P p);
-    public R visitStmtConsume(StmtConsume s, P p);
-    public R visitStmtWhile(StmtWhile s, P p);
-    public R visitStmtForeach(StmtForeach s, P p);
+	default R visitStatement(Statement s, P p) {
+		return s.accept(this, p);
+	}
+    R visitStmtAssignment(StmtAssignment s, P p);
+    R visitStmtBlock(StmtBlock s, P p);
+    R visitStmtIf(StmtIf s, P p);
+    R visitStmtCall(StmtCall s, P p);
+    R visitStmtOutput(StmtOutput s, P p);
+    R visitStmtConsume(StmtConsume s, P p);
+    R visitStmtWhile(StmtWhile s, P p);
+    R visitStmtForeach(StmtForeach s, P p);
 }

@@ -40,7 +40,9 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -136,4 +138,14 @@ public class CalActor extends Entity {
 	private ImmutableList<Expression> invariants;
 
 	private ImmutableList<Action> initializers;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		super.forEachChild(action);
+		varDecls.forEach(action);
+		typeDecls.forEach(action);
+		actions.forEach(action);
+		if (scheduleFSM != null) action.accept(scheduleFSM);
+		invariants.forEach(action);
+	}
 }

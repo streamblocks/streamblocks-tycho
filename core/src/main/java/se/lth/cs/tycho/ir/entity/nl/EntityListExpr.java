@@ -1,18 +1,15 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.function.Consumer;
 
 public class EntityListExpr extends EntityExpr {
 
 	public EntityListExpr(ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {
-		this(null, entityList, generators);
-	}
-
-	private EntityListExpr(EntityListExpr original, ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {
-		//TODO tool attributes
-		super(original, null);
 		this.entityList = ImmutableList.copyOf(entityList);
 		this.generators = ImmutableList.copyOf(generators);
 	}
@@ -21,7 +18,7 @@ public class EntityListExpr extends EntityExpr {
 		if (Lists.equals(this.entityList, entityList) && Lists.equals(this.generators, generators)) {
 			return this;
 		}
-		return new EntityListExpr(this, entityList, generators);
+		return new EntityListExpr(entityList, generators);
 	}
 
 	public ImmutableList<EntityExpr> getEntityList() {
@@ -57,4 +54,10 @@ public class EntityListExpr extends EntityExpr {
 
 	private ImmutableList<EntityExpr> entityList;
 	private ImmutableList<GeneratorFilter> generators;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		entityList.forEach(action);
+		generators.forEach(action);
+	}
 }

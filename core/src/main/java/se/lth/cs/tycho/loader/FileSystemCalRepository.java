@@ -109,9 +109,6 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 				}
 			}
 		}
-		for (NamespaceDecl child : ns.getNamespaceDecls()) {
-			buildRepo(unit, qid, child);
-		}
 	}
 
 	@Override

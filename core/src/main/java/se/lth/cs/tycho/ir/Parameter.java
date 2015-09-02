@@ -1,8 +1,9 @@
 package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
-public class Parameter<T> extends AbstractIRNode {
+public class Parameter<T extends IRNode> extends AbstractIRNode {
 	private final String name;
 	private final T value;
 
@@ -24,7 +25,7 @@ public class Parameter<T> extends AbstractIRNode {
 		return value;
 	}
 	
-	public static <T> Parameter<T> of(String name, T value) {
+	public static <T extends IRNode> Parameter<T> of(String name, T value) {
 		return new Parameter<>(name, value);
 	}
 
@@ -34,5 +35,10 @@ public class Parameter<T> extends AbstractIRNode {
 		} else {
 			return new Parameter<>(this, name, value);
 		}
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(value);
 	}
 }

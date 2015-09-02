@@ -44,19 +44,22 @@ package se.lth.cs.tycho.ir.expr;
  */
 
 public interface ExpressionVisitor<R,P> {
-    public R visitExprApplication(ExprApplication e, P p);
-    public R visitExprBinaryOp(ExprBinaryOp e, P p);
-    public R visitExprField(ExprField e, P p);
-    public R visitExprIf(ExprIf e, P p);
-    public R visitExprIndexer(ExprIndexer e, P p);
-    public R visitExprInput(ExprInput e, P p);
-    public R visitExprLambda(ExprLambda e, P p);
-    public R visitExprLet(ExprLet e, P p);
-    public R visitExprList(ExprList e, P p);
-    public R visitExprLiteral(ExprLiteral e, P p);
-    public R visitExprMap(ExprMap e, P p);
-    public R visitExprProc(ExprProc e, P p);
-    public R visitExprSet(ExprSet e, P p);
-    public R visitExprUnaryOp(ExprUnaryOp e, P p);
-    public R visitExprVariable(ExprVariable e, P p);
+	default R visitExpression(Expression e, P p) {
+		return e.accept(this, p);
+	}
+    R visitExprApplication(ExprApplication e, P p);
+    R visitExprBinaryOp(ExprBinaryOp e, P p);
+    R visitExprField(ExprField e, P p);
+    R visitExprIf(ExprIf e, P p);
+    R visitExprIndexer(ExprIndexer e, P p);
+    R visitExprInput(ExprInput e, P p);
+    R visitExprLambda(ExprLambda e, P p);
+    R visitExprLet(ExprLet e, P p);
+    R visitExprList(ExprList e, P p);
+    R visitExprLiteral(ExprLiteral e, P p);
+    R visitExprMap(ExprMap e, P p);
+    R visitExprProc(ExprProc e, P p);
+    R visitExprSet(ExprSet e, P p);
+    R visitExprUnaryOp(ExprUnaryOp e, P p);
+    R visitExprVariable(ExprVariable e, P p);
 }

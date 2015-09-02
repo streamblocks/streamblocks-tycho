@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -40,5 +41,10 @@ public class Annotation extends AbstractIRNode {
 	@Override
 	public int hashCode() {
 		return Objects.hash(name, parameters);
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
 	}
 }

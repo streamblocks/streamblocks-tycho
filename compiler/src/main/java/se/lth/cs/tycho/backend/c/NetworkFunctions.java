@@ -11,7 +11,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class NetworkFunctions {
 	public static Network fromSingleNode(Instance instance, String name) {
-		Node node = new Node(name, instance, null);
+		Node node = new Node(name, instance);
 		ImmutableList<PortDecl> inputPorts = copyPorts(instance.getInputPorts());
 		ImmutableList<PortDecl> outputPorts = copyPorts(instance.getOutputPorts());
 		ImmutableList.Builder<Connection> builder = ImmutableList.builder();

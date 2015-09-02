@@ -1,10 +1,12 @@
 package se.lth.cs.tycho.instance.net;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -29,12 +31,12 @@ public class Node extends AbstractIRNode {
 	// Ctor
 	//
 	
-	public Node(String name, Instance content, ImmutableList<ToolAttribute> ta) {
-		this(null, name, content, ta);
+	public Node(String name, Instance content) {
+		this(null, name, content);
 	}
-	
-	protected Node(Node original, String name, Instance content, ImmutableList<ToolAttribute> ta) {
-		super (original, ta);
+
+	protected Node(Node original, String name, Instance content) {
+		super (original);
 		if (original == null) {
 			identifier = new Identifier();
 		} else {
@@ -44,11 +46,11 @@ public class Node extends AbstractIRNode {
 		this.content = content;
 	}
 	
-	public Node copy(String name, Instance content, ImmutableList<ToolAttribute> ta){
-		if(Objects.equals(this.name, name) && Objects.equals(this.content, content) && Lists.equals(getToolAttributes(), ta)){
+	public Node copy(String name, Instance content){
+		if(Objects.equals(this.name, name) && Objects.equals(this.content, content)){
 			return this;
 		}
-		return new Node(this, name, content, ta);
+		return new Node(this, name, content);
 	}
 
 	public Identifier getIdentifier() {
@@ -61,6 +63,11 @@ public class Node extends AbstractIRNode {
 
 	public String toString(){
 		return name;
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(content);
 	}
 
 	/**

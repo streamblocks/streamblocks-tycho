@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -15,13 +17,7 @@ import se.lth.cs.tycho.ir.util.Lists;
 public class StructureIfStmt extends StructureStatement {
 	public StructureIfStmt(Expression condition, ImmutableList<StructureStatement> trueStmt,
 			ImmutableList<StructureStatement> falseStmt) {
-		this(null, condition, trueStmt, falseStmt);
-	}
-
-	private StructureIfStmt(StructureIfStmt original, Expression condition, ImmutableList<StructureStatement> trueStmt,
-			ImmutableList<StructureStatement> falseStmt) {
-		//TODO tool attributes
-		super(original, null);
+		super(null);
 		this.condition = condition;
 		this.trueStmt = ImmutableList.copyOf(trueStmt);
 		this.falseStmt = ImmutableList.copyOf(falseStmt);
@@ -33,7 +29,7 @@ public class StructureIfStmt extends StructureStatement {
 				&& Lists.equals(this.falseStmt, falseStmt)) {
 			return this;
 		}
-		return new StructureIfStmt(this, condition, trueStmt, falseStmt);
+		return new StructureIfStmt(condition, trueStmt, falseStmt);
 	}
 
 	public Expression getCondition() {
@@ -55,4 +51,11 @@ public class StructureIfStmt extends StructureStatement {
 
 	private ImmutableList<StructureStatement> trueStmt, falseStmt;
 	private Expression condition;
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(condition);
+		trueStmt.forEach(action);
+		falseStmt.forEach(action);
+	}
 }

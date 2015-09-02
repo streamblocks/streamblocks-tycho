@@ -39,7 +39,10 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.expr;
 
+import se.lth.cs.tycho.ir.IRNode;
+
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
@@ -80,4 +83,9 @@ public class ExprIndexer extends Expression {
 
 	private Expression index;
 
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(structure);
+		action.accept(index);
+	}
 }
