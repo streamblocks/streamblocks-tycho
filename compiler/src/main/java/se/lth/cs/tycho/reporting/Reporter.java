@@ -46,6 +46,8 @@ public interface Reporter {
 	};
 	void report(Diagnostic diagnostic);
 
+	int getMessageCount(Diagnostic.Kind kind);
+
 	static Reporter instance(Configuration configuration) {
 		return new ConsoleReporter(configuration.get(reportingLevel));
 	}

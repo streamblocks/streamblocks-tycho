@@ -14,14 +14,14 @@ public class PrintTreesPhase implements Phase {
 	}
 
 	@Override
-	public Optional<CompilationUnit> execute(CompilationUnit unit, Context context) {
+	public CompilationUnit execute(CompilationUnit unit, Context context) {
 		Printer printer = new Printer();
 		unit.getSourceUnits().forEach(sourceUnit -> {
 			System.out.println(sourceUnit.getLocation());
 			printer.accept(sourceUnit.getTree());
 			System.out.println();
 		});
-		return Optional.of(unit);
+		return unit;
 	}
 
 	private static class Printer implements Consumer<IRNode> {

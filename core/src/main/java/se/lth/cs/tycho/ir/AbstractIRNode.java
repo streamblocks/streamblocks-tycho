@@ -47,9 +47,26 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
  * @author Jorn W. Janneck <jwj@acm.org>
  */
 public abstract class AbstractIRNode implements IRNode {
+	private int lineNumber = -1;
+	private int columnNumber = -1;
 
 	public AbstractIRNode(IRNode original) {
 		//this(original, null);
+	}
+
+	@Override
+	public int getLineNumber() {
+		return lineNumber;
+	}
+
+	@Override
+	public int getColumnNumber() {
+		return columnNumber;
+	}
+
+	public void setPosition(int lineNumber, int columnNumber) {
+		this.lineNumber = lineNumber;
+		this.columnNumber = columnNumber;
 	}
 
 	//public AbstractIRNode(IRNode original, ImmutableList<ToolAttribute> attributes) {

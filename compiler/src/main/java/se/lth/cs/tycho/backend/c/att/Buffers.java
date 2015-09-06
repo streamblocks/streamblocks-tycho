@@ -38,13 +38,13 @@ public class Buffers extends Module<Buffers.Decls> {
 		String bufferDecl(Connection conn);
 
 		@Synthesized
-		public String statement(Statement stmt);
+		String statement(Statement stmt);
 
 		@Synthesized
-		public String condition(Condition cond);
+		String condition(Condition cond);
 
 		@Synthesized
-		public String varInit(Expression e, String name);
+		String varInit(Expression e, String name);
 
 		@Synthesized
 		int bufferSize(Connection conn);

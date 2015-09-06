@@ -23,7 +23,7 @@ public class LoadImportsPhase implements Phase {
 	}
 
 	@Override
-	public Optional<CompilationUnit> execute(CompilationUnit unit, Context context) {
+	public CompilationUnit execute(CompilationUnit unit, Context context) {
 		List<SourceUnit> result = new ArrayList<>(unit.getSourceUnits());
 		Set<QID> loaded = new HashSet<>();
 		loaded.add(unit.getIdentifier().getButLast());
@@ -48,6 +48,6 @@ public class LoadImportsPhase implements Phase {
 				}
 			}
 		}
-		return Optional.of(unit.withSourceUnits(result));
+		return unit.withSourceUnits(result);
 	}
 }

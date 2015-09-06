@@ -2,10 +2,11 @@ package se.lth.cs.tycho.comp;
 
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.phases.DeclarationAnalysisPhase;
-import se.lth.cs.tycho.phases.HelloWorldPhase;
 import se.lth.cs.tycho.phases.LoadEntityPhase;
 import se.lth.cs.tycho.phases.LoadImportsPhase;
+import se.lth.cs.tycho.phases.NameAnalysisPhase;
 import se.lth.cs.tycho.phases.Phase;
+import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
@@ -18,16 +19,14 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public class Compiler {
 	private final Context compilationContext;
 	public static final List<Phase> phases = Arrays.asList(
-			new HelloWorldPhase(),
 			new LoadEntityPhase(),
 			new LoadImportsPhase(),
-			//new PrintTreesPhase(),
-			new DeclarationAnalysisPhase()
+			new DeclarationAnalysisPhase(),
+			new NameAnalysisPhase()
 	);
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {
@@ -57,24 +56,24 @@ public class Compiler {
 	public boolean compile(QID entity) {
 		CompilationUnit compilationUnit = new CompilationUnit(Collections.emptyList(), entity);
 		long[] phaseExecutionTime = new long[phases.size()];
-		int i = 0;
+		int currentPhaseNumber = 0;
+		boolean success = true;
 		for (Phase phase : phases) {
 			long startTime = System.nanoTime();
-			Optional<CompilationUnit> result = phase.execute(compilationUnit, compilationContext);
-			phaseExecutionTime[i++] = System.nanoTime() - startTime;
-			if (result.isPresent()) {
-				compilationUnit = result.get();
-			} else {
-				return false;
+			compilationUnit = phase.execute(compilationUnit, compilationContext);
+			phaseExecutionTime[currentPhaseNumber] = System.nanoTime() - startTime;
+			currentPhaseNumber += 1;
+			if (compilationContext.getReporter().getMessageCount(Diagnostic.Kind.ERROR) > 0) {
+				success = false;
+				break;
 			}
 		}
 		if (compilationContext.getConfiguration().get(phaseTimer)) {
-			int j = 0;
 			System.out.println("Execution time report:");
-			for (Phase phase : phases) {
-				System.out.println(phase.getName()+" ("+phaseExecutionTime[j++]/1_000_000+" ms)");
+			for (int j = 0; j < currentPhaseNumber; j++) {
+				System.out.println(phases.get(j).getName()+" ("+phaseExecutionTime[j]/1_000_000+" ms)");
 			}
 		}
-		return true;
+		return success;
 	}
 }

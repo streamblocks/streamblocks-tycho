@@ -136,7 +136,7 @@ public class ExprLambda extends Expression {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		typeParameters.forEach(action);
 		valueParameters.forEach(action);
-		action.accept(returnTypeExpr);
-		action.accept(body);
+		if (returnTypeExpr != null) action.accept(returnTypeExpr);
+		if (body != null) action.accept(body);
 	}
 }

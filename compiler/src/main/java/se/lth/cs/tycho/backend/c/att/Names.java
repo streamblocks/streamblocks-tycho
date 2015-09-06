@@ -30,7 +30,7 @@ public class Names extends Module<Names.Decls> {
 		String bufferName(Connection c);
 
 		@Synthesized
-		public String tempVariableName(Object o);
+		String tempVariableName(Object o);
 
 		int index(Object o);
 

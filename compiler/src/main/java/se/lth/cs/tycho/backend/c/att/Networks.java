@@ -19,7 +19,7 @@ public class Networks extends Module<Networks.Decls> {
 
 	public interface Decls {
 		@Synthesized
-		public Node node(ActorMachine actorMachine);
+		Node node(ActorMachine actorMachine);
 
 		@Inherited
 		Node lookupNode(ActorMachine actorMachine);

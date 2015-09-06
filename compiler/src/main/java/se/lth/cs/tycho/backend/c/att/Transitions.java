@@ -15,7 +15,7 @@ public class Transitions extends Module<Transitions.Decls> {
 	public interface Decls {
 
 		@Procedural
-		public void transitions(ActorMachine actorMachine, PrintWriter writer);
+		void transitions(ActorMachine actorMachine, PrintWriter writer);
 
 		@Procedural
 		void transition(Transition t, PrintWriter writer);

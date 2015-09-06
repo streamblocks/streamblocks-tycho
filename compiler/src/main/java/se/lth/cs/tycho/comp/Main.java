@@ -14,7 +14,7 @@ public class Main {
 
 	private static final String toolName = "tychoc";
 	private static final String toolFullName = "The Tycho Compiler";
-	private static final String toolVersion = "0.0.0-SNAPSHOT";
+	private static final String toolVersion = "0.0.1-SNAPSHOT";
 
 	public static void main(String[] args) {
 		Main main = new Main();

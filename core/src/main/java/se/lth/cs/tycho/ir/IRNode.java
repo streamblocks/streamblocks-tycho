@@ -14,4 +14,12 @@ public interface IRNode {
 
 	void forEachChild(Consumer<? super IRNode> action);
 
+	default int getLineNumber() {
+		return -1;
+	}
+
+	default int getColumnNumber() {
+		return -1;
+	}
+
 }

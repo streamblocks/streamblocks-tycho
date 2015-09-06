@@ -19,35 +19,35 @@ public class TranslationUnit extends Module<TranslationUnit.Decls> {
 	public interface Decls extends TreeRootModule.Declarations {
 		
 		@Procedural
-		public void translate(TreeRoot root, PrintWriter writer);
+		void translate(TreeRoot root, PrintWriter writer);
 		
 		@Procedural
-		public void translate(Network network, PrintWriter writer);
+		void translate(Network network, PrintWriter writer);
 
 		@Procedural
-		public void includes(Network network, PrintWriter writer);
+		void includes(Network network, PrintWriter writer);
 
 		@Synthesized
-		public String bufferDecl(Connection conn);
+		String bufferDecl(Connection conn);
 
 		@Procedural
-		public void mainFunction(Network network, PrintWriter writer);
+		void mainFunction(Network network, PrintWriter writer);
 
 		@Procedural
-		public void actors(Network network, PrintWriter writer);
+		void actors(Network network, PrintWriter writer);
 
 		@Procedural
-		public void bufferDecls(Network network, PrintWriter writer);
+		void bufferDecls(Network network, PrintWriter writer);
 
-		public void borderActors(Network network, PrintWriter writer);
+		void borderActors(Network network, PrintWriter writer);
 
-		public void translateNode(Object content, PrintWriter writer);
+		void translateNode(Object content, PrintWriter writer);
 
-		public List<String> borderActorNames(Network network);
+		List<String> borderActorNames(Network network);
 
-		public String bufferName(Connection conn);
+		String bufferName(Connection conn);
 
-		public String bufferFunctions(Network network);
+		String bufferFunctions(Network network);
 
 	}
 	

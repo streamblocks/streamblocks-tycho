@@ -22,7 +22,7 @@ public class FunctionApplications extends Module<FunctionApplications.Decls> {
 		String functionApplication(ExprVariable func, ExprApplication apply);
 
 		@Synthesized
-		public String procedureCall(ExprVariable proc, StmtCall call);
+		String procedureCall(ExprVariable proc, StmtCall call);
 
 		Result<IRNode> variableDeclaration(Variable var);
 

@@ -13,6 +13,7 @@ public class Configuration {
 		this.configuration = configuration;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T> T get(Setting<T> setting) {
 		if (manager.get(setting.getKey()) != setting) {
 			throw new IllegalArgumentException("Unknown setting");

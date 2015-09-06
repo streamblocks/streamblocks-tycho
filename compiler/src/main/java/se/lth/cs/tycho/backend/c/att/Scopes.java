@@ -22,7 +22,7 @@ public class Scopes extends Module<Scopes.Decls> {
 	public interface Decls {
 
 		@Procedural
-		public void scopes(ActorMachine actorMachine, PrintWriter writer);
+		void scopes(ActorMachine actorMachine, PrintWriter writer);
 
 		@Synthesized
 		boolean scopeDeclIsConst(VarDecl varDecl);

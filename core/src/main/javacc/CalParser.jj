@@ -315,6 +315,42 @@ TOKEN: {
 	< ID: (["a"-"z", "A"-"Z", "_", "$", "0"-"9"])+ >
 }
 
+
+QID NamespaceScan() :
+{
+	QID qid = QID.empty();
+	Token unitId;
+}
+{
+	(
+		"namespace"
+		qid = QID()
+		":"
+	|
+		"package"
+		qid = QID()
+		";"
+		(
+			"import"
+			QID()
+			(".*" | "." "*")?
+			";"
+		)*
+		(
+			"unit"
+			unitId = <ID>
+			":"
+			{
+				qid = qid.concat(QID.of(unitId.image));
+			}
+		)?
+	)?
+	{
+		return qid;
+	}
+}
+
+
 NamespaceDecl CompilationUnit() :
 {
 	NamespaceDecl ns;
@@ -1216,7 +1252,9 @@ Variable Variable() :
 {
 	id = <ID>
 	{
-		return Variable.variable(id.image);
+		Variable result = Variable.variable(id.image);
+		result.setPosition(id.beginLine, (id.beginColumn + id.endColumn) / 2);
+		return result;
 	}
 }
 

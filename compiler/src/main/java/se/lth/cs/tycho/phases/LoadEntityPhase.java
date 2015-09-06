@@ -8,7 +8,6 @@ import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.reporting.Diagnostic;
 
 import java.util.List;
-import java.util.Optional;
 
 public class LoadEntityPhase implements Phase {
 
@@ -18,7 +17,7 @@ public class LoadEntityPhase implements Phase {
 	}
 
 	@Override
-	public Optional<CompilationUnit> execute(CompilationUnit unit, Context context) {
+	public CompilationUnit execute(CompilationUnit unit, Context context) {
 		QID namespace = unit.getIdentifier().getButLast();
 		String entityName = unit.getIdentifier().getLast().toString();
 		List<SourceUnit> sources = context.getLoader()
@@ -32,9 +31,9 @@ public class LoadEntityPhase implements Phase {
 		if (count == 0) {
 			context.getReporter().report(new Diagnostic(Diagnostic.Kind.ERROR,
 					"Could not find public entity \"" + unit.getIdentifier() + "\"."));
-			return Optional.empty();
+			return unit;
 		} else {
-			return Optional.of(unit.withSourceUnits(sources));
+			return unit.withSourceUnits(sources);
 		}
 	}
 }

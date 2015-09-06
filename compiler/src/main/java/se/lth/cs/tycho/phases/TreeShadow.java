@@ -1,6 +1,9 @@
 package se.lth.cs.tycho.phases;
 
+import se.lth.cs.tycho.comp.CompilationUnit;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.phases.attributes.ModuleKey;
+import se.lth.cs.tycho.phases.attributes.AttributeManager;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -8,6 +11,18 @@ import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
 public class TreeShadow {
+	public static final ModuleKey<TreeShadow> key = new ModuleKey<TreeShadow>() {
+		@Override
+		public Class<TreeShadow> getKey() {
+			return TreeShadow.class;
+		}
+
+		@Override
+		public TreeShadow createInstance(CompilationUnit unit, AttributeManager manager) {
+			return TreeShadow.of(unit);
+		}
+	};
+
 	private final IRNode root;
 	private final Map<IRNode, IRNode> parentMap;
 
@@ -28,6 +43,10 @@ public class TreeShadow {
 		}
 		assert parentMap.containsKey(node);
 		return parentMap.get(node);
+	}
+
+	public IRNode root() {
+		return root;
 	}
 
 	private static class Builder implements Consumer<IRNode> {

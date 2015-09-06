@@ -9,6 +9,10 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.cal.Action;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
@@ -26,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DeclarationAnalysisPhase implements Phase {
 	@Override
@@ -34,7 +39,7 @@ public class DeclarationAnalysisPhase implements Phase {
 	}
 
 	@Override
-	public Optional<CompilationUnit> execute(CompilationUnit unit, Context context) {
+	public CompilationUnit execute(CompilationUnit unit, Context context) {
 		Map<QID, List<SourceUnit>> varDecls = new HashMap<>();
 		Map<QID, List<SourceUnit>> typeDecls = new HashMap<>();
 		Map<QID, List<SourceUnit>> entityDecls = new HashMap<>();
@@ -53,20 +58,14 @@ public class DeclarationAnalysisPhase implements Phase {
 			addConflictingLocalNames(sourceUnit, entityDecls, qid, ns.getEntityDecls());
 		}
 
-		boolean success = true;
-		success &= checkGlobalNames(varDecls, "Variable", context.getReporter());
-		success &= checkGlobalNames(typeDecls, "Type", context.getReporter());
-		success &= checkGlobalNames(entityDecls, "Entity", context.getReporter());
+		checkGlobalNames(varDecls, "Variable", context.getReporter());
+		checkGlobalNames(typeDecls, "Type", context.getReporter());
+		checkGlobalNames(entityDecls, "Entity", context.getReporter());
 
 		CheckLocalNames check = new CheckLocalNames(context.getReporter());
 		check.accept(unit);
-		success &= check.success;
 
-		if (success) {
-			return Optional.of(unit);
-		} else {
-			return Optional.empty();
-		}
+		return unit;
 	}
 
 	private boolean checkGlobalNames(Map<QID, List<SourceUnit>> decls, String kind, Reporter reporter) {
@@ -106,11 +105,9 @@ public class DeclarationAnalysisPhase implements Phase {
 
 	private static class CheckLocalNames implements Consumer<IRNode> {
 		private final Reporter reporter;
-		private boolean success;
 
 		public CheckLocalNames(Reporter reporter) {
 			this.reporter = reporter;
-			this.success = true;
 		}
 
 		@Override
@@ -133,18 +130,30 @@ public class DeclarationAnalysisPhase implements Phase {
 				check(((StmtBlock) node).getVarDecls());
 			} else if (node instanceof GeneratorFilter) {
 				check(((GeneratorFilter) node).getVariables());
+			} else if (node instanceof Action) {
+				Action action = (Action) node;
+				check(action.getTypeDecls());
+				Stream<VarDecl> actionVars = action.getVarDecls().stream();
+				Stream<VarDecl> inputVars = action.getInputPatterns().stream().flatMap(inputPattern -> inputPattern.getVariables().stream());
+				check(Stream.concat(inputVars, actionVars));
+			} else if (node instanceof CalActor) {
+				check(((CalActor) node).getTypeDecls());
+				check(((CalActor) node).getVarDecls());
 			}
 			node.forEachChild(this);
 		}
 
-		private void check(ImmutableList<? extends Decl> varDecls) {
+		private void check(ImmutableList<? extends Decl> decls) {
+			check(decls.stream());
+		}
+
+		private void check(Stream<? extends Decl> decls) {
 			Set<String> names = new HashSet<>();
-			varDecls.forEach(varDecl -> {
-				if (!names.add(varDecl.getName())) {
-					success = false;
+			decls.forEach(decl -> {
+				if (!names.add(decl.getName())) {
 					reporter.report(new Diagnostic(
 							Diagnostic.Kind.ERROR,
-							varDecl.getName() + " is already declared in this scope."));
+							decl.getName() + " is already declared in this scope."));
 				}
 			});
 		}

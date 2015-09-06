@@ -18,7 +18,7 @@ public interface Phase {
 		}
 	}
 	String getDescription();
-	Optional<CompilationUnit> execute(CompilationUnit unit, Context context);
+	CompilationUnit execute(CompilationUnit unit, Context context);
 	default List<Setting<?>> getPhaseSettings() {
 		return Collections.emptyList();
 	}

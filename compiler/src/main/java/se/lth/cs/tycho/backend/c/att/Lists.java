@@ -19,10 +19,10 @@ public class Lists extends Module<Lists.Decls> {
 		String varInit(Expression expr, String name);
 
 		@Synthesized
-		public String generatorFilter(GeneratorFilter gf, String content);
+		String generatorFilter(GeneratorFilter gf, String content);
 
 		@Synthesized
-		public String generator(Expression expr, List<VarDecl> decls, String content);
+		String generator(Expression expr, List<VarDecl> decls, String content);
 
 		String variableName(VarDecl decl);
 

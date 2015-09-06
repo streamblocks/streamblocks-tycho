@@ -11,10 +11,10 @@ public class Utilities extends Module<Utilities.Decls> {
 
 	public interface Decls {
 		@Inherited
-		public Object parent(Object n);
+		Object parent(Object n);
 
 		@Synthesized
-		public int index(Object node);
+		int index(Object node);
 
 		@Inherited
 		int lookupIndex(Object node, Object node2);

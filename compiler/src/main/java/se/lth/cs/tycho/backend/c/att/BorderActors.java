@@ -28,7 +28,7 @@ public class BorderActors extends Module<BorderActors.Decls> {
 		void borderActors(Network net, PrintWriter writer);
 
 		@Synthesized
-		public List<String> borderActorNames(Network net);
+		List<String> borderActorNames(Network net);
 
 		String bufferName(Connection conn);
 
