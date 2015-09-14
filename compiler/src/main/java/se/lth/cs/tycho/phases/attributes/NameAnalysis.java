@@ -3,7 +3,7 @@ package se.lth.cs.tycho.phases.attributes;
 import se.lth.cs.multij.Binding;
 import se.lth.cs.multij.Module;
 import se.lth.cs.multij.MultiJ;
-import se.lth.cs.tycho.comp.CompilationUnit;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Module
@@ -42,7 +43,7 @@ public interface NameAnalysis {
 		}
 
 		@Override
-		public NameAnalysis createInstance(CompilationUnit unit, AttributeManager manager) {
+		public NameAnalysis createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(NameAnalysis.class)
 					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
 					.instance();
@@ -70,8 +71,8 @@ public interface NameAnalysis {
 		node.forEachChild(child -> checkNames(child, unit, reporter));
 	}
 
-	default void checkNames(CompilationUnit unit, SourceUnit s, Reporter reporter) {
-		unit.getSourceUnits().parallelStream().forEach(x -> checkNames(x, null, reporter));
+	default void checkNames(CompilationTask unit, SourceUnit s, Reporter reporter) {
+		unit.getSourceUnits().stream().forEach(x -> checkNames(x, null, reporter));
 	}
 
 	default void checkNames(SourceUnit node, SourceUnit unit, Reporter reporter) {
@@ -210,7 +211,7 @@ public interface NameAnalysis {
 
 	default Optional<VarDecl> findGlobalVar(QID qid, boolean includingPrivate) {
 		QID ns = qid.getButLast();
-		CompilationUnit unit = (CompilationUnit) tree().root();
+		CompilationTask unit = (CompilationTask) tree().root();
 		for(SourceUnit sourceUnit : unit.getSourceUnits()) {
 			if (sourceUnit.getTree().getQID().equals(ns)) {
 				Optional<VarDecl> d = findInList(sourceUnit.getTree().getVarDecls(), qid.getLast().toString());

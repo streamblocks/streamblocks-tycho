@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeExpr;
@@ -138,5 +139,16 @@ public class ExprLambda extends Expression {
 		valueParameters.forEach(action);
 		if (returnTypeExpr != null) action.accept(returnTypeExpr);
 		if (body != null) action.accept(body);
+	}
+
+	@Override
+	public ExprLambda transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(typeParameters.map(transformation)),
+				unsafeCast(valueParameters.map(transformation)),
+				body == null ? null : (Expression) transformation.apply(body),
+				returnTypeExpr == null ? null : (TypeExpr) transformation.apply(returnTypeExpr),
+				unsafeCast(freeVariables.map(transformation)),
+				isFreeVariablesComputed);
 	}
 }

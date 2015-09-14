@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.phases;
 
-import se.lth.cs.tycho.comp.CompilationUnit;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.GeneratorFilter;
@@ -12,7 +12,6 @@ import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
-import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
@@ -26,7 +25,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -39,18 +37,18 @@ public class DeclarationAnalysisPhase implements Phase {
 	}
 
 	@Override
-	public CompilationUnit execute(CompilationUnit unit, Context context) {
+	public CompilationTask execute(CompilationTask task, Context context) {
 		Map<QID, List<SourceUnit>> varDecls = new HashMap<>();
 		Map<QID, List<SourceUnit>> typeDecls = new HashMap<>();
 		Map<QID, List<SourceUnit>> entityDecls = new HashMap<>();
-		for (SourceUnit sourceUnit : unit.getSourceUnits()) {
+		for (SourceUnit sourceUnit : task.getSourceUnits()) {
 			NamespaceDecl ns = sourceUnit.getTree();
 			QID qid = ns.getQID();
 			collectNonLocalNames(sourceUnit, varDecls, qid, ns.getVarDecls());
 			collectNonLocalNames(sourceUnit, typeDecls, qid, ns.getTypeDecls());
 			collectNonLocalNames(sourceUnit, entityDecls, qid, ns.getEntityDecls());
 		}
-		for (SourceUnit sourceUnit : unit.getSourceUnits()) {
+		for (SourceUnit sourceUnit : task.getSourceUnits()) {
 			NamespaceDecl ns = sourceUnit.getTree();
 			QID qid = ns.getQID();
 			addConflictingLocalNames(sourceUnit, varDecls, qid, ns.getVarDecls());
@@ -63,9 +61,9 @@ public class DeclarationAnalysisPhase implements Phase {
 		checkGlobalNames(entityDecls, "Entity", context.getReporter());
 
 		CheckLocalNames check = new CheckLocalNames(context.getReporter());
-		check.accept(unit);
+		check.accept(task);
 
-		return unit;
+		return task;
 	}
 
 	private boolean checkGlobalNames(Map<QID, List<SourceUnit>> decls, String kind, Reporter reporter) {

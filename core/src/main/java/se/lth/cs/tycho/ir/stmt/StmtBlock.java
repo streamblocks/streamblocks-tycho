@@ -46,6 +46,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
@@ -100,5 +101,14 @@ public class StmtBlock extends Statement {
 		typeDecls.forEach(action);
 		varDecls.forEach(action);
 		statements.forEach(action);
+	}
+
+	@Override
+	public StmtBlock transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(typeDecls.map(transformation)),
+				unsafeCast(varDecls.map(transformation)),
+				unsafeCast(statements.map(transformation))
+		);
 	}
 }

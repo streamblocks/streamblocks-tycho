@@ -2,12 +2,14 @@ package se.lth.cs.tycho.comp;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.parsing.cal.CalParser;
-import se.lth.cs.tycho.parsing.cal.ParseException;
+import se.lth.cs.tycho.parsing.orcc.ParseException;
+import se.lth.cs.tycho.parsing.orcc.OrccParser;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -18,13 +20,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CalLoader implements Loader {
+public class OrccLoader implements Loader {
 	private final Reporter reporter;
 	private final Map<QID, List<SourceUnit>> sourceCache;
 	private final List<Path> directories;
 	private Map<QID, List<Path>> fileRegister;
 
-	public CalLoader(Reporter reporter, List<Path> directories) {
+	public OrccLoader(Reporter reporter, List<Path> directories) {
 		this.reporter = reporter;
 		this.directories = directories;
 		this.fileRegister = null;
@@ -33,22 +35,31 @@ public class CalLoader implements Loader {
 
 	private NamespaceDecl parse(Path p) {
 
-		try {
-			CalParser parser = new CalParser(Files.newBufferedReader(p));
-			if (true) parser.setOperatorPriorities(CalParser.defaultPriorities());
+		try(Reader reader = Files.newBufferedReader(p, Charset.forName("Latin1"))) {
+			OrccParser parser = new OrccParser(reader);
+			//parser.setOperatorPriorities(OrccParser.defaultPriorities());
 			return parser.CompilationUnit();
 		} catch (IOException e) {
 			reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, e.getMessage()));
 			return null;
 		} catch (ParseException e) {
-			reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not parse " + p.toAbsolutePath() + ", " + e.getMessage()));
+			reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not parse " + p + ", " + e.getMessage()));
+			return null;
+		}
+	}
+
+	private QID scanNamespaceDecl__temporarily_disabled(Path p) {
+		NamespaceDecl ns = parse(p);
+		if (ns != null) {
+			return ns.getQID();
+		} else {
 			return null;
 		}
 	}
 
 	private QID scanNamespaceDecl(Path p) {
-		try {
-			CalParser parser = new CalParser(Files.newBufferedReader(p));
+		try (Reader reader = Files.newBufferedReader(p, Charset.forName("Latin1"))) {
+			OrccParser parser = new OrccParser(reader);
 			return parser.NamespaceScan();
 		} catch (IOException e) {
 			return null;
@@ -87,7 +98,7 @@ public class CalLoader implements Loader {
 		}
 		return sourceCache.computeIfAbsent(qid, key ->
 				fileRegister.getOrDefault(key, Collections.emptyList()).stream()
-						.map(p -> new SourceFile(p, parse(p), SourceUnit.InputLanguage.CAL))
+						.map(p -> new SourceFile(p, parse(p), SourceUnit.InputLanguage.ORCC))
 						.collect(Collectors.toList()));
 	}
 

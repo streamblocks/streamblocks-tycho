@@ -5,6 +5,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class StarImport extends AbstractIRNode {
 	private final QID qid;
@@ -25,5 +26,10 @@ public class StarImport extends AbstractIRNode {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 
+	}
+
+	@Override
+	public StarImport transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return this;
 	}
 }

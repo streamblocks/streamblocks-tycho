@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -101,5 +102,10 @@ public class Transition extends AbstractIRNode {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 
+	}
+
+	@Override
+	public Transition transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return this;
 	}
 }

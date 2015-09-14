@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
@@ -46,5 +47,13 @@ public class StmtForeach extends Statement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		generators.forEach(action);
 		action.accept(body);
+	}
+
+	@Override
+	public StmtForeach transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(generators.map(transformation)),
+				(Statement) transformation.apply(body)
+		);
 	}
 }

@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
@@ -95,5 +96,14 @@ public class ExprLet extends Expression {
 		typeDecls.forEach(action);
 		varDecls.forEach(action);
 		action.accept(body);
+	}
+
+	@Override
+	public ExprLet transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(typeDecls.map(transformation)),
+				unsafeCast(varDecls.map(transformation)),
+				(Expression) transformation.apply(body)
+		);
 	}
 }

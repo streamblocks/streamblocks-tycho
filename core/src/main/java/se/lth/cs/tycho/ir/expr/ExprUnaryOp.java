@@ -4,10 +4,12 @@
 
 package se.lth.cs.tycho.ir.expr;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ExprUnaryOp extends Expression {
 
@@ -46,5 +48,10 @@ public class ExprUnaryOp extends Expression {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(operand);
+	}
+
+	@Override
+	public ExprUnaryOp transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(operation, (Expression) transformation.apply(operand));
 	}
 }

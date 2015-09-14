@@ -2,7 +2,9 @@ package se.lth.cs.tycho.ir.stmt.lvalue;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.Field;
 import se.lth.cs.tycho.ir.IRNode;
 
@@ -65,5 +67,10 @@ public class LValueField extends LValue {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(structure);
 		action.accept(field);
+	}
+
+	@Override
+	public LValueField transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy((LValue) transformation.apply(structure), (Field) transformation.apply(field));
 	}
 }

@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.phases;
 
-import se.lth.cs.tycho.comp.CompilationUnit;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -22,12 +22,12 @@ public class NameAnalysisPhase implements Phase {
 	}
 
 	@Override
-	public CompilationUnit execute(CompilationUnit unit, Context context) {
-		NameAnalysis nameAnalysis = context.getAttributeManager().getAttributeModule(NameAnalysis.key, unit);
+	public CompilationTask execute(CompilationTask task, Context context) {
+		NameAnalysis nameAnalysis = context.getAttributeManager().getAttributeModule(NameAnalysis.key, task);
 
-		nameAnalysis.checkNames(unit, null, context.getReporter());
+		nameAnalysis.checkNames(task, null, context.getReporter());
 
-		for (SourceUnit sourceUnit : unit.getSourceUnits()) {
+		for (SourceUnit sourceUnit : task.getSourceUnits()) {
 			NamespaceDecl ns = sourceUnit.getTree();
 			Map<String, List<StarImport>> imported = new HashMap<>();
 			for (StarImport i : ns.getStarImports()) {
@@ -43,7 +43,7 @@ public class NameAnalysisPhase implements Phase {
 											.map(starImport -> "\timport " + starImport.getQID() + ".*;\n")
 											.collect(Collectors.joining()))));
 		}
-		return unit;
+		return task;
 	}
 
 }

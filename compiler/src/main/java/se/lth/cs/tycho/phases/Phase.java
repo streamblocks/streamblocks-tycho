@@ -1,12 +1,11 @@
 package se.lth.cs.tycho.phases;
 
-import se.lth.cs.tycho.comp.CompilationUnit;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.settings.Setting;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public interface Phase {
 	default String getName() {
@@ -18,7 +17,7 @@ public interface Phase {
 		}
 	}
 	String getDescription();
-	CompilationUnit execute(CompilationUnit unit, Context context);
+	CompilationTask execute(CompilationTask task, Context context);
 	default List<Setting<?>> getPhaseSettings() {
 		return Collections.emptyList();
 	}

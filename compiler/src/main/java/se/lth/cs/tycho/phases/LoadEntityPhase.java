@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.phases;
 
-import se.lth.cs.tycho.comp.CompilationUnit;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.QID;
@@ -17,9 +17,9 @@ public class LoadEntityPhase implements Phase {
 	}
 
 	@Override
-	public CompilationUnit execute(CompilationUnit unit, Context context) {
-		QID namespace = unit.getIdentifier().getButLast();
-		String entityName = unit.getIdentifier().getLast().toString();
+	public CompilationTask execute(CompilationTask task, Context context) {
+		QID namespace = task.getIdentifier().getButLast();
+		String entityName = task.getIdentifier().getLast().toString();
 		List<SourceUnit> sources = context.getLoader()
 				.loadNamespace(namespace);
 		long count = sources.stream()
@@ -30,10 +30,10 @@ public class LoadEntityPhase implements Phase {
 				.count();
 		if (count == 0) {
 			context.getReporter().report(new Diagnostic(Diagnostic.Kind.ERROR,
-					"Could not find public entity \"" + unit.getIdentifier() + "\"."));
-			return unit;
+					"Could not find public entity \"" + task.getIdentifier() + "\"."));
+			return task;
 		} else {
-			return unit.withSourceUnits(sources);
+			return task.withSourceUnits(sources);
 		}
 	}
 }

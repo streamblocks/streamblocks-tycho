@@ -2,7 +2,9 @@ package se.lth.cs.tycho.ir.decl;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
@@ -79,5 +81,23 @@ public class VarDecl extends Decl {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		if (type != null) action.accept(type);
 		if (value != null) action.accept(value);
+	}
+
+	@Override
+	public VarDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		TypeExpr type = this.type == null ? null : (TypeExpr) transformation.apply(this.type);
+		Expression value = this.value == null ? null : (Expression) transformation.apply(this.value);
+		if (type == this.type && value == this.value) {
+			return this;
+		} else {
+			return new VarDecl(this,
+					getLocationKind(),
+					getAvailability(),
+					type,
+					getName(),
+					constant,
+					value,
+					getQualifiedIdentifier());
+		}
 	}
 }

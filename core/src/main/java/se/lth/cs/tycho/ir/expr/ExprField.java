@@ -2,7 +2,9 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.Field;
 import se.lth.cs.tycho.ir.IRNode;
 
@@ -44,5 +46,10 @@ public class ExprField extends Expression {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(structure);
 		action.accept(field);
+	}
+
+	@Override
+	public ExprField transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy((Expression) transformation.apply(structure), (Field) transformation.apply(field));
 	}
 }

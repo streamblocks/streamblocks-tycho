@@ -41,7 +41,9 @@ package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 
@@ -107,5 +109,14 @@ public class StmtIf extends Statement {
 		action.accept(condition);
 		action.accept(thenBranch);
 		if (elseBranch != null) action.accept(elseBranch);
+	}
+
+	@Override
+	public StmtIf transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				(Expression) transformation.apply(condition),
+				(Statement) transformation.apply(thenBranch),
+				elseBranch == null ? null : (Statement) transformation.apply(elseBranch)
+		);
 	}
 }

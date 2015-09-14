@@ -8,6 +8,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class NamespaceDecl extends AbstractIRNode {
 	private final QID qid;
@@ -66,4 +67,14 @@ public class NamespaceDecl extends AbstractIRNode {
 		entityDecls.forEach(action);
 		starImports.forEach(action);
 	}
+
+	@Override
+	public NamespaceDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return new NamespaceDecl(this, qid,
+				unsafeCast(starImports.map(transformation)),
+				unsafeCast(varDecls.map(transformation)),
+				unsafeCast(entityDecls.map(transformation)),
+				unsafeCast(typeDecls.map(transformation)));
+	}
+
 }

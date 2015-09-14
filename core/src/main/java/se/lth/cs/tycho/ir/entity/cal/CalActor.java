@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
@@ -147,5 +148,22 @@ public class CalActor extends Entity {
 		actions.forEach(action);
 		if (scheduleFSM != null) action.accept(scheduleFSM);
 		invariants.forEach(action);
+	}
+
+	@Override
+	public CalActor transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(getTypeParameters().map(transformation)),
+				unsafeCast(getValueParameters().map(transformation)),
+				unsafeCast(typeDecls.map(transformation)),
+				unsafeCast(varDecls.map(transformation)),
+				unsafeCast(getInputPorts().map(transformation)),
+				unsafeCast(getOutputPorts().map(transformation)),
+				unsafeCast(initializers.map(transformation)),
+				unsafeCast(actions.map(transformation)),
+				scheduleFSM == null ? null : (ScheduleFSM) transformation.apply(scheduleFSM),
+				priorities,
+				unsafeCast(invariants.map(transformation))
+		);
 	}
 }

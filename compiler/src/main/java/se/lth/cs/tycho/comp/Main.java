@@ -6,6 +6,7 @@ import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.settings.SettingsManager;
 
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -134,13 +135,15 @@ public class Main {
 		}
 		System.out.println();
 		System.out.println("Examples:");
-		System.out.println("tychoc --source-paths src:lib --target-path target com.example.Example");
+		System.out.println("tychoc --source-paths src"+ File.pathSeparator+"lib --target-path target com.example.Example");
 		System.out.println("tychoc --set some-option a-value com.example.Example");
 	}
 
 	private SettingsManager settingsManager() {
 		return SettingsManager.builder()
 				.add(Compiler.sourcePaths)
+				.add(Compiler.orccSourcePaths)
+				.add(Compiler.xdfSourcePaths)
 				.add(Compiler.targetPath)
 				.add(Reporter.reportingLevel)
 				.add(Compiler.phaseTimer)
@@ -151,7 +154,12 @@ public class Main {
 	}
 
 	private List<String> promotedSettings() {
-		return Stream.of(Compiler.sourcePaths, Compiler.targetPath).map(Setting::getKey).collect(Collectors.toList());
+		return Stream.of(
+				Compiler.sourcePaths,
+				Compiler.orccSourcePaths,
+				Compiler.xdfSourcePaths,
+				Compiler.targetPath
+		).map(Setting::getKey).collect(Collectors.toList());
 	}
 
 	private void printVersion() {

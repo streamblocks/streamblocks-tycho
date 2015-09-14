@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
@@ -127,6 +128,17 @@ public class ExprProc extends Expression {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		typeParameters.forEach(action);
 		valueParameters.forEach(action);
-		action.accept(body);
+		if (body != null) action.accept(body);
+	}
+
+	@Override
+	public ExprProc transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(typeParameters.map(transformation)),
+				unsafeCast(valueParameters.map(transformation)),
+				body == null ? null : (Statement) transformation.apply(body),
+				unsafeCast(freeVariables.map(transformation)),
+				isFreeVariablesComputed
+		);
 	}
 }

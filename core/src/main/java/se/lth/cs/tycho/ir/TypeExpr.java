@@ -41,9 +41,9 @@ package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -103,5 +103,10 @@ public class TypeExpr extends AbstractIRNode {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		typeParameters.forEach(action);
 		valueParameters.forEach(action);
+	}
+
+	@Override
+	public TypeExpr transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(name, unsafeCast(typeParameters.map(transformation)), unsafeCast(valueParameters.map(transformation)));
 	}
 }

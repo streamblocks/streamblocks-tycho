@@ -40,6 +40,7 @@ package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -91,5 +92,14 @@ public class GeneratorFilter extends AbstractIRNode {
 		action.accept(collectionExpr);
 		variables.forEach(action);
 		filters.forEach(action);
+	}
+
+	@Override
+	public GeneratorFilter transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(variables.map(transformation)),
+				(Expression) transformation.apply(collectionExpr),
+				unsafeCast(filters.map(transformation))
+		);
 	}
 }

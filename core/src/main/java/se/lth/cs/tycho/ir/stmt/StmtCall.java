@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -85,5 +86,10 @@ public class StmtCall extends Statement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(procedure);
 		args.forEach(action);
+	}
+
+	@Override
+	public StmtCall transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy((Expression) transformation.apply(procedure), unsafeCast(args.map(transformation)));
 	}
 }

@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Variable node that refers to a variable declaration.
@@ -95,5 +96,10 @@ public class Variable extends AbstractIRNode {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 
+	}
+
+	@Override
+	public Variable transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return this;
 	}
 }

@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -175,5 +176,22 @@ public class Action extends AbstractIRNode {
 		if (delay != null) action.accept(delay);
 		preconditions.forEach(action);
 		postconditions.forEach(action);
+	}
+
+	@Override
+	public Action transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				id,
+				tag,
+				unsafeCast(inputPatterns.map(transformation)),
+				unsafeCast(outputExpressions.map(transformation)),
+				unsafeCast(typeDecls.map(transformation)),
+				unsafeCast(varDecls.map(transformation)),
+				unsafeCast(guards.map(transformation)),
+				unsafeCast(body.map(transformation)),
+				delay == null ? null : (Expression) transformation.apply(delay),
+				unsafeCast(preconditions.map(transformation)),
+				unsafeCast(postconditions.map(transformation))
+		);
 	}
 }

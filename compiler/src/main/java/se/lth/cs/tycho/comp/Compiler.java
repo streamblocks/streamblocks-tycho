@@ -5,7 +5,10 @@ import se.lth.cs.tycho.phases.DeclarationAnalysisPhase;
 import se.lth.cs.tycho.phases.LoadEntityPhase;
 import se.lth.cs.tycho.phases.LoadImportsPhase;
 import se.lth.cs.tycho.phases.NameAnalysisPhase;
+import se.lth.cs.tycho.phases.OperatorParsingPhase;
 import se.lth.cs.tycho.phases.Phase;
+import se.lth.cs.tycho.phases.PrintLoadedSourceUnits;
+import se.lth.cs.tycho.phases.WaitForInputPhase;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.settings.Configuration;
@@ -14,6 +17,7 @@ import se.lth.cs.tycho.settings.PathListSetting;
 import se.lth.cs.tycho.settings.PathSetting;
 import se.lth.cs.tycho.settings.Setting;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -23,16 +27,31 @@ import java.util.List;
 public class Compiler {
 	private final Context compilationContext;
 	public static final List<Phase> phases = Arrays.asList(
+			new WaitForInputPhase(),
 			new LoadEntityPhase(),
 			new LoadImportsPhase(),
+			new PrintLoadedSourceUnits(),
+			new OperatorParsingPhase(),
 			new DeclarationAnalysisPhase(),
 			new NameAnalysisPhase()
 	);
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {
 		@Override public String getKey() { return "source-paths"; }
-		@Override public String getDescription() { return "Colon separated (:) list of search paths for source files."; }
-		@Override public List<Path> defaultValue() { return Collections.singletonList(Paths.get("")); }
+		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for source files."; }
+		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
+	};
+
+	public static final Setting<List<Path>> orccSourcePaths = new PathListSetting() {
+		@Override public String getKey() { return "orcc-source-paths"; }
+		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for Orcc-compatible source files."; }
+		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
+	};
+
+	public static final Setting<List<Path>> xdfSourcePaths = new PathListSetting() {
+		@Override public String getKey() { return "xdf-source-paths"; }
+		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for XDF networks."; }
+		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
 	};
 
 	public static final Setting<Path> targetPath = new PathSetting() {
@@ -54,13 +73,13 @@ public class Compiler {
 	}
 
 	public boolean compile(QID entity) {
-		CompilationUnit compilationUnit = new CompilationUnit(Collections.emptyList(), entity);
+		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity);
 		long[] phaseExecutionTime = new long[phases.size()];
 		int currentPhaseNumber = 0;
 		boolean success = true;
 		for (Phase phase : phases) {
 			long startTime = System.nanoTime();
-			compilationUnit = phase.execute(compilationUnit, compilationContext);
+			compilationTask = phase.execute(compilationTask, compilationContext);
 			phaseExecutionTime[currentPhaseNumber] = System.nanoTime() - startTime;
 			currentPhaseNumber += 1;
 			if (compilationContext.getReporter().getMessageCount(Diagnostic.Kind.ERROR) > 0) {

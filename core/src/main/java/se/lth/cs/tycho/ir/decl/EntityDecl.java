@@ -2,7 +2,9 @@ package se.lth.cs.tycho.ir.decl;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.Entity;
 
@@ -12,6 +14,10 @@ public class EntityDecl extends Decl {
 
 	public Entity getEntity() {
 		return entity;
+	}
+
+	public EntityDecl withEntity(Entity entity) {
+		return entity == this.entity ? this : new EntityDecl(this, getAvailability(), getName(), entity);
 	}
 
 	private EntityDecl(EntityDecl original, Availability availability, String name, Entity entity) {
@@ -35,5 +41,10 @@ public class EntityDecl extends Decl {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(entity);
+	}
+
+	@Override
+	public EntityDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return withEntity((Entity) transformation.apply(entity));
 	}
 }

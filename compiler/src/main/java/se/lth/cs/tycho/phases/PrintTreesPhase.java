@@ -1,10 +1,9 @@
 package se.lth.cs.tycho.phases;
 
-import se.lth.cs.tycho.comp.CompilationUnit;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public class PrintTreesPhase implements Phase {
@@ -14,14 +13,14 @@ public class PrintTreesPhase implements Phase {
 	}
 
 	@Override
-	public CompilationUnit execute(CompilationUnit unit, Context context) {
+	public CompilationTask execute(CompilationTask task, Context context) {
 		Printer printer = new Printer();
-		unit.getSourceUnits().forEach(sourceUnit -> {
+		task.getSourceUnits().forEach(sourceUnit -> {
 			System.out.println(sourceUnit.getLocation());
 			printer.accept(sourceUnit.getTree());
 			System.out.println();
 		});
-		return unit;
+		return task;
 	}
 
 	private static class Printer implements Consumer<IRNode> {

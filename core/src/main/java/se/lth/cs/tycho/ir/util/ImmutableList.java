@@ -24,6 +24,32 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		this.size = size;
 	}
 
+	public <F> ImmutableList<F> map(Function<? super E, ? extends F> function) {
+		F transformed = null;
+		int i = 0;
+		while (i < size) {
+			E original = list[i];
+			transformed = function.apply(original);
+			if (original != transformed) {
+				break;
+			}
+			i += 1;
+		}
+		if (i == size) {
+			return (ImmutableList<F>) this;
+		} else {
+			Object[] newList = new Object[size];
+			System.arraycopy(list, 0, newList, 0, i);
+			newList[i] = transformed;
+			i += 1;
+			while (i < size) {
+				newList[i] = function.apply(list[i]);
+				i += 1;
+			}
+			return new ImmutableList<F>(newList, size);
+		}
+	}
+
 	@Override
 	public E get(int index) {
 		checkBounds(index);

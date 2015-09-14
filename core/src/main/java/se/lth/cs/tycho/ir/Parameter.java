@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Parameter<T extends IRNode> extends AbstractIRNode {
 	private final String name;
@@ -40,5 +41,10 @@ public class Parameter<T extends IRNode> extends AbstractIRNode {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(value);
+	}
+
+	@Override
+	public Parameter<T> transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(name, (T) transformation.apply(value));
 	}
 }

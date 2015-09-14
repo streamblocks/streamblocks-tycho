@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.stmt;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
@@ -69,5 +70,14 @@ public class StmtOutput extends Statement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(port);
 		values.forEach(action);
+	}
+
+	@Override
+	public StmtOutput transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(values.map(transformation)),
+				(Port) transformation.apply(port),
+				repeat
+		);
 	}
 }

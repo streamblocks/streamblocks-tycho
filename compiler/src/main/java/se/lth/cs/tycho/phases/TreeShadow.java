@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.phases;
 
-import se.lth.cs.tycho.comp.CompilationUnit;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.phases.attributes.ModuleKey;
 import se.lth.cs.tycho.phases.attributes.AttributeManager;
@@ -18,7 +18,7 @@ public class TreeShadow {
 		}
 
 		@Override
-		public TreeShadow createInstance(CompilationUnit unit, AttributeManager manager) {
+		public TreeShadow createInstance(CompilationTask unit, AttributeManager manager) {
 			return TreeShadow.of(unit);
 		}
 	};

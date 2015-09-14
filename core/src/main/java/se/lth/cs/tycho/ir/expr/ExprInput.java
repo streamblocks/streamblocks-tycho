@@ -2,7 +2,9 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 
@@ -90,5 +92,19 @@ public class ExprInput extends Expression {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(port);
+	}
+
+	@Override
+	public ExprInput transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		if (hasRepeat) {
+			return copy(
+					(Port) transformation.apply(port),
+					offset,
+					repeat,
+					patternLength
+			);
+		} else {
+			return copy((Port) transformation.apply(port), offset);
+		}
 	}
 }

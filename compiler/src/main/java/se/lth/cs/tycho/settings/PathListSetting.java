@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.settings;
 
+import java.io.File;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,7 +13,7 @@ public abstract class PathListSetting implements Setting<List<Path>> {
 	@Override
 	public Optional<List<Path>> read(String string) {
 		try {
-			return Optional.of(Stream.of(string.split(":")).map(Paths::get).collect(Collectors.toList()));
+			return Optional.of(Stream.of(string.split(File.pathSeparator)).map(Paths::get).collect(Collectors.toList()));
 		} catch (InvalidPathException e) {
 			return Optional.empty();
 		}

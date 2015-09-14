@@ -46,6 +46,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author Jorn W. Janneck <jwj@acm.org>
@@ -98,5 +99,22 @@ public class ExprMap extends Expression {
 			action.accept(entry.getValue());
 		});
 		generators.forEach(action);
+	}
+
+	@Override
+	public ExprMap transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		Function<? super ImmutableEntry<Expression, Expression>, ? extends ImmutableEntry<Expression, Expression>> function = (ImmutableEntry<Expression, Expression> entry) -> {
+			Expression key = (Expression) transformation.apply(entry.getKey());
+			Expression value = (Expression) transformation.apply(entry.getValue());
+			if (key == entry.getKey() && value == entry.getValue()) {
+				return entry;
+			} else {
+				return ImmutableEntry.of(key, value);
+			}
+		};
+		return copy(
+				mappings.map(function),
+				unsafeCast(generators.map(transformation))
+		);
 	}
 }

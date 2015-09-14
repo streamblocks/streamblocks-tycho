@@ -1,20 +1,22 @@
 package se.lth.cs.tycho.phases;
 
-import se.lth.cs.tycho.comp.CompilationUnit;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.StarImport;
+import se.lth.cs.tycho.ir.entity.Entity;
+import se.lth.cs.tycho.ir.entity.xdf.XDFInstance;
+import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class LoadImportsPhase implements Phase {
 	@Override
@@ -23,11 +25,11 @@ public class LoadImportsPhase implements Phase {
 	}
 
 	@Override
-	public CompilationUnit execute(CompilationUnit unit, Context context) {
-		List<SourceUnit> result = new ArrayList<>(unit.getSourceUnits());
+	public CompilationTask execute(CompilationTask task, Context context) {
+		List<SourceUnit> result = new ArrayList<>(task.getSourceUnits());
 		Set<QID> loaded = new HashSet<>();
-		loaded.add(unit.getIdentifier().getButLast());
-		Queue<SourceUnit> queue = new ArrayDeque<>(unit.getSourceUnits());
+		loaded.add(task.getIdentifier().getButLast());
+		Queue<SourceUnit> queue = new ArrayDeque<>(task.getSourceUnits());
 		while (!queue.isEmpty()) {
 			SourceUnit sourceUnit = queue.remove();
 			for (Decl decl : sourceUnit.getTree().getAllDecls()) {
@@ -47,7 +49,21 @@ public class LoadImportsPhase implements Phase {
 					queue.addAll(ns);
 				}
 			}
+			for (EntityDecl decl : sourceUnit.getTree().getEntityDecls()) {
+				Entity entity = decl.getEntity();
+				if (entity instanceof XDFNetwork) {
+					XDFNetwork network = (XDFNetwork) entity;
+					for (XDFInstance instance : network.getInstances()) {
+						QID nsId = instance.getEntity().getButLast();
+						if (loaded.add(nsId)) {
+							List<SourceUnit> ns = context.getLoader().loadNamespace(nsId);
+							result.addAll(ns);
+							queue.addAll(ns);
+						}
+					}
+				}
+			}
 		}
-		return unit.withSourceUnits(result);
+		return task.withSourceUnits(result);
 	}
 }

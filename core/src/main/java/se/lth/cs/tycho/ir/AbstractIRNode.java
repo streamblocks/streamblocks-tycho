@@ -39,56 +39,69 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir;
 
-import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+
+import java.util.function.Function;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
  * @author Jorn W. Janneck <jwj@acm.org>
  */
 public abstract class AbstractIRNode implements IRNode {
-	private int lineNumber = -1;
-	private int columnNumber = -1;
+	private int fromLineNumber = 0;
+	private int fromColumnNumber = 0;
+	private int toLineNumber = 0;
+	private int toColumnNumber = 0;
 
 	public AbstractIRNode(IRNode original) {
-		//this(original, null);
+		if (original != null) setPosition(
+				original.getFromLineNumber(),
+				original.getFromColumnNumber(),
+				original.getToLineNumber(),
+				original.getToColumnNumber());
 	}
 
 	@Override
-	public int getLineNumber() {
-		return lineNumber;
+	public int getFromLineNumber() {
+		return fromLineNumber;
 	}
 
 	@Override
-	public int getColumnNumber() {
-		return columnNumber;
+	public int getFromColumnNumber() {
+		return fromColumnNumber;
 	}
 
-	public void setPosition(int lineNumber, int columnNumber) {
-		this.lineNumber = lineNumber;
-		this.columnNumber = columnNumber;
+	@Override
+	public int getToLineNumber() {
+		return toLineNumber;
 	}
 
-	//public AbstractIRNode(IRNode original, ImmutableList<ToolAttribute> attributes) {
-	//	if(attributes == null){
-	//		toolAttributes = ImmutableList.empty();
-	//	} else {
-	//		this.toolAttributes = attributes;
-	//	}
-	//}
+	@Override
+	public int getToColumnNumber() {
+		return toColumnNumber;
+	}
 
-	//public ToolAttribute getToolAttribute(String name){
-	//	for(ToolAttribute ta : toolAttributes){
-	//		if(ta.getName().equals(name)){
-	//			return ta;
-	//		}
-	//	}
-	//	return null;
-	//}
-	
-	//public ImmutableList<ToolAttribute> getToolAttributes(){
-	//	return toolAttributes;
-	//}
-	
-	//private ImmutableList<ToolAttribute> toolAttributes;
+	public void setPosition(int fromLineNumber, int fromColumnNumber, int toLineNumber, int toColumnNumber) {
+		this.fromLineNumber = fromLineNumber;
+		this.fromColumnNumber = fromColumnNumber;
+		this.toLineNumber = toLineNumber;
+		this.toColumnNumber = toColumnNumber;
+	}
+
+	public void setPosition(IRNode from, IRNode to) {
+		if (from.hasPosition() && to.hasPosition()) {
+			setPosition(from.getFromLineNumber(), from.getFromColumnNumber(), to.getToLineNumber(), to.getToColumnNumber());
+		}
+	}
+
+	@Override
+	public AbstractIRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		//return this;
+		throw new UnsupportedOperationException("Transformation not implemented for " + getClass().getCanonicalName());
+	}
+
+	protected static <T, U> ImmutableList<U> unsafeCast(ImmutableList<T> t) {
+		return (ImmutableList<U>) t;
+	}
+
 }

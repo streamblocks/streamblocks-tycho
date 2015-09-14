@@ -45,6 +45,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -90,5 +91,13 @@ public class ExprSet extends Expression {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		elements.forEach(action);
 		generators.forEach(action);
+	}
+
+	@Override
+	public ExprSet transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				unsafeCast(elements.map(transformation)),
+				unsafeCast(generators.map(transformation))
+		);
 	}
 }
