@@ -2,6 +2,7 @@ package se.lth.cs.tycho.comp;
 
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.phases.DeclarationAnalysisPhase;
+import se.lth.cs.tycho.phases.ExpandStarImportsPhase;
 import se.lth.cs.tycho.phases.LoadEntityPhase;
 import se.lth.cs.tycho.phases.LoadImportsPhase;
 import se.lth.cs.tycho.phases.NameAnalysisPhase;
@@ -33,6 +34,7 @@ public class Compiler {
 			new PrintLoadedSourceUnits(),
 			new OperatorParsingPhase(),
 			new DeclarationAnalysisPhase(),
+			new ExpandStarImportsPhase(),
 			new NameAnalysisPhase()
 	);
 

@@ -39,6 +39,10 @@ public class Main {
 						printVersion();
 						System.exit(0);
 					}
+					case "--print-phases": { // hidden option
+						printPhases();
+						System.exit(0);
+					}
 					case "--settings": {
 						printSettings(settingsManager);
 						System.exit(0);
@@ -94,6 +98,14 @@ public class Main {
 		if (!compiler.compile(qid)) {
 			System.exit(1);
 		}
+	}
+
+	private void printPhases() {
+		Compiler.phases.forEach(phase -> {
+			System.out.println(phase.getName());
+			System.out.println(phase.getDescription());
+			System.out.println();
+		});
 	}
 
 	private void printSettings(SettingsManager settingsManager) {
