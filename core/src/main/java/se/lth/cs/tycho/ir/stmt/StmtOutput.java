@@ -75,7 +75,7 @@ public class StmtOutput extends Statement {
 	@Override
 	public StmtOutput transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(values.map(transformation)),
+				(ImmutableList) values.map(transformation),
 				(Port) transformation.apply(port),
 				repeat
 		);

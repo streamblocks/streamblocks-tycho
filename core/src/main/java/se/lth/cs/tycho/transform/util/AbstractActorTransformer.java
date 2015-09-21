@@ -8,6 +8,7 @@ import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
+import se.lth.cs.tycho.ir.entity.cal.ProcessDescription;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -35,6 +36,7 @@ public class AbstractActorTransformer<P> extends AbstractBasicTransformer<P> imp
 				transformActions(calActor.getInitializers(), param),
 				transformActions(calActor.getActions(), param),
 				transformSchedule(calActor.getScheduleFSM(), param),
+				transformProcessDescription(calActor.getProcessDescription(), param),
 				transformPriorities(calActor.getPriorities(), param),
 				transformExpressions(calActor.getInvariants(), param));
 	}
@@ -79,6 +81,15 @@ public class AbstractActorTransformer<P> extends AbstractBasicTransformer<P> imp
 		}
 		return schedule
 				.copy(transformScheduleTransitions(schedule.getTransitions(), param), schedule.getInitialState());
+	}
+
+	@Override
+	public ProcessDescription transformProcessDescription(ProcessDescription process, P param) {
+		if (process != null) {
+			return null;
+		} else {
+			return process.copy(transformStatements(process.getStatements(), param), process.isRepeated());
+		}
 	}
 
 	@Override

@@ -99,7 +99,7 @@ public class OutputExpression extends AbstractIRNode {
 	public OutputExpression transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(Port) transformation.apply(port),
-				unsafeCast(values.map(transformation)),
+				(ImmutableList) values.map(transformation),
 				repeatExpr == null ? null : (Expression) transformation.apply(repeatExpr)
 		);
 	}

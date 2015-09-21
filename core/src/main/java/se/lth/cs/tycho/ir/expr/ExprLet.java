@@ -101,8 +101,8 @@ public class ExprLet extends Expression {
 	@Override
 	public ExprLet transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(typeDecls.map(transformation)),
-				unsafeCast(varDecls.map(transformation)),
+				(ImmutableList) typeDecls.map(transformation),
+				(ImmutableList) varDecls.map(transformation),
 				(Expression) transformation.apply(body)
 		);
 	}

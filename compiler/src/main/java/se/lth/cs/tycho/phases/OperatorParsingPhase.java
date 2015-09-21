@@ -10,6 +10,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,13 @@ public class OperatorParsingPhase implements Phase {
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
 		return task.withSourceUnits(task.getSourceUnits().stream().map(unit -> {
-			Helper helper = new Helper(unit, context.getReporter(), orccOperators);
+			Map<String, BinaryOperator> operatorMap;
+			switch (unit.getLanguage()) {
+				case CAL: operatorMap = calOperators; break;
+				case ORCC: operatorMap = orccOperators; break;
+				default: operatorMap = noOperators;
+			}
+			Helper helper = new Helper(unit, context.getReporter(), operatorMap);
 			Transformation transformation = new Transformation(helper);
 			return unit.transformChildren(transformation);
 		}).collect(Collectors.toList()));
@@ -145,4 +152,35 @@ public class OperatorParsingPhase implements Phase {
 			new BinaryOperator(">>", 18, false),
 			new BinaryOperator("*", 19, false)
 	).collect(Collectors.toMap(op -> op.name, Function.identity()));
+
+	private static final Map<String, BinaryOperator> calOperators = Stream.of(
+			new BinaryOperator("..", -1, false),
+			new BinaryOperator("&", 0, false),
+			new BinaryOperator("|", 1, false),
+			new BinaryOperator("^", 2, false),
+			new BinaryOperator("/", 3, false),
+			new BinaryOperator("div", 4, false),
+			new BinaryOperator("==", 5, false),
+			new BinaryOperator("=", 5, false),
+			new BinaryOperator("**", 6, true),
+			new BinaryOperator(">=", 7, false),
+			new BinaryOperator(">", 8, false),
+			new BinaryOperator("<=", 9, false),
+			new BinaryOperator("&&", 10, false),
+			new BinaryOperator("and", 10, false),
+			new BinaryOperator("||", 11, false),
+			new BinaryOperator("or", 11, false),
+			new BinaryOperator("<", 12, false),
+			new BinaryOperator("-", 13, false),
+			new BinaryOperator("%", 14, false),
+			new BinaryOperator("mod", 14, false),
+			new BinaryOperator("!=", 15, false),
+			new BinaryOperator("+", 16, false),
+			new BinaryOperator("<<", 17, false),
+			new BinaryOperator(">>", 18, false),
+			new BinaryOperator(">>>", 18, false),
+			new BinaryOperator("*", 19, false)
+	).collect(Collectors.toMap(op -> op.name, Function.identity()));
+
+	private static final Map<String, BinaryOperator> noOperators = Collections.emptyMap();
 }

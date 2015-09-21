@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.util;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 public class Lists {
@@ -18,6 +19,17 @@ public class Lists {
 		if (b == null)
 			b = Collections.emptyList();
 		return a.equals(b);
+	}
+
+	public static <E> boolean elementIdentityEquals(List<E> a, List<E> b) {
+		Iterator<E> aa = a == null ? Collections.emptyIterator() : a.iterator();
+		Iterator<E> bb = b == null ? Collections.emptyIterator() : b.iterator();
+		while (aa.hasNext() && bb.hasNext()) {
+			if (aa.next() != bb.next()) {
+				return false;
+			}
+		}
+		return !aa.hasNext() && !bb.hasNext();
 	}
 
 }

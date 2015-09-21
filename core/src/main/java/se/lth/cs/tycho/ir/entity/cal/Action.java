@@ -183,15 +183,15 @@ public class Action extends AbstractIRNode {
 		return copy(
 				id,
 				tag,
-				unsafeCast(inputPatterns.map(transformation)),
-				unsafeCast(outputExpressions.map(transformation)),
-				unsafeCast(typeDecls.map(transformation)),
-				unsafeCast(varDecls.map(transformation)),
-				unsafeCast(guards.map(transformation)),
-				unsafeCast(body.map(transformation)),
+				(ImmutableList) inputPatterns.map(transformation),
+				(ImmutableList) outputExpressions.map(transformation),
+				(ImmutableList) typeDecls.map(transformation),
+				(ImmutableList) varDecls.map(transformation),
+				(ImmutableList) guards.map(transformation),
+				(ImmutableList) body.map(transformation),
 				delay == null ? null : (Expression) transformation.apply(delay),
-				unsafeCast(preconditions.map(transformation)),
-				unsafeCast(postconditions.map(transformation))
+				(ImmutableList) preconditions.map(transformation),
+				(ImmutableList) postconditions.map(transformation)
 		);
 	}
 }

@@ -42,4 +42,13 @@ public class CompilationTask implements IRNode {
 	public IRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return withSourceUnits(sourceUnits.stream().map(unit -> (SourceUnit) transformation.apply(unit)).collect(Collectors.toList()));
 	}
+
+	@Override
+	public IRNode clone() {
+		try {
+			return (IRNode) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new Error(e);
+		}
+	}
 }

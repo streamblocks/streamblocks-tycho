@@ -97,9 +97,9 @@ public class GeneratorFilter extends AbstractIRNode {
 	@Override
 	public GeneratorFilter transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(variables.map(transformation)),
+				(ImmutableList) variables.map(transformation),
 				(Expression) transformation.apply(collectionExpr),
-				unsafeCast(filters.map(transformation))
+				(ImmutableList) filters.map(transformation)
 		);
 	}
 }

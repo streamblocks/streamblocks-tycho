@@ -92,7 +92,7 @@ public class ScheduleFSM extends AbstractIRNode {
 	@Override
 	public ScheduleFSM transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(transitions.map(transformation)),
+				(ImmutableList) transitions.map(transformation),
 				initialState
 		);
 	}

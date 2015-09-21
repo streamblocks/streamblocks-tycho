@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 
-public interface IRNode {
+public interface IRNode extends Cloneable {
 
 	void forEachChild(Consumer<? super IRNode> action);
 
@@ -31,6 +31,17 @@ public interface IRNode {
 
 	default boolean hasPosition() {
 		return getFromLineNumber() > 0 && getFromColumnNumber() > 0 && getToLineNumber() > 0 && getToColumnNumber() > 0;
+	}
+
+	IRNode clone();
+
+	default IRNode deepClone() {
+		IRNode copy = transformChildren(IRNode::deepClone);
+		if (this == copy) {
+			return clone();
+		} else {
+			return copy;
+		}
 	}
 
 }

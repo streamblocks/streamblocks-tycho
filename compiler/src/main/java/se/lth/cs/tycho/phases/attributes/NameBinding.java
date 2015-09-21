@@ -8,12 +8,18 @@ import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.Entity;
+import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.cal.InputPattern;
+import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprList;
@@ -29,14 +35,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-@Module
 public interface NameBinding {
 	ModuleKey<NameBinding> key = new ModuleKey<NameBinding>() {
-		@Override
-		public Class<NameBinding> getKey() {
-			return NameBinding.class;
-		}
-
 		@Override
 		public NameBinding createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(Implementation.class)
@@ -48,10 +48,62 @@ public interface NameBinding {
 
 	VarDecl declaration(Variable var);
 
+	PortDecl portDeclaration(Port port);
+
 	@Module
 	interface Implementation extends NameBinding {
 		@Binding
 		TreeShadow tree();
+
+		@Binding
+		default Map<Port, PortDecl> portDeclarationMap() {
+			return new ConcurrentHashMap<>();
+		}
+
+		default PortDecl portDeclaration(Port port) {
+			return portDeclarationMap().computeIfAbsent(port, this::startPortLookup);
+		}
+
+		default PortDecl startPortLookup(Port port) {
+			return lookupPort(tree().parent(port), port);
+		}
+
+		PortDecl lookupPort(IRNode node, Port port);
+
+		default PortDecl lookupPort(InputPattern input, Port port) {
+			return lookupInputPort(tree().parent(input), port);
+		}
+
+		default PortDecl lookupPort(OutputExpression output, Port port) {
+			return lookupOutputPort(tree().parent(output), port);
+		}
+
+		default PortDecl lookupInputPort(IRNode node, Port port) {
+			return lookupInputPort(tree().parent(node), port);
+		}
+
+		default PortDecl lookupInputPort(Entity entity, Port port) {
+			for (PortDecl decl : entity.getInputPorts()) {
+				if (decl.getName().equals(port.getName())) {
+					return decl;
+				}
+			}
+			return null;
+		}
+
+		default PortDecl lookupOutputPort(IRNode node, Port port) {
+			return lookupOutputPort(tree().parent(node), port);
+		}
+
+		default PortDecl lookupOutputPort(Entity entity, Port port) {
+			for (PortDecl decl : entity.getOutputPorts()) {
+				if (decl.getName().equals(port.getName())) {
+					return decl;
+				}
+			}
+			return null;
+		}
+
 
 		@Binding
 		default Map<Variable, VarDecl> declarationMap() {
@@ -168,10 +220,18 @@ public interface NameBinding {
 			return findInStream(Stream.concat(actor.getVarDecls().stream(), actor.getValueParameters().stream()), name);
 		}
 
+		default Optional<VarDecl> localLookup(NlNetwork network, IRNode context, String name) {
+			return findInStream(Stream.concat(network.getVarDecls().stream(), network.getValueParameters().stream()), name);
+		}
+
 		default Optional<VarDecl> localLookup(NamespaceDecl ns, IRNode context, String name) {
 			Optional<VarDecl> result = findInList(ns.getVarDecls(), name);
 			if (result.isPresent()) {
-				return result;
+				if (result.get().isImport()) {
+					return findGlobalVar(result.get().getQualifiedIdentifier(), false);
+				} else {
+					return result;
+				}
 			}
 			return findGlobalVar(ns.getQID().concat(QID.of(name)), true);
 		}

@@ -134,10 +134,10 @@ public class ExprProc extends Expression {
 	@Override
 	public ExprProc transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(typeParameters.map(transformation)),
-				unsafeCast(valueParameters.map(transformation)),
+				(ImmutableList) typeParameters.map(transformation),
+				(ImmutableList) valueParameters.map(transformation),
 				body == null ? null : (Statement) transformation.apply(body),
-				unsafeCast(freeVariables.map(transformation)),
+				(ImmutableList) freeVariables.map(transformation),
 				isFreeVariablesComputed
 		);
 	}

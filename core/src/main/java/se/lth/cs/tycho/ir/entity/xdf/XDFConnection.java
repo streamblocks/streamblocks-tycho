@@ -35,9 +35,9 @@ public class XDFConnection extends AttributableIRNode {
 
 	public XDFConnection copy(String sourceInstance, Port sourcePort, String destinaitonInstance,
 							  Port destinationPort, List<ToolAttribute> attributes) {
-		if (Objects.equals(this.sourceInstance, sourceInstance) && Objects.equals(this.sourcePort, sourcePort)
-				&& Objects.equals(this.destinaitonInstance, destinaitonInstance) && Objects.equals(this.destinationPort, destinationPort)
-				&& Lists.equals(getToolAttributes(), attributes)) {
+		if (Objects.equals(this.sourceInstance, sourceInstance) && this.sourcePort == sourcePort
+				&& Objects.equals(this.destinaitonInstance, destinaitonInstance) && this.destinationPort == destinationPort
+				&& Lists.elementIdentityEquals(getToolAttributes(), attributes)) {
 			return this;
 		} else {
 			return new XDFConnection(this, sourceInstance, sourcePort, destinaitonInstance, destinationPort, attributes);

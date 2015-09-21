@@ -144,11 +144,11 @@ public class ExprLambda extends Expression {
 	@Override
 	public ExprLambda transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(typeParameters.map(transformation)),
-				unsafeCast(valueParameters.map(transformation)),
+				(ImmutableList) typeParameters.map(transformation),
+				(ImmutableList) valueParameters.map(transformation),
 				body == null ? null : (Expression) transformation.apply(body),
 				returnTypeExpr == null ? null : (TypeExpr) transformation.apply(returnTypeExpr),
-				unsafeCast(freeVariables.map(transformation)),
+				(ImmutableList) freeVariables.map(transformation),
 				isFreeVariablesComputed);
 	}
 }

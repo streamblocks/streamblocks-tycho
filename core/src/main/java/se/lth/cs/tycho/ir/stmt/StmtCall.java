@@ -90,6 +90,6 @@ public class StmtCall extends Statement {
 
 	@Override
 	public StmtCall transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
-		return copy((Expression) transformation.apply(procedure), unsafeCast(args.map(transformation)));
+		return copy((Expression) transformation.apply(procedure), (ImmutableList) args.map(transformation));
 	}
 }

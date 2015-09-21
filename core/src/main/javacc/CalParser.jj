@@ -26,6 +26,7 @@ import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.*;
 import se.lth.cs.tycho.ir.entity.cal.*;
+import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.entity.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
@@ -34,40 +35,6 @@ import se.lth.cs.tycho.ir.util.ImmutableEntry;
 public class CalParser {
 
 	private boolean processDescription = false;
-
-	private Map<String, Integer> operatorPriorities = null;
-
-	public void setOperatorPriorities(Map<String, Integer> priorities) {
-		operatorPriorities = priorities;
-	}
-
-	public static Map<String, Integer> defaultPriorities() {
-		Map<String, Integer> prio = new HashMap<String, Integer>();
-		prio.put("or", 4);
-		prio.put("||", 4);
-		prio.put("and", 5);
-		prio.put("&&", 5);
-		prio.put("|", 6);
-		prio.put("^", 7);
-		prio.put("&", 8);
-		prio.put("=", 9);
-		prio.put("!=", 9);
-		prio.put("<", 10);
-		prio.put("<=", 10);
-		prio.put(">", 10);
-		prio.put(">=", 10);
-		prio.put("..", 11);
-		prio.put("in", 11);
-		prio.put("<<", 11);
-		prio.put(">>", 11);
-		prio.put("+", 12);
-		prio.put("-", 12);
-		prio.put("div", 13);
-		prio.put("mod", 13);
-		prio.put("*", 13);
-		prio.put("/", 13);
-		return prio;
-	}
 
 	public static class TypeAndName {
 		public final TypeExpr type;
@@ -86,48 +53,6 @@ public class CalParser {
 			this.def = def;
 		}
 	}
-
-	private int getPriority(String op) throws ParseException {
-		if (operatorPriorities.containsKey(op)) {
-			return operatorPriorities.get(op);
-		} else {
-			throw new ParseException("Unknown binary operation " + op);
-		}
-	}
-
-	private Expression shuntingYard(ImmutableList<String> operations, ImmutableList<Expression> operands) throws ParseException {
-		LinkedList<Expression> out = new LinkedList<Expression>();
-		LinkedList<String> ops = new LinkedList<String>();
-		int i = 0;
-		out.add(operands.get(i));
-		while (i < operations.size()) {
-			int prec = getPriority(operations.get(i));
-			while (!ops.isEmpty() && prec <= getPriority(ops.getLast())) {
-				transformOperator(out, ops);
-			}
-			ops.addLast(operations.get(i));
-			i += 1;
-			out.add(operands.get(i));
-		}
-		while (!ops.isEmpty()) {
-			transformOperator(out, ops);
-		}
-		assert out.size() == 1;
-		return out.getFirst();
-	}
-
-	private void transformOperator(LinkedList<Expression> out, LinkedList<String> ops) {
-		String operator = ops.removeLast();
-		String function = "$BinaryOperation." + operator;
-		Variable funcVar = Variable.variable(function);
-		ExprVariable func = new ExprVariable(funcVar);  // use the same Identifier as for funcVar
-		Expression right = out.removeLast();
-		Expression left = out.removeLast();
-		ImmutableList<Expression> args = ImmutableList.of(left, right);
-		Expression result = new ExprApplication(func, args);
-		out.add(result);
-	}
-
 }
 PARSER_END(CalParser)
 
@@ -168,11 +93,11 @@ TOKEN :
 |	< ACTOR: "actor" >
 |	< ALL: "all" >
 |	< AND: "and" >
-|	< ANY: "any" >
-|	< AT: "at" >
-|	< AT_STAR: "at*" >
+//|	< ANY: "any" >
+//|	< AT: "at" >
+//|	< AT_STAR: "at*" >
 |	< BEGIN: "begin" >
-|	< CHOOSE: "choose" >
+//|	< CHOOSE: "choose" >
 |	< CONST: "const" >
 //|	< DELAY: "delay" >
 |	< DIV: "div" >
@@ -188,10 +113,10 @@ TOKEN :
 |	< ENDFUNCTION: "endfunction" >
 |	< ENDIF: "endif" >
 |	< ENDINITIALIZE: "endinitialize" >
-//|	< ENDLAMBDA: "endlambda" >
+|	< ENDLAMBDA: "endlambda" >
 |	< ENDLET: "endlet" >
 |	< ENDPRIORITY: "endpriority" >
-//|	< ENDPROC: "endproc" >
+|	< ENDPROC: "endproc" >
 |	< ENDPROCEDURE: "endprocedure" >
 |	< ENDSCHEDULE: "endschedule" >
 |	< ENDWHILE: "endwhile" >
@@ -206,7 +131,7 @@ TOKEN :
 |	< IMPORT: "import" >
 |	< IN: "in" >
 |	< INITIALIZE: "initialize" >
-//|	< LAMBDA: "lambda" >
+|	< LAMBDA: "lambda" >
 |	< LET: "let" >
 |	< MAP: "map" >
 |	< MOD: "mod" >
@@ -218,21 +143,18 @@ TOKEN :
 |	< OLD: "old" >
 |	< OR: "or" >
 |	< PRIORITY: "priority" >
-//|	< PROC: "proc" >
+|	< PROC: "proc" >
 |	< PROCEDURE: "procedure" >
 |	< REGEXP: "regexp" >
 |	< REPEAT: "repeat" >
 |	< RNG: "rng" >
 |	< SCHEDULE: "schedule" >
 |	< THEN: "then" >
-|	< TIME: "time" >
+//|	< TIME: "time" >
 |	< TRUE: "true" >
 |	< TYPE: "type" >
 |	< VAR: "var" >
 |	< WHILE: "while" >
-
-|	< PACKAGE: "package" >
-|	< UNIT: "unit" >
 
 |	< PUBLIC: "public" >
 |	< PRIVATE: "private" >
@@ -328,24 +250,6 @@ QID NamespaceScan() :
 		"namespace"
 		qid = QID()
 		":"
-	|
-		"package"
-		qid = QID()
-		";"
-		(
-			"import"
-			QID()
-			(".*" | "." "*")?
-			";"
-		)*
-		(
-			"unit"
-			unitId = <ID>
-			":"
-			{
-				qid = qid.concat(QID.of(unitId.image));
-			}
-		)?
 	)?
 	{
 		return qid;
@@ -364,39 +268,10 @@ NamespaceDecl CompilationUnit() :
 		return ns;
 	}
 |
-	{
-		ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
-		ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
-		ImmutableList.Builder<StarImport> starImports = ImmutableList.builder();
-		VarDecl varDecl;
-		EntityDecl e;
-		NamespaceDecl unit;
-		StarImport starImport;
-		QID qid;
-	}
-	"package"
-	qid = QID()
-	";"
-	(
-		LOOKAHEAD(StarImport())
-		starImport = StarImport() { starImports.add(starImport); }
-	|
-		varDecl = VarImport() { varDecls.add(varDecl); }
-	)*
-	(Annotation())*
-	(
-		unit = OrccUnit()
-		{
-			qid = qid.concat(unit.getQID());
-			varDecls.addAll(unit.getVarDecls());
-		}
-	|
-		e = ActorDecl()  { entityDecls.add(e); }
-	)
+	ns = NamespaceDecl()
 	<EOF>
 	{
-		NamespaceDecl pkg = new NamespaceDecl(qid, starImports.build(), varDecls.build(), entityDecls.build(), ImmutableList.empty());
-		return pkg;
+		return ns;
 	}
 }
 
@@ -767,10 +642,12 @@ ImmutableList<VarDecl> VarDecls() :
 EntityDecl NetworkDecl() :
 {
 	Token id;
+	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<VarDecl> valuePars;
 	ImmutableList<PortDecl> inputPorts;
 	ImmutableList<PortDecl> outputPorts;
 	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<TypeDecl> typeDecls = ImmutableList.builder();
 	VarDecl varDecl;
 }
 {
@@ -795,25 +672,55 @@ EntityDecl NetworkDecl() :
 	"end"
 
 
-	{ return null; }
+	{ return EntityDecl.global(Availability.PUBLIC, id.image, new NlNetwork(typePars, valuePars, typeDecls.build(), varDecls.build(), inputPorts, outputPorts,
+                 			ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty())); }
 }
 
-void EntityInstanceDecls() :
+ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
 {
+	Token instanceName;
+	Token entityName;
+	Token parameterName;
+	Expression parameter;
+	ImmutableList.Builder<Map.Entry<String, EntityExpr>> entities = ImmutableList.builder();
+	ImmutableList.Builder<Map.Entry<String, Expression>> parameters;
 }
 {
 	(
-		<ID>
+		{
+			parameters = ImmutableList.builder();
+		}
+		instanceName = <ID>
 		"="
-		<ID>
+		entityName = <ID>
 		"("
 		(
-			<ID> "=" Expression()
-			("," <ID> "=" Expression())*
+
+			parameterName = <ID>
+			"="
+			parameter = Expression()
+			{
+				parameters.add(ImmutableEntry.of(parameterName.image, parameter));
+			}
+			(
+				","
+				parameterName = <ID>
+				"="
+				parameter = Expression()
+				{
+					parameters.add(ImmutableEntry.of(parameterName.image, parameter));
+				}
+			)*
 		)?
 		")"
 		";"
+		{
+			entities.add(ImmutableEntry.of(instanceName.image, new EntityInstanceExpr(entityName.image, parameters.build())));
+		}
 	)*
+	{
+		return entities.build();
+	}
 }
 
 /* ActorDecl */
@@ -832,7 +739,7 @@ EntityDecl ActorDecl() :
 	ImmutableList.Builder<Action> actions = ImmutableList.builder();
 	Action action;
 	ScheduleFSM scheduleFSM = null;
-	Object process = null;
+	ProcessDescription process = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
 	ImmutableList.Builder<Expression> invariants = ImmutableList.builder();
 }
@@ -887,31 +794,32 @@ EntityDecl ActorDecl() :
 		";"
 	)
 	{
-		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, priorities.build(), invariants.build());
+		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, process, priorities.build(), invariants.build());
 		return EntityDecl.global(Availability.PUBLIC, name, a);
 	}
 }
 
-Object ProcessDescription() :
+ProcessDescription ProcessDescription() :
 {
-	boolean repeat;
+	ImmutableList<Statement> statements;
+	boolean repeated;
 }
 {
 	(
 		"repeat"
-		{ repeat = true; }
+		{ repeated = true; }
 	|
 		"do"
-		{ repeat = false; }
+		{ repeated = false; }
 	)
 	{
 		processDescription = true;
 	}
-	Statements()
+	statements = Statements()
 	"end"
 	{
 		processDescription = false;
-		return new Object();
+		return new ProcessDescription(statements, repeated);
 	}
 }
 
@@ -1171,11 +1079,7 @@ Expression Expression() :
 		if (opList.isEmpty()) {
 			return expr;
 		} else {
-			if (operatorPriorities == null) {
-				return new ExprBinaryOp(opList, exprList);
-			} else {
-				return shuntingYard(opList, exprList);
-			}
+			return new ExprBinaryOp(opList, exprList);
 		}
 	}
 }
@@ -1195,13 +1099,7 @@ Expression UnaryOperation() :
 	{
 		Collections.reverse(ops);
 		for (String o : ops) {
-			if (operatorPriorities != null) {
-				String funcName = "$UnaryOperation." + o;
-				ExprVariable func = new ExprVariable(Variable.variable(funcName));
-				expr = new ExprApplication(func, ImmutableList.of(expr));
-			} else {
-				expr = new ExprUnaryOp(o, expr);
-			}
+			expr = new ExprUnaryOp(o, expr);
 		}
 		return expr;
 	}
@@ -1251,10 +1149,10 @@ Expression SingleExpression() :
 		"(" expr = Expression() ")"
 	|
 		expr = IfExpression()
-//	|
-//		expr = LambdaExpression()
-//	|
-//		expr = ProcExpression()
+	|
+		expr = LambdaExpression()
+	|
+		expr = ProcExpression()
 	|
 		expr = LetExpression()
 	|
@@ -1274,7 +1172,9 @@ ExprVariable VariableExpression() :
 {
 	var = Variable()
 	{
-		return new ExprVariable(var);
+		ExprVariable result = new ExprVariable(var);
+		result.setPosition(var, var);
+		return result;
 	}
 }
 
@@ -1412,7 +1312,7 @@ ExprLet LetExpression() :
 	{ return new ExprLet(typeDecls, varDecls, expr); }
 }
 
-/*
+
 ExprLambda LambdaExpression() :
 {
 	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
@@ -1440,7 +1340,7 @@ ExprLambda LambdaExpression() :
 		return new ExprLambda(typePars, valuePars, expr, type);
 	}
 }
-*/
+
 
 ImmutableList<VarDecl> FormalValuePars() :
 {
@@ -1469,7 +1369,7 @@ VarDecl FormalValueParameter() :
 	}
 }
 
-/*
+
 ExprProc ProcExpression() :
 {
 	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
@@ -1489,7 +1389,7 @@ ExprProc ProcExpression() :
 		return new ExprProc(typePars, valuePars, block);
 	}
 }
-*/
+
 
 ExprSet SetComprehension() :
 {
@@ -1615,8 +1515,6 @@ TypeExpr ParameterizedType(String name) :
 {
 	ImmutableList.Builder<Parameter<TypeExpr>> types = ImmutableList.builder();
 	ImmutableList.Builder<Parameter<Expression>> vals = ImmutableList.builder();
-	TypeExpr type;
-	Expression size;
 }
 {
 	(
@@ -1626,20 +1524,8 @@ TypeExpr ParameterizedType(String name) :
 		")"
 	)?
 	{
-		type = new TypeExpr(name, types.build(), vals.build());
+		return new TypeExpr(name, types.build(), vals.build());
 	}
-	(
-		"["
-		size = Expression()
-		"]"
-		{
-			type = new TypeExpr(
-					"List",
-					ImmutableList.of(Parameter.of("type", type)),
-					ImmutableList.of(Parameter.of("size", size)));
-		}
-	)*
-	{ return type; }
 }
 
 void AddParameterAssignments(
@@ -1673,16 +1559,6 @@ TypeAndName VarDeclTypeName() :
 	LOOKAHEAD(2)
 	type = Type()
 	id = <ID>
-	(
-		"["
-		size = Expression()
-		"]"
-		{
-			type = new TypeExpr("List",
-					ImmutableList.of(Parameter.of("type", type)),
-					ImmutableList.of(Parameter.of("size", size)));
-		}
-	)*
 	{ return new TypeAndName(type, id.image); }
 |
 	id = <ID>
@@ -1741,8 +1617,7 @@ Statement ReadStmt() :
 {
 	Token port;
 	LValue lvalue;
-	ImmutableList.Builder lvalues = ImmutableList.builder();
-	boolean repeat = false;
+	ImmutableList.Builder<LValue> lvalues = ImmutableList.builder();
 	Expression repeatExpr = null;
 }
 {
@@ -1754,12 +1629,12 @@ Statement ReadStmt() :
 		lvalue = LValue() { lvalues.add(lvalue); }
 	)*
 	(
-		"repeat" { repeat = true; }
-		(repeatExpr = Expression())?
+		"repeat"
+		repeatExpr = Expression()
 	)?
 	";"
 	{
-		return null;
+		return new StmtRead(new Port(port.image), lvalues.build(), repeatExpr);
 	}
 }
 
@@ -1768,7 +1643,6 @@ Statement WriteStmt() :
 	Token port;
 	Expression value;
 	ImmutableList.Builder values = ImmutableList.builder();
-	boolean repeat = false;
 	Expression repeatExpr = null;
 }
 {
@@ -1780,12 +1654,12 @@ Statement WriteStmt() :
 		value = Expression() { values.add(value); }
 	)*
 	(
-		"repeat" { repeat = true; }
-		(repeatExpr = Expression())?
+		"repeat"
+		repeatExpr = Expression()
 	)?
 	";"
 	{
-		return null;
+		return new StmtWrite(new Port(port.image), values.build(), repeatExpr);
 	}
 }
 
@@ -1805,13 +1679,18 @@ StmtAssignment AssignmentStmt() :
 {
 	LValue lvalue;
 	Expression rvalue;
+	Token end;
 }
 {
 	lvalue = LValue()
 	":="
 	rvalue = Expression()
-	";"
-	{ return new StmtAssignment(lvalue, rvalue); }
+	end = ";"
+	{
+		StmtAssignment result = new StmtAssignment(lvalue, rvalue);
+		result.setPosition(lvalue.getFromLineNumber(), lvalue.getFromColumnNumber(), end.endLine, end.endColumn);
+		return result;
+	}
 }
 
 LValue LValue() :
@@ -1820,26 +1699,30 @@ LValue LValue() :
 	Field field;
 	Expression index;
 	LValue lvalue;
+	Token end;
 }
 {
 	var = Variable()
 	{
 		lvalue = new LValueVariable(var);
+		lvalue.setPosition(var, var);
 	}
 	(
 		(
 			"." field = Field()
-			{ lvalue = new LValueField(lvalue, field); }
+			{
+				lvalue = new LValueField(lvalue, field);
+				lvalue.setPosition(var, field);
+			}
 		|
 			"["
 			index = Expression()
-			{ lvalue = new LValueIndexer(lvalue, index); }
-			(
-				","
-				index = Expression()
-				{ lvalue = new LValueIndexer(lvalue, index); }
-			)*
-			"]"
+			end = "]"
+			{
+				lvalue = new LValueIndexer(lvalue, index);
+				lvalue.setPosition(var.getFromLineNumber(), var.getFromColumnNumber(), end.endLine, end.endColumn);
+			}
+
 		)
 	)*
 	{

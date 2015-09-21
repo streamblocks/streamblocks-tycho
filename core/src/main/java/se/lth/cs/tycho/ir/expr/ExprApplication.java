@@ -43,7 +43,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -93,7 +92,7 @@ public class ExprApplication extends Expression {
 	public ExprApplication transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(Expression) transformation.apply(function),
-				unsafeCast(args.map(transformation))
+				(ImmutableList) args.map(transformation)
 		);
 	}
 }

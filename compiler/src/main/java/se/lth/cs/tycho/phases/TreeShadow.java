@@ -13,11 +13,6 @@ import java.util.function.Consumer;
 public class TreeShadow {
 	public static final ModuleKey<TreeShadow> key = new ModuleKey<TreeShadow>() {
 		@Override
-		public Class<TreeShadow> getKey() {
-			return TreeShadow.class;
-		}
-
-		@Override
 		public TreeShadow createInstance(CompilationTask unit, AttributeManager manager) {
 			return TreeShadow.of(unit);
 		}

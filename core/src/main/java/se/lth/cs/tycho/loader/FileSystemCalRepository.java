@@ -69,7 +69,6 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 	private static NamespaceDecl parse(Path p, MessageReporter m, boolean withOpParsing) {
 		try {
 			CalParser parser = new CalParser(Files.newBufferedReader(p));
-			if (withOpParsing) parser.setOperatorPriorities(CalParser.defaultPriorities());
 			return parser.CompilationUnit();
 		} catch (IOException e) {
 			m.report(new Message(e.getMessage(), Message.Kind.ERROR));

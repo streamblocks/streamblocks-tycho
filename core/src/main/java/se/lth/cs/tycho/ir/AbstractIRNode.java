@@ -100,8 +100,12 @@ public abstract class AbstractIRNode implements IRNode {
 		throw new UnsupportedOperationException("Transformation not implemented for " + getClass().getCanonicalName());
 	}
 
-	protected static <T, U> ImmutableList<U> unsafeCast(ImmutableList<T> t) {
-		return (ImmutableList<U>) t;
+	@Override
+	public IRNode clone() {
+		try {
+			return (IRNode) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new Error(e);
+		}
 	}
-
 }

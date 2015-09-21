@@ -22,7 +22,7 @@ public class NameAnalysisPhase implements Phase {
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
 		NameBinding nameBinding = context.getAttributeManager().getAttributeModule(NameBinding.key, task);
-		task.getSourceUnits().parallelStream().forEach(unit -> {
+		task.getSourceUnits().stream().forEach(unit -> {
 			CheckNames analysis = MultiJ.from(CheckNames.class)
 					.bind("names").to(nameBinding)
 					.bind("reporter").to(context.getReporter())
@@ -44,9 +44,12 @@ public class NameAnalysisPhase implements Phase {
 		@Binding
 		SourceUnit sourceUnit();
 
-		default void checkNames(IRNode node) {
-			node.forEachChild(this::checkNames);
+		default void check(IRNode node) {
+			checkNames(node);
+			node.forEachChild(this::check);
 		}
+
+		default void checkNames(IRNode node) {}
 
 		default void checkNames(Variable var) {
 			if (names().declaration(var) == null) {

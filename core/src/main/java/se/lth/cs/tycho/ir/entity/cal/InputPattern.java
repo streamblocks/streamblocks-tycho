@@ -99,7 +99,7 @@ public class InputPattern extends AbstractIRNode {
 	public InputPattern transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(Port) transformation.apply(port),
-				unsafeCast(variables.map(transformation)),
+				(ImmutableList) variables.map(transformation),
 				repeatExpr == null ? null : (Expression) transformation.apply(repeatExpr)
 		);
 	}

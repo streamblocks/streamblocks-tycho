@@ -71,10 +71,10 @@ public class NamespaceDecl extends AbstractIRNode {
 	@Override
 	public NamespaceDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return new NamespaceDecl(this, qid,
-				unsafeCast(starImports.map(transformation)),
-				unsafeCast(varDecls.map(transformation)),
-				unsafeCast(entityDecls.map(transformation)),
-				unsafeCast(typeDecls.map(transformation)));
+				(ImmutableList) starImports.map(transformation),
+				(ImmutableList) varDecls.map(transformation),
+				(ImmutableList) entityDecls.map(transformation),
+				(ImmutableList) typeDecls.map(transformation));
 	}
 
 }

@@ -114,7 +114,7 @@ public class ExprMap extends Expression {
 		};
 		return copy(
 				mappings.map(function),
-				unsafeCast(generators.map(transformation))
+				(ImmutableList) generators.map(transformation)
 		);
 	}
 }

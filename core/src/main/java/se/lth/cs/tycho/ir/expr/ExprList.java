@@ -96,8 +96,8 @@ public class ExprList extends Expression {
 	@Override
 	public ExprList transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(elements.map(transformation)),
-				unsafeCast(generators.map(transformation))
+				(ImmutableList) elements.map(transformation),
+				(ImmutableList) generators.map(transformation)
 		);
 	}
 }

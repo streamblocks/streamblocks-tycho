@@ -60,16 +60,18 @@ public class CalActor extends Entity {
 			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
-			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+			ProcessDescription process, ImmutableList<ImmutableList<QID>> priorities,
+			ImmutableList<Expression> invariants) {
 		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
-				actions, scheduleFSM, priorities, invariants);
+				actions, scheduleFSM, process, priorities, invariants);
 	}
 
 	private CalActor(CalActor original, ImmutableList<TypeDecl> typePars,
 			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
-			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+			ProcessDescription process,	ImmutableList<ImmutableList<QID>> priorities,
+			ImmutableList<Expression> invariants) {
 		super(original, inputPorts, outputPorts, typePars, valuePars);
 
 		this.typeDecls = ImmutableList.copyOf(typeDecls);
@@ -85,17 +87,17 @@ public class CalActor extends Entity {
 			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
-			ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+			ProcessDescription process, ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
 		if (Lists.equals(getTypeParameters(), typePars) && Lists.equals(getValueParameters(), valuePars)
 				&& Lists.equals(getTypeDecls(), typeDecls) && Lists.equals(getVarDecls(), varDecls)
 				&& Lists.equals(getInputPorts(), inputPorts) && Lists.equals(getOutputPorts(), outputPorts)
 				&& Lists.equals(this.initializers, initializers) && Lists.equals(this.actions, actions)
-				&& Objects.equals(this.scheduleFSM, scheduleFSM) && Lists.equals(this.priorities, priorities)
-				&& Lists.equals(this.invariants, invariants)) {
+				&& Objects.equals(this.scheduleFSM, scheduleFSM) && Objects.equals(this.process, process)
+				&& Lists.equals(this.priorities, priorities) && Lists.equals(this.invariants, invariants)) {
 			return this;
 		}
 		return new CalActor(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
-				initializers, actions, scheduleFSM, priorities, invariants);
+				initializers, actions, scheduleFSM, process, priorities, invariants);
 	}
 
 	@Override
@@ -127,6 +129,10 @@ public class CalActor extends Entity {
 		return scheduleFSM;
 	}
 
+	public ProcessDescription getProcessDescription() {
+		return process;
+	}
+
 	public ImmutableList<ImmutableList<QID>> getPriorities() {
 		return priorities;
 	}
@@ -135,6 +141,7 @@ public class CalActor extends Entity {
 	private ImmutableList<TypeDecl> typeDecls;
 	private ImmutableList<Action> actions;
 	private ScheduleFSM scheduleFSM;
+	private ProcessDescription process;
 	private ImmutableList<ImmutableList<QID>> priorities;
 	private ImmutableList<Expression> invariants;
 
@@ -147,23 +154,25 @@ public class CalActor extends Entity {
 		typeDecls.forEach(action);
 		actions.forEach(action);
 		if (scheduleFSM != null) action.accept(scheduleFSM);
+		if (process != null) action.accept(process);
 		invariants.forEach(action);
 	}
 
 	@Override
 	public CalActor transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(getTypeParameters().map(transformation)),
-				unsafeCast(getValueParameters().map(transformation)),
-				unsafeCast(typeDecls.map(transformation)),
-				unsafeCast(varDecls.map(transformation)),
-				unsafeCast(getInputPorts().map(transformation)),
-				unsafeCast(getOutputPorts().map(transformation)),
-				unsafeCast(initializers.map(transformation)),
-				unsafeCast(actions.map(transformation)),
+				(ImmutableList) getTypeParameters().map(transformation),
+				(ImmutableList) getValueParameters().map(transformation),
+				(ImmutableList) typeDecls.map(transformation),
+				(ImmutableList) varDecls.map(transformation),
+				(ImmutableList) getInputPorts().map(transformation),
+				(ImmutableList) getOutputPorts().map(transformation),
+				(ImmutableList) initializers.map(transformation),
+				(ImmutableList) actions.map(transformation),
 				scheduleFSM == null ? null : (ScheduleFSM) transformation.apply(scheduleFSM),
+				process == null ? null : (ProcessDescription) transformation.apply(process),
 				priorities,
-				unsafeCast(invariants.map(transformation))
+				(ImmutableList) invariants.map(transformation)
 		);
 	}
 }

@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Map.Entry;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
@@ -11,6 +12,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -105,5 +107,20 @@ public class NlNetwork extends Entity {
 		varDecls.forEach(action);
 		entities.forEach(entry -> action.accept(entry.getValue()));
 		structure.forEach(action);
+	}
+
+	@Override
+	public NlNetwork transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				(ImmutableList) getTypeParameters().map(transformation),
+				(ImmutableList) getValueParameters().map(transformation),
+				(ImmutableList) typeDecls.map(transformation),
+				(ImmutableList) varDecls.map(transformation),
+				(ImmutableList) getInputPorts().map(transformation),
+				(ImmutableList) getOutputPorts().map(transformation),
+				(ImmutableList) entities.map(entry -> ImmutableEntry.of(entry.getKey(), transformation.apply(entry.getValue()))),
+				(ImmutableList) structure.map(transformation),
+				(ImmutableList) toolAttributes.map(transformation)
+		);
 	}
 }

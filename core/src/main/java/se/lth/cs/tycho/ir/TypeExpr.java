@@ -52,7 +52,7 @@ import se.lth.cs.tycho.ir.util.Lists;
  * @author Jorn W. Janneck <jorn.janneck@xilinx.com>
  */
 
-public class TypeExpr extends AbstractIRNode {
+public class TypeExpr extends AbstractIRNode implements Cloneable {
 	public String getName() {
 		return name;
 	}
@@ -107,6 +107,7 @@ public class TypeExpr extends AbstractIRNode {
 
 	@Override
 	public TypeExpr transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
-		return copy(name, unsafeCast(typeParameters.map(transformation)), unsafeCast(valueParameters.map(transformation)));
+		return copy(name, (ImmutableList) typeParameters.map(transformation), (ImmutableList) valueParameters.map(transformation));
 	}
+
 }

@@ -35,4 +35,13 @@ public class AttributableIRNode implements IRNode, Attributable {
 	public IRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		throw new UnsupportedOperationException(); // TODO implement
 	}
+
+	@Override
+	public IRNode clone() {
+		try {
+			return (IRNode) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new Error(e);
+		}
+	}
 }

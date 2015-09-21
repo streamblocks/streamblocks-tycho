@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.comp;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 
 import java.io.IOException;
@@ -43,4 +44,12 @@ public class SourceFile implements SourceUnit {
 		return Files.newInputStream(file);
 	}
 
+	@Override
+	public IRNode clone() {
+		try {
+			return (IRNode) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new Error(e);
+		}
+	}
 }

@@ -106,9 +106,9 @@ public class StmtBlock extends Statement {
 	@Override
 	public StmtBlock transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(typeDecls.map(transformation)),
-				unsafeCast(varDecls.map(transformation)),
-				unsafeCast(statements.map(transformation))
+				(ImmutableList) typeDecls.map(transformation),
+				(ImmutableList) varDecls.map(transformation),
+				(ImmutableList) statements.map(transformation)
 		);
 	}
 }

@@ -52,7 +52,7 @@ public class StmtForeach extends Statement {
 	@Override
 	public StmtForeach transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				unsafeCast(generators.map(transformation)),
+				(ImmutableList) generators.map(transformation),
 				(Statement) transformation.apply(body)
 		);
 	}

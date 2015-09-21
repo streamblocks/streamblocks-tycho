@@ -657,7 +657,7 @@ EntityDecl ActorDecl() :
 		"end"
 	)
 	{
-		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, priorities.build(), invariants.build());
+		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, null, priorities.build(), invariants.build());
 		return EntityDecl.global(Availability.PUBLIC, name, a);
 	}
 }
@@ -1325,13 +1325,18 @@ StmtAssignment AssignmentStmt() :
 {
 	LValue lvalue;
 	Expression rvalue;
+	Token end;
 }
 {
 	lvalue = LValue()
 	":="
 	rvalue = Expression()
-	";"
-	{ return new StmtAssignment(lvalue, rvalue); }
+	end = ";"
+	{
+		StmtAssignment result = new StmtAssignment(lvalue, rvalue);
+		result.setPosition(lvalue.getFromLineNumber(), lvalue.getFromColumnNumber(), end.endLine, end.endColumn);
+		return result;
+	}
 }
 
 LValue LValue() :
@@ -1339,17 +1344,22 @@ LValue LValue() :
 	Variable var;
 	Expression index;
 	LValue lvalue;
+	Token end;
 }
 {
 	var = Variable()
 	{
 		lvalue = new LValueVariable(var);
+		lvalue.setPosition(var, var);
 	}
 	(
 		"["
 		index = Expression()
-		{ lvalue = new LValueIndexer(lvalue, index); }
-		"]"
+		end = "]"
+		{
+			lvalue = new LValueIndexer(lvalue, index);
+			lvalue.setPosition(var.getFromLineNumber(), var.getFromColumnNumber(), end.endLine, end.endColumn);
+		}
 	)*
 	{
 		return lvalue;

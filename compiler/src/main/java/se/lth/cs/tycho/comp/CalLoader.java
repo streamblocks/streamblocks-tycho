@@ -32,10 +32,8 @@ public class CalLoader implements Loader {
 	}
 
 	private NamespaceDecl parse(Path p) {
-
 		try {
 			CalParser parser = new CalParser(Files.newBufferedReader(p));
-			if (true) parser.setOperatorPriorities(CalParser.defaultPriorities());
 			return parser.CompilationUnit();
 		} catch (IOException e) {
 			reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, e.getMessage()));

@@ -20,6 +20,7 @@ import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
+import se.lth.cs.tycho.ir.entity.cal.ProcessDescription;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
@@ -305,6 +306,15 @@ public class Copy implements BasicTransformer<Void>, ActorTransformer<Void>, Exp
 	}
 
 	@Override
+	public ProcessDescription transformProcessDescription(ProcessDescription process, Void param) {
+		if (process == null) {
+			return null;
+		} else {
+			return new ProcessDescription(transformStatements(process.getStatements(), param), process.isRepeated());
+		}
+	}
+
+	@Override
 	public Transition transformScheduleTransition(Transition transition, Void param) {
 		if (transition == null) return null;
 		return new Transition(transition.getSourceState(), transition.getDestinationState(), transition.getActionTags());
@@ -505,8 +515,8 @@ public class Copy implements BasicTransformer<Void>, ActorTransformer<Void>, Exp
 				transformVarDecls(entity.getVarDecls(), param), transformInputPorts(entity.getInputPorts(), param),
 				transformOutputPorts(entity.getOutputPorts(), param),
 				transformActions(entity.getInitializers(), param), transformActions(entity.getActions(), param),
-				transformSchedule(entity.getScheduleFSM(), param), transformPriorities(entity.getPriorities(), param),
-				transformExpressions(entity.getInvariants(), param));
+				transformSchedule(entity.getScheduleFSM(), param), transformProcessDescription(entity.getProcessDescription(), param),
+				transformPriorities(entity.getPriorities(), param),	transformExpressions(entity.getInvariants(), param));
 	}
 
 	@Override
