@@ -8,6 +8,7 @@ import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -28,6 +29,8 @@ import se.lth.cs.tycho.types.TopType;
 import se.lth.cs.tycho.types.Type;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,6 +53,8 @@ public interface Types {
 	Type declaredType(VarDecl decl);
 	Type type(Expression expr);
 	Type lvalueType(LValue lvalue);
+	Type portType(Port port);
+	Type portTypeRepeated(Port port, Expression repeat);
 
 	@Module
 	interface Implementation extends Types {
@@ -96,6 +101,18 @@ public interface Types {
 
 		default Type lvalueType(LValue lvalue) {
 			return lvalueTypeMap().computeIfAbsent(lvalue, this::computeLValueType);
+		}
+
+
+		default Type portType(Port port) {
+			PortDecl decl = names().portDeclaration(port);
+			return convert(decl.getType());
+		}
+
+		default Type portTypeRepeated(Port port, Expression repeat) {
+			Type element = portType(port);
+			OptionalInt size = constants().intValue(repeat);
+			return new ListType(element, size);
 		}
 
 		Type computeLValueType(LValue lvalue);

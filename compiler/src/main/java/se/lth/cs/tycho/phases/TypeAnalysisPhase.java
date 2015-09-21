@@ -9,12 +9,18 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.cal.InputPattern;
+import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
+import se.lth.cs.tycho.ir.entity.cal.ProcessDescription;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprIndexer;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtCall;
+import se.lth.cs.tycho.ir.stmt.StmtRead;
+import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
@@ -35,7 +41,13 @@ public class TypeAnalysisPhase implements Phase {
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
 		task.getSourceUnits().forEach(sourceUnit -> {
-			TypeChecker checker = MultiJ.from(OrccTypeChecker.class)
+			Class<? extends TypeChecker> module;
+			switch (sourceUnit.getLanguage()) {
+				case CAL: module = CalTypeChecker.class; break;
+				case ORCC: module = OrccTypeChecker.class; break;
+				default: module = CalTypeChecker.class; break;
+			}
+			TypeChecker checker = MultiJ.from(module)
 					.bind("types").to(context.getAttributeManager().getAttributeModule(Types.key, task))
 					.bind("reporter").to(context.getReporter())
 					.bind("sourceUnit").to(sourceUnit)
@@ -43,6 +55,74 @@ public class TypeAnalysisPhase implements Phase {
 			checker.check(sourceUnit);
 		});
 		return null;
+	}
+
+	@Module
+	interface CalTypeChecker  extends TypeChecker {
+
+		default boolean isAssignable(Type to, Type from) {
+			return false;
+		}
+		default boolean isAssignable(BottomType to, Type from) {
+			return false;
+		}
+		default boolean isAssignable(Type to, BottomType from) {
+			return true;
+		}
+		default boolean isAssignable(TopType to, Type from) {
+			return true;
+		}
+		default boolean isAssignable(TopType to, BottomType from) {
+			return true;
+		}
+		default boolean isAssignable(IntType to, IntType from) {
+			if (!to.isSigned() && from.isSigned()) {
+				return false;
+			}
+			if (!to.getSize().isPresent()) {
+				return true;
+			}
+			if (from.getSize().isPresent()) {
+				if (to.isSigned() == from.isSigned()) {
+					return to.getSize().getAsInt() >= from.getSize().getAsInt();
+				} else {
+					return to.getSize().getAsInt() > from.getSize().getAsInt();
+				}
+			}
+			return false;
+		}
+		default boolean isAssignable(BoolType to, BoolType from) {
+			return true;
+		}
+		default boolean isAssignable(UnitType to, UnitType from) {
+			return true;
+		}
+		default boolean isAssignable(ListType to, ListType from) {
+			if (!to.getSize().isPresent() || to.getSize().equals(from.getSize())) {
+				return isAssignable(to.getElementType(), from.getElementType());
+			} else {
+				return false;
+			}
+		}
+
+		default boolean isAssignable(CallableType to, CallableType from) {
+			if (to.getParameterTypes().size() != from.getParameterTypes().size()) {
+				return false;
+			}
+			if (!isAssignable(to.getReturnType(), from.getReturnType())) {
+				return false;
+			}
+			Iterator<Type> toParIter = to.getParameterTypes().iterator();
+			Iterator<Type> fromParIter = from.getParameterTypes().iterator();
+			while (toParIter.hasNext() && fromParIter.hasNext()) {
+				Type toPar = toParIter.next();
+				Type fromPar = fromParIter.next();
+				if (!isAssignable(fromPar, toPar)) {
+					return false;
+				}
+			}
+			return !toParIter.hasNext() && !fromParIter.hasNext();
+		}
 	}
 
 	@Module
@@ -118,9 +198,7 @@ public class TypeAnalysisPhase implements Phase {
 			}
 		}
 
-		default void checkTypes(IRNode node) {
-			node.forEachChild(this::check);
-		}
+		default void checkTypes(IRNode node) {}
 
 		default void checkTypes(StmtAssignment assignment) {
 			checkAssignment(
@@ -158,6 +236,45 @@ public class TypeAnalysisPhase implements Phase {
 			}
 		}
 
+		default void checkTypes(StmtRead read) {
+			Type actual;
+			if (read.getRepeatExpression() != null) {
+				actual = types().portTypeRepeated(read.getPort(), read.getRepeatExpression());
+			} else {
+				actual = types().portType(read.getPort());
+			}
+			for (LValue lvalue : read.getLValues()) {
+				Type expected = types().lvalueType(lvalue);
+				checkAssignment(expected, actual, lvalue);
+			}
+		}
+
+		default void checkTypes(OutputExpression output) {
+			Type expected;
+			if (output.getRepeatExpr() != null) {
+				expected = types().portTypeRepeated(output.getPort(), output.getRepeatExpr());
+			} else {
+				expected = types().portType(output.getPort());
+			}
+			for (Expression value : output.getExpressions()) {
+				Type actual = types().type(value);
+				checkAssignment(expected, actual, value);
+			}
+		}
+
+		default void checkTypes(StmtWrite write) {
+			Type expected;
+			if (write.getRepeatExpression() != null) {
+				expected = types().portTypeRepeated(write.getPort(), write.getRepeatExpression());
+			} else {
+				expected = types().portType(write.getPort());
+			}
+			for (Expression value : write.getValues()) {
+				Type actual = types().type(value);
+				checkAssignment(expected, actual, value);
+			}
+		}
+
 		default void checkArguments(IRNode node, CallableType callableType, List<Expression> args) {
 			Iterator<Type> typeIter = callableType.getParameterTypes().iterator();
 			Iterator<Expression> exprIter = args.iterator();
@@ -173,7 +290,5 @@ public class TypeAnalysisPhase implements Phase {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), node));
 			}
 		}
-
-
 	}
 }

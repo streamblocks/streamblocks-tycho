@@ -79,6 +79,7 @@ public class CalActor extends Entity {
 		this.initializers = ImmutableList.copyOf(initializers);
 		this.actions = ImmutableList.copyOf(actions);
 		this.scheduleFSM = scheduleFSM;
+		this.process = process;
 		this.priorities = ImmutableList.copyOf(priorities);
 		this.invariants = ImmutableList.copyOf(invariants);
 	}

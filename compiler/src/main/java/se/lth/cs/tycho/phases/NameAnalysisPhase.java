@@ -28,7 +28,7 @@ public class NameAnalysisPhase implements Phase {
 					.bind("reporter").to(context.getReporter())
 					.bind("sourceUnit").to(unit)
 					.instance();
-			analysis.checkNames(unit);
+			analysis.check(unit);
 		});
 		return task;
 	}

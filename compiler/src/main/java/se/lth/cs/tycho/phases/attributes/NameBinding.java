@@ -27,6 +27,8 @@ import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
+import se.lth.cs.tycho.ir.stmt.StmtRead;
+import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.phases.TreeShadow;
 
 import java.util.List;
@@ -76,6 +78,14 @@ public interface NameBinding {
 
 		default PortDecl lookupPort(OutputExpression output, Port port) {
 			return lookupOutputPort(tree().parent(output), port);
+		}
+
+		default PortDecl lookupPort(StmtRead read, Port port) {
+			return lookupInputPort(tree().parent(read), port);
+		}
+
+		default PortDecl lookupPort(StmtWrite write, Port port) {
+			return lookupOutputPort(tree().parent(write), port);
 		}
 
 		default PortDecl lookupInputPort(IRNode node, Port port) {
