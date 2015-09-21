@@ -8,6 +8,7 @@ import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.phases.attributes.NameBinding;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -54,6 +55,12 @@ public class NameAnalysisPhase implements Phase {
 		default void checkNames(Variable var) {
 			if (names().declaration(var) == null) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variable " + var.getName() + " is not declared.", sourceUnit(), var));
+			}
+		}
+
+		default void checkNames(Port port) {
+			if (names().portDeclaration(port) == null) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Port " + port.getName() + " is not declared.", sourceUnit(), port));
 			}
 		}
 	}

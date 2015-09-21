@@ -1634,7 +1634,9 @@ Statement ReadStmt() :
 	)?
 	";"
 	{
-		return new StmtRead(new Port(port.image), lvalues.build(), repeatExpr);
+		Port p = new Port(port.image);
+		p.setPosition(port.beginLine, port.beginColumn, port.endLine, port.endColumn);
+		return new StmtRead(p, lvalues.build(), repeatExpr);
 	}
 }
 
@@ -1659,7 +1661,9 @@ Statement WriteStmt() :
 	)?
 	";"
 	{
-		return new StmtWrite(new Port(port.image), values.build(), repeatExpr);
+		Port p = new Port(port.image);
+		p.setPosition(port.beginLine, port.beginColumn, port.endLine, port.endColumn);
+		return new StmtWrite(p, values.build(), repeatExpr);
 	}
 }
 
