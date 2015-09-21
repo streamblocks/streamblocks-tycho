@@ -10,7 +10,7 @@ import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.phases.attributes.NameBinding;
+import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -22,10 +22,10 @@ public class NameAnalysisPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		NameBinding nameBinding = context.getAttributeManager().getAttributeModule(NameBinding.key, task);
+		Names names = context.getAttributeManager().getAttributeModule(Names.key, task);
 		task.getSourceUnits().stream().forEach(unit -> {
 			CheckNames analysis = MultiJ.from(CheckNames.class)
-					.bind("names").to(nameBinding)
+					.bind("names").to(names)
 					.bind("reporter").to(context.getReporter())
 					.bind("sourceUnit").to(unit)
 					.instance();
@@ -37,7 +37,7 @@ public class NameAnalysisPhase implements Phase {
 	@Module
 	public interface CheckNames {
 		@Binding(BindingKind.INJECTED)
-		NameBinding names();
+		Names names();
 
 		@Binding
 		Reporter reporter();

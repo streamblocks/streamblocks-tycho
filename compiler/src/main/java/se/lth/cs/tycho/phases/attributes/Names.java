@@ -37,10 +37,10 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public interface NameBinding {
-	ModuleKey<NameBinding> key = new ModuleKey<NameBinding>() {
+public interface Names {
+	ModuleKey<Names> key = new ModuleKey<Names>() {
 		@Override
-		public NameBinding createInstance(CompilationTask unit, AttributeManager manager) {
+		public Names createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(Implementation.class)
 					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
 					.instance();
@@ -53,7 +53,7 @@ public interface NameBinding {
 	PortDecl portDeclaration(Port port);
 
 	@Module
-	interface Implementation extends NameBinding {
+	interface Implementation extends Names {
 		@Binding
 		TreeShadow tree();
 

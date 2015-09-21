@@ -5,7 +5,6 @@ import se.lth.cs.multij.BindingKind;
 import se.lth.cs.multij.Module;
 import se.lth.cs.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocationKind;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
@@ -23,13 +22,13 @@ public interface Constants {
 		@Override
 		public Constants createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(Constants.class)
-					.bind("names").to(manager.getAttributeModule(NameBinding.key, unit))
+					.bind("names").to(manager.getAttributeModule(Names.key, unit))
 					.instance();
 		}
 	};
 
 	@Binding(BindingKind.INJECTED)
-	NameBinding names();
+	Names names();
 
 	default OptionalInt intValue(Expression e) {
 		return OptionalInt.empty();

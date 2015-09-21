@@ -29,8 +29,6 @@ import se.lth.cs.tycho.types.TopType;
 import se.lth.cs.tycho.types.Type;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +41,7 @@ public interface Types {
 		@Override
 		public Types createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(Implementation.class)
-					.bind("names").to(manager.getAttributeModule(NameBinding.key, unit))
+					.bind("names").to(manager.getAttributeModule(Names.key, unit))
 					.bind("constants").to(manager.getAttributeModule(Constants.key, unit))
 					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
 					.instance();
@@ -61,7 +59,7 @@ public interface Types {
 
 
 		@Binding(BindingKind.INJECTED)
-		NameBinding names();
+		Names names();
 
 		@Binding(BindingKind.INJECTED)
 		Constants constants();
