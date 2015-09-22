@@ -9,12 +9,14 @@ public class Context {
 	private final Loader loader;
 	private final Reporter reporter;
 	private final AttributeManager attributeManager;
+	private final UniqueNumbers uniqueNumbers;
 
 	public Context(Configuration configuration, Loader loader, Reporter reporter) {
 		this.reporter = reporter;
 		this.configuration = configuration;
 		this.loader = loader;
 		this.attributeManager = new AttributeManager();
+		this.uniqueNumbers = new UniqueNumbers();
 	}
 	
 	public Configuration getConfiguration() {
@@ -31,6 +33,10 @@ public class Context {
 
 	public AttributeManager getAttributeManager() {
 		return attributeManager;
+	}
+
+	public UniqueNumbers getUniqueNumbers() {
+		return uniqueNumbers;
 	}
 
 }

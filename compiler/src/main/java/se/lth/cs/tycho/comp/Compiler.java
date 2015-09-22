@@ -24,11 +24,13 @@ public class Compiler {
 			new LoadEntityPhase(),
 			new LoadImportsPhase(),
 			new PrintLoadedSourceUnits(),
+			new PrintTreesPhase(),
 			new OperatorParsingPhase(),
 			new DeclarationAnalysisPhase(),
 			new ExpandStarImportsPhase(),
 			new NameAnalysisPhase(),
-			new TypeAnalysisPhase()
+			new TypeAnalysisPhase(),
+			new RenamePhase()
 	);
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {
@@ -123,7 +125,7 @@ public class Compiler {
 	}
 
 	public boolean compile(QID entity) {
-		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity);
+		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity, null);
 		long[] phaseExecutionTime = new long[phases.size()];
 		int currentPhaseNumber = 0;
 		boolean success = true;

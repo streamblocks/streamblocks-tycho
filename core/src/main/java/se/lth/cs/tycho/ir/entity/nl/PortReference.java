@@ -7,6 +7,7 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -71,5 +72,10 @@ public class PortReference extends AbstractIRNode {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		entityIndex.forEach(action);
+	}
+
+	@Override
+	public PortReference transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(entityName, (ImmutableList) entityIndex.map(transformation), portName);
 	}
 }

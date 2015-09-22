@@ -54,7 +54,7 @@ public class TypeAnalysisPhase implements Phase {
 					.instance();
 			checker.check(sourceUnit);
 		});
-		return null;
+		return task;
 	}
 
 	@Module
@@ -69,6 +69,7 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssignable(Type to, BottomType from) {
 			return true;
 		}
+		default boolean isAssignable(BottomType to, BottomType from) { return true; }
 		default boolean isAssignable(TopType to, Type from) {
 			return true;
 		}
@@ -208,11 +209,16 @@ public class TypeAnalysisPhase implements Phase {
 		}
 
 		default void checkTypes(VarDecl varDecl) {
-			if (varDecl.getValue() != null) {
+			if (varDecl.getValue() != null && varDecl.getType() != null) {
 				checkAssignment(
 						types().declaredType(varDecl),
 						types().type(varDecl.getValue()),
 						varDecl);
+			} else if (varDecl.getType() == null) {
+				Type t = types().declaredType(varDecl);
+				if (t == TopType.INSTANCE || t == BottomType.INSTANCE) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not infer a type for " + varDecl.getName() + ".", sourceUnit(), varDecl));
+				}
 			}
 		}
 

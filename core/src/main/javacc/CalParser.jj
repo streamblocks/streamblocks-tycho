@@ -648,6 +648,8 @@ EntityDecl NetworkDecl() :
 	ImmutableList<PortDecl> outputPorts;
 	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<TypeDecl> typeDecls = ImmutableList.builder();
+	ImmutableList<Map.Entry<String, EntityExpr>> instances = ImmutableList.empty();
+	ImmutableList<StructureStatement> structure = ImmutableList.empty();
 	VarDecl varDecl;
 }
 {
@@ -667,13 +669,13 @@ EntityDecl NetworkDecl() :
 			{ varDecls.add(varDecl); }
 		)*
 	)?
-	("entities" EntityInstanceDecls())?
-	("structure" (QID() "-->" QID() ("{" (<ID> (":" Type() | "=" Expression()) ";")* "}")?";")*)?
+	("entities" instances = EntityInstanceDecls())?
+	("structure" structure = StructureStmts())?
 	"end"
 
 
 	{ return EntityDecl.global(Availability.PUBLIC, id.image, new NlNetwork(typePars, valuePars, typeDecls.build(), varDecls.build(), inputPorts, outputPorts,
-                 			ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty())); }
+                 			instances, structure, ImmutableList.empty())); }
 }
 
 ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
@@ -720,6 +722,26 @@ ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
 	)*
 	{
 		return entities.build();
+	}
+}
+
+ImmutableList<StructureStatement> StructureStmts() :
+{
+	ImmutableList.Builder<StructureStatement> builder = ImmutableList.builder();
+	Token src = null, srcPort, tgt = null, tgtPort;
+}
+{
+	(
+		(LOOKAHEAD(2) src = <ID> ".")? srcPort = <ID> "-->" (LOOKAHEAD(2) tgt = <ID> ".")? tgtPort = <ID> ";"
+		{
+			builder.add(new StructureConnectionStmt(
+					new PortReference(src == null ? null : src.image, ImmutableList.empty(), srcPort.image),
+					new PortReference(tgt == null ? null : tgt.image, ImmutableList.empty(), tgtPort.image),
+					ImmutableList.empty()));
+		}
+	)*
+	{
+		return builder.build();
 	}
 }
 
@@ -1194,19 +1216,26 @@ Variable Variable() :
 ExprLiteral ExpressionLiteral() :
 {
 	Token lit;
+	ExprLiteral result = null;
 }
 {
-	lit = <INTEGER> { return new ExprLiteral(ExprLiteral.Kind.Integer, lit.image); }
-|
-	lit = <REAL> { return new ExprLiteral(ExprLiteral.Kind.Real, lit.image); }
-|
-	lit = <TRUE> { return new ExprLiteral(ExprLiteral.Kind.True); }
-|
-	lit = <FALSE> { return new ExprLiteral(ExprLiteral.Kind.False); }
-|
-	lit = <NULL> { return new ExprLiteral(ExprLiteral.Kind.Null); }
-|
-	lit = <STRING> { return new ExprLiteral(ExprLiteral.Kind.String, lit.image); }
+	(
+		lit = <INTEGER> { result = new ExprLiteral(ExprLiteral.Kind.Integer, lit.image); }
+	|
+		lit = <REAL> { result = new ExprLiteral(ExprLiteral.Kind.Real, lit.image); }
+	|
+		lit = <TRUE> { result = new ExprLiteral(ExprLiteral.Kind.True); }
+	|
+		lit = <FALSE> { result = new ExprLiteral(ExprLiteral.Kind.False); }
+	|
+		lit = <NULL> { result = new ExprLiteral(ExprLiteral.Kind.Null); }
+	|
+		lit = <STRING> { result = new ExprLiteral(ExprLiteral.Kind.String, lit.image); }
+	)
+	{
+		result.setPosition(lit.beginLine, lit.beginColumn, lit.endLine, lit.endColumn);
+		return result;
+	}
 }
 
 

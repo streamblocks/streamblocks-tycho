@@ -3,10 +3,13 @@ package se.lth.cs.tycho.ir.entity.nl;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -64,5 +67,11 @@ public class EntityInstanceExpr extends se.lth.cs.tycho.ir.entity.nl.EntityExpr 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		parameterAssignments.forEach(entry -> action.accept(entry.getValue()));
+	}
+
+	@Override
+	public EntityInstanceExpr transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(entityName,
+				(ImmutableList) parameterAssignments.map(entry -> ImmutableEntry.of(entry.getKey(), transformation.apply(entry.getValue()))));
 	}
 }

@@ -29,10 +29,12 @@ import se.lth.cs.tycho.types.TopType;
 import se.lth.cs.tycho.types.Type;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface Types {
@@ -44,6 +46,7 @@ public interface Types {
 					.bind("names").to(manager.getAttributeModule(Names.key, unit))
 					.bind("constants").to(manager.getAttributeModule(Constants.key, unit))
 					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
+					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
 					.instance();
 		}
 	};
@@ -62,6 +65,9 @@ public interface Types {
 		Names names();
 
 		@Binding(BindingKind.INJECTED)
+		GlobalNames globalNames();
+
+		@Binding(BindingKind.INJECTED)
 		Constants constants();
 
 		@Binding(BindingKind.INJECTED)
@@ -73,7 +79,6 @@ public interface Types {
 		}
 
 		default Type type(Expression e) {
-
 			if (typeMap().containsKey(e)) {
 				return typeMap().get(e);
 			} else {
@@ -84,12 +89,49 @@ public interface Types {
 		}
 
 		@Binding
+		default ThreadLocal<Set<VarDecl>> currentlyComputing() {
+			return ThreadLocal.withInitial(HashSet::new);
+		}
+
+		@Binding
 		default Map<VarDecl, Type> declaredTypeMap() {
 			return new ConcurrentHashMap<>();
 		}
 
 		default Type declaredType(VarDecl varDecl) {
-			return declaredTypeMap().computeIfAbsent(varDecl, this::computeDeclaredType);
+			if (declaredTypeMap().containsKey(varDecl)) {
+				return declaredTypeMap().get(varDecl);
+			} else if (currentlyComputing().get().contains(varDecl)) {
+				return BottomType.INSTANCE;
+			} else {
+				currentlyComputing().get().add(varDecl);
+				Type t = computeDeclaredType(varDecl);
+				currentlyComputing().get().remove(varDecl);
+				Type old = declaredTypeMap().putIfAbsent(varDecl, t);
+				return old != null ? old : t;
+			}
+		}
+
+		default Type computeDeclaredType(VarDecl varDecl) {
+			if (varDecl.isImport()) {
+				return declaredType(globalNames().varDecl(varDecl.getQualifiedIdentifier(), false));
+			} else if (varDecl.getType() != null) {
+				return convert(varDecl.getType());
+			} else if (tree().parent(varDecl) instanceof InputPattern) {
+				InputPattern input = (InputPattern) tree().parent(varDecl);
+				PortDecl port = names().portDeclaration(input.getPort());
+				Type result = convert(port.getType());
+				if (input.getRepeatExpr() != null) {
+					OptionalInt size = constants().intValue(input.getRepeatExpr());
+					return new ListType(result, size);
+				} else {
+					return result;
+				}
+			} else if (varDecl.getValue() != null) {
+				return type(varDecl.getValue());
+			} else {
+				return BottomType.INSTANCE;
+			}
 		}
 
 		@Binding
@@ -128,37 +170,6 @@ public interface Types {
 			}
 		}
 
-		default Type computeDeclaredType(VarDecl varDecl) {
-			if (varDecl.getType() != null) {
-				return convert(varDecl.getType());
-			} else if (tree().parent(varDecl) instanceof InputPattern) {
-				InputPattern input = (InputPattern) tree().parent(varDecl);
-				PortDecl port = names().portDeclaration(input.getPort());
-				Type result = convert(port.getType());
-				if (input.getRepeatExpr() != null) {
-					OptionalInt size = constants().intValue(input.getRepeatExpr());
-					return new ListType(result, size);
-				} else {
-					return result;
-				}
-			} else if (varDecl.getValue() != null) {
-				return computeCallableType(varDecl.getValue());
-			} else {
-				return BottomType.INSTANCE;
-			}
-		}
-
-		default Type computeCallableType(Expression e) {
-			return BottomType.INSTANCE;
-		}
-
-		default Type computeCallableType(ExprLambda lambda) {
-			return new LambdaType(lambda.getValueParameters().map(p -> convert(p.getType())), convert(lambda.getReturnType()));
-		}
-
-		default Type computeCallableType(ExprProc proc) {
-			return new ProcType(proc.getValueParameters().map(p -> convert(p.getType())));
-		}
 
 		default Type convert(TypeExpr t) {
 			switch (t.getName()) {
@@ -405,7 +416,11 @@ public interface Types {
 			}
 			List<Type> parTypes = new ArrayList<>();
 			for (int i = 0; i < a.getParameterTypes().size(); i++) {
-				parTypes.add(greatestLowerBound(a.getParameterTypes().get(i), b.getParameterTypes().get(i)));
+				Type glb = greatestLowerBound(a.getParameterTypes().get(i), b.getParameterTypes().get(i));
+				if (glb == BottomType.INSTANCE) {
+					return TopType.INSTANCE;
+				}
+				parTypes.add(glb);
 			}
 			Type returnType = leastUpperBound(a.getReturnType(), b.getReturnType());
 			return new LambdaType(parTypes, returnType);

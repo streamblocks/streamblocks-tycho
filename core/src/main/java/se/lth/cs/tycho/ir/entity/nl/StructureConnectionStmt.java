@@ -2,8 +2,10 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -53,5 +55,14 @@ public class StructureConnectionStmt extends StructureStatement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(src);
 		action.accept(dst);
+	}
+
+	@Override
+	public StructureConnectionStmt transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				(PortReference) transformation.apply(src),
+				(PortReference) transformation.apply(dst),
+				(ImmutableList) getToolAttributes().map(transformation)
+		);
 	}
 }

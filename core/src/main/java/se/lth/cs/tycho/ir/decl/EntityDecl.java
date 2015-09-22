@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.Entity;
 
 public class EntityDecl extends Decl {
@@ -17,16 +18,20 @@ public class EntityDecl extends Decl {
 	}
 
 	public EntityDecl withEntity(Entity entity) {
-		return entity == this.entity ? this : new EntityDecl(this, getAvailability(), getName(), entity);
+		return entity == this.entity ? this : new EntityDecl(this, getAvailability(), getName(), entity, null);
 	}
 
-	private EntityDecl(EntityDecl original, Availability availability, String name, Entity entity) {
+	private EntityDecl(EntityDecl original, Availability availability, String name, Entity entity, QID qid) {
 		super(original, LocationKind.GLOBAL, availability, DeclKind.ENTITY, name, null);
 		this.entity = entity;
 	}
 
 	public static EntityDecl global(Availability availability, String name, Entity entity) {
-		return new EntityDecl(null, availability, name, entity);
+		return new EntityDecl(null, availability, name, entity, null);
+	}
+
+	public static EntityDecl importDecl(Availability availability, String name, QID qid) {
+		return new EntityDecl(null, availability, name, null, qid);
 	}
 
 	public EntityDecl copyAsGlobal(Availability availability, String name, Entity entity) {
@@ -46,5 +51,21 @@ public class EntityDecl extends Decl {
 	@Override
 	public EntityDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return withEntity((Entity) transformation.apply(entity));
+	}
+
+	public EntityDecl withName(String name) {
+		if (getName().equals(name)) {
+			return this;
+		} else {
+			return new EntityDecl(this, getAvailability(), name, entity, getQualifiedIdentifier());
+		}
+	}
+
+	public EntityDecl withQualifiedIdentifier(QID qid) {
+		if (getQualifiedIdentifier().equals(qid)) {
+			return this;
+		} else {
+			return new EntityDecl(this, getAvailability(), getName(), entity, qid);
+		}
 	}
 }

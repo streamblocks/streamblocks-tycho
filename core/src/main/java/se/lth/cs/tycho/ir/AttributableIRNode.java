@@ -32,8 +32,9 @@ public class AttributableIRNode implements IRNode, Attributable {
 	}
 
 	@Override
-	public IRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
-		throw new UnsupportedOperationException(); // TODO implement
+	public AttributableIRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		//return this;
+		throw new UnsupportedOperationException("Transformation not implemented for " + getClass().getCanonicalName());
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
@@ -61,6 +62,12 @@ public class NameAnalysisPhase implements Phase {
 		default void checkNames(Port port) {
 			if (names().portDeclaration(port) == null) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Port " + port.getName() + " is not declared.", sourceUnit(), port));
+			}
+		}
+
+		default void checkNames(EntityInstanceExpr instance) {
+			if (names().entityDeclaration(instance) == null) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + instance.getEntityName() + " is not declared.", sourceUnit(), instance));
 			}
 		}
 	}

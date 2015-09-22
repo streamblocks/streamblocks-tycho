@@ -176,4 +176,20 @@ public class CalActor extends Entity {
 				(ImmutableList) invariants.map(transformation)
 		);
 	}
+
+	public CalActor withVarDecls(ImmutableList<VarDecl> varDecls) {
+		if (Lists.elementIdentityEquals(this.varDecls, varDecls)) {
+			return this;
+		} else {
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, scheduleFSM, process, priorities, invariants);
+		}
+	}
+
+	public CalActor withValueParameters(ImmutableList<VarDecl> valueParameters) {
+		if (Lists.elementIdentityEquals(this.valueParameters, valueParameters)) {
+			return this;
+		} else {
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, scheduleFSM, process, priorities, invariants);
+		}
+	}
 }

@@ -3,11 +3,7 @@ package se.lth.cs.tycho.comp;
 import org.xml.sax.SAXException;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.Availability;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
-import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
-import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.parsing.xdf.XDFReader;
+import se.lth.cs.tycho.parsing.xdf.XDF2NLReader;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -25,13 +21,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class XdfLoader implements Loader {
-	private final XDFReader reader;
+	private final XDF2NLReader reader;
 	private final Reporter reporter;
 	private final List<Path> sourcePaths;
 	private final Map<QID, List<SourceUnit>> sourceCache;
 
 	public XdfLoader(Reporter reporter, List<Path> sourcePaths) {
-		this.reader = new XDFReader();
+		this.reader = new XDF2NLReader();
 		this.reporter = reporter;
 		this.sourcePaths = sourcePaths;
 		this.sourceCache = new HashMap<>();
@@ -54,7 +50,7 @@ public class XdfLoader implements Loader {
 						.map(f -> {
 							String fileName = f.getFileName().toString();
 							String id = fileName.substring(0, fileName.length() - ".xdf" .length());
-							return loadNetworkFile(qid, id, f);
+							return loadNetworkFile(qid.concat(QID.of(id)), f);
 						})
 						.filter(Optional::isPresent)
 						.map(Optional::get);
@@ -67,16 +63,9 @@ public class XdfLoader implements Loader {
 		}
 	}
 
-	private Optional<SourceUnit> loadNetworkFile(QID ns, String id, Path file) {
+	private Optional<SourceUnit> loadNetworkFile(QID qid, Path file) {
 		try (InputStream is = new BufferedInputStream(Files.newInputStream(file))) {
-			XDFNetwork network = reader.read(is);
-			EntityDecl decl = EntityDecl.global(Availability.PUBLIC, id, network);
-			NamespaceDecl nsDecl = new NamespaceDecl(
-					ns,
-					ImmutableList.empty(),
-					ImmutableList.empty(),
-					ImmutableList.of(decl),
-					ImmutableList.empty());
+			NamespaceDecl nsDecl = reader.read(is, qid);
 			return Optional.of(new SourceFile(file, nsDecl, SourceUnit.InputLanguage.XDF));
 		} catch (IOException | ParserConfigurationException | SAXException e) {
 			reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, e.getMessage()));

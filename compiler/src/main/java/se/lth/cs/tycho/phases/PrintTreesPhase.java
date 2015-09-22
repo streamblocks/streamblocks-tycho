@@ -3,10 +3,25 @@ package se.lth.cs.tycho.phases;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.settings.OnOffSetting;
+import se.lth.cs.tycho.settings.Setting;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class PrintTreesPhase implements Phase {
+	public static Setting<Boolean> printTrees = new OnOffSetting() {
+		@Override public String getKey() { return "print-trees"; }
+		@Override public String getDescription() { return "Enables printing of source tree structures"; }
+		@Override public Boolean defaultValue() { return false; }
+	};
+
+	@Override
+	public List<Setting<?>> getPhaseSettings() {
+		return Collections.singletonList(printTrees);
+	}
+
 	@Override
 	public String getDescription() {
 		return "Prints the tree.";
@@ -14,12 +29,14 @@ public class PrintTreesPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		Printer printer = new Printer();
-		task.getSourceUnits().forEach(sourceUnit -> {
-			System.out.println(sourceUnit.getLocation());
-			printer.accept(sourceUnit.getTree());
-			System.out.println();
-		});
+		if (context.getConfiguration().get(printTrees)) {
+			Printer printer = new Printer();
+			task.getSourceUnits().forEach(sourceUnit -> {
+				System.out.println(sourceUnit.getLocation());
+				printer.accept(sourceUnit.getTree());
+				System.out.println();
+			});
+		}
 		return task;
 	}
 

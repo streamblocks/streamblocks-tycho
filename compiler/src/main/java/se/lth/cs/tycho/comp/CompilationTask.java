@@ -1,20 +1,35 @@
 package se.lth.cs.tycho.comp;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CompilationTask implements IRNode {
-	private final List<SourceUnit> sourceUnits;
+	private final ImmutableList<SourceUnit> sourceUnits;
 	private final QID identifier;
+	private final NamespaceDecl target;
 
-	public CompilationTask(List<SourceUnit> sourceUnits, QID identifier) {
-		this.sourceUnits = sourceUnits;
+	public CompilationTask(List<SourceUnit> sourceUnits, QID identifier, NamespaceDecl target) {
+		this.sourceUnits = ImmutableList.copyOf(sourceUnits);
 		this.identifier = identifier;
+		this.target = target;
+	}
+
+	public CompilationTask copy(List<SourceUnit> sourceUnits, QID identifier, NamespaceDecl target) {
+		if (Lists.elementIdentityEquals(this.sourceUnits, sourceUnits)
+				&& Objects.equals(this.identifier, identifier) && this.target == target) {
+			return this;
+		} else {
+			return new CompilationTask(sourceUnits, identifier, target);
+		}
 	}
 
 	public List<SourceUnit> getSourceUnits() {
@@ -22,7 +37,11 @@ public class CompilationTask implements IRNode {
 	}
 
 	public CompilationTask withSourceUnits(List<SourceUnit> sourceUnits) {
-		return new CompilationTask(sourceUnits, identifier);
+		if (Lists.elementIdentityEquals(this.sourceUnits, sourceUnits)) {
+			return this;
+		} else {
+			return new CompilationTask(sourceUnits, identifier, target);
+		}
 	}
 
 	public QID getIdentifier() {
@@ -30,17 +49,38 @@ public class CompilationTask implements IRNode {
 	}
 
 	public CompilationTask withIdentifier(QID identifier) {
-		return new CompilationTask(sourceUnits, identifier);
+		if (Objects.equals(this.identifier, identifier)) {
+			return this;
+		} else {
+			return new CompilationTask(sourceUnits, identifier, target);
+		}
+	}
+
+	public NamespaceDecl getTarget() {
+		return target;
+	}
+
+	public CompilationTask withTarget(NamespaceDecl target) {
+		if (this.target == target) {
+			return this;
+		} else {
+			return new CompilationTask(sourceUnits, identifier, target);
+		}
 	}
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		sourceUnits.forEach(action);
+		if (target != null) action.accept(target);
 	}
 
 	@Override
-	public IRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
-		return withSourceUnits(sourceUnits.stream().map(unit -> (SourceUnit) transformation.apply(unit)).collect(Collectors.toList()));
+	public CompilationTask transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+		return copy(
+				(ImmutableList) sourceUnits.map(transformation),
+				identifier,
+				(NamespaceDecl) transformation.apply(target)
+		);
 	}
 
 	@Override

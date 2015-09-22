@@ -1,17 +1,18 @@
 package se.lth.cs.tycho.phases.attributes;
 
 import se.lth.cs.multij.Binding;
+import se.lth.cs.multij.BindingKind;
 import se.lth.cs.multij.Module;
 import se.lth.cs.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.Availability;
+import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -19,6 +20,7 @@ import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
+import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
@@ -31,7 +33,6 @@ import se.lth.cs.tycho.ir.stmt.StmtRead;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.phases.TreeShadow;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,6 +44,7 @@ public interface Names {
 		public Names createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(Implementation.class)
 					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
+					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
 					.instance();
 		}
 	};
@@ -52,10 +54,15 @@ public interface Names {
 
 	PortDecl portDeclaration(Port port);
 
+	EntityDecl entityDeclaration(EntityInstanceExpr instance);
+
 	@Module
 	interface Implementation extends Names {
 		@Binding
 		TreeShadow tree();
+
+		@Binding(BindingKind.INJECTED)
+		GlobalNames globalNames();
 
 		@Binding
 		default Map<Port, PortDecl> portDeclarationMap() {
@@ -115,6 +122,21 @@ public interface Names {
 		}
 
 
+		default EntityDecl entityDeclaration(EntityInstanceExpr instance) {
+			return lookupEntity(tree().parent(instance), instance.getEntityName());
+		}
+
+		default EntityDecl lookupEntity(IRNode node, String name) {
+			IRNode parent = tree().parent(node);
+			return parent == null ? null : lookupEntity(parent, name);
+		}
+
+		default EntityDecl lookupEntity(NamespaceDecl namespaceDecl, String name) {
+			return findInStream(namespaceDecl.getEntityDecls().stream(), name)
+					.orElseGet(() -> globalNames().entityDecl(namespaceDecl.getQID().concat(QID.of(name)), true));
+		}
+
+
 		@Binding
 		default Map<Variable, VarDecl> declarationMap() {
 			return new ConcurrentHashMap<>();
@@ -142,19 +164,19 @@ public interface Names {
 		}
 
 		default Optional<VarDecl> localLookup(ExprLet let, IRNode context, String name) {
-			return findInList(let.getVarDecls(), name);
+			return findInStream(let.getVarDecls().stream(), name);
 		}
 
 		default Optional<VarDecl> localLookup(ExprLambda lambda, IRNode context, String name) {
-			return findInList(lambda.getValueParameters(), name);
+			return findInStream(lambda.getValueParameters().stream(), name);
 		}
 
 		default Optional<VarDecl> localLookup(ExprProc proc, IRNode context, String name) {
-			return findInList(proc.getValueParameters(), name);
+			return findInStream(proc.getValueParameters().stream(), name);
 		}
 
 		default Optional<VarDecl> localLookup(StmtBlock block, IRNode context, String name) {
-			return findInList(block.getVarDecls(), name);
+			return findInStream(block.getVarDecls().stream(), name);
 		}
 
 		default Optional<VarDecl> localLookup(ExprList list, IRNode context, String name) {
@@ -235,41 +257,15 @@ public interface Names {
 		}
 
 		default Optional<VarDecl> localLookup(NamespaceDecl ns, IRNode context, String name) {
-			Optional<VarDecl> result = findInList(ns.getVarDecls(), name);
+			Optional<VarDecl> result = findInStream(ns.getVarDecls().stream(), name);
 			if (result.isPresent()) {
-				if (result.get().isImport()) {
-					return findGlobalVar(result.get().getQualifiedIdentifier(), false);
-				} else {
-					return result;
-				}
+				return result;
+			} else {
+				return Optional.ofNullable(globalNames().varDecl(ns.getQID().concat(QID.of(name)), true));
 			}
-			return findGlobalVar(ns.getQID().concat(QID.of(name)), true);
 		}
 
-		default Optional<VarDecl> findGlobalVar(QID qid, boolean includingPrivate) {
-			QID ns = qid.getButLast();
-			CompilationTask unit = (CompilationTask) tree().root();
-			for(SourceUnit sourceUnit : unit.getSourceUnits()) {
-				if (sourceUnit.getTree().getQID().equals(ns)) {
-					Optional<VarDecl> d = findInList(sourceUnit.getTree().getVarDecls(), qid.getLast().toString());
-					if (d.isPresent()) {
-						if (d.get().getAvailability() == Availability.PUBLIC) {
-							return d;
-						}
-						if (includingPrivate && d.get().getAvailability() == Availability.PRIVATE) {
-							return d;
-						}
-					}
-				}
-			}
-			return Optional.empty();
-		}
-
-		default Optional<VarDecl> findInList(List<VarDecl> decls, String name) {
-			return findInStream(decls.stream(), name);
-		}
-
-		default Optional<VarDecl> findInStream(Stream<VarDecl> decls, String name) {
+		default <D extends Decl> Optional<D> findInStream(Stream<D> decls, String name) {
 			return decls.filter(decl -> decl.getName().equals(name)).findAny();
 		}
 	}

@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -98,6 +99,46 @@ public class VarDecl extends Decl {
 					constant,
 					value,
 					getQualifiedIdentifier());
+		}
+	}
+
+	public VarDecl withLocationKind(LocationKind locationKind) {
+		if (getLocationKind() == locationKind) {
+			return this;
+		} else {
+			return new VarDecl(this, locationKind, getAvailability(), type, getName(), constant, value, getQualifiedIdentifier());
+		}
+	}
+
+	public VarDecl withAvailability(Availability availability) {
+		if (getAvailability() == availability) {
+			return this;
+		} else {
+			return new VarDecl(this, getLocationKind(), availability, type, getName(), constant, value, getQualifiedIdentifier());
+		}
+	}
+
+	public VarDecl withValue(Expression value) {
+		if (this.value == value) {
+			return this;
+		} else {
+			return new VarDecl(this, getLocationKind(), getAvailability(), type, getName(), constant, value, getQualifiedIdentifier());
+		}
+	}
+
+	public VarDecl withName(String name) {
+		if (this.getName().equals(name)) {
+			return this;
+		} else {
+			return new VarDecl(this, getLocationKind(), getAvailability(), type, name, constant, value, getQualifiedIdentifier());
+		}
+	}
+
+	public VarDecl withQualifiedIdentifier(QID qid) {
+		if (this.getQualifiedIdentifier().equals(qid)) {
+			return this;
+		} else {
+			return new VarDecl(this, getLocationKind(), getAvailability(), type, getName(), constant, value, qid);
 		}
 	}
 }
