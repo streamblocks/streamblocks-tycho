@@ -18,15 +18,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.phases.TreeShadow;
-import se.lth.cs.tycho.types.BoolType;
-import se.lth.cs.tycho.types.BottomType;
-import se.lth.cs.tycho.types.IntType;
-import se.lth.cs.tycho.types.LambdaType;
-import se.lth.cs.tycho.types.ListType;
-import se.lth.cs.tycho.types.ProcType;
-import se.lth.cs.tycho.types.RefType;
-import se.lth.cs.tycho.types.TopType;
-import se.lth.cs.tycho.types.Type;
+import se.lth.cs.tycho.types.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -320,13 +312,16 @@ public interface Types {
 				case "!=":
 					return BoolType.INSTANCE;
 				case "..":
-					OptionalInt a = constants().intValue(binary.getOperands().get(0));
-					OptionalInt b = constants().intValue(binary.getOperands().get(1));
-					if (a.isPresent() && b.isPresent()) {
-						return new ListType(new IntType(OptionalInt.empty(), true), OptionalInt.of(b.getAsInt() - a.getAsInt() + 1));
+					Type type = leastUpperBound(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
+					OptionalInt first = constants().intValue(binary.getOperands().get(0));
+					OptionalInt last = constants().intValue(binary.getOperands().get(1));
+					OptionalInt length;
+					if (first.isPresent() && last.isPresent()) {
+						length = OptionalInt.of(last.getAsInt() - first.getAsInt() + 1);
 					} else {
-						return new ListType(new IntType(OptionalInt.empty(), true), OptionalInt.empty());
+						length = OptionalInt.empty();
 					}
+					return new RangeType(type, length);
 				default:
 					return BottomType.INSTANCE;
 			}

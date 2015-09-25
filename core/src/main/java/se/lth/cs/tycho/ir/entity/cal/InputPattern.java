@@ -60,7 +60,7 @@ public class InputPattern extends AbstractIRNode {
 	private InputPattern(InputPattern original, Port port, ImmutableList<VarDecl> variables, Expression repeatExpr) {
 		super(original);
 		this.port = port;
-		this.variables = ImmutableList.copyOf(variables);
+		this.variables = ImmutableList.from(variables);
 		this.repeatExpr = repeatExpr;
 	}
 

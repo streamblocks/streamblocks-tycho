@@ -158,7 +158,7 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 		
 		TypeExpr returnTypeExpr = transformTypeExpr(lambda.getReturnType(), table);
 
-		return lambda.copy(typeParameters, valueParameters, body, returnTypeExpr, ImmutableList.copyOf(frame.getClosure()), true);
+		return lambda.copy(typeParameters, valueParameters, body, returnTypeExpr, ImmutableList.from(frame.getClosure()), true);
 	}
 
 	@Override
@@ -185,7 +185,7 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 			frame.addName(par.getName());
 		}
 		Statement body = transformStatement(proc.getBody(), frame);
-		return proc.copy(typeParameters, valueParameters, body, ImmutableList.copyOf(frame.getClosure()), true);
+		return proc.copy(typeParameters, valueParameters, body, ImmutableList.from(frame.getClosure()), true);
 	}
 
 	@Override
@@ -384,7 +384,7 @@ public class VariableOffsetTransformer extends AbstractBasicTransformer<Variable
 			globalScope[globalScopeId] = new Scope(net.getVarDecls(), null);
 			//FIXME this is a bit over engineered. The generated list of declarations is not saved.
 			globalScope[paramScopeId] = buildParamScope(net.getValueParameters());
-			scopes = ImmutableList.copyOf(globalScope);
+			scopes = ImmutableList.of(globalScope);
 			net = super.transformNetworkDefinition(net, table);
 			scopes = null;
 			assert table.isEmpty();

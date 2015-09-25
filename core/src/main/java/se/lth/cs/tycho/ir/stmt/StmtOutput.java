@@ -40,7 +40,7 @@ public class StmtOutput extends Statement {
 
 	private StmtOutput(StmtOutput original, ImmutableList<Expression> values, Port port, boolean hasRepeat, int repeat) {
 		super(original);
-		this.values = ImmutableList.copyOf(values);
+		this.values = ImmutableList.from(values);
 		this.port = port;
 		this.hasRepeat = hasRepeat;
 		this.repeat = repeat;

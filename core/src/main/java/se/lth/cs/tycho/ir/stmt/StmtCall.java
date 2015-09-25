@@ -61,7 +61,7 @@ public class StmtCall extends Statement {
 	private StmtCall(StmtCall original, Expression procedure, ImmutableList<Expression> args) {
 		super(original);
 		this.procedure = procedure;
-		this.args = ImmutableList.copyOf(args);
+		this.args = ImmutableList.from(args);
 	}
 
 	public StmtCall copy(Expression procedure, ImmutableList<Expression> args) {

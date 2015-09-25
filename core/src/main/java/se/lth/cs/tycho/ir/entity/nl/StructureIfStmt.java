@@ -19,8 +19,8 @@ public class StructureIfStmt extends StructureStatement {
 			ImmutableList<StructureStatement> falseStmt) {
 		super(null);
 		this.condition = condition;
-		this.trueStmt = ImmutableList.copyOf(trueStmt);
-		this.falseStmt = ImmutableList.copyOf(falseStmt);
+		this.trueStmt = ImmutableList.from(trueStmt);
+		this.falseStmt = ImmutableList.from(falseStmt);
 	}
 
 	public StructureIfStmt copy(Expression condition, ImmutableList<StructureStatement> trueStmt,

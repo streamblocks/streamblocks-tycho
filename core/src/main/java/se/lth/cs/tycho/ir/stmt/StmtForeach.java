@@ -21,7 +21,7 @@ public class StmtForeach extends Statement {
 	
 	private StmtForeach(StmtForeach original, ImmutableList<GeneratorFilter> generators, Statement body) {
 		super(original);
-		this.generators = ImmutableList.copyOf(generators);
+		this.generators = ImmutableList.from(generators);
 		this.body = body;
 	}
 

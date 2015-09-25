@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class CompilationTask implements IRNode {
 	private final ImmutableList<SourceUnit> sourceUnits;
@@ -18,7 +17,7 @@ public class CompilationTask implements IRNode {
 	private final NamespaceDecl target;
 
 	public CompilationTask(List<SourceUnit> sourceUnits, QID identifier, NamespaceDecl target) {
-		this.sourceUnits = ImmutableList.copyOf(sourceUnits);
+		this.sourceUnits = ImmutableList.from(sourceUnits);
 		this.identifier = identifier;
 		this.target = target;
 	}

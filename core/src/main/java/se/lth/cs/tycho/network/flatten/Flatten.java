@@ -18,7 +18,6 @@ import se.lth.cs.tycho.network.flatten.attr.TreeStructure;
 import javarag.AttributeEvaluator;
 import javarag.AttributeRegister;
 import javarag.impl.reg.BasicAttributeRegister;
-import se.lth.cs.tycho.network.flatten.AttributeMerger;
 
 public class Flatten {
 	private final Map<String, AttributeMerger> mergers = new HashMap<>();
@@ -47,7 +46,7 @@ public class Flatten {
 				"connectionPaths", root);
 		ImmutableList<Connection> connections = merge(connectionPaths);
 		Set<Node> nodes = evaluator.evaluate("actorNodes", root);
-		ImmutableList<Node> nodeList = ImmutableList.copyOf(nodes);
+		ImmutableList<Node> nodeList = ImmutableList.from(nodes);
 		return network.copy(nodeList, connections, network.getInputPorts(),
 				network.getOutputPorts());
 	}

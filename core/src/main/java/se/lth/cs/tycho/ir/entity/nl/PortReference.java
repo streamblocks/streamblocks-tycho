@@ -25,7 +25,7 @@ public class PortReference extends AbstractIRNode {
 			String portName) {
 		super(original);
 		this.entityName = entityName;
-		this.entityIndex = ImmutableList.copyOf(entityIndex);
+		this.entityIndex = ImmutableList.from(entityIndex);
 		this.portName = portName;
 	}
 

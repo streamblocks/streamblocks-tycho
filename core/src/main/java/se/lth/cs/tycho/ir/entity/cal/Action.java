@@ -70,15 +70,15 @@ public class Action extends AbstractIRNode {
 		super(original);
 		this.id = id;
 		this.tag = tag;
-		this.inputPatterns = ImmutableList.copyOf(inputPatterns);
-		this.outputExpressions = ImmutableList.copyOf(outputExpressions);
-		this.typeDecls = ImmutableList.copyOf(typeDecls);
-		this.varDecls = ImmutableList.copyOf(varDecls);
-		this.guards = ImmutableList.copyOf(guards);
-		this.body = ImmutableList.copyOf(body);
+		this.inputPatterns = ImmutableList.from(inputPatterns);
+		this.outputExpressions = ImmutableList.from(outputExpressions);
+		this.typeDecls = ImmutableList.from(typeDecls);
+		this.varDecls = ImmutableList.from(varDecls);
+		this.guards = ImmutableList.from(guards);
+		this.body = ImmutableList.from(body);
 		this.delay = delay;
-		this.preconditions = ImmutableList.copyOf(preconditions);
-		this.postconditions = ImmutableList.copyOf(postconditions);
+		this.preconditions = ImmutableList.from(preconditions);
+		this.postconditions = ImmutableList.from(postconditions);
 	}
 
 	public Action copy(int id, QID tag, ImmutableList<InputPattern> inputPatterns,

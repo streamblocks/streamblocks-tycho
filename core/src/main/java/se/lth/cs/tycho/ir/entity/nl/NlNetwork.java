@@ -12,7 +12,6 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -48,9 +47,9 @@ public class NlNetwork extends Entity {
 		super(original, inputPorts, outputPorts, typePars, valuePars);
 		this.typeDecls = typeDecls;
 		this.varDecls = varDecls;
-		this.entities = ImmutableList.copyOf(entities);
-		this.toolAttributes = ImmutableList.copyOf(toolAttributes);
-		this.structure = ImmutableList.copyOf(structure);
+		this.entities = ImmutableList.from(entities);
+		this.toolAttributes = ImmutableList.from(toolAttributes);
+		this.structure = ImmutableList.from(structure);
 	}
 
 	public NlNetwork copy(ImmutableList<TypeDecl> typePars,

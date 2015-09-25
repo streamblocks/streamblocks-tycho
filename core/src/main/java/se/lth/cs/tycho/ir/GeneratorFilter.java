@@ -69,9 +69,9 @@ public class GeneratorFilter extends AbstractIRNode {
 	private GeneratorFilter(GeneratorFilter original, ImmutableList<VarDecl> variables, Expression collectionExpr,
 			ImmutableList<Expression> filters) {
 		super(original);
-		this.variables = ImmutableList.copyOf(variables);
+		this.variables = ImmutableList.from(variables);
 		this.collectionExpr = collectionExpr;
-		this.filters = ImmutableList.copyOf(filters);
+		this.filters = ImmutableList.from(filters);
 	}
 
 	public GeneratorFilter copy(ImmutableList<VarDecl> variables, Expression collectionExpr,

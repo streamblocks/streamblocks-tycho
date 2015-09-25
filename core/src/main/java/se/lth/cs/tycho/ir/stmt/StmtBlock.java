@@ -66,9 +66,9 @@ public class StmtBlock extends Statement {
 	private StmtBlock(StmtBlock original, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<Statement> statements) {
 		super(original);
-		this.typeDecls = ImmutableList.copyOf(typeDecls);
-		this.varDecls = ImmutableList.copyOf(varDecls);
-		this.statements = ImmutableList.copyOf(statements);
+		this.typeDecls = ImmutableList.from(typeDecls);
+		this.varDecls = ImmutableList.from(varDecls);
+		this.statements = ImmutableList.from(statements);
 	}
 
 	public StmtBlock copy(ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,

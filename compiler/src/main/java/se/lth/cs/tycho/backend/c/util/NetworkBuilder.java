@@ -60,9 +60,9 @@ public class NetworkBuilder {
 
     public Network build() {
         return new Network(
-            ImmutableList.copyOf(nodes.values()),
+            ImmutableList.from(nodes.values()),
             connections.build(),
-            ImmutableList.copyOf(inputPorts.values()),
-            ImmutableList.copyOf(outputPorts.values()));
+            ImmutableList.from(inputPorts.values()),
+            ImmutableList.from(outputPorts.values()));
     }
 }

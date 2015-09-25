@@ -23,7 +23,7 @@ public class StmtWrite extends Statement {
 		super(original);
 		assert port != null;
 		this.port = port;
-		this.values = ImmutableList.copyOf(values);
+		this.values = ImmutableList.from(values);
 		this.repeatExpression = repeatExpression;
 	}
 

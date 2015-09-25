@@ -78,8 +78,8 @@ public class TypeExpr extends AbstractIRNode implements Cloneable {
 			ImmutableList<Parameter<Expression>> valueParameters) {
 		super(original);
 		this.name = name;
-		this.typeParameters = ImmutableList.copyOf(typeParameters);
-		this.valueParameters = ImmutableList.copyOf(valueParameters);
+		this.typeParameters = ImmutableList.from(typeParameters);
+		this.valueParameters = ImmutableList.from(valueParameters);
 	}
 
 	public TypeExpr copy(String name) {

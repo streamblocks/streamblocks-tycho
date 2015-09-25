@@ -65,8 +65,8 @@ public class ExprSet extends Expression {
 
 	private ExprSet(ExprSet original, ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
 		super(original);
-		this.elements = ImmutableList.copyOf(elements);
-		this.generators = ImmutableList.copyOf(generators);
+		this.elements = ImmutableList.from(elements);
+		this.generators = ImmutableList.from(generators);
 	}
 
 	public ExprSet copy(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {

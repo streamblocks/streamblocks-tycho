@@ -11,8 +11,8 @@ public class StructureForeachStmt extends StructureStatement {
 
 	public StructureForeachStmt(ImmutableList<GeneratorFilter> generators, ImmutableList<StructureStatement> statements) {
 		super(null);
-		this.generators = ImmutableList.copyOf(generators);
-		this.statements = ImmutableList.copyOf(statements);
+		this.generators = ImmutableList.from(generators);
+		this.statements = ImmutableList.from(statements);
 	}
 
 	public StructureForeachStmt copy(ImmutableList<GeneratorFilter> generators,

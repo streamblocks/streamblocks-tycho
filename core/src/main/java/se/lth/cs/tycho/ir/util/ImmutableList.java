@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.util;
 
 import java.util.AbstractList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -95,66 +96,26 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	}
 
 	/**
-	 * Returns a list with element e0.
+	 * Returns a list with value v.
 	 * 
-	 * @param e0
+	 * @param v
 	 *            the list element
 	 * @return a list
 	 */
-	public static <E> ImmutableList<E> of(E e0) {
-		return new ImmutableList<E>(new Object[] { e0 }, 1);
+	public static <E> ImmutableList<E> of(E v) {
+		return new ImmutableList<E>(new Object[] { v }, 1);
 	}
 
 	/**
-	 * Returns a list of two elements: e0 and e1.
-	 * 
-	 * @param e0
-	 *            the first element
-	 * @param e1
-	 *            the second element
+	 * Returns a list with the specified values.
+	 *
 	 * @return a list
 	 */
-	public static <E> ImmutableList<E> of(E e0, E e1) {
-		return new ImmutableList<E>(new Object[] { e0, e1 }, 2);
-	}
-
-	/**
-	 * Returns a list of three elements: e0, e1 and e2.
-	 * 
-	 * @param e0
-	 *            the first element
-	 * @param e1
-	 *            the second element
-	 * @param e2
-	 *            the third element
-	 * @return a list
-	 */
-	public static <E> ImmutableList<E> of(E e0, E e1, E e2) {
-		return new ImmutableList<E>(new Object[] { e0, e1, e2 }, 3);
-	}
-
-	/**
-	 * Returns a list of the elements e0, e1 and e2 followed by the elements of
-	 * tail.
-	 * 
-	 * @param e0
-	 *            the first element
-	 * @param e1
-	 *            the second element
-	 * @param e2
-	 *            the third element
-	 * @param tail
-	 *            the last elements
-	 * @return a list
-	 */
-	public static <E> ImmutableList<E> of(E e0, E e1, E e2, E... tail) {
-		int length = tail.length + 3;
-		Object[] array = new Object[length];
-		array[0] = e0;
-		array[1] = e1;
-		array[2] = e2;
-		System.arraycopy(tail, 0, array, 3, tail.length);
-		return new ImmutableList<E>(array, length);
+	public static <E> ImmutableList<E> of(E... values) {
+		if (values == null) {
+			return empty();
+		}
+		return new Builder<E>().addAll(values).build();
 	}
 
 	/**
@@ -162,33 +123,18 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	 * list if elements is null. If elements is an ImmutableList, this method
 	 * will return elements.
 	 * 
-	 * @param elements
+	 * @param collection
 	 *            the content of the list
 	 * @return a list containing the elements of the argument
 	 */
-	public static <E> ImmutableList<E> copyOf(Iterable<E> elements) {
-		if (elements == null) {
+	public static <E> ImmutableList<E> from(Collection<E> collection) {
+		if (collection == null) {
 			return empty();
-		} else if (elements instanceof ImmutableList) {
-			return (ImmutableList<E>) elements;
+		} else if (collection instanceof ImmutableList) {
+			return (ImmutableList<E>) collection;
 		} else {
-			return new Builder<E>().addAll(elements).build();
+			return new ImmutableList<>(collection.toArray(), collection.size());
 		}
-	}
-
-	/**
-	 * Returns a list containing the elements of elements, and an empty list if
-	 * elements is null.
-	 * 
-	 * @param elements
-	 *            an array of elements
-	 * @return a list containing the elements of the argument
-	 */
-	public static <E> ImmutableList<E> copyOf(E[] elements) {
-		if (elements == null) {
-			return empty();
-		}
-		return new Builder<E>().addAll(elements).build();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -209,10 +155,10 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	 * 
 	 * @param <E>
 	 */
-	public static final class Builder<E> {
+	public static final class Builder<E> implements Consumer<E> {
 		private Object[] list;
 		private int size;
-		private static final int INIT_SIZE = 8;
+		private static final int INIT_SIZE = 10;
 
 		/**
 		 * Constructs an empty builder.
@@ -223,11 +169,15 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		}
 
 		private void resizeArray() {
-			list = Arrays.copyOf(list, list.length * 2);
+			list = Arrays.copyOf(list, list.length + list.length >> 1);
 		}
 
 		private boolean isFull() {
 			return size == list.length;
+		}
+
+		public void accept(E element) {
+			add(element);
 		}
 
 		/**

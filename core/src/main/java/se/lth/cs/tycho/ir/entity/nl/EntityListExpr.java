@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 public class EntityListExpr extends EntityExpr {
 
 	public EntityListExpr(ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {
-		this.entityList = ImmutableList.copyOf(entityList);
-		this.generators = ImmutableList.copyOf(generators);
+		this.entityList = ImmutableList.from(entityList);
+		this.generators = ImmutableList.from(generators);
 	}
 
 	public EntityListExpr copy(ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {

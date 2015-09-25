@@ -79,8 +79,8 @@ public class ExprLambda extends Expression {
 			ImmutableList<VarDecl> valueParams, Expression body, TypeExpr returnTypeExpr,
 			ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
 		super(original);
-		this.typeParameters = ImmutableList.copyOf(typeParams);
-		this.valueParameters = ImmutableList.copyOf(valueParams);
+		this.typeParameters = ImmutableList.from(typeParams);
+		this.valueParameters = ImmutableList.from(valueParams);
 		this.body = body;
 		this.returnTypeExpr = returnTypeExpr;
 		this.freeVariables = freeVariables;

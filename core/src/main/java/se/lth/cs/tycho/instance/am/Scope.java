@@ -20,7 +20,7 @@ public class Scope extends AbstractIRNode {
 
 	private Scope(IRNode original, ImmutableList<VarDecl> declarations, NamespaceDecl origin) {
 		super(original);
-		this.declarations = ImmutableList.copyOf(declarations);
+		this.declarations = ImmutableList.from(declarations);
 		this.location = origin;
 	}
 	

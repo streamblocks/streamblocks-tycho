@@ -65,8 +65,8 @@ public class ExprMap extends Expression {
 	private ExprMap(ExprMap original, ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
 			ImmutableList<GeneratorFilter> generators) {
 		super(original);
-		this.mappings = ImmutableList.copyOf(mappings);
-		this.generators = ImmutableList.copyOf(generators);
+		this.mappings = ImmutableList.from(mappings);
+		this.generators = ImmutableList.from(generators);
 	}
 
 	public ExprMap copy(ImmutableList<ImmutableEntry<Expression, Expression>> mappings,

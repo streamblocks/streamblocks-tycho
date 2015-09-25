@@ -61,7 +61,7 @@ public class ScheduleFSM extends AbstractIRNode {
 
 	private ScheduleFSM(ScheduleFSM original, ImmutableList<Transition> transitions, String initialState) {
 		super(original);
-		this.transitions = ImmutableList.copyOf(transitions);
+		this.transitions = ImmutableList.from(transitions);
 		this.initialState = initialState;
 	}
 	

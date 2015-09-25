@@ -105,6 +105,19 @@ public class TypeAnalysisPhase implements Phase {
 				return false;
 			}
 		}
+		default boolean isAssignable(ListType to, RangeType from) {
+			return isAssignable(to, new ListType(from.getType(), from.getLength()));
+		}
+
+		default boolean isAssignable(RangeType to, RangeType from) {
+			if (to.getLength().equals(from.getLength())) {
+				return true;
+			}
+			if (!to.getLength().isPresent()) {
+				return true;
+			}
+			return false;
+		}
 
 		default boolean isAssignable(CallableType to, CallableType from) {
 			if (to.getParameterTypes().size() != from.getParameterTypes().size()) {

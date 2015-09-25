@@ -60,7 +60,7 @@ public class ExprApplication extends Expression {
 	public ExprApplication(IRNode original, Expression function, ImmutableList<Expression> args) {
 		super(original);
 		this.function = function;
-		this.args = ImmutableList.copyOf(args);
+		this.args = ImmutableList.from(args);
 	}
 	
 	public ExprApplication copy(Expression function, ImmutableList<Expression> args) {

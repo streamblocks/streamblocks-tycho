@@ -82,7 +82,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		return srcNetwork.copy(
 				typePars, valuePars, typeDecls, varDecls, 
 				srcNetwork.getInputPorts(), srcNetwork.getOutputPorts(), 
-				ImmutableList.copyOf(entities.entrySet()), ImmutableList.copyOf(structure), srcNetwork.getToolAttributes());
+				ImmutableList.from(entities.entrySet()), ImmutableList.from(structure), srcNetwork.getToolAttributes());
 	}
 
 	public Network getNetwork(){
@@ -114,7 +114,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 		HashMap<String, Node> nodes = new HashMap<String, Node>();
 		ImmutableList.Builder<Connection> connections = new ImmutableList.Builder<Connection>();
 
-		public ImmutableList<Node> getNodes() {	return ImmutableList.copyOf(nodes.values()); }
+		public ImmutableList<Node> getNodes() {	return ImmutableList.from(nodes.values()); }
 		public ImmutableList<Connection> getConnections(){ return connections.build(); }
 
 		@Override

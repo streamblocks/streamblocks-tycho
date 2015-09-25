@@ -143,7 +143,7 @@ class ScheduleHandler {
 			for (Entry<String, Integer> entry : stateMap.entrySet()) {
 				array[entry.getValue()] = entry.getKey();
 			}
-			return ImmutableList.copyOf(array);
+			return ImmutableList.of(array);
 		}
 	}
 

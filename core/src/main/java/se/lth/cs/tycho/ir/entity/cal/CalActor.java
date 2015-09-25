@@ -74,14 +74,14 @@ public class CalActor extends Entity {
 			ImmutableList<Expression> invariants) {
 		super(original, inputPorts, outputPorts, typePars, valuePars);
 
-		this.typeDecls = ImmutableList.copyOf(typeDecls);
-		this.varDecls = ImmutableList.copyOf(varDecls);
-		this.initializers = ImmutableList.copyOf(initializers);
-		this.actions = ImmutableList.copyOf(actions);
+		this.typeDecls = ImmutableList.from(typeDecls);
+		this.varDecls = ImmutableList.from(varDecls);
+		this.initializers = ImmutableList.from(initializers);
+		this.actions = ImmutableList.from(actions);
 		this.scheduleFSM = scheduleFSM;
 		this.process = process;
-		this.priorities = ImmutableList.copyOf(priorities);
-		this.invariants = ImmutableList.copyOf(invariants);
+		this.priorities = ImmutableList.from(priorities);
+		this.invariants = ImmutableList.from(invariants);
 	}
 
 	public CalActor copy(ImmutableList<TypeDecl> typePars,

@@ -24,7 +24,7 @@ public class StmtRead extends Statement {
 		super(original);
 		assert port != null;
 		this.port = port;
-		this.lvalues = ImmutableList.copyOf(lvalues);
+		this.lvalues = ImmutableList.from(lvalues);
 		this.repeatExpression = repeatExpression;
 	}
 

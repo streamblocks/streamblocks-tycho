@@ -63,8 +63,8 @@ public class ExprLet extends Expression {
 			Expression body) {
 		super(original);
 		this.body = body;
-		this.typeDecls = ImmutableList.copyOf(typeDecls);
-		this.varDecls = ImmutableList.copyOf(varDecls);
+		this.typeDecls = ImmutableList.from(typeDecls);
+		this.varDecls = ImmutableList.from(varDecls);
 	}
 
 	public ExprLet copy(ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls, Expression body) {

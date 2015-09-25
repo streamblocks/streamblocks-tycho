@@ -63,7 +63,7 @@ public class Transition extends AbstractIRNode {
 		super(original);
 		this.sourceState = sourceState;
 		this.destinationState = destinationState;
-		this.actionTags = ImmutableList.copyOf(actionTags);
+		this.actionTags = ImmutableList.from(actionTags);
 	}
 
 	public Transition copy(String sourceState, String destinationState, ImmutableList<QID> actionTags) {

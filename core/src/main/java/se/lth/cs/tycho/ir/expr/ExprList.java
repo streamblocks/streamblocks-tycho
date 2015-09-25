@@ -65,8 +65,8 @@ public class ExprList extends Expression {
 
 	private ExprList(ExprList original, ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
 		super(original);
-		this.elements = ImmutableList.copyOf(elements);
-		this.generators = ImmutableList.copyOf(generators);
+		this.elements = ImmutableList.from(elements);
+		this.generators = ImmutableList.from(generators);
 	}
 
 	public ExprList copy(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {

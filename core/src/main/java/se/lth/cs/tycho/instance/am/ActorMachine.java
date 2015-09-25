@@ -93,10 +93,10 @@ public class ActorMachine extends Instance {
 			ImmutableList<State> controller, ImmutableList<Transition> transitions,
 			ImmutableList<Condition> conditions) {
 		super(original, inputPorts, outputPorts);
-		this.scopes = ImmutableList.copyOf(scopes);
-		this.controller = ImmutableList.copyOf(controller);
-		this.transitions = ImmutableList.copyOf(transitions);
-		this.conditions = ImmutableList.copyOf(conditions);
+		this.scopes = ImmutableList.from(scopes);
+		this.controller = ImmutableList.from(controller);
+		this.transitions = ImmutableList.from(transitions);
+		this.conditions = ImmutableList.from(conditions);
 		adaptor = new LegacyAdaptor(controller);
 	}
 

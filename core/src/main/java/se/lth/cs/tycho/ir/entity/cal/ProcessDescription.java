@@ -15,7 +15,7 @@ public class ProcessDescription extends AbstractIRNode {
 	private final boolean repeated;
 
 	public ProcessDescription(List<Statement> statements, boolean repeated) {
-		this(null, ImmutableList.copyOf(statements), repeated);
+		this(null, ImmutableList.from(statements), repeated);
 	}
 
 	private ProcessDescription(IRNode original, ImmutableList<Statement> statements, boolean repeated) {
@@ -28,7 +28,7 @@ public class ProcessDescription extends AbstractIRNode {
 		if (Lists.elementIdentityEquals(this.statements, statements) && this.repeated == repeated) {
 			return this;
 		} else {
-			return new ProcessDescription(this, ImmutableList.copyOf(statements), repeated);
+			return new ProcessDescription(this, ImmutableList.from(statements), repeated);
 		}
 	}
 

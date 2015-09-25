@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
@@ -26,7 +25,7 @@ public class XDFConnection extends AttributableIRNode {
 	
 	public XDFConnection(IRNode original, String sourceInstance, Port sourcePort, String destinaitonInstance,
 			Port destinationPort, List<ToolAttribute> attributes) {
-		super(ImmutableList.copyOf(attributes));
+		super(ImmutableList.from(attributes));
 		this.sourceInstance = sourceInstance;
 		this.sourcePort = sourcePort;
 		this.destinaitonInstance = destinaitonInstance;

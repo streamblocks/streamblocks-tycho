@@ -76,8 +76,8 @@ public class ExprProc extends Expression {
 			         ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
 		super(original);
 		assert typeParams != null && valueParams != null && body!= null && freeVariables != null;
-		this.typeParameters = ImmutableList.copyOf(typeParams);
-		this.valueParameters = ImmutableList.copyOf(valueParams);
+		this.typeParameters = ImmutableList.from(typeParams);
+		this.valueParameters = ImmutableList.from(valueParams);
 		this.body = body;
 		this.freeVariables = freeVariables;
 		this.isFreeVariablesComputed = isFreeVariablesComputed;

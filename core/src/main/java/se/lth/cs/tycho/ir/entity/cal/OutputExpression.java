@@ -60,7 +60,7 @@ public class OutputExpression extends AbstractIRNode {
 			Expression repeatExpr) {
 		super(original);
 		this.port = port;
-		this.values = ImmutableList.copyOf(values);
+		this.values = ImmutableList.from(values);
 		this.repeatExpr = repeatExpr;
 	}
 

@@ -16,7 +16,7 @@ public class State extends AbstractIRNode {
 
 	private State(IRNode original, ImmutableList<Instruction> instructions) {
 		super(original);
-		this.instructions = ImmutableList.copyOf(instructions);
+		this.instructions = ImmutableList.from(instructions);
 	}
 
 	public State copy(ImmutableList<Instruction> instructions) {

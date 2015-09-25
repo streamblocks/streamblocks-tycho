@@ -5,8 +5,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import se.lth.cs.tycho.instance.net.ToolAttribute;
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
@@ -22,7 +20,7 @@ public class EntityInstanceExpr extends se.lth.cs.tycho.ir.entity.nl.EntityExpr 
 
 	public EntityInstanceExpr(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments) {
 		this.entityName = entityName;
-		this.parameterAssignments = ImmutableList.copyOf(parameterAssignments);
+		this.parameterAssignments = ImmutableList.from(parameterAssignments);
 	}
 
 	public EntityInstanceExpr copy(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments) {

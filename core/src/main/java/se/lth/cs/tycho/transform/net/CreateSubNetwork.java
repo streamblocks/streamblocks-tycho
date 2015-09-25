@@ -148,7 +148,7 @@ public class CreateSubNetwork {
 			Port dstPort = new Port(output.getValue());
 			allConnections.add(new Connection(srcNodeId, srcPort, null, dstPort, null));
 		}
-		return new Network(ImmutableList.copyOf(nodes), allConnections.build(), inputPortDecls, outputPortDecls);
+		return new Network(ImmutableList.from(nodes), allConnections.build(), inputPortDecls, outputPortDecls);
 	}
 
 	private static class NodePort {

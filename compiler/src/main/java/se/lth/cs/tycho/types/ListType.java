@@ -11,13 +11,6 @@ public class ListType implements Type {
 		this.size = size;
 	}
 
-	// Treating Optional.empty() as infinity.
-	private boolean greaterOrEqual(OptionalInt a, OptionalInt b) {
-		if (!a.isPresent()) return true;
-		if (!b.isPresent()) return false;
-		return a.getAsInt() >= b.getAsInt();
-	}
-
 	public Type getElementType() {
 		return elementType;
 	}

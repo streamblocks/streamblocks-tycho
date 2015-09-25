@@ -73,7 +73,7 @@ public class Transition extends AbstractIRNode {
 		super(original);
 		this.inputRates = Collections.unmodifiableMap(new HashMap<>(inputRates));
 		this.outputRates = Collections.unmodifiableMap(new HashMap<>(outputRates));
-		this.kill = ImmutableList.copyOf(kill);
+		this.kill = ImmutableList.from(kill);
 		this.body = body;
 		this.location = origin;
 	}
