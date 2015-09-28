@@ -31,7 +31,7 @@ public class CompilationTask implements IRNode {
 		}
 	}
 
-	public List<SourceUnit> getSourceUnits() {
+	public ImmutableList<SourceUnit> getSourceUnits() {
 		return sourceUnits;
 	}
 
@@ -78,7 +78,7 @@ public class CompilationTask implements IRNode {
 		return copy(
 				(ImmutableList) sourceUnits.map(transformation),
 				identifier,
-				(NamespaceDecl) transformation.apply(target)
+				target == null ? null : (NamespaceDecl) transformation.apply(target)
 		);
 	}
 

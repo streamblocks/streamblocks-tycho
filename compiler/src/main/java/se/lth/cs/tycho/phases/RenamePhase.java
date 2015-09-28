@@ -84,6 +84,12 @@ public class RenamePhase implements Phase {
 			return node;
 		}
 
+		default IRNode rename(CompilationTask original, CompilationTask task) {
+			EntityDecl target = globalNames().entityDecl(task.getIdentifier(), false);
+			String name = name(target);
+			return task.withIdentifier(task.getIdentifier().getButLast().concat(QID.of(name)));
+		}
+
 		default String name(VarDecl original) {
 			if (variableNames().containsKey(original)) {
 				return variableNames().get(original);

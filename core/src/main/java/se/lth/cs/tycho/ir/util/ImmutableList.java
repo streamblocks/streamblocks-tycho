@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.ir.util;
 
+import se.lth.cs.tycho.ir.decl.VarDecl;
+
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -148,6 +150,19 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		BinaryOperator<Builder<E>> combiner = (b1, b2) -> b1.addAll(b2.build());
 		Function<Builder<E>, ImmutableList<E>> finisher = Builder::build;
 		return Collector.of(supplier, accumulator, combiner, finisher); 
+	}
+
+	public static <A, B extends A, C extends A> ImmutableList<A> concat(ImmutableList<B> init, ImmutableList<C> tail) {
+		if (init.isEmpty()) {
+			return covariance(tail);
+		} else if (tail.isEmpty()) {
+			return covariance(init);
+		} else {
+			Object[] list = new Object[init.size() + tail.size()];
+			System.arraycopy(init.list, 0, list, 0, init.size());
+			System.arraycopy(tail.list, 0, list, init.size(), tail.size());
+			return new ImmutableList<>(list, list.length);
+		}
 	}
 
 	/**

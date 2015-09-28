@@ -30,7 +30,10 @@ public class Compiler {
 			new ExpandStarImportsPhase(),
 			new NameAnalysisPhase(),
 			new TypeAnalysisPhase(),
-			new RenamePhase()
+			new RenamePhase(),
+			new RemoveNamespacesPhase(),
+			new LiftProcessVarDeclsPhase(),
+			new ProcessToCalPhase()
 	);
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {

@@ -6,7 +6,9 @@ import se.lth.cs.tycho.ir.decl.StarImport;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -48,17 +50,50 @@ public class NamespaceDecl extends AbstractIRNode {
 		return starImports;
 	}
 
+	public NamespaceDecl withStarImports(List<StarImport> starImports) {
+		if (Lists.elementIdentityEquals(this.starImports, starImports)) {
+			return this;
+		} else {
+			return new NamespaceDecl(this, qid, ImmutableList.from(starImports), varDecls, entityDecls, typeDecls);
+		}
+	}
+
 	public ImmutableList<VarDecl> getVarDecls() {
 		return varDecls;
+	}
+
+	public NamespaceDecl withVarDecls(List<VarDecl> varDecls) {
+		if (Lists.elementIdentityEquals(this.varDecls, varDecls)) {
+			return this;
+		} else {
+			return new NamespaceDecl(this, qid, starImports, ImmutableList.from(varDecls), entityDecls, typeDecls);
+		}
 	}
 
 	public ImmutableList<EntityDecl> getEntityDecls() {
 		return entityDecls;
 	}
 
+	public NamespaceDecl withEntityDecls(List<EntityDecl> entityDecls) {
+		if (Lists.elementIdentityEquals(this.entityDecls, entityDecls)) {
+			return this;
+		} else {
+			return new NamespaceDecl(this, qid, starImports, varDecls, ImmutableList.from(entityDecls), typeDecls);
+		}
+	}
+
 	public ImmutableList<TypeDecl> getTypeDecls() {
 		return typeDecls;
 	}
+
+	public NamespaceDecl withTypeDecls(List<TypeDecl> typeDecls) {
+		if (Lists.elementIdentityEquals(this.typeDecls, typeDecls)) {
+			return this;
+		} else {
+			return new NamespaceDecl(this, qid, starImports, varDecls, entityDecls, ImmutableList.from(typeDecls));
+		}
+	}
+
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
