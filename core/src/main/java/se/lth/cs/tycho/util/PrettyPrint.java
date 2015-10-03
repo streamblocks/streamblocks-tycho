@@ -154,7 +154,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		printToolAttributes(network.getToolAttributes());
 		decIndent();  // calActor body
 		indent();
-		out.append("end network\n");
+		out.append("end\n");
 	}
 	public void printToolAttributes(Collection<ToolAttribute> toolAttributes){
 		if(toolAttributes != null && !toolAttributes.isEmpty()){
@@ -204,7 +204,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		if(calActor == null){
 			out.append("CalActor is null");
 		}
-		out.append("CalActor ");
+		out.append("actor ");
 		out.append(name);
 		printEntityDef(calActor);
 		//TODO DeclType[] typeDecls
@@ -246,7 +246,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			}
 			decIndent();
 			indent();
-			out.append("endschedule");
+			out.append("end");
 		}
 		if(calActor.getPriorities() != null && !calActor.getPriorities().isEmpty()){
 			indent();
@@ -270,11 +270,11 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			indent();
 			out.append("invariant ");
 			printExpressions(calActor.getInvariants());
-			out.append(" endinvariant");
+			out.append(" end");
 		}
 		decIndent();
 		indent();
-		out.append("endactor\n");
+		out.append("end\n");
 	}
 	public void print(Action a){
 		print(a, "action");
@@ -283,12 +283,12 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		indent();
 		if(a.getTag() != null){
 			out.append(a.getTag().toString());
-			out.append(" : ");
+			out.append(":");
+			indent();
 		}
 		out.append(kind);
-		incIndent();
 		printInputPatterns(a.getInputPatterns());
-		out.append(" ==> ");
+		out.append(" ==>");
 		printOutputExpressions(a.getOutputExpressions()); 
 		if(a.getGuards() != null && !a.getGuards().isEmpty()){
 			indent();
@@ -314,9 +314,8 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			printStatements(a.getBody());
 			decIndent();
 		}
-		decIndent();
 		indent();
-		out.append("endaction");
+		out.append("end\n");
 	}
 	private void printOutputExpressions(Iterable<OutputExpression> outputExpressions) {
 		String portSep = " ";

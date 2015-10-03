@@ -1,39 +1,49 @@
 package se.lth.cs.tycho.instance.am.ctrl;
 
-public interface Test extends Transition {
-	static Test of(int cond, State targetTrue, State targetFalse) {
-		return new Test() {
-			public int condition() {
-				return cond;
-			}
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-			public State targetTrue() {
-				return targetTrue;
-			}
+public class Test extends Instruction {
+	private final int condition;
+	private final State targetTrue;
+	private final State targetFalse;
 
-			public State targetFalse() {
-				return targetFalse;
-			}
-		};
+	public Test(int condition, State targetTrue, State targetFalse) {
+		this.condition = condition;
+		this.targetTrue = targetTrue;
+		this.targetFalse = targetFalse;
 	}
 
 	@Override
-	default <R, P> R accept(TransitionVisitor<R, P> v, P p) {
+	public <R, P> R accept(InstructionVisitor<R, P> v, P p) {
 		return v.visitTest(this, p);
 	}
 
-	default TransitionKind getKind() {
-		return TransitionKind.TEST;
+	@Override
+	public <R> R accept(Function<Exec, R> ifExec, Function<Test, R> ifTest, Function<Wait, R> ifWait) {
+		return ifTest.apply(this);
 	}
 
-	int condition();
+	@Override
+	public InstructionKind getKind() {
+		return InstructionKind.TEST;
+	}
 
-	State targetTrue();
+	public int condition() {
+		return condition;
+	}
 
-	State targetFalse();
+	public State targetTrue() {
+		return targetTrue;
+	}
+
+	public State targetFalse() {
+		return targetFalse;
+	}
 
 	@Override
-	default State[] targets() {
-		return new State[] { targetTrue(), targetFalse() };
+	public void forEachTarget(Consumer<State> action) {
+		action.accept(targetTrue());
+		action.accept(targetFalse());
 	}
 }

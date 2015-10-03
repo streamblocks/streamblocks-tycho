@@ -44,7 +44,6 @@ public class AbstractActorTransformer<P> extends AbstractBasicTransformer<P> imp
 	@Override
 	public Action transformAction(Action action, P param) {
 		return action.copy(
-				action.getID(),
 				transformTag(action.getTag(), param),
 				transformInputPatterns(action.getInputPatterns(), param),
 				transformOutputExpressions(action.getOutputExpressions(), param),

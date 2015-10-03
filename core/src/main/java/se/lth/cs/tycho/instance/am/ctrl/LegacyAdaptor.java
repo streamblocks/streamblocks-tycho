@@ -3,7 +3,6 @@ package se.lth.cs.tycho.instance.am.ctrl;
 import se.lth.cs.tycho.instance.am.ICall;
 import se.lth.cs.tycho.instance.am.ITest;
 import se.lth.cs.tycho.instance.am.IWait;
-import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.am.InstructionVisitor;
 
 import java.util.Collections;
@@ -23,45 +22,42 @@ public class LegacyAdaptor implements Controller {
 		return states.get(0);
 	}
 
-	@Override
-	public List<State> getAllStates() { return Collections.unmodifiableList(states); }
-
-	private Transition convert(Instruction i) {
+	private Instruction convert(se.lth.cs.tycho.instance.am.Instruction i) {
 		return i.accept(converter);
 	}
 
 	private class StateAdaptor implements State {
 		private final se.lth.cs.tycho.instance.am.State state;
-		List<Transition> transitions;
+		List<Instruction> instructions;
 
 		StateAdaptor(se.lth.cs.tycho.instance.am.State state) {
 			this.state = state;
 		}
 
 		@Override
-		public List<Transition> getTransitions() {
-			if (transitions == null) {
-				transitions = state.getInstructions().stream().map(LegacyAdaptor.this::convert).collect(Collectors.toList());
+		public List<Instruction> getInstructions() {
+			if (instructions == null) {
+				instructions = state.getInstructions().stream().map(LegacyAdaptor.this::convert).collect(Collectors.toList());
 			}
-			return transitions;
+			return instructions;
 		}
 	}
 
-	private class Converter implements InstructionVisitor<Transition, Void> {
+	private class Converter implements InstructionVisitor<Instruction, Void> {
 
 		@Override
-		public Transition visitWait(IWait i, Void aVoid) {
-			return Wait.of(states.get(i.S()));
+		public Instruction visitWait(IWait i, Void aVoid) {
+			return new Wait(states.get(i.S()), null);
 		}
 
 		@Override
-		public Transition visitTest(ITest i, Void aVoid) {
-			return Test.of(i.C(), states.get(i.S1()), states.get(i.S0()));
+		public Instruction visitTest(ITest i, Void aVoid) {
+			return new Test(i.C(), states.get(i.S1()), states.get(i.S0()));
 		}
 
 		@Override
-		public Transition visitCall(ICall i, Void aVoid) {
-			return Exec.of(i.T(), states.get(i.S()));
+		public Instruction visitCall(ICall i, Void aVoid) {
+			return new Exec(i.T(), states.get(i.S()));
 		}
 	}
 

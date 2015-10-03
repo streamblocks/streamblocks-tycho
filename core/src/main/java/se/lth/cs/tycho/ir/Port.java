@@ -82,6 +82,11 @@ public class Port extends AbstractIRNode {
 	}
 
 	@Override
+	public Port clone() {
+		return (Port) super.clone();
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

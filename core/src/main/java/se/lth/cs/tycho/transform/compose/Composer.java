@@ -96,7 +96,7 @@ public class Composer {
 		ControllerGenerator<State> controller = ControllerGenerator.generate(stateHandler);
 		//printControllerInterpretation(controller);
 		//System.out.println(controller.getInterpretation().size() + " states.");
-		return new ActorMachine(inputPorts.build(), outputPorts.build(), scopes.build(), controller.getController(), transitions.build(), conditions.build());
+		return new ActorMachine(inputPorts.build(), outputPorts.build(), null, null, scopes.build(), controller.getController(), transitions.build(), conditions.build());
 	}
 	
 	private void printControllerInterpretation(ControllerGenerator<State> controller) {

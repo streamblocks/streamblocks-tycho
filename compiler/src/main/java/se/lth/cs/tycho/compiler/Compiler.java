@@ -1,5 +1,28 @@
 package se.lth.cs.tycho.compiler;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
+import se.lth.cs.tycho.backend.c.Backend;
+import se.lth.cs.tycho.backend.c.NetworkFunctions;
+import se.lth.cs.tycho.instance.am.ActorMachine;
+import se.lth.cs.tycho.instance.net.Network;
+import se.lth.cs.tycho.instance.net.Node;
+import se.lth.cs.tycho.instantiation.Instantiator;
+import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.entity.PortContainer;
+import se.lth.cs.tycho.loader.AmbiguityException;
+import se.lth.cs.tycho.loader.DeclarationLoader;
+import se.lth.cs.tycho.loader.FileSystemCalRepository;
+import se.lth.cs.tycho.loader.FileSystemXdfRepository;
+import se.lth.cs.tycho.messages.Message;
+import se.lth.cs.tycho.messages.MessageReporter;
+import se.lth.cs.tycho.messages.MessageWriter;
+import se.lth.cs.tycho.transform.caltoam.CalActorStates;
+import se.lth.cs.tycho.transform.reduction.*;
+import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
+import se.lth.cs.tycho.util.ControllerToGraphviz;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,38 +32,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
-import se.lth.cs.tycho.backend.c.Backend;
-import se.lth.cs.tycho.backend.c.NetworkFunctions;
-import se.lth.cs.tycho.instance.Instance;
-import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.instance.net.Network;
-import se.lth.cs.tycho.instance.net.Node;
-import se.lth.cs.tycho.instantiation.Instantiator;
-import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.loader.AmbiguityException;
-import se.lth.cs.tycho.loader.DeclarationLoader;
-import se.lth.cs.tycho.loader.FileSystemCalRepository;
-import se.lth.cs.tycho.loader.FileSystemXdfRepository;
-import se.lth.cs.tycho.messages.Message;
-import se.lth.cs.tycho.messages.MessageReporter;
-import se.lth.cs.tycho.messages.MessageWriter;
-import se.lth.cs.tycho.transform.caltoam.CalActorStates;
-import se.lth.cs.tycho.transform.reduction.ConditionProbabilityReducer;
-import se.lth.cs.tycho.transform.reduction.LateOutputConditions;
-import se.lth.cs.tycho.transform.reduction.MaxDiffOfReachableActions;
-import se.lth.cs.tycho.transform.reduction.MinDiffOfReachableActions;
-import se.lth.cs.tycho.transform.reduction.NearestExecReducer;
-import se.lth.cs.tycho.transform.reduction.SelectFirstReducer;
-import se.lth.cs.tycho.transform.reduction.SelectMaximum;
-import se.lth.cs.tycho.transform.reduction.SelectRandomReducer;
-import se.lth.cs.tycho.transform.reduction.ShortestExpectedDistance;
-import se.lth.cs.tycho.transform.reduction.ShortestMinimumDistance;
-import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
-import se.lth.cs.tycho.util.ControllerToGraphviz;
 
 public class Compiler {
 	public static void main(String[] args) throws IOException, InterruptedException {
@@ -154,7 +145,7 @@ public class Compiler {
 			QID qid = QID.parse(opts.valueOf(entity));
 			Network net;
 			try {
-				Instance inst = instantiator.instantiate(qid, null, QID.empty());
+				PortContainer inst = instantiator.instantiate(qid, null, QID.empty());
 				if (inst instanceof ActorMachine) {
 					net = NetworkFunctions.fromSingleNode(inst, qid.getLast().toString());
 				} else if (inst instanceof Network) {

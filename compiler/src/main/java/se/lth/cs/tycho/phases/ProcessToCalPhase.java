@@ -23,7 +23,10 @@ import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
+import se.lth.cs.tycho.ir.stmt.StmtBlock;
+import se.lth.cs.tycho.ir.stmt.StmtIf;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
+import se.lth.cs.tycho.ir.stmt.StmtWhile;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
@@ -78,49 +81,64 @@ public class ProcessToCalPhase implements Phase {
 		}
 	}
 
-
 	private Block processToBlock(ProcessDescription process) {
-		ActionBlock block = new ActionBlock(process.getStatements(), null);
+		ActionBlock exit = new ActionBlock(ImmutableList.empty(), null);
+		Block entry = parse(new LinkedList<>(process.getStatements()), exit);
 		if (process.isRepeated()) {
-			block.setSuccessor(block);
+			exit.setSuccessor(entry);
 		}
-		ActionBlock entry = new ActionBlock(ImmutableList.empty(), block);
-		do {
-			block = split(block);
-		} while (!block.getStatements().isEmpty());
-		Block result = entry.getSuccessor();
-		entry.setSuccessor(null);
-		return result;
+		exit.replaceWith(entry);
+		return entry;
 	}
 
-	private ActionBlock split(ActionBlock block) {
-		LinkedList<Statement> input = new LinkedList<>(block.getStatements());
-		ImmutableList.Builder<Statement> builder = ImmutableList.builder();
 
-		boolean addedRead = false;
-		if (!input.isEmpty() && input.getFirst() instanceof StmtRead) {
-			builder.add(input.removeFirst());
-			addedRead = true;
-		}
 
-		while (!input.isEmpty() && input.getFirst() instanceof StmtAssignment) {
-			builder.add(input.removeFirst());
-		}
-
-		if (!addedRead && !input.isEmpty() && input.getFirst() instanceof StmtWrite) {
-			builder.add(input.removeFirst());
-		}
-
-		ImmutableList<Statement> statements = builder.build();
-		if (!statements.isEmpty()) {
-			ActionBlock successor = new ActionBlock(input, block.getSuccessor());
-			ActionBlock assignmentBlock = new ActionBlock(statements, successor);
-			block.replaceWith(assignmentBlock);
+	private Block parse(LinkedList<Statement> statements, Block successor) {
+		if (statements.isEmpty()) {
 			return successor;
+		}
+
+		LinkedList<Statement> result = new LinkedList<>();
+		boolean endsWithWrite = false;
+		if (statements.getLast() instanceof StmtWrite) {
+			result.addFirst(statements.removeLast());
+			endsWithWrite = true;
+		}
+		while (!statements.isEmpty() && statements.getLast() instanceof StmtAssignment) {
+			result.addFirst(statements.removeLast());
+		}
+		if (!endsWithWrite && !statements.isEmpty() && statements.getLast() instanceof StmtRead) {
+			result.addFirst(statements.removeLast());
+		}
+		if (!result.isEmpty()) {
+			Block b = new ActionBlock(result, successor);
+			return parse(statements, b);
+		}
+
+		if (statements.getLast() instanceof StmtIf) {
+			StmtIf cond = (StmtIf) statements.removeLast();
+			Block thenBlock = parse(new LinkedList<>(((StmtBlock) cond.getThenBranch()).getStatements()), successor);
+			Block elseBlock;
+			if (cond.getElseBranch() != null) {
+				elseBlock = parse(new LinkedList<>(((StmtBlock) cond.getElseBranch()).getStatements()), successor);
+			} else {
+				elseBlock = successor;
+			}
+			Block c = new ConditionBlock(cond.getCondition(), thenBlock, elseBlock);
+			return parse(statements, c);
+		}
+
+		if (statements.getLast() instanceof StmtWhile) {
+			StmtWhile whileStmt = (StmtWhile) statements.removeLast();
+			ConditionBlock c = new ConditionBlock(whileStmt.getCondition(), null, successor);
+			Block b = parse(new LinkedList<>(((StmtBlock) whileStmt.getBody()).getStatements()), c);
+			c.setSuccessorIfTrue(b);
+			return parse(statements, c);
 		}
 
 		throw new Error("Not implemented");
 	}
+
 
 	@Module
 	interface BlockToCal {
@@ -180,9 +198,9 @@ public class ProcessToCalPhase implements Phase {
 		default void processBlock(ActionBlock block) {
 			String curr = blockName(block);
 			String succ = blockName(block.getSuccessor());
-			transitions().add(new Transition(curr, succ, ImmutableList.of(QID.of(succ))));
+			transitions().add(new Transition(curr, succ, ImmutableList.of(QID.of(curr))));
 			if (block.getStatements().isEmpty()) {
-				actions().add(new Action(-1, QID.of(curr), ImmutableList.empty(), ImmutableList.empty(),
+				actions().add(new Action(QID.of(curr), ImmutableList.empty(), ImmutableList.empty(),
 						ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
 						ImmutableList.empty(), null, ImmutableList.empty(), ImmutableList.empty()));
 			} else {
@@ -199,7 +217,7 @@ public class ProcessToCalPhase implements Phase {
 					Iterator<Statement> iterator = block.getStatements().iterator();
 					iterator.next();
 					iterator.forEachRemaining(bodyBuilder);
-					actions().add(new Action(-1, QID.of(curr), ImmutableList.of(input), ImmutableList.empty(),
+					actions().add(new Action(QID.of(curr), ImmutableList.of(input), ImmutableList.empty(),
 							ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
 							bodyBuilder.build(), null, ImmutableList.empty(), ImmutableList.empty()));
 				} else if (last instanceof StmtWrite) {
@@ -209,11 +227,11 @@ public class ProcessToCalPhase implements Phase {
 					}
 					StmtWrite write = (StmtWrite) last;
 					OutputExpression output = new OutputExpression(write.getPort(), write.getValues(), write.getRepeatExpression());
-					actions().add(new Action(-1, QID.of(curr), ImmutableList.empty(), ImmutableList.of(output),
+					actions().add(new Action(QID.of(curr), ImmutableList.empty(), ImmutableList.of(output),
 							ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
 							bodyBuilder.build(), null, ImmutableList.empty(), ImmutableList.empty()));
 				} else {
-					actions().add(new Action(-1, QID.of(curr), ImmutableList.empty(), ImmutableList.empty(),
+					actions().add(new Action(QID.of(curr), ImmutableList.empty(), ImmutableList.empty(),
 							ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
 							block.getStatements(), null, ImmutableList.empty(), ImmutableList.empty()));
 				}
@@ -228,10 +246,10 @@ public class ProcessToCalPhase implements Phase {
 			String elseBlock = blockName(block.getSuccessorIfFalse());
 			transitions().add(new Transition(cond, thenBlock, ImmutableList.of(QID.of(cond))));
 			transitions().add(new Transition(cond, elseBlock, ImmutableList.of(QID.of(condNeg))));
-			actions().add(new Action(-1, QID.of(cond), ImmutableList.empty(), ImmutableList.empty(),
+			actions().add(new Action(QID.of(cond), ImmutableList.empty(), ImmutableList.empty(),
 					ImmutableList.empty(), ImmutableList.empty(), ImmutableList.of(block.getCondition()),
 					ImmutableList.empty(), null, ImmutableList.empty(), ImmutableList.empty()));
-			actions().add(new Action(-1, QID.of(condNeg), ImmutableList.empty(), ImmutableList.empty(),
+			actions().add(new Action(QID.of(condNeg), ImmutableList.empty(), ImmutableList.empty(),
 					ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
 					ImmutableList.empty(), null, ImmutableList.empty(), ImmutableList.empty()));
 			priorities().add(ImmutableList.of(QID.of(cond), QID.of(condNeg)));

@@ -1,5 +1,5 @@
 package se.lth.cs.tycho.instance.am.ctrl;
 
-public enum TransitionKind {
+public enum InstructionKind {
 	EXEC, TEST, WAIT;
 }

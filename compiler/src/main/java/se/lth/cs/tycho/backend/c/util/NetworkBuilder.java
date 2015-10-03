@@ -1,18 +1,18 @@
 package se.lth.cs.tycho.backend.c.util;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
-import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.instance.net.Node.Identifier;
+import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 
@@ -37,12 +37,12 @@ public class NetworkBuilder {
         outputPorts.put(name, new PortDecl(name, type));
     }
 
-    public void addNode(String name, Instance node) {
+    public void addNode(String name, PortContainer node) {
     	System.out.println(name);
         addNode(name, node, null);
     }
 
-    public void addNode(String name, Instance node, ImmutableList<ToolAttribute> toolAttributes) {
+    public void addNode(String name, PortContainer node, ImmutableList<ToolAttribute> toolAttributes) {
         nodes.put(name, new Node(name, node));
     }
 

@@ -1,10 +1,5 @@
 package se.lth.cs.tycho.instantiation;
 
-import java.util.Collections;
-import java.util.List;
-
-import se.lth.cs.tycho.instance.Instance;
-import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
@@ -14,6 +9,7 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
+import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
@@ -27,6 +23,9 @@ import se.lth.cs.tycho.transform.caltoam.ActorToActorMachine;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.copy.Copy;
 import se.lth.cs.tycho.transform.reduction.util.ControllerWrapper;
+
+import java.util.Collections;
+import java.util.List;
 
 public class Instantiator {
 	private final DeclarationLoader loader;
@@ -53,7 +52,7 @@ public class Instantiator {
 	 *            the namespace declaration from where the instance is created
 	 * @return an instance of the specified entity
 	 */
-	public Instance instantiate(Entity entity, NamespaceDecl location, QID instanceId) {
+	public PortContainer instantiate(Entity entity, NamespaceDecl location, QID instanceId) {
 		Entity copy = entity.accept(Copy.transformer(), null);
 		return copy.accept(visitor, new Data(location, instanceId));
 	}
@@ -70,31 +69,30 @@ public class Instantiator {
 	 * @throws AmbiguityException
 	 *             if there is more than one entity available
 	 */
-	public Instance instantiate(QID entityId, NamespaceDecl location, QID instanceId) throws AmbiguityException {
+	public PortContainer instantiate(QID entityId, NamespaceDecl location, QID instanceId) throws AmbiguityException {
 		EntityDecl decl = loader.loadEntity(entityId, location);
 		return instantiate(decl.getEntity(), loader.getLocation(decl), instanceId);
 	}
 
-	private class Visitor implements EntityVisitor<Instance, Data> {
+	private class Visitor implements EntityVisitor<PortContainer, Data> {
 		@Override
-		public Instance visitCalActor(CalActor entity, Data data) {
+		public PortContainer visitCalActor(CalActor entity, Data data) {
 			if (!entity.getValueParameters().isEmpty() || !entity.getTypeParameters().isEmpty()) {
 				throw new UnsupportedOperationException("Can not instantiate an actor with parameters.");
 			}
-			ActorMachine result = translator.translate(entity, data.location, data.instanceId);
-			return result;
+			return translator.translate(entity, data.location, data.instanceId);
 		}
 
 		@Override
-		public Instance visitNlNetwork(NlNetwork entity, Data data) {
+		public PortContainer visitNlNetwork(NlNetwork entity, Data data) {
 			throw new UnsupportedOperationException("Nl networks are not yet supported.");
 		}
 
 		@Override
-		public Instance visitXDFNetwork(XDFNetwork entity, Data data) {
+		public PortContainer visitXDFNetwork(XDFNetwork entity, Data data) {
 			ImmutableList.Builder<Node> nodeBuilder = ImmutableList.builder();
 			for (XDFInstance inst : entity.getInstances()) {
-				Instance result;
+				PortContainer result;
 				try {
 					String name = inst.getName();
 					result = instantiate(inst.getEntity(), data.location, data.instanceId.concat(QID.of(name)));

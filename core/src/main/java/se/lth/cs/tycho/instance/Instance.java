@@ -6,6 +6,7 @@ import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class Instance extends AbstractIRNode implements PortContainer {
@@ -23,10 +24,10 @@ public abstract class Instance extends AbstractIRNode implements PortContainer {
 		return outputPorts;
 	}
 
-	public Instance(IRNode original, ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) {
+	public Instance(IRNode original, List<PortDecl> inputPorts, List<PortDecl> outputPorts) {
 		super(original);
-		this.inputPorts = inputPorts;
-		this.outputPorts = outputPorts;
+		this.inputPorts = ImmutableList.from(inputPorts);
+		this.outputPorts = ImmutableList.from(outputPorts);
 	}
 
 	@Override

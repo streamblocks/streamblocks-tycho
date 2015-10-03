@@ -8,7 +8,7 @@ public class PickFirstInstruction {
 	
 	public static ActorMachine transform(ActorMachine am, QID instanceId) {
 		ControllerGenerator<Integer> result = ControllerGenerator.generate(new StateReducerPickFirst(am, instanceId));
-		return am.copy(am.getInputPorts(), am.getOutputPorts(), am.getScopes(), result.getController(), am.getTransitions(), am.getConditions());
+		return am.copy(am.getInputPorts(), am.getOutputPorts(), am.getTypeParameters(), am.getValueParameters(), am.getScopes(), result.getController(), am.getTransitions(), am.getConditions());
 	}
 
 }

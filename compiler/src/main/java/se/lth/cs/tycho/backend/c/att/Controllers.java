@@ -6,23 +6,16 @@ import javarag.Module;
 import javarag.Procedural;
 import javarag.Synthesized;
 import se.lth.cs.tycho.backend.c.ScopeInitialization;
-import se.lth.cs.tycho.backend.c.ScopeInitializationNew;
 import se.lth.cs.tycho.backend.c.ScopeInitializationOld;
 import se.lth.cs.tycho.instance.am.*;
 import se.lth.cs.tycho.instance.am.State;
-import se.lth.cs.tycho.instance.am.ctrl.*;
-import se.lth.cs.tycho.instance.am.ctrl.Transition;
+import se.lth.cs.tycho.instance.am.Instruction;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayDeque;
-import java.util.BitSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -77,7 +70,7 @@ public class Controllers extends Module<Controllers.Decls> {
 //		}
 //		int[] waitTargets = actorMachine.controller().getAllStates().stream()
 //				.flatMap(s -> s.getTransitions().stream())
-//				.filter(t -> t.getKind() == TransitionKind.WAIT)
+//				.filter(t -> t.getKind() == InstructionKind.WAIT)
 //				.map(t -> ((Wait) t).target())
 //				.mapToInt(stateNumbers::get)
 //				.sorted()

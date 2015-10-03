@@ -1,55 +1,35 @@
 package se.lth.cs.tycho.ir.entity.nl.evaluate;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
-import se.lth.cs.tycho.interp.BasicActorMachineSimulator;
-import se.lth.cs.tycho.interp.BasicEnvironment;
-import se.lth.cs.tycho.interp.BasicMemory;
-import se.lth.cs.tycho.interp.BasicNetworkSimulator;
-import se.lth.cs.tycho.interp.Channel;
-import se.lth.cs.tycho.interp.Environment;
-import se.lth.cs.tycho.interp.GeneratorFilterHelper;
-import se.lth.cs.tycho.interp.Interpreter;
-import se.lth.cs.tycho.interp.Memory;
-import se.lth.cs.tycho.interp.TypeConverter;
+import se.lth.cs.tycho.instance.net.Node.Identifier;
+import se.lth.cs.tycho.interp.*;
 import se.lth.cs.tycho.interp.exception.CALCompiletimeException;
 import se.lth.cs.tycho.interp.preprocess.VariableOffsetTransformer;
 import se.lth.cs.tycho.interp.values.ExprValue;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.GeneratorFilter;
-import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
+import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
-import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
-import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
-import se.lth.cs.tycho.ir.entity.nl.PortReference;
-import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureIfStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
-import se.lth.cs.tycho.ir.entity.nl.StructureStmtVisitor;
+import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environment>, StructureStmtVisitor<StructureStatement, Environment>{
 	NlNetwork srcNetwork;
@@ -123,7 +103,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 			String entityName = e.getEntityName() + ":" + p;
 			// TODO if a parameter has the value of a lambda/procedure expression with free variables we need to store the environment to.
 			//e.getParameterAssignments();
-			Instance payload = null; 
+			PortContainer payload = null;
 			try {
 				decl = declLoader.loadEntity(QID.of(e.getEntityName()), null).getEntity();
 			} catch (AmbiguityException e1) {

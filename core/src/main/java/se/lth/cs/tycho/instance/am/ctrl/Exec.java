@@ -1,33 +1,42 @@
 package se.lth.cs.tycho.instance.am.ctrl;
 
-public interface Exec extends Transition {
-	static Exec of(int transition, State target) {
-		return new Exec() {
-			public int transition() {
-				return transition;
-			}
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-			public State target() {
-				return target;
-			}
-		};
+public class Exec extends Instruction {
+	private final int transition;
+	private final State target;
+
+	public Exec(int transition, State target) {
+		this.transition = transition;
+		this.target = target;
 	}
 
 	@Override
-	default <R, P> R accept(TransitionVisitor<R, P> v, P p) {
+	public <R, P> R accept(InstructionVisitor<R, P> v, P p) {
 		return v.visitExec(this, p);
 	}
 
-	default TransitionKind getKind() {
-		return TransitionKind.EXEC;
+	@Override
+	public <R> R accept(Function<Exec, R> ifExec, Function<Test, R> ifTest, Function<Wait, R> ifWait) {
+		return ifExec.apply(this);
 	}
 
-	int transition();
+	@Override
+	public InstructionKind getKind() {
+		return InstructionKind.EXEC;
+	}
 
-	State target();
+	public int transition() {
+		return transition;
+	}
+
+	public State target() {
+		return target;
+	}
 
 	@Override
-	default State[] targets() {
-		return new State[] { target() };
+	public void forEachTarget(Consumer<State> action) {
+		action.accept(target());
 	}
 }

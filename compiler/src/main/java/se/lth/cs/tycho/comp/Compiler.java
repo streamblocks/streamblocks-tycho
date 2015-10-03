@@ -33,7 +33,9 @@ public class Compiler {
 			new RenamePhase(),
 			new RemoveNamespacesPhase(),
 			new LiftProcessVarDeclsPhase(),
-			new ProcessToCalPhase()
+			new ProcessToCalPhase(),
+			new CalToAmPhase(),
+			new PrettyPrintPhase()
 	);
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {

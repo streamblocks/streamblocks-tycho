@@ -1,16 +1,16 @@
 package se.lth.cs.tycho.backend.c;
 
-import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.instance.net.Node.Identifier;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 public class NetworkFunctions {
-	public static Network fromSingleNode(Instance instance, String name) {
+	public static Network fromSingleNode(PortContainer instance, String name) {
 		Node node = new Node(name, instance);
 		ImmutableList<PortDecl> inputPorts = copyPorts(instance.getInputPorts());
 		ImmutableList<PortDecl> outputPorts = copyPorts(instance.getOutputPorts());

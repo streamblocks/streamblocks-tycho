@@ -1,16 +1,9 @@
 package se.lth.cs.tycho.instantiation;
 
-import static org.junit.Assert.assertTrue;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-
 import org.junit.Test;
-
-import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.loader.DeclarationLoader;
 import se.lth.cs.tycho.loader.FileSystemCalRepository;
@@ -18,6 +11,12 @@ import se.lth.cs.tycho.loader.FileSystemXdfRepository;
 import se.lth.cs.tycho.messages.NullMessageReporter;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates;
 import se.lth.cs.tycho.transform.reduction.SelectFirstReducer;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
 
 public class TestInstantiateRVC {
 
@@ -31,7 +30,7 @@ public class TestInstantiateRVC {
 		loader.addRepository(new FileSystemCalRepository(RVC_PATH));
 		Instantiator instantiator = new Instantiator(loader,
 				Arrays.asList(SelectFirstReducer<CalActorStates.State>::new));
-		Instance net = instantiator.instantiate(DECODER, null, QID.empty());
+		PortContainer net = instantiator.instantiate(DECODER, null, QID.empty());
 		assertTrue(net instanceof Network);
 		Network network = (Network) net;
 	}

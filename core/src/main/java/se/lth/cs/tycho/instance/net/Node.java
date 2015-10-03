@@ -1,16 +1,13 @@
 package se.lth.cs.tycho.instance.net;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
-import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
-import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * A Node is a basic element in a network. It is a wrapper for a {@link PortContainer}. Usually,
@@ -24,18 +21,18 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class Node extends AbstractIRNode {
 	
-	public Instance  getContent() { return content; }
+	public PortContainer  getContent() { return content; }
 	
 	public String getName(){ return name; }
 	//
 	// Ctor
 	//
 	
-	public Node(String name, Instance content) {
+	public Node(String name, PortContainer content) {
 		this(null, name, content);
 	}
 
-	protected Node(Node original, String name, Instance content) {
+	protected Node(Node original, String name, PortContainer content) {
 		super (original);
 		if (original == null) {
 			identifier = new Identifier();
@@ -46,7 +43,7 @@ public class Node extends AbstractIRNode {
 		this.content = content;
 	}
 	
-	public Node copy(String name, Instance content){
+	public Node copy(String name, PortContainer content){
 		if(Objects.equals(this.name, name) && Objects.equals(this.content, content)){
 			return this;
 		}
@@ -58,7 +55,7 @@ public class Node extends AbstractIRNode {
 	}
 	
 	private String name;
-	private Instance content;
+	private PortContainer content;
 	private final Identifier identifier;
 
 	public String toString(){

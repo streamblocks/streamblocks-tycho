@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -124,6 +125,20 @@ public class ExprLiteral extends Expression {
 
 		Kind(String fixedText) {
 			this.fixedText = fixedText;
+		}
+	}
+
+	public OptionalInt asInt() {
+		if (kind != Kind.Integer) {
+			return OptionalInt.empty();
+		} else {
+			String text = this.text;
+			int radix = 10;
+			if (text.startsWith("0x") || text.startsWith("0X")) {
+				text = text.substring(2);
+				radix = 16;
+			}
+			return OptionalInt.of(Integer.parseInt(text, radix));
 		}
 	}
 

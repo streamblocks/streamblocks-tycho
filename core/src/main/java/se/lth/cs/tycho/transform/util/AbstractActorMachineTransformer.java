@@ -26,7 +26,9 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 	public ActorMachine transformActorMachine(ActorMachine actorMachine, P param) {
 		return actorMachine.copy(
 				transformInputPorts(actorMachine.getInputPorts(), param), 
-				transformOutputPorts(actorMachine.getOutputPorts(), param), 
+				transformOutputPorts(actorMachine.getOutputPorts(), param),
+				transformTypeParameters(actorMachine.getTypeParameters(), param),
+				transformValueParameters(actorMachine.getValueParameters(), param),
 				transformScopes(actorMachine.getScopes(), param), 
 				actorMachine.getController(), 
 				transformTransitions(actorMachine.getTransitions(), param), 

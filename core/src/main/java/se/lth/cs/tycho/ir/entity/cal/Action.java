@@ -55,20 +55,19 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class Action extends AbstractIRNode {
 
-	public Action(int id, QID tag, ImmutableList<InputPattern> inputPatterns,
-			ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
-			ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
-			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
-		this(null, id, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions,
+	public Action(QID tag, ImmutableList<InputPattern> inputPatterns,
+				  ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
+				  ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+				  Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
+		this(null, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions,
 				postconditions);
 	}
 
-	private Action(Action original, int id, QID tag, ImmutableList<InputPattern> inputPatterns,
-			ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
-			ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
-			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
+	private Action(Action original, QID tag, ImmutableList<InputPattern> inputPatterns,
+				   ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
+				   ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+				   Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
 		super(original);
-		this.id = id;
 		this.tag = tag;
 		this.inputPatterns = ImmutableList.from(inputPatterns);
 		this.outputExpressions = ImmutableList.from(outputExpressions);
@@ -81,18 +80,18 @@ public class Action extends AbstractIRNode {
 		this.postconditions = ImmutableList.from(postconditions);
 	}
 
-	public Action copy(int id, QID tag, ImmutableList<InputPattern> inputPatterns,
-			ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
-			ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
-			Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
-		if (this.id == id && Objects.equals(this.tag, tag) && Lists.equals(this.inputPatterns, inputPatterns)
+	public Action copy(QID tag, ImmutableList<InputPattern> inputPatterns,
+					   ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
+					   ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+					   Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
+		if (Objects.equals(this.tag, tag) && Lists.equals(this.inputPatterns, inputPatterns)
 				&& Lists.equals(this.outputExpressions, outputExpressions) && Lists.equals(this.typeDecls, typeDecls)
 				&& Lists.equals(this.varDecls, varDecls) && Lists.equals(this.guards, guards)
 				&& Lists.equals(this.body, body) && Objects.equals(this.delay, delay)
 				&& Lists.equals(this.preconditions, preconditions) && Lists.equals(this.postconditions, postconditions)) {
 			return this;
 		}
-		return new Action(this, id, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay,
+		return new Action(this, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay,
 				preconditions, postconditions);
 	}
 
@@ -128,10 +127,6 @@ public class Action extends AbstractIRNode {
 		return delay;
 	}
 
-	public int getID() {
-		return id;
-	}
-
 	public ImmutableList<Expression> getPreconditions() {
 		return preconditions;
 	}
@@ -140,7 +135,6 @@ public class Action extends AbstractIRNode {
 		return postconditions;
 	}
 
-	private int id;
 	private QID tag;
 	private ImmutableList<InputPattern> inputPatterns;
 	private ImmutableList<OutputExpression> outputExpressions;
@@ -181,7 +175,6 @@ public class Action extends AbstractIRNode {
 	@Override
 	public Action transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
-				id,
 				tag,
 				(ImmutableList) inputPatterns.map(transformation),
 				(ImmutableList) outputExpressions.map(transformation),

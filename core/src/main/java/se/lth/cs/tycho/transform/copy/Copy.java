@@ -253,7 +253,7 @@ public class Copy implements BasicTransformer<Void>, ActorTransformer<Void>, Exp
 	@Override
 	public Action transformAction(Action action, Void param) {
 		if (action == null) return null;
-		return new Action(action.getID(), action.getTag(), transformInputPatterns(action.getInputPatterns(), param),
+		return new Action(action.getTag(), transformInputPatterns(action.getInputPatterns(), param),
 				transformOutputExpressions(action.getOutputExpressions(), param), transformTypeDecls(
 						action.getTypeDecls(), param), transformVarDecls(action.getVarDecls(), param),
 				transformExpressions(action.getGuards(), param), transformStatements(action.getBody(), param),

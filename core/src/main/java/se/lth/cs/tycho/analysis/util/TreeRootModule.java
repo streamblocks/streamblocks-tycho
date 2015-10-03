@@ -1,12 +1,9 @@
 package se.lth.cs.tycho.analysis.util;
 
-import java.util.Optional;
-
 import javarag.Inherited;
 import javarag.Module;
 import javarag.NonTerminal;
 import javarag.Synthesized;
-import se.lth.cs.tycho.instance.Instance;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
@@ -14,9 +11,12 @@ import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.PortContainer;
 import se.lth.cs.tycho.loader.AmbiguityException;
 import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.util.Result;
+
+import java.util.Optional;
 
 public class TreeRootModule extends Module<TreeRootModule.Declarations> {
 
@@ -30,7 +30,7 @@ public class TreeRootModule extends Module<TreeRootModule.Declarations> {
 		
 		@Synthesized
 		@NonTerminal
-		Instance instanceToCompile(TreeRoot root, Instance inst);
+		PortContainer instanceToCompile(TreeRoot root, PortContainer inst);
 
 		@Synthesized
 		Result<Optional<EntityDecl>> globalEntity(TreeRoot root, QID qid, NamespaceDecl ns);
@@ -108,11 +108,11 @@ public class TreeRootModule extends Module<TreeRootModule.Declarations> {
 		return decl;
 	}
 	
-	public IRNode getMainTree(Instance inst, TreeRoot root) {
+	public IRNode getMainTree(PortContainer inst, TreeRoot root) {
 		return e().instanceToCompile(root, inst);
 	}
 	
-	public Instance instanceToCompile(TreeRoot root, Instance inst) {
+	public PortContainer instanceToCompile(TreeRoot root, PortContainer inst) {
 		return inst;
 	}
 

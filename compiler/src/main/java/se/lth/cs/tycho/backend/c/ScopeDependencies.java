@@ -11,7 +11,7 @@ import se.lth.cs.tycho.instance.am.Scope;
 import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.instance.am.ctrl.Exec;
 import se.lth.cs.tycho.instance.am.ctrl.Test;
-import se.lth.cs.tycho.instance.am.ctrl.TransitionVisitor;
+import se.lth.cs.tycho.instance.am.ctrl.InstructionVisitor;
 import se.lth.cs.tycho.instance.am.ctrl.Wait;
 import se.lth.cs.tycho.ir.Variable;
 
@@ -63,8 +63,8 @@ public class ScopeDependencies {
 		}
 	}
 
-	public BitSet dependencies(se.lth.cs.tycho.instance.am.ctrl.Transition transition) {
-		return transition.accept(new TransitionVisitor<BitSet, Void>() {
+	public BitSet dependencies(se.lth.cs.tycho.instance.am.ctrl.Instruction instruction) {
+		return instruction.accept(new InstructionVisitor<BitSet, Void>() {
 
 			@Override
 			public BitSet visitExec(Exec t, Void v) {

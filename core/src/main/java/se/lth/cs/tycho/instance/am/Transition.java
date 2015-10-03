@@ -89,9 +89,9 @@ public class Transition extends AbstractIRNode {
 
 	private final ImmutableList<Integer> kill;
 	private final Statement body;
-	private final Map<Port, Integer> inputRates;
-	private final Map<Port, Integer> outputRates;
-	private final NamespaceDecl location;
+	private final Map<Port, Integer> inputRates; // TODO compute
+	private final Map<Port, Integer> outputRates; // TODO compute
+	private final NamespaceDecl location; // TODO remove
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
