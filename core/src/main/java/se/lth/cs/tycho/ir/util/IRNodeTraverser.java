@@ -42,6 +42,8 @@ public class IRNodeTraverser implements TreeTraverser<Object> {
 				continue;
 			if (m.getName().equals("getLocation") && m.getReturnType() == NamespaceDecl.class)
 				continue;
+			if (m.getName().equals("clone") || m.getName().equals("deepClone"))
+				continue;
 
 			Class<?> returnType = m.getReturnType();
 			if (IRNode.class.isAssignableFrom(returnType) || Iterable.class.isAssignableFrom(returnType)

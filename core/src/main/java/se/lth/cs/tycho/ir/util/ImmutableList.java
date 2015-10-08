@@ -184,7 +184,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		}
 
 		private void resizeArray() {
-			list = Arrays.copyOf(list, list.length + list.length >> 1);
+			list = Arrays.copyOf(list, list.length + (list.length >> 1));
 		}
 
 		private boolean isFull() {

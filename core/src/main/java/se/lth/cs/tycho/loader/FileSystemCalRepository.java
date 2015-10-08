@@ -19,8 +19,8 @@ import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.messages.Message;
 import se.lth.cs.tycho.messages.MessageReporter;
-import se.lth.cs.tycho.parsing.cal.CalParser;
-import se.lth.cs.tycho.parsing.cal.ParseException;
+import se.lth.cs.tycho.parsing.orcc.ParseException;
+import se.lth.cs.tycho.parsing.orcc.OrccParser;
 
 public class FileSystemCalRepository implements SourceCodeRepository {
 	
@@ -68,7 +68,7 @@ public class FileSystemCalRepository implements SourceCodeRepository {
 	
 	private static NamespaceDecl parse(Path p, MessageReporter m, boolean withOpParsing) {
 		try {
-			CalParser parser = new CalParser(Files.newBufferedReader(p));
+			OrccParser parser = new OrccParser(Files.newBufferedReader(p));
 			return parser.CompilationUnit();
 		} catch (IOException e) {
 			m.report(new Message(e.getMessage(), Message.Kind.ERROR));

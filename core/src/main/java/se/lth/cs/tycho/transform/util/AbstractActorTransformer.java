@@ -84,7 +84,7 @@ public class AbstractActorTransformer<P> extends AbstractBasicTransformer<P> imp
 
 	@Override
 	public ProcessDescription transformProcessDescription(ProcessDescription process, P param) {
-		if (process != null) {
+		if (process == null) {
 			return null;
 		} else {
 			return process.copy(transformStatements(process.getStatements(), param), process.isRepeated());
