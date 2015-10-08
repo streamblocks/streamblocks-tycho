@@ -30,12 +30,12 @@
 			<version>4.7</version>
 		</dependency>
 		<dependency>
-			<groupId>se.lth.cs.multij</groupId>
+			<groupId>org.multij</groupId>
 			<artifactId>multij-core</artifactId>
 			<version>0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>se.lth.cs.multij</groupId>
+			<groupId>org.multij</groupId>
 			<artifactId>multij-processor</artifactId>
 			<version>0.1-SNAPSHOT</version>
 		</dependency>

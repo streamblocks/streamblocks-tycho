@@ -1,10 +1,10 @@
 package se.lth.cs.tycho.phases;
 
 
-import se.lth.cs.multij.Binding;
-import se.lth.cs.multij.BindingKind;
-import se.lth.cs.multij.Module;
-import se.lth.cs.multij.MultiJ;
+import org.multij.Binding;
+import org.multij.BindingKind;
+import org.multij.Module;
+import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.UniqueNumbers;
