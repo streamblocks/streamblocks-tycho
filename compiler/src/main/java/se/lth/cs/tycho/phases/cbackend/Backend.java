@@ -23,5 +23,5 @@ public interface Backend {
 	@Binding(MODULE) Emitter emitter();
 	@Binding(MODULE) Structure structure();
 	@Binding(MODULE) Code code();
-
+	@Binding(MODULE) Controllers controllers();
 }

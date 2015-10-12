@@ -59,26 +59,7 @@ public interface Structure {
 	}
 
 	default void actorMachineController(String name, ActorMachine actorMachine) {
-		Set<State> waitTargets = getWaitTargets(actorMachine.controller());
-	}
-
-	default Set<State> getWaitTargets(Controller controller) {
-		Set<State> result = new HashSet<>();
-		Set<State> visited = new HashSet<>();
-		Queue<State> queue = new ArrayDeque<>();
-		queue.add(controller.getInitialState());
-		while (!queue.isEmpty()) {
-			State s = queue.remove();
-			if (visited.add(s)) {
-				for (Instruction i : s.getInstructions()) {
-					i.forEachTarget(queue::add);
-					if (i instanceof Wait) {
-						result.add(((Wait) i).target());
-					}
-				}
-			}
-		}
-		return result;
+		backend().controllers().emitController(name, actorMachine.controller());
 	}
 
 	default void actorMachineInit(String name, ActorMachine actorMachine) {
