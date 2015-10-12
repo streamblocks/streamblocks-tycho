@@ -5,6 +5,7 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -22,6 +23,7 @@ import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprList;
@@ -80,19 +82,23 @@ public interface Names {
 		PortDecl lookupPort(IRNode node, Port port);
 
 		default PortDecl lookupPort(InputPattern input, Port port) {
-			return lookupInputPort(tree().parent(input), port);
+			return lookupInputPort(input, port);
 		}
 
 		default PortDecl lookupPort(OutputExpression output, Port port) {
 			return lookupOutputPort(tree().parent(output), port);
 		}
 
+		default PortDecl lookupPort(ExprInput input, Port port) {
+			return lookupInputPort(input, port);
+		}
+
 		default PortDecl lookupPort(StmtRead read, Port port) {
-			return lookupInputPort(tree().parent(read), port);
+			return lookupInputPort(read, port);
 		}
 
 		default PortDecl lookupPort(StmtWrite write, Port port) {
-			return lookupOutputPort(tree().parent(write), port);
+			return lookupOutputPort(write, port);
 		}
 
 		default PortDecl lookupInputPort(IRNode node, Port port) {
@@ -254,6 +260,10 @@ public interface Names {
 
 		default Optional<VarDecl> localLookup(NlNetwork network, IRNode context, String name) {
 			return findInStream(Stream.concat(network.getVarDecls().stream(), network.getValueParameters().stream()), name);
+		}
+
+		default Optional<VarDecl> localLookup(ActorMachine actorMachine, IRNode context, String name) {
+			return findInStream(Stream.concat(actorMachine.getScopes().stream().flatMap(s -> s.getDeclarations().stream()), actorMachine.getValueParameters().stream()), name);
 		}
 
 		default Optional<VarDecl> localLookup(NamespaceDecl ns, IRNode context, String name) {

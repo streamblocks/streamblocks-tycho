@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.phases.cal2am;
 
 import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -31,7 +32,7 @@ public class Scopes {
 			initialized = true;
 			scopes = new ArrayList<>();
 
-			scopes.add(new Scope(actor.getVarDecls(), null));
+			scopes.add(new Scope(actor.getVarDecls(), true));
 			persistentScopes = new BitSet();
 			persistentScopes.set(0);
 
@@ -52,7 +53,7 @@ public class Scopes {
 			if (input.getRepeatExpr() == null) {
 				int i = 0;
 				for (VarDecl var : input.getVariables()) {
-					varDecls.add(var.withValue(new ExprInput(input.getPort().clone(), i)));
+					varDecls.add(var.withValue(new ExprInput((Port) input.getPort().deepClone(), i)));
 					i = i + 1;
 				}
 			} else {
@@ -60,13 +61,13 @@ public class Scopes {
 				int patternLength = input.getVariables().size();
 				int i = 0;
 				for (VarDecl var : input.getVariables()) {
-					varDecls.add(var.withValue(new ExprInput(input.getPort().clone(), i, repeat, patternLength)));
+					varDecls.add(var.withValue(new ExprInput((Port) input.getPort().deepClone(), i, repeat, patternLength)));
 					i = i + 1;
 				}
 			}
 		}
 		varDecls.addAll(action.getVarDecls());
-		return new Scope(varDecls.build(), null);
+		return new Scope(varDecls.build(), false);
 	}
 
 	public List<Scope> getScopes() {

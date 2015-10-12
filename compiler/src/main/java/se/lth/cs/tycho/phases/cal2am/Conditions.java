@@ -92,20 +92,20 @@ public class Conditions {
 
 	private PortCondition createCondition(InputPattern inputPattern) {
 		return new PortCondition(
-				inputPattern.getPort(),
+				(Port) inputPattern.getPort().deepClone(),
 				inputPattern.getVariables().size() * evalRepeatMultiplier(inputPattern.getRepeatExpr()),
 				true);
 	}
 
 	private PortCondition createCondition(OutputExpression outputExpression) {
 		return new PortCondition(
-				outputExpression.getPort(),
+				(Port) outputExpression.getPort().deepClone(),
 				outputExpression.getExpressions().size() * evalRepeatMultiplier(outputExpression.getRepeatExpr()),
 				false);
 	}
 
 	private PredicateCondition createCondition(Expression guard) {
-		return new PredicateCondition(guard, null);
+		return new PredicateCondition(guard);
 	}
 
 	public List<Condition> getAllConditions() {

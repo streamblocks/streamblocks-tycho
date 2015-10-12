@@ -77,7 +77,7 @@ public class RenamePhase implements Phase {
 		UniqueNumbers uniqueNumbers();
 
 		default String generateName(String base) {
-			return base + "$" + uniqueNumbers().next();
+			return base + "_" + uniqueNumbers().next();
 		}
 
 		default IRNode rename(IRNode original, IRNode node) {

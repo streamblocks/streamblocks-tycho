@@ -28,7 +28,7 @@ import se.lth.cs.tycho.ir.util.Lists;
 public class Transition extends AbstractIRNode {
 
 	public NamespaceDecl getLocation() {
-		return location;
+		return null; // TODO remove this method
 	}
 
 	public Map<Port, Integer> getInputRates() {
@@ -64,34 +64,32 @@ public class Transition extends AbstractIRNode {
 	}
 
 	public Transition(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates, ImmutableList<Integer> kill,
-			Statement body, NamespaceDecl origin) {
-		this(null, inputRates, outputRates, kill, body, origin);
+			Statement body) {
+		this(null, inputRates, outputRates, kill, body);
 	}
 
 	private Transition(Transition original, Map<Port, Integer> inputRates, Map<Port, Integer> outputRates,
-			ImmutableList<Integer> kill, Statement body, NamespaceDecl origin) {
+			ImmutableList<Integer> kill, Statement body) {
 		super(original);
 		this.inputRates = Collections.unmodifiableMap(new HashMap<>(inputRates));
 		this.outputRates = Collections.unmodifiableMap(new HashMap<>(outputRates));
 		this.kill = ImmutableList.from(kill);
 		this.body = body;
-		this.location = origin;
 	}
 
 	public Transition copy(Map<Port, Integer> inputRates, Map<Port, Integer> outputRates,
-			ImmutableList<Integer> kill, Statement body, NamespaceDecl origin) {
+			ImmutableList<Integer> kill, Statement body) {
 		if (Objects.equals(this.inputRates, inputRates) && Objects.equals(this.outputRates, outputRates)
-				&& Lists.equals(this.kill, kill) && Objects.equals(this.body, body) && Objects.equals(this.location, origin)) {
+				&& Lists.equals(this.kill, kill) && Objects.equals(this.body, body)) {
 			return this;
 		}
-		return new Transition(this, inputRates, outputRates, kill, body, origin);
+		return new Transition(this, inputRates, outputRates, kill, body);
 	}
 
 	private final ImmutableList<Integer> kill;
 	private final Statement body;
 	private final Map<Port, Integer> inputRates; // TODO compute
 	private final Map<Port, Integer> outputRates; // TODO compute
-	private final NamespaceDecl location; // TODO remove
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {

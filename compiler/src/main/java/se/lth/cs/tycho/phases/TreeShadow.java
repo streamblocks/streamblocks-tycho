@@ -33,11 +33,14 @@ public class TreeShadow {
 	}
 
 	public IRNode parent(IRNode node) {
-		if (!parentMap.containsKey(node)) {
+		if (node == root) {
+			return null;
+		}
+		IRNode parent = parentMap.get(node);
+		if (parent == null) {
 			throw new NoSuchElementException("The node is not part of this tree.");
 		}
-		assert parentMap.containsKey(node);
-		return parentMap.get(node);
+		return parent;
 	}
 
 	public IRNode root() {
@@ -49,7 +52,11 @@ public class TreeShadow {
 		private IRNode parent;
 		@Override
 		public void accept(IRNode node) {
-			parentMap.put(node, parent);
+			if (parentMap.containsKey(node) && parentMap.get(node) != parent) {
+				throw new IllegalStateException("This node is already registered with another parent.");
+			} else {
+				parentMap.put(node, parent);
+			}
 			IRNode grandParent = parent;
 			parent = node;
 			node.forEachChild(this);

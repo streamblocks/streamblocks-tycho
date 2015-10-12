@@ -64,7 +64,7 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 	
 	@Override
 	public Scope transformScope(Scope scope, P param) {
-		return scope.copy(transformList(transVarDecl, scope.getDeclarations(), param), scope.getLocation());
+		return scope.copy(transformList(transVarDecl, scope.getDeclarations(), param), scope.isPersistent());
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 
 	@Override
 	public Transition transformTransition(Transition transition, P param) {
-		return transition.copy(transition.getInputRates(), transition.getOutputRates(), transition.getScopesToKill(), transformStatement(transition.getBody(), param), transition.getLocation());
+		return transition.copy(transition.getInputRates(), transition.getOutputRates(), transition.getScopesToKill(), transformStatement(transition.getBody(), param));
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class AbstractActorMachineTransformer<P> extends AbstractBasicTransformer
 
 	@Override
 	public Condition visitPredicateCondition(PredicateCondition c, P p) {
-		return c.copy(transformExpression(c.getExpression(), p), c.getLocation());
+		return c.copy(transformExpression(c.getExpression(), p));
 	}
 
 }

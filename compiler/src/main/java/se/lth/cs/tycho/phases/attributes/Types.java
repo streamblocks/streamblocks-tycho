@@ -46,6 +46,7 @@ public interface Types {
 	Type declaredType(VarDecl decl);
 	Type type(Expression expr);
 	Type lvalueType(LValue lvalue);
+	Type declaredPortType(PortDecl port);
 	Type portType(Port port);
 	Type portTypeRepeated(Port port, Expression repeat);
 
@@ -135,10 +136,12 @@ public interface Types {
 			return lvalueTypeMap().computeIfAbsent(lvalue, this::computeLValueType);
 		}
 
+		default Type declaredPortType(PortDecl port) {
+			return convert(port.getType());
+		}
 
 		default Type portType(Port port) {
-			PortDecl decl = names().portDeclaration(port);
-			return convert(decl.getType());
+			return declaredPortType(names().portDeclaration(port));
 		}
 
 		default Type portTypeRepeated(Port port, Expression repeat) {
@@ -380,6 +383,15 @@ public interface Types {
 			Type thenType = type(ifExpr.getThenExpr());
 			Type elseType = type(ifExpr.getElseExpr());
 			return leastUpperBound(thenType, elseType);
+		}
+
+		default Type computeType(ExprInput input) {
+			if (input.hasRepeat()) {
+				// TODO fix this hack
+				return portTypeRepeated(input.getPort(), new ExprLiteral(ExprLiteral.Kind.Integer, Integer.toString(input.getRepeat())));
+			} else {
+				return portType(input.getPort());
+			}
 		}
 
 

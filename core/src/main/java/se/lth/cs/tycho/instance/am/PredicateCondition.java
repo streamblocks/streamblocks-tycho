@@ -32,28 +32,26 @@ public class PredicateCondition extends Condition {
 	}
 	
 	public NamespaceDecl getLocation() {
-		return location;
+		return null; // TODO remove this method
 	}
 
-	public PredicateCondition(Expression expression, NamespaceDecl location) {
-		this(null, expression, location);
+	public PredicateCondition(Expression expression) {
+		this(null, expression);
 	}
 
-	private PredicateCondition(PredicateCondition original, Expression expression, NamespaceDecl location) {
+	private PredicateCondition(PredicateCondition original, Expression expression) {
 		super(original);
 		this.expression = expression;
-		this.location = location;
 	}
 
-	public PredicateCondition copy(Expression expression, NamespaceDecl origin) {
-		if (Objects.equals(this.expression, expression) && Objects.equals(this.location, origin)) {
+	public PredicateCondition copy(Expression expression) {
+		if (Objects.equals(this.expression, expression)) {
 			return this;
 		}
-		return new PredicateCondition(this, expression, origin);
+		return new PredicateCondition(this, expression);
 	}
 
 	private Expression expression;
-	private final NamespaceDecl location;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {

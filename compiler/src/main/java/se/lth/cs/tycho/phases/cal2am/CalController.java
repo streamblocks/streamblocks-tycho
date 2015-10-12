@@ -72,7 +72,7 @@ public class CalController implements Controller {
 	}
 
 	private PredicateCondition predicateCondition(Expression guard) {
-		return guards.computeIfAbsent(guard, g -> new PredicateCondition(g, null));
+		return guards.computeIfAbsent(guard, g -> new PredicateCondition(g));
 	}
 
 	private PortCondition inputCondition(Port port, int tokens) {

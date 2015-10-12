@@ -1,8 +1,5 @@
 package se.lth.cs.tycho.instance.am;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -10,25 +7,29 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.function.Consumer;
+
 public class Scope extends AbstractIRNode {
 	private final ImmutableList<VarDecl> declarations;
-	private final NamespaceDecl location;
+	private final boolean isPersistent;
 
-	public Scope(ImmutableList<VarDecl> declarations, NamespaceDecl origin) {
-		this(null, declarations, origin);
+	public enum Lifespan { PERSISTENT, TRANSIENT }
+
+	public Scope(ImmutableList<VarDecl> declarations, boolean isPersistent) {
+		this(null, declarations, isPersistent);
 	}
 
-	private Scope(IRNode original, ImmutableList<VarDecl> declarations, NamespaceDecl origin) {
+	private Scope(IRNode original, ImmutableList<VarDecl> declarations, boolean isPersistent) {
 		super(original);
 		this.declarations = ImmutableList.from(declarations);
-		this.location = origin;
+		this.isPersistent = isPersistent;
 	}
 	
-	public Scope copy(ImmutableList<VarDecl> declarations, NamespaceDecl origin) {
-		if (Lists.equals(this.declarations, declarations) && Objects.equals(this.location, origin)) {
+	public Scope copy(ImmutableList<VarDecl> declarations, boolean isPersistent) {
+		if (Lists.equals(this.declarations, declarations)) {
 			return this;
 		}
-		return new Scope(this, declarations, origin);
+		return new Scope(this, declarations, isPersistent);
 	}
 
 	public ImmutableList<VarDecl> getDeclarations() {
@@ -36,7 +37,11 @@ public class Scope extends AbstractIRNode {
 	}
 	
 	public NamespaceDecl getLocation() {
-		return location;
+		return null; // TODO remove this method
+	}
+
+	public boolean isPersistent() {
+		return isPersistent;
 	}
 
 	@Override

@@ -31,11 +31,7 @@ public class PrintTreesPhase implements Phase {
 	public CompilationTask execute(CompilationTask task, Context context) {
 		if (context.getConfiguration().get(printTrees)) {
 			Printer printer = new Printer();
-			task.getSourceUnits().forEach(sourceUnit -> {
-				System.out.println(sourceUnit.getLocation());
-				printer.accept(sourceUnit.getTree());
-				System.out.println();
-			});
+			task.forEachChild(printer::accept);
 		}
 		return task;
 	}

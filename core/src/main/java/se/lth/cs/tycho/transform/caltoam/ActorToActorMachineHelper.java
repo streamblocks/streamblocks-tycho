@@ -106,7 +106,7 @@ class ActorToActorMachineHelper {
 			}
 			int firstPredCond = condNbr;
 			for (Expression guard : action.getGuards()) {
-				PredicateCondition c = new PredicateCondition(guard, location);
+				PredicateCondition c = new PredicateCondition(guard);
 				handler.addCondition(actionNbr, condNbr);
 				conditions.add(c);
 				condNbr += 1;
@@ -165,7 +165,7 @@ class ActorToActorMachineHelper {
 		addConsumeStmts(builder, action.getInputPatterns());
 		StmtBlock body = new StmtBlock(null, null, builder.build());
 		return new Transition(getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()),
-				aveResult.transientScopes, body, location);
+				aveResult.transientScopes, body);
 	}
 
 	private void addConsumeStmts(Builder<Statement> builder, ImmutableList<InputPattern> inputPatterns) {

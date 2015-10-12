@@ -134,7 +134,7 @@ public class Composer {
 			Map<Port, Integer> outputRates = transformTokenRates(transition.getOutputRates(), eval);
 			return transition.copy(inputRates, outputRates,
 					eval.<ImmutableList<Integer>> evaluate("scopesToKill", transition),
-					transformStatement(transition.getBody(), eval), transition.getLocation());
+					transformStatement(transition.getBody(), eval));
 		}
 		private Map<Port, Integer> transformTokenRates(Map<Port, Integer> rates, AttributeEvaluator eval) {
 			Map<Port, Integer> result = new HashMap<>();

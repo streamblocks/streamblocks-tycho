@@ -10,8 +10,6 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -48,7 +46,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 
 	private ImmutableList<Scope> generateScopes(CalActor calActor, NamespaceDecl location) {
 		ImmutableList.Builder<Scope> result = ImmutableList.builder();
-		result.add(new Scope(calActor.getVarDecls(), location)); // FIXME get the correct namespace decl
+		result.add(new Scope(calActor.getVarDecls(), true));
 		ImmutableList<Action> actions = ImmutableList.<Action> builder()
 				.addAll(calActor.getInitializers())
 				.addAll(calActor.getActions())
@@ -62,7 +60,7 @@ class ActorVariableExtractor extends AbstractActorTransformer<ActorVariableExtra
 				addInputVarDecls(portDecl, in, builder);
 			}
 			builder.addAll(a.getVarDecls());
-			result.add(new Scope(builder.build(), null)); // FIXME get the correct namespace decl
+			result.add(new Scope(builder.build(), false));
 		}
 		return result.build();
 	}

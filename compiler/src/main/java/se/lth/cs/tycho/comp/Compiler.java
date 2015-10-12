@@ -20,22 +20,36 @@ import java.util.List;
 public class Compiler {
 	private final Context compilationContext;
 	public static final List<Phase> phases = Arrays.asList(
+			// Hack: pause to hook up profiler.
 			new WaitForInputPhase(),
+
+			// Parse
 			new LoadEntityPhase(),
 			new LoadImportsPhase(),
+
+			// For debugging
+			new PrettyPrintPhase(),
 			new PrintLoadedSourceUnits(),
 			new PrintTreesPhase(),
+
+			// Post parse
 			new OperatorParsingPhase(),
+
+			// Name and type analyses and transformations
 			new DeclarationAnalysisPhase(),
 			new ExpandStarImportsPhase(),
 			new NameAnalysisPhase(),
 			new TypeAnalysisPhase(),
 			new RenamePhase(),
 			new RemoveNamespacesPhase(),
+
+			// Actor transformations
 			new LiftProcessVarDeclsPhase(),
 			new ProcessToCalPhase(),
 			new CalToAmPhase(),
-			new PrettyPrintPhase()
+
+			// Code generations
+			new CBackendPhase()
 	);
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {

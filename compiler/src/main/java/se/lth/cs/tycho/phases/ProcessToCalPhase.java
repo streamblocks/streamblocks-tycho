@@ -174,7 +174,7 @@ public class ProcessToCalPhase implements Phase {
 			if (blockNames().containsKey(block)) {
 				return blockNames().get(block);
 			} else {
-				String name = "block$" + blockNames().size();
+				String name = "block_" + blockNames().size();
 				blockNames().put(block, name);
 				return name;
 			}
@@ -209,7 +209,7 @@ public class ProcessToCalPhase implements Phase {
 				if (first instanceof StmtRead) {
 					StmtRead read = (StmtRead) first;
 					ImmutableList<Map.Entry<LValue, VarDecl>> varDecls = read.getLValues()
-							.map(lvalue -> ImmutableEntry.of(lvalue, VarDecl.local(null, "t$" + uniqueNumbers().next(), true, null)));
+							.map(lvalue -> ImmutableEntry.of(lvalue, VarDecl.local(null, "t_" + uniqueNumbers().next(), true, null)));
 					InputPattern input = new InputPattern(read.getPort(), varDecls.map(Map.Entry::getValue), read.getRepeatExpression());
 					ImmutableList.Builder<Statement> bodyBuilder = ImmutableList.builder();
 					varDecls.forEach(entry -> bodyBuilder.add(new StmtAssignment(entry.getKey(),
