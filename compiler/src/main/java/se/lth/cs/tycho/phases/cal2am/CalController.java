@@ -34,6 +34,7 @@ public class CalController implements Controller {
 	private final Map<Expression, PredicateCondition> guards;
 	private final Map<String, Map<Integer, PortCondition>> inputConditions;
 	private final Map<String, Map<Integer, PortCondition>> outputConditions;
+	private List<CalState> cachedStateList;
 
 	public CalController(CalActor actor) {
 		this.actor = actor;
@@ -88,6 +89,14 @@ public class CalController implements Controller {
 	@Override
 	public State getInitialState() {
 		return new CalState();
+	}
+
+	@Override
+	public List<CalState> getStateList() {
+		if (cachedStateList == null) {
+			cachedStateList = (List<CalState>) Controller.super.getStateList();
+		}
+		return cachedStateList;
 	}
 
 	private BitSet actionsInState(String state) {

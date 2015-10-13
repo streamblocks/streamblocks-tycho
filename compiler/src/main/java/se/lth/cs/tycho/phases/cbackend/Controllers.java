@@ -10,8 +10,12 @@ import se.lth.cs.tycho.instance.am.ctrl.State;
 import se.lth.cs.tycho.instance.am.ctrl.Test;
 import se.lth.cs.tycho.instance.am.ctrl.Wait;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Module
 public interface Controllers {
@@ -23,7 +27,7 @@ public interface Controllers {
 	}
 
 	default void emitController(String name, Controller controller) {
-		List<State> stateList = stateList(controller);
+		List<? extends State> stateList = controller.getStateList();
 		Map<State, Integer> stateMap = stateMap(stateList);
 		Set<State> waitTargets = collectWaitTargets(stateList);
 
@@ -44,21 +48,7 @@ public interface Controllers {
 		emitter().emit("}");
 	}
 
-	default List<State> stateList(Controller controller) {
-		LinkedHashSet<State> result = new LinkedHashSet<>();
-		Deque<State> stack = new ArrayDeque<>();
-		stack.addLast(controller.getInitialState());
-		while (!stack.isEmpty()) {
-			State s = stack.removeLast();
-			if (result.add(s)) {
-				Instruction i = s.getInstructions().get(0);
-				i.forEachTarget(stack::addLast);
-			}
-		}
-		return result.stream().collect(Collectors.toList());
-	}
-
-	default Map<State, Integer> stateMap(List<State> stateList) {
+	default Map<State, Integer> stateMap(List<? extends State> stateList) {
 		int i = 0;
 		Map<State, Integer> result = new HashMap<>();
 		for (State s : stateList) {
@@ -104,7 +94,7 @@ public interface Controllers {
 		emitter().emit("");
 	}
 
-	default Set<State> collectWaitTargets(List<State> stateList) {
+	default Set<State> collectWaitTargets(List<? extends State> stateList) {
 		Set<State> targets = new HashSet<>();
 		for (State state : stateList) {
 			Instruction i = state.getInstructions().get(0);
