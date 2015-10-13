@@ -2,7 +2,7 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
-import se.lth.cs.tycho.instance.am.ctrl.Controller;
+import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.ctrl.Exec;
 import se.lth.cs.tycho.instance.am.ctrl.Instruction;
 import se.lth.cs.tycho.instance.am.ctrl.InstructionKind;
@@ -26,8 +26,8 @@ public interface Controllers {
 		return backend().emitter();
 	}
 
-	default void emitController(String name, Controller controller) {
-		List<? extends State> stateList = controller.getStateList();
+	default void emitController(String name, ActorMachine actorMachine) {
+		List<? extends State> stateList = actorMachine.controller().getStateList();
 		Map<State, Integer> stateMap = stateMap(stateList);
 		Set<State> waitTargets = collectWaitTargets(stateList);
 
@@ -41,7 +41,11 @@ public interface Controllers {
 
 		for (State s : stateList) {
 			emitter().emit("S%d:", stateMap.get(s));
-			emitInstruction(name, s.getInstructions().get(0), stateMap);
+			Instruction instruction = s.getInstructions().get(0);
+			backend().scopes().init(actorMachine, instruction).stream().forEach(scope ->
+					emitter().emit("%s_init_scope_%d(self);", name, scope)
+			);
+			emitInstruction(name, instruction, stateMap);
 		}
 
 		emitter().decreaseIndentation();
@@ -60,7 +64,6 @@ public interface Controllers {
 	void emitInstruction(String name, Instruction instruction, Map<State, Integer> stateNumbers);
 
 	default void emitInstruction(String name, Test test, Map<State, Integer> stateNumbers) {
-		emitter().emit("// init scopes");
 		emitter().emit("if (%s_condition_%d(self)) {", name, test.condition());
 		emitter().increaseIndentation();
 		emitter().emit("goto S%d;", stateNumbers.get(test.targetTrue()));
@@ -80,7 +83,6 @@ public interface Controllers {
 	}
 
 	default void emitInstruction(String name, Exec exec, Map<State, Integer> stateNumbers) {
-		emitter().emit("// init scopes");
 		emitter().emit("%s_transition_%d(self);", name, exec.transition());
 		emitter().emit("progress = true;");
 		emitter().emit("goto S%d;", stateNumbers.get(exec.target()));

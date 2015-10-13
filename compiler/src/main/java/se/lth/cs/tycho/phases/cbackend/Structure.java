@@ -59,7 +59,7 @@ public interface Structure {
 	}
 
 	default void actorMachineController(String name, ActorMachine actorMachine) {
-		backend().controllers().emitController(name, actorMachine.controller());
+		backend().controllers().emitController(name, actorMachine);
 	}
 
 	default void actorMachineInit(String name, ActorMachine actorMachine) {

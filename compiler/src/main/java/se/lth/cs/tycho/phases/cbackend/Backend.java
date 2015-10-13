@@ -4,6 +4,7 @@ import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.phases.TreeShadow;
+import se.lth.cs.tycho.phases.attributes.ActorMachineScopes;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 
@@ -17,6 +18,7 @@ public interface Backend {
 	@Binding(INJECTED) Names names();
 	@Binding(INJECTED) UniqueNumbers uniqueNumbers();
 	@Binding(INJECTED) TreeShadow tree();
+	@Binding(INJECTED) ActorMachineScopes scopes();
 
 	// Code generator
 	@Binding(MODULE) Variables variables();
