@@ -6,6 +6,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
+import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
@@ -18,6 +19,8 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.Type;
+import se.lth.cs.tycho.types.UnitType;
+
 
 import static org.multij.BindingKind.MODULE;
 
@@ -43,12 +46,13 @@ public interface Code {
 	default void assign(IntType type, String lvalue, Expression expr) {
 		assignScalar(type, lvalue, expr);
 	}
+	default void assign(UnitType type, String lvalue, Expression expr) { emitter().emit("%s = 0;", lvalue); }
 
 	default void assignScalar(Type type, String lvalue, Expression expr) {
 		emitter().emit("%s = %s;", lvalue, evaluate(expr));
 	}
 
-	default void assignScalar(IntType type, String lvalue, ExprInput input) {
+	default void assignScalar(Type type, String lvalue, ExprInput input) {
 		assert !input.hasRepeat() : "Cannot assign a repeated input to a scalar.";
 		Type portType = types().portType(input.getPort());
 		String tmp = variables().generateTemp();
@@ -63,6 +67,8 @@ public interface Code {
 		return type(type) + " " + name;
 	}
 
+	default String declaration(UnitType type, String name) { return "char " + name; }
+
 	String type(Type type);
 
 	default String type(IntType type) {
@@ -71,6 +77,10 @@ public interface Code {
 		} else {
 			return "int64_t";
 		}
+	}
+
+	default String type(UnitType type) {
+		return "char";
 	}
 
 	String evaluate(Expression expr);
@@ -96,7 +106,14 @@ public interface Code {
 			case "-":
 			case "*":
 			case "/":
+			case "<":
+			case "<=":
+			case ">":
+			case ">=":
+			case "==":
 				return String.format("(%s %s %s)", evaluate(left), operation, evaluate(right));
+			case "=":
+				return String.format("(%s == %s)", evaluate(left), evaluate(right));
 			default:
 				return null;
 		}

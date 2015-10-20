@@ -3,6 +3,8 @@ package se.lth.cs.tycho.ir.entity.nl;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -57,5 +59,10 @@ public class StructureIfStmt extends StructureStatement {
 		action.accept(condition);
 		trueStmt.forEach(action);
 		falseStmt.forEach(action);
+	}
+
+	@Override
+	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
+		throw new UnsupportedOperationException();
 	}
 }

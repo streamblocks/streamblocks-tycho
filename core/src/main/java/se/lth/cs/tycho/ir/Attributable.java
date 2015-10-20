@@ -8,5 +8,6 @@ public interface Attributable {
 
 	ImmutableList<ToolAttribute> getToolAttributes();
 
+	Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes);
 
 }

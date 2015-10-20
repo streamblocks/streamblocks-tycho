@@ -717,7 +717,7 @@ Action Action() :
 	("do" body = Statements())?
 	"end"
 	{
-		return new Action(0, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		return new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
 	}
 }
 
@@ -744,7 +744,7 @@ Action InitializationAction() :
 	("do" body = Statements())?
 	"end"
 	{
-		return new Action(0, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		return new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
 	}
 }
 

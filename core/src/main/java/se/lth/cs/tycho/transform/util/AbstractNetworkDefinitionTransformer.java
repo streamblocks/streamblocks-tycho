@@ -101,7 +101,7 @@ public class AbstractNetworkDefinitionTransformer<P> extends AbstractBasicTransf
 		for(Entry<String, Expression> entry : e.getParameterAssignments()){
 			parAssignments.add(new AbstractMap.SimpleEntry<String, Expression>(entry.getKey(), transformExpression(entry.getValue(), p)));
 		}
-		return e.copy(e.getEntityName(), parAssignments.build());
+		return e.copy(e.getEntityName(), parAssignments.build(), e.getToolAttributes());
 	}
 
 	@Override

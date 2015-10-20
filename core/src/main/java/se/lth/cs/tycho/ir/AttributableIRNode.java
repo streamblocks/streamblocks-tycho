@@ -6,7 +6,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class AttributableIRNode implements IRNode, Attributable {
+public abstract class AttributableIRNode implements IRNode, Attributable {
 	private final ImmutableList<ToolAttribute> attributes;
 
 	public AttributableIRNode(ImmutableList<ToolAttribute> attributes) {

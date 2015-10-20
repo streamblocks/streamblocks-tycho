@@ -3,8 +3,11 @@ package se.lth.cs.tycho.ir.entity.nl;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
@@ -14,6 +17,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
 public class EntityIfExpr extends EntityExpr {
 
 	public EntityIfExpr(Expression condition, EntityExpr trueEntity, EntityExpr falseEntity) {
+		super(null);
 		this.condition = condition;
 		this.trueEntity = trueEntity;
 		this.falseEntity = falseEntity;
@@ -52,5 +56,10 @@ public class EntityIfExpr extends EntityExpr {
 		action.accept(condition);
 		action.accept(trueEntity);
 		action.accept(falseEntity);
+	}
+
+	@Override
+	public EntityIfExpr withToolAttributes(ImmutableList<ToolAttribute> attributes) {
+		throw new UnsupportedOperationException();
 	}
 }

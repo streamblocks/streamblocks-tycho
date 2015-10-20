@@ -150,4 +150,12 @@ public class ActorMachine extends Entity {
 		transitions.forEach(action);
 		conditions.forEach(action);
 	}
+
+	public ActorMachine withController(Controller ctrl) {
+		if (this.newController == ctrl) {
+			return this;
+		} else {
+			return new ActorMachine(this, getInputPorts(), getOutputPorts(), getTypeParameters(), getValueParameters(), scopes, null, ctrl, transitions, conditions);
+		}
+	}
 }

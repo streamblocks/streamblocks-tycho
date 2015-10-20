@@ -12,9 +12,9 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
  * 
  */
 
-public abstract class EntityExpr extends AbstractIRNode {
-	public EntityExpr() {
-		super(null);
+public abstract class EntityExpr extends AttributableIRNode {
+	public EntityExpr(ImmutableList<ToolAttribute> toolAttributes) {
+		super(toolAttributes);
 	}
 
 	public abstract <R, P> R accept(EntityExprVisitor<R, P> v, P p);

@@ -68,7 +68,7 @@ public class XDFReader {
 			} else {
 				attributes = ImmutableList.of(new ToolValueAttribute("buffer-size", new ExprLiteral(ExprLiteral.Kind.Integer, bufferSize)));
 			}
-			result.add(new XDFConnection(null, src, srcPort, dst, dstPort, attributes));
+			result.add(new XDFConnection(src, srcPort, dst, dstPort, attributes));
 		}
 		return result.build();
 	}

@@ -116,7 +116,7 @@ public class RenamePhase implements Phase {
 		}
 
 		default IRNode rename(Variable original, Variable var) {
-			return var.copy(variableNames().get(names().declaration(original)));
+			return var.copy(name(names().declaration(original)));
 		}
 
 		default Map<String, String> parameterMap(EntityInstanceExpr original) {
@@ -156,7 +156,7 @@ public class RenamePhase implements Phase {
 			ImmutableList<Map.Entry<String, Expression>> assignments = instance.getParameterAssignments()
 					.map(entry -> ImmutableEntry.of(parameterMap.get(entry.getKey()), entry.getValue()));
 			String name = name(names().entityDeclaration(original));
-			return instance.copy(name, assignments);
+			return instance.copy(name, assignments, instance.getToolAttributes());
 		}
 	}
 }

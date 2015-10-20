@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -10,6 +12,7 @@ import java.util.function.Consumer;
 public class EntityListExpr extends EntityExpr {
 
 	public EntityListExpr(ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {
+		super(null);
 		this.entityList = ImmutableList.from(entityList);
 		this.generators = ImmutableList.from(generators);
 	}
@@ -59,5 +62,10 @@ public class EntityListExpr extends EntityExpr {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		entityList.forEach(action);
 		generators.forEach(action);
+	}
+
+	@Override
+	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
+		throw new UnsupportedOperationException();
 	}
 }

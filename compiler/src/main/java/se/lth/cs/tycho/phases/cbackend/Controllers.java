@@ -31,7 +31,7 @@ public interface Controllers {
 		Map<State, Integer> stateMap = stateMap(stateList);
 		Set<State> waitTargets = collectWaitTargets(stateList);
 
-		emitter().emit("_Bool %s_run(%1$s_state *self) {", name);
+		emitter().emit("static _Bool %s_run(%1$s_state *self) {", name);
 		emitter().increaseIndentation();
 
 		emitter().emit("_Bool progress = false;");

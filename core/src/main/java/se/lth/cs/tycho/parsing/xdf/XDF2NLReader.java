@@ -96,7 +96,7 @@ public class XDF2NLReader {
 			if (imported.add(entityQid)) {
 				imports.add(EntityDecl.importDecl(Availability.LOCAL, entityName, entityQid));
 			}
-			entities.add(ImmutableEntry.of(instanceName, new EntityInstanceExpr(entityName, ImmutableList.empty())));
+			entities.add(ImmutableEntry.of(instanceName, new EntityInstanceExpr(entityName, ImmutableList.empty(), ImmutableList.empty())));
 		}
 	}
 

@@ -259,7 +259,7 @@ public class NetDefEvaluator implements EntityExprVisitor<EntityExpr, Environmen
 				//TODO support for values that can not be represented as strings, i.e. ExprLambda
 				builder.add(new AbstractMap.SimpleEntry<String, Expression>(pa.getKey(), new ExprValue(pa.getValue(), ExprLiteral.Kind.Integer, value.toString(), value)));
 			}
-			return e.copy(e.getEntityName(), builder.build());
+			return e.copy(e.getEntityName(), builder.build(), e.getToolAttributes());
 		} catch(se.lth.cs.tycho.interp.exception.CALIndexOutOfBoundsException error){
 			String msg = error.getMessage();
 			throw new se.lth.cs.tycho.interp.exception.CALIndexOutOfBoundsException(msg);

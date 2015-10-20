@@ -46,7 +46,9 @@ public class Compiler {
 			// Actor transformations
 			new LiftProcessVarDeclsPhase(),
 			new ProcessToCalPhase(),
+			new AddSchedulePhase(),
 			new CalToAmPhase(),
+			new ReduceActorMachinePhase(),
 
 			// Code generations
 			new CBackendPhase()

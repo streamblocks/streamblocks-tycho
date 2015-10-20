@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
@@ -60,5 +61,14 @@ public class Connection extends AttributableIRNode {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(srcPort);
 		action.accept(dstPort);
+	}
+
+	@Override
+	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
+		if (Lists.elementIdentityEquals(getToolAttributes(), attributes)) {
+			return this;
+		} else {
+			return new Connection(srcNodeId, srcPort, dstNodeId, dstPort, attributes);
+		}
 	}
 }

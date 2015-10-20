@@ -212,6 +212,9 @@ public interface Types {
 				case "bool": {
 					return BoolType.INSTANCE;
 				}
+				case "unit": {
+					return UnitType.INSTANCE;
+				}
 				default:
 					return BottomType.INSTANCE;
 			}

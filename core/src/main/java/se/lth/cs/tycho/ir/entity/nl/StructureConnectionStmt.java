@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -26,7 +27,7 @@ public class StructureConnectionStmt extends StructureStatement {
 	public StructureConnectionStmt copy(PortReference src, PortReference dst,
 			ImmutableList<ToolAttribute> toolAttributes) {
 		if (Objects.equals(this.src, src) && Objects.equals(this.dst, dst)
-				&& Lists.equals(getToolAttributes(), toolAttributes)) {
+				&& Lists.elementIdentityEquals(getToolAttributes(), toolAttributes)) {
 			return this;
 		}
 		return new StructureConnectionStmt(src, dst, toolAttributes);
@@ -64,5 +65,14 @@ public class StructureConnectionStmt extends StructureStatement {
 				(PortReference) transformation.apply(dst),
 				(ImmutableList) getToolAttributes().map(transformation)
 		);
+	}
+
+	@Override
+	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
+		if (Lists.elementIdentityEquals(getToolAttributes(), attributes)) {
+			return this;
+		} else {
+			return new StructureConnectionStmt(src, dst, attributes);
+		}
 	}
 }

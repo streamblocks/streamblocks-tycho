@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
@@ -20,10 +21,10 @@ public class XDFConnection extends AttributableIRNode {
 	
 	public XDFConnection(String sourceInstance, Port sourcePort, String destinaitonInstance,
 			Port destinationPort) {
-		this(null, sourceInstance, sourcePort, destinaitonInstance, destinationPort, ImmutableList.empty());
+		this(sourceInstance, sourcePort, destinaitonInstance, destinationPort, ImmutableList.empty());
 	}
 	
-	public XDFConnection(IRNode original, String sourceInstance, Port sourcePort, String destinaitonInstance,
+	public XDFConnection(String sourceInstance, Port sourcePort, String destinaitonInstance,
 			Port destinationPort, List<ToolAttribute> attributes) {
 		super(ImmutableList.from(attributes));
 		this.sourceInstance = sourceInstance;
@@ -39,7 +40,7 @@ public class XDFConnection extends AttributableIRNode {
 				&& Lists.elementIdentityEquals(getToolAttributes(), attributes)) {
 			return this;
 		} else {
-			return new XDFConnection(this, sourceInstance, sourcePort, destinaitonInstance, destinationPort, attributes);
+			return new XDFConnection(sourceInstance, sourcePort, destinaitonInstance, destinationPort, attributes);
 		}
 	}
 
@@ -75,5 +76,14 @@ public class XDFConnection extends AttributableIRNode {
 				(Port) transformation.apply(destinationPort),
 				(ImmutableList) getToolAttributes().map(transformation)
 		);
+	}
+
+	@Override
+	public XDFConnection withToolAttributes(ImmutableList<ToolAttribute> attributes) {
+		if (Lists.elementIdentityEquals(getToolAttributes(), attributes)) {
+			return this;
+		} else {
+			return new XDFConnection(sourceInstance, sourcePort, destinaitonInstance, destinationPort, attributes);
+		}
 	}
 }

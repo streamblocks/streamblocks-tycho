@@ -1,12 +1,20 @@
 package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Module
 public interface Emitter {
+
+	@Binding(BindingKind.INJECTED)
+	PrintWriter writer();
+
 	@Binding
 	default AtomicInteger indentation() {
 		return new AtomicInteger(0);
@@ -24,11 +32,15 @@ public interface Emitter {
 		if (!format.isEmpty()) {
 			int i = indentation().get();
 			while (i > 0) {
-				System.out.print('\t');
+				writer().print('\t');
 				i--;
 			}
-			System.out.printf(format, values);
+			writer().printf(format, values);
 		}
-		System.out.println();
+		writer().println();
+	}
+
+	default void emitRawText(CharSequence text) {
+		writer().println(text);
 	}
 }

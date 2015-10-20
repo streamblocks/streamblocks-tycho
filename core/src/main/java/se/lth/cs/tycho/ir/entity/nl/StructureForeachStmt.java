@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -43,5 +45,10 @@ public class StructureForeachStmt extends StructureStatement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		generators.forEach(action);
 		statements.forEach(action);
+	}
+
+	@Override
+	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
+		throw new UnsupportedOperationException();
 	}
 }
