@@ -4,7 +4,10 @@ import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.comp.CompilationTask;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,10 +29,10 @@ public interface Main {
 	}
 
 	default void include() {
-		try {
-			Path path = Paths.get(ClassLoader.getSystemResource("c_backend_code/included.c").toURI());
-			Files.readAllLines(path).forEach(emitter()::emitRawText);
-		} catch (URISyntaxException | IOException e) {
+		try (InputStream in = ClassLoader.getSystemResourceAsStream("c_backend_code/included.c")) {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+			reader.lines().forEach(emitter()::emitRawText);
+		} catch (IOException e) {
 			throw new Error(e);
 		}
 	}
