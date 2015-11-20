@@ -1,0 +1,12 @@
+actor Id () int(size=8) X ==> int(size=8) Y :
+	action X: [v] ==> Y: [v] end
+end
+
+network IdNet () int(size=8) X ==> int(size=8) Y :
+	entities
+	id = Id();
+
+	structure
+	X --> id.X;
+	id.Y --> Y;
+end

@@ -1,7 +1,6 @@
 package se.lth.cs.tycho.comp;
 
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.settings.SettingsManager;
@@ -23,7 +22,7 @@ public class Main {
 	}
 
 	private void run(String... args) {
-		SettingsManager settingsManager = settingsManager();
+		SettingsManager settingsManager = Compiler.defaultSettingsManager();
 		Configuration.Builder builder = Configuration.builder(settingsManager);
 		List<String> promotedSettings = promotedSettings();
 		QID qid = null;
@@ -149,20 +148,6 @@ public class Main {
 		System.out.println("Examples:");
 		System.out.println("tychoc --source-paths src"+ File.pathSeparator+"lib --target-path target com.example.Example");
 		System.out.println("tychoc --set some-option a-value com.example.Example");
-	}
-
-	private SettingsManager settingsManager() {
-		return SettingsManager.builder()
-				.add(Compiler.sourcePaths)
-				.add(Compiler.orccSourcePaths)
-				.add(Compiler.xdfSourcePaths)
-				.add(Compiler.targetPath)
-				.add(Reporter.reportingLevel)
-				.add(Compiler.phaseTimer)
-				.addAll(Compiler.phases.stream()
-						.flatMap(phase -> phase.getPhaseSettings().stream())
-						.collect(Collectors.toList()))
-				.build();
 	}
 
 	private List<String> promotedSettings() {

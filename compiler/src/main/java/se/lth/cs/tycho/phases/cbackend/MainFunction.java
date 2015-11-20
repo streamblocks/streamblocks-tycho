@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Module
-public interface Main {
+public interface MainFunction {
 	@Binding
 	Backend backend();
 
@@ -40,7 +40,7 @@ public interface Main {
 	default void main(CompilationTask task) {
 		emitter().emit("int main(int argc, char **argv) {");
 		emitter().increaseIndentation();
-		emitter().emit("register_SIGINT_handler();");
+		//emitter().emit("register_SIGINT_handler();");
 		emitter().emit("return %s_main(argc, argv);", task.getIdentifier());
 		emitter().decreaseIndentation();
 		emitter().emit("}");

@@ -4,19 +4,20 @@
 #include <inttypes.h>
 #include <signal.h>
 
+
 static volatile _Bool interrupted = false;
+static const struct sigaction EMPTY_ACTION;
 
 
 static void handle_SIGINT(int s) {
 	interrupted = true;
 }
 
+
 static void register_SIGINT_handler() {
-		struct sigaction intact;
-		intact.sa_handler = handle_SIGINT;
-		intact.sa_mask = 0;
-		intact.sa_flags = 0;
-		sigaction(SIGINT, &intact, NULL);
+	struct sigaction intact = EMPTY_ACTION;
+	intact.sa_handler = handle_SIGINT;
+	sigaction(SIGINT, &intact, NULL);
 }
 
 

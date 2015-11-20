@@ -45,8 +45,8 @@ public class NlNetwork extends Entity {
 			ImmutableList<StructureStatement> structure, ImmutableList<ToolAttribute> toolAttributes) {
 
 		super(original, inputPorts, outputPorts, typePars, valuePars);
-		this.typeDecls = typeDecls;
-		this.varDecls = varDecls;
+		this.typeDecls = ImmutableList.from(typeDecls);
+		this.varDecls = ImmutableList.from(varDecls);
 		this.entities = ImmutableList.from(entities);
 		this.toolAttributes = ImmutableList.from(toolAttributes);
 		this.structure = ImmutableList.from(structure);

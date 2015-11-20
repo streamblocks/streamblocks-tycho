@@ -10,14 +10,16 @@ public abstract class Decl extends AbstractIRNode {
 
 	private final Availability availability;
 	private final String name;
+	private final String originalName;
 	private final DeclKind declKind;
 	private final LocationKind locationKind;
 	private final QID qualifiedIdentifier;
 
-	protected Decl(IRNode original, LocationKind locationKind, Availability availability, DeclKind declKind, String name, QID qualifiedIdentifier) {
+	protected Decl(Decl original, LocationKind locationKind, Availability availability, DeclKind declKind, String name, QID qualifiedIdentifier) {
 		super(original);
 		this.availability = availability;
 		this.name = name;
+		this.originalName = (original == null ? name : original.originalName);
 		this.declKind = declKind;
 		this.locationKind = locationKind;
 		this.qualifiedIdentifier = qualifiedIdentifier;
@@ -30,6 +32,8 @@ public abstract class Decl extends AbstractIRNode {
 	public String getName() {
 		return name;
 	}
+
+	public String getOriginalName() { return originalName; }
 
 	public DeclKind getDeclKind() {
 		return declKind;

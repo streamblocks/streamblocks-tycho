@@ -55,6 +55,14 @@ public class Configuration {
 			return this;
 		}
 
+		public <T> Builder set(Setting<T> key, T value) throws UnknownKeyException {
+			if (!manager.containsKey(key.getKey()) || manager.get(key.getKey()) != key) {
+				throw new UnknownKeyException(key.getKey());
+			}
+			configuration.put(key.getKey(), value);
+			return this;
+		}
+
 		public Configuration build() {
 			return new Configuration(manager, configuration);
 		}

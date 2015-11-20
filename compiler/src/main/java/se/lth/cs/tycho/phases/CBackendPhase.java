@@ -24,8 +24,14 @@ public class CBackendPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
+		String targetName = task.getTarget().getEntityDecls().stream()
+				.filter(decl -> decl.getName().equals(task.getIdentifier().toString()))
+				.findFirst()
+				.get()
+				.getOriginalName();
+
 		Path path = context.getConfiguration().get(Compiler.targetPath);
-		Path target = path.resolve(task.getIdentifier().toString() + ".c");
+		Path target = path.resolve(targetName + ".c");
 		PrintWriter writer;
 		try {
 			writer = new PrintWriter(Files.newBufferedWriter(target));

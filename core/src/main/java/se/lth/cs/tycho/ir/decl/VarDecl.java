@@ -1,15 +1,13 @@
 package se.lth.cs.tycho.ir.decl;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
+
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class VarDecl extends Decl {
 
@@ -17,7 +15,7 @@ public class VarDecl extends Decl {
 	private final Expression value;
 	private final boolean constant;
 
-	private VarDecl(IRNode original, LocationKind locationKind, Availability availability, TypeExpr type, String name,
+	private VarDecl(VarDecl original, LocationKind locationKind, Availability availability, TypeExpr type, String name,
 			boolean constant, Expression value, QID qualifiedIdentifier) {
 		super(original, locationKind, availability, DeclKind.VAR, name, qualifiedIdentifier);
 		this.type = type;
@@ -140,5 +138,13 @@ public class VarDecl extends Decl {
 		} else {
 			return new VarDecl(this, getLocationKind(), getAvailability(), type, getName(), constant, value, qid);
 		}
+	}
+
+	public VarDecl clone() {
+		return (VarDecl) super.clone();
+	}
+
+	public VarDecl deepClone() {
+		return (VarDecl) super.deepClone();
 	}
 }

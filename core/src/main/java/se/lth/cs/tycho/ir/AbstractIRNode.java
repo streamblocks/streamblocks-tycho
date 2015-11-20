@@ -105,7 +105,7 @@ public abstract class AbstractIRNode implements IRNode {
 		try {
 			return (IRNode) super.clone();
 		} catch (CloneNotSupportedException e) {
-			throw new Error(e);
+			throw new AssertionError(e);
 		}
 	}
 }

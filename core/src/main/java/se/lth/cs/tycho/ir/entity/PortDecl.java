@@ -77,4 +77,14 @@ public class PortDecl extends AbstractIRNode {
 	public PortDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(name, type == null ? null : (TypeExpr) transformation.apply(type));
 	}
+
+	@Override
+	public PortDecl clone() {
+		return (PortDecl) super.clone();
+	}
+
+	@Override
+	public PortDecl deepClone() {
+		return (PortDecl) super.deepClone();
+	}
 }

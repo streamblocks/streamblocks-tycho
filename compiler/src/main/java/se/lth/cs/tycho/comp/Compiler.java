@@ -9,6 +9,7 @@ import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.PathListSetting;
 import se.lth.cs.tycho.settings.PathSetting;
 import se.lth.cs.tycho.settings.Setting;
+import se.lth.cs.tycho.settings.SettingsManager;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Compiler {
 	private final Context compilationContext;
@@ -42,6 +44,7 @@ public class Compiler {
 			new TypeAnalysisPhase(),
 			new RenamePhase(),
 			new RemoveNamespacesPhase(),
+			new WrapActorInNetworkPhase(),
 
 			// Actor transformations
 			new LiftProcessVarDeclsPhase(),
@@ -143,6 +146,20 @@ public class Compiler {
 		Reporter reporter = Reporter.instance(configuration);
 		Loader loader = Loader.instance(configuration, reporter);
 		this.compilationContext = new Context(configuration, loader, reporter);
+	}
+
+	public static SettingsManager defaultSettingsManager() {
+		return SettingsManager.builder()
+				.add(sourcePaths)
+				.add(orccSourcePaths)
+				.add(xdfSourcePaths)
+				.add(targetPath)
+				.add(Reporter.reportingLevel)
+				.add(phaseTimer)
+				.addAll(phases.stream()
+						.flatMap(phase -> phase.getPhaseSettings().stream())
+						.collect(Collectors.toList()))
+				.build();
 	}
 
 	public boolean compile(QID entity) {
