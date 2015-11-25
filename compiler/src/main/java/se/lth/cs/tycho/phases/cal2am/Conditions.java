@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phases.attributes.Constants;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -26,10 +27,12 @@ public class Conditions {
 	private Map<InputPattern, Integer> inputConditions;
 	private Map<OutputExpression, Integer> outputConditions;
 	private Map<Expression, Integer> predicateConditions;
+	private final Constants constants;
 
-	public Conditions(CalActor actor) {
+	public Conditions(CalActor actor, Constants constants) {
 		this.actor = actor;
 		this.initialized = false;
+		this.constants = constants;
 	}
 
 	private void init() {
@@ -83,10 +86,7 @@ public class Conditions {
 		if (expr == null) {
 			return 1;
 		} else {
-			assert expr instanceof ExprLiteral;
-			ExprLiteral literal = (ExprLiteral) expr;
-			assert literal.getKind() == ExprLiteral.Kind.Integer;
-			return Integer.parseInt(literal.getText());
+			return constants.intValue(expr).getAsInt();
 		}
 	}
 

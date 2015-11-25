@@ -1,0 +1,11 @@
+{
+  "description": "Id actor without network",
+  "source-paths": ["."],
+  "entity": "Id",
+  "test-data": [
+    {
+      "input": ["testdata"],
+      "reference": ["testdata"]
+    }
+  ]
+}

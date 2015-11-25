@@ -8,10 +8,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Module
 public interface MainFunction {
@@ -24,7 +20,8 @@ public interface MainFunction {
 
 	default void generateCode(CompilationTask task) {
 		include();
-		task.getTarget().getEntityDecls().forEach(backend().structure()::entityDecl);
+		backend().global().globalVariables(task.getTarget().getVarDecls());
+		backend().structure().entityDecls(task.getTarget().getEntityDecls());
 		main(task);
 	}
 
@@ -40,7 +37,8 @@ public interface MainFunction {
 	default void main(CompilationTask task) {
 		emitter().emit("int main(int argc, char **argv) {");
 		emitter().increaseIndentation();
-		//emitter().emit("register_SIGINT_handler();");
+		emitter().emit("register_SIGINT_handler();");
+		emitter().emit("init_global_variables();");
 		emitter().emit("return %s_main(argc, argv);", task.getIdentifier());
 		emitter().decreaseIndentation();
 		emitter().emit("}");

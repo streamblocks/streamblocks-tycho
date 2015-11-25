@@ -6,17 +6,16 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.SettingsManager;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.junit.Assert.*;
 
 public class ProgramTester {
 	private final Path executable;
@@ -25,11 +24,11 @@ public class ProgramTester {
 		this.executable = executable;
 	}
 
-	public static ProgramTester compile(Path source, QID name) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
+	public static ProgramTester compile(List<Path> source, QID name) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
 		Path target = Files.createTempDirectory(name.toString());
 		SettingsManager settings = Compiler.defaultSettingsManager();
 		Configuration config = Configuration.builder(settings)
-				.set(Compiler.sourcePaths, Collections.singletonList(source))
+				.set(Compiler.sourcePaths, source)
 				.set(Compiler.targetPath, target)
 				.build();
 		Compiler comp = new Compiler(config);
@@ -75,11 +74,28 @@ public class ProgramTester {
 		Process program = new ProcessBuilder(args)
 				.directory(temp.toFile())
 				.start();
-		String error = IOUtils.toString(program.getInputStream());
+		String error = IOUtils.toString(program.getErrorStream());
 		if (program.waitFor() == 0) {
-
+			diff(reference, out);
 		} else {
-			throw new RuntimeException("Exited with " + program.exitValue());
+			fail("Program failed with output:\n" + error);
 		}
+	}
+
+	private void diff(List<Path> expected, List<Path> actual) throws IOException {
+		assert expected.size() == actual.size();
+		Iterator<Path> expIter = expected.iterator();
+		Iterator<Path> actIter = actual.iterator();
+		while (expIter.hasNext() && actIter.hasNext()) {
+			Path exp = expIter.next();
+			Path act = actIter.next();
+			diff(exp, act);
+		}
+		assert !expIter.hasNext();
+		assert !actIter.hasNext();
+	}
+	private void diff(Path expected, Path actual) throws IOException {
+		assertEquals(String.format("Wrong size of output, comparing \"%s\" with \"%s\".", expected, actual), Files.size(expected), Files.size(actual));
+		assertArrayEquals(String.format("Wrong content of output, comparing \"%s\" with \"%s\".", expected, actual), Files.readAllBytes(expected), Files.readAllBytes(actual));
 	}
 }

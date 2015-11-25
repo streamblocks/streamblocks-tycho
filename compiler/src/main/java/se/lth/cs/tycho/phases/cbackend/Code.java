@@ -4,9 +4,9 @@ import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
+import se.lth.cs.tycho.ir.expr.ExprIndexer;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
-import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
@@ -15,12 +15,15 @@ import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.IntType;
+import se.lth.cs.tycho.types.ListType;
 import se.lth.cs.tycho.types.Type;
 import se.lth.cs.tycho.types.UnitType;
 
+import java.util.OptionalInt;
 
 import static org.multij.BindingKind.MODULE;
 
@@ -47,6 +50,9 @@ public interface Code {
 		assignScalar(type, lvalue, expr);
 	}
 	default void assign(UnitType type, String lvalue, Expression expr) { emitter().emit("%s = 0;", lvalue); }
+	default void assign(ListType type, String lvalue, Expression expr) {
+		assignList(type, lvalue, expr);
+	}
 
 	default void assignScalar(Type type, String lvalue, Expression expr) {
 		emitter().emit("%s = %s;", lvalue, evaluate(expr));
@@ -61,6 +67,25 @@ public interface Code {
 		emitter().emit("%s = %s;", lvalue, tmp); // should handle some discrepancies between port type and variable type.
 	}
 
+	void assignList(ListType type, String lvalue, Expression expr);
+	default void assignList(ListType type, String lvalue, ExprInput input) {
+		assert input.hasRepeat(); // only repeat assignments to lists are supported
+		assert input.getPatternLength() == 1; // only with one variable
+		assert input.getOffset() == 0; // and that variable is therefore the first
+		Type portType = new ListType(types().portType(input.getPort()), OptionalInt.of(input.getRepeat()));
+		emitter().emit("channel_peek(self->%s_channel, 0, sizeof(%s), (char*) &%s);", input.getPort().getName(), type(portType), lvalue);
+	}
+	default void assignList(ListType type, String lvalue, ExprVariable var) {
+		assert type.getSize().isPresent();
+		String tmp = variables().generateTemp();
+		String rvalue = evaluate(var);
+		emitter().emit("for (size_t %s=0; %1$s < %d; %1$s++) {", tmp, type.getSize().getAsInt());
+		emitter().increaseIndentation();
+		emitter().emit("%s[%s] = %s[%2$s];", lvalue, tmp, rvalue);
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+	}
+
 	String declaration(Type type, String name);
 
 	default String declaration(IntType type, String name) {
@@ -68,6 +93,14 @@ public interface Code {
 	}
 
 	default String declaration(UnitType type, String name) { return "char " + name; }
+
+	default String declaration(ListType type, String name) {
+		if (type.getSize().isPresent()) {
+			return String.format("%s %s[%d]", type(type.getElementType()), name, type.getSize().getAsInt());
+		} else {
+			throw new RuntimeException("Not implemented");
+		}
+	}
 
 	String type(Type type);
 
@@ -81,6 +114,14 @@ public interface Code {
 
 	default String type(UnitType type) {
 		return "char";
+	}
+
+	default String type(ListType type) {
+		if (type.getSize().isPresent()) {
+			return String.format("%s[%s]", type(type.getElementType()), type.getSize().getAsInt());
+		} else {
+			throw new RuntimeException("Not implemented");
+		}
 	}
 
 	String evaluate(Expression expr);
@@ -119,15 +160,19 @@ public interface Code {
 		}
 	}
 
+	default String evaluate(ExprIndexer indexer) {
+		return String.format("%s[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
+	}
+
 	void execute(Statement stmt);
 
 	default void execute(StmtConsume consume) {
-		emitter().emit("channel_consume(self->%s_channel, sizeof(%s));", consume.getPort().getName(), type(types().portType(consume.getPort())));
+		emitter().emit("channel_consume(self->%s_channel, sizeof(%s)*%d);", consume.getPort().getName(), type(types().portType(consume.getPort())), consume.getNumberOfTokens());
 	}
 
 	default void execute(StmtWrite write) {
+		String portName = write.getPort().getName();
 		if (write.getRepeatExpression() == null) {
-			String portName = write.getPort().getName();
 			String portType = type(types().portType(write.getPort()));
 			String tmp = variables().generateTemp();
 			emitter().emit("%s;", declaration(types().portType(write.getPort()), tmp));
@@ -135,6 +180,10 @@ public interface Code {
 				emitter().emit("%s = %s;", tmp, evaluate(expr));
 				emitter().emit("channel_write(self->%s_channels, self->%1$s_count, (char*) &%s, sizeof(%s));", portName, tmp, portType);
 			}
+		} else if (write.getValues().size() == 1) {
+			String portType = type(types().portTypeRepeated(write.getPort(), write.getRepeatExpression()));
+			String value = evaluate(write.getValues().get(0));
+			emitter().emit("channel_write(self->%s_channels, self->%1$s_count, (char*) &%s, sizeof(%s));", portName, value, portType);
 		} else {
 			throw new Error("not implemented");
 		}
@@ -162,5 +211,9 @@ public interface Code {
 
 	default String lvalue(LValueVariable var) {
 		return variables().name(var.getVariable());
+	}
+
+	default String lvalue(LValueIndexer indexer) {
+		return String.format("%s[%s]", lvalue(indexer.getStructure()), evaluate(indexer.getIndex()));
 	}
 }

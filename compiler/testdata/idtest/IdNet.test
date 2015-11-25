@@ -1,0 +1,11 @@
+{
+  "description": "Id actor in network",
+  "source-paths": ["."],
+  "entity": "IdNet",
+  "test-data": [
+    {
+      "input": ["testdata"],
+      "reference": ["testdata"]
+    }
+  ]
+}

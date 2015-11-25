@@ -9,6 +9,7 @@ import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phases.attributes.Constants;
 import se.lth.cs.tycho.transform.caltoam.util.BitSets;
 
 import java.util.ArrayList;
@@ -21,10 +22,12 @@ public class Scopes {
 	private List<Scope> scopes;
 	private BitSet persistentScopes;
 	private BitSet transientScopes;
+	private final Constants constants;
 
-	public Scopes(CalActor actor) {
+	public Scopes(CalActor actor, Constants constants) {
 		this.actor = actor;
 		initialized = false;
+		this.constants = constants;
 	}
 
 	private void init() {
@@ -57,7 +60,7 @@ public class Scopes {
 					i = i + 1;
 				}
 			} else {
-				int repeat = ((ExprLiteral) input.getRepeatExpr()).asInt().getAsInt();
+				int repeat = constants.intValue(input.getRepeatExpr()).getAsInt();
 				int patternLength = input.getVariables().size();
 				int i = 0;
 				for (VarDecl var : input.getVariables()) {

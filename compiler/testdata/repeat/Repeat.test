@@ -1,0 +1,11 @@
+{
+  "description": "Chain of id actors with different repeat patterns",
+  "source-paths": ["."],
+  "entity": "Repeat.IdRepeatChain",
+  "test-data": [
+    {
+      "input": ["data"],
+      "reference": ["data"]
+    }
+  ]
+}

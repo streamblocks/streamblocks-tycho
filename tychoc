@@ -6,7 +6,7 @@ comp="$root/compiler/target/compiler-1.0-SNAPSHOT.jar"
 
 if [ -f "$comp" ]
 then
-	java -cp "$comp:$lib/core-1.0-SNAPSHOT.jar:$lib/javarag-0.0.1-SNAPSHOT.jar:$lib/jopt-simple-4.7.jar" se.lth.cs.tycho.compiler.Compiler "$@"
+	java -cp "$comp:$lib/core-1.0-SNAPSHOT.jar:$lib/multij-core-0.1-SNAPSHOT.jar" se.lth.cs.tycho.comp.Main "$@"
 else
 	echo "Tycho is not compiled. Please, run \"mvn install\" to compile Tycho."
 	exit 1

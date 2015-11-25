@@ -5,8 +5,6 @@ import org.multij.BindingKind;
 import org.multij.Module;
 
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Module

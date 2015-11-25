@@ -26,6 +26,6 @@ public interface Backend {
 	@Binding(MODULE) Structure structure();
 	@Binding(MODULE) Code code();
 	@Binding(MODULE) Controllers controllers();
-	@Binding(MODULE)
-	MainFunction main();
+	@Binding(MODULE) MainFunction main();
+	@Binding(MODULE) Global global();
 }

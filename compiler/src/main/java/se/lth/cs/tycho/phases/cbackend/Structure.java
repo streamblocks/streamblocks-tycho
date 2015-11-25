@@ -18,6 +18,7 @@ import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 
@@ -406,5 +407,9 @@ public interface Structure {
 		emitter().emit("} %s_state;", name);
 		emitter().emit("");
 		emitter().emit("");
+	}
+
+	default void entityDecls(ImmutableList<EntityDecl> entityDecls) {
+		entityDecls.forEach(backend().structure()::entityDecl);
 	}
 }

@@ -7,6 +7,7 @@ import se.lth.cs.tycho.instance.am.ctrl.Instruction;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phases.attributes.Constants;
 import se.lth.cs.tycho.phases.cal2am.CalToAm;
 import se.lth.cs.tycho.phases.cal2am.KnowledgeRemoval;
 import se.lth.cs.tycho.settings.Setting;
@@ -25,7 +26,7 @@ public class CalToAmPhase implements Phase {
 	public CompilationTask execute(CompilationTask task, Context context) {
 		return task.withTarget(task.getTarget().withEntityDecls(task.getTarget().getEntityDecls().map(decl -> {
 			if (decl.getEntity() instanceof CalActor) {
-				CalToAm translator = new CalToAm((CalActor) decl.getEntity(), context.getConfiguration());
+				CalToAm translator = new CalToAm((CalActor) decl.getEntity(), context.getConfiguration(), context.getAttributeManager().getAttributeModule(Constants.key, task));
 				return decl.withEntity(translator.buildActorMachine());
 			} else {
 				return decl;
