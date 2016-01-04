@@ -46,7 +46,7 @@ public class XDF2NLReader {
 	private NamespaceDecl buildNetwork(Document doc, QID qid) {
 		ImmutableList.Builder<EntityDecl> entities = ImmutableList.builder();
 		ImmutableList.Builder<Map.Entry<String, EntityExpr>> instances = ImmutableList.builder();
-		buildNodes(doc, entities, instances);
+		buildNodes(doc, qid.getButLast(), entities, instances);
 		ImmutableList.Builder<StructureStatement> connections = ImmutableList.builder();
 		buildConnections(doc, connections);
 		ImmutableList<PortDecl> inputPorts = buildPorts(doc, true);
@@ -86,14 +86,14 @@ public class XDF2NLReader {
 		}
 	}
 
-	private void buildNodes(Document input, ImmutableList.Builder<EntityDecl> imports, ImmutableList.Builder<Map.Entry<String, EntityExpr>> entities) {
+	private void buildNodes(Document input, QID ns, ImmutableList.Builder<EntityDecl> imports, ImmutableList.Builder<Map.Entry<String, EntityExpr>> entities) {
 		Set<QID> imported = new HashSet<>();
 		Set<String> entityNames = new HashSet<>();
 		for (Element instance : selectChildren(input.getDocumentElement(), "Instance")) {
 			String instanceName = instance.getAttribute("id");
 			QID entityQid = QID.parse(selectChild(instance, "Class").getAttribute("name"));
 			String entityName = uniqueName(entityNames, entityQid.getLast().toString());
-			if (imported.add(entityQid)) {
+			if (!entityQid.getButLast().equals(ns) && imported.add(entityQid)) {
 				imports.add(EntityDecl.importDecl(Availability.LOCAL, entityName, entityQid));
 			}
 			entities.add(ImmutableEntry.of(instanceName, new EntityInstanceExpr(entityName, ImmutableList.empty(), ImmutableList.empty())));

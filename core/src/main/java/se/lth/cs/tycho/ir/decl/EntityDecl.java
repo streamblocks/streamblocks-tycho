@@ -22,7 +22,7 @@ public class EntityDecl extends Decl {
 	}
 
 	private EntityDecl(EntityDecl original, Availability availability, String name, Entity entity, QID qid) {
-		super(original, LocationKind.GLOBAL, availability, DeclKind.ENTITY, name, null);
+		super(original, LocationKind.GLOBAL, availability, DeclKind.ENTITY, name, qid);
 		this.entity = entity;
 	}
 
@@ -31,26 +31,22 @@ public class EntityDecl extends Decl {
 	}
 
 	public static EntityDecl importDecl(Availability availability, String name, QID qid) {
+		assert qid != null;
 		return new EntityDecl(null, availability, name, null, qid);
-	}
-
-	public EntityDecl copyAsGlobal(Availability availability, String name, Entity entity) {
-		if (this.getAvailability() == availability && Objects.equals(this.getName(), name)
-				&& this.entity.equals(entity)) {
-			return this;
-		} else {
-			return global(availability, name, entity);
-		}
 	}
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(entity);
+		if (entity != null) action.accept(entity);
 	}
 
 	@Override
 	public EntityDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
-		return withEntity((Entity) transformation.apply(entity));
+		if (entity == null) {
+			return this;
+		} else {
+			return withEntity((Entity) transformation.apply(entity));
+		}
 	}
 
 	public EntityDecl withName(String name) {

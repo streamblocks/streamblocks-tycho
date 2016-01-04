@@ -23,6 +23,7 @@ public interface Constants {
 		public Constants createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(Constants.class)
 					.bind("names").to(manager.getAttributeModule(Names.key, unit))
+					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
 					.instance();
 		}
 	};
@@ -30,12 +31,17 @@ public interface Constants {
 	@Binding(BindingKind.INJECTED)
 	Names names();
 
+	@Binding(BindingKind.INJECTED)
+	GlobalNames globalNames();
+
 	default OptionalInt intValue(Expression e) {
 		return OptionalInt.empty();
 	}
 
-	default OptionalInt intValue(ExprVariable var) {
-		VarDecl decl = names().declaration(var.getVariable());
+	default OptionalInt intValue(VarDecl decl) {
+		if (decl.isImport()) {
+			return intValue(globalNames().varDecl(decl.getQualifiedIdentifier(), false));
+		}
 		if (decl.isConstant() &&
 				(decl.getLocationKind() == LocationKind.GLOBAL || decl.getLocationKind() == LocationKind.LOCAL) &&
 				decl.getValue() != null) {
@@ -43,6 +49,10 @@ public interface Constants {
 		} else {
 			return OptionalInt.empty();
 		}
+	}
+
+	default OptionalInt intValue(ExprVariable var) {
+		return intValue(names().declaration(var.getVariable()));
 	}
 
 	default OptionalInt intValue(ExprLiteral literal) {

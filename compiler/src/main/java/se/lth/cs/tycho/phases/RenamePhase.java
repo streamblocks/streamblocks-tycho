@@ -121,6 +121,9 @@ public class RenamePhase implements Phase {
 
 		default Map<String, String> parameterMap(EntityInstanceExpr original) {
 			EntityDecl entityDecl = names().entityDeclaration(original);
+			if (entityDecl.isImport()) {
+				entityDecl = globalNames().entityDecl(entityDecl.getQualifiedIdentifier(), false);
+			}
 			return entityDecl.getEntity().getValueParameters().stream().collect(Collectors.toMap(
 					VarDecl::getName,
 					decl -> variableNames().computeIfAbsent(decl, d -> generateName(d.getName()))));
