@@ -45,7 +45,6 @@ import se.lth.cs.tycho.instance.net.Connection;
 import se.lth.cs.tycho.instance.net.Network;
 import se.lth.cs.tycho.instance.net.Node;
 import se.lth.cs.tycho.instance.net.ToolAttribute;
-import se.lth.cs.tycho.interp.VariableLocation;
 import se.lth.cs.tycho.ir.Field;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.Port;
@@ -664,9 +663,6 @@ InstructionVisitor<Void, Element>{
 		} else {
 			varElem.setAttribute("isScopeVariable", "false");
 		}
-		if(var instanceof VariableLocation){
-			varElem.setAttribute("offset", Integer.toString(((VariableLocation)var).getOffset()));
-		}
 	}
 	private void generateXMLForField(Field f, Element p){
 		Element fieldElem = doc.createElement("Field");
@@ -822,12 +818,7 @@ InstructionVisitor<Void, Element>{
 	}
 	@Override
 	public Void visitExprLiteral(ExprLiteral e, Element p) {
-		Element litteralElement;
-		if(e instanceof se.lth.cs.tycho.interp.values.ExprValue){
-			litteralElement = doc.createElement("ExprValue");
-		} else {
-			litteralElement = doc.createElement("ExprLiteral");
-		}
+		Element litteralElement = doc.createElement("ExprLiteral");
 		litteralElement.setAttribute("text", e.getText());
 		p.appendChild(litteralElement);
 		return null;
