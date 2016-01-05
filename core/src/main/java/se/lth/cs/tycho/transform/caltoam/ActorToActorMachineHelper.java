@@ -187,11 +187,7 @@ class ActorToActorMachineHelper {
 	}
 
 	private Port copyPort(Port port) {
-		if (port.hasLocation()) {
-			return new Port(port.getName(), port.getOffset());
-		} else {
-			return new Port(port.getName());
-		}
+		return new Port(port.getName());
 	}
 	
 	private Map<Port, Integer> getOutputRates(ImmutableList<OutputExpression> outputExpressions) {

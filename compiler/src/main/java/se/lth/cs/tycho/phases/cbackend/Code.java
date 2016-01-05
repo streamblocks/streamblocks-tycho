@@ -18,6 +18,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.phases.attributes.Types;
+import se.lth.cs.tycho.types.BoolType;
 import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.ListType;
 import se.lth.cs.tycho.types.Type;
@@ -101,6 +102,8 @@ public interface Code {
 			throw new RuntimeException("Not implemented");
 		}
 	}
+
+	default String declaration(BoolType type, String name) { return "_Bool " + name; }
 
 	String type(Type type);
 

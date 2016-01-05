@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.analyze;
+package se.lth.cs.tycho.transform.compose;
 
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.PortCondition;

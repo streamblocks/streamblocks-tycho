@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 import javarag.AttributeEvaluator;
 import javarag.AttributeRegister;
 import javarag.impl.reg.BasicAttributeRegister;
-import se.lth.cs.tycho.analyze.Ports;
 import se.lth.cs.tycho.instance.am.ActorMachine;
 import se.lth.cs.tycho.instance.am.Condition;
 import se.lth.cs.tycho.instance.am.Scope;
