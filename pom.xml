@@ -9,7 +9,6 @@
 	<modules>
 		<module>core</module>
 		<module>compiler</module>
-		<module>old-controller-stuff</module>
 	</modules>
 
 	<properties>
