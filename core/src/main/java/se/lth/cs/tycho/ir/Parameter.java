@@ -44,6 +44,7 @@ public class Parameter<T extends IRNode> extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Parameter<T> transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(name, (T) transformation.apply(value));
 	}

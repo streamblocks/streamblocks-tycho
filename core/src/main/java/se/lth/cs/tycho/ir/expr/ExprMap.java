@@ -102,6 +102,7 @@ public class ExprMap extends Expression {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public ExprMap transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		Function<? super ImmutableEntry<Expression, Expression>, ? extends ImmutableEntry<Expression, Expression>> function = (ImmutableEntry<Expression, Expression> entry) -> {
 			Expression key = (Expression) transformation.apply(entry.getKey());

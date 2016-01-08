@@ -50,6 +50,7 @@ public class StmtForeach extends Statement {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public StmtForeach transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) generators.map(transformation),

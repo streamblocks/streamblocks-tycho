@@ -20,11 +20,13 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	private final E[] list;
 	private final int size;
 
+	@SuppressWarnings("unchecked")
 	private ImmutableList(Object[] list, int size) {
 		this.list = (E[]) list;
 		this.size = size;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <F> ImmutableList<F> map(Function<? super E, ? extends F> function) {
 		F transformed = null;
 		int i = 0;
@@ -91,6 +93,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	 * 
 	 * @return an empty list.
 	 */
+	@SuppressWarnings("unchecked")
 	public static <E> ImmutableList<E> empty() {
 		return EMPTY_LIST;
 	}

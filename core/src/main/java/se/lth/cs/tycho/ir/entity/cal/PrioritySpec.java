@@ -62,6 +62,7 @@ public class PrioritySpec extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public PrioritySpec transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(scheduleStates, (ImmutableList) priorities.map(transformation));
 	}

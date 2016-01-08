@@ -90,6 +90,7 @@ public class ScheduleFSM extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public ScheduleFSM transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) transitions.map(transformation),

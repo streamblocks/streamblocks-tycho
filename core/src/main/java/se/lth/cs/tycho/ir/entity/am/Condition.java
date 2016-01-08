@@ -16,7 +16,7 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
 
 abstract public class Condition extends AbstractIRNode {
 	
-	public enum ConditionKind { input, output, predicate };
+	public enum ConditionKind { input, output, predicate }
 	
 	abstract public ConditionKind  kind();
 	

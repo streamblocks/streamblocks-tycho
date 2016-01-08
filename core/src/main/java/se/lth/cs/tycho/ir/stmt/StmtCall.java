@@ -89,6 +89,7 @@ public class StmtCall extends Statement {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public StmtCall transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy((Expression) transformation.apply(procedure), (ImmutableList) args.map(transformation));
 	}

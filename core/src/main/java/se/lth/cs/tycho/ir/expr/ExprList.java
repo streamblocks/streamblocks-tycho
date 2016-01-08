@@ -94,6 +94,7 @@ public class ExprList extends Expression {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public ExprList transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) elements.map(transformation),

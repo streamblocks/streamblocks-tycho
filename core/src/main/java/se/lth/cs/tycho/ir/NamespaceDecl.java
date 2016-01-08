@@ -104,6 +104,7 @@ public class NamespaceDecl extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public NamespaceDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return new NamespaceDecl(this, qid,
 				(ImmutableList) starImports.map(transformation),

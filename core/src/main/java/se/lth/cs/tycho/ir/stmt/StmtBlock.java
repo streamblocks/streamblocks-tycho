@@ -113,6 +113,7 @@ public class StmtBlock extends Statement {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public StmtBlock transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) typeDecls.map(transformation),

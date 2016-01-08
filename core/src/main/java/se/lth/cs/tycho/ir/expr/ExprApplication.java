@@ -89,6 +89,7 @@ public class ExprApplication extends Expression {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public ExprApplication transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(Expression) transformation.apply(function),

@@ -58,6 +58,7 @@ public class StructureConnectionStmt extends StructureStatement {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public StructureConnectionStmt transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(PortReference) transformation.apply(src),

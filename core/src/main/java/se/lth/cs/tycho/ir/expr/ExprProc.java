@@ -132,6 +132,7 @@ public class ExprProc extends Expression {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public ExprProc transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) typeParameters.map(transformation),

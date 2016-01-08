@@ -46,6 +46,7 @@ public class ProcessDescription extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public ProcessDescription transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) statements.map(transformation),

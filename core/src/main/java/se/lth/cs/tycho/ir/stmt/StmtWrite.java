@@ -60,6 +60,7 @@ public class StmtWrite extends Statement {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public StmtWrite transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(Port) transformation.apply(port),

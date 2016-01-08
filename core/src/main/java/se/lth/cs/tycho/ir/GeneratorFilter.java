@@ -95,6 +95,7 @@ public class GeneratorFilter extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public GeneratorFilter transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) variables.map(transformation),

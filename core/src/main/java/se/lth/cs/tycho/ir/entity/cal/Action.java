@@ -182,6 +182,7 @@ public class Action extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Action transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				tag,

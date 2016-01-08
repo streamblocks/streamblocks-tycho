@@ -8,8 +8,8 @@ package se.lth.cs.tycho.ir.entity.am;
 
 public interface ConditionVisitor<R,P> {
 	
-	public R visitInputCondition(PortCondition c, P p);
-	public R visitOutputCondition(PortCondition c, P p);
-	public R visitPredicateCondition(PredicateCondition c, P p);
+	R visitInputCondition(PortCondition c, P p);
+	R visitOutputCondition(PortCondition c, P p);
+	R visitPredicateCondition(PredicateCondition c, P p);
 
 }

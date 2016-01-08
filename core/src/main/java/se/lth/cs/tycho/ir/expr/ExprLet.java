@@ -108,6 +108,7 @@ public class ExprLet extends Expression {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public ExprLet transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) typeDecls.map(transformation),

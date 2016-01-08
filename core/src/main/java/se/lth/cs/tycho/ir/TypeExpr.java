@@ -106,6 +106,7 @@ public class TypeExpr extends AbstractIRNode implements Cloneable {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public TypeExpr transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(name, (ImmutableList) typeParameters.map(transformation), (ImmutableList) valueParameters.map(transformation));
 	}

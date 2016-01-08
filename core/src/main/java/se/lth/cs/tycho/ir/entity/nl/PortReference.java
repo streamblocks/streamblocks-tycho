@@ -75,6 +75,7 @@ public class PortReference extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public PortReference transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(entityName, (ImmutableList) entityIndex.map(transformation), portName);
 	}

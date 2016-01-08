@@ -96,6 +96,7 @@ public class InputPattern extends AbstractIRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public InputPattern transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(Port) transformation.apply(port),

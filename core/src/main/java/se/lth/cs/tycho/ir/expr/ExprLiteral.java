@@ -110,7 +110,7 @@ public class ExprLiteral extends Expression {
 		return this;
 	}
 
-	public static enum Kind {
+	public enum Kind {
 		Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), String(null), Function(null);
 
 		private final String fixedText;

@@ -73,6 +73,7 @@ public class StmtOutput extends Statement {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public StmtOutput transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) values.map(transformation),

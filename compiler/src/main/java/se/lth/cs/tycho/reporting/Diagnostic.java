@@ -126,6 +126,6 @@ public class Diagnostic {
 	}
 
 	public enum Kind {
-		ERROR, WARNING, INFO;
+		ERROR, WARNING, INFO
 	}
 }

@@ -97,6 +97,7 @@ public class NlNetwork extends Entity {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public NlNetwork transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) getTypeParameters().map(transformation),

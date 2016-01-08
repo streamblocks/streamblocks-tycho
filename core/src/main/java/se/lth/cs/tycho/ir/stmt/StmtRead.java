@@ -61,6 +61,7 @@ public class StmtRead extends Statement {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public StmtRead transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(Port) transformation.apply(port),

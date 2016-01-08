@@ -72,6 +72,7 @@ public class EntityInstanceExpr extends se.lth.cs.tycho.ir.entity.nl.EntityExpr 
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public EntityInstanceExpr transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(entityName,
 				(ImmutableList) parameterAssignments.map(entry -> ImmutableEntry.of(entry.getKey(), transformation.apply(entry.getValue()))),

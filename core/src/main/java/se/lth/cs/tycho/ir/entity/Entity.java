@@ -9,7 +9,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class Entity extends AbstractIRNode implements PortContainer {
+public abstract class Entity extends AbstractIRNode {
 
 	protected final ImmutableList<PortDecl> inputPorts;
 	protected final ImmutableList<PortDecl> outputPorts;
