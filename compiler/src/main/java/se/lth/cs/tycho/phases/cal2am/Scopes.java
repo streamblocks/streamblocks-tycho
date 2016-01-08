@@ -7,9 +7,8 @@ import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.ExprInput;
-import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.phases.attributes.Constants;
+import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
 import se.lth.cs.tycho.transform.caltoam.util.BitSets;
 
 import java.util.ArrayList;
@@ -22,9 +21,9 @@ public class Scopes {
 	private List<Scope> scopes;
 	private BitSet persistentScopes;
 	private BitSet transientScopes;
-	private final Constants constants;
+	private final ConstantEvaluator constants;
 
-	public Scopes(CalActor actor, Constants constants) {
+	public Scopes(CalActor actor, ConstantEvaluator constants) {
 		this.actor = actor;
 		initialized = false;
 		this.constants = constants;

@@ -39,6 +39,7 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.expr;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -85,6 +86,14 @@ public class ExprLet extends Expression {
 
 	public Expression getBody() {
 		return body;
+	}
+
+	public ExprLet withVarDecls(List<VarDecl> varDecls) {
+		if (Lists.elementIdentityEquals(this.varDecls, varDecls)) {
+			return this;
+		} else {
+			return new ExprLet(this, typeDecls, ImmutableList.from(varDecls), body);
+		}
 	}
 
 	private ImmutableList<TypeDecl> typeDecls;

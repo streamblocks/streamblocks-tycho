@@ -16,12 +16,12 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import java.util.OptionalInt;
 
 @Module
-public interface Constants {
+public interface ConstantEvaluator {
 
-	ModuleKey<Constants> key = new ModuleKey<Constants>() {
+	ModuleKey<ConstantEvaluator> key = new ModuleKey<ConstantEvaluator>() {
 		@Override
-		public Constants createInstance(CompilationTask unit, AttributeManager manager) {
-			return MultiJ.from(Constants.class)
+		public ConstantEvaluator createInstance(CompilationTask unit, AttributeManager manager) {
+			return MultiJ.from(ConstantEvaluator.class)
 					.bind("names").to(manager.getAttributeModule(Names.key, unit))
 					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
 					.instance();

@@ -45,6 +45,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -90,6 +91,14 @@ public class StmtBlock extends Statement {
 
 	public ImmutableList<Statement> getStatements() {
 		return statements;
+	}
+
+	public StmtBlock withVarDecls(List<VarDecl> varDecls) {
+		if (Lists.elementIdentityEquals(this.varDecls, varDecls)) {
+			return this;
+		} else {
+			return new StmtBlock(this, typeDecls, ImmutableList.from(varDecls), statements);
+		}
 	}
 
 	private ImmutableList<TypeDecl> typeDecls;

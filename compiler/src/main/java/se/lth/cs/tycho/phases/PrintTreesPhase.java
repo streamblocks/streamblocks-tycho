@@ -3,6 +3,8 @@ package se.lth.cs.tycho.phases;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 
@@ -47,11 +49,29 @@ public class PrintTreesPhase implements Phase {
 			if (node == null) {
 				System.out.println("null");
 			} else {
-				System.out.println(node.getClass().getSimpleName());
+				String extra = extra(node);
+				if (extra != null) {
+					System.out.print(node.getClass().getSimpleName());
+					System.out.print(" [");
+					System.out.print(extra);
+					System.out.println("]");
+				} else {
+					System.out.println(node.getClass().getSimpleName());
+				}
 				indentation++;
 				node.forEachChild(this);
 				indentation--;
 			}
 		}
+		private String extra(IRNode node) {
+			if (node instanceof Variable) {
+				return ((Variable) node).getName();
+			}
+			if (node instanceof Decl) {
+				return ((Decl) node).getName();
+			}
+			return null;
+		}
+
 	}
 }

@@ -16,7 +16,7 @@ import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.phases.attributes.Constants;
+import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
 import se.lth.cs.tycho.settings.Configuration;
 
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class CalToAm {
 
 	private final Map<CalState, CalState> stateCache;
 
-	public CalToAm(CalActor actor, Configuration configuration, Constants constants) {
+	public CalToAm(CalActor actor, Configuration configuration, ConstantEvaluator constants) {
 		this.actor = actor;
 		this.onWait = configuration.get(KnowledgeRemoval.forgetOnWait);
 		this.onExec = configuration.get(KnowledgeRemoval.forgetOnExec);

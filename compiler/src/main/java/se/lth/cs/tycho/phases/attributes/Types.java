@@ -36,7 +36,7 @@ public interface Types {
 		public Types createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(Implementation.class)
 					.bind("names").to(manager.getAttributeModule(Names.key, unit))
-					.bind("constants").to(manager.getAttributeModule(Constants.key, unit))
+					.bind("constants").to(manager.getAttributeModule(ConstantEvaluator.key, unit))
 					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
 					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
 					.instance();
@@ -61,7 +61,7 @@ public interface Types {
 		GlobalNames globalNames();
 
 		@Binding(BindingKind.INJECTED)
-		Constants constants();
+		ConstantEvaluator constants();
 
 		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();

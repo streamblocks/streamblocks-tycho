@@ -10,7 +10,7 @@ import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.phases.attributes.Constants;
+import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ public class Conditions {
 	private final Map<OutputExpression, Integer> outputConditions;
 	private final Map<Expression, Integer> predicateConditions;
 
-	public Conditions(CalActor actor, Constants constants) {
+	public Conditions(CalActor actor, ConstantEvaluator constants) {
 		Map<TokenRate, Integer> inputRateCond = new HashMap<>();
 		Map<InputPattern, Integer> inputCond = new HashMap<>();
 		Map<TokenRate, Integer> outputRateCond = new HashMap<>();
@@ -60,17 +60,17 @@ public class Conditions {
 		this.predicateConditions = predicateCond;
 	}
 
-	private static TokenRate tokenRate(Constants constants, InputPattern input) {
+	private static TokenRate tokenRate(ConstantEvaluator constants, InputPattern input) {
 		int vars = input.getVariables().size();
 		int repeat = evalRepeatMultiplier(constants, input.getRepeatExpr());
 		return new TokenRate(input.getPort(), vars * repeat);
 	}
-	private static TokenRate tokenRate(Constants constants, OutputExpression output) {
+	private static TokenRate tokenRate(ConstantEvaluator constants, OutputExpression output) {
 		int vars = output.getExpressions().size();
 		int repeat = evalRepeatMultiplier(constants, output.getRepeatExpr());
 		return new TokenRate(output.getPort(), vars * repeat);
 	}
-	private static int evalRepeatMultiplier(Constants constants, Expression expr) {
+	private static int evalRepeatMultiplier(ConstantEvaluator constants, Expression expr) {
 		if (expr == null) {
 			return 1;
 		} else {

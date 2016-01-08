@@ -44,6 +44,7 @@ public class Compiler {
 			new TypeAnalysisPhase(),
 			new RenamePhase(),
 			new RemoveNamespacesPhase(),
+			new LiftConstantsPhase(),
 			new WrapActorInNetworkPhase(),
 
 			// Actor transformations
