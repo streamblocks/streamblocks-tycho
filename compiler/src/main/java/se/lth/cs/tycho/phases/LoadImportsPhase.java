@@ -5,11 +5,7 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.StarImport;
-import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.xdf.XDFInstance;
-import se.lth.cs.tycho.ir.entity.xdf.XDFNetwork;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -47,20 +43,6 @@ public class LoadImportsPhase implements Phase {
 					List<SourceUnit> ns = context.getLoader().loadNamespace(starImport.getQID());
 					result.addAll(ns);
 					queue.addAll(ns);
-				}
-			}
-			for (EntityDecl decl : sourceUnit.getTree().getEntityDecls()) {
-				Entity entity = decl.getEntity();
-				if (entity instanceof XDFNetwork) {
-					XDFNetwork network = (XDFNetwork) entity;
-					for (XDFInstance instance : network.getInstances()) {
-						QID nsId = instance.getEntity().getButLast();
-						if (loaded.add(nsId)) {
-							List<SourceUnit> ns = context.getLoader().loadNamespace(nsId);
-							result.addAll(ns);
-							queue.addAll(ns);
-						}
-					}
 				}
 			}
 		}

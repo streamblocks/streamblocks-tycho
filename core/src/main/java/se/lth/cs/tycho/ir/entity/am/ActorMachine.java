@@ -40,7 +40,7 @@ public class ActorMachine extends Entity {
 
 	@Override
 	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
-		throw new Error();
+		return visitor.visitActorMachine(this, param);
 	}
 
 	public ActorMachine(List<PortDecl> inputPorts, List<PortDecl> outputPorts,

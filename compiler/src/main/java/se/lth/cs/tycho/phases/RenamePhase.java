@@ -116,7 +116,7 @@ public class RenamePhase implements Phase {
 		}
 
 		default IRNode rename(Variable original, Variable var) {
-			return var.copy(name(names().declaration(original)));
+			return var.withName(name(names().declaration(original)));
 		}
 
 		default Map<String, String> parameterMap(EntityInstanceExpr original) {

@@ -1,24 +1,13 @@
 package se.lth.cs.tycho.ir;
 
-import se.lth.cs.tycho.ir.entity.am.Scope;
-
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Variable node that refers to a variable declaration.
- * 
- * For all variables in Actors isScopeVariable() == false.
- * 
- * Static variables are variables declared in a {@link Scope}
- * and {@link #getScopeId()} returns an identifier for the scope where the variable is
- * declared.
- */
+
 public class Variable extends AbstractIRNode {
+	private final String originalName;
 	private final String name;
-	private final int scopeId;
-	private final boolean isScopeVariable;
 
 	/**
 	 * Constructs a variable.
@@ -26,47 +15,20 @@ public class Variable extends AbstractIRNode {
 	 * @param name the variable name
 	 */
 	public static Variable variable(String name) {
-		return new Variable(null, name, -1, false);
+		return new Variable(null, name);
 	}
 
-	/**
-	 * Constructs a static scope variable.
-	 * 
-	 * @param name the variable name
-	 * @param scopeId the static scope identifier
-	 */
-	public static Variable scopeVariable(String name, int scopeId) {
-		return new Variable(null, name, scopeId, true);
-	}
-
-	public Variable copy(String name) {
-		if (Objects.equals(this.name, name) && !this.isScopeVariable) {
+	public Variable withName(String name) {
+		if (Objects.equals(this.name, name)) {
 			return this;
 		}
-		return new Variable(this, name, scopeId, false);
+		return new Variable(this, name);
 	}
 
-	public Variable copy(String name, int scopeId) {
-		if (Objects.equals(this.name, name) && this.scopeId == scopeId && this.isScopeVariable) {
-			return this;
-		}
-		return new Variable(this, name, scopeId, true);
-	}
-
-	protected Variable(IRNode original, String name, int scopeId, boolean isScopeVariable) {
+	private Variable(Variable original, String name) {
 		super(original);
-		this.name = name.intern();
-		this.scopeId = scopeId;
-		this.isScopeVariable = isScopeVariable;
-	}
-
-	/**
-	 * Returns true if the variable is static.
-	 * 
-	 * @return true if the variable is static
-	 */
-	public boolean isScopeVariable() {
-		return isScopeVariable;
+		this.originalName = original == null ? name : original.name;
+		this.name = name;
 	}
 
 	/**
@@ -78,21 +40,12 @@ public class Variable extends AbstractIRNode {
 		return name;
 	}
 
-	/**
-	 * Returns the scope identifier if the variable is static.
-	 * 
-	 * @return the level
-	 */
-	public int getScopeId() {
-		return scopeId;
+	public String getOriginalName() {
+		return originalName;
 	}
 
 	public String toString() {
-		if (isScopeVariable) {
-			return "ScopeVariable(" + name + ", " + scopeId + ")";
-		} else {
-			return "Variable(" + name + ")";
-		}
+		return "Variable(" + name + ")";
 	}
 
 	@Override
