@@ -1,7 +1,5 @@
 package se.lth.cs.tycho.ir.util;
 
-import se.lth.cs.tycho.ir.decl.VarDecl;
-
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;

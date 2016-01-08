@@ -160,6 +160,7 @@ public class CalActor extends Entity {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public CalActor transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) getTypeParameters().map(transformation),

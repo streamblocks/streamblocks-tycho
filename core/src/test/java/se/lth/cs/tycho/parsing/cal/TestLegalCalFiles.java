@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -19,6 +20,7 @@ import org.junit.runners.Parameterized.Parameters;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 
 @RunWith(Parameterized.class)
+@Ignore
 public class TestLegalCalFiles {
 	private static List<Path> roots() {
 		return Arrays.asList(Paths.get("../../orc-apps"), Paths.get("../../caltoopia/org.caltoopia.tests/cal-src"));

@@ -74,6 +74,7 @@ public class CompilationTask implements IRNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public CompilationTask transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
 		return copy(
 				(ImmutableList) sourceUnits.map(transformation),
