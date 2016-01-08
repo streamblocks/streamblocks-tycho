@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.transform.caltoam.util;
+package se.lth.cs.tycho.util;
 
 import java.math.BigInteger;
 import java.util.BitSet;

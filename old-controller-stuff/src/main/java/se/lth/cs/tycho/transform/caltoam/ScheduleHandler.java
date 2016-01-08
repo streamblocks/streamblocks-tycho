@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.transform.caltoam.util.BitSets;
+import se.lth.cs.tycho.util.BitSets;
 
 class ScheduleHandler {
 

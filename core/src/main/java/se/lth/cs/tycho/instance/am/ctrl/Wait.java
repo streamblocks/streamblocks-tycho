@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.instance.am.ctrl;
 
-import se.lth.cs.tycho.transform.caltoam.util.BitSets;
+import se.lth.cs.tycho.util.BitSets;
 
 import java.util.BitSet;
 import java.util.function.Consumer;

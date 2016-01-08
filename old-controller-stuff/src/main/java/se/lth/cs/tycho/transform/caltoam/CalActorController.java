@@ -10,7 +10,7 @@ import se.lth.cs.tycho.instance.am.Transition;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.transform.caltoam.CalActorStates.State;
-import se.lth.cs.tycho.transform.caltoam.util.BitSets;
+import se.lth.cs.tycho.util.BitSets;
 import se.lth.cs.tycho.transform.util.GenInstruction;
 import se.lth.cs.tycho.transform.util.Controller;
 

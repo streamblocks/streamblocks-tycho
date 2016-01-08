@@ -9,7 +9,7 @@ import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
-import se.lth.cs.tycho.transform.caltoam.util.BitSets;
+import se.lth.cs.tycho.util.BitSets;
 
 import java.util.ArrayList;
 import java.util.BitSet;
