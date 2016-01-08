@@ -8,7 +8,6 @@
 	<name>Tycho Project</name>
 	<modules>
 		<module>core</module>
-		<module>classifier</module>
 		<module>compiler</module>
 	</modules>
 
