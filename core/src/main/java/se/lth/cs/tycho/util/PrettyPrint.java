@@ -1,18 +1,9 @@
 package se.lth.cs.tycho.util;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import se.lth.cs.tycho.instance.net.Connection;
-import se.lth.cs.tycho.instance.net.Network;
-import se.lth.cs.tycho.instance.net.Node;
-import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -23,89 +14,24 @@ import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
-import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
-import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
-import se.lth.cs.tycho.ir.entity.nl.PortReference;
-import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureIfStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
-import se.lth.cs.tycho.ir.entity.nl.StructureStmtVisitor;
-import se.lth.cs.tycho.ir.expr.ExprApplication;
-import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
-import se.lth.cs.tycho.ir.expr.ExprField;
-import se.lth.cs.tycho.ir.expr.ExprIf;
-import se.lth.cs.tycho.ir.expr.ExprIndexer;
-import se.lth.cs.tycho.ir.expr.ExprInput;
-import se.lth.cs.tycho.ir.expr.ExprLambda;
-import se.lth.cs.tycho.ir.expr.ExprLet;
-import se.lth.cs.tycho.ir.expr.ExprList;
-import se.lth.cs.tycho.ir.expr.ExprLiteral;
-import se.lth.cs.tycho.ir.expr.ExprMap;
-import se.lth.cs.tycho.ir.expr.ExprProc;
-import se.lth.cs.tycho.ir.expr.ExprSet;
-import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
-import se.lth.cs.tycho.ir.expr.ExprVariable;
-import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.expr.ExpressionVisitor;
-import se.lth.cs.tycho.ir.stmt.Statement;
-import se.lth.cs.tycho.ir.stmt.StatementVisitor;
-import se.lth.cs.tycho.ir.stmt.StmtAssignment;
-import se.lth.cs.tycho.ir.stmt.StmtBlock;
-import se.lth.cs.tycho.ir.stmt.StmtCall;
-import se.lth.cs.tycho.ir.stmt.StmtConsume;
-import se.lth.cs.tycho.ir.stmt.StmtForeach;
-import se.lth.cs.tycho.ir.stmt.StmtIf;
-import se.lth.cs.tycho.ir.stmt.StmtOutput;
-import se.lth.cs.tycho.ir.stmt.StmtWhile;
+import se.lth.cs.tycho.ir.entity.nl.*;
+import se.lth.cs.tycho.ir.expr.*;
+import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVisitor;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisitor<Void, Void>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Void> {
 	private java.io.PrintStream out = System.out;
 	private int indentDepth = 0;
-
-	public static String toString(Network net){
-		StringBuffer sb = new StringBuffer("input ports:\n");
-		for(PortDecl port : net.getInputPorts()){
-			sb.append("  ");
-			sb.append(port);
-			sb.append("\n");
-		}
-		sb.append("output ports:\n");
-		for(PortDecl port : net.getOutputPorts()){
-			sb.append("  ");
-			sb.append(port);
-			sb.append("\n");
-		}
-		sb.append("entities:\n");
-		for(Node n : net.getNodes()){
-			sb.append(" ");
-			sb.append(n.getName());
-			sb.append("\n");
-		}
-		sb.append("connections:\n");
-		for(Connection c : net.getConnections()){
-			sb.append(" ");
-			sb.append(c.getSrcNodeId());
-			sb.append(".");
-			sb.append(c.getSrcPort());
-			sb.append("->");
-			sb.append(c.getDstNodeId());
-			sb.append(".");
-			sb.append(c.getDstPort());
-			sb.append("\n");
-		}
-		
-		return sb.toString();
-	}
 
 	public void print(NlNetwork network, String name){
 		indent();

@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.phases.cal2am;
 
-import se.lth.cs.tycho.instance.am.Scope;
+import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;

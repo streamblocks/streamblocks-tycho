@@ -2,13 +2,13 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
-import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.instance.am.ctrl.Exec;
-import se.lth.cs.tycho.instance.am.ctrl.Instruction;
-import se.lth.cs.tycho.instance.am.ctrl.InstructionKind;
-import se.lth.cs.tycho.instance.am.ctrl.State;
-import se.lth.cs.tycho.instance.am.ctrl.Test;
-import se.lth.cs.tycho.instance.am.ctrl.Wait;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Exec;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
+import se.lth.cs.tycho.ir.entity.am.ctrl.InstructionKind;
+import se.lth.cs.tycho.ir.entity.am.ctrl.State;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
 
 import java.util.BitSet;
 import java.util.HashMap;

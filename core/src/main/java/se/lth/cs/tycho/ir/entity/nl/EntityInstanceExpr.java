@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;

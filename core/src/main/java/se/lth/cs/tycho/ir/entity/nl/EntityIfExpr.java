@@ -3,8 +3,7 @@ package se.lth.cs.tycho.ir.entity.nl;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import se.lth.cs.tycho.instance.net.ToolAttribute;
-import se.lth.cs.tycho.ir.Attributable;
+import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;

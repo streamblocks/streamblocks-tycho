@@ -1,9 +1,7 @@
 package se.lth.cs.tycho.comp;
 
-import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.io.IOException;
 import java.io.InputStream;

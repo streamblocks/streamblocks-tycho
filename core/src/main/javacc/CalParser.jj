@@ -28,9 +28,9 @@ import se.lth.cs.tycho.ir.stmt.lvalue.*;
 import se.lth.cs.tycho.ir.entity.cal.*;
 import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.entity.*;
-import se.lth.cs.tycho.instance.net.ToolAttribute;
-import se.lth.cs.tycho.instance.net.ToolValueAttribute;
-import se.lth.cs.tycho.instance.net.ToolTypeAttribute;
+import se.lth.cs.tycho.ir.ToolAttribute;
+import se.lth.cs.tycho.ir.ToolValueAttribute;
+import se.lth.cs.tycho.ir.ToolTypeAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 

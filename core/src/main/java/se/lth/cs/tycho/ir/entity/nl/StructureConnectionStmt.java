@@ -4,9 +4,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import se.lth.cs.tycho.instance.net.ToolAttribute;
+import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.Attributable;
-import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;

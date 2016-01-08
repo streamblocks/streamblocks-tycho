@@ -1,12 +1,7 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import java.util.Map.Entry;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import se.lth.cs.tycho.instance.net.Network;
-import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -16,17 +11,9 @@ import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
-/**
- * A NetworkTemplate the internal representation of a .nl file. Basically it is
- * a AST derived straight from the .nl grammar.
- * 
- * A NlNetwork is a flat structure, i.e. sub-networks are represented by their name.
- * NetworkDefinitions are instantiated to {@link Network}s.
- * {@link Network}s can be hierarchical, i.e. sub-networks are represented as {@link Network}s.
- * 
- * @author Per Andersson <Per.Andersson@cs.lth.se>
- * 
- */
+import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class NlNetwork extends Entity {
 	public NlNetwork(ImmutableList<TypeDecl> typePars,

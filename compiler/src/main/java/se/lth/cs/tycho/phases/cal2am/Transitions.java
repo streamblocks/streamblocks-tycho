@@ -1,8 +1,8 @@
 package se.lth.cs.tycho.phases.cal2am;
 
 
-import se.lth.cs.tycho.instance.am.PortCondition;
-import se.lth.cs.tycho.instance.am.Transition;
+import se.lth.cs.tycho.ir.entity.am.PortCondition;
+import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;

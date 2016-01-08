@@ -1,14 +1,14 @@
 package se.lth.cs.tycho.phases.cal2am;
 
-import se.lth.cs.tycho.instance.am.ActorMachine;
-import se.lth.cs.tycho.instance.am.PortCondition;
-import se.lth.cs.tycho.instance.am.PredicateCondition;
-import se.lth.cs.tycho.instance.am.ctrl.Controller;
-import se.lth.cs.tycho.instance.am.ctrl.Exec;
-import se.lth.cs.tycho.instance.am.ctrl.Instruction;
-import se.lth.cs.tycho.instance.am.ctrl.State;
-import se.lth.cs.tycho.instance.am.ctrl.Test;
-import se.lth.cs.tycho.instance.am.ctrl.Wait;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.PortCondition;
+import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Controller;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Exec;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
+import se.lth.cs.tycho.ir.entity.am.ctrl.State;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.cal.Action;

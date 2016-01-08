@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.ir;
 
+import se.lth.cs.tycho.ir.entity.am.Scope;
+
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -9,7 +11,7 @@ import java.util.function.Function;
  * 
  * For all variables in Actors isScopeVariable() == false.
  * 
- * Static variables are variables declared in a {@link se.lth.cs.tycho.instance.am.Scope}
+ * Static variables are variables declared in a {@link Scope}
  * and {@link #getScopeId()} returns an identifier for the scope where the variable is
  * declared.
  */

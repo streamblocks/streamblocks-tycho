@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.ir;
 
-import se.lth.cs.tycho.instance.net.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.function.Consumer;
