@@ -74,7 +74,7 @@ public class Conditions {
 		if (expr == null) {
 			return 1;
 		} else {
-			return constants.intValue(expr).getAsInt();
+			return (int) constants.intValue(expr).getAsLong();
 		}
 	}
 

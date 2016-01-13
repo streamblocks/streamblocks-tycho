@@ -29,10 +29,13 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class XDF2NLReader {
 	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -69,7 +72,6 @@ public class XDF2NLReader {
 	}
 
 	private void buildConnections(Document input, ImmutableList.Builder<StructureStatement> connections) {
-		ImmutableList.Builder<StructureStatement> result = ImmutableList.builder();
 		for (Element conn : selectChildren(input.getDocumentElement(), "Connection")) {
 			String src = conn.getAttribute("src");
 			Port srcPort = new Port(conn.getAttribute("src-port"));
@@ -82,36 +84,68 @@ public class XDF2NLReader {
 			} else {
 				attributes = ImmutableList.of(new ToolValueAttribute("buffer-size", new ExprLiteral(ExprLiteral.Kind.Integer, bufferSize)));
 			}
-			result.add(new StructureConnectionStmt(new PortReference(src, ImmutableList.empty(), srcPort.getName()), new PortReference(dst, ImmutableList.empty(), dstPort.getName()), attributes));
+			connections.add(new StructureConnectionStmt(new PortReference(src, ImmutableList.empty(), srcPort.getName()), new PortReference(dst, ImmutableList.empty(), dstPort.getName()), attributes));
 		}
 	}
 
 	private void buildNodes(Document input, QID ns, ImmutableList.Builder<EntityDecl> imports, ImmutableList.Builder<Map.Entry<String, EntityExpr>> entities) {
-		Set<QID> imported = new HashSet<>();
-		Set<String> entityNames = new HashSet<>();
+		ImportManager manager = new ImportManager(ns);
 		for (Element instance : selectChildren(input.getDocumentElement(), "Instance")) {
 			String instanceName = instance.getAttribute("id");
 			QID entityQid = QID.parse(selectChild(instance, "Class").getAttribute("name"));
-			String entityName = uniqueName(entityNames, entityQid.getLast().toString());
-			if (!entityQid.getButLast().equals(ns) && imported.add(entityQid)) {
-				imports.add(EntityDecl.importDecl(Availability.LOCAL, entityName, entityQid));
-			}
-			entities.add(ImmutableEntry.of(instanceName, new EntityInstanceExpr(entityName, ImmutableList.empty(), ImmutableList.empty())));
+			manager.add(instanceName, entityQid);
 		}
+		manager.generate(imports, entities);
 	}
 
-	private String uniqueName(Set<String> existingNames, String base) {
-		String name;
-		if (existingNames.contains(base)) {
-			int i = 0;
-			do {
-				name = base + "_" + i;
-			} while (existingNames.contains(name));
-		} else {
-			name = base;
+	private static class ImportManager {
+		private final Map<String, QID> entities;
+		private final QID currentNamespace;
+
+		public ImportManager(QID currentNamespace) {
+			this.entities = new LinkedHashMap<>();
+			this.currentNamespace = currentNamespace;
 		}
-		existingNames.add(name);
-		return name;
+
+		public void add(String instance, QID entity) {
+			entities.put(instance, entity);
+		}
+
+		public void generate(Consumer<EntityDecl> importConsumer, Consumer<Map.Entry<String, EntityExpr>> instanceConsumer) {
+			Set<String> usedNames = new HashSet<>();
+			Map<QID, String> localName = new HashMap<>();
+			for (QID entity : entities.values()) {
+				if (entity.getButLast().equals(currentNamespace)) {
+					String name = entity.getLast().toString();
+					usedNames.add(name);
+					localName.put(entity, name);
+				}
+			}
+			for (QID entity : entities.values()) {
+				if (!localName.containsKey(entity)) {
+					String name = generateName(usedNames, entity.getLast().toString());
+					localName.put(entity, name);
+					EntityDecl importDecl = EntityDecl.importDecl(Availability.LOCAL, name, entity);
+					importConsumer.accept(importDecl);
+				}
+			}
+
+			for (String instance : entities.keySet()) {
+				String entityName = localName.get(entities.get(instance));
+				EntityInstanceExpr instanceExpr = new EntityInstanceExpr(entityName, ImmutableList.empty(), ImmutableList.empty());
+				instanceConsumer.accept(ImmutableEntry.of(instance, instanceExpr));
+			}
+		}
+
+		private String generateName(Set<String> usedNames, String base) {
+			String result = base;
+			int i = 0;
+			while (usedNames.contains(result)) {
+				result = base + "_" + i;
+				i = i + 1;
+			}
+			return result;
+		}
 	}
 
 	private Element selectChild(Node n, String name) {

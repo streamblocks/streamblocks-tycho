@@ -669,11 +669,6 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append(");");
 		return null;
 	}
-	public Void visitStmtOutput(StmtOutput s, Void p) {
-		out.append("output;");
-		// TODO output statement
-		return null;
-	}
 	public Void visitStmtConsume(StmtConsume s, Void p) {
 		out.append("consume;");
 		// TODO consume statement

@@ -59,7 +59,7 @@ public class Scopes {
 					i = i + 1;
 				}
 			} else {
-				int repeat = constants.intValue(input.getRepeatExpr()).getAsInt();
+				int repeat = (int) constants.intValue(input.getRepeatExpr()).getAsLong();
 				int patternLength = input.getVariables().size();
 				int i = 0;
 				for (VarDecl var : input.getVariables()) {

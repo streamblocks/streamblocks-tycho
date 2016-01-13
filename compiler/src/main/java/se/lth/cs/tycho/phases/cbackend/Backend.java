@@ -28,4 +28,5 @@ public interface Backend {
 	@Binding(MODULE) Controllers controllers();
 	@Binding(MODULE) MainFunction main();
 	@Binding(MODULE) Global global();
+	@Binding(MODULE) DefaultValues defaultValues();
 }

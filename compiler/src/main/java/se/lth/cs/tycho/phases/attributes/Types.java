@@ -19,6 +19,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.phases.TreeShadow;
 import se.lth.cs.tycho.types.*;
+import se.lth.cs.tycho.util.CheckedCasts;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,8 +27,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static se.lth.cs.tycho.util.CheckedCasts.toOptInt;
 
 public interface Types {
 
@@ -115,8 +119,8 @@ public interface Types {
 				PortDecl port = names().portDeclaration(input.getPort());
 				Type result = convert(port.getType());
 				if (input.getRepeatExpr() != null) {
-					OptionalInt size = constants().intValue(input.getRepeatExpr());
-					return new ListType(result, size);
+					OptionalLong size = constants().intValue(input.getRepeatExpr());
+					return new ListType(result, toOptInt(size));
 				} else {
 					return result;
 				}
@@ -146,8 +150,8 @@ public interface Types {
 
 		default Type portTypeRepeated(Port port, Expression repeat) {
 			Type element = portType(port);
-			OptionalInt size = constants().intValue(repeat);
-			return new ListType(element, size);
+			OptionalLong size = constants().intValue(repeat);
+			return new ListType(element, toOptInt(size));
 		}
 
 		Type computeLValueType(LValue lvalue);
@@ -174,9 +178,9 @@ public interface Types {
 					if (elements.isPresent()) {
 						Optional<Expression> s = findParameter(t.getValueParameters(), "size");
 						if (s.isPresent()) {
-							OptionalInt size = constants().intValue(s.get());
+							OptionalLong size = constants().intValue(s.get());
 							if (size.isPresent()) {
-								return new ListType(elements.get(), size);
+								return new ListType(elements.get(), toOptInt(size));
 							}
 						}
 						return new ListType(elements.get(), OptionalInt.empty());
@@ -186,9 +190,9 @@ public interface Types {
 				case "int": {
 					Optional<Expression> s = findParameter(t.getValueParameters(), "size");
 					if (s.isPresent()) {
-						OptionalInt size = constants().intValue(s.get());
+						OptionalLong size = constants().intValue(s.get());
 						if (size.isPresent()) {
-							return new IntType(size, true);
+							return new IntType(toOptInt(size), true);
 						} else {
 							return BottomType.INSTANCE;
 						}
@@ -199,9 +203,9 @@ public interface Types {
 				case "uint": {
 					Optional<Expression> s = findParameter(t.getValueParameters(), "size");
 					if (s.isPresent()) {
-						OptionalInt size = constants().intValue(s.get());
+						OptionalLong size = constants().intValue(s.get());
 						if (size.isPresent()) {
-							return new IntType(size, false);
+							return new IntType(toOptInt(size), false);
 						} else {
 							return BottomType.INSTANCE;
 						}
@@ -238,8 +242,8 @@ public interface Types {
 					return BoolType.INSTANCE;
 				}
 				case Integer: {
-					OptionalInt value = constants().intValue(e);
-					final int v = value.getAsInt();
+					OptionalLong value = constants().intValue(e);
+					final long v = value.getAsLong();
 					if (v == 0) {
 						return new IntType(OptionalInt.of(1), false);
 					} else if (v == -1) {
@@ -279,7 +283,16 @@ public interface Types {
 						for (VarDecl d : gen.getVariables()) {
 							size *= s.getAsInt();
 						}
+					} else if (collType instanceof RangeType) {
+						OptionalInt s = ((RangeType) collType).getLength();
+						if (!s.isPresent()) {
+							return new ListType(elementType, OptionalInt.empty());
+						}
+						for (VarDecl d : gen.getVariables()) {
+							size *= s.getAsInt();
+						}
 					}
+
 				}
 				return new ListType(elementType, OptionalInt.of(size));
 			}
@@ -319,15 +332,15 @@ public interface Types {
 					return BoolType.INSTANCE;
 				case "..":
 					Type type = leastUpperBound(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
-					OptionalInt first = constants().intValue(binary.getOperands().get(0));
-					OptionalInt last = constants().intValue(binary.getOperands().get(1));
-					OptionalInt length;
+					OptionalLong first = constants().intValue(binary.getOperands().get(0));
+					OptionalLong last = constants().intValue(binary.getOperands().get(1));
+					OptionalLong length;
 					if (first.isPresent() && last.isPresent()) {
-						length = OptionalInt.of(last.getAsInt() - first.getAsInt() + 1);
+						length = OptionalLong.of(last.getAsLong() - first.getAsLong() + 1);
 					} else {
-						length = OptionalInt.empty();
+						length = OptionalLong.empty();
 					}
-					return new RangeType(type, length);
+					return new RangeType(type, toOptInt(length));
 				default:
 					return BottomType.INSTANCE;
 			}

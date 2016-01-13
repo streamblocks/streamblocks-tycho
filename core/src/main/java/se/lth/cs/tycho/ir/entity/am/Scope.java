@@ -13,8 +13,6 @@ public class Scope extends AbstractIRNode {
 	private final ImmutableList<VarDecl> declarations;
 	private final boolean isPersistent;
 
-	public enum Lifespan { PERSISTENT, TRANSIENT }
-
 	public Scope(ImmutableList<VarDecl> declarations, boolean isPersistent) {
 		this(null, declarations, isPersistent);
 	}
@@ -34,10 +32,6 @@ public class Scope extends AbstractIRNode {
 
 	public ImmutableList<VarDecl> getDeclarations() {
 		return declarations;
-	}
-	
-	public NamespaceDecl getLocation() {
-		return null; // TODO remove this method
 	}
 
 	public boolean isPersistent() {

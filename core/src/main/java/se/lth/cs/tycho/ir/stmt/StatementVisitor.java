@@ -50,7 +50,6 @@ public interface StatementVisitor<R,P> {
     R visitStmtBlock(StmtBlock s, P p);
     R visitStmtIf(StmtIf s, P p);
     R visitStmtCall(StmtCall s, P p);
-    R visitStmtOutput(StmtOutput s, P p);
     R visitStmtConsume(StmtConsume s, P p);
     R visitStmtWhile(StmtWhile s, P p);
     R visitStmtForeach(StmtForeach s, P p);

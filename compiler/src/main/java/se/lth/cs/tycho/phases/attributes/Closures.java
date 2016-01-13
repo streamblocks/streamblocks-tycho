@@ -167,13 +167,6 @@ public interface Closures {
 		return result;
 	}
 
-	default Set<VarDecl> freeVariables(StmtOutput output) {
-		return output.getValues().stream()
-				.map(this::freeVariables)
-				.flatMap(Set::stream)
-				.collect(Collectors.toSet());
-	}
-
 	default Set<VarDecl> freeVariables(StmtRead read) {
 		Set<VarDecl> result = new HashSet<>();
 		read.getLValues().forEach(lvalue -> result.addAll(freeVariables(lvalue)));

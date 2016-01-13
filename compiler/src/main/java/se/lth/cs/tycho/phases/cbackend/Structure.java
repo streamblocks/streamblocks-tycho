@@ -21,6 +21,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
+import se.lth.cs.tycho.types.CallableType;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -47,6 +48,8 @@ public interface Structure {
 	}
 
 	default Names names() { return backend().names(); }
+
+	default DefaultValues defVal() { return backend().defaultValues(); }
 
 
 	default void entityDecl(EntityDecl decl) {
@@ -167,15 +170,14 @@ public interface Structure {
 			int i = 0;
 			for (StructureConnectionStmt conn : connections) {
 				if (conn.getDst().getEntityName() == null && conn.getDst().getPortName().equals(port.getName())) {
+					emitter().emit("FILE *%s_output_file = fopen(argv[%d], \"w\");", port.getName(), argi);
+					emitter().emit("output_actor_t *%s_output_actor = output_actor_create(%1$s_output_file, channels[%d]);", port.getName(), i);
+					emitter().emit("");
+					argi = argi + 1;
 					break;
 				}
 				i = i + 1;
 			}
-			assert i < connections.size();
-			emitter().emit("FILE *%s_output_file = fopen(argv[%d], \"w\");", port.getName(), argi);
-			emitter().emit("output_actor_t *%s_output_actor = output_actor_create(%1$s_output_file, channels[%d]);", port.getName(), i);
-			emitter().emit("");
-			argi = argi + 1;
 		}
 
 		emitter().emit("_Bool progress;");
@@ -354,7 +356,9 @@ public interface Structure {
 			emitter().emit("static void %s_init_scope_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
 			for (VarDecl var : scope.getDeclarations()) {
-				if (var.getValue() != null) {
+				if (types().declaredType(var) instanceof CallableType) {
+					emitter().emit("// function %s", var.getName());
+				} else if (var.getValue() != null) {
 					code().assign(types().declaredType(var), "self->" + var.getName(), var.getValue());
 				}
 			}
@@ -397,8 +401,12 @@ public interface Structure {
 		for (Scope scope : actorMachine.getScopes()) {
 			emitter().emit("// scope %d", i);
 			for (VarDecl var : scope.getDeclarations()) {
-				String decl = code().declaration(types().declaredType(var), var.getName());
-				emitter().emit("%s;", decl);
+				if (types().declaredType(var) instanceof CallableType) {
+					emitter().emit("// function %s", var.getName());
+				} else {
+					String decl = code().declaration(types().declaredType(var), var.getName());
+					emitter().emit("%s;", decl);
+				}
 			}
 			emitter().emit("");
 			i++;

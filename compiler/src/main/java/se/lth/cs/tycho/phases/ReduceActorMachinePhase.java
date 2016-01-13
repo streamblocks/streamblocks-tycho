@@ -57,7 +57,8 @@ public class ReduceActorMachinePhase implements Phase {
 		}
 
 		default IRNode apply(ActorMachine actorMachine) {
-			return actorMachine.withController(selectFirst(actorMachine.controller()));
+			ActorMachine result = actorMachine.withController(selectFirst(actorMachine.controller()));
+			return result;
 		}
 	}
 

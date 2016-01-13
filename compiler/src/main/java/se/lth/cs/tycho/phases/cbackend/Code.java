@@ -2,17 +2,17 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
+import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
-import se.lth.cs.tycho.ir.expr.ExprIndexer;
-import se.lth.cs.tycho.ir.expr.ExprInput;
-import se.lth.cs.tycho.ir.expr.ExprLiteral;
-import se.lth.cs.tycho.ir.expr.ExprVariable;
-import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
+import se.lth.cs.tycho.ir.stmt.StmtCall;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
+import se.lth.cs.tycho.ir.stmt.StmtForeach;
+import se.lth.cs.tycho.ir.stmt.StmtIf;
+import se.lth.cs.tycho.ir.stmt.StmtWhile;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
@@ -24,7 +24,12 @@ import se.lth.cs.tycho.types.ListType;
 import se.lth.cs.tycho.types.Type;
 import se.lth.cs.tycho.types.UnitType;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.OptionalInt;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.multij.BindingKind.MODULE;
 
@@ -48,6 +53,9 @@ public interface Code {
 	void assign(Type type, String lvalue, Expression expr);
 
 	default void assign(IntType type, String lvalue, Expression expr) {
+		assignScalar(type, lvalue, expr);
+	}
+	default void assign(BoolType type, String lvalue, Expression expr) {
 		assignScalar(type, lvalue, expr);
 	}
 	default void assign(UnitType type, String lvalue, Expression expr) { emitter().emit("%s = 0;", lvalue); }
@@ -86,6 +94,17 @@ public interface Code {
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
+	default void assignList(ListType type, String lvalue, ExprList list) {
+		if (type.getSize().isPresent() && list.getGenerators().isEmpty()) {
+			int i = 0;
+			for (Expression element : list.getElements()) {
+				emitter().emit("%s[%d] = %s;", lvalue, i, evaluate(element));
+				i = i + 1;
+			}
+		} else {
+			emitter().emit("// dynamic list assignment is not implemented");
+		}
+	}
 
 	String declaration(Type type, String name);
 
@@ -109,7 +128,12 @@ public interface Code {
 
 	default String type(IntType type) {
 		if (type.getSize().isPresent()) {
-			return String.format("int%d_t", type.getSize().getAsInt());
+			int originalSize = type.getSize().getAsInt();
+			int targetSize = 8;
+			while (originalSize > targetSize) {
+				targetSize = targetSize * 2;
+			}
+			return String.format("int%d_t", targetSize);
 		} else {
 			return "int64_t";
 		}
@@ -123,9 +147,11 @@ public interface Code {
 		if (type.getSize().isPresent()) {
 			return String.format("%s[%s]", type(type.getElementType()), type.getSize().getAsInt());
 		} else {
-			throw new RuntimeException("Not implemented");
+			return "void*";
 		}
 	}
+
+	default String type(BoolType type) { return "_Bool"; }
 
 	String evaluate(Expression expr);
 
@@ -134,10 +160,16 @@ public interface Code {
 	}
 
 	default String evaluate(ExprLiteral literal) {
-		assert literal.getKind() == ExprLiteral.Kind.Integer ||
-				literal.getKind() == ExprLiteral.Kind.True ||
-				literal.getKind() == ExprLiteral.Kind.False;
-		return literal.getText();
+		switch (literal.getKind()) {
+			case Integer:
+				return literal.getText();
+			case True:
+				return "true";
+			case False:
+				return "false";
+			default:
+				throw new UnsupportedOperationException(literal.getText());
+		}
 	}
 
 	default String evaluate(ExprBinaryOp binaryOp) {
@@ -155,16 +187,132 @@ public interface Code {
 			case ">":
 			case ">=":
 			case "==":
+			case "!=":
+			case "<<":
+			case ">>":
+			case "&":
+			case "|":
+			case "^":
 				return String.format("(%s %s %s)", evaluate(left), operation, evaluate(right));
 			case "=":
 				return String.format("(%s == %s)", evaluate(left), evaluate(right));
+			case "mod":
+				return String.format("(%s %% %s)", evaluate(left), evaluate(right));
+			case "and":
+			case "&&":
+				return String.format("(%s && /* TODO: IMPLEMET CORRECTLY */ %s)", evaluate(left), evaluate(right));
+			case "||":
+			case "or":
+				return String.format("(%s || /* TODO: IMPLEMET CORRECTLY */ %s)", evaluate(left), evaluate(right));
 			default:
-				return null;
+				throw new UnsupportedOperationException(operation);
+		}
+	}
+
+	default String evaluate(ExprUnaryOp unaryOp) {
+		switch (unaryOp.getOperation()) {
+			case "-":
+			case "~":
+				return String.format("%s(%s)", unaryOp.getOperation(), evaluate(unaryOp.getOperand()));
+			case "not":
+				return String.format("!%s", evaluate(unaryOp.getOperand()));
+			default:
+				throw new UnsupportedOperationException(unaryOp.getOperation());
+		}
+	}
+
+	default String evaluate(ExprList list) {
+		ListType t = (ListType) types().type(list);
+		if (t.getSize().isPresent()) {
+			if (list.getGenerators().isEmpty()) {
+				String name = variables().generateTemp();
+				String decl = declaration(t, name);
+				String value = list.getElements().stream().sequential()
+						.map(this::evaluate)
+						.collect(Collectors.joining(", ", "{", "}"));
+				emitter().emit("%s = %s;", decl, value);
+				return name;
+			} else {
+				String name = variables().generateTemp();
+				String decl = declaration(t, name);
+				emitter().emit("%s;", decl);
+				String index = variables().generateTemp();
+				emitter().emit("size_t %s = 0;", index);
+				for (GeneratorFilter gen : list.getGenerators()) {
+					forEachGen(gen, () -> {
+						for (Expression expr : list.getElements()) {
+							emitter().emit("%s[%s++] = %s;", name, index, evaluate(expr));
+						}
+					});
+				}
+				return name;
+			}
+		} else {
+			return "NULL /* TODO: implement dynamically sized lists */";
+		}
+	}
+
+	default void forEachGen(GeneratorFilter gen, Runnable action) {
+		if (gen.getFilters().isEmpty()) {
+			forEach(gen.getCollectionExpr(), gen.getVariables(), action);
+		} else {
+			throw new UnsupportedOperationException("filters");
+		}
+	}
+
+	void forEach(Expression collection, List<VarDecl> varDecls, Runnable action);
+	default void forEach(ExprBinaryOp binOp, List<VarDecl> varDecls, Runnable action) {
+		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
+			Type type = types().declaredType(varDecls.get(0));
+			for (VarDecl d : varDecls) {
+				emitter().emit("%s;", declaration(type, d.getName()));
+			}
+			String temp = variables().generateTemp();
+			emitter().emit("%s = %s;", declaration(type, temp), evaluate(binOp.getOperands().get(0)));
+			emitter().emit("while (%s <= %s) {", temp, evaluate(binOp.getOperands().get(1)));
+			emitter().increaseIndentation();
+			for (VarDecl d : varDecls) {
+				emitter().emit("%s = %s++;", d.getName(), temp);
+			}
+			action.run();
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		} else {
+			throw new UnsupportedOperationException(binOp.getOperations().get(0));
 		}
 	}
 
 	default String evaluate(ExprIndexer indexer) {
 		return String.format("%s[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
+	}
+
+	default String evaluate(ExprIf expr) {
+		Type type = types().type(expr);
+		String temp = variables().generateTemp();
+		String decl = declaration(type, temp);
+		emitter().emit("%s;", decl);
+		emitter().emit("if (%s) {", evaluate(expr.getCondition()));
+		emitter().increaseIndentation();
+		assign(type, temp, expr.getThenExpr()); // this kind of assignment?
+		emitter().decreaseIndentation();
+		emitter().emit("} else {");
+		emitter().increaseIndentation();
+		assign(type, temp, expr.getThenExpr()); // this kind of assignment?
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return temp;
+	}
+
+	default String evaluate(ExprApplication apply) {
+		emitter().emit("// TODO implement functions");
+		return "0";
+	}
+
+	default String evaluate(ExprLet let) {
+		for (VarDecl decl : let.getVarDecls()) {
+			emitter().emit("%s = %s;", declaration(types().declaredType(decl), decl.getName()), evaluate(decl.getValue()));
+		}
+		return evaluate(let.getBody());
 	}
 
 	void execute(Statement stmt);
@@ -208,6 +356,45 @@ public interface Code {
 			}
 		}
 		block.getStatements().forEach(this::execute);
+	}
+
+	default void execute(StmtIf stmt) {
+		emitter().emit("if (%s) {", evaluate(stmt.getCondition()));
+		emitter().increaseIndentation();
+		execute(stmt.getThenBranch());
+		emitter().decreaseIndentation();
+		if (stmt.getElseBranch() != null) {
+			emitter().emit("} else {");
+			emitter().increaseIndentation();
+			execute(stmt.getElseBranch());
+			emitter().decreaseIndentation();
+		}
+		emitter().emit("}");
+	}
+
+	default void execute(StmtForeach foreach) {
+		forEachGenList(foreach.getGenerators(), 0, () -> execute(foreach.getBody()));
+	}
+
+	default void forEachGenList(List<GeneratorFilter> generators, int index, Runnable action) {
+		if (index >= generators.size()) {
+			action.run();
+		} else {
+			forEachGen(generators.get(index), () -> forEachGenList(generators, index+1, action));
+		}
+	}
+
+	default void execute(StmtCall call) {
+		emitter().emit("// TODO implement functions");
+	}
+
+	default void execute(StmtWhile stmt) {
+		emitter().emit("while (true) {");
+		emitter().increaseIndentation();
+		emitter().emit("if (%s) break;", evaluate(stmt.getCondition()));
+		execute(stmt.getBody());
+		emitter().decreaseIndentation();
+		emitter().emit("}");
 	}
 
 	String lvalue(LValue lvalue);

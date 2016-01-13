@@ -153,6 +153,7 @@ public class CalActor extends Entity {
 		super.forEachChild(action);
 		varDecls.forEach(action);
 		typeDecls.forEach(action);
+		initializers.forEach(action);
 		actions.forEach(action);
 		if (scheduleFSM != null) action.accept(scheduleFSM);
 		if (process != null) action.accept(process);

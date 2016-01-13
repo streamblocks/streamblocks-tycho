@@ -13,7 +13,7 @@ import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 @Module
 public interface ConstantEvaluator {
@@ -34,11 +34,11 @@ public interface ConstantEvaluator {
 	@Binding(BindingKind.INJECTED)
 	GlobalNames globalNames();
 
-	default OptionalInt intValue(Expression e) {
-		return OptionalInt.empty();
+	default OptionalLong intValue(Expression e) {
+		return OptionalLong.empty();
 	}
 
-	default OptionalInt intValue(VarDecl decl) {
+	default OptionalLong intValue(VarDecl decl) {
 		if (decl.isImport()) {
 			return intValue(globalNames().varDecl(decl.getQualifiedIdentifier(), false));
 		}
@@ -47,15 +47,15 @@ public interface ConstantEvaluator {
 				decl.getValue() != null) {
 			return intValue(decl.getValue());
 		} else {
-			return OptionalInt.empty();
+			return OptionalLong.empty();
 		}
 	}
 
-	default OptionalInt intValue(ExprVariable var) {
+	default OptionalLong intValue(ExprVariable var) {
 		return intValue(names().declaration(var.getVariable()));
 	}
 
-	default OptionalInt intValue(ExprLiteral literal) {
+	default OptionalLong intValue(ExprLiteral literal) {
 		switch (literal.getKind()) {
 			case Integer: try {
 				String text = literal.getText();
@@ -64,44 +64,44 @@ public interface ConstantEvaluator {
 					text = text.substring(2);
 					radix = 16;
 				}
-				return OptionalInt.of(Integer.parseInt(text, radix));
+				return OptionalLong.of(Long.parseUnsignedLong(text, radix));
 			} catch (NumberFormatException e) {
-				return OptionalInt.empty();
+				return OptionalLong.empty();
 			}
 			default: {
-				return OptionalInt.empty();
+				return OptionalLong.empty();
 			}
 		}
 	}
 
-	default OptionalInt intValue(ExprUnaryOp unary) {
-		OptionalInt v = intValue(unary.getOperand());
+	default OptionalLong intValue(ExprUnaryOp unary) {
+		OptionalLong v = intValue(unary.getOperand());
 		if (v.isPresent()) {
-			int vv = v.getAsInt();
+			long vv = v.getAsLong();
 			switch (unary.getOperation()) {
-				case "-": return OptionalInt.of(-vv);
-				default: return OptionalInt.empty();
+				case "-": return OptionalLong.of(-vv);
+				default: return OptionalLong.empty();
 			}
 		} else {
-			return OptionalInt.empty();
+			return OptionalLong.empty();
 		}
 	}
 
-	default OptionalInt intValue(ExprBinaryOp binary) {
-		OptionalInt a = intValue(binary.getOperands().get(0));
-		OptionalInt b = intValue(binary.getOperands().get(1));
+	default OptionalLong intValue(ExprBinaryOp binary) {
+		OptionalLong a = intValue(binary.getOperands().get(0));
+		OptionalLong b = intValue(binary.getOperands().get(1));
 		if (a.isPresent() && b.isPresent()) {
-			int aa = a.getAsInt();
-			int bb = b.getAsInt();
+			long aa = a.getAsLong();
+			long bb = b.getAsLong();
 			switch(binary.getOperations().get(0)) {
-				case "+": return OptionalInt.of(aa + bb);
-				case "-": return OptionalInt.of(aa - bb);
-				case "*": return OptionalInt.of(aa * bb);
-				case "/": return OptionalInt.of(aa / bb);
-				default: return OptionalInt.empty();
+				case "+": return OptionalLong.of(aa + bb);
+				case "-": return OptionalLong.of(aa - bb);
+				case "*": return OptionalLong.of(aa * bb);
+				case "/": return OptionalLong.of(aa / bb);
+				default: return OptionalLong.empty();
 			}
 		} else {
-			return OptionalInt.empty();
+			return OptionalLong.empty();
 		}
 	}
 }
