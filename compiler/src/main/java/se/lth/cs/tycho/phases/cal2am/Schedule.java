@@ -55,19 +55,6 @@ public class Schedule {
 		}
 	}
 
-//	public List<Action> getEligibleActions(Set<String> state) {
-//		List<QID> tags = actor.getScheduleFSM().getTransitions().stream()
-//				.filter(transition -> state.contains(transition.getSourceState()))
-//				.map(Transition::getActionTags)
-//				.flatMap(List::stream)
-//				.collect(Collectors.toList());
-//
-//		return actor.getActions().stream()
-//				.filter(action -> action.getTag() == null
-//						|| tags.stream().anyMatch(tag -> tag.isPrefixOf(action.getTag())))
-//				.collect(Collectors.toList());
-//	}
-
 	public Set<String> targetState(Set<String> sourceState, Action action) {
 		if (action.getTag() == null) {
 			return sourceState;

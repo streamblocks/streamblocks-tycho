@@ -26,6 +26,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -93,40 +94,30 @@ public class CalToAm {
 			return instructions;
 		}
 
-		private List<Instruction> execInstructions() {
-			List<Action> selected = schedule.getEligibleActions(state).stream()
-					.filter(action -> inputConditions(action) != Knowledge.FALSE)
-					.filter(action -> predicateConditions(action) != Knowledge.FALSE)
-					.collect(Collectors.toList());
-
-			Set<QID> selectedTags = selected.stream().map(Action::getTag).collect(Collectors.toSet());
-
-			Set<QID> prioritizedTags = priorities.getPrioritized(state, selectedTags);
-
-
-
-			return selected.stream()
-					.filter(action -> prioritizedTags.contains(action.getTag()))
-					.filter(action -> inputConditions(action) == Knowledge.TRUE)
-					.filter(action -> predicateConditions(action) == Knowledge.TRUE)
-					.filter(action -> outputConditions(action) == Knowledge.TRUE)
-					.map(this::createExec)
-					.collect(Collectors.toList());
-		}
-
-		private List<Instruction> testInstructions() {
+		private List<Instruction> computeInstructions() {
 			List<Action> notDisabled = schedule.getEligibleActions(state).stream()
 					.filter(action -> inputConditions(action) != Knowledge.FALSE)
 					.filter(action -> predicateConditions(action) != Knowledge.FALSE)
 					.collect(Collectors.toList());
 
-			Set<QID> notDisabledTags = notDisabled.stream().map(Action::getTag).collect(Collectors.toSet());
+			Set<QID> selectedTags = notDisabled.stream().map(Action::getTag).collect(Collectors.toSet());
 
-			Set<QID> prioritizedTags = priorities.getPrioritized(state, notDisabledTags);
+			Set<QID> prioritizedTags = priorities.getPrioritized(state, selectedTags);
 
 			List<Action> highPrioNotDisabled = notDisabled.stream()
 					.filter(action -> prioritizedTags.contains(action.getTag()))
 					.collect(Collectors.toList());
+
+			List<Instruction> execInstrucitons = highPrioNotDisabled.stream()
+					.filter(action -> inputConditions(action) == Knowledge.TRUE)
+					.filter(action -> predicateConditions(action) == Knowledge.TRUE)
+					.filter(action -> outputConditions(action) == Knowledge.TRUE)
+					.map(this::createExec)
+					.collect(Collectors.toList());
+
+			if (!execInstrucitons.isEmpty()) {
+				return execInstrucitons;
+			}
 
 			Stream<Instruction> inputTests = highPrioNotDisabled.stream()
 					.flatMap(action -> action.getInputPatterns().stream())
@@ -143,32 +134,40 @@ public class CalToAm {
 					.filter(guard -> predicateCondition(conditions.getCondition(guard)) == Knowledge.UNKNOWN)
 					.map(this::createTest);
 
-			return Stream.concat(inputTests, Stream.concat(outputTests, guardTests)).collect(Collectors.toList());
-		}
+			List<Instruction> testInstrucitons = Stream.concat(inputTests, Stream.concat(outputTests, guardTests)).collect(Collectors.toList());
 
-		private List<Instruction> waitInstruction() {
+			if (!testInstrucitons.isEmpty()) {
+				return testInstrucitons;
+			}
+
 			return Collections.singletonList(createWait());
 		}
 
 		private Knowledge inputConditions(Action action) {
-			return action.getInputPatterns().stream()
-					.map(conditions::getCondition)
-					.map(this::portCondition)
-					.reduce(Knowledge.TRUE, Knowledge::and);
+			Knowledge result = Knowledge.TRUE;
+			for (InputPattern in : action.getInputPatterns()) {
+				result = result.and(portCondition(conditions.getCondition(in)));
+				if (result == Knowledge.FALSE) return result;
+			}
+			return result;
 		}
 
 		private Knowledge outputConditions(Action action) {
-			return action.getOutputExpressions().stream()
-					.map(conditions::getCondition)
-					.map(this::portCondition)
-					.reduce(Knowledge.TRUE, Knowledge::and);
+			Knowledge result = Knowledge.TRUE;
+			for (OutputExpression out : action.getOutputExpressions()) {
+				result = result.and(portCondition(conditions.getCondition(out)));
+				if (result == Knowledge.FALSE) return result;
+			}
+			return result;
 		}
 
 		private Knowledge predicateConditions(Action action) {
-			return action.getGuards().stream()
-					.map(conditions::getCondition)
-					.map(this::predicateCondition)
-					.reduce(Knowledge.TRUE, Knowledge::and);
+			Knowledge result = Knowledge.TRUE;
+			for (Expression guard : action.getGuards()) {
+				result = result.and(predicateCondition(conditions.getCondition(guard)));
+				if (result == Knowledge.FALSE) return result;
+			}
+			return result;
 		}
 
 		private Knowledge predicateCondition(PredicateCondition predicateCondition) {
@@ -183,18 +182,6 @@ public class CalToAm {
 				knowledge = outputPorts;
 			}
 			return knowledge.getOrDefault(condition.getPortName(), PortKnowledge.nil()).has(condition.N());
-		}
-
-		private List<Instruction> computeInstructions() {
-			List<Instruction> exec = execInstructions();
-			if (!exec.isEmpty()) {
-				return exec;
-			}
-			List<Instruction> test = testInstructions();
-			if (!test.isEmpty()) {
-				return test;
-			}
-			return waitInstruction();
 		}
 
 		private Exec createExec(Action action) {
