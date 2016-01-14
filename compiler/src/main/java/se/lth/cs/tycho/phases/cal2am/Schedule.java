@@ -21,6 +21,11 @@ public class Schedule {
 	public Schedule(CalActor actor) {
 		this.actor = actor;
 		this.eligible = new HashMap<>();
+		eligible.put(actor.getScheduleFSM().getInitialState(), new ArrayList<>());
+		for (Transition t : actor.getScheduleFSM().getTransitions()) {
+			eligible.putIfAbsent(t.getSourceState(), new ArrayList<>());
+			eligible.putIfAbsent(t.getDestinationState(), new ArrayList<>());
+		}
 		Map<QID, Set<String>> eligibleIn = new HashMap<>();
 		for (Transition transition : actor.getScheduleFSM().getTransitions()) {
 			for (QID tag : transition.getActionTags()) {
