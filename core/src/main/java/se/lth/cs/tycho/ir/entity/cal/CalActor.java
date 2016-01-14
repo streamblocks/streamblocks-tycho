@@ -39,6 +39,7 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.entity.cal;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -211,4 +212,19 @@ public class CalActor extends Entity {
 		}
 	}
 
+	public CalActor withActions(List<Action> actions) {
+		if (Lists.elementIdentityEquals(this.actions, actions)) {
+			return this;
+		} else {
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, ImmutableList.from(actions), scheduleFSM, process, priorities, invariants);
+		}
+	}
+
+	public CalActor withInitialisers(List<Action> initializers) {
+		if (Lists.elementIdentityEquals(this.initializers, initializers)) {
+			return this;
+		} else {
+ 			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, ImmutableList.from(initializers), actions, scheduleFSM, process, priorities, invariants);
+		}
+	}
 }

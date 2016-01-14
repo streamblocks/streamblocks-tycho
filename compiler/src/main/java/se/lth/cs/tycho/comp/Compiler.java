@@ -51,6 +51,7 @@ public class Compiler {
 			new LiftProcessVarDeclsPhase(),
 			new ProcessToCalPhase(),
 			new AddSchedulePhase(),
+			new ScheduleInitializersPhase(),
 			new CalToAmPhase(),
 			new ReduceActorMachinePhase(),
 

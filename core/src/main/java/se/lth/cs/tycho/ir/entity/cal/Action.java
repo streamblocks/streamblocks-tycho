@@ -197,4 +197,12 @@ public class Action extends AbstractIRNode {
 				(ImmutableList) postconditions.map(transformation)
 		);
 	}
+
+	public Action withTag(QID tag) {
+		if (Objects.equals(this.tag, tag)) {
+			return this;
+		} else {
+			return new Action(this, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		}
+	}
 }
