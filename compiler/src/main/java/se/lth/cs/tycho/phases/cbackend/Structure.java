@@ -17,11 +17,14 @@ import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
+import se.lth.cs.tycho.ir.expr.ExprLambda;
+import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.CallableType;
+import se.lth.cs.tycho.types.LambdaType;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -52,13 +55,17 @@ public interface Structure {
 	default DefaultValues defVal() { return backend().defaultValues(); }
 
 
-	default void entityDecl(EntityDecl decl) {
-		entity(decl.getName(), decl.getEntity());
+	default void actorDecl(EntityDecl decl) {
+		actor(decl.getName(), decl.getEntity());
+	}
+	default void networkDecl(EntityDecl decl) {
+		network(decl.getName(), decl.getEntity());
 	}
 
-	void entity(String name, Entity entity);
+	default void network(String name, Entity entity) {}
+	default void actor(String name, Entity entity) {}
 
-	default void entity(String name, NlNetwork network) {
+	default void network(String name, NlNetwork network) {
 		List<StructureConnectionStmt> connections = network.getStructure().stream()
 				.map(s -> {
 					assert s instanceof StructureConnectionStmt;
@@ -235,8 +242,9 @@ public interface Structure {
 		emitter().emit("");
 	}
 
-	default void entity(String name, ActorMachine actorMachine) {
+	default void actor(String name, ActorMachine actorMachine) {
 		actorMachineState(name, actorMachine);
+		actorMachineCallables(name, actorMachine);
 		actorMachineStateInit(name, actorMachine);
 		actorMachineInit(name, actorMachine);
 		actorMachineTransitions(name, actorMachine);
@@ -370,6 +378,71 @@ public interface Structure {
 		}
 	}
 
+	default void actorMachineCallables(String name, ActorMachine actorMachine) {
+		for (Scope scope : actorMachine.getScopes()) {
+			for (VarDecl decl : scope.getDeclarations()) {
+				if (types().declaredType(decl) instanceof CallableType) {
+					if (scope.isPersistent() && decl.isConstant()) {
+						actorMachineCallable(name, decl, decl.getValue());
+					} else {
+						throw new UnsupportedOperationException();
+					}
+				}
+			}
+		}
+	}
+
+	void actorMachineCallable(String name, VarDecl decl, Expression value);
+	default void actorMachineCallable(String name, VarDecl decl, ExprLambda lambda) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("void ")
+				.append(decl.getName())
+				.append("(")
+				.append(name).append("_state *self, ");
+		for (VarDecl par : lambda.getValueParameters()) {
+			builder.append(code().type(types().declaredType(par)))
+					.append(" ")
+					.append(par.getName())
+					.append(", ");
+		}
+		LambdaType type = (LambdaType) types().declaredType(decl);
+		builder.append(code().type(type.getReturnType()))
+				.append(" *result)");
+		String header = builder.toString();
+		if (lambda.getBody() == null) {
+			emitter().emit("%s;", header);
+		} else {
+			emitter().emit("static %s {", header);
+			emitter().increaseIndentation();
+			code().assign(type.getReturnType(), "*result", lambda.getBody());
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		}
+	}
+
+	default void actorMachineCallable(String name, VarDecl decl, ExprProc proc) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("void ")
+				.append(decl.getName())
+				.append("(")
+				.append(name).append("_state *self")
+				.append(proc.getValueParameters().stream()
+						.map(par -> ", " + code().type(types().declaredType(par)) + " " + par.getName())
+						.collect(Collectors.joining()))
+				.append(")");
+		String header = builder.toString();
+		if (proc.getBody() == null) {
+			emitter().emit("%s;", header);
+		} else {
+			emitter().emit("static %s {", header);
+			emitter().increaseIndentation();
+			code().execute(proc.getBody());
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		}
+	}
+
+
 	default void actorMachineState(String name, ActorMachine actorMachine) {
 		emitter().emit("typedef struct {");
 		emitter().increaseIndentation();
@@ -417,7 +490,11 @@ public interface Structure {
 		emitter().emit("");
 	}
 
-	default void entityDecls(ImmutableList<EntityDecl> entityDecls) {
-		entityDecls.forEach(backend().structure()::entityDecl);
+	default void actorDecls(List<EntityDecl> entityDecls) {
+		entityDecls.forEach(backend().structure()::actorDecl);
+	}
+
+	default void networkDecls(List<EntityDecl> entityDecls) {
+		entityDecls.forEach(backend().structure()::networkDecl);
 	}
 }

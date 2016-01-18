@@ -45,6 +45,11 @@ public class SourceFile implements SourceUnit {
 	}
 
 	@Override
+	public boolean isSynthetic() {
+		return false;
+	}
+
+	@Override
 	public IRNode clone() {
 		try {
 			return (IRNode) super.clone();

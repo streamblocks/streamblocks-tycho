@@ -74,8 +74,10 @@ public class XDF2NLReader {
 	private void buildConnections(Document input, ImmutableList.Builder<StructureStatement> connections) {
 		for (Element conn : selectChildren(input.getDocumentElement(), "Connection")) {
 			String src = conn.getAttribute("src");
+			if (src.isEmpty()) src = null;
 			Port srcPort = new Port(conn.getAttribute("src-port"));
 			String dst = conn.getAttribute("dst");
+			if (dst.isEmpty()) dst = null;
 			Port dstPort = new Port(conn.getAttribute("dst-port"));
 			ImmutableList<ToolAttribute> attributes;
 			String bufferSize = conn.getAttribute("buffer-size");

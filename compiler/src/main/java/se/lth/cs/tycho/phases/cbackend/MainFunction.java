@@ -3,11 +3,15 @@ package se.lth.cs.tycho.phases.cbackend;
 import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.comp.CompilationTask;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Module
 public interface MainFunction {
@@ -20,8 +24,16 @@ public interface MainFunction {
 
 	default void generateCode(CompilationTask task) {
 		include();
-		backend().global().globalVariables(task.getTarget().getVarDecls());
-		backend().structure().entityDecls(task.getTarget().getEntityDecls());
+		List<VarDecl> varDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getVarDecls().stream()).collect(Collectors.toList());
+		List<EntityDecl> entityDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getEntityDecls().stream()).collect(Collectors.toList());
+		backend().global().globalVariables(varDecls);
+		backend().structure().actorDecls(entityDecls);
+		task.getIdentifier();
+		for (EntityDecl decl : entityDecls) {
+			if (decl.getName().equals(task.getIdentifier().toString())) {
+				backend().structure().networkDecl(decl);
+			}
+		}
 		main(task);
 	}
 

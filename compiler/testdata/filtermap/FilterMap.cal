@@ -1,0 +1,32 @@
+actor Filter () int(size=8) In ==> int(size=8) Out :
+	function p(int(size=8) x) --> bool : x >= 0 end
+
+	int(size=8) x;
+
+	repeat
+		In --> x;
+		if p(x) then
+			Out <-- x;
+		end
+	end
+end
+
+actor Map () int(size=8) In ==> int(size=8) Out :
+	function f(int(size=8) x) --> int(size=8) : -x end
+
+	int(size=8) x;
+	repeat
+		In --> x;
+		Out <-- f(x);
+	end
+end
+
+network FilterMap () int(size=8) In ==> int(size=8) Out :
+entities
+	filter = Filter();
+	map_ = Map();
+structure
+	In --> filter.In;
+	filter.Out --> map_.In {bufferSize=1;composition="filtermap";};
+	map_.Out --> Out;
+end

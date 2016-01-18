@@ -60,88 +60,33 @@ public class Compiler {
 	);
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {
-		@Override
-		public String getKey() {
-			return "source-paths";
-		}
-
-		@Override
-		public String getDescription() {
-			return "A " + File.pathSeparator + "-separated list of search paths for source files.";
-		}
-
-		@Override
-		public List<Path> defaultValue() {
-			return Collections.emptyList();
-		}
+		@Override public String getKey() { return "source-paths"; }
+		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for source files."; }
+		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
 	};
 
 	public static final Setting<List<Path>> orccSourcePaths = new PathListSetting() {
-		@Override
-		public String getKey() {
-			return "orcc-source-paths";
-		}
-
-		@Override
-		public String getDescription() {
-			return "A " + File.pathSeparator + "-separated list of search paths for Orcc-compatible source files.";
-		}
-
-		@Override
-		public List<Path> defaultValue() {
-			return Collections.emptyList();
-		}
+		@Override public String getKey() { return "orcc-source-paths"; }
+		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for Orcc-compatible source files."; }
+		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
 	};
 
 	public static final Setting<List<Path>> xdfSourcePaths = new PathListSetting() {
-		@Override
-		public String getKey() {
-			return "xdf-source-paths";
-		}
-
-		@Override
-		public String getDescription() {
-			return "A " + File.pathSeparator + "-separated list of search paths for XDF networks.";
-		}
-
-		@Override
-		public List<Path> defaultValue() {
-			return Collections.emptyList();
-		}
+		@Override public String getKey() { return "xdf-source-paths"; }
+		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for XDF networks."; }
+		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
 	};
 
 	public static final Setting<Path> targetPath = new PathSetting() {
-		@Override
-		public String getKey() {
-			return "target-path";
-		}
-
-		@Override
-		public String getDescription() {
-			return "Output directory for the compiled files.";
-		}
-
-		@Override
-		public Path defaultValue() {
-			return Paths.get("");
-		}
+		@Override public String getKey() { return "target-path"; }
+		@Override public String getDescription() { return "Output directory for the compiled files."; }
+		@Override public Path defaultValue() { return Paths.get(""); }
 	};
 
 	public static final Setting<Boolean> phaseTimer = new OnOffSetting() {
-		@Override
-		public String getKey() {
-			return "phase-timer";
-		}
-
-		@Override
-		public String getDescription() {
-			return "Measures the execution time of the compilation phases.";
-		}
-
-		@Override
-		public Boolean defaultValue() {
-			return false;
-		}
+		@Override public String getKey() { return "phase-timer"; }
+		@Override public String getDescription() { return "Measures the execution time of the compilation phases."; }
+		@Override public Boolean defaultValue() { return false; }
 	};
 
 	public Compiler(Configuration configuration) {
@@ -165,7 +110,7 @@ public class Compiler {
 	}
 
 	public boolean compile(QID entity) {
-		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity, null);
+		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity);
 		long[] phaseExecutionTime = new long[phases.size()];
 		int currentPhaseNumber = 0;
 		boolean success = true;

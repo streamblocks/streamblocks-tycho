@@ -57,26 +57,28 @@ static _Bool channel_has_space(channel_t *channel_vector[], size_t channel_count
 }
 
 
-static void channel_read(channel_t *channel, size_t bytes, char *result) {
+static void channel_read(channel_t *channel, size_t bytes, void *result) {
     fprintf(stderr, "Read is not implemented");
     exit(1);
 }
 
 
-static void channel_write(channel_t *channel_vector[], size_t channel_count, char *data, size_t bytes) {
+static void channel_write(channel_t *channel_vector[], size_t channel_count, void *data, size_t bytes) {
+	char *dat = data;
     for (size_t c = 0; c < channel_count; c++) {
         channel_t *chan = channel_vector[c];
         for (size_t i = 0; i < bytes; i++) {
-            chan->buffer[(chan->head + chan->bytes) % chan->size] = data[i];
+            chan->buffer[(chan->head + chan->bytes) % chan->size] = dat[i];
             chan->bytes++;
         }
     }
 }
 
 
-static void channel_peek(channel_t *channel, size_t offset, size_t bytes, char *result) {
+static void channel_peek(channel_t *channel, size_t offset, size_t bytes, void *result) {
+	char *res = result;
     for (size_t i = 0; i < bytes; i++) {
-        result[i] = channel->buffer[(channel->head+i+offset) % channel->size];
+        res[i] = channel->buffer[(channel->head+i+offset) % channel->size];
     }
 }
 

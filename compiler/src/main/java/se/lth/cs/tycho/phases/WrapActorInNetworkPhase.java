@@ -2,6 +2,10 @@ package se.lth.cs.tycho.phases;
 
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
+import se.lth.cs.tycho.comp.Namespaces;
+import se.lth.cs.tycho.comp.SourceUnit;
+import se.lth.cs.tycho.comp.SyntheticSourceUnit;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
@@ -22,6 +26,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -33,23 +38,23 @@ public class WrapActorInNetworkPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		assert task.getIdentifier().getNameCount() == 1;
+		EntityDecl entityDecl = Namespaces.findEntities(task, task.getIdentifier()).findFirst().get();
+
 		String id = task.getIdentifier().toString();
-		EntityDecl entityDecl = task.getTarget().getEntityDecls().stream()
-				.filter(entity -> entity.getName().equals(id))
-				.findFirst()
-				.get();
 		if (entityDecl.getEntity() instanceof NlNetwork) {
 			return task;
 		} else {
 			long n = context.getUniqueNumbers().next();
 			String netName = id + "Net_" + n;
 			EntityDecl network = EntityDecl.global(Availability.PUBLIC, netName, wrapInNetwork(entityDecl.getName(), entityDecl.getEntity()));
-			ImmutableList<EntityDecl> entities = ImmutableList.<EntityDecl> builder()
-					.addAll(task.getTarget().getEntityDecls())
-					.add(network)
+			ImmutableList<EntityDecl> list = ImmutableList.of(network);
+			NamespaceDecl ns = new NamespaceDecl(QID.empty(), ImmutableList.empty(), ImmutableList.empty(), list, ImmutableList.empty());
+			SourceUnit unit = new SyntheticSourceUnit(ns);
+			List<SourceUnit> units = ImmutableList.<SourceUnit> builder()
+					.addAll(task.getSourceUnits())
+					.add(unit)
 					.build();
-			return task.withTarget(task.getTarget().withEntityDecls(entities)).withIdentifier(QID.of(netName));
+			return task.withSourceUnits(units).withIdentifier(QID.of(netName));
 		}
 	}
 

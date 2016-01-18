@@ -71,7 +71,7 @@ public class Diagnostic {
 		builder.append("\n");
 		builder.append(message);
 		builder.append("\n");
-		if (hasPosition()) {
+		if (hasPosition() && !sourceUnit.isSynthetic()) {
 			try (InputStream stream = sourceUnit.getInputStream()) {
 				List<String> lines = new BufferedReader(new InputStreamReader(stream)).lines()
 						.skip(fromLine()-1)

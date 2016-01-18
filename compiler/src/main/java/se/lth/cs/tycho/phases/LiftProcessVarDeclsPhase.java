@@ -5,8 +5,10 @@ import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
+import se.lth.cs.tycho.comp.Transformations;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.ProcessDescription;
 import se.lth.cs.tycho.ir.stmt.Statement;
@@ -23,16 +25,11 @@ public class LiftProcessVarDeclsPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		assert task.getSourceUnits().isEmpty();
-		assert task.getTarget() != null;
-		return (CompilationTask) transformTree(task);
+		return Transformations.transformEntityDecls(task, decl ->
+				decl.withEntity(transform(decl.getEntity())));
 	}
 
-	private IRNode transformTree(IRNode node) {
-		return transform(node).transformChildren(this::transformTree);
-	}
-
-	private IRNode transform(IRNode node) {
+	private Entity transform(Entity node) {
 		if (node instanceof CalActor) {
 			CalActor actor = (CalActor) node;
 			if (actor.getProcessDescription() != null) {

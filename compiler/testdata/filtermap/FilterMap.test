@@ -1,0 +1,11 @@
+{
+  "description": "A filter connected to a map",
+  "source-paths": ["."],
+  "entity": "FilterMap",
+  "test-data": [
+    {
+      "input": ["in"],
+      "reference": ["out"]
+    }
+  ]
+}

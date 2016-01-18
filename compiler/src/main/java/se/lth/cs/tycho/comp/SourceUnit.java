@@ -17,6 +17,7 @@ public interface SourceUnit extends IRNode {
 	SourceUnit withTree(NamespaceDecl ns);
 	String getLocation();
 	InputStream getInputStream() throws IOException;
+	boolean isSynthetic();
 	InputLanguage getLanguage();
 
 	@Override

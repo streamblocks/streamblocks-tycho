@@ -3,7 +3,10 @@ package se.lth.cs.tycho.phases.cbackend;
 import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
@@ -17,6 +20,7 @@ import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.BoolType;
 import se.lth.cs.tycho.types.IntType;
@@ -50,6 +54,8 @@ public interface Code {
 		return backend().variables();
 	}
 
+	default Names names() { return backend().names(); }
+
 	void assign(Type type, String lvalue, Expression expr);
 
 	default void assign(IntType type, String lvalue, Expression expr) {
@@ -72,7 +78,7 @@ public interface Code {
 		Type portType = types().portType(input.getPort());
 		String tmp = variables().generateTemp();
 		emitter().emit("%s;", declaration(portType, tmp));
-		emitter().emit("channel_peek(self->%s_channel, %d, sizeof(%s), (char*) &%s);", input.getPort().getName(), input.getOffset(), type(portType), tmp);
+		emitter().emit("channel_peek(self->%s_channel, %d, sizeof(%s), &%s);", input.getPort().getName(), input.getOffset(), type(portType), tmp);
 		emitter().emit("%s = %s;", lvalue, tmp); // should handle some discrepancies between port type and variable type.
 	}
 
@@ -118,7 +124,7 @@ public interface Code {
 		if (type.getSize().isPresent()) {
 			return String.format("%s %s[%d]", type(type.getElementType()), name, type.getSize().getAsInt());
 		} else {
-			throw new RuntimeException("Not implemented");
+			return String.format("%s %s[] /* TODO IMPLEMENT */ ", type(type.getElementType()), name);
 		}
 	}
 
@@ -304,8 +310,30 @@ public interface Code {
 	}
 
 	default String evaluate(ExprApplication apply) {
-		emitter().emit("// TODO implement functions");
-		return "0";
+		String tmp = variables().generateTemp();
+		String type = type(types().type(apply));
+		emitter().emit("%s %s;", type, tmp);
+		application(tmp, apply.getFunction(), apply.getArgs());
+		return tmp;
+	}
+
+	default void application(String result, Expression func, List<Expression> args) {
+		throw new UnsupportedOperationException();
+	}
+	default void application(String result, ExprVariable func, List<Expression> args) {
+		VarDecl decl = names().declaration(func.getVariable());
+		StringBuilder builder = new StringBuilder();
+		builder.append(func.getVariable().getName())
+				.append("(");
+		IRNode parent = backend().tree().parent(decl);
+		if (parent instanceof Scope) {
+			builder.append("self, ");
+		}
+		for (Expression arg : args) {
+			builder.append(evaluate(arg)).append(", ");
+		}
+		builder.append("&").append(result).append(");");
+		emitter().emit(builder.toString());
 	}
 
 	default String evaluate(ExprLet let) {
@@ -329,12 +357,12 @@ public interface Code {
 			emitter().emit("%s;", declaration(types().portType(write.getPort()), tmp));
 			for (Expression expr : write.getValues()) {
 				emitter().emit("%s = %s;", tmp, evaluate(expr));
-				emitter().emit("channel_write(self->%s_channels, self->%1$s_count, (char*) &%s, sizeof(%s));", portName, tmp, portType);
+				emitter().emit("channel_write(self->%s_channels, self->%1$s_count, &%s, sizeof(%s));", portName, tmp, portType);
 			}
 		} else if (write.getValues().size() == 1) {
 			String portType = type(types().portTypeRepeated(write.getPort(), write.getRepeatExpression()));
 			String value = evaluate(write.getValues().get(0));
-			emitter().emit("channel_write(self->%s_channels, self->%1$s_count, (char*) &%s, sizeof(%s));", portName, value, portType);
+			emitter().emit("channel_write(self->%s_channels, self->%1$s_count, &%s, sizeof(%s));", portName, value, portType);
 		} else {
 			throw new Error("not implemented");
 		}
@@ -385,7 +413,34 @@ public interface Code {
 	}
 
 	default void execute(StmtCall call) {
-		emitter().emit("// TODO implement functions");
+		call(call.getProcedure(), call.getArgs());
+	}
+	default void call(Expression proc, List<Expression> args) {
+		throw new UnsupportedOperationException();
+	}
+	default void call(ExprVariable proc, List<Expression> args) {
+		VarDecl decl = names().declaration(proc.getVariable());
+		StringBuilder builder = new StringBuilder();
+		builder.append(proc.getVariable().getName())
+				.append("(");
+		IRNode parent = backend().tree().parent(decl);
+		if (parent instanceof Scope) {
+			builder.append("self");
+			if (!args.isEmpty()) {
+				builder.append(", ");
+			}
+		}
+		boolean first = true;
+		for (Expression arg : args) {
+			if (first) {
+				first = false;
+			} else {
+				builder.append(", ");
+			}
+			builder.append(evaluate(arg));
+		}
+		builder.append(");");
+		emitter().emit(builder.toString());
 	}
 
 	default void execute(StmtWhile stmt) {

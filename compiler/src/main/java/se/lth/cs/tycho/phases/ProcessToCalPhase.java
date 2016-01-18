@@ -8,6 +8,7 @@ import se.lth.cs.tycho.cfg.Block;
 import se.lth.cs.tycho.cfg.ConditionBlock;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
+import se.lth.cs.tycho.comp.Transformations;
 import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
@@ -48,11 +49,8 @@ public class ProcessToCalPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		assert task.getSourceUnits().isEmpty();
-		assert task.getTarget() != null;
-		return task.withTarget(task.getTarget().withEntityDecls(
-				task.getTarget().getEntityDecls().map(entityDecl -> entityDecl.withEntity(
-						translate(entityDecl.getEntity(), context.getUniqueNumbers())))));
+		return Transformations.transformEntityDecls(task, decl ->
+				decl.withEntity(translate(decl.getEntity(), context.getUniqueNumbers())));
 	}
 
 	private Entity translate(Entity entity, UniqueNumbers uniqueNumbers) {

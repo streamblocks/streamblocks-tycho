@@ -6,6 +6,7 @@ import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
+import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -29,16 +30,21 @@ public class LiftConstantsPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
+		StaticConstants eval = context.getAttributeManager().getAttributeModule(StaticConstants.key, task);
+		return task.withSourceUnits(task.getSourceUnits().map(unit -> liftInUnit(unit, eval)));
+	}
+
+	public SourceUnit liftInUnit(SourceUnit unit, StaticConstants eval) {
 		Transformation transformation = MultiJ.from(Transformation.class)
-				.bind("constants").to(context.getAttributeManager().getAttributeModule(StaticConstants.key, task))
+				.bind("constants").to(eval)
 				.instance();
-		NamespaceDecl target = task.getTarget().transformChildren(transformation);
+		NamespaceDecl target = unit.getTree().transformChildren(transformation);
 		ImmutableList<VarDecl> varDecls = ImmutableList.<VarDecl> builder()
 				.addAll(target.getVarDecls())
 				.addAll(transformation.lifted())
 				.build();
 		target = target.withVarDecls(varDecls);
-		return task.withTarget(target);
+		return unit.withTree(target);
 	}
 
 	@Module

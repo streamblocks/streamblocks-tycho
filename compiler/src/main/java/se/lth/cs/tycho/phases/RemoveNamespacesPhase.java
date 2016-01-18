@@ -4,6 +4,8 @@ import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
+import se.lth.cs.tycho.comp.SourceUnit;
+import se.lth.cs.tycho.comp.SyntheticSourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
@@ -35,8 +37,9 @@ public class RemoveNamespacesPhase implements Phase {
 			typeDecls.addAll(sourceUnit.getTree().getTypeDecls());
 			entityDecls.addAll(sourceUnit.getTree().getEntityDecls());
 		});
-		CompilationTask result = task.copy(ImmutableList.empty(), task.getIdentifier().getLast(), new NamespaceDecl(
-				QID.empty(), ImmutableList.empty(), varDecls.build(), entityDecls.build(), typeDecls.build()));
+		NamespaceDecl tree = new NamespaceDecl(QID.empty(), ImmutableList.empty(), varDecls.build(), entityDecls.build(), typeDecls.build());
+		SourceUnit unit = new SyntheticSourceUnit(tree);
+		CompilationTask result = task.copy(ImmutableList.of(unit), task.getIdentifier().getLast());
 		return (CompilationTask) removeImports.transform(result);
 	}
 
