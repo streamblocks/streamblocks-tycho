@@ -1,10 +1,7 @@
 package se.lth.cs.tycho.ir.stmt;
 
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 
@@ -36,7 +33,7 @@ public class StmtConsume extends Statement {
 	}
 
 	public StmtConsume copy(Port port, int tokens) {
-		if (Objects.equals(this.port, port) && this.tokens == tokens) {
+		if (this.port == port && this.tokens == tokens) {
 			return this;
 		}
 		return new StmtConsume(this, port, tokens);
@@ -48,7 +45,7 @@ public class StmtConsume extends Statement {
 	}
 
 	@Override
-	public StmtConsume transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public StmtConsume transformChildren(Transformation transformation) {
 		return copy((Port) transformation.apply(port), tokens);
 	}
 }

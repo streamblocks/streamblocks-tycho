@@ -16,13 +16,12 @@ public abstract class Entity extends AbstractIRNode {
 	protected final ImmutableList<TypeDecl> typeParameters;
 	protected final ImmutableList<VarDecl> valueParameters;
 
-	public Entity(IRNode original, List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-			List<TypeDecl> typeParameters, List<VarDecl> valueParameters) {
+	public Entity(IRNode original, List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<VarDecl> valueParameters) {
 		super(original);
 		this.inputPorts = ImmutableList.from(inputPorts);
 		this.outputPorts = ImmutableList.from(outputPorts);
-		this.typeParameters = ImmutableList.from(typeParameters);
 		this.valueParameters = ImmutableList.from(valueParameters);
+		this.typeParameters = ImmutableList.from(typeParameters);
 	}
 
 	public abstract <R, P> R accept(EntityVisitor<R, P> visitor, P param);

@@ -1,8 +1,6 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.AttributableIRNode;
-import se.lth.cs.tycho.ir.util.ImmutableList;
 
 /**
  * 
@@ -12,8 +10,12 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 
 abstract public class StructureStatement extends AttributableIRNode {
 	public abstract <R, P> R accept(StructureStmtVisitor<R, P> v, P p);
-
-	public StructureStatement(ImmutableList<ToolAttribute> toolAttributes) {
-		super(toolAttributes);
+	public <R> R accept(StructureStmtVisitor<R, Void> v) {
+		return accept(v, null);
 	}
+
+	public StructureStatement(StructureStatement original) {
+		super(original);
+	}
+
 }

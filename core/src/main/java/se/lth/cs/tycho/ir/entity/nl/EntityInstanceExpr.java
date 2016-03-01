@@ -7,31 +7,34 @@ import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
  * 
  */
 
-public class EntityInstanceExpr extends se.lth.cs.tycho.ir.entity.nl.EntityExpr {
+public class EntityInstanceExpr extends EntityExpr {
 
-	public EntityInstanceExpr(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments, ImmutableList<ToolAttribute> toolAttributes) {
-		super(toolAttributes);
+	public EntityInstanceExpr(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments) {
+		this(null, entityName, parameterAssignments);
+	}
+
+	private EntityInstanceExpr(EntityExpr original, String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments) {
+		super(original);
 		this.entityName = entityName;
 		this.parameterAssignments = ImmutableList.from(parameterAssignments);
 	}
 
-	public EntityInstanceExpr copy(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments, ImmutableList<ToolAttribute> toolAttributes) {
+	public EntityInstanceExpr copy(String entityName, ImmutableList<Entry<String, Expression>> parameterAssignments) {
 		if (Objects.equals(this.entityName, entityName)
-				&& Lists.elementIdentityEquals(this.parameterAssignments, parameterAssignments)
-				&& Lists.elementIdentityEquals(getToolAttributes(), toolAttributes)) {
+				&& Lists.sameElements(this.parameterAssignments, parameterAssignments)) {
 			return this;
 		}
-		return new EntityInstanceExpr(entityName, parameterAssignments, toolAttributes);
+		return new EntityInstanceExpr(this, entityName, parameterAssignments);
 	}
 
 	public String getEntityName() {
@@ -68,23 +71,19 @@ public class EntityInstanceExpr extends se.lth.cs.tycho.ir.entity.nl.EntityExpr 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		parameterAssignments.forEach(entry -> action.accept(entry.getValue()));
-		getToolAttributes().forEach(action);
+		getAttributes().forEach(action);
+	}
+
+	@Override
+	public EntityInstanceExpr withAttributes(List<ToolAttribute> attributes) {
+		return (EntityInstanceExpr) super.withAttributes(attributes);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public EntityInstanceExpr transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public EntityInstanceExpr transformChildren(Transformation transformation) {
 		return copy(entityName,
-				(ImmutableList) parameterAssignments.map(entry -> ImmutableEntry.of(entry.getKey(), transformation.apply(entry.getValue()))),
-				(ImmutableList) getToolAttributes().map(transformation));
-	}
-
-	@Override
-	public EntityInstanceExpr withToolAttributes(ImmutableList<ToolAttribute> attributes) {
-		if (Lists.elementIdentityEquals(getToolAttributes(), attributes)) {
-			return this;
-		} else {
-			return new EntityInstanceExpr(entityName, parameterAssignments, attributes);
-		}
+				(ImmutableList) parameterAssignments.map(entry -> ImmutableEntry.of(entry.getKey(), transformation.apply(entry.getValue())))
+		).withAttributes((List) getAttributes().map(transformation));
 	}
 }

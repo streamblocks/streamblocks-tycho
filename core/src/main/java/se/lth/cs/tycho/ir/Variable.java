@@ -2,7 +2,6 @@ package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 
 public class Variable extends AbstractIRNode {
@@ -54,7 +53,7 @@ public class Variable extends AbstractIRNode {
 	}
 
 	@Override
-	public Variable transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public Variable transformChildren(Transformation transformation) {
 		return this;
 	}
 }

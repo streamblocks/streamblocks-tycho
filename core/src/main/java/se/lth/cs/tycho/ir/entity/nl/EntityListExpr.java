@@ -1,23 +1,22 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class EntityListExpr extends EntityExpr {
 
-	public EntityListExpr(ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {
+	public EntityListExpr(List<EntityExpr> entityList, List<GeneratorFilter> generators) {
 		super(null);
 		this.entityList = ImmutableList.from(entityList);
 		this.generators = ImmutableList.from(generators);
 	}
 
-	public EntityListExpr copy(ImmutableList<EntityExpr> entityList, ImmutableList<GeneratorFilter> generators) {
+	public EntityListExpr copy(List<EntityExpr> entityList, List<GeneratorFilter> generators) {
 		if (Lists.equals(this.entityList, entityList) && Lists.equals(this.generators, generators)) {
 			return this;
 		}
@@ -62,10 +61,14 @@ public class EntityListExpr extends EntityExpr {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		entityList.forEach(action);
 		generators.forEach(action);
+		getAttributes().forEach(action);
 	}
 
 	@Override
-	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
-		throw new UnsupportedOperationException();
+	public IRNode transformChildren(Transformation transformation) {
+		return copy(
+				(List) entityList.map(transformation),
+				(List) generators.map(transformation)
+		).withAttributes((List) getAttributes().map(transformation));
 	}
 }

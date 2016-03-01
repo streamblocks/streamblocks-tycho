@@ -2,9 +2,7 @@ package se.lth.cs.tycho.ir.stmt.lvalue;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 
@@ -71,7 +69,7 @@ public class LValueIndexer extends LValue {
 	}
 
 	@Override
-	public LValueIndexer transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public LValueIndexer transformChildren(Transformation transformation) {
 		return copy((LValue) transformation.apply(structure), (Expression) transformation.apply(index));
 	}
 }

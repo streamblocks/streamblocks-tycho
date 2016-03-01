@@ -13,6 +13,7 @@ import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 
+import java.util.Optional;
 import java.util.OptionalLong;
 
 @Module
@@ -104,4 +105,6 @@ public interface ConstantEvaluator {
 			return OptionalLong.empty();
 		}
 	}
+
+	Optional<Boolean> boolValue(Expression expr);
 }

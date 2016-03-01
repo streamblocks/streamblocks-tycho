@@ -7,7 +7,6 @@ import se.lth.cs.tycho.ir.expr.Expression;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class VarDecl extends Decl {
 
@@ -83,7 +82,7 @@ public class VarDecl extends Decl {
 	}
 
 	@Override
-	public VarDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public VarDecl transformChildren(Transformation transformation) {
 		TypeExpr type = this.type == null ? null : (TypeExpr) transformation.apply(this.type);
 		Expression value = this.value == null ? null : (Expression) transformation.apply(this.value);
 		if (type == this.type && value == this.value) {

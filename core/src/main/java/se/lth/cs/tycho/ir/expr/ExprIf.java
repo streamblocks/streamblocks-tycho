@@ -39,12 +39,10 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.expr;
 
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class ExprIf extends Expression {
 
@@ -95,7 +93,7 @@ public class ExprIf extends Expression {
 	}
 
 	@Override
-	public ExprIf transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public ExprIf transformChildren(Transformation transformation) {
 		return copy(
 				(Expression) transformation.apply(condition),
 				(Expression) transformation.apply(thenExpr),

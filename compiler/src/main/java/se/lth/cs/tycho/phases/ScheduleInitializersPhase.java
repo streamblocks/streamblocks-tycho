@@ -15,8 +15,6 @@ import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import java.util.function.Function;
-
 public class ScheduleInitializersPhase implements Phase {
 
 	@Override
@@ -30,7 +28,7 @@ public class ScheduleInitializersPhase implements Phase {
 	}
 
 	@Module
-	interface Transformation extends Function<IRNode, IRNode> {
+	interface Transformation extends IRNode.Transformation {
 		@Override
 		default IRNode apply(IRNode node) {
 			return transform(node);

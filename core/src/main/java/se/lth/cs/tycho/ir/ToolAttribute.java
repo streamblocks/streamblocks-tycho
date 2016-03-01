@@ -29,4 +29,9 @@ public abstract class ToolAttribute extends AbstractIRNode {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		throw new Error("Not implemented");
 	}
+
+	@Override
+	public ToolAttribute deepClone() {
+		return (ToolAttribute) super.deepClone();
+	}
 }

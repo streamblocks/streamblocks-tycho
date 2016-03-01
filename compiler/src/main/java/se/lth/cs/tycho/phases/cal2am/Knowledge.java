@@ -47,6 +47,10 @@ public enum Knowledge {
 		}
 	}
 
+	public static Knowledge of(boolean value) {
+		return value ? TRUE : FALSE;
+	}
+
 	public abstract Knowledge and(Knowledge knowledge);
 	public abstract Knowledge or(Knowledge knowledge);
 }

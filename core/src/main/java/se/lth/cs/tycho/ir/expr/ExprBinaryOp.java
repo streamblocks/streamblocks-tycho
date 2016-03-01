@@ -13,7 +13,6 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class ExprBinaryOp extends Expression {
 
@@ -58,7 +57,7 @@ public class ExprBinaryOp extends Expression {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public AbstractIRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public AbstractIRNode transformChildren(Transformation transformation) {
 		return copy(operations, (ImmutableList) operands.map(transformation));
 	}
 }

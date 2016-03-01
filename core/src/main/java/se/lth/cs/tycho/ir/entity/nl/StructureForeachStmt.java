@@ -1,28 +1,30 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class StructureForeachStmt extends StructureStatement {
 
-	public StructureForeachStmt(ImmutableList<GeneratorFilter> generators, ImmutableList<StructureStatement> statements) {
-		super(null);
+	public StructureForeachStmt(List<GeneratorFilter> generators, List<StructureStatement> statements) {
+		this(null, generators, statements);
+	}
+	private StructureForeachStmt(StructureForeachStmt original, List<GeneratorFilter> generators, List<StructureStatement> statements) {
+		super(original);
 		this.generators = ImmutableList.from(generators);
 		this.statements = ImmutableList.from(statements);
 	}
 
-	public StructureForeachStmt copy(ImmutableList<GeneratorFilter> generators,
-			ImmutableList<StructureStatement> statements) {
+	public StructureForeachStmt copy(List<GeneratorFilter> generators,
+			List<StructureStatement> statements) {
 		if (Lists.equals(this.generators, generators) && Lists.equals(this.statements, statements)) {
 			return this;
 		}
-		return new StructureForeachStmt(generators, statements);
+		return new StructureForeachStmt(this, generators, statements);
 	}
 
 	public ImmutableList<StructureStatement> getStatements() {
@@ -45,10 +47,14 @@ public class StructureForeachStmt extends StructureStatement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		generators.forEach(action);
 		statements.forEach(action);
+		getAttributes().forEach(action);
 	}
 
 	@Override
-	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
-		throw new UnsupportedOperationException();
+	public IRNode transformChildren(Transformation transformation) {
+		return copy(
+				(List) generators.map(transformation),
+				(List) statements.map(transformation)
+		).withAttributes((List) getAttributes().map(transformation));
 	}
 }

@@ -77,7 +77,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			}
 			decIndent();
 		}
-		printToolAttributes(network.getToolAttributes());
+		printToolAttributes(network.getAttributes());
 		decIndent();  // calActor body
 		indent();
 		out.append("end\n");
@@ -786,7 +786,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		print(stmt.getSrc());
 		out.append(" --> ");
 		print(stmt.getDst());
-		printToolAttributes(stmt.getToolAttributes());
+		printToolAttributes(stmt.getAttributes());
 		out.append(';');
 		return null;
 	}

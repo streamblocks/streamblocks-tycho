@@ -756,7 +756,7 @@ ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
 		toolAttrs = OptToolAttributes()
 		";"
 		{
-			entities.add(ImmutableEntry.of(instanceName.image, new EntityInstanceExpr(entityName.image, parameters.build(), toolAttrs)));
+			entities.add(ImmutableEntry.of(instanceName.image, new EntityInstanceExpr(entityName.image, parameters.build()).withAttributes(toolAttrs)));
 		}
 	)*
 	{
@@ -783,8 +783,8 @@ ImmutableList<StructureStatement> StructureStmts() :
 		{
 			builder.add(new StructureConnectionStmt(
 					new PortReference(src == null ? null : src.image, ImmutableList.empty(), srcPort.image),
-					new PortReference(tgt == null ? null : tgt.image, ImmutableList.empty(), tgtPort.image),
-					toolAttrs));
+					new PortReference(tgt == null ? null : tgt.image, ImmutableList.empty(), tgtPort.image)
+					).withAttributes(toolAttrs));
 		}
 	)*
 	{

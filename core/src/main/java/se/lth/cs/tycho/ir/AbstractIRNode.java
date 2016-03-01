@@ -94,11 +94,11 @@ public abstract class AbstractIRNode implements IRNode {
 		}
 	}
 
-	@Override
-	public AbstractIRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
-		//return this;
-		throw new UnsupportedOperationException("Transformation not implemented for " + getClass().getCanonicalName());
-	}
+//	@Override
+//	public AbstractIRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+//		//return this;
+//		throw new UnsupportedOperationException("Transformation not implemented for " + getClass().getCanonicalName());
+//	}
 
 	@Override
 	public IRNode clone() {

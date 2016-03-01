@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.GlobalNames;
@@ -42,7 +43,7 @@ public class RenamePhase implements Phase {
 		return (CompilationTask) new Transformation(rename::rename).apply(task);
 	}
 
-	private static final class Transformation implements Function<IRNode, IRNode> {
+	private static final class Transformation implements IRNode.Transformation {
 		private final BiFunction<? super IRNode, ? super IRNode, ? extends IRNode> transformation;
 
 		private Transformation(BiFunction<? super IRNode, ? super IRNode, ? extends IRNode> transformation) {
@@ -88,6 +89,15 @@ public class RenamePhase implements Phase {
 			EntityDecl target = globalNames().entityDecl(task.getIdentifier(), false);
 			String name = name(target);
 			return task.withIdentifier(task.getIdentifier().getButLast().concat(QID.of(name)));
+		}
+
+		default IRNode rename(Network original, Network network) {
+			return network.withInstances(
+					network.getInstances().stream().map(instance -> {
+						EntityDecl entity = globalNames().entityDecl(QID.of(instance.getEntityName()), true);
+						String name = name(entity);
+						return instance.withEntity(name);
+					}).collect(ImmutableList.collector()));
 		}
 
 		default String name(VarDecl original) {
@@ -159,7 +169,7 @@ public class RenamePhase implements Phase {
 			ImmutableList<Map.Entry<String, Expression>> assignments = instance.getParameterAssignments()
 					.map(entry -> ImmutableEntry.of(parameterMap.get(entry.getKey()), entry.getValue()));
 			String name = name(names().entityDeclaration(original));
-			return instance.copy(name, assignments, instance.getToolAttributes());
+			return instance.copy(name, assignments);
 		}
 	}
 }

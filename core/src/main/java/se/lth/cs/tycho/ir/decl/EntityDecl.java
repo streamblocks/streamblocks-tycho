@@ -1,10 +1,7 @@
 package se.lth.cs.tycho.ir.decl;
 
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -41,7 +38,7 @@ public class EntityDecl extends Decl {
 	}
 
 	@Override
-	public EntityDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public EntityDecl transformChildren(Transformation transformation) {
 		if (entity == null) {
 			return this;
 		} else {

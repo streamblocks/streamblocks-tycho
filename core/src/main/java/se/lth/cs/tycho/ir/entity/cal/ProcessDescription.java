@@ -8,7 +8,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class ProcessDescription extends AbstractIRNode {
 	private final ImmutableList<Statement> statements;
@@ -25,7 +24,7 @@ public class ProcessDescription extends AbstractIRNode {
 	}
 
 	public ProcessDescription copy(List<Statement> statements, boolean repeated) {
-		if (Lists.elementIdentityEquals(this.statements, statements) && this.repeated == repeated) {
+		if (Lists.sameElements(this.statements, statements) && this.repeated == repeated) {
 			return this;
 		} else {
 			return new ProcessDescription(this, ImmutableList.from(statements), repeated);
@@ -47,7 +46,7 @@ public class ProcessDescription extends AbstractIRNode {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public ProcessDescription transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public ProcessDescription transformChildren(Transformation transformation) {
 		return copy(
 				(ImmutableList) statements.map(transformation),
 				repeated

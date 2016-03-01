@@ -20,11 +20,10 @@ public abstract class Block {
 	}
 
 	public void replaceWith(Block replacement) {
-		Block current = current();
-		replacement = replacement.current();
-		if (current != replacement) {
-			current.replacement = replacement;
+		if (isReplaced()) {
+			throw new IllegalStateException("Already replaced.");
 		}
+		this.replacement = replacement.current();
 	}
 
 	abstract public void forEachSuccessor(Consumer<Block> action);

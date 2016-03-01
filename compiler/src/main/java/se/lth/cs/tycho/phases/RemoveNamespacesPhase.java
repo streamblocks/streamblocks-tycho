@@ -39,7 +39,7 @@ public class RemoveNamespacesPhase implements Phase {
 		});
 		NamespaceDecl tree = new NamespaceDecl(QID.empty(), ImmutableList.empty(), varDecls.build(), entityDecls.build(), typeDecls.build());
 		SourceUnit unit = new SyntheticSourceUnit(tree);
-		CompilationTask result = task.copy(ImmutableList.of(unit), task.getIdentifier().getLast());
+		CompilationTask result = task.copy(ImmutableList.of(unit), task.getIdentifier().getLast(), null);
 		return (CompilationTask) removeImports.transform(result);
 	}
 

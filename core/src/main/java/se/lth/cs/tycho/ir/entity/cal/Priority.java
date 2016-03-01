@@ -6,7 +6,6 @@ import se.lth.cs.tycho.ir.QID;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class Priority extends AbstractIRNode {
 	private final QID high;
@@ -55,7 +54,7 @@ public class Priority extends AbstractIRNode {
 	}
 
 	@Override
-	public Priority transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public Priority transformChildren(Transformation transformation) {
 		return this;
 	}
 

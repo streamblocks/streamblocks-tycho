@@ -14,7 +14,11 @@ public class TypeDecl extends Decl {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
+	}
 
+	@Override
+	public TypeDecl transformChildren(Transformation transformation) {
+		return this;
 	}
 
 	@Override

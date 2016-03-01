@@ -41,7 +41,6 @@ package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -97,7 +96,7 @@ public class OutputExpression extends AbstractIRNode {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public OutputExpression transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public OutputExpression transformChildren(Transformation transformation) {
 		return copy(
 				(Port) transformation.apply(port),
 				(ImmutableList) values.map(transformation),

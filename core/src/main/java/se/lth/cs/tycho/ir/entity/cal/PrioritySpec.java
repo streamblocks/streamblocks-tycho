@@ -8,7 +8,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class PrioritySpec extends AbstractIRNode {
 	private final ImmutableList<String> scheduleStates;
@@ -25,7 +24,7 @@ public class PrioritySpec extends AbstractIRNode {
 	}
 
 	public PrioritySpec copy(List<String> scheduleStates, List<Priority> priorities) {
-		if (Lists.elementIdentityEquals(this.scheduleStates, scheduleStates) && Lists.elementIdentityEquals(this.priorities, priorities)) {
+		if (Lists.sameElements(this.scheduleStates, scheduleStates) && Lists.sameElements(this.priorities, priorities)) {
 			return this;
 		} else {
 			return new PrioritySpec(this, ImmutableList.from(scheduleStates), ImmutableList.from(priorities));
@@ -37,7 +36,7 @@ public class PrioritySpec extends AbstractIRNode {
 	}
 
 	public PrioritySpec withScheduleStates(List<String> scheduleStates) {
-		if (Lists.elementIdentityEquals(this.scheduleStates, scheduleStates)) {
+		if (Lists.sameElements(this.scheduleStates, scheduleStates)) {
 			return this;
 		} else {
 			return new PrioritySpec(this, ImmutableList.from(scheduleStates), priorities);
@@ -49,7 +48,7 @@ public class PrioritySpec extends AbstractIRNode {
 	}
 
 	public PrioritySpec withPriorities(List<Priority> priorities) {
-		if (Lists.elementIdentityEquals(this.priorities, priorities)) {
+		if (Lists.sameElements(this.priorities, priorities)) {
 			return this;
 		} else {
 			return new PrioritySpec(this, scheduleStates, ImmutableList.from(priorities));
@@ -63,7 +62,7 @@ public class PrioritySpec extends AbstractIRNode {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public PrioritySpec transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public PrioritySpec transformChildren(Transformation transformation) {
 		return copy(scheduleStates, (ImmutableList) priorities.map(transformation));
 	}
 }

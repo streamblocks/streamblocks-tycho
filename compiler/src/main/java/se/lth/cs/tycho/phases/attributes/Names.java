@@ -4,8 +4,6 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
-import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -17,6 +15,7 @@ import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
@@ -41,15 +40,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public interface Names {
-	ModuleKey<Names> key = new ModuleKey<Names>() {
-		@Override
-		public Names createInstance(CompilationTask unit, AttributeManager manager) {
-			return MultiJ.from(Implementation.class)
-					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
-					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
-					.instance();
-		}
-	};
+	ModuleKey<Names> key = (unit, manager) -> MultiJ.from(Implementation.class)
+			.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
+			.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
+			.instance();
 
 
 	VarDecl declaration(Variable var);
@@ -59,12 +53,37 @@ public interface Names {
 	EntityDecl entityDeclaration(EntityInstanceExpr instance);
 
 	@Module
-	interface Implementation extends Names {
+	interface Implementation extends Names, PortNames, VariableNames, EntityNames, Util {
 		@Binding
 		TreeShadow tree();
 
 		@Binding(BindingKind.INJECTED)
 		GlobalNames globalNames();
+		
+		default VarDecl declaration(Variable var) {
+			return VariableNames.super.declaration(var);
+		}
+
+		default PortDecl portDeclaration(Port port) {
+			return PortNames.super.portDeclaration(port);
+		}
+
+		default EntityDecl entityDeclaration(EntityInstanceExpr instance) {
+			return EntityNames.super.entityDeclaration(instance);
+		}
+
+	}
+
+	interface Util {
+		default <D extends Decl> Optional<D> findInStream(Stream<D> decls, String name) {
+			return decls.filter(decl -> decl.getName().equals(name)).findAny();
+		}
+
+	}
+
+	interface PortNames extends Names {
+
+		TreeShadow tree();
 
 		@Binding
 		default Map<Port, PortDecl> portDeclarationMap() {
@@ -126,7 +145,13 @@ public interface Names {
 			}
 			return null;
 		}
+	}
 
+	interface EntityNames extends Names, Util {
+
+		TreeShadow tree();
+
+		GlobalNames globalNames();
 
 		default EntityDecl entityDeclaration(EntityInstanceExpr instance) {
 			return lookupEntity(tree().parent(instance), instance.getEntityName());
@@ -142,6 +167,12 @@ public interface Names {
 					.orElseGet(() -> globalNames().entityDecl(namespaceDecl.getQID().concat(QID.of(name)), true));
 		}
 
+	}
+
+	interface VariableNames extends Names, Util {
+		TreeShadow tree();
+
+		GlobalNames globalNames();
 
 		@Binding
 		default Map<Variable, VarDecl> declarationMap() {
@@ -275,8 +306,6 @@ public interface Names {
 			}
 		}
 
-		default <D extends Decl> Optional<D> findInStream(Stream<D> decls, String name) {
-			return decls.filter(decl -> decl.getName().equals(name)).findAny();
-		}
+
 	}
 }

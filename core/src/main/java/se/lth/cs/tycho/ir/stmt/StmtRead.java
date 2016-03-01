@@ -9,7 +9,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class StmtRead extends Statement {
 	private final Port port;
@@ -29,7 +28,7 @@ public class StmtRead extends Statement {
 	}
 
 	public StmtRead copy(Port port, List<LValue> lvalues, Expression repeatExpression) {
-		if (this.port == port && Lists.elementIdentityEquals(this.lvalues, lvalues) && this.repeatExpression == repeatExpression) {
+		if (this.port == port && Lists.sameElements(this.lvalues, lvalues) && this.repeatExpression == repeatExpression) {
 			return this;
 		} else {
 			return new StmtRead(this, port, lvalues, repeatExpression);
@@ -62,7 +61,7 @@ public class StmtRead extends Statement {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public StmtRead transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public StmtRead transformChildren(Transformation transformation) {
 		return copy(
 				(Port) transformation.apply(port),
 				(ImmutableList) lvalues.map(transformation),

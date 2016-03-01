@@ -54,8 +54,8 @@ public class ConditionBlock extends Block {
 
 	@Override
 	public void forEachSuccessor(Consumer<Block> action) {
-		action.accept(successorIfTrue);
-		action.accept(successorIfFalse);
+		action.accept(getSuccessorIfTrue());
+		action.accept(getSuccessorIfFalse());
 	}
 
 }

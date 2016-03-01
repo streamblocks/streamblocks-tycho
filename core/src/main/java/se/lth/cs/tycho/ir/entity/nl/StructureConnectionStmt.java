@@ -1,14 +1,10 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.ir.util.Lists;
+import se.lth.cs.tycho.ir.ToolAttribute;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
@@ -17,19 +13,28 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class StructureConnectionStmt extends StructureStatement {
 
-	public StructureConnectionStmt(PortReference src, PortReference dst, ImmutableList<ToolAttribute> toolAttributes) {
-		super(toolAttributes);
+	public StructureConnectionStmt(PortReference src, PortReference dst) {
+		this(null, src, dst);
+	}
+	public StructureConnectionStmt(StructureConnectionStmt original, PortReference src, PortReference dst) {
+		super(original);
 		this.src = src;
 		this.dst = dst;
 	}
 
-	public StructureConnectionStmt copy(PortReference src, PortReference dst,
-			ImmutableList<ToolAttribute> toolAttributes) {
-		if (Objects.equals(this.src, src) && Objects.equals(this.dst, dst)
-				&& Lists.elementIdentityEquals(getToolAttributes(), toolAttributes)) {
+	public StructureConnectionStmt copy(PortReference src, PortReference dst) {
+		if (this.src == src && this.dst == dst) {
 			return this;
 		}
-		return new StructureConnectionStmt(src, dst, toolAttributes);
+		return new StructureConnectionStmt(this, src, dst);
+	}
+
+	public StructureConnectionStmt withSrc(PortReference src) {
+		return copy(src, dst);
+	}
+
+	public StructureConnectionStmt withDst(PortReference dst) {
+		return copy(src, dst);
 	}
 
 	public PortReference getSrc() {
@@ -49,7 +54,7 @@ public class StructureConnectionStmt extends StructureStatement {
 		return v.visitStructureConnectionStmt(this, p);
 	}
 
-	private PortReference src, dst;
+	private final PortReference src, dst;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
@@ -57,22 +62,18 @@ public class StructureConnectionStmt extends StructureStatement {
 		action.accept(dst);
 	}
 
+
 	@Override
-	@SuppressWarnings("unchecked")
-	public StructureConnectionStmt transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
-		return copy(
-				(PortReference) transformation.apply(src),
-				(PortReference) transformation.apply(dst),
-				(ImmutableList) getToolAttributes().map(transformation)
-		);
+	public StructureConnectionStmt withAttributes(List<ToolAttribute> attributes) {
+		return (StructureConnectionStmt) super.withAttributes(attributes);
 	}
 
 	@Override
-	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
-		if (Lists.elementIdentityEquals(getToolAttributes(), attributes)) {
-			return this;
-		} else {
-			return new StructureConnectionStmt(src, dst, attributes);
-		}
+	@SuppressWarnings("unchecked")
+	public StructureConnectionStmt transformChildren(Transformation transformation) {
+		return copy(
+				(PortReference) transformation.apply(src),
+				(PortReference) transformation.apply(dst)
+		).withAttributes((List) getAttributes().map(transformation));
 	}
 }

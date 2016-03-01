@@ -45,6 +45,10 @@ public class Annotation extends AbstractIRNode {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
+	}
 
+	@Override
+	public IRNode transformChildren(Transformation transformation) {
+		return this;
 	}
 }

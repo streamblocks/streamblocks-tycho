@@ -70,7 +70,7 @@ public class ReduceActorMachinePhase implements Phase {
 	}
 
 	@Module
-	interface ReduceActorMachine extends Function<IRNode, IRNode> {
+	interface ReduceActorMachine extends IRNode.Transformation {
 		@Binding
 		TransformationList transformations();
 

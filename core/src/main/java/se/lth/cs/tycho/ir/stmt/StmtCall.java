@@ -39,9 +39,9 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.stmt;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -54,17 +54,17 @@ public class StmtCall extends Statement {
 		return v.visitStmtCall(this, p);
 	}
 
-	public StmtCall(Expression procedure, ImmutableList<Expression> args) {
+	public StmtCall(Expression procedure, List<Expression> args) {
 		this(null, procedure, args);
 	}
 
-	private StmtCall(StmtCall original, Expression procedure, ImmutableList<Expression> args) {
+	private StmtCall(StmtCall original, Expression procedure, List<Expression> args) {
 		super(original);
 		this.procedure = procedure;
 		this.args = ImmutableList.from(args);
 	}
 
-	public StmtCall copy(Expression procedure, ImmutableList<Expression> args) {
+	public StmtCall copy(Expression procedure, List<Expression> args) {
 		if (Objects.equals(this.procedure, procedure) && Lists.equals(this.args, args)) {
 			return this;
 		}
@@ -90,7 +90,7 @@ public class StmtCall extends Statement {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public StmtCall transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public StmtCall transformChildren(Transformation transformation) {
 		return copy((Expression) transformation.apply(procedure), (ImmutableList) args.map(transformation));
 	}
 }

@@ -10,7 +10,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class NamespaceDecl extends AbstractIRNode {
 	private final QID qid;
@@ -28,10 +27,10 @@ public class NamespaceDecl extends AbstractIRNode {
 			ImmutableList<EntityDecl> entityDecls, ImmutableList<TypeDecl> typeDecls) {
 		super(original);
 		this.qid = qid;
-		this.starImports = starImports;
-		this.varDecls = varDecls;
-		this.entityDecls = entityDecls;
-		this.typeDecls = typeDecls;
+		this.starImports = ImmutableList.from(starImports);
+		this.varDecls = ImmutableList.from(varDecls);
+		this.entityDecls = ImmutableList.from(entityDecls);
+		this.typeDecls = ImmutableList.from(typeDecls);
 	}
 
 	public QID getQID() {
@@ -51,7 +50,7 @@ public class NamespaceDecl extends AbstractIRNode {
 	}
 
 	public NamespaceDecl withStarImports(List<StarImport> starImports) {
-		if (Lists.elementIdentityEquals(this.starImports, starImports)) {
+		if (Lists.sameElements(this.starImports, starImports)) {
 			return this;
 		} else {
 			return new NamespaceDecl(this, qid, ImmutableList.from(starImports), varDecls, entityDecls, typeDecls);
@@ -63,7 +62,7 @@ public class NamespaceDecl extends AbstractIRNode {
 	}
 
 	public NamespaceDecl withVarDecls(List<VarDecl> varDecls) {
-		if (Lists.elementIdentityEquals(this.varDecls, varDecls)) {
+		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
 			return new NamespaceDecl(this, qid, starImports, ImmutableList.from(varDecls), entityDecls, typeDecls);
@@ -75,7 +74,7 @@ public class NamespaceDecl extends AbstractIRNode {
 	}
 
 	public NamespaceDecl withEntityDecls(List<EntityDecl> entityDecls) {
-		if (Lists.elementIdentityEquals(this.entityDecls, entityDecls)) {
+		if (Lists.sameElements(this.entityDecls, entityDecls)) {
 			return this;
 		} else {
 			return new NamespaceDecl(this, qid, starImports, varDecls, ImmutableList.from(entityDecls), typeDecls);
@@ -87,7 +86,7 @@ public class NamespaceDecl extends AbstractIRNode {
 	}
 
 	public NamespaceDecl withTypeDecls(List<TypeDecl> typeDecls) {
-		if (Lists.elementIdentityEquals(this.typeDecls, typeDecls)) {
+		if (Lists.sameElements(this.typeDecls, typeDecls)) {
 			return this;
 		} else {
 			return new NamespaceDecl(this, qid, starImports, varDecls, entityDecls, ImmutableList.from(typeDecls));
@@ -105,7 +104,7 @@ public class NamespaceDecl extends AbstractIRNode {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public NamespaceDecl transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public NamespaceDecl transformChildren(Transformation transformation) {
 		return new NamespaceDecl(this, qid,
 				(ImmutableList) starImports.map(transformation),
 				(ImmutableList) varDecls.map(transformation),

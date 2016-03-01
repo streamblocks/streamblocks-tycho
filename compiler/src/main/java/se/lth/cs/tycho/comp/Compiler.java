@@ -16,7 +16,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Compiler {
@@ -45,7 +47,9 @@ public class Compiler {
 			new RenamePhase(),
 			new RemoveNamespacesPhase(),
 			new LiftConstantsPhase(),
-			new WrapActorInNetworkPhase(),
+
+			new CreateNetworkPhase(),
+			new ElaborateNetworkPhase(),
 
 			// Actor transformations
 			new LiftProcessVarDeclsPhase(),
@@ -53,7 +57,9 @@ public class Compiler {
 			new AddSchedulePhase(),
 			new ScheduleInitializersPhase(),
 			new CalToAmPhase(),
+			new RemoveEmptyTransitionsPhase(),
 			new ReduceActorMachinePhase(),
+			new CompositionPhase(),
 
 			// Code generations
 			new CBackendPhase()
@@ -93,6 +99,18 @@ public class Compiler {
 		Reporter reporter = Reporter.instance(configuration);
 		Loader loader = Loader.instance(configuration, reporter);
 		this.compilationContext = new Context(configuration, loader, reporter);
+		assert dependenciesSatisfied() : "Unsatisfied phase dependencies.";
+	}
+
+	private static boolean dependenciesSatisfied() {
+		Set<Class<? extends Phase>> executed = new HashSet<>();
+		for (Phase phase : phases) {
+			if (!executed.containsAll(phase.dependencies())) {
+				return false;
+			}
+			executed.add(phase.getClass());
+		}
+		return true;
 	}
 
 	public static SettingsManager defaultSettingsManager() {
@@ -110,7 +128,7 @@ public class Compiler {
 	}
 
 	public boolean compile(QID entity) {
-		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity);
+		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity, null);
 		long[] phaseExecutionTime = new long[phases.size()];
 		int currentPhaseNumber = 0;
 		boolean success = true;

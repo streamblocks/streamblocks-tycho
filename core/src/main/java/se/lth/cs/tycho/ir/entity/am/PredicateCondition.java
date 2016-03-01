@@ -57,4 +57,10 @@ public class PredicateCondition extends Condition {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(expression);
 	}
+
+	@Override
+	public PredicateCondition transformChildren(Transformation transformation) {
+		return copy((Expression) transformation.apply(expression));
+	}
 }
+

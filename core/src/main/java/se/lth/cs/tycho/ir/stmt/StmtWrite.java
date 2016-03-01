@@ -8,7 +8,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class StmtWrite extends Statement {
 	private final Port port;
@@ -28,7 +27,7 @@ public class StmtWrite extends Statement {
 	}
 
 	public StmtWrite copy(Port port, List<Expression> values, Expression repeatExpression) {
-		if (this.port == port && Lists.elementIdentityEquals(this.values, values) && this.repeatExpression == repeatExpression) {
+		if (this.port == port && Lists.sameElements(this.values, values) && this.repeatExpression == repeatExpression) {
 			return this;
 		} else {
 			return new StmtWrite(this, port, values, repeatExpression);
@@ -61,7 +60,7 @@ public class StmtWrite extends Statement {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public StmtWrite transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public StmtWrite transformChildren(Transformation transformation) {
 		return copy(
 				(Port) transformation.apply(port),
 				(ImmutableList) values.map(transformation),

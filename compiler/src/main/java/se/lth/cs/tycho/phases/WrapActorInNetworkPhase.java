@@ -77,13 +77,13 @@ public class WrapActorInNetworkPhase implements Phase {
 		String instanceName = "instance";
 
 		ImmutableList<Map.Entry<String, EntityExpr>> entities =
-				ImmutableList.of(ImmutableEntry.of(instanceName, new EntityInstanceExpr(entityName, actualValueParameters, null)));
+				ImmutableList.of(ImmutableEntry.of(instanceName, new EntityInstanceExpr(entityName, actualValueParameters)));
 
 
 		Stream<StructureStatement> inputConnections = inputPorts.stream().map(PortDecl::getName)
-				.map(port -> new StructureConnectionStmt(new PortReference(null, null, port), new PortReference(instanceName, null, port), null));
+				.map(port -> new StructureConnectionStmt(new PortReference(null, null, port), new PortReference(instanceName, null, port)));
 		Stream<StructureStatement> outputConnections = outputPorts.stream().map(PortDecl::getName)
-				.map(port -> new StructureConnectionStmt(new PortReference(instanceName, null, port), new PortReference(null, null, port), null));
+				.map(port -> new StructureConnectionStmt(new PortReference(instanceName, null, port), new PortReference(null, null, port)));
 
 		ImmutableList<StructureStatement> structure =
 				Stream.concat(inputConnections, outputConnections).collect(ImmutableList.collector());

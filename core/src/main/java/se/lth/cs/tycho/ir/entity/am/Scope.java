@@ -2,7 +2,6 @@ package se.lth.cs.tycho.ir.entity.am;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -41,5 +40,10 @@ public class Scope extends AbstractIRNode {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		declarations.forEach(action);
+	}
+
+	@Override
+	public Scope transformChildren(Transformation transformation) {
+		return copy((ImmutableList) declarations.map(transformation), isPersistent);
 	}
 }

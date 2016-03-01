@@ -4,6 +4,12 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Condition;
 import se.lth.cs.tycho.ir.entity.am.Scope;
@@ -12,12 +18,6 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.Exec;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
-import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.phases.TreeShadow;
 
 import java.util.BitSet;
@@ -44,7 +44,7 @@ public interface ActorMachineScopes {
 		TreeShadow tree();
 
 		@Binding
-		default Map<String, Integer> variableScopes() {
+		default Map<ActorMachine, Map<String, Integer>> variableScopes() {
 			ScopeVarCollector collector = MultiJ.instance(ScopeVarCollector.class);
 			collector.accept(tree().root());
 			return collector.variableScopes();
@@ -76,7 +76,7 @@ public interface ActorMachineScopes {
 		@Module
 		interface ScopeVarCollector extends Consumer<IRNode> {
 			@Binding
-			default Map<String, Integer> variableScopes() {
+			default Map<ActorMachine, Map<String, Integer>> variableScopes() {
 				return new HashMap<>();
 			}
 
@@ -97,9 +97,11 @@ public interface ActorMachineScopes {
 
 			default void accept(ActorMachine actorMachine) {
 				int i = 0;
+				Map<String, Integer> scopeMap = new HashMap<>();
+				variableScopes().put(actorMachine, scopeMap);
 				for (Scope s : actorMachine.getScopes()) {
 					for (VarDecl d : s.getDeclarations()) {
-						variableScopes().put(d.getName(), i);
+						scopeMap.put(d.getName(), i);
 					}
 					i = i + 1;
 				}
@@ -139,7 +141,7 @@ public interface ActorMachineScopes {
 
 		default BitSet required(ActorMachine actorMachine, Exec exec) {
 			Transition t = actorMachine.getTransitions().get(exec.transition());
-			return transitiveReferences(actorMachine, scopeReferences(t));
+			return transitiveReferences(actorMachine, scopeReferences(actorMachine, t));
 		}
 
 		default BitSet required(ActorMachine actorMachine, Wait wait) {
@@ -148,14 +150,14 @@ public interface ActorMachineScopes {
 
 		default BitSet required(ActorMachine actorMachine, Test test) {
 			Condition c = actorMachine.getConditions().get(test.condition());
-			return transitiveReferences(actorMachine, scopeReferences(c));
+			return transitiveReferences(actorMachine, scopeReferences(actorMachine, c));
 		}
 
-		default BitSet scopeReferences(IRNode node) {
+		default BitSet scopeReferences(ActorMachine actorMachine, IRNode node) {
 			return variableUses(node).stream()
 					.map(Variable::getName)
-					.filter(variableScopes()::containsKey)
-					.mapToInt(variableScopes()::get)
+					.filter(variableScopes().get(actorMachine)::containsKey)
+					.mapToInt(variableScopes().get(actorMachine)::get)
 					.collect(BitSet::new, BitSet::set, BitSet::or);
 		}
 
@@ -166,7 +168,7 @@ public interface ActorMachineScopes {
 			while (!add.isEmpty()) {
 				BitSet added = add.stream()
 						.mapToObj(actorMachine.getScopes()::get)
-						.map(this::scopeReferences)
+						.map(s -> scopeReferences(actorMachine, s))
 						.collect(BitSet::new, BitSet::or, BitSet::or);
 				add = new BitSet();
 				add.or(added);

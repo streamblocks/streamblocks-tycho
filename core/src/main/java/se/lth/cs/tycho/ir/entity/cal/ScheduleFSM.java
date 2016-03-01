@@ -41,7 +41,6 @@ package se.lth.cs.tycho.ir.entity.cal;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -91,7 +90,7 @@ public class ScheduleFSM extends AbstractIRNode {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public ScheduleFSM transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public ScheduleFSM transformChildren(Transformation transformation) {
 		return copy(
 				(ImmutableList) transitions.map(transformation),
 				initialState

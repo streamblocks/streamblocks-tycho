@@ -1,47 +1,38 @@
 package se.lth.cs.tycho.ir;
 
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class AttributableIRNode implements IRNode, Attributable {
-	private final ImmutableList<ToolAttribute> attributes;
+public abstract class AttributableIRNode extends AbstractIRNode implements Attributable {
+	private ImmutableList<ToolAttribute> attributes;
 
-	public AttributableIRNode(ImmutableList<ToolAttribute> attributes) {
-		this.attributes = attributes == null ? ImmutableList.<ToolAttribute>empty() : attributes;
+	public AttributableIRNode(AttributableIRNode original) {
+		super(original);
+		this.attributes = original == null ? ImmutableList.empty() : original.attributes;
 	}
 
 	@Override
-	public ToolAttribute getToolAttribute(String name) {
-		return attributes.stream()
-				.filter(attribute -> attribute.getName().equals(name))
-				.findFirst()
-				.orElse(null);
-	}
-
-	@Override
-	public ImmutableList<ToolAttribute> getToolAttributes() {
+	public ImmutableList<ToolAttribute> getAttributes() {
 		return attributes;
 	}
 
 	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		throw new UnsupportedOperationException(); // TODO implement
-	}
-
-	@Override
-	public AttributableIRNode transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
-		//return this;
-		throw new UnsupportedOperationException("Transformation not implemented for " + getClass().getCanonicalName());
-	}
-
-	@Override
-	public IRNode clone() {
-		try {
-			return (IRNode) super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new Error(e);
+	public AttributableIRNode withAttributes(List<ToolAttribute> attributes) {
+		if (Lists.sameElements(this.attributes, attributes)) {
+			return this;
+		} else {
+			AttributableIRNode clone = clone();
+			clone.attributes = ImmutableList.from(attributes);
+			return clone;
 		}
+	}
+
+	@Override
+	public AttributableIRNode clone() {
+		return (AttributableIRNode) super.clone();
 	}
 }

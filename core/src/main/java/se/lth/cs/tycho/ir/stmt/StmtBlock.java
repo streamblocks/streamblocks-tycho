@@ -47,7 +47,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
@@ -94,7 +93,7 @@ public class StmtBlock extends Statement {
 	}
 
 	public StmtBlock withVarDecls(List<VarDecl> varDecls) {
-		if (Lists.elementIdentityEquals(this.varDecls, varDecls)) {
+		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
 			return new StmtBlock(this, typeDecls, ImmutableList.from(varDecls), statements);
@@ -114,7 +113,7 @@ public class StmtBlock extends Statement {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public StmtBlock transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public StmtBlock transformChildren(Transformation transformation) {
 		return copy(
 				(ImmutableList) typeDecls.map(transformation),
 				(ImmutableList) varDecls.map(transformation),

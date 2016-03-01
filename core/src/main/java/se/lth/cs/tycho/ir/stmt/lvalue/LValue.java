@@ -3,8 +3,6 @@ package se.lth.cs.tycho.ir.stmt.lvalue;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 
-import java.util.function.Function;
-
 /**
  * LValue represent things that can be on the left hand side of an assignment.
  */
@@ -20,5 +18,5 @@ public abstract class LValue extends AbstractIRNode {
 	}
 
 	@Override
-	public abstract LValue transformChildren(Function<? super IRNode, ? extends IRNode> transformation);
+	public abstract LValue transformChildren(Transformation transformation);
 }

@@ -41,7 +41,6 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeExpr;
@@ -143,7 +142,7 @@ public class ExprLambda extends Expression {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public ExprLambda transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public ExprLambda transformChildren(Transformation transformation) {
 		return copy(
 				(ImmutableList) typeParameters.map(transformation),
 				(ImmutableList) valueParameters.map(transformation),

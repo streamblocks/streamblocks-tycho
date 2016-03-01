@@ -7,7 +7,6 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -49,6 +48,22 @@ public class PortReference extends AbstractIRNode {
 		return portName;
 	}
 
+	public PortReference withEntityName(String entityName) {
+		if (Objects.equals(this.entityName, entityName)) {
+			return this;
+		} else {
+			return new PortReference(this, entityName, entityIndex, portName);
+		}
+	}
+
+	public PortReference withPortName(String portName) {
+		if (Objects.equals(this.portName, portName)) {
+			return this;
+		} else {
+			return new PortReference(this, entityName, entityIndex, portName);
+		}
+	}
+
 	public String toString() {
 		StringBuffer result = new StringBuffer();
 		if (entityName != null) {
@@ -76,7 +91,7 @@ public class PortReference extends AbstractIRNode {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public PortReference transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public PortReference transformChildren(Transformation transformation) {
 		return copy(entityName, (ImmutableList) entityIndex.map(transformation), portName);
 	}
 }

@@ -95,4 +95,9 @@ public class Transition extends AbstractIRNode {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(body);
 	}
+
+	@Override
+	public Transition transformChildren(Transformation transformation) {
+		return copy(inputRates, outputRates, kill, (Statement) transformation.apply(body));
+	}
 }

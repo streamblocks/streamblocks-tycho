@@ -39,4 +39,9 @@ public class ToolTypeAttribute extends ToolAttribute {
 	Kind getKind() {
 		return Kind.type;
 	}
+
+	@Override
+	public ToolTypeAttribute transformChildren(Transformation transformation) {
+		return copy(name, (TypeExpr) transformation.apply(type));
+	}
 }

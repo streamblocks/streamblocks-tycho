@@ -42,7 +42,6 @@ package se.lth.cs.tycho.ir.expr;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
@@ -89,7 +88,7 @@ public class ExprLet extends Expression {
 	}
 
 	public ExprLet withVarDecls(List<VarDecl> varDecls) {
-		if (Lists.elementIdentityEquals(this.varDecls, varDecls)) {
+		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
 			return new ExprLet(this, typeDecls, ImmutableList.from(varDecls), body);
@@ -109,7 +108,7 @@ public class ExprLet extends Expression {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public ExprLet transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public ExprLet transformChildren(Transformation transformation) {
 		return copy(
 				(ImmutableList) typeDecls.map(transformation),
 				(ImmutableList) varDecls.map(transformation),

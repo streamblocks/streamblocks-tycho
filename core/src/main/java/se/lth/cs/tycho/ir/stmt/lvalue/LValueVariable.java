@@ -2,9 +2,7 @@ package se.lth.cs.tycho.ir.stmt.lvalue;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 
@@ -56,7 +54,7 @@ public class LValueVariable extends LValue {
 	}
 
 	@Override
-	public LValueVariable transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public LValueVariable transformChildren(Transformation transformation) {
 		return copy((Variable) transformation.apply(variable));
 	}
 }

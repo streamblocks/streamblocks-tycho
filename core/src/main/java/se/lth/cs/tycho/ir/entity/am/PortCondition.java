@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.ir.entity.am;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
@@ -67,7 +66,7 @@ public class PortCondition extends Condition {
 	}
 
 	public PortCondition copy(Port port, int n, boolean isInputCondition) {
-		if (Objects.equals(this.port, port) && this.n == n && this.isInputCondition == isInputCondition) {
+		if (this.port == port && this.n == n && this.isInputCondition == isInputCondition) {
 			return this;
 		}
 		return new PortCondition(this, port, n, isInputCondition);
@@ -80,5 +79,10 @@ public class PortCondition extends Condition {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(port);
+	}
+
+	@Override
+	public PortCondition transformChildren(Transformation transformation) {
+		return copy((Port) transformation.apply(port), n, isInputCondition);
 	}
 }

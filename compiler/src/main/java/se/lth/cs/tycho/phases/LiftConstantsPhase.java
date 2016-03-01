@@ -20,7 +20,6 @@ import se.lth.cs.tycho.phases.attributes.StaticConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class LiftConstantsPhase implements Phase {
 	@Override
@@ -48,7 +47,7 @@ public class LiftConstantsPhase implements Phase {
 	}
 
 	@Module
-	interface Transformation extends Function<IRNode, IRNode> {
+	interface Transformation extends IRNode.Transformation {
 		@Binding
 		default List<VarDecl> lifted() {
 			return new ArrayList<>();

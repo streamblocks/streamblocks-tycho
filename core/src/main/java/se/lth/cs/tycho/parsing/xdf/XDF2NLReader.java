@@ -86,7 +86,7 @@ public class XDF2NLReader {
 			} else {
 				attributes = ImmutableList.of(new ToolValueAttribute("buffer-size", new ExprLiteral(ExprLiteral.Kind.Integer, bufferSize)));
 			}
-			connections.add(new StructureConnectionStmt(new PortReference(src, ImmutableList.empty(), srcPort.getName()), new PortReference(dst, ImmutableList.empty(), dstPort.getName()), attributes));
+			connections.add(new StructureConnectionStmt(new PortReference(src, ImmutableList.empty(), srcPort.getName()), new PortReference(dst, ImmutableList.empty(), dstPort.getName())).withAttributes(attributes));
 		}
 	}
 
@@ -134,7 +134,7 @@ public class XDF2NLReader {
 
 			for (String instance : entities.keySet()) {
 				String entityName = localName.get(entities.get(instance));
-				EntityInstanceExpr instanceExpr = new EntityInstanceExpr(entityName, ImmutableList.empty(), ImmutableList.empty());
+				EntityInstanceExpr instanceExpr = new EntityInstanceExpr(entityName, ImmutableList.empty());
 				instanceConsumer.accept(ImmutableEntry.of(instance, instanceExpr));
 			}
 		}

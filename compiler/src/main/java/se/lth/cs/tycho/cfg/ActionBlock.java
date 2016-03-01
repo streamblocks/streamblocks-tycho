@@ -40,6 +40,6 @@ public class ActionBlock extends Block {
 
 	@Override
 	public void forEachSuccessor(Consumer<Block> action) {
-		action.accept(successor);
+		action.accept(getSuccessor());
 	}
 }

@@ -53,4 +53,9 @@ public abstract class Expression extends AbstractIRNode {
 	public Expression(IRNode original) {
 		super(original);
 	}
+
+	@Override
+	public Expression deepClone() {
+		return (Expression) super.deepClone();
+	}
 }

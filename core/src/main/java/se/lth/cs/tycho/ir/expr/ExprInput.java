@@ -1,10 +1,7 @@
 package se.lth.cs.tycho.ir.expr;
 
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 
@@ -66,7 +63,7 @@ public class ExprInput extends Expression {
 	 * Create a port with hasRepeat==false
 	 */
 	public ExprInput copy(Port port, int offset) {
-		if (!hasRepeat() && Objects.equals(this.port, port) && this.offset == offset) {
+		if (!hasRepeat() && this.port == port && this.offset == offset) {
 			return this;
 		}
 		return new ExprInput(this, port, offset, false, -1, -1);
@@ -76,7 +73,7 @@ public class ExprInput extends Expression {
 	 * Create a port with hasRepeat==true
 	 */
 	public ExprInput copy(Port port, int offset, int repeat, int patternLength) {
-		if (hasRepeat() && Objects.equals(this.port, port) && this.offset == offset && this.repeat == repeat
+		if (hasRepeat() && this.port == port && this.offset == offset && this.repeat == repeat
 				&& this.patternLength == patternLength) {
 			return this;
 		}
@@ -95,7 +92,7 @@ public class ExprInput extends Expression {
 	}
 
 	@Override
-	public ExprInput transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public ExprInput transformChildren(Transformation transformation) {
 		if (hasRepeat) {
 			return copy(
 					(Port) transformation.apply(port),

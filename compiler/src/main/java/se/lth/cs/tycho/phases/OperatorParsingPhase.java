@@ -39,7 +39,7 @@ public class OperatorParsingPhase implements Phase {
 		}).collect(Collectors.toList()));
 	}
 
-	private static final class Transformation implements Function<IRNode, IRNode> {
+	private static final class Transformation implements IRNode.Transformation {
 		private final Helper helper;
 
 		public Transformation(Helper helper) {
@@ -154,32 +154,31 @@ public class OperatorParsingPhase implements Phase {
 	).collect(Collectors.toMap(op -> op.name, Function.identity()));
 
 	private static final Map<String, BinaryOperator> calOperators = Stream.of(
-			new BinaryOperator("..", -1, false),
-			new BinaryOperator("&", 0, false),
-			new BinaryOperator("|", 1, false),
-			new BinaryOperator("^", 2, false),
-			new BinaryOperator("/", 3, false),
-			new BinaryOperator("div", 4, false),
-			new BinaryOperator("==", 5, false),
-			new BinaryOperator("=", 5, false),
-			new BinaryOperator("**", 6, true),
-			new BinaryOperator(">=", 7, false),
-			new BinaryOperator(">", 8, false),
-			new BinaryOperator("<=", 9, false),
-			new BinaryOperator("&&", 10, false),
-			new BinaryOperator("and", 10, false),
-			new BinaryOperator("||", 11, false),
-			new BinaryOperator("or", 11, false),
-			new BinaryOperator("<", 12, false),
-			new BinaryOperator("-", 13, false),
-			new BinaryOperator("%", 14, false),
-			new BinaryOperator("mod", 14, false),
-			new BinaryOperator("!=", 15, false),
-			new BinaryOperator("+", 16, false),
-			new BinaryOperator("<<", 17, false),
-			new BinaryOperator(">>", 18, false),
-			new BinaryOperator(">>>", 18, false),
-			new BinaryOperator("*", 19, false)
+			new BinaryOperator("..", -20, false),
+			new BinaryOperator("&", -10, false),
+			new BinaryOperator("|", -12, false),
+			new BinaryOperator("^", -11, false),
+			new BinaryOperator("/", -5, false),
+			new BinaryOperator("div", -5, false),
+			new BinaryOperator("==", -9, false),
+			new BinaryOperator("=", -9, false),
+			new BinaryOperator("**", -3, true),
+			new BinaryOperator(">=", -8, false),
+			new BinaryOperator(">", -8, false),
+			new BinaryOperator("<=", -8, false),
+			new BinaryOperator("&&", -13, false),
+			new BinaryOperator("and", -13, false),
+			new BinaryOperator("||", -14, false),
+			new BinaryOperator("or", -14, false),
+			new BinaryOperator("<", -8, false),
+			new BinaryOperator("-", -6, false),
+			new BinaryOperator("%", -5, false),
+			new BinaryOperator("mod", -5, false),
+			new BinaryOperator("!=", -9, false),
+			new BinaryOperator("+", -6, false),
+			new BinaryOperator("<<", -7, false),
+			new BinaryOperator(">>", -7, false),
+			new BinaryOperator("*", -5 , false)
 	).collect(Collectors.toMap(op -> op.name, Function.identity()));
 
 	private static final Map<String, BinaryOperator> noOperators = Collections.emptyMap();

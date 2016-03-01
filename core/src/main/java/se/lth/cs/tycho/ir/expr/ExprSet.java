@@ -45,7 +45,6 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -95,7 +94,7 @@ public class ExprSet extends Expression {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public ExprSet transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public ExprSet transformChildren(Transformation transformation) {
 		return copy(
 				(ImmutableList) elements.map(transformation),
 				(ImmutableList) generators.map(transformation)

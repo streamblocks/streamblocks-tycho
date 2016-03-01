@@ -41,7 +41,6 @@ package se.lth.cs.tycho.ir;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -107,7 +106,7 @@ public class TypeExpr extends AbstractIRNode implements Cloneable {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public TypeExpr transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public TypeExpr transformChildren(Transformation transformation) {
 		return copy(name, (ImmutableList) typeParameters.map(transformation), (ImmutableList) valueParameters.map(transformation));
 	}
 

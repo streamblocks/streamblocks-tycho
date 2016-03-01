@@ -22,19 +22,17 @@ public interface MainFunction {
 		return backend().emitter();
 	}
 
+	default MainNetwork mainNetwork() {
+		return backend().mainNetwork();
+	}
+
 	default void generateCode(CompilationTask task) {
 		include();
 		List<VarDecl> varDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getVarDecls().stream()).collect(Collectors.toList());
 		List<EntityDecl> entityDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getEntityDecls().stream()).collect(Collectors.toList());
 		backend().global().globalVariables(varDecls);
 		backend().structure().actorDecls(entityDecls);
-		task.getIdentifier();
-		for (EntityDecl decl : entityDecls) {
-			if (decl.getName().equals(task.getIdentifier().toString())) {
-				backend().structure().networkDecl(decl);
-			}
-		}
-		main(task);
+		mainNetwork().main(task.getNetwork());
 	}
 
 	default void include() {
@@ -46,15 +44,4 @@ public interface MainFunction {
 		}
 	}
 
-	default void main(CompilationTask task) {
-		emitter().emit("int main(int argc, char **argv) {");
-		emitter().increaseIndentation();
-		emitter().emit("register_SIGINT_handler();");
-		emitter().emit("init_global_variables();");
-		emitter().emit("return %s_main(argc, argv);", task.getIdentifier());
-		emitter().decreaseIndentation();
-		emitter().emit("}");
-		emitter().emit("");
-		emitter().emit("");
-	}
 }

@@ -25,6 +25,7 @@ import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.BoolType;
 import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.ListType;
+import se.lth.cs.tycho.types.QueueType;
 import se.lth.cs.tycho.types.Type;
 import se.lth.cs.tycho.types.UnitType;
 
@@ -104,7 +105,7 @@ public interface Code {
 		if (type.getSize().isPresent() && list.getGenerators().isEmpty()) {
 			int i = 0;
 			for (Expression element : list.getElements()) {
-				emitter().emit("%s[%d] = %s;", lvalue, i, evaluate(element));
+				assign(type.getElementType(), String.format("%s[%d]", lvalue, i), element);
 				i = i + 1;
 			}
 		} else {
@@ -122,10 +123,14 @@ public interface Code {
 
 	default String declaration(ListType type, String name) {
 		if (type.getSize().isPresent()) {
-			return String.format("%s %s[%d]", type(type.getElementType()), name, type.getSize().getAsInt());
+			return declaration(type.getElementType(), String.format("%s[%d]", name, type.getSize().getAsInt()));
 		} else {
 			return String.format("%s %s[] /* TODO IMPLEMENT */ ", type(type.getElementType()), name);
 		}
+	}
+
+	default String declaration(QueueType type, String name) {
+		return String.format("/* delcaration of internal queue */");
 	}
 
 	default String declaration(BoolType type, String name) { return "_Bool " + name; }
@@ -139,9 +144,9 @@ public interface Code {
 			while (originalSize > targetSize) {
 				targetSize = targetSize * 2;
 			}
-			return String.format("int%d_t", targetSize);
+			return String.format(type.isSigned() ? "int%d_t" : "uint%d_t", targetSize);
 		} else {
-			return "int64_t";
+			return type.isSigned() ? "int64_t" : "uint64_t";
 		}
 	}
 

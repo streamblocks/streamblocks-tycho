@@ -1,14 +1,13 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
-import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * 
@@ -17,21 +16,25 @@ import se.lth.cs.tycho.ir.util.Lists;
  */
 
 public class StructureIfStmt extends StructureStatement {
-	public StructureIfStmt(Expression condition, ImmutableList<StructureStatement> trueStmt,
-			ImmutableList<StructureStatement> falseStmt) {
-		super(null);
+	public StructureIfStmt(Expression condition, List<StructureStatement> trueStmt,
+						   List<StructureStatement> falseStmt) {
+		this(null, condition, trueStmt, falseStmt);
+	}
+	private StructureIfStmt(StructureIfStmt original, Expression condition, List<StructureStatement> trueStmt,
+			List<StructureStatement> falseStmt) {
+		super(original);
 		this.condition = condition;
 		this.trueStmt = ImmutableList.from(trueStmt);
 		this.falseStmt = ImmutableList.from(falseStmt);
 	}
 
-	public StructureIfStmt copy(Expression condition, ImmutableList<StructureStatement> trueStmt,
-			ImmutableList<StructureStatement> falseStmt) {
+	public StructureIfStmt copy(Expression condition, List<StructureStatement> trueStmt,
+			List<StructureStatement> falseStmt) {
 		if (Objects.equals(this.condition, condition) && Lists.equals(this.trueStmt, trueStmt)
 				&& Lists.equals(this.falseStmt, falseStmt)) {
 			return this;
 		}
-		return new StructureIfStmt(condition, trueStmt, falseStmt);
+		return new StructureIfStmt(this, condition, trueStmt, falseStmt);
 	}
 
 	public Expression getCondition() {
@@ -59,10 +62,16 @@ public class StructureIfStmt extends StructureStatement {
 		action.accept(condition);
 		trueStmt.forEach(action);
 		falseStmt.forEach(action);
+		getAttributes().forEach(action);
 	}
 
 	@Override
-	public Attributable withToolAttributes(ImmutableList<ToolAttribute> attributes) {
-		throw new UnsupportedOperationException();
+	@SuppressWarnings("unchecked")
+	public IRNode transformChildren(Transformation transformation) {
+		return copy(
+				(Expression) transformation.apply(condition),
+				(List) trueStmt.map(transformation),
+				(List) falseStmt.map(transformation)
+		).withAttributes((List) getAttributes().map(transformation));
 	}
 }

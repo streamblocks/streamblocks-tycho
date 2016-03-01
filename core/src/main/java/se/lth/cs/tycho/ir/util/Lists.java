@@ -21,7 +21,7 @@ public class Lists {
 		return a.equals(b);
 	}
 
-	public static <E> boolean elementIdentityEquals(List<E> a, List<E> b) {
+	public static <E> boolean sameElements(List<E> a, List<E> b) {
 		Iterator<E> aa = a == null ? Collections.emptyIterator() : a.iterator();
 		Iterator<E> bb = b == null ? Collections.emptyIterator() : b.iterator();
 		while (aa.hasNext() && bb.hasNext()) {

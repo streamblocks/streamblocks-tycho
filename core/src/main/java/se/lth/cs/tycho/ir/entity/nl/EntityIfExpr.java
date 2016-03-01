@@ -1,12 +1,11 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
-import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.ImmutableList;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
@@ -16,7 +15,10 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 public class EntityIfExpr extends EntityExpr {
 
 	public EntityIfExpr(Expression condition, EntityExpr trueEntity, EntityExpr falseEntity) {
-		super(null);
+		this(null, condition, trueEntity, falseEntity);
+	}
+	public EntityIfExpr(EntityExpr original, Expression condition, EntityExpr trueEntity, EntityExpr falseEntity) {
+		super(original);
 		this.condition = condition;
 		this.trueEntity = trueEntity;
 		this.falseEntity = falseEntity;
@@ -27,7 +29,7 @@ public class EntityIfExpr extends EntityExpr {
 				&& Objects.equals(this.falseEntity, falseEntity)) {
 			return this;
 		}
-		return new EntityIfExpr(condition, trueEntity, falseEntity);
+		return new EntityIfExpr(this, condition, trueEntity, falseEntity);
 	}
 
 	public Expression getCondition() {
@@ -55,10 +57,16 @@ public class EntityIfExpr extends EntityExpr {
 		action.accept(condition);
 		action.accept(trueEntity);
 		action.accept(falseEntity);
+		getAttributes().forEach(action);
 	}
 
 	@Override
-	public EntityIfExpr withToolAttributes(ImmutableList<ToolAttribute> attributes) {
-		throw new UnsupportedOperationException();
+	@SuppressWarnings("unchecked")
+	public IRNode transformChildren(Transformation transformation) {
+		return copy(
+				(Expression) transformation.apply(condition),
+				(EntityExpr) transformation.apply(trueEntity),
+				(EntityExpr) transformation.apply(falseEntity)
+		).withAttributes((List) getAttributes().map(transformation));
 	}
 }

@@ -17,7 +17,6 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.function.Function;
 
 public class AddSchedulePhase implements Phase {
 	@Override
@@ -31,7 +30,7 @@ public class AddSchedulePhase implements Phase {
 	}
 
 	@Module
-	interface AddSchedule extends Function<IRNode, IRNode> {
+	interface AddSchedule extends IRNode.Transformation {
 		@Override
 		default IRNode apply(IRNode node) {
 			return node.transformChildren(this);

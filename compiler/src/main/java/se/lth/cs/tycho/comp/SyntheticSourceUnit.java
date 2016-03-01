@@ -6,7 +6,6 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class SyntheticSourceUnit implements SourceUnit {
 	private final NamespaceDecl tree;
@@ -63,7 +62,7 @@ public class SyntheticSourceUnit implements SourceUnit {
 	}
 
 	@Override
-	public SourceUnit transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public SourceUnit transformChildren(Transformation transformation) {
 		return withTree((NamespaceDecl) transformation.apply(tree));
 	}
 }

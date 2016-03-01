@@ -42,7 +42,6 @@ package se.lth.cs.tycho.ir.entity.cal;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
@@ -137,7 +136,7 @@ public class Action extends AbstractIRNode {
 	}
 
 	public Action withVarDecls(List<VarDecl> varDecls) {
-		if (Lists.elementIdentityEquals(this.varDecls, varDecls)) {
+		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
 			return new Action(this, tag, inputPatterns, outputExpressions, typeDecls, ImmutableList.from(varDecls), guards, body, delay, preconditions, postconditions);
@@ -183,7 +182,7 @@ public class Action extends AbstractIRNode {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Action transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public Action transformChildren(Transformation transformation) {
 		return copy(
 				tag,
 				(ImmutableList) inputPatterns.map(transformation),

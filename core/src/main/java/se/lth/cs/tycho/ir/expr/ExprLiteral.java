@@ -40,11 +40,10 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 
 public class ExprLiteral extends Expression {
@@ -106,7 +105,7 @@ public class ExprLiteral extends Expression {
 	}
 
 	@Override
-	public ExprLiteral transformChildren(Function<? super IRNode, ? extends IRNode> transformation) {
+	public ExprLiteral transformChildren(Transformation transformation) {
 		return this;
 	}
 
@@ -139,6 +138,14 @@ public class ExprLiteral extends Expression {
 				radix = 16;
 			}
 			return OptionalInt.of(Integer.parseInt(text, radix));
+		}
+	}
+
+	public Optional<String> asString() {
+		if (kind != Kind.String) {
+			return Optional.empty();
+		} else {
+			return Optional.of(text.substring(1, text.length() - 1));
 		}
 	}
 

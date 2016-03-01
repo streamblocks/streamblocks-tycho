@@ -5,6 +5,7 @@ import org.multij.Module;
 import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.phases.TreeShadow;
 import se.lth.cs.tycho.phases.attributes.ActorMachineScopes;
+import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 
@@ -16,6 +17,7 @@ public interface Backend {
 	// Attributes
 	@Binding(INJECTED) Types types();
 	@Binding(INJECTED) Names names();
+	@Binding(INJECTED) GlobalNames globalNames();
 	@Binding(INJECTED) UniqueNumbers uniqueNumbers();
 	@Binding(INJECTED) TreeShadow tree();
 	@Binding(INJECTED) ActorMachineScopes scopes();
@@ -27,6 +29,7 @@ public interface Backend {
 	@Binding(MODULE) Code code();
 	@Binding(MODULE) Controllers controllers();
 	@Binding(MODULE) MainFunction main();
+	@Binding(MODULE) MainNetwork mainNetwork();
 	@Binding(MODULE) Global global();
 	@Binding(MODULE) DefaultValues defaultValues();
 }

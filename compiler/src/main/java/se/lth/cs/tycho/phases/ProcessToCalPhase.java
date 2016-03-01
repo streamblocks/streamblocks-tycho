@@ -33,11 +33,13 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -64,7 +66,7 @@ public class ProcessToCalPhase implements Phase {
 			assert actor.getInitializers().isEmpty(); // TODO lift this restriction
 			assert actor.getPriorities().isEmpty(); // TODO lift this restriction
 
-			Block entryBlock = processToBlock(actor.getProcessDescription());
+			Block entryBlock = processToBlock(actor.getProcessDescription()).current();
 			BlockToCal blockToCal = MultiJ.from(BlockToCal.class)
 					.bind("uniqueNumbers").to(uniqueNumbers)
 					.instance();
@@ -134,6 +136,11 @@ public class ProcessToCalPhase implements Phase {
 			return parse(statements, c);
 		}
 
+		if (statements.getLast() instanceof StmtBlock) {
+			StmtBlock block = (StmtBlock) statements.removeLast();
+			assert block.getVarDecls().isEmpty();
+			return parse(new LinkedList<>(block.getStatements()), successor);
+		}
 		throw new Error("Not implemented");
 	}
 
@@ -184,6 +191,7 @@ public class ProcessToCalPhase implements Phase {
 		}
 
 		default void process(Block block) {
+			block = block.current();
 			if (processed().add(block)) {
 				initialState().compareAndSet(null, blockName(block));
 				processBlock(block);

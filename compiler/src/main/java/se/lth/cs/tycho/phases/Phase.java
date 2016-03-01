@@ -6,6 +6,7 @@ import se.lth.cs.tycho.settings.Setting;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public interface Phase {
 	default String getName() {
@@ -16,9 +17,17 @@ public interface Phase {
 			return className;
 		}
 	}
+
 	String getDescription();
+
 	CompilationTask execute(CompilationTask task, Context context);
+
 	default List<Setting<?>> getPhaseSettings() {
 		return Collections.emptyList();
 	}
+
+	default Set<Class<? extends Phase>> dependencies() {
+		return Collections.emptySet();
+	}
+
 }

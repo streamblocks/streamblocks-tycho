@@ -6,6 +6,7 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.Namespaces;
 import se.lth.cs.tycho.phases.attributes.ActorMachineScopes;
 import se.lth.cs.tycho.phases.attributes.AttributeManager;
+import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.phases.cbackend.Backend;
@@ -41,6 +42,7 @@ public class CBackendPhase implements Phase {
 		Backend backend = MultiJ.from(Backend.class)
 				.bind("types").to(manager.getAttributeModule(Types.key, task))
 				.bind("names").to(manager.getAttributeModule(Names.key, task))
+				.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, task))
 				.bind("uniqueNumbers").to(context.getUniqueNumbers())
 				.bind("tree").to(manager.getAttributeModule(TreeShadow.key, task))
 				.bind("scopes").to(manager.getAttributeModule(ActorMachineScopes.key, task))

@@ -96,10 +96,10 @@ public interface Types {
 		}
 
 		default Type declaredType(VarDecl varDecl) {
-			if (declaredTypeMap().containsKey(varDecl)) {
-				return declaredTypeMap().get(varDecl);
-			} else if (currentlyComputing().get().contains(varDecl)) {
+			if (currentlyComputing().get().contains(varDecl)) {
 				return BottomType.INSTANCE;
+			} else if (declaredTypeMap().containsKey(varDecl)) {
+				return declaredTypeMap().get(varDecl);
 			} else {
 				currentlyComputing().get().add(varDecl);
 				Type t = computeDeclaredType(varDecl);
@@ -184,6 +184,20 @@ public interface Types {
 							}
 						}
 						return new ListType(elements.get(), OptionalInt.empty());
+					}
+					return BottomType.INSTANCE;
+				}
+				case "Queue": {
+					Optional<TypeExpr> e = findParameter(t.getTypeParameters(), "token");
+					Optional<Type> elements = e.map(this::convert);
+					if (elements.isPresent()) {
+						Optional<Expression> s = findParameter(t.getValueParameters(), "size");
+						if (s.isPresent()) {
+							OptionalLong size = constants().intValue(s.get());
+							if (size.isPresent()) {
+								return new QueueType(elements.get(), (int) size.getAsLong());
+							}
+						}
 					}
 					return BottomType.INSTANCE;
 				}

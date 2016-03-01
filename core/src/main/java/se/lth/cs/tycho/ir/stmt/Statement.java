@@ -40,9 +40,6 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.stmt;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
-import se.lth.cs.tycho.ir.IRNode;
-
-import java.util.function.Function;
 
 /**
  * Statements, such as assignments, procedure calls, or loops, may cause side
@@ -71,6 +68,6 @@ public abstract class Statement extends AbstractIRNode {
 	}
 
 	@Override
-	public abstract Statement transformChildren(Function<? super IRNode, ? extends IRNode> transformation);
+	public abstract Statement transformChildren(Transformation transformation);
 
 }
