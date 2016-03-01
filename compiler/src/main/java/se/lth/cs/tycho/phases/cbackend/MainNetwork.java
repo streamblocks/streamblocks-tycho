@@ -48,10 +48,9 @@ public interface MainNetwork {
 		List<Connection> connections = network.getConnections();
 		List<Instance> instances = network.getInstances();
 
-		emitter().emit("int main(int argc, char **argv) {");
+		emitter().emit("static void run(int argc, char **argv) {");
 		emitter().increaseIndentation();
 
-		emitter().emit("register_SIGINT_handler();");
 		emitter().emit("init_global_variables();");
 
 		int nbrOfPorts = network.getInputPorts().size() + network.getOutputPorts().size();
@@ -62,7 +61,7 @@ public interface MainNetwork {
 				.map(PortDecl::getName)
 				.collect(Collectors.joining("> <", "<", ">"));
 		emitter().emit("fprintf(stderr, \"Usage: %%s %s\\n\", argv[0]);", args);
-		emitter().emit("return 1;");
+		emitter().emit("return;");
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("");
@@ -177,13 +176,6 @@ public interface MainNetwork {
 		emitter().emit("} while (progress && !interrupted);");
 		emitter().emit("");
 
-		emitter().emit("if (interrupted) {");
-		emitter().increaseIndentation();
-		emitter().emit("fprintf(stderr, \"Process aborted by the user\\n\");");
-		emitter().decreaseIndentation();
-		emitter().emit("}");
-		emitter().emit("");
-
 		emitter().emit("for (int i = 0; i < sizeof(channels)/sizeof(channels[0]); i++) {");
 		emitter().increaseIndentation();
 		emitter().emit("channel_destroy(channels[i]);");
@@ -206,8 +198,6 @@ public interface MainNetwork {
 		for (PortDecl port : network.getOutputPorts()) {
 			emitter().emit("output_actor_destroy(%s_output_actor);", port.getName());
 		}
-
-		emitter().emit("return 0;");
 
 		emitter().decreaseIndentation();
 		emitter().emit("}");

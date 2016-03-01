@@ -1,0 +1,4 @@
+<factorypath>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/multij/multij-core/0.1-SNAPSHOT/multij-core-0.1-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/multij/multij-processor/0.1-SNAPSHOT/multij-processor-0.1-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
+</factorypath>

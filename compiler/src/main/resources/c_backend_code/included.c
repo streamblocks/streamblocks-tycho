@@ -6,7 +6,6 @@
 
 
 static volatile _Bool interrupted = false;
-static const struct sigaction EMPTY_ACTION;
 
 
 static void handle_SIGINT(int s) {
@@ -14,10 +13,20 @@ static void handle_SIGINT(int s) {
 }
 
 
-static void register_SIGINT_handler() {
-	struct sigaction intact = EMPTY_ACTION;
-	intact.sa_handler = handle_SIGINT;
-	sigaction(SIGINT, &intact, NULL);
+static void run(int argc, char **argv);
+
+int main(int argc, char **argv) {
+	if (signal(SIGINT, handle_SIGINT) == SIG_ERR) {
+		fputs("ERROR: Could not set signal handler.\n", stderr);
+		return EXIT_FAILURE;
+	}
+	run(argc, argv);
+	if (interrupted) {
+		fputs("Application interrupted.\n", stderr);
+		return EXIT_FAILURE;
+	} else {
+		return EXIT_SUCCESS;
+	}
 }
 
 
