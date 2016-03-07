@@ -39,58 +39,42 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.expr;
 
-import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
-
-/**
- * @author Jorn W. Janneck <jwj@acm.org>
- */
 
 public class ExprMap extends Expression {
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprMap(this, p);
+	private ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
+
+	public ExprMap(List<? extends Map.Entry<Expression, Expression>> mappings) {
+		this(null, mappings);
 	}
 
-	public ExprMap(ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
-			ImmutableList<GeneratorFilter> generators) {
-		this(null, mappings, generators);
-	}
-
-	private ExprMap(ExprMap original, ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
-			ImmutableList<GeneratorFilter> generators) {
+	private ExprMap(ExprMap original, List<? extends Map.Entry<Expression, Expression>> mappings) {
 		super(original);
-		this.mappings = ImmutableList.from(mappings);
-		this.generators = ImmutableList.from(generators);
-	}
-
-	public ExprMap copy(ImmutableList<ImmutableEntry<Expression, Expression>> mappings,
-			ImmutableList<GeneratorFilter> generators) {
-		if (Lists.equals(this.mappings, mappings) && Lists.equals(this.generators, generators)) {
-			return this;
-		}
-		return new ExprMap(this, mappings, generators);
-	}
-
-	public ExprMap(ImmutableList<ImmutableEntry<Expression, Expression>> mappings) {
-		this(mappings, null);
+		this.mappings = ImmutableList.from(mappings).map(ImmutableEntry::copyOf);
 	}
 
 	public ImmutableList<ImmutableEntry<Expression, Expression>> getMappings() {
 		return mappings;
 	}
 
-	public ImmutableList<GeneratorFilter> getGenerators() {
-		return generators;
+	public ExprMap withMappings(List<? extends Map.Entry<Expression, Expression>> mappings) {
+		if (Lists.sameElements(this.mappings, mappings)) {
+			return this;
+		} else {
+			return new ExprMap(this, mappings);
+		}
 	}
 
-	private ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
-	private ImmutableList<GeneratorFilter> generators;
+	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
+		return v.visitExprMap(this, p);
+	}
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
@@ -98,24 +82,13 @@ public class ExprMap extends Expression {
 			action.accept(entry.getKey());
 			action.accept(entry.getValue());
 		});
-		generators.forEach(action);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public ExprMap transformChildren(Transformation transformation) {
-		Function<? super ImmutableEntry<Expression, Expression>, ? extends ImmutableEntry<Expression, Expression>> function = (ImmutableEntry<Expression, Expression> entry) -> {
-			Expression key = (Expression) transformation.apply(entry.getKey());
-			Expression value = (Expression) transformation.apply(entry.getValue());
-			if (key == entry.getKey() && value == entry.getValue()) {
-				return entry;
-			} else {
-				return ImmutableEntry.of(key, value);
-			}
-		};
-		return copy(
-				mappings.map(function),
-				(ImmutableList) generators.map(transformation)
-		);
+		return withMappings(
+				mappings.map(entry -> ImmutableEntry.of(
+						transformation.applyChecked(Expression.class, entry.getKey()),
+						transformation.applyChecked(Expression.class, entry.getValue()))));
 	}
 }

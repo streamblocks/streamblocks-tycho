@@ -54,6 +54,14 @@ public class EntityDecl extends Decl {
 		}
 	}
 
+	public EntityDecl withAvailability(Availability availability) {
+		if (getAvailability() == availability) {
+			return this;
+		} else {
+			return new EntityDecl(this, availability, getName(), entity, getQualifiedIdentifier());
+		}
+	}
+
 	public EntityDecl withQualifiedIdentifier(QID qid) {
 		if (getQualifiedIdentifier().equals(qid)) {
 			return this;

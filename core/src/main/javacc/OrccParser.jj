@@ -971,7 +971,7 @@ Expression PrimaryExpression() :
 	|
 		expr = LetExpression()
 	|
-		expr = ListComprehension()
+		expr = ListExpression()
 	)
 	{ return expr; }
 }
@@ -1157,51 +1157,69 @@ VarDecl FormalValueParameter() :
 	}
 }
 
-ExprList ListComprehension() :
+
+Expression ListExpression() :
 {
-	Expression expr;
+	Expression result;
 	ImmutableList<Expression> exprs;
-	ImmutableList<GeneratorFilter> generatorFilters = null;
 }
 {
 	"["
 	exprs = ExpressionList()
-	( ":" generatorFilters = GeneratorFilters() )?
+	{ result = new ExprList(exprs); }
+	(
+		":"
+		result = ComprehensionFor(result)
+	)?
 	"]"
-	{ return new ExprList(exprs, generatorFilters); }
+	{
+		return result;
+	}
 }
 
-ImmutableList<GeneratorFilter> GeneratorFilters() :
-{
-	GeneratorFilter gen;
-	ImmutableList.Builder<GeneratorFilter> builder = ImmutableList.builder();
-}
-{
-	gen = GeneratorFilter() { builder.add(gen); }
-	("," gen = GeneratorFilter() { builder.add(gen); } )*
-	{ return builder.build(); }
-}
-
-GeneratorFilter GeneratorFilter() :
+Expression ComprehensionFor(Expression contents) :
 {
 	TypeExpr type = null;
-	Token var;
-	Expression coll;
-	Expression filter;
+	Token id;
 	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	Expression collection;
+	Expression filter;
 	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
 }
 {
-	( "for" | "foreach" )
-	type = Type()
-	var = <ID>
-	{ varDecls.add(VarDecl.local(type, var.image, true, null)); }
-	"in"
-	coll = Expression()
+	"for"
+	(
+		LOOKAHEAD(2)
+		type = Type()
+	)?
+	id = <ID>
 	{
-		return new GeneratorFilter(varDecls.build(), coll, filters.build());
+		varDecls.add(VarDecl.local(type == null ? null : type.deepClone(), id.image, false, null));
+	}
+	(
+		","
+		id = <ID>
+		{
+			varDecls.add(VarDecl.local(type == null ? null : type.deepClone(), id.image, false, null));
+		}
+	)*
+	"in"
+	collection = Expression()
+	(
+		LOOKAHEAD(2)
+		","
+		filter = Expression()
+		{ filters.add(filter); }
+	)*
+	(
+		","
+		contents = ComprehensionFor(contents)
+	)?
+	{
+		return new ExprComprehension(new Generator(varDecls.build(), collection), filters.build(), contents);
 	}
 }
+
 
 /* Type expressions */
 TypeExpr Type() :
@@ -1477,22 +1495,77 @@ StmtWhile WhileStmt() :
 	}
 }
 
+
 StmtForeach ForeachStmt() :
 {
-	ImmutableList<GeneratorFilter> gens;
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	StmtForeach stmt;
+}
+{
+	stmt = ForeachStmtHeader()
+	"end"
+	{
+		return stmt;
+	}
+}
+
+StmtForeach ForeachStmtHeader() :
+{
+	TypeExpr type = null;
+	Token id;
+	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	Expression collection;
+	Expression filter;
+	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
+	Statement body;
+}
+{
+	"foreach"
+	(
+		LOOKAHEAD(2)
+		type = Type()
+	)?
+	id = <ID>
+	{ varDecls.add(VarDecl.local(type, id.image, false, null)); }
+	(
+		","
+		id = <ID>
+		{ varDecls.add(VarDecl.local(type.deepClone(), id.image, false, null)); }
+	)*
+	"in"
+	 collection = Expression()
+	(
+		LOOKAHEAD(2)
+		","
+		filter = Expression()
+		{ filters.add(filter); }
+	)*
+	body = ForeachStmtBody()
+	{
+		return new StmtForeach(new Generator(varDecls.build(), collection), filters.build(), body);
+	}
+}
+
+Statement ForeachStmtBody() :
+{
+	Statement result;
+	ImmutableList<VarDecl> varDecls = null;
 	ImmutableList<Statement> stmts;
 }
 {
-	gens = GeneratorFilters()
+	"," result = ForeachStmtHeader()
+	{
+		return result;
+	}
+|
 	(
 		"var"
 		varDecls = VarDecls()
 	)?
 	"do"
 	stmts = Statements()
-	"end"
 	{
-		return new StmtForeach(gens, new StmtBlock(ImmutableList.empty(), varDecls, stmts));
+		return new StmtBlock(ImmutableList.empty(), varDecls, stmts);
 	}
 }
+
+

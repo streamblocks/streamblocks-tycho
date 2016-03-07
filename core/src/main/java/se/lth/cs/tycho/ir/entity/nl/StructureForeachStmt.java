@@ -1,7 +1,9 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.ToolAttribute;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -10,33 +12,39 @@ import java.util.function.Consumer;
 
 public class StructureForeachStmt extends StructureStatement {
 
-	public StructureForeachStmt(List<GeneratorFilter> generators, List<StructureStatement> statements) {
-		this(null, generators, statements);
+	public StructureForeachStmt(Generator generator, List<Expression> filters, List<StructureStatement> statements) {
+		this(null, generator, filters, statements);
 	}
-	private StructureForeachStmt(StructureForeachStmt original, List<GeneratorFilter> generators, List<StructureStatement> statements) {
+
+	private StructureForeachStmt(StructureForeachStmt original, Generator generator, List<Expression> filters, List<StructureStatement> statements) {
 		super(original);
-		this.generators = ImmutableList.from(generators);
+		this.generator = generator;
+		this.filters = ImmutableList.from(filters);
 		this.statements = ImmutableList.from(statements);
 	}
 
-	public StructureForeachStmt copy(List<GeneratorFilter> generators,
-			List<StructureStatement> statements) {
-		if (Lists.equals(this.generators, generators) && Lists.equals(this.statements, statements)) {
+	public StructureForeachStmt copy(Generator generator, List<Expression> filters, List<StructureStatement> statements) {
+		if (this.generator == generator && Lists.sameElements(this.filters, filters) && Lists.sameElements(this.statements, statements)) {
 			return this;
 		}
-		return new StructureForeachStmt(this, generators, statements);
+		return new StructureForeachStmt(this, generator, filters, statements);
 	}
 
 	public ImmutableList<StructureStatement> getStatements() {
 		return statements;
 	}
 
-	public ImmutableList<GeneratorFilter> getGenerators() {
-		return generators;
+	public Generator getGenerator() {
+		return generator;
 	}
 
-	private ImmutableList<StructureStatement> statements;
-	private ImmutableList<GeneratorFilter> generators;
+	public ImmutableList<Expression> getFilters() {
+		return filters;
+	}
+
+	private final Generator generator;
+	private final ImmutableList<Expression> filters;
+	private final ImmutableList<StructureStatement> statements;
 
 	@Override
 	public <R, P> R accept(StructureStmtVisitor<R, P> v, P p) {
@@ -45,7 +53,8 @@ public class StructureForeachStmt extends StructureStatement {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		generators.forEach(action);
+		action.accept(generator);
+		filters.forEach(action);
 		statements.forEach(action);
 		getAttributes().forEach(action);
 	}
@@ -53,8 +62,9 @@ public class StructureForeachStmt extends StructureStatement {
 	@Override
 	public IRNode transformChildren(Transformation transformation) {
 		return copy(
-				(List) generators.map(transformation),
-				(List) statements.map(transformation)
-		).withAttributes((List) getAttributes().map(transformation));
+				transformation.applyChecked(Generator.class, generator),
+				transformation.mapChecked(Expression.class, filters),
+				transformation.mapChecked(StructureStatement.class, statements)
+		).withAttributes(transformation.mapChecked(ToolAttribute.class, getAttributes()));
 	}
 }

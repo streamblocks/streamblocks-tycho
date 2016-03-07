@@ -134,7 +134,7 @@ public final class NetworkUtils {
 
 		@Override
 		public Stream<StructureStatement> visitStructureForeachStmt(StructureForeachStmt stmt, Void aVoid) {
-			return Stream.of(stmt.copy(stmt.getGenerators(), removeFrom(stmt.getStatements())));
+			return Stream.of(stmt.copy(stmt.getGenerator(), stmt.getFilters(), removeFrom(stmt.getStatements())));
 		}
 	}
 

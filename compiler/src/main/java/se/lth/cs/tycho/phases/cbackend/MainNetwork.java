@@ -78,7 +78,23 @@ public interface MainNetwork {
 					Expression sizeExpr = bufferSize.get().getValue();
 					size = code().evaluate(sizeExpr);
 				}
-				emitter().emit("channels[%d] = channel_create(%s);", i, size);
+				String type;
+				if (conn.getSource().getInstance().isPresent()) {
+					Instance instance = network.getInstances().stream()
+							.filter(inst -> inst.getInstanceName().equals(conn.getSource().getInstance().get()))
+							.findFirst().get();
+					EntityDecl entity = globalNames().entityDecl(QID.of(instance.getEntityName()), true);
+					PortDecl portDecl = entity.getEntity().getOutputPorts().stream()
+							.filter(port -> port.getName().equals(conn.getSource().getPort()))
+							.findFirst().get();
+					type = code().type(backend().types().declaredPortType(portDecl));
+				} else {
+					PortDecl portDecl = network.getInputPorts().stream()
+							.filter(port -> port.getName().equals(conn.getSource().getPort()))
+							.findFirst().get();
+					type = code().type(backend().types().declaredPortType(portDecl));
+				}
+				emitter().emit("channels[%d] = channel_create(sizeof(%s) * %s);", i, type, size);
 				i = i + 1;
 			}
 		}

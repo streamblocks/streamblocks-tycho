@@ -86,8 +86,8 @@ public class ProcessToCalPhase implements Phase {
 		Block entry = parse(new LinkedList<>(process.getStatements()), exit);
 		if (process.isRepeated()) {
 			exit.setSuccessor(entry);
+			exit.replaceWith(entry);
 		}
-		exit.replaceWith(entry);
 		return entry;
 	}
 
@@ -191,6 +191,7 @@ public class ProcessToCalPhase implements Phase {
 		}
 
 		default void process(Block block) {
+			if (block == null) return;
 			block = block.current();
 			if (processed().add(block)) {
 				initialState().compareAndSet(null, blockName(block));

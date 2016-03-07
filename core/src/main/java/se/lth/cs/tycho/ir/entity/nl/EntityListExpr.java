@@ -1,7 +1,7 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -10,25 +10,24 @@ import java.util.function.Consumer;
 
 public class EntityListExpr extends EntityExpr {
 
-	public EntityListExpr(List<EntityExpr> entityList, List<GeneratorFilter> generators) {
-		super(null);
-		this.entityList = ImmutableList.from(entityList);
-		this.generators = ImmutableList.from(generators);
+	public EntityListExpr(List<EntityExpr> entityList) {
+		this(null, entityList);
 	}
 
-	public EntityListExpr copy(List<EntityExpr> entityList, List<GeneratorFilter> generators) {
-		if (Lists.equals(this.entityList, entityList) && Lists.equals(this.generators, generators)) {
+	private EntityListExpr(EntityListExpr original, List<EntityExpr> entityList) {
+		super(original);
+		this.entityList = ImmutableList.from(entityList);
+	}
+
+	public EntityListExpr copy(List<EntityExpr> entityList) {
+		if (Lists.sameElements(this.entityList, entityList)) {
 			return this;
 		}
-		return new EntityListExpr(entityList, generators);
+		return new EntityListExpr(this, entityList);
 	}
 
 	public ImmutableList<EntityExpr> getEntityList() {
 		return entityList;
-	}
-
-	public ImmutableList<GeneratorFilter> getGenerators() {
-		return generators;
 	}
 
 	@Override
@@ -44,31 +43,27 @@ public class EntityListExpr extends EntityExpr {
 			sep = ", ";
 			sb.append(e);
 		}
-		sep = "";
-		for(GeneratorFilter g : generators){
-			sb.append(sep);
-			sep = ", ";
-			sb.append(g);
-		}
 		sb.append("]");
 		return sb.toString();
 	}
 
 	private ImmutableList<EntityExpr> entityList;
-	private ImmutableList<GeneratorFilter> generators;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		entityList.forEach(action);
-		generators.forEach(action);
 		getAttributes().forEach(action);
 	}
 
 	@Override
-	public IRNode transformChildren(Transformation transformation) {
+	public EntityListExpr withAttributes(List<ToolAttribute> attributes) {
+		return (EntityListExpr) super.withAttributes(attributes);
+	}
+
+	@Override
+	public EntityListExpr transformChildren(Transformation transformation) {
 		return copy(
-				(List) entityList.map(transformation),
-				(List) generators.map(transformation)
-		).withAttributes((List) getAttributes().map(transformation));
+				transformation.mapChecked(EntityExpr.class, entityList)
+		).withAttributes(transformation.mapChecked(ToolAttribute.class, getAttributes()));
 	}
 }

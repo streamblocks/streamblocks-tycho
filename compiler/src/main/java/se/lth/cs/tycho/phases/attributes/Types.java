@@ -5,7 +5,6 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
@@ -19,7 +18,6 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.phases.TreeShadow;
 import se.lth.cs.tycho.types.*;
-import se.lth.cs.tycho.util.CheckedCasts;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -276,40 +274,45 @@ public interface Types {
 			}
 		}
 
+		default OptionalInt collectionSize(Type t) {
+			return OptionalInt.empty();
+		}
+
+		default OptionalInt collectionSize(ListType t) {
+			return t.getSize();
+		}
+
+		default OptionalInt collectionSize(RangeType t) {
+			return t.getLength();
+		}
+
+		Type withCollectionSize(Type t, OptionalInt size);
+
+		default Type withCollectionSize(ListType t, OptionalInt size) {
+			return new ListType(t.getElementType(), size);
+		}
+
+		default Type computeType(ExprComprehension comprehension) {
+			Type collectionType = type(comprehension.getCollection());
+			OptionalInt collectionSize = collectionSize(collectionType);
+			Type generatorType = type(comprehension.getGenerator().getCollection());
+			OptionalInt generatorSize = collectionSize(generatorType);
+			OptionalInt size;
+			if (collectionSize.isPresent() && generatorSize.isPresent() && comprehension.getFilters().isEmpty()) {
+				int s = collectionSize.getAsInt() *
+						(int) Math.pow(generatorSize.getAsInt(), comprehension.getGenerator().getVarDecls().size());
+				size = OptionalInt.of(s);
+			} else {
+				size = OptionalInt.empty();
+			}
+			return withCollectionSize(collectionType, size);
+		}
+
 		default Type computeType(ExprList list) {
 			Type elementType = list.getElements().stream()
 					.map(this::type)
 					.reduce(BottomType.INSTANCE, this::leastUpperBound);
-			if (list.getGenerators().isEmpty()) {
-				return new ListType(elementType, OptionalInt.of(list.getElements().size()));
-			} else {
-				int size = list.getElements().size();
-				for (GeneratorFilter gen : list.getGenerators()) {
-					if (!gen.getFilters().isEmpty()) {
-						return new ListType(elementType, OptionalInt.empty());
-					}
-					Type collType = type(gen.getCollectionExpr());
-					if (collType instanceof ListType) {
-						OptionalInt s = ((ListType) collType).getSize();
-						if (!s.isPresent()) {
-							return new ListType(elementType, OptionalInt.empty());
-						}
-						for (VarDecl d : gen.getVariables()) {
-							size *= s.getAsInt();
-						}
-					} else if (collType instanceof RangeType) {
-						OptionalInt s = ((RangeType) collType).getLength();
-						if (!s.isPresent()) {
-							return new ListType(elementType, OptionalInt.empty());
-						}
-						for (VarDecl d : gen.getVariables()) {
-							size *= s.getAsInt();
-						}
-					}
-
-				}
-				return new ListType(elementType, OptionalInt.of(size));
-			}
+			return new ListType(elementType, OptionalInt.of(list.getElements().size()));
 		}
 
 		default Type computeType(ExprVariable var) {

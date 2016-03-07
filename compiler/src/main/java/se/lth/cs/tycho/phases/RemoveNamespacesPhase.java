@@ -9,6 +9,7 @@ import se.lth.cs.tycho.comp.SyntheticSourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
@@ -40,7 +41,16 @@ public class RemoveNamespacesPhase implements Phase {
 		NamespaceDecl tree = new NamespaceDecl(QID.empty(), ImmutableList.empty(), varDecls.build(), entityDecls.build(), typeDecls.build());
 		SourceUnit unit = new SyntheticSourceUnit(tree);
 		CompilationTask result = task.copy(ImmutableList.of(unit), task.getIdentifier().getLast(), null);
+		result = result.withSourceUnits(result.getSourceUnits().map(sourceUnit ->
+				sourceUnit.withTree(sourceUnit.getTree()
+						.withEntityDecls(makePublic(sourceUnit.getTree().getEntityDecls()))
+						.withVarDecls(makePublic(sourceUnit.getTree().getVarDecls()))
+						.withTypeDecls(makePublic(sourceUnit.getTree().getTypeDecls())))));
 		return (CompilationTask) removeImports.transform(result);
+	}
+
+	private <D extends Decl> ImmutableList<D> makePublic(ImmutableList<D> decls) {
+		return decls.map(d -> (D) d.withAvailability(Availability.PUBLIC));
 	}
 
 	@Module

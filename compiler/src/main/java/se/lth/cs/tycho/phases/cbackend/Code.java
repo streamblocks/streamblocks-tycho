@@ -2,9 +2,8 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
-import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.expr.*;
@@ -20,6 +19,7 @@ import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.BoolType;
@@ -29,11 +29,10 @@ import se.lth.cs.tycho.types.QueueType;
 import se.lth.cs.tycho.types.Type;
 import se.lth.cs.tycho.types.UnitType;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.multij.BindingKind.MODULE;
@@ -83,7 +82,10 @@ public interface Code {
 		emitter().emit("%s = %s;", lvalue, tmp); // should handle some discrepancies between port type and variable type.
 	}
 
-	void assignList(ListType type, String lvalue, Expression expr);
+	default void assignList(ListType type, String lvalue, Expression expr) {
+		emitter().emit("%s = %s", lvalue, evaluate(expr));
+	}
+
 	default void assignList(ListType type, String lvalue, ExprInput input) {
 		assert input.hasRepeat(); // only repeat assignments to lists are supported
 		assert input.getPatternLength() == 1; // only with one variable
@@ -101,8 +103,9 @@ public interface Code {
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
+
 	default void assignList(ListType type, String lvalue, ExprList list) {
-		if (type.getSize().isPresent() && list.getGenerators().isEmpty()) {
+		if (type.getSize().isPresent()) {
 			int i = 0;
 			for (Expression element : list.getElements()) {
 				assign(type.getElementType(), String.format("%s[%d]", lvalue, i), element);
@@ -113,7 +116,32 @@ public interface Code {
 		}
 	}
 
+	default void assignList(ListType type, String lvalue, ExprComprehension list) {
+		String index = variables().generateTemp();
+		emitter().emit("size_t %s = 0;", index);
+		assignListComprehension(type, lvalue, index, list);
+	}
+
+	void assignListComprehension(ListType type, String lvalue, String index, Expression list);
+	default void assignListComprehension(ListType type, String lvalue, String index, ExprComprehension list) {
+		if (!list.getFilters().isEmpty()) {
+			throw new UnsupportedOperationException();
+		}
+		Generator generator = list.getGenerator();
+		withGenerator(generator.getCollection(), generator.getVarDecls(), () -> {
+			assignListComprehension(type, lvalue, index, list.getCollection());
+		});
+	}
+
+	default void assignListComprehension(ListType type, String lvalue, String index, ExprList list) {
+		for (Expression element : list.getElements()) {
+			assign(type.getElementType(), String.format("%s[%s]", lvalue, index), element);
+			emitter().emit("%s++;", index);
+		}
+	}
+
 	String declaration(Type type, String name);
+
 
 	default String declaration(IntType type, String name) {
 		return type(type) + " " + name;
@@ -232,46 +260,81 @@ public interface Code {
 		}
 	}
 
+	default String evaluate(ExprComprehension comprehension) {
+		return evaluateComprehension(comprehension, types().type(comprehension));
+	}
+
+	String evaluateComprehension(ExprComprehension comprehension, Type t);
+
+	default String evaluateComprehension(ExprComprehension comprehension, ListType t) {
+		String name = variables().generateTemp();
+		String decl = declaration(t, name);
+		emitter().emit("%s;", decl);
+		String index = variables().generateTemp();
+		emitter().emit("size_t %s = 0;", index);
+		evaluateListComprehension(comprehension, name, index);
+		return name;
+	}
+
+	void evaluateListComprehension(Expression comprehension, String result, String index);
+	default void evaluateListComprehension(ExprComprehension comprehension, String result, String index) {
+		if (!comprehension.getFilters().isEmpty()) {
+			throw new UnsupportedOperationException("Filters in comprehensions not supported.");
+		}
+		withGenerator(comprehension.getGenerator().getCollection(), comprehension.getGenerator().getVarDecls(), () -> {
+			evaluateListComprehension(comprehension.getCollection(), result, index);
+		});
+	}
+
+	default void evaluateListComprehension(ExprList list, String result, String index) {
+		list.getElements().forEach(element ->
+				emitter().emit("%s[%s++] = %s;", result, index, evaluate(element))
+		);
+	}
+
+	void withGenerator(Expression collection, ImmutableList<VarDecl> varDecls, Runnable body);
+
+	default void withGenerator(ExprBinaryOp binOp, ImmutableList<VarDecl> varDecls, Runnable action) {
+		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
+			String from = evaluate(binOp.getOperands().get(0));
+			String to = evaluate(binOp.getOperands().get(1));
+			for (VarDecl d : varDecls) {
+				Type type = types().declaredType(d);
+				emitter().emit("%s = %s;", declaration(type, d.getName()), from);
+				emitter().emit("while (%s <= %s) {", d.getName(), to);
+				emitter().increaseIndentation();
+			}
+			action.run();
+			List<VarDecl> reversed = new ArrayList<>(varDecls);
+			Collections.reverse(reversed);
+			for (VarDecl d : reversed) {
+				emitter().emit("%s++;", d.getName());
+				emitter().decreaseIndentation();
+				emitter().emit("}");
+			}
+		} else {
+			throw new UnsupportedOperationException(binOp.getOperations().get(0));
+		}
+	}
+
+
 	default String evaluate(ExprList list) {
 		ListType t = (ListType) types().type(list);
 		if (t.getSize().isPresent()) {
-			if (list.getGenerators().isEmpty()) {
-				String name = variables().generateTemp();
-				String decl = declaration(t, name);
-				String value = list.getElements().stream().sequential()
-						.map(this::evaluate)
-						.collect(Collectors.joining(", ", "{", "}"));
-				emitter().emit("%s = %s;", decl, value);
-				return name;
-			} else {
-				String name = variables().generateTemp();
-				String decl = declaration(t, name);
-				emitter().emit("%s;", decl);
-				String index = variables().generateTemp();
-				emitter().emit("size_t %s = 0;", index);
-				for (GeneratorFilter gen : list.getGenerators()) {
-					forEachGen(gen, () -> {
-						for (Expression expr : list.getElements()) {
-							emitter().emit("%s[%s++] = %s;", name, index, evaluate(expr));
-						}
-					});
-				}
-				return name;
-			}
+			String name = variables().generateTemp();
+			String decl = declaration(t, name);
+			String value = list.getElements().stream().sequential()
+					.map(this::evaluate)
+					.collect(Collectors.joining(", ", "{", "}"));
+			emitter().emit("%s = %s;", decl, value);
+			return name;
 		} else {
 			return "NULL /* TODO: implement dynamically sized lists */";
 		}
 	}
 
-	default void forEachGen(GeneratorFilter gen, Runnable action) {
-		if (gen.getFilters().isEmpty()) {
-			forEach(gen.getCollectionExpr(), gen.getVariables(), action);
-		} else {
-			throw new UnsupportedOperationException("filters");
-		}
-	}
-
 	void forEach(Expression collection, List<VarDecl> varDecls, Runnable action);
+
 	default void forEach(ExprBinaryOp binOp, List<VarDecl> varDecls, Runnable action) {
 		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
 			Type type = types().declaredType(varDecls.get(0));
@@ -308,7 +371,7 @@ public interface Code {
 		emitter().decreaseIndentation();
 		emitter().emit("} else {");
 		emitter().increaseIndentation();
-		assign(type, temp, expr.getThenExpr()); // this kind of assignment?
+		assign(type, temp, expr.getElseExpr()); // this kind of assignment?
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		return temp;
@@ -406,15 +469,17 @@ public interface Code {
 	}
 
 	default void execute(StmtForeach foreach) {
-		forEachGenList(foreach.getGenerators(), 0, () -> execute(foreach.getBody()));
-	}
-
-	default void forEachGenList(List<GeneratorFilter> generators, int index, Runnable action) {
-		if (index >= generators.size()) {
-			action.run();
-		} else {
-			forEachGen(generators.get(index), () -> forEachGenList(generators, index+1, action));
-		}
+		forEach(foreach.getGenerator().getCollection(), foreach.getGenerator().getVarDecls(), () -> {
+			for (Expression filter : foreach.getFilters()) {
+				emitter().emit("if (%s) {", evaluate(filter));
+				emitter().increaseIndentation();
+			}
+			execute(foreach.getBody());
+			for (Expression filter : foreach.getFilters()) {
+				emitter().decreaseIndentation();
+				emitter().emit("}");
+			}
+		});
 	}
 
 	default void execute(StmtCall call) {

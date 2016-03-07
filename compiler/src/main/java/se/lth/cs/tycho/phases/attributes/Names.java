@@ -4,7 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
-import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
@@ -22,6 +22,7 @@ import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.ir.expr.ExprComprehension;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
@@ -216,64 +217,23 @@ public interface Names {
 			return findInStream(block.getVarDecls().stream(), name);
 		}
 
-		default Optional<VarDecl> localLookup(ExprList list, IRNode context, String name) {
-			Stream<VarDecl> decls = list.getGenerators().stream()
-					.flatMap(generator -> generator.getVariables().stream());
-			return findInStream(decls, name);
+		default Optional<VarDecl> localLookup(ExprComprehension comprehension, IRNode context, String name) {
+			return findInStream(comprehension.getGenerator().getVarDecls().stream(), name);
 		}
 
-		default Optional<VarDecl> localLookup(ExprList list, GeneratorFilter context, String name) {
-			for (GeneratorFilter g : list.getGenerators()) {
-				if (g == context) {
-					return Optional.empty();
-				}
-				for (VarDecl d : g.getVariables()) {
-					if (d.getName().equals(name)) {
-						return Optional.of(d);
-					}
-				}
-			}
+		default Optional<VarDecl> localLookup(ExprComprehension comprehension, Generator context, String name) {
 			return Optional.empty();
 		}
 
-		Optional<VarDecl> localLookup(GeneratorFilter generator, IRNode node, String name);
-
-		default Optional<VarDecl> localLookup(GeneratorFilter generator, Expression context, String name) {
-			if (generator.getCollectionExpr() == context) {
-				// The collection expression may only refer to variables declared before this generator.
-				return Optional.empty();
-			} else if (generator.getFilters().contains(context)) {
-				// Filters may refer to their generator variables.
-				for (VarDecl d : generator.getVariables()) {
-					if (d.getName().equals(name)) {
-						return Optional.of(d);
-					}
-				}
-			}
-			throw new Error();
-		}
-
-		default Optional<VarDecl> localLookup(GeneratorFilter generator, VarDecl context, String name) {
+		default Optional<VarDecl> localLookup(Generator generator, IRNode context, String name) {
 			return Optional.empty();
 		}
 
 		default Optional<VarDecl> localLookup(StmtForeach foreach, IRNode context, String name) {
-			Stream<VarDecl> decls = foreach.getGenerators().stream()
-					.flatMap(generator -> generator.getVariables().stream());
-			return findInStream(decls, name);
+			return findInStream(foreach.getGenerator().getVarDecls().stream(), name);
 		}
 
-		default Optional<VarDecl> localLookup(StmtForeach foreach, GeneratorFilter context, String name) {
-			for (GeneratorFilter g : foreach.getGenerators()) {
-				if (g == context) {
-					return Optional.empty();
-				}
-				for (VarDecl d : g.getVariables()) {
-					if (d.getName().equals(name)) {
-						return Optional.of(d);
-					}
-				}
-			}
+		default Optional<VarDecl> localLookup(StmtForeach foreach, Generator context, String name) {
 			return Optional.empty();
 		}
 

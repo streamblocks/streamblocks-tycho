@@ -3,7 +3,7 @@ package se.lth.cs.tycho.phases;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
-import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
@@ -126,8 +126,8 @@ public class DeclarationAnalysisPhase implements Phase {
 			} else if (node instanceof StmtBlock) {
 				check(((StmtBlock) node).getTypeDecls());
 				check(((StmtBlock) node).getVarDecls());
-			} else if (node instanceof GeneratorFilter) {
-				check(((GeneratorFilter) node).getVariables());
+			} else if (node instanceof Generator) {
+				check(((Generator) node).getVarDecls());
 			} else if (node instanceof Action) {
 				Action action = (Action) node;
 				check(action.getTypeDecls());

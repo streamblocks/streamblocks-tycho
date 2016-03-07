@@ -32,7 +32,6 @@ public class Compiler {
 			new LoadImportsPhase(),
 
 			// For debugging
-			new PrettyPrintPhase(),
 			new PrintLoadedSourceUnits(),
 			new PrintTreesPhase(),
 
@@ -54,6 +53,7 @@ public class Compiler {
 			// Actor transformations
 			new LiftProcessVarDeclsPhase(),
 			new ProcessToCalPhase(),
+			new PrettyPrintPhase(),
 			new AddSchedulePhase(),
 			new ScheduleInitializersPhase(),
 			new CalToAmPhase(),

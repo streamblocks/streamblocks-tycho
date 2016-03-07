@@ -12,6 +12,13 @@ public class TypeDecl extends Decl {
 	}
 
 
+	public TypeDecl withAvailability(Availability availability) {
+		if (getAvailability() == availability) {
+			return this;
+		} else {
+			return new TypeDecl(this, availability, getName(), getDeclKind(), getLocationKind());
+		}
+	}
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 	}

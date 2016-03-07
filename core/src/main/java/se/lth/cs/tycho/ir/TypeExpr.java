@@ -110,4 +110,13 @@ public class TypeExpr extends AbstractIRNode implements Cloneable {
 		return copy(name, (ImmutableList) typeParameters.map(transformation), (ImmutableList) valueParameters.map(transformation));
 	}
 
+	@Override
+	public TypeExpr clone() {
+		return (TypeExpr) super.clone();
+	}
+
+	@Override
+	public TypeExpr deepClone() {
+		return (TypeExpr) super.deepClone();
+	}
 }

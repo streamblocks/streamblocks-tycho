@@ -9,6 +9,7 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -89,7 +90,7 @@ public class LiftConstantsPhase implements Phase {
 			ImmutableList.Builder<VarDecl> kept = ImmutableList.builder();
 			for (VarDecl decl : decls) {
 				if (constants().isConstant().test(decl)) {
-					lifted.accept(decl);
+					lifted.accept(decl.withAvailability(Availability.PUBLIC));
 				} else {
 					kept.add((VarDecl) transform(decl));
 				}

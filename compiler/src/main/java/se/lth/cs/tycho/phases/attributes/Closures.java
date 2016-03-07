@@ -4,7 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
-import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -113,16 +113,19 @@ public interface Closures {
 		return result;
 	}
 
+	default Set<VarDecl> freeVariables(ExprComprehension comprehension) {
+		Set<VarDecl> result = new HashSet<>();
+		result.addAll(freeVariables(comprehension.getGenerator().getCollection()));
+		comprehension.getFilters().forEach(filter -> result.addAll(freeVariables(filter)));
+		result.addAll(freeVariables(comprehension.getCollection()));
+		return result;
+	}
+
 	default Set<VarDecl> freeVariables(ExprList list) {
-		Set<VarDecl> free = new HashSet<>();
-		free.addAll(freeVariablesOfGenerators(list.getGenerators()));
-		Set<VarDecl> declared = declarationsInGenerators(list.getGenerators());
-		list.getElements().stream()
+		return list.getElements().stream()
 				.map(this::freeVariables)
 				.flatMap(Set::stream)
-				.filter(decl -> !declared.contains(decl))
-				.forEach(free::add);
-		return free;
+				.collect(Collectors.toSet());
 	}
 
 	default Set<VarDecl> freeVariables(ExprInput input) {
@@ -190,37 +193,19 @@ public interface Closures {
 		return result;
 	}
 
-	default Set<VarDecl> freeVariablesOfGenerators(List<GeneratorFilter> generators) {
+	default Set<VarDecl> freeVariables(StmtForeach foreach) {
 		Set<VarDecl> free = new HashSet<>();
-		Set<VarDecl> declared = new HashSet<>();
-		for (GeneratorFilter generator : generators) {
-			freeVariables(generator.getCollectionExpr()).stream()
-					.filter(decl -> !declared.contains(decl))
-					.forEach(free::add);
-			declared.addAll(generator.getVariables());
-			generator.getFilters().stream()
-					.map(this::freeVariables)
-					.flatMap(Set::stream)
-					.filter(decl -> !declared.contains(decl))
-					.forEach(free::add);
-		}
+		free.addAll(freeVariables(foreach.getGenerator()));
+		foreach.getFilters().forEach(filter -> free.addAll(freeVariables(filter)));
+		free.addAll(freeVariables(foreach.getBody()));
+		free.removeAll(foreach.getGenerator().getVarDecls());
 		return free;
 	}
 
-	default Set<VarDecl> declarationsInGenerators(List<GeneratorFilter> generators) {
-		return generators.stream()
-				.map(GeneratorFilter::getVariables)
-				.flatMap(List::stream)
-				.collect(Collectors.toSet());
-	}
-
-	default Set<VarDecl> freeVariables(StmtForeach foreach) {
+	default Set<VarDecl> freeVariables(Generator generator) {
 		Set<VarDecl> free = new HashSet<>();
-		free.addAll(freeVariablesOfGenerators(foreach.getGenerators()));
-		Set<VarDecl> declared = declarationsInGenerators(foreach.getGenerators());
-		freeVariables(foreach.getBody()).stream()
-				.filter(decl -> !declared.contains(decl))
-				.forEach(free::add);
+		free.addAll(freeVariables(generator.getCollection()));
+		free.removeAll(generator.getVarDecls());
 		return free;
 	}
 

@@ -1,0 +1,11 @@
+{
+  "description": "List comprehension with two instances of one range generator",
+  "source-paths": ["."],
+  "entity": "comprehensions.Two",
+  "test-data": [
+    {
+      "input": [],
+      "reference": ["1to3x1to3"]
+    }
+  ]
+}

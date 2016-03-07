@@ -29,6 +29,8 @@ public abstract class Decl extends AbstractIRNode {
 		return availability;
 	}
 
+	public abstract Decl withAvailability(Availability availability);
+
 	public String getName() {
 		return name;
 	}

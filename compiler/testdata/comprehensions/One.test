@@ -1,0 +1,11 @@
+{
+  "description": "List comprehension with range generator.",
+  "source-paths": ["."],
+  "entity": "comprehensions.One",
+  "test-data": [
+    {
+      "input": [],
+      "reference": ["2-6"]
+    }
+  ]
+}

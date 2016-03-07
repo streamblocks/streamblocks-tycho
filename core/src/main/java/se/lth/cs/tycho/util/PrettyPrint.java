@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.util;
 
-import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
@@ -385,34 +384,6 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("  ");
 		}
 	}
-	public void print(GeneratorFilter gen, String label) {
-		out.append(label + " ");
-		// type
-		if(gen.getVariables().get(0).getType() != null){
-			print(gen.getVariables().get(0).getType());
-			out.append(' ');
-		}
-		printVarDecls(gen.getVariables());
-		out.append(" in ");
-		gen.getCollectionExpr().accept(this, null);
-		for(Expression filter : gen.getFilters()){
-			out.append(", ");
-			filter.accept(this, null);
-		}
-	}
-	public void printGenerators(Collection<GeneratorFilter> generators, String prefix){  // prefix is "for" in expressions, "foreach" in statements
-		if(generators != null && !generators.isEmpty()){
-			String sep = "";
-			for(GeneratorFilter gen : generators){
-				out.append(sep);
-				sep = ", ";
-				print(gen, prefix);
-			}
-		}
-	}
-	public void printGenerators(GeneratorFilter[] generators, String prefix) {
-		printGenerators(Arrays.asList(generators), prefix);
-	}
 
 /******************************************************************************
  * Expression
@@ -528,10 +499,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			sep = ", ";
 			body.accept(this, null);
 		}
-		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
-			out.append(" : ");
-			printGenerators(e.getGenerators(), "for");
-		}
+//		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
+//			out.append(" : ");
+//			printGenerators(e.getGenerators(), "for");
+//		}
 		//TODO tail
 		out.append("]");
 		return null;
@@ -550,10 +521,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			out.append("->");
 			body.getValue().accept(this, null);
 		}
-		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
-			out.append(" : ");
-			printGenerators(e.getGenerators(), "for");
-		}
+//		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
+//			out.append(" : ");
+//			printGenerators(e.getGenerators(), "for");
+//		}
 		out.append("}");
 		return null;
 	}
@@ -584,10 +555,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			sep = ", ";
 			body.accept(this, null);
 		}
-		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
-			out.append(" : ");
-			printGenerators(e.getGenerators(), "for");
-		}
+//		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
+//			out.append(" : ");
+//			printGenerators(e.getGenerators(), "for");
+//		}
 		out.append("}");
 		return null;
 	}
@@ -685,9 +656,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		return null;
 	}
 	public Void visitStmtForeach(StmtForeach s, Void p) {
-		if(s.getGenerators() != null && !s.getGenerators().isEmpty()){
-			printGenerators(s.getGenerators(), "foreach");
-		}
+//		if(s.getGenerators() != null && !s.getGenerators().isEmpty()){
+//			printGenerators(s.getGenerators(), "foreach");
+//		}
 		out.append(" do");
 		indent();
 		s.getBody().accept(this);
@@ -761,10 +732,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			sep = ", ";
 			print(entity);
 		}
-		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
-			out.append(" : ");
-			printGenerators(e.getGenerators(), "for");
-		}
+//		if(e.getGenerators() != null && !e.getGenerators().isEmpty()){
+//			out.append(" : ");
+//			printGenerators(e.getGenerators(), "for");
+//		}
 		out.append("]");
 		return null;
 	}
@@ -805,7 +776,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		return null;
 	}
 	public Void visitStructureForeachStmt(StructureForeachStmt stmt, Void p) {
-		printGenerators(stmt.getGenerators(), "foreach");
+//		printGenerators(stmt.getGenerators(), "foreach");
 		out.append(" do ");
 		printStructureStatements(stmt.getStatements());
 		indent();

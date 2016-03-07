@@ -59,7 +59,6 @@ public interface NlNetworks {
 	}
 
 	default EntityInstanceExpr evaluate(EntityListExpr expr, List<Expression> indices) {
-		assert expr.getGenerators().isEmpty() : "Generators not yet supported";
 		assert !expr.getEntityList().isEmpty() : "Expected index";
 		OptionalLong index = constants().intValue(indices.get(0));
 		assert index.isPresent() : "Could not determine value";

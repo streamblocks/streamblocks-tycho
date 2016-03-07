@@ -39,65 +39,48 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.expr;
 
-import se.lth.cs.tycho.ir.GeneratorFilter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * @author Christopher Chang <cbc@eecs.berkeley.edu>
- */
 public class ExprSet extends Expression {
+	private ImmutableList<Expression> elements;
+
 	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
 		return v.visitExprSet(this, p);
 	}
 
-	public ExprSet(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
-		this(null, elements, generators);
+	public ExprSet(List<Expression> elements) {
+		this(null, elements);
 	}
 
-	public ExprSet(ImmutableList<Expression> elements) {
-		this(null, elements, null);
-	}
-
-	private ExprSet(ExprSet original, ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
+	private ExprSet(ExprSet original, List<Expression> elements) {
 		super(original);
 		this.elements = ImmutableList.from(elements);
-		this.generators = ImmutableList.from(generators);
-	}
-
-	public ExprSet copy(ImmutableList<Expression> elements, ImmutableList<GeneratorFilter> generators) {
-		if (Lists.equals(this.elements, elements) && Lists.equals(this.generators, generators)) {
-			return this;
-		}
-		return new ExprSet(this, elements, generators);
 	}
 
 	public ImmutableList<Expression> getElements() {
 		return elements;
 	}
 
-	public ImmutableList<GeneratorFilter> getGenerators() {
-		return generators;
+	public ExprSet withElements(List<Expression> elements) {
+		if (Lists.sameElements(this.elements, elements)) {
+			return this;
+		} else {
+			return new ExprSet(this, elements);
+		}
 	}
-
-	private ImmutableList<Expression> elements;
-	private ImmutableList<GeneratorFilter> generators;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		elements.forEach(action);
-		generators.forEach(action);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public ExprSet transformChildren(Transformation transformation) {
-		return copy(
-				(ImmutableList) elements.map(transformation),
-				(ImmutableList) generators.map(transformation)
-		);
+		return withElements(transformation.mapChecked(Expression.class, elements));
 	}
 }

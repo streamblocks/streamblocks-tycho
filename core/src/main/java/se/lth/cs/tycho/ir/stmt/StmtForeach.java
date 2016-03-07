@@ -1,50 +1,71 @@
 package se.lth.cs.tycho.ir.stmt;
 
-import java.util.Objects;
+import java.util.List;
 import java.util.function.Consumer;
 
-import se.lth.cs.tycho.ir.GeneratorFilter;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 public class StmtForeach extends Statement {
 
+	private final Generator generator;
+	private final ImmutableList<Expression> filters;
+	private final Statement body;
+
 	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
 		return v.visitStmtForeach(this, p);
 	}
 
-	public StmtForeach(ImmutableList<GeneratorFilter> generators, Statement body) {
-		this(null, generators, body);
+	public StmtForeach(Generator generators, List<Expression> filters, Statement body) {
+		this(null, generators, filters, body);
 	}
-	
-	private StmtForeach(StmtForeach original, ImmutableList<GeneratorFilter> generators, Statement body) {
+
+	private StmtForeach(StmtForeach original, Generator generator, List<Expression> filters, Statement body) {
 		super(original);
-		this.generators = ImmutableList.from(generators);
+		this.generator = generator;
+		this.filters = ImmutableList.from(filters);
 		this.body = body;
 	}
 
-	public StmtForeach copy(ImmutableList<GeneratorFilter> generators, Statement body) {
-		if (Lists.equals(this.generators, generators) && Objects.equals(this.body, body)) {
+	public StmtForeach copy(Generator generator, List<Expression> filters, Statement body) {
+		if (this.generator == generator && Lists.sameElements(this.filters, filters) && this.body == body) {
 			return this;
+		} else {
+			return new StmtForeach(this, generator, filters, body);
 		}
-		return new StmtForeach(this, generators, body);
 	}
 
-	public ImmutableList<GeneratorFilter> getGenerators() {
-		return generators;
+	public Generator getGenerator() {
+		return generator;
+	}
+
+	public StmtForeach withGenerator(Generator generator) {
+		return copy(generator, filters, body);
+	}
+
+	public ImmutableList<Expression> getFilters() {
+		return filters;
+	}
+
+	public StmtForeach withFilters(List<Expression> filters) {
+		return copy(generator, filters, body);
 	}
 
 	public Statement getBody() {
 		return body;
 	}
 
-	private ImmutableList<GeneratorFilter> generators;
-	private Statement body;
+	public StmtForeach withBody(Statement body) {
+		return copy(generator, filters, body);
+	}
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		generators.forEach(action);
+		action.accept(generator);
+		filters.forEach(action);
 		action.accept(body);
 	}
 
@@ -52,8 +73,8 @@ public class StmtForeach extends Statement {
 	@SuppressWarnings("unchecked")
 	public StmtForeach transformChildren(Transformation transformation) {
 		return copy(
-				(ImmutableList) generators.map(transformation),
-				(Statement) transformation.apply(body)
-		);
+				transformation.applyChecked(Generator.class, generator),
+				transformation.mapChecked(Expression.class, filters),
+				transformation.applyChecked(Statement.class, body));
 	}
 }

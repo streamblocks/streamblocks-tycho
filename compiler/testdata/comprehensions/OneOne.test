@@ -1,0 +1,11 @@
+{
+  "description": "List comprehension with two range generators",
+  "source-paths": ["."],
+  "entity": "comprehensions.OneOne",
+  "test-data": [
+    {
+      "input": [],
+      "reference": ["10-12-14-15-18-21"]
+    }
+  ]
+}
