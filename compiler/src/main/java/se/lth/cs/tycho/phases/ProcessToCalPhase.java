@@ -33,13 +33,11 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -117,10 +115,10 @@ public class ProcessToCalPhase implements Phase {
 
 		if (statements.getLast() instanceof StmtIf) {
 			StmtIf cond = (StmtIf) statements.removeLast();
-			Block thenBlock = parse(new LinkedList<>(((StmtBlock) cond.getThenBranch()).getStatements()), successor);
+			Block thenBlock = parse(new LinkedList<>(cond.getThenBranch()), successor);
 			Block elseBlock;
 			if (cond.getElseBranch() != null) {
-				elseBlock = parse(new LinkedList<>(((StmtBlock) cond.getElseBranch()).getStatements()), successor);
+				elseBlock = parse(new LinkedList<>(cond.getElseBranch()), successor);
 			} else {
 				elseBlock = successor;
 			}
@@ -131,7 +129,7 @@ public class ProcessToCalPhase implements Phase {
 		if (statements.getLast() instanceof StmtWhile) {
 			StmtWhile whileStmt = (StmtWhile) statements.removeLast();
 			ConditionBlock c = new ConditionBlock(whileStmt.getCondition(), null, successor);
-			Block b = parse(new LinkedList<>(((StmtBlock) whileStmt.getBody()).getStatements()), c);
+			Block b = parse(new LinkedList<>(whileStmt.getBody()), c);
 			c.setSuccessorIfTrue(b);
 			return parse(statements, c);
 		}

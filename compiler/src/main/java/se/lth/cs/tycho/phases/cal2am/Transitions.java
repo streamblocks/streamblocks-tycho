@@ -1,15 +1,14 @@
 package se.lth.cs.tycho.phases.cal2am;
 
 
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.am.PortCondition;
 import se.lth.cs.tycho.ir.entity.am.Transition;
-import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.stmt.Statement;
-import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -54,8 +53,7 @@ public class Transitions {
 		builder.addAll(action.getBody());
 		addOutputStmts(action.getOutputExpressions(), builder);
 		addConsumeStmts(action.getInputPatterns(), builder);
-		StmtBlock body = new StmtBlock(null, null, builder.build());
-		return new Transition(getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()), transientScopes, body);
+		return new Transition(getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()), transientScopes, builder.build());
 	}
 
 	private Map<Port, Integer> getOutputRates(ImmutableList<OutputExpression> outputExpressions) {

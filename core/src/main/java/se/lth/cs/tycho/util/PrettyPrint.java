@@ -614,14 +614,14 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append(" then");
 		incIndent();
 		indent();
-		s.getThenBranch().accept(this);
+		s.getThenBranch().forEach(x -> x.accept(this));
 		if(s.getElseBranch() != null){
 			decIndent();
 			indent();
 			out.append("else");
 			incIndent();
 			indent();
-			s.getElseBranch().accept(this);
+			s.getElseBranch().forEach(x -> x.accept(this));
 		}
 		decIndent();
 		indent();
@@ -650,7 +650,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append("while ");
 		s.getCondition().accept(this, null);
 		indent();
-		s.getBody().accept(this);
+		s.getBody().forEach(x -> x.accept(this));
 		indent();
 		out.append("endwhile");
 		return null;
@@ -661,7 +661,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 //		}
 		out.append(" do");
 		indent();
-		s.getBody().accept(this);
+		s.getBody().forEach(x -> x.accept(this));
 		indent();
 		out.append("endforeach");
 		return null;

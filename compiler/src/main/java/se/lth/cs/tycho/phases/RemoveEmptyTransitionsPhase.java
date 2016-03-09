@@ -12,8 +12,6 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.InstructionVisitor;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
-import se.lth.cs.tycho.ir.stmt.Statement;
-import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.phases.reduction.TransformedController;
 
 import java.util.ArrayList;
@@ -44,7 +42,7 @@ public class RemoveEmptyTransitionsPhase implements Phase {
 
 	private ActorMachine removeEmptyExec(ActorMachine actorMachine) {
 		BitSet emptyTransitions = IntStream.range(0, actorMachine.getTransitions().size())
-				.filter(i -> isEmpty(actorMachine.getTransitions().get(i).getBody()))
+				.filter(i -> actorMachine.getTransitions().get(i).getBody().isEmpty())
 				.collect(BitSet::new, BitSet::set, BitSet::or);
 		return actorMachine.withController(transform(actorMachine.controller(), emptyTransitions));
 	}
@@ -120,9 +118,5 @@ public class RemoveEmptyTransitionsPhase implements Phase {
 		if (!test.isEmpty()) return test;
 		if (!wait.isEmpty()) return wait;
 		throw new AssertionError();
-	}
-
-	private boolean isEmpty(Statement s) {
-		return s instanceof StmtBlock && ((StmtBlock) s).getStatements().stream().allMatch(this::isEmpty);
 	}
 }

@@ -1867,54 +1867,46 @@ StmtIf IfStmt() :
 {
 	Expression cond;
 	ImmutableList<Statement> thenStmts;
-	Statement thenStmt;
-	ImmutableList<Statement> elseStmts;
-	Statement elseStmt = null;
+	ImmutableList<Statement> elseStmts = null;
 }
 {
 	"if"
 	cond = Expression()
 	"then"
 	thenStmts = Statements()
-	{ thenStmt = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), thenStmts); }
 	(
-		elseStmt = ElseIfStmt()
+		elseStmts = ElseIfStmt()
 	|
 		"else"
 		elseStmts = Statements()
-		{ elseStmt = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), elseStmts); }
 	)?
 	"end"
 	{
-		return new StmtIf(cond, thenStmt, elseStmt);
+		return new StmtIf(cond, thenStmts, elseStmts);
 	}
 }
 
-Statement ElseIfStmt() :
+ImmutableList<Statement> ElseIfStmt() :
 {
 	Expression cond;
 	Statement thenStmt;
 	ImmutableList<Statement> thenStmts;
 	Statement elseStmt;
-	ImmutableList<Statement> elseStmts;
+	ImmutableList<Statement> elseStmts = null;
 }
 {
 	"elsif"
 	cond = Expression()
 	"then"
 	thenStmts = Statements()
-	{ thenStmt = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), thenStmts); }
 	(
-		elseStmt = ElseIfStmt()
+		elseStmts = ElseIfStmt()
 	|
 		"else"
 		elseStmts = Statements()
-		{ elseStmt = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), elseStmts); }
-	|
-		{ elseStmt = null; }
-	)
+	)?
 	{
-		return new StmtIf(cond, thenStmt, elseStmt);
+		return ImmutableList.of(new StmtIf(cond, thenStmts, elseStmts));
 	}
 }
 
@@ -1935,7 +1927,11 @@ StmtWhile WhileStmt() :
 	statements = Statements()
 	"end"
 	{
-		return new StmtWhile(cond, new StmtBlock(ImmutableList.empty(), varDecls, statements));
+		if (varDecls.isEmpty()) {
+			return new StmtWhile(cond, statements);
+		} else {
+			return new StmtWhile(cond, ImmutableList.of(new StmtBlock(ImmutableList.empty(), varDecls, statements)));
+		}
 	}
 }
 
@@ -1959,7 +1955,7 @@ StmtForeach ForeachStmtHeader() :
 	Expression collection;
 	Expression filter;
 	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
-	Statement body;
+	ImmutableList<Statement> body;
 }
 {
 	"foreach"
@@ -1988,7 +1984,7 @@ StmtForeach ForeachStmtHeader() :
 	}
 }
 
-Statement ForeachStmtBody() :
+ImmutableList<Statement> ForeachStmtBody() :
 {
 	Statement result;
 	ImmutableList<VarDecl> varDecls = null;
@@ -1997,7 +1993,7 @@ Statement ForeachStmtBody() :
 {
 	"," result = ForeachStmtHeader()
 	{
-		return result;
+		return ImmutableList.of(result);
 	}
 |
 	(
@@ -2007,7 +2003,11 @@ Statement ForeachStmtBody() :
 	"do"
 	stmts = Statements()
 	{
-		return new StmtBlock(ImmutableList.empty(), varDecls, stmts);
+		if (varDecls == null) {
+			return stmts;
+		} else {
+			return ImmutableList.of(new StmtBlock(ImmutableList.empty(), varDecls, stmts));
+		}
 	}
 }
 

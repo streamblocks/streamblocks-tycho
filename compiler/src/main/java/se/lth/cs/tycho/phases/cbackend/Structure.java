@@ -2,37 +2,27 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.Entity;
+import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Condition;
 import se.lth.cs.tycho.ir.entity.am.PortCondition;
 import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.entity.am.Transition;
-import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.ToolValueAttribute;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
-import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
-import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.CallableType;
 import se.lth.cs.tycho.types.LambdaType;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Module
 public interface Structure {
@@ -140,7 +130,7 @@ public interface Structure {
 		for (Transition transition : actorMachine.getTransitions()) {
 			emitter().emit("static void %s_transition_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
-			code().execute(transition.getBody());
+			transition.getBody().forEach(code()::execute);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");

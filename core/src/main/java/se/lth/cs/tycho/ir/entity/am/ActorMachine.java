@@ -32,6 +32,10 @@ public class ActorMachine extends Entity {
 		return conditions;
 	}
 
+	public ActorMachine withConditions(List<Condition> conditions) {
+		return copy(inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
+	}
+
 	public Condition getCondition(int i) {
 		return conditions.get(i);
 	}

@@ -19,7 +19,6 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -163,10 +162,8 @@ public interface Closures {
 	default Set<VarDecl> freeVariables(StmtIf stmt) {
 		Set<VarDecl> result = new HashSet<>();
 		result.addAll(freeVariables(stmt.getCondition()));
-		result.addAll(freeVariables(stmt.getThenBranch()));
-		if (stmt.getElseBranch() != null) {
-			result.addAll(freeVariables(stmt.getElseBranch()));
-		}
+		stmt.getThenBranch().forEach(s -> result.addAll(freeVariables(s)));
+		stmt.getElseBranch().forEach(s -> result.addAll(freeVariables(s)));
 		return result;
 	}
 
@@ -180,7 +177,11 @@ public interface Closures {
 	}
 
 	default Set<VarDecl> freeVariables(StmtWhile stmt) {
-		return Stream.concat(freeVariables(stmt.getCondition()).stream(), freeVariables(stmt.getBody()).stream())
+		return Stream.concat(
+				freeVariables(stmt.getCondition()).stream(),
+				stmt.getBody().stream()
+						.map(this::freeVariables)
+						.flatMap(Set::stream))
 				.collect(Collectors.toSet());
 	}
 
@@ -197,7 +198,7 @@ public interface Closures {
 		Set<VarDecl> free = new HashSet<>();
 		free.addAll(freeVariables(foreach.getGenerator()));
 		foreach.getFilters().forEach(filter -> free.addAll(freeVariables(filter)));
-		free.addAll(freeVariables(foreach.getBody()));
+		foreach.getBody().forEach(s -> free.addAll(freeVariables(s)));
 		free.removeAll(foreach.getGenerator().getVarDecls());
 		return free;
 	}

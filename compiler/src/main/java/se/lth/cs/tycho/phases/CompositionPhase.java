@@ -23,8 +23,11 @@ import se.lth.cs.tycho.phases.composition.Composer;
 import se.lth.cs.tycho.phases.composition.Connection;
 import se.lth.cs.tycho.phases.composition.SourcePort;
 import se.lth.cs.tycho.phases.composition.TargetPort;
+import se.lth.cs.tycho.settings.OnOffSetting;
+import se.lth.cs.tycho.settings.Setting;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +44,33 @@ public class CompositionPhase implements Phase {
 		return "Performes actor composition.";
 	}
 
+	private static final OnOffSetting actorComposition = new OnOffSetting() {
+		@Override
+		public String getKey() {
+			return "actor-composition";
+		}
+
+		@Override
+		public String getDescription() {
+			return "Enables actor composition.";
+		}
+
+		@Override
+		public Boolean defaultValue() {
+			return true;
+		}
+	};
+
+	@Override
+	public List<Setting<?>> getPhaseSettings() {
+		return Collections.singletonList(actorComposition);
+	}
+
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
+		if (!context.getConfiguration().get(actorComposition)) {
+			return task;
+		}
 		Map<String, List<se.lth.cs.tycho.ir.network.Connection>> compositions =
 				task.getNetwork().getConnections().stream()
 						.filter(this::hasCompositionId)

@@ -457,12 +457,12 @@ public interface Code {
 	default void execute(StmtIf stmt) {
 		emitter().emit("if (%s) {", evaluate(stmt.getCondition()));
 		emitter().increaseIndentation();
-		execute(stmt.getThenBranch());
+		stmt.getThenBranch().forEach(this::execute);
 		emitter().decreaseIndentation();
 		if (stmt.getElseBranch() != null) {
 			emitter().emit("} else {");
 			emitter().increaseIndentation();
-			execute(stmt.getElseBranch());
+			stmt.getElseBranch().forEach(this::execute);
 			emitter().decreaseIndentation();
 		}
 		emitter().emit("}");
@@ -474,7 +474,7 @@ public interface Code {
 				emitter().emit("if (%s) {", evaluate(filter));
 				emitter().increaseIndentation();
 			}
-			execute(foreach.getBody());
+			foreach.getBody().forEach(this::execute);
 			for (Expression filter : foreach.getFilters()) {
 				emitter().decreaseIndentation();
 				emitter().emit("}");
@@ -517,7 +517,7 @@ public interface Code {
 		emitter().emit("while (true) {");
 		emitter().increaseIndentation();
 		emitter().emit("if (%s) break;", evaluate(stmt.getCondition()));
-		execute(stmt.getBody());
+		stmt.getBody().forEach(this::execute);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}

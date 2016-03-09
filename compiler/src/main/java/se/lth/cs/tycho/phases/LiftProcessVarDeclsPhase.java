@@ -6,7 +6,6 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.Transformations;
-import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -63,10 +62,13 @@ public class LiftProcessVarDeclsPhase implements Phase {
 			return stmt.copy(stmt.getTypeDecls(), ImmutableList.empty(), stmt.getStatements().map(this::transform));
 		}
 		default Statement transform(StmtIf stmt) {
-			return stmt.copy(stmt.getCondition(), transform(stmt.getThenBranch()), transform(stmt.getElseBranch()));
+			return stmt.copy(
+					stmt.getCondition(),
+					stmt.getThenBranch().map(this::transform),
+					stmt.getElseBranch().map(this::transform));
 		}
 		default Statement transform(StmtWhile stmt) {
-			return stmt.copy(stmt.getCondition(), transform(stmt.getBody()));
+			return stmt.copy(stmt.getCondition(), stmt.getBody().map(this::transform));
 		}
 	}
 }

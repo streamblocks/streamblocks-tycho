@@ -58,21 +58,21 @@ public class StmtBlock extends Statement {
 		return v.visitStmtBlock(this, p);
 	}
 
-	public StmtBlock(ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
-			ImmutableList<Statement> statements) {
+	public StmtBlock(List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+			List<Statement> statements) {
 		this(null, typeDecls, varDecls, statements);
 	}
 	
-	private StmtBlock(StmtBlock original, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
-			ImmutableList<Statement> statements) {
+	private StmtBlock(StmtBlock original, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+			List<Statement> statements) {
 		super(original);
 		this.typeDecls = ImmutableList.from(typeDecls);
 		this.varDecls = ImmutableList.from(varDecls);
 		this.statements = ImmutableList.from(statements);
 	}
 
-	public StmtBlock copy(ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
-			ImmutableList<Statement> statements) {
+	public StmtBlock copy(List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+			List<Statement> statements) {
 		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
 				&& Lists.equals(this.statements, statements)) {
 			return this;
@@ -119,5 +119,9 @@ public class StmtBlock extends Statement {
 				(ImmutableList) varDecls.map(transformation),
 				(ImmutableList) statements.map(transformation)
 		);
+	}
+
+	public StmtBlock withStatements(List<Statement> statements) {
+		return copy(typeDecls, varDecls, statements);
 	}
 }

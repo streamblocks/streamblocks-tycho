@@ -13,25 +13,25 @@ public class StmtForeach extends Statement {
 
 	private final Generator generator;
 	private final ImmutableList<Expression> filters;
-	private final Statement body;
+	private final ImmutableList<Statement> body;
 
 	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
 		return v.visitStmtForeach(this, p);
 	}
 
-	public StmtForeach(Generator generators, List<Expression> filters, Statement body) {
+	public StmtForeach(Generator generators, List<Expression> filters, List<Statement> body) {
 		this(null, generators, filters, body);
 	}
 
-	private StmtForeach(StmtForeach original, Generator generator, List<Expression> filters, Statement body) {
+	private StmtForeach(StmtForeach original, Generator generator, List<Expression> filters, List<Statement> body) {
 		super(original);
 		this.generator = generator;
 		this.filters = ImmutableList.from(filters);
-		this.body = body;
+		this.body = ImmutableList.from(body);
 	}
 
-	public StmtForeach copy(Generator generator, List<Expression> filters, Statement body) {
-		if (this.generator == generator && Lists.sameElements(this.filters, filters) && this.body == body) {
+	public StmtForeach copy(Generator generator, List<Expression> filters, List<Statement> body) {
+		if (this.generator == generator && Lists.sameElements(this.filters, filters) && Lists.sameElements(this.body, body)) {
 			return this;
 		} else {
 			return new StmtForeach(this, generator, filters, body);
@@ -54,11 +54,11 @@ public class StmtForeach extends Statement {
 		return copy(generator, filters, body);
 	}
 
-	public Statement getBody() {
+	public ImmutableList<Statement> getBody() {
 		return body;
 	}
 
-	public StmtForeach withBody(Statement body) {
+	public StmtForeach withBody(List<Statement> body) {
 		return copy(generator, filters, body);
 	}
 
@@ -66,7 +66,7 @@ public class StmtForeach extends Statement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(generator);
 		filters.forEach(action);
-		action.accept(body);
+		body.forEach(action);
 	}
 
 	@Override
@@ -75,6 +75,6 @@ public class StmtForeach extends Statement {
 		return copy(
 				transformation.applyChecked(Generator.class, generator),
 				transformation.mapChecked(Expression.class, filters),
-				transformation.applyChecked(Statement.class, body));
+				transformation.mapChecked(Statement.class, body));
 	}
 }

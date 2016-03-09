@@ -39,11 +39,13 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.stmt;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
@@ -55,18 +57,18 @@ public class StmtWhile extends Statement {
 		return v.visitStmtWhile(this, p);
 	}
 
-	public StmtWhile(Expression condition, Statement body) {
+	public StmtWhile(Expression condition, List<Statement> body) {
 		this(null, condition, body);
 	}
 
-	private StmtWhile(StmtWhile original, Expression condition, Statement body) {
+	private StmtWhile(StmtWhile original, Expression condition, List<Statement> body) {
 		super(original);
 		this.condition = condition;
-		this.body = body;
+		this.body = ImmutableList.from(body);
 	}
 	
-	public StmtWhile copy(Expression condition, Statement body) {
-		if (Objects.equals(this.condition, condition) && Objects.equals(this.body, body)) {
+	public StmtWhile copy(Expression condition, List<Statement> body) {
+		if (this.condition == condition && Lists.sameElements(this.body, body)) {
 			return this;
 		}
 		return new StmtWhile(this, condition, body);
@@ -76,21 +78,31 @@ public class StmtWhile extends Statement {
 		return condition;
 	}
 
-	public Statement getBody() {
+	public StmtWhile withCondition(Expression condition) {
+		return copy(condition, body);
+	}
+
+	public ImmutableList<Statement> getBody() {
 		return body;
 	}
 
+	public StmtWhile withBody(List<Statement> body) {
+		return copy(condition, body);
+	}
+
 	private Expression condition;
-	private Statement body;
+	private ImmutableList<Statement> body;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(condition);
-		action.accept(body);
+		body.forEach(action);
 	}
 
 	@Override
 	public StmtWhile transformChildren(Transformation transformation) {
-		return copy((Expression) transformation.apply(condition), (Statement) transformation.apply(body));
+		return copy(
+				transformation.applyChecked(Expression.class, condition),
+				transformation.mapChecked(Statement.class, body));
 	}
 }

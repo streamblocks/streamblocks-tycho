@@ -39,11 +39,14 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.stmt;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.ir.util.Lists;
 
 /**
  * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
@@ -55,30 +58,30 @@ public class StmtIf extends Statement {
 		return v.visitStmtIf(this, p);
 	}
 
-	public StmtIf(Expression condition, Statement thenBranch, Statement elseBranch) {
+	public StmtIf(Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
 		this(null, condition, thenBranch, elseBranch);
 	}
 
-	public StmtIf(Expression condition, Statement thenBranch) {
+	public StmtIf(Expression condition, List<Statement> thenBranch) {
 		this(condition, thenBranch, null);
 	}
 
-	private StmtIf(StmtIf original, Expression condition, Statement thenBranch, Statement elseBranch) {
+	private StmtIf(StmtIf original, Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
 		super(original);
 		this.condition = condition;
-		this.thenBranch = thenBranch;
-		this.elseBranch = elseBranch;
+		this.thenBranch = ImmutableList.from(thenBranch);
+		this.elseBranch = ImmutableList.from(elseBranch);
 	}
 
-	public StmtIf copy(Expression condition, Statement thenBranch, Statement elseBranch) {
-		if (Objects.equals(this.condition, condition) && Objects.equals(this.thenBranch, thenBranch)
-				&& Objects.equals(this.elseBranch, elseBranch)) {
+	public StmtIf copy(Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
+		if (this.condition == condition && Lists.sameElements(this.thenBranch, thenBranch)
+				&& Lists.sameElements(this.elseBranch, elseBranch)) {
 			return this;
 		}
 		return new StmtIf(this, condition, thenBranch, elseBranch);
 	}
 
-	public StmtIf copy(Expression condition, Statement thenBranch) {
+	public StmtIf copy(Expression condition, List<Statement> thenBranch) {
 		if (Objects.equals(this.condition, condition) && Objects.equals(this.thenBranch, thenBranch)
 				&& this.elseBranch == null) {
 			return this;
@@ -90,31 +93,43 @@ public class StmtIf extends Statement {
 		return condition;
 	}
 
-	public Statement getThenBranch() {
+	public StmtIf withCondition(Expression condition) {
+		return copy(condition, thenBranch, elseBranch);
+	}
+
+	public ImmutableList<Statement> getThenBranch() {
 		return thenBranch;
 	}
 
-	public Statement getElseBranch() {
+	public StmtIf withThenBranch(List<Statement> thenBranch) {
+		return copy(condition, thenBranch, elseBranch);
+	}
+
+	public ImmutableList<Statement> getElseBranch() {
 		return elseBranch;
 	}
 
+	public StmtIf withElseBranch(List<Statement> elseBranch) {
+		return copy(condition, thenBranch, elseBranch);
+	}
+
 	private Expression condition;
-	private Statement thenBranch;
-	private Statement elseBranch;
+	private ImmutableList<Statement> thenBranch;
+	private ImmutableList<Statement> elseBranch;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(condition);
-		action.accept(thenBranch);
-		if (elseBranch != null) action.accept(elseBranch);
+		thenBranch.forEach(action);
+		elseBranch.forEach(action);
 	}
 
 	@Override
 	public StmtIf transformChildren(Transformation transformation) {
 		return copy(
-				(Expression) transformation.apply(condition),
-				(Statement) transformation.apply(thenBranch),
-				elseBranch == null ? null : (Statement) transformation.apply(elseBranch)
+				transformation.applyChecked(Expression.class, condition),
+				transformation.mapChecked(Statement.class, thenBranch),
+				transformation.mapChecked(Statement.class, elseBranch)
 		);
 	}
 }

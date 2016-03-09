@@ -60,6 +60,8 @@ public class Compiler {
 			new RemoveEmptyTransitionsPhase(),
 			new ReduceActorMachinePhase(),
 			new CompositionPhase(),
+			new InternalizeBuffersPhase(),
+			new RemoveUnusedConditionsPhase(),
 
 			// Code generations
 			new CBackendPhase()
