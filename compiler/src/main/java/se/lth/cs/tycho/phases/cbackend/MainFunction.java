@@ -29,7 +29,8 @@ public interface MainFunction {
 		return backend().mainNetwork();
 	}
 
-	default void generateCode(CompilationTask task) {
+	default void generateCode() {
+		CompilationTask task = backend().task();
 		String targetName = Namespaces.findEntities(task, task.getIdentifier())
 				.findFirst().get().getOriginalName();
 		Path path = backend().context().getConfiguration().get(Compiler.targetPath);

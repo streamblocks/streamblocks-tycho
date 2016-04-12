@@ -43,7 +43,7 @@ public class CBackendPhase implements Phase {
 				.bind("task").to(task)
 				.bind("context").to(context)
 				.instance();
-		backend.main().generateCode(task);
+		backend.main().generateCode();
 		writer.close();
 		return task;
 	}
