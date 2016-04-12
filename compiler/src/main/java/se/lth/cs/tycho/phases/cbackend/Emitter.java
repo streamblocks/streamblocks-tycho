@@ -1,44 +1,57 @@
 package se.lth.cs.tycho.phases.cbackend;
 
-import org.multij.Binding;
-import org.multij.BindingKind;
-import org.multij.Module;
-
+import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-@Module
-public interface Emitter {
+public class Emitter {
 
-	@Binding(BindingKind.INJECTED)
-	PrintWriter writer();
+	private int indentation;
+	private PrintWriter writer;
 
-	@Binding
-	default AtomicInteger indentation() {
-		return new AtomicInteger(0);
-	}
-
-	default void increaseIndentation() {
-		indentation().incrementAndGet();
-	}
-
-	default void decreaseIndentation() {
-		indentation().decrementAndGet();
-	}
-
-	default void emit(String format, Object... values) {
-		if (!format.isEmpty()) {
-			int i = indentation().get();
-			while (i > 0) {
-				writer().print('\t');
-				i--;
-			}
-			writer().printf(format, values);
+	public void open(Path file) {
+		if (writer != null) {
+			throw new IllegalStateException("Current file is not closed.");
 		}
-		writer().println();
+		try {
+			writer = new PrintWriter(Files.newBufferedWriter(file));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
-	default void emitRawText(CharSequence text) {
-		writer().println(text);
+	public void close() {
+		writer.close();
+		writer = null;
+	}
+
+	public void increaseIndentation() {
+		indentation++;
+	}
+
+	public void decreaseIndentation() {
+		indentation--;
+	}
+
+	public void emit(String format, Object... values) {
+		if (writer == null) {
+			throw new IllegalStateException("No output file is currently open.");
+		}
+		if (!format.isEmpty()) {
+			while (indentation > 0) {
+				writer.print('\t');
+				indentation--;
+			}
+			writer.printf(format, values);
+		}
+		writer.println();
+	}
+
+	public void emitRawLine(CharSequence text) {
+		if (writer == null) {
+			throw new IllegalStateException("No output file is currently open.");
+		}
+		writer.println(text);
 	}
 }

@@ -11,6 +11,7 @@ import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.phases.cbackend.Backend;
 import se.lth.cs.tycho.comp.Compiler;
+import se.lth.cs.tycho.phases.cbackend.Emitter;
 import se.lth.cs.tycho.reporting.Diagnostic;
 
 import java.io.IOException;
@@ -38,15 +39,9 @@ public class CBackendPhase implements Phase {
 			context.getReporter().report(new Diagnostic(Diagnostic.Kind.ERROR, e.getMessage()));
 			return task;
 		}
-		AttributeManager manager = context.getAttributeManager();
 		Backend backend = MultiJ.from(Backend.class)
-				.bind("types").to(manager.getAttributeModule(Types.key, task))
-				.bind("names").to(manager.getAttributeModule(Names.key, task))
-				.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, task))
-				.bind("uniqueNumbers").to(context.getUniqueNumbers())
-				.bind("tree").to(manager.getAttributeModule(TreeShadow.key, task))
-				.bind("scopes").to(manager.getAttributeModule(ActorMachineScopes.key, task))
-				.bind("emitter.writer").to(writer)
+				.bind("task").to(task)
+				.bind("context").to(context)
 				.instance();
 		backend.main().generateCode(task);
 		writer.close();
