@@ -597,9 +597,10 @@ NameAndDef<ExprProc> ProcDecl() :
 	ImmutableList<VarDecl> valPars;
 	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts = ImmutableList.empty();
+	boolean external = false;
 }
 {
-	("external")?
+	("external" {external=true;})?
 	"procedure"
 	id = <ID>
 	"("
@@ -610,17 +611,24 @@ NameAndDef<ExprProc> ProcDecl() :
 		varDecls = VarDecls()
 	)?
 	(
+		";"
+	|
 		("begin" | "do")
 		stmts = Statements()
 		"end"
 	|
 		"end"
-	|
-		";"
 	)
 	{
-		StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
-		ExprProc proc = new ExprProc(ImmutableList.empty(), valPars, block);
+		ExprProc proc;
+		if (external) {
+			proc = new ExprProc(ImmutableList.empty(), valPars);
+		} else if (varDecls.isEmpty()) {
+			proc = new ExprProc(ImmutableList.empty(), valPars, stmts);
+		} else {
+			StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
+			proc = new ExprProc(ImmutableList.empty(), valPars, ImmutableList.of(block));
+		}
 		return new NameAndDef<ExprProc>(id.image, proc);
 	}
 }
@@ -720,7 +728,7 @@ ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
 	Token parameterName;
 	Expression parameter;
 	ImmutableList.Builder<Map.Entry<String, EntityExpr>> entities = ImmutableList.builder();
-	ImmutableList.Builder<Map.Entry<String, Expression>> parameters;
+	ImmutableList.Builder<Parameter<Expression>> parameters;
 	ImmutableList<ToolAttribute> toolAttrs;
 }
 {
@@ -738,7 +746,7 @@ ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
 			"="
 			parameter = Expression()
 			{
-				parameters.add(ImmutableEntry.of(parameterName.image, parameter));
+				parameters.add(Parameter.of(parameterName.image, parameter));
 			}
 			(
 				","
@@ -746,7 +754,7 @@ ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
 				"="
 				parameter = Expression()
 				{
-					parameters.add(ImmutableEntry.of(parameterName.image, parameter));
+					parameters.add(Parameter.of(parameterName.image, parameter));
 				}
 			)*
 		)?
@@ -1460,7 +1468,7 @@ ExprProc ProcExpression() :
 	( "end" | "endproc" )
 	{
 		StmtBlock block = new StmtBlock(typeDecls, varDecls, stmts);
-		return new ExprProc(typePars, valuePars, block);
+		return new ExprProc(typePars, valuePars, ImmutableList.of(block));
 	}
 }
 

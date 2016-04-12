@@ -4,6 +4,11 @@
 #include <inttypes.h>
 #include <signal.h>
 
+
+#ifndef BUFFER_SIZE
+#define BUFFER_SIZE 128
+#endif
+
 static volatile _Bool interrupted = false;
 
 
@@ -15,12 +20,12 @@ static void handle_SIGINT(int s) {
 static void run(int argc, char **argv);
 
 int main(int argc, char **argv) {
-	#ifdef ABORT_ON_SIGINT
+#ifdef ABORT_ON_SIGINT
 	if (signal(SIGINT, handle_SIGINT) == SIG_ERR) {
 		fputs("ERROR: Could not set signal handler.\n", stderr);
 		return EXIT_FAILURE;
 	}
-	#endif
+#endif
 	run(argc, argv);
 	if (interrupted) {
 		fputs("Application interrupted.\n", stderr);
@@ -34,7 +39,6 @@ int main(int argc, char **argv) {
 typedef struct {
     size_t head;
     size_t bytes;
-    size_t size;
     char *buffer;
 } channel_t;
 
@@ -59,7 +63,7 @@ static _Bool channel_has_data(channel_t *channel, size_t bytes) {
 
 static _Bool channel_has_space(channel_t *channel_vector[], size_t channel_count, size_t bytes) {
     for (size_t i = 0; i < channel_count; i++) {
-        if (channel_vector[i]->size - channel_vector[i]->bytes < bytes) {
+        if (BUFFER_SIZE - channel_vector[i]->bytes < bytes) {
             return false;
         }
     }
@@ -78,7 +82,7 @@ static void channel_write(channel_t *channel_vector[], size_t channel_count, voi
     for (size_t c = 0; c < channel_count; c++) {
         channel_t *chan = channel_vector[c];
         for (size_t i = 0; i < bytes; i++) {
-            chan->buffer[(chan->head + chan->bytes) % chan->size] = dat[i];
+            chan->buffer[(chan->head + chan->bytes) % BUFFER_SIZE] = dat[i];
             chan->bytes++;
         }
     }
@@ -88,23 +92,22 @@ static void channel_write(channel_t *channel_vector[], size_t channel_count, voi
 static void channel_peek(channel_t *channel, size_t offset, size_t bytes, void *result) {
 	char *res = result;
     for (size_t i = 0; i < bytes; i++) {
-        res[i] = channel->buffer[(channel->head+i+offset) % channel->size];
+        res[i] = channel->buffer[(channel->head+i+offset) % BUFFER_SIZE];
     }
 }
 
 
 static void channel_consume(channel_t *channel, size_t bytes) {
     channel->bytes -= bytes;
-    channel->head = (channel->head + bytes) % channel->size;
+    channel->head = (channel->head + bytes) % BUFFER_SIZE;
 }
 
 
-static channel_t *channel_create(size_t size) {
-    char *buffer = malloc(size);
+static channel_t *channel_create() {
+    char *buffer = malloc(BUFFER_SIZE);
     channel_t *channel = malloc(sizeof(channel_t));
     channel->head = 0;
     channel->bytes = 0;
-    channel->size = size;
     channel->buffer = buffer;
     return channel;
 }
@@ -146,7 +149,7 @@ static void output_actor_destroy(output_actor_t *actor) {
 static _Bool input_actor_run(input_actor_t* actor) {
     size_t bytes = SIZE_MAX;
     for (size_t i = 0; i < actor->channelc; i++) {
-        size_t s = actor->channelv[i]->size - actor->channelv[i]->bytes;
+        size_t s = BUFFER_SIZE - actor->channelv[i]->bytes;
         bytes = s < bytes ? s : bytes;
     }
     if (bytes > 0) {
@@ -168,8 +171,8 @@ static _Bool output_actor_run(output_actor_t* actor) {
     channel_t *channel = actor->channel;
     if (channel->bytes > 0) {
         size_t wrap_or_end = channel->head + channel->bytes;
-        if (wrap_or_end > channel->size) {
-            wrap_or_end = channel->size;
+        if (wrap_or_end > BUFFER_SIZE) {
+            wrap_or_end = BUFFER_SIZE;
         }
         size_t bytes_before_wrap = wrap_or_end - channel->head;
         fwrite(&channel->buffer[channel->head], 1, bytes_before_wrap, actor->stream);

@@ -99,6 +99,7 @@ public interface ConstantEvaluator {
 				case "-": return OptionalLong.of(aa - bb);
 				case "*": return OptionalLong.of(aa * bb);
 				case "/": return OptionalLong.of(aa / bb);
+				case "<<": return OptionalLong.of(aa << bb);
 				default: return OptionalLong.empty();
 			}
 		} else {

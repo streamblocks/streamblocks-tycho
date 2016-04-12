@@ -5,8 +5,8 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -231,6 +232,12 @@ public interface Types {
 				case "unit": {
 					return UnitType.INSTANCE;
 				}
+				case "float": {
+					return RealType.f32;
+				}
+				case "double": {
+					return RealType.f64;
+				}
 				default:
 					return BottomType.INSTANCE;
 			}
@@ -267,6 +274,9 @@ public interface Types {
 						int size = (int) (Math.log(v)/Math.log(2) + 1);
 						return new IntType(OptionalInt.of(size), false);
 					}
+				}
+				case Real: {
+					return RealType.f32;
 				}
 				default: {
 					return BottomType.INSTANCE;
@@ -480,6 +490,10 @@ public interface Types {
 			} else {
 				return new IntType(OptionalInt.empty(), a.isSigned() || b.isSigned());
 			}
+		}
+
+		default Type leastUpperBound(RealType a, RealType b) {
+			return RealType.of(Math.max(a.getSize(), b.getSize()));
 		}
 
 		default int positiveBits(IntType t) {

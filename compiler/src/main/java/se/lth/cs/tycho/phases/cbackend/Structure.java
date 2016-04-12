@@ -246,7 +246,7 @@ public interface Structure {
 		} else {
 			emitter().emit("static %s {", header);
 			emitter().increaseIndentation();
-			code().execute(proc.getBody());
+			proc.getBody().forEach(code()::execute);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		}

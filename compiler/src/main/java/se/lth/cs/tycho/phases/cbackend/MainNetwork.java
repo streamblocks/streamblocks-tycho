@@ -1,11 +1,9 @@
 package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
-import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.ToolValueAttribute;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -19,7 +17,6 @@ import se.lth.cs.tycho.phases.attributes.Names;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,6 +45,7 @@ public interface MainNetwork {
 		List<Connection> connections = network.getConnections();
 		List<Instance> instances = network.getInstances();
 
+
 		emitter().emit("static void run(int argc, char **argv) {");
 		emitter().increaseIndentation();
 
@@ -67,17 +65,10 @@ public interface MainNetwork {
 		emitter().emit("");
 
 
-		emitter().emit("const size_t DEFAULT_SIZE = 1024;");
 		emitter().emit("channel_t *channels[%d];", connections.size());
 		{
 			int i = 0;
 			for (Connection conn : connections) {
-				String size = "DEFAULT_SIZE";
-				Optional<ToolValueAttribute> bufferSize = conn.getValueAttribute("buffersize");
-				if (bufferSize.isPresent()) {
-					Expression sizeExpr = bufferSize.get().getValue();
-					size = code().evaluate(sizeExpr);
-				}
 				String type;
 				if (conn.getSource().getInstance().isPresent()) {
 					Instance instance = network.getInstances().stream()
@@ -86,7 +77,8 @@ public interface MainNetwork {
 					EntityDecl entity = globalNames().entityDecl(QID.of(instance.getEntityName()), true);
 					PortDecl portDecl = entity.getEntity().getOutputPorts().stream()
 							.filter(port -> port.getName().equals(conn.getSource().getPort()))
-							.findFirst().get();
+							.findFirst().orElseThrow(() -> new AssertionError("Missing source port: " + conn));
+
 					type = code().type(backend().types().declaredPortType(portDecl));
 				} else {
 					PortDecl portDecl = network.getInputPorts().stream()
@@ -94,7 +86,7 @@ public interface MainNetwork {
 							.findFirst().get();
 					type = code().type(backend().types().declaredPortType(portDecl));
 				}
-				emitter().emit("channels[%d] = channel_create(sizeof(%s) * %s);", i, type, size);
+				emitter().emit("channels[%d] = channel_create();", i);
 				i = i + 1;
 			}
 		}
@@ -105,10 +97,15 @@ public interface MainNetwork {
 			initParameters.add("&" + instance.getInstanceName());
 			EntityDecl entityDecl = globalNames().entityDecl(QID.of(instance.getEntityName()), true);
 			for (VarDecl par : entityDecl.getEntity().getValueParameters()) {
+				boolean assigned = false;
 				for (Parameter<Expression> assignment : instance.getValueParameters()) {
 					if (par.getName().equals(assignment.getName())) {
 						initParameters.add(code().evaluate(assignment.getValue()));
+						assigned = true;
 					}
+				}
+				if (!assigned) {
+					throw new RuntimeException(String.format("Could not assign to %s. Candidates: {%s}.", par.getName(), String.join(", ", instance.getValueParameters().map(Parameter::getName))));
 				}
 			}
 

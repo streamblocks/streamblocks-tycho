@@ -18,13 +18,13 @@ public class NamespaceDecl extends AbstractIRNode {
 	private final ImmutableList<EntityDecl> entityDecls;
 	private final ImmutableList<TypeDecl> typeDecls;
 
-	public NamespaceDecl(QID qid, ImmutableList<StarImport> starImports, ImmutableList<VarDecl> varDecls,
-			ImmutableList<EntityDecl> entityDecls, ImmutableList<TypeDecl> typeDecls) {
+	public NamespaceDecl(QID qid, List<StarImport> starImports, List<VarDecl> varDecls,
+			List<EntityDecl> entityDecls, List<TypeDecl> typeDecls) {
 		this(null, qid, starImports, varDecls, entityDecls, typeDecls);
 	}
 	
-	private NamespaceDecl(IRNode original, QID qid, ImmutableList<StarImport> starImports, ImmutableList<VarDecl> varDecls,
-			ImmutableList<EntityDecl> entityDecls, ImmutableList<TypeDecl> typeDecls) {
+	private NamespaceDecl(IRNode original, QID qid, List<StarImport> starImports, List<VarDecl> varDecls,
+			List<EntityDecl> entityDecls, List<TypeDecl> typeDecls) {
 		super(original);
 		this.qid = qid;
 		this.starImports = ImmutableList.from(starImports);

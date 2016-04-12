@@ -40,6 +40,14 @@ public class ActorMachine extends Entity {
 		return conditions.get(i);
 	}
 
+	public ActorMachine withInputPorts(List<PortDecl> inputPorts) {
+		return copy(inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
+	}
+
+	public ActorMachine withOutputPorts(List<PortDecl> outputPorts) {
+		return copy(inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
+	}
+
 
 	@Override
 	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {

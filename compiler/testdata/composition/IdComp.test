@@ -1,0 +1,11 @@
+{
+  "description": "Two composed Id actors",
+  "source-paths": ["."],
+  "entity": "IdComp",
+  "test-data": [
+    {
+      "input": ["testdata"],
+      "reference": ["testdata"]
+    }
+  ]
+}

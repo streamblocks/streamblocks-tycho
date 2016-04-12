@@ -39,16 +39,14 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.expr;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeExpr;
-import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.function.Consumer;
 
 public class ExprLambda extends Expression {
 
@@ -58,42 +56,29 @@ public class ExprLambda extends Expression {
 
 	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Expression body,
 			TypeExpr returnTypeExpr) {
-		this(null, typeParams, valueParams, body, returnTypeExpr, ImmutableList.<Variable>empty(), false);
+		this(null, typeParams, valueParams, body, returnTypeExpr, false);
 	}
 
-	/**
-	 * The parameter freeVariabls must have the correct set of variables, i.e. this constructor sets isFreeVariablesComputed to true.
-	 * @param typeParams
-	 * @param valueParams
-	 * @param body
-	 * @param freeVariables
-	 */
-
-	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Expression body,
-			TypeExpr returnTypeExpr, ImmutableList<Variable> freeVariables) {
-		this(null, typeParams, valueParams, body, returnTypeExpr, freeVariables, true);
+	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, TypeExpr returnTypeExpr) {
+		this(null, typeParams, valueParams, null, returnTypeExpr, true);
 	}
-
 	private ExprLambda(ExprLambda original, ImmutableList<TypeDecl> typeParams,
-			ImmutableList<VarDecl> valueParams, Expression body, TypeExpr returnTypeExpr,
-			ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
+					   ImmutableList<VarDecl> valueParams, Expression body, TypeExpr returnTypeExpr, boolean external) {
 		super(original);
 		this.typeParameters = ImmutableList.from(typeParams);
 		this.valueParameters = ImmutableList.from(valueParams);
 		this.body = body;
 		this.returnTypeExpr = returnTypeExpr;
-		this.freeVariables = freeVariables;
-		this.isFreeVariablesComputed = isFreeVariablesComputed;
+		this.external = external;
 	}
 
 	public ExprLambda copy(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams,
-			Expression body, TypeExpr returnTypeExpr, ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
-		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams)
-				&& Objects.equals(this.body, body) && Objects.equals(this.returnTypeExpr, returnTypeExpr)
-				&& isFreeVariablesComputed == this.isFreeVariablesComputed && Lists.equals(freeVariables, this.freeVariables)) {
+						   Expression body, TypeExpr returnTypeExpr, boolean external) {
+		if (Lists.sameElements(typeParameters, typeParams) && Lists.sameElements(valueParameters, valueParams)
+				&& this.body == body && this.returnTypeExpr  == returnTypeExpr && this.external == external) {
 			return this;
 		}
-		return new ExprLambda(this, typeParams, valueParams, body, returnTypeExpr, freeVariables, isFreeVariablesComputed);
+		return new ExprLambda(this, typeParams, valueParams, body, returnTypeExpr, external);
 	}
 
 	public ImmutableList<TypeDecl> getTypeParameters() {
@@ -112,25 +97,15 @@ public class ExprLambda extends Expression {
 		return returnTypeExpr;
 	}
 
-	/**
-	 * Before calling getFreeVariables() the free variables must be computed. 
-	 * @return the free variables of the lambda function
-	 */
-	public ImmutableList<Variable> getFreeVariables(){
-		assert isFreeVariablesComputed;
-		return freeVariables;
+	public boolean isExternal() {
+		return external;
 	}
 
-	public boolean isFreeVariablesComputed(){
-		return isFreeVariablesComputed;
-	}
-
-	private ImmutableList<TypeDecl> typeParameters;
-	private ImmutableList<VarDecl> valueParameters;
-	private Expression body;
-	private TypeExpr returnTypeExpr;
-	private ImmutableList<Variable> freeVariables;
-	private boolean isFreeVariablesComputed;
+	private final ImmutableList<TypeDecl> typeParameters;
+	private final ImmutableList<VarDecl> valueParameters;
+	private final Expression body;
+	private final TypeExpr returnTypeExpr;
+	private final boolean external;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
@@ -148,7 +123,7 @@ public class ExprLambda extends Expression {
 				(ImmutableList) valueParameters.map(transformation),
 				body == null ? null : (Expression) transformation.apply(body),
 				returnTypeExpr == null ? null : (TypeExpr) transformation.apply(returnTypeExpr),
-				(ImmutableList) freeVariables.map(transformation),
-				isFreeVariablesComputed);
+				external
+		);
 	}
 }

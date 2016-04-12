@@ -60,6 +60,7 @@ public class StructureConnectionStmt extends StructureStatement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(src);
 		action.accept(dst);
+		getAttributes().forEach(action);
 	}
 
 

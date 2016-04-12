@@ -8,7 +8,9 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.UniqueNumbers;
+import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
@@ -16,15 +18,14 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Network;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.attributes.Names;
+import se.lth.cs.tycho.transformation.RenameVariables;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class RenamePhase implements Phase {
@@ -40,7 +41,9 @@ public class RenamePhase implements Phase {
 				.bind("globalNames").to(context.getAttributeManager().getAttributeModule(GlobalNames.key, task))
 				.bind("uniqueNumbers").to(context.getUniqueNumbers())
 				.instance();
-		return (CompilationTask) new Transformation(rename::rename).apply(task);
+//		task = (CompilationTask) new Transformation(rename::rename).apply(task);
+		task = RenameVariables.rename(task, context.getUniqueNumbers());
+		return task;
 	}
 
 	private static final class Transformation implements IRNode.Transformation {
@@ -166,8 +169,8 @@ public class RenamePhase implements Phase {
 
 		default IRNode rename(EntityInstanceExpr original, EntityInstanceExpr instance) {
 			Map<String, String> parameterMap = parameterMap(original);
-			ImmutableList<Map.Entry<String, Expression>> assignments = instance.getParameterAssignments()
-					.map(entry -> ImmutableEntry.of(parameterMap.get(entry.getKey()), entry.getValue()));
+			ImmutableList<Parameter<Expression>> assignments = instance.getParameterAssignments()
+					.map(entry -> Parameter.of(parameterMap.get(entry.getName()), entry.getValue()));
 			String name = name(names().entityDeclaration(original));
 			return instance.copy(name, assignments);
 		}

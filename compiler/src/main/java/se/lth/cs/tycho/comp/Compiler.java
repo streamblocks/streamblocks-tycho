@@ -44,6 +44,7 @@ public class Compiler {
 			new NameAnalysisPhase(),
 			new TypeAnalysisPhase(),
 			new RenamePhase(),
+			new NameAnalysisPhase(),
 			new RemoveNamespacesPhase(),
 			new LiftConstantsPhase(),
 
@@ -59,11 +60,14 @@ public class Compiler {
 			new CalToAmPhase(),
 			new RemoveEmptyTransitionsPhase(),
 			new ReduceActorMachinePhase(),
+			new CompositionEntitiesUniquePhase(),
 			new CompositionPhase(),
 			new InternalizeBuffersPhase(),
 			new RemoveUnusedConditionsPhase(),
 
 			// Code generations
+			new RemoveUnusedEntityDeclsPhase(),
+			new PrintNetworkPhase(),
 			new CBackendPhase()
 	);
 

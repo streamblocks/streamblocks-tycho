@@ -541,7 +541,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append(" begin ");
 		incIndent();
 		indent();
-		print(e.getBody());
+		e.getBody().forEach(this::print);
 		decIndent();
 		indent();
 		out.append("endproc");
@@ -704,9 +704,9 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append(e.getEntityName());
 		out.append("(");
 		String sep = "";
-		for(java.util.Map.Entry<String, Expression> param : e.getParameterAssignments()){
+		for(Parameter<Expression> param : e.getParameterAssignments()){
 			out.append(sep);
-			out.append(param.getKey());
+			out.append(param.getName());
 			out.append(" = ");
 			print(param.getValue());
 			sep = ", ";

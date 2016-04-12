@@ -9,7 +9,6 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.CallableType;
 import se.lth.cs.tycho.types.LambdaType;
-import se.lth.cs.tycho.types.ProcType;
 import se.lth.cs.tycho.types.Type;
 
 import java.util.List;
@@ -37,55 +36,60 @@ public interface Global {
 	void globalCallableDecl(VarDecl decl, Expression def);
 
 	default void globalCallableDecl(VarDecl decl, ExprProc proc) {
-		String format;
-		if (proc.getBody() == null) {
-			format = "%s;";
-		} else {
-			format = "static %s;";
-		}
-		emitter().emit(format, globalCallableHeader(decl, proc));
+		emitter().emit("static %s;", globalCallableHeader(decl, proc, false));
 	}
 	default void globalCallableDecl(VarDecl decl, ExprLambda lambda) {
-		String format;
-		if (lambda.getBody() == null) {
-			format = "%s;";
-		} else {
-			format = "static %s;";
-		}
-		emitter().emit(format, globalCallableHeader(decl, lambda));
+		emitter().emit("static %s;", globalCallableHeader(decl, lambda, false));
 	}
 
 	void globalCallable(VarDecl decl, Expression def);
 
 	default void globalCallable(VarDecl decl, ExprLambda lambda) {
-		if (lambda.getBody() != null) {
-			String header = globalCallableHeader(decl, lambda);
+		if (!lambda.isExternal()) {
+			String header = globalCallableHeader(decl, lambda, false);
 			emitter().emit("static %s {", header);
 			emitter().increaseIndentation();
 			LambdaType type = (LambdaType) types().declaredType(decl);
 			code().assign(type.getReturnType(), "*result", lambda.getBody());
 			emitter().decreaseIndentation();
 			emitter().emit("}");
-		}
-	}
-
-	default void globalCallable(VarDecl decl, ExprProc proc) {
-		if (proc.getBody() != null) {
-			String header = globalCallableHeader(decl, proc);
+		} else {
+			emitter().emit("extern %s;", globalCallableHeader(decl, lambda, true));
+			String header = globalCallableHeader(decl, lambda, false);
 			emitter().emit("static %s {", header);
 			emitter().increaseIndentation();
-			code().execute(proc.getBody());
+			emitter().emit("*result = %s(%s);", decl.getOriginalName(),
+				lambda.getValueParameters().stream()
+						.map(VarDecl::getName).collect(Collectors.joining(", ")));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		}
 	}
 
-	String globalCallableHeader(VarDecl decl, Expression expr);
+	default void globalCallable(VarDecl decl, ExprProc proc) {
+		if (!proc.isExternal()) {
+			String header = globalCallableHeader(decl, proc, false);
+			emitter().emit("static %s {", header);
+			emitter().increaseIndentation();
+			proc.getBody().forEach(code()::execute);
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		} else {
+			emitter().emit("extern %s;", globalCallableHeader(decl, proc, true));
+			String header = globalCallableHeader(decl, proc, false);
+			emitter().emit("static %s {", header);
+			emitter().increaseIndentation();
+			emitter().emit("%s(%s);", decl.getOriginalName(), proc.getValueParameters().stream()
+			.map(VarDecl::getName).collect(Collectors.joining(", ")));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		}
+	}
 
-	default String globalCallableHeader(VarDecl decl, ExprProc proc) {
+	default String globalCallableHeader(VarDecl decl, ExprProc proc, boolean external) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("void ")
-				.append(decl.getName())
+				.append(external ? decl.getOriginalName() : decl.getName())
 				.append("(")
 				.append(proc.getValueParameters().stream()
 						.map(par -> code().declaration(types().declaredType(par), par.getName()))
@@ -94,19 +98,33 @@ public interface Global {
 		return builder.toString();
 	}
 
-	default String globalCallableHeader(VarDecl decl, ExprLambda lambda) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("void ")
-				.append(decl.getName())
-				.append("(");
-		for (VarDecl par : lambda.getValueParameters()) {
-			builder.append(code().declaration(types().declaredType(par), par.getName()))
-					.append(", ");
+	default String globalCallableHeader(VarDecl decl, ExprLambda lambda, boolean external) {
+		if (external) {
+			StringBuilder builder = new StringBuilder();
+			LambdaType type = (LambdaType) types().declaredType(decl);
+			builder.append(code().type(type.getReturnType()))
+					.append(" ")
+					.append(decl.getOriginalName())
+					.append("(")
+					.append(lambda.getValueParameters().stream()
+							.map(par -> code().declaration(types().declaredType(par), par.getName()))
+							.collect(Collectors.joining(", ")))
+					.append(")");
+			return builder.toString();
+		} else {
+			StringBuilder builder = new StringBuilder();
+			builder.append("void ")
+					.append(decl.getName())
+					.append("(");
+			for (VarDecl par : lambda.getValueParameters()) {
+				builder.append(code().declaration(types().declaredType(par), par.getName()))
+						.append(", ");
+			}
+			LambdaType type = (LambdaType) types().declaredType(decl);
+			builder.append(code().type(type.getReturnType()))
+					.append(" *result)");
+			return builder.toString();
 		}
-		LambdaType type = (LambdaType) types().declaredType(decl);
-		builder.append(code().type(type.getReturnType()))
-				.append(" *result)");
-		return builder.toString();
 	}
 
 	default void globalVariables(List<VarDecl> varDecls) {

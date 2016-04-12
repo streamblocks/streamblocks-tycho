@@ -43,7 +43,7 @@ public class PortDecl extends AbstractIRNode {
 	}
 	
 	public PortDecl copy(String name, TypeExpr type) {
-		if (Objects.equals(this.name, name) && Objects.equals(this.type, type)) {
+		if (Objects.equals(this.name, name) && this.type == type) {
 			return this;
 		}
 		return new PortDecl(this, name, type);
@@ -58,6 +58,10 @@ public class PortDecl extends AbstractIRNode {
 		return name;
 	}
 
+	public PortDecl withName(String name) {
+		return copy(name, type);
+	}
+
 	/**
 	 * Returns the type of the tokens on port.
 	 * 
@@ -65,6 +69,10 @@ public class PortDecl extends AbstractIRNode {
 	 */
 	public TypeExpr getType() {
 		return type;
+	}
+
+	public PortDecl withType(TypeExpr type) {
+		return copy(name, type);
 	}
 
 	@Override

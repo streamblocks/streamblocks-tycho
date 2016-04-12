@@ -25,6 +25,7 @@ import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
+import se.lth.cs.tycho.ir.stmt.StmtCall;
 import se.lth.cs.tycho.ir.stmt.StmtIf;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
 import se.lth.cs.tycho.ir.stmt.StmtWhile;
@@ -102,7 +103,7 @@ public class ProcessToCalPhase implements Phase {
 			result.addFirst(statements.removeLast());
 			endsWithWrite = true;
 		}
-		while (!statements.isEmpty() && statements.getLast() instanceof StmtAssignment) {
+		while (!statements.isEmpty() && (statements.getLast() instanceof StmtAssignment || statements.getLast() instanceof StmtCall)) {
 			result.addFirst(statements.removeLast());
 		}
 		if (!endsWithWrite && !statements.isEmpty() && statements.getLast() instanceof StmtRead) {

@@ -51,13 +51,18 @@ public interface Closures {
 	}
 
 	default Set<VarDecl> freeVariables(ExprLambda expr) {
-		return freeVariablesLambdaCache().computeIfAbsent(expr, lambda -> freeVariables(lambda.getBody()).stream()
-				.filter(decl -> !lambda.getValueParameters().contains(decl))
-				.collect(Collectors.toSet()));
+		if (expr.isExternal()) {
+			return Collections.emptySet();
+		} else {
+			return freeVariablesLambdaCache().computeIfAbsent(expr, lambda -> freeVariables(lambda.getBody()).stream()
+					.filter(decl -> !lambda.getValueParameters().contains(decl))
+					.collect(Collectors.toSet()));
+		}
 	}
 
 	default Set<VarDecl> freeVariables(ExprProc expr) {
-		return freeVariablesProcCache().computeIfAbsent(expr, proc -> freeVariables(proc.getBody()).stream()
+		return freeVariablesProcCache().computeIfAbsent(expr, proc -> proc.getBody().stream()
+				.map(this::freeVariables).flatMap(Set::stream)
 				.filter(decl -> !proc.getValueParameters().contains(decl))
 				.collect(Collectors.toSet()));
 	}

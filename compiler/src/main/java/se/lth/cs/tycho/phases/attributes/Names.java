@@ -16,6 +16,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.PortCondition;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
@@ -30,6 +31,7 @@ import se.lth.cs.tycho.ir.expr.ExprList;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
+import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
@@ -92,7 +94,8 @@ public interface Names {
 		}
 
 		default PortDecl portDeclaration(Port port) {
-			return portDeclarationMap().computeIfAbsent(port, this::startPortLookup);
+			return startPortLookup(port);
+//			return portDeclarationMap().computeIfAbsent(port, this::startPortLookup);
 		}
 
 		default PortDecl startPortLookup(Port port) {
@@ -119,6 +122,18 @@ public interface Names {
 
 		default PortDecl lookupPort(StmtWrite write, Port port) {
 			return lookupOutputPort(write, port);
+		}
+
+		default PortDecl lookupPort(StmtConsume consume, Port port) {
+			return lookupInputPort(consume, port);
+		}
+
+		default PortDecl lookupPort(PortCondition cond, Port port) {
+			if (cond.isInputCondition()) {
+				return lookupInputPort(cond, port);
+			} else {
+				return lookupOutputPort(cond, port);
+			}
 		}
 
 		default PortDecl lookupInputPort(IRNode node, Port port) {

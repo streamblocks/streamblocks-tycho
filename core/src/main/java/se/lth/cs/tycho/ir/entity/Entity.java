@@ -30,8 +30,16 @@ public abstract class Entity extends AbstractIRNode {
 		return inputPorts;
 	}
 
+	public Entity withInputPorts(List<PortDecl> inputPorts) {
+		throw new UnsupportedOperationException("Not yet implemented.");
+	}
+
 	public ImmutableList<PortDecl> getOutputPorts() {
 		return outputPorts;
+	}
+
+	public Entity withOutputPorts(List<PortDecl> outputPorts) {
+		throw new UnsupportedOperationException("Not yet implemented.");
 	}
 
 	public ImmutableList<TypeDecl> getTypeParameters() {

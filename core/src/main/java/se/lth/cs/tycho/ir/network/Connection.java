@@ -118,5 +118,15 @@ public class Connection extends AttributableIRNode {
 		public int hashCode() {
 			return Objects.hash(instance, port);
 		}
+
+		@Override
+		public String toString() {
+			return String.format("End(instance = %s, port = %s)", instance.orElse(""), port);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return String.format("Connection(source = %s, target = %s)", source, target);
 	}
 }

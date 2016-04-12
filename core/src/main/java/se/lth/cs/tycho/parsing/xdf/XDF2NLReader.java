@@ -5,11 +5,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.ToolValueAttribute;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.ToolAttribute;
+import se.lth.cs.tycho.ir.ToolValueAttribute;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -20,6 +21,8 @@ import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
+import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
@@ -95,22 +98,54 @@ public class XDF2NLReader {
 		for (Element instance : selectChildren(input.getDocumentElement(), "Instance")) {
 			String instanceName = instance.getAttribute("id");
 			QID entityQid = QID.parse(selectChild(instance, "Class").getAttribute("name"));
-			manager.add(instanceName, entityQid);
+			List<Parameter<Expression>> parameters = new ArrayList<>();
+			for (Element parameter : selectChildren(instance, "Parameter")) {
+				String name = parameter.getAttribute("name");
+				Expression expr = buildExpression(selectChild(parameter, "Expr"));
+				Parameter<Expression> assignment = Parameter.of(name, expr);
+				parameters.add(assignment);
+			}
+			manager.add(instanceName, entityQid, parameters);
 		}
 		manager.generate(imports, entities);
 	}
 
+	private Expression buildExpression(Element expr) {
+		assert expr.getTagName().equals("Expr");
+		switch (expr.getAttribute("kind")) {
+			case "Literal":
+				switch (expr.getAttribute("literal-kind")) {
+					case "Integer":
+						return new ExprLiteral(ExprLiteral.Kind.Integer, expr.getAttribute("value"));
+					case "String":
+						return new ExprLiteral(ExprLiteral.Kind.String, expr.getAttribute("value"));
+					case "Real":
+						return new ExprLiteral(ExprLiteral.Kind.Real, expr.getAttribute("value"));
+				}
+				break;
+			case "UnaryOp":
+				Element op = selectChild(expr, "Op");
+				String operation = op.getAttribute("name");
+				Expression operand = buildExpression(selectChild(expr, "Expr"));
+				return new ExprUnaryOp(operation, operand);
+		}
+		throw new UnsupportedOperationException("All parameter kinds are not implemented.");
+	}
+
 	private static class ImportManager {
 		private final Map<String, QID> entities;
+		private final Map<String, List<Parameter<Expression>>> instanceParameters;
 		private final QID currentNamespace;
 
 		public ImportManager(QID currentNamespace) {
 			this.entities = new LinkedHashMap<>();
 			this.currentNamespace = currentNamespace;
+			this.instanceParameters = new LinkedHashMap<>();
 		}
 
-		public void add(String instance, QID entity) {
+		public void add(String instance, QID entity, List<Parameter<Expression>> parameters) {
 			entities.put(instance, entity);
+			instanceParameters.put(instance, parameters);
 		}
 
 		public void generate(Consumer<EntityDecl> importConsumer, Consumer<Map.Entry<String, EntityExpr>> instanceConsumer) {
@@ -134,7 +169,7 @@ public class XDF2NLReader {
 
 			for (String instance : entities.keySet()) {
 				String entityName = localName.get(entities.get(instance));
-				EntityInstanceExpr instanceExpr = new EntityInstanceExpr(entityName, ImmutableList.empty());
+				EntityInstanceExpr instanceExpr = new EntityInstanceExpr(entityName, instanceParameters.get(instance));
 				instanceConsumer.accept(ImmutableEntry.of(instance, instanceExpr));
 			}
 		}

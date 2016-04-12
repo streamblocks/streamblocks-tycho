@@ -8,10 +8,12 @@ import se.lth.cs.tycho.comp.SyntheticSourceUnit;
 import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolValueAttribute;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
@@ -23,8 +25,11 @@ import se.lth.cs.tycho.phases.composition.Composer;
 import se.lth.cs.tycho.phases.composition.Connection;
 import se.lth.cs.tycho.phases.composition.SourcePort;
 import se.lth.cs.tycho.phases.composition.TargetPort;
+import se.lth.cs.tycho.phases.reduction.MergeStates;
+import se.lth.cs.tycho.phases.reduction.TransformedController;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
+import se.lth.cs.tycho.transformation.RenameVariables;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +49,7 @@ public class CompositionPhase implements Phase {
 		return "Performes actor composition.";
 	}
 
-	private static final OnOffSetting actorComposition = new OnOffSetting() {
+	static final OnOffSetting actorComposition = new OnOffSetting() {
 		@Override
 		public String getKey() {
 			return "actor-composition";
@@ -78,13 +83,13 @@ public class CompositionPhase implements Phase {
 
 		ImmutableList.Builder<EntityDecl> composedEntities = ImmutableList.builder();
 		for (String compositionId : compositions.keySet()) {
-			task = task.withNetwork(compose(task, compositions.get(compositionId), composedEntities, context.getUniqueNumbers()));
+			task = task.withNetwork(compose(task, compositions.get(compositionId), composedEntities, compositionId, context.getUniqueNumbers()));
 		}
 		SourceUnit compUnit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), null, null, composedEntities.build(), null));
 		return task.withSourceUnits(ImmutableList.<SourceUnit> builder().addAll(task.getSourceUnits()).add(compUnit).build());
 	}
 
-	private Network compose(CompilationTask task, List<se.lth.cs.tycho.ir.network.Connection> connections, Consumer<EntityDecl> composedEntities, UniqueNumbers uniqueNumbers) {
+	private Network compose(CompilationTask task, List<se.lth.cs.tycho.ir.network.Connection> connections, Consumer<EntityDecl> composedEntities, String compositionId, UniqueNumbers uniqueNumbers) {
 		assert connections.stream().allMatch(c -> c.getSource().getInstance().isPresent() && c.getTarget().getInstance().isPresent()) : "Cannot compose connections to network border.";
 		List<String> instances = connections.stream()
 				.flatMap(connection -> Stream.of(connection.getSource(), connection.getTarget()))
@@ -98,8 +103,11 @@ public class CompositionPhase implements Phase {
 						.map(Instance::getEntityName)
 						.findFirst().get())
 				.collect(Collectors.toList());
-		List<ActorMachine> actorMachines = entities.stream()
+		List<ActorMachine> sourceActorMachines = entities.stream()
 				.map(name -> getActorMachine(task, QID.of(name)))
+				.collect(Collectors.toList());
+		List<ActorMachine> actorMachines = sourceActorMachines.stream()
+				.map(actorMachine -> RenameVariables.rename(actorMachine, uniqueNumbers))
 				.collect(Collectors.toList());
 		List<Connection> compositionConnections = connections.stream()
 				.map(connection -> {
@@ -111,12 +119,33 @@ public class CompositionPhase implements Phase {
 							bufferSize(connection));
 				})
 				.collect(Collectors.toList());
+		List<Parameter<Expression>> parameters = new ArrayList<>();
+		for (Instance instance : task.getNetwork().getInstances()) {
+			int index = instances.indexOf(instance.getInstanceName());
+			if (index >= 0) {
+				ActorMachine sourceAm = sourceActorMachines.get(index);
+				ActorMachine am = actorMachines.get(index);
+				for (Parameter<Expression> param : instance.getValueParameters()) {
+					int parameter = 0;
+					for (VarDecl parDecl : sourceAm.getValueParameters()) {
+						if (parDecl.getName().equals(param.getName())) {
+							break;
+						}
+						parameter++;
+					}
+					String name = am.getValueParameters().get(parameter).getName();
+					parameters.add(param.withName(name));
+				}
+			}
+		}
 		ActorMachine composition = new Composer(actorMachines, compositionConnections).compose().deepClone();
-		String compositionInstanceName = uniqueInstanceName(task.getNetwork(), String.join("_", instances));
-		String compositionEntityName = entities.stream().collect(Collectors.joining("_", "", "_"+uniqueNumbers.next()));
-		composedEntities.accept(EntityDecl.global(Availability.PUBLIC, compositionEntityName, composition));
+		composition = composition.withController(TransformedController.from(composition.controller(), Stream.generate(MergeStates::new).limit(10).collect(Collectors.toList())));
+		String compositionInstanceName = uniqueInstanceName(task.getNetwork(), compositionId);
+		String originalEntityName = compositionId;
+		String compositionEntityName = compositionId + "_" + uniqueNumbers.next();
+		composedEntities.accept(EntityDecl.global(Availability.PUBLIC, originalEntityName, composition).withName(compositionEntityName));
 		Stream<Instance> notComposed = task.getNetwork().getInstances().stream().filter(instance -> !instances.contains(instance.getInstanceName()));
-		Stream<Instance> composed = Stream.of(new Instance(compositionInstanceName, compositionEntityName, null, null));
+		Stream<Instance> composed = Stream.of(new Instance(compositionInstanceName, compositionEntityName, parameters, null));
 		List<Instance> resultInstances = Stream.concat(notComposed, composed).collect(Collectors.toList());
 
 		List<Map<String, String>> inputPortMaps = getPortMap(actorMachines, composition, ActorMachine::getInputPorts);

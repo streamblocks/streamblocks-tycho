@@ -26,6 +26,7 @@ import se.lth.cs.tycho.types.BoolType;
 import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.ListType;
 import se.lth.cs.tycho.types.QueueType;
+import se.lth.cs.tycho.types.RealType;
 import se.lth.cs.tycho.types.Type;
 import se.lth.cs.tycho.types.UnitType;
 
@@ -59,6 +60,9 @@ public interface Code {
 	void assign(Type type, String lvalue, Expression expr);
 
 	default void assign(IntType type, String lvalue, Expression expr) {
+		assignScalar(type, lvalue, expr);
+	}
+	default void assign(RealType type, String lvalue, Expression expr) {
 		assignScalar(type, lvalue, expr);
 	}
 	default void assign(BoolType type, String lvalue, Expression expr) {
@@ -151,10 +155,15 @@ public interface Code {
 
 	default String declaration(ListType type, String name) {
 		if (type.getSize().isPresent()) {
-			return declaration(type.getElementType(), String.format("%s[%d]", name, type.getSize().getAsInt()));
+			return String.format("%s[%d]", declaration(type.getElementType(), name), type.getSize().getAsInt());
+			//return declaration(type.getElementType(), String.format("%s[%d]", name, type.getSize().getAsInt()));
 		} else {
 			return String.format("%s %s[] /* TODO IMPLEMENT */ ", type(type.getElementType()), name);
 		}
+	}
+
+	default String declaration(RealType type, String name) {
+		return String.format("%s %s", type(type), name);
 	}
 
 	default String declaration(QueueType type, String name) {
@@ -175,6 +184,14 @@ public interface Code {
 			return String.format(type.isSigned() ? "int%d_t" : "uint%d_t", targetSize);
 		} else {
 			return type.isSigned() ? "int64_t" : "uint64_t";
+		}
+	}
+
+	default String type(RealType type) {
+		switch (type.getSize()) {
+			case 32: return "float";
+			case 64: return "double";
+			default: throw new UnsupportedOperationException("Unknown real type.");
 		}
 	}
 
@@ -206,6 +223,8 @@ public interface Code {
 				return "true";
 			case False:
 				return "false";
+			case Real:
+				return literal.getText();
 			default:
 				throw new UnsupportedOperationException(literal.getText());
 		}

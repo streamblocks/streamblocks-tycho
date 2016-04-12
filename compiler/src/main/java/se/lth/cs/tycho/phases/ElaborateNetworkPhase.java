@@ -163,7 +163,7 @@ public class ElaborateNetworkPhase implements Phase {
 			Instance instance = new Instance(
 					entity.getKey(),
 					expr.getEntityName(),
-					expr.getParameterAssignments().map(entry -> Parameter.of(entry.getKey(), entry.getValue().deepClone())),
+					expr.getParameterAssignments().map(Parameter::deepClone),
 					ImmutableList.empty())
 					.withAttributes(expr.getAttributes().map(ToolAttribute::deepClone));
 			instances.add(instance);

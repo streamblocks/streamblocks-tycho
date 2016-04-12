@@ -21,8 +21,16 @@ public class Parameter<T extends IRNode> extends AbstractIRNode {
 		return name;
 	}
 
+	public Parameter<T> withName(String name) {
+		return copy(name, value);
+	}
+
 	public T getValue() {
 		return value;
+	}
+
+	public Parameter<T> withValue(T value) {
+		return copy(name, value);
 	}
 	
 	public static <T extends IRNode> Parameter<T> of(String name, T value) {
@@ -35,6 +43,16 @@ public class Parameter<T extends IRNode> extends AbstractIRNode {
 		} else {
 			return new Parameter<>(this, name, value);
 		}
+	}
+
+	@Override
+	public Parameter<T> clone() {
+		return (Parameter) super.clone();
+	}
+
+	@Override
+	public Parameter<T> deepClone() {
+		return (Parameter) super.deepClone();
 	}
 
 	@Override

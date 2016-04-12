@@ -39,16 +39,15 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.expr;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 public class ExprProc extends Expression {
 
@@ -56,39 +55,30 @@ public class ExprProc extends Expression {
 		return v.visitExprProc(this, p);
 	}
 
-	public ExprProc(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Statement body) {
-		this(null, typeParams, valueParams, body, ImmutableList.<Variable>empty(), false);
+	public ExprProc(List<TypeDecl> typeParams, List<VarDecl> valueParams, List<Statement> body) {
+		this(null, typeParams, valueParams, body, false);
 	}
 
-	/**
-	 * The parameter freeVariabls must have the correct set of variables, i.e. this constructor sets isFreeVariablesComputed to true.
-	 * @param typeParams
-	 * @param valueParams
-	 * @param body
-	 * @param freeVariables
-	 */
-	public ExprProc(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Statement body, ImmutableList<Variable> freeVariables) {
-		this(null, typeParams, valueParams, body, freeVariables, true);
+	public ExprProc(List<TypeDecl> typeParams, List<VarDecl> valueParams) {
+		this(null, typeParams, valueParams, null, true);
 	}
-	
-	private ExprProc(ExprProc original, ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Statement body, 
-			         ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
+
+	private ExprProc(ExprProc original, List<TypeDecl> typeParams, List<VarDecl> valueParams, List<Statement> body, boolean external) {
 		super(original);
-		assert typeParams != null && valueParams != null && body!= null && freeVariables != null;
 		this.typeParameters = ImmutableList.from(typeParams);
 		this.valueParameters = ImmutableList.from(valueParams);
-		this.body = body;
-		this.freeVariables = freeVariables;
-		this.isFreeVariablesComputed = isFreeVariablesComputed;
+		this.body = ImmutableList.from(body);
+		this.external = external;
 	}
 	
-	public ExprProc copy(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Statement body, 
-			             ImmutableList<Variable> freeVariables, boolean isFreeVariablesComputed) {
-		if (Lists.equals(typeParameters, typeParams) && Lists.equals(valueParameters, valueParams) && Objects.equals(this.body, body)
-				 && this.isFreeVariablesComputed==isFreeVariablesComputed && Lists.equals(this.freeVariables, freeVariables)) {
+	public ExprProc copy(List<TypeDecl> typeParams, List<VarDecl> valueParams, List<Statement> body, boolean external) {
+		if (Lists.sameElements(typeParameters, typeParams)
+				&& Lists.sameElements(valueParameters, valueParams)
+				&& Lists.sameElements(this.body, body)
+				&& this.external == external) {
 			return this;
 		}
-		return new ExprProc(this, typeParams, valueParams, body, freeVariables, isFreeVariablesComputed);
+		return new ExprProc(this, typeParams, valueParams, body, external);
 	}
 
 
@@ -100,45 +90,33 @@ public class ExprProc extends Expression {
 		return valueParameters;
 	}
 
-	/**
-	 * Before calling getFreeVariables() the free variables must be computed. 
-	 * @return the free variables of the procedure
-	 */
-	public ImmutableList<Variable> getFreeVariables(){
-		assert isFreeVariablesComputed;
-		return freeVariables;
-	}
-
-	public boolean isFreeVariablesComputed(){
-		return isFreeVariablesComputed;
-	}
-
-	public Statement getBody() {
+	public ImmutableList<Statement> getBody() {
 		return body;
 	}
 
-	private ImmutableList<TypeDecl> typeParameters;
-	private ImmutableList<VarDecl> valueParameters;
-	private ImmutableList<Variable> freeVariables;
-	private boolean isFreeVariablesComputed;
-	private Statement body;
+	public boolean isExternal() {
+		return external;
+	}
+
+	private final ImmutableList<TypeDecl> typeParameters;
+	private final ImmutableList<VarDecl> valueParameters;
+	private final ImmutableList<Statement> body;
+	private final boolean external;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		typeParameters.forEach(action);
 		valueParameters.forEach(action);
-		if (body != null) action.accept(body);
+		body.forEach(action);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public ExprProc transformChildren(Transformation transformation) {
 		return copy(
-				(ImmutableList) typeParameters.map(transformation),
-				(ImmutableList) valueParameters.map(transformation),
-				body == null ? null : (Statement) transformation.apply(body),
-				(ImmutableList) freeVariables.map(transformation),
-				isFreeVariablesComputed
+				transformation.mapChecked(TypeDecl.class, typeParameters),
+				transformation.mapChecked(VarDecl.class, valueParameters),
+				transformation.mapChecked(Statement.class, body),
+				external
 		);
 	}
 }

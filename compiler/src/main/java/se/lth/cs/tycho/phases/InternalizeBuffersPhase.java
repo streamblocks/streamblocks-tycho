@@ -102,7 +102,8 @@ public class InternalizeBuffersPhase implements Phase {
 		for (Instance instance : task.getNetwork().getInstances()) {
 			if (selfLoops.containsKey(instance.getInstanceName())) {
 				EntityDecl entity = GlobalDeclarations.getEntity(task, QID.of(instance.getEntityName()));
-				List<Connection> conditionFree = conditionFree((ActorMachine) entity.getEntity(), selfLoops.get(instance.getInstanceName()));
+				List<Connection> conditionFreeAnySize = conditionFree((ActorMachine) entity.getEntity(), selfLoops.get(instance.getInstanceName()));
+				List<Connection> conditionFree = singleToken(conditionFreeAnySize);
 				if (conditionFree.isEmpty()) {
 					resultInstances.add(instance);
 				} else {
@@ -124,6 +125,11 @@ public class InternalizeBuffersPhase implements Phase {
 				.withSourceUnits(ImmutableList.<SourceUnit> builder().addAll(task.getSourceUnits()).add(unit).build());
 	}
 
+	private List<Connection> singleToken(List<Connection> connections) {
+		return connections.stream()
+				.filter(connection -> bufferSize(connection).equals(OptionalInt.of(1)))
+				.collect(Collectors.toList());
+	}
 	private List<Connection> conditionFree(ActorMachine actorMachine, List<Connection> selfLoops) {
 		List<PortCondition> conditions = actorMachine.controller().getStateList().stream()
 				.map(State::getInstructions)
@@ -288,6 +294,7 @@ public class InternalizeBuffersPhase implements Phase {
 		return connections.stream()
 				.map(Connection::getSource)
 				.map(Connection.End::getPort)
+				.distinct() // one variable per port, irrespective of how many consumers
 				.collect(Collectors.toMap(Function.identity(), port -> {
 					TypeExpr type = actorMachine.getOutputPorts().stream().filter(p -> p.getName().equals(port)).findFirst().get().getType();
 					return VarDecl.local(type, String.format("%s_%d", port, uniqueNumbers.next()), false, null);

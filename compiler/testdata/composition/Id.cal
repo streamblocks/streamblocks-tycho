@@ -1,0 +1,14 @@
+actor Id () int(size=8) X ==> int(size=8) Y :
+	action X: [v] ==> Y: [v] end
+end
+
+network IdComp () int(size=8) X ==> int(size=8) Y :
+	entities
+	id1 = Id();
+	id2 = Id();
+
+	structure
+	X --> id1.X;
+	id1.Y --> id2.X { composition="id_id"; buffersize=1; };
+	id2.Y --> Y;
+end
