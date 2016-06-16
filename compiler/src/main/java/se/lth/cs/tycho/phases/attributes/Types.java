@@ -379,6 +379,9 @@ public interface Types {
 				case "-": {
 					if (t instanceof IntType) {
 						IntType intType = (IntType) t;
+						if (unary.getOperand() instanceof ExprLiteral) {
+							return new IntType(OptionalInt.of(intType.getSize().getAsInt() + 1), true);
+						}
 						return new IntType(intType.getSize(), true);
 					} else {
 						return BottomType.INSTANCE;

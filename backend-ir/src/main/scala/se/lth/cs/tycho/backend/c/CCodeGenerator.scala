@@ -73,33 +73,45 @@ object CCodeGenerator {
 
     private def valueLiteral(value: Value): String = value match {
       case IntegerValue(x) => x.toString
-      case NullReference => "NULL";
+      case Variable(name) => name
       case _ => ???
     }
 
     private def emitInstruction(i: Instruction): Unit = i match {
-      case Return(_, v) => emit(s"return $v;")
+      case Return(_, v) => emit(s"return ${valueLiteral(v)};")
       case Label(label) => emit(s"$label:");
       case Branch(label) => emit(s"goto $label;");
-      case BranchNotZero(cond, label) => emit(s"if ($cond) goto $label;");
-      case Arithmetic(name, _, op, x, y) => emit(s"$name = $x ${arithOp(op)} $y;")
-      case Logic(name, _, op, x, y) => emit(s"$name = $x ${logicOp(op)} $y;")
-      case Comparison(name, _, op, x, y) => emit(s"$name = $x ${compOp(op)} $y;")
-      case Call(name, _, func, args) => emit(s"""$name = $func(${args.mkString(", ")});""")
-      case GetFunctionReference(variable, _, function) => emit(s"$variable = *$function");
+      case BranchNotZero(cond, label) => emit(s"if (${valueLiteral(cond)}) goto $label;");
+      case Arithmetic(Variable(name), _, op, x, y) => emit(s"$name = ${valueLiteral(x)} ${arithOp(op)} ${valueLiteral(y)};")
+      case Logic(Variable(name), _, op, x, y) => emit(s"$name = ${valueLiteral(x)} ${logicOp(op)} ${valueLiteral(y)};")
+      case Comparison(Variable(name), _, op, x, y) => emit(s"$name = ${valueLiteral(x)} ${compOp(op)} ${valueLiteral(y)};")
+      case Call(Variable(name), _, func, args) => emit(s"""$name = $func(${args.map(valueLiteral).mkString(", ")});""")
       case _ => ???
     }
 
     private def compOp(op: CompOp) = op match {
-      case EQ => "==" case NE => "!=" case GT => ">" case GE => ">=" case LT => "<" case LE => "<="
+      case EQ => "=="
+      case NE => "!="
+      case GT => ">"
+      case GE => ">="
+      case LT => "<"
+      case LE => "<="
     }
 
     private def arithOp(op: ArithOp) = op match {
-      case ADD => "+" case SUB => "-" case MUL => "*" case DIV => "/" case REM => "%"
+      case ADD => "+"
+      case SUB => "-"
+      case MUL => "*"
+      case DIV => "/"
+      case REM => "%"
     }
 
     private def logicOp(op: LogicOp) = op match {
-      case AND => "&" case OR => "|" case XOR => "^" case SHL => "<<" case SHR => ">>"
+      case AND => "&"
+      case OR => "|"
+      case XOR => "^"
+      case SHL => "<<"
+      case SHR => ">>"
     }
   }
 }

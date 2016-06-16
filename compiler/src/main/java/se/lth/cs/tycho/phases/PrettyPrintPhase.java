@@ -8,6 +8,7 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.util.PrettyPrint;
@@ -34,7 +35,7 @@ public class PrettyPrintPhase implements Phase {
 		}
 
 		@Override
-		public Boolean defaultValue() {
+		public Boolean defaultValue(Configuration configuration) {
 			return false;
 		}
 	};

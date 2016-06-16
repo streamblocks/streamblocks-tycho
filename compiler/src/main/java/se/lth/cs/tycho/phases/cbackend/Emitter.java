@@ -39,6 +39,7 @@ public class Emitter {
 			throw new IllegalStateException("No output file is currently open.");
 		}
 		if (!format.isEmpty()) {
+			int indentation = this.indentation;
 			while (indentation > 0) {
 				writer.print('\t');
 				indentation--;

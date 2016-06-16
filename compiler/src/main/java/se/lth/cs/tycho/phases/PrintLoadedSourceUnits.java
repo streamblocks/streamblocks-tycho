@@ -3,21 +3,20 @@ package se.lth.cs.tycho.phases;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
-import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.reporting.Diagnostic;
+import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class PrintLoadedSourceUnits implements Phase {
 	public static Setting<Boolean> printLoadedSourceUnits = new OnOffSetting() {
 		@Override public String getKey() { return "print-loaded-source-units"; }
 		@Override public String getDescription() { return "Enables printing of loaded source units"; }
-		@Override public Boolean defaultValue() { return false; }
+		@Override public Boolean defaultValue(Configuration configuration) { return false; }
 	};
 
 	@Override

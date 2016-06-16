@@ -13,6 +13,14 @@ public class Configuration {
 		this.configuration = configuration;
 	}
 
+	public boolean isDefined(Setting<?> setting) {
+		if (manager.get(setting.getKey()) != setting) {
+			throw new IllegalArgumentException("Unknown setting");
+		} else {
+			return configuration.containsKey(setting.getKey());
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public <T> T get(Setting<T> setting) {
 		if (manager.get(setting.getKey()) != setting) {
@@ -20,14 +28,10 @@ public class Configuration {
 		} else if (configuration.containsKey(setting.getKey())) {
 			return (T) configuration.get(setting.getKey());
 		} else {
-			T result = setting.defaultValue();
+			T result = setting.defaultValue(this);
 			configuration.put(setting.getKey(), result);
 			return result;
 		}
-	}
-
-	public Object get(String key) {
-		return get(manager.get(key));
 	}
 
 	public static Builder builder(SettingsManager manager) {

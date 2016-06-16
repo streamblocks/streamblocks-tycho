@@ -12,14 +12,10 @@ object Example {
       name = "add",
       returnType = i32,
       parameters = Seq(VariableDefinition("x", i32, None), VariableDefinition("y", i32, None)),
-      variables = Seq(
-        VariableDefinition("res", i32, None),
-        VariableDefinition("ref", ReferenceType(FunctionType(Seq(i32, i32), i32)), None)
-      ),
+      variables = Seq(VariableDefinition("res", i32, None)),
       body = Seq(
-        GetFunctionReference("ref", ReferenceType(FunctionType(Seq(i32, i32), i32)), "add"),
-        Arithmetic("res", i32, ADD, "x", "y"),
-        Return(i32, "res")
+        Arithmetic(Variable("res"), i32, ADD, Variable("x"), Variable("y")),
+        Return(i32, Variable("res"))
       )
     )
 

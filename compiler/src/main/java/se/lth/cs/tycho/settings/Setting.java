@@ -7,5 +7,5 @@ public interface Setting<T> {
 	String getType();
 	String getDescription();
 	Optional<T> read(String string);
-	T defaultValue();
+	T defaultValue(Configuration configuration);
 }

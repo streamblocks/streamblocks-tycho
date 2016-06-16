@@ -5,6 +5,7 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 
@@ -16,7 +17,7 @@ public class PrintTreesPhase implements Phase {
 	public static Setting<Boolean> printTrees = new OnOffSetting() {
 		@Override public String getKey() { return "print-trees"; }
 		@Override public String getDescription() { return "Enables printing of source tree structures"; }
-		@Override public Boolean defaultValue() { return false; }
+		@Override public Boolean defaultValue(Configuration configuration) { return false; }
 	};
 
 	@Override

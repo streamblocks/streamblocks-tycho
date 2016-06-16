@@ -1,0 +1,4 @@
+actor Merge () int A, int B ==> int C :
+	action A: [x] ==> C: [x] guard true end
+	action B: [x] ==> C: [x] guard true end
+end

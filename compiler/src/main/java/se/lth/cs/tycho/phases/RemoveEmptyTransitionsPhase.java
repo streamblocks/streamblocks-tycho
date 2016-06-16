@@ -49,7 +49,6 @@ public class RemoveEmptyTransitionsPhase implements Phase {
 
 	private Controller transform(Controller controller, BitSet emptyTransitions) {
 		return new TransformedController(controller, state -> new FilteredState(state, emptyTransitions));
-//		return new RemoveEmptyExecController(controller, emptyTransitions);
 	}
 
 	private static Visitor visitor = new Visitor();
@@ -91,32 +90,10 @@ public class RemoveEmptyTransitionsPhase implements Phase {
 				instructions = original.getInstructions().stream()
 						.flatMap((Instruction i) -> i.accept(visitor, emptyTransitions))
 						.collect(Collectors.toList());
-				instructions = prioritize(instructions);
 				original = null;
 			}
 			return instructions;
 		}
 
-	}
-
-	private static List<Instruction> prioritize(List<Instruction> instructions) {
-		List<Instruction> exec = new ArrayList<>();
-		List<Instruction> test = new ArrayList<>();
-		List<Instruction> wait = new ArrayList<>();
-		for (Instruction i : instructions) {
-			if (i instanceof Exec) {
-				exec.add(i);
-			} else if (i instanceof Test) {
-				test.add(i);
-			} else if (i instanceof Wait) {
-				wait.add(i);
-			} else {
-				throw new AssertionError();
-			}
-		}
-		if (!exec.isEmpty()) return exec;
-		if (!test.isEmpty()) return test;
-		if (!wait.isEmpty()) return wait;
-		throw new AssertionError();
 	}
 }

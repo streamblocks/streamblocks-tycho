@@ -16,8 +16,10 @@ import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.phases.CalToAmPhase;
 import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
 import se.lth.cs.tycho.settings.Configuration;
+import se.lth.cs.tycho.settings.OnOffSetting;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -36,6 +38,7 @@ public class CalToAm {
 	private final CalActor actor;
 	private final EnumSet<KnowledgeRemoval.KnowledgeKind> onWait;
 	private final EnumSet<KnowledgeRemoval.KnowledgeKind> onExec;
+	private final boolean actionAmbiguityDetection;
 	private final Priorities priorities;
 	private final Schedule schedule;
 
@@ -49,6 +52,7 @@ public class CalToAm {
 		this.actor = actor;
 		this.onWait = configuration.get(KnowledgeRemoval.forgetOnWait);
 		this.onExec = configuration.get(KnowledgeRemoval.forgetOnExec);
+		this.actionAmbiguityDetection = configuration.get(CalToAmPhase.actionAmbiguityDetection);
 		this.priorities = new Priorities(actor);
 		this.schedule = new Schedule(actor);
 		this.conditions = new Conditions(actor, constants);
@@ -115,32 +119,36 @@ public class CalToAm {
 					.map(this::createExec)
 					.collect(Collectors.toList());
 
-			if (!execInstrucitons.isEmpty()) {
+			if (!actionAmbiguityDetection && !execInstrucitons.isEmpty()) {
 				return execInstrucitons;
 			}
 
-			Stream<Instruction> inputTests = highPrioNotDisabled.stream()
+			List<Action> testable = highPrioNotDisabled.stream()
+					.filter(action -> outputConditions(action) != Knowledge.FALSE)
+					.collect(Collectors.toList());
+
+			Stream<Instruction> inputTests = testable.stream()
 					.flatMap(action -> action.getInputPatterns().stream())
 					.filter(input -> portCondition(conditions.getCondition(input)) == Knowledge.UNKNOWN)
 					.map(this::createTest);
 
-			Stream<Instruction> outputTests = highPrioNotDisabled.stream()
+			Stream<Instruction> outputTests = testable.stream()
 					.flatMap(action -> action.getOutputExpressions().stream())
 					.filter(output -> portCondition(conditions.getCondition(output)) == Knowledge.UNKNOWN)
 					.map(this::createTest);
 
-			Stream<Instruction> guardTests = highPrioNotDisabled.stream()
+			Stream<Instruction> guardTests = testable.stream()
 					.flatMap(action -> action.getGuards().stream())
 					.filter(guard -> predicateCondition(conditions.getCondition(guard)) == Knowledge.UNKNOWN)
 					.map(this::createTest);
 
-			List<Instruction> testInstrucitons = Stream.concat(inputTests, Stream.concat(outputTests, guardTests)).collect(Collectors.toList());
+			List<Instruction> execOrTestInstrucitons = Stream.concat(execInstrucitons.stream(), Stream.concat(inputTests, Stream.concat(outputTests, guardTests))).collect(Collectors.toList());
 
-			if (!testInstrucitons.isEmpty()) {
-				return testInstrucitons;
+			if (execOrTestInstrucitons.isEmpty()) {
+				return Collections.singletonList(createWait());
+			} else {
+				return execOrTestInstrucitons;
 			}
-
-			return Collections.singletonList(createWait());
 		}
 
 		private Knowledge inputConditions(Action action) {

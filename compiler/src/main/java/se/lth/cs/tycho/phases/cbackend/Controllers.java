@@ -9,13 +9,16 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.InstructionKind;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
+import se.lth.cs.tycho.phases.CalToAmPhase;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Module
 public interface Controllers {
@@ -39,8 +42,11 @@ public interface Controllers {
 
 		jumpInto(waitTargets.stream().mapToInt(stateMap::get).collect(BitSet::new, BitSet::set, BitSet::or));
 
+		boolean actionAmbiguityTest = backend().context().getConfiguration().get(CalToAmPhase.actionAmbiguityDetection);
+
 		for (State s : stateList) {
 			emitter().emit("S%d:", stateMap.get(s));
+			if (actionAmbiguityTest) warnOnMultipleExec(name, s);
 			Instruction instruction = s.getInstructions().get(0);
 			backend().scopes().init(actorMachine, instruction).stream().forEach(scope ->
 					emitter().emit("%s_init_scope_%d(self);", name, scope)
@@ -50,6 +56,18 @@ public interface Controllers {
 
 		emitter().decreaseIndentation();
 		emitter().emit("}");
+	}
+
+	default void warnOnMultipleExec(String name, State s) {
+		ArrayList<Integer> execs = new ArrayList<>();
+		for (Instruction i : s.getInstructions()) {
+			if (i instanceof Exec) {
+				execs.add(((Exec) i).transition());
+			}
+		}
+		if (execs.size() > 1) {
+			emitter().emit("fprintf(stderr, \"Action ambiguity detected in %s between actions: %s\\n\");", name, execs.stream().map(Object::toString).collect(Collectors.joining(", ")));
+		}
 	}
 
 	default Map<State, Integer> stateMap(List<? extends State> stateList) {

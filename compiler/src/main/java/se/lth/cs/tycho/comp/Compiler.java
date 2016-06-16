@@ -40,6 +40,7 @@ public class Compiler {
 
 			// Name and type analyses and transformations
 			new DeclarationAnalysisPhase(),
+			new ImportAnalysisPhase(),
 			new ExpandStarImportsPhase(),
 			new NameAnalysisPhase(),
 			new TypeAnalysisPhase(),
@@ -74,31 +75,31 @@ public class Compiler {
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {
 		@Override public String getKey() { return "source-paths"; }
 		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for source files."; }
-		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
+		@Override public List<Path> defaultValue(Configuration configuration) { return configuration.isDefined(orccSourcePaths) ? Collections.emptyList() : Collections.singletonList(Paths.get("")); }
 	};
 
 	public static final Setting<List<Path>> orccSourcePaths = new PathListSetting() {
 		@Override public String getKey() { return "orcc-source-paths"; }
 		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for Orcc-compatible source files."; }
-		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
+		@Override public List<Path> defaultValue(Configuration configuration) { return Collections.emptyList(); }
 	};
 
 	public static final Setting<List<Path>> xdfSourcePaths = new PathListSetting() {
 		@Override public String getKey() { return "xdf-source-paths"; }
 		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for XDF networks."; }
-		@Override public List<Path> defaultValue() { return Collections.emptyList(); }
+		@Override public List<Path> defaultValue(Configuration configuration) { return configuration.get(orccSourcePaths); }
 	};
 
 	public static final Setting<Path> targetPath = new PathSetting() {
 		@Override public String getKey() { return "target-path"; }
 		@Override public String getDescription() { return "Output directory for the compiled files."; }
-		@Override public Path defaultValue() { return Paths.get(""); }
+		@Override public Path defaultValue(Configuration configuration) { return Paths.get(""); }
 	};
 
 	public static final Setting<Boolean> phaseTimer = new OnOffSetting() {
 		@Override public String getKey() { return "phase-timer"; }
 		@Override public String getDescription() { return "Measures the execution time of the compilation phases."; }
-		@Override public Boolean defaultValue() { return false; }
+		@Override public Boolean defaultValue(Configuration configuration) { return false; }
 	};
 
 	public Compiler(Configuration configuration) {
@@ -127,6 +128,7 @@ public class Compiler {
 				.add(targetPath)
 				.add(Reporter.reportingLevel)
 				.add(phaseTimer)
+				.add(Loader.followLinks)
 				.addAll(phases.stream()
 						.flatMap(phase -> phase.getPhaseSettings().stream())
 						.collect(Collectors.toList()))

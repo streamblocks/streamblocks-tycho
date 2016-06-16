@@ -18,7 +18,6 @@ object TypeCheck {
     val names = functions.map(_.name).to[Set]
     functions.flatMap(_.body).collect {
       case Call(_,_,f,_) if !names(f) => s"Unknown funciton $f"
-      case GetFunctionReference(_, _, f) if !names(f) => s"Unknown function $f"
     }
   }
 

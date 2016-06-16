@@ -42,6 +42,7 @@ import se.lth.cs.tycho.ir.stmt.StmtWhile;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 
@@ -77,7 +78,7 @@ public class InternalizeBuffersPhase implements Phase {
 		}
 
 		@Override
-		public Boolean defaultValue() {
+		public Boolean defaultValue(Configuration configuration) {
 			return true;
 		}
 	};

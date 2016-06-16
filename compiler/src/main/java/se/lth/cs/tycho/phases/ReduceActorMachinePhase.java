@@ -10,15 +10,20 @@ import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
+import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
 import se.lth.cs.tycho.phases.reduction.MergeStates;
 import se.lth.cs.tycho.phases.reduction.SingleInstructionState;
 import se.lth.cs.tycho.phases.reduction.TransformedController;
+import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.IntegerSetting;
 import se.lth.cs.tycho.settings.Setting;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,7 +41,7 @@ public class ReduceActorMachinePhase implements Phase {
 		}
 
 		@Override
-		public Integer defaultValue() {
+		public Integer defaultValue(Configuration configuration) {
 			return 10; // As some point RVC_MPEG4_SP_Decoder needed 13 iterations to be fully reduced.
 		}
 	};
@@ -54,8 +59,11 @@ public class ReduceActorMachinePhase implements Phase {
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
 		int iterations = context.getConfiguration().get(amStateMergeIterations);
+		boolean actionAmbiguityDetection = context.getConfiguration().get(CalToAmPhase.actionAmbiguityDetection);
 		List<Function<State, State>> transformations =
-				Stream.concat(Stream.of(selectFirst), Stream.generate(MergeStates::new).limit(iterations))
+				Stream.concat(
+						Stream.of(actionAmbiguityDetection ? exhaustiveTest : selectFirst),
+						Stream.generate(MergeStates::new).limit(iterations))
 				.collect(Collectors.toList());
 		return task.transformChildren(MultiJ.from(ReduceActorMachine.class)
 				.bind("transformations").to(new TransformationList(transformations)).instance());
@@ -99,4 +107,20 @@ public class ReduceActorMachinePhase implements Phase {
 
 	private static final Function<State, State> selectFirst =
 			state -> new SingleInstructionState(state.getInstructions().get(0));
+
+	private static final Function<State, State> exhaustiveTest = state -> {
+		Optional<Instruction> wait = state.getInstructions().stream()
+				.filter(instr -> instr instanceof Wait)
+				.findFirst();
+		if (wait.isPresent()) {
+			return new SingleInstructionState(wait.get());
+		}
+		Optional<Instruction> test = state.getInstructions().stream()
+				.filter(instr -> instr instanceof Test)
+				.findFirst();
+		if (test.isPresent()) {
+			return new SingleInstructionState(test.get());
+		}
+		return state;
+	};
 }

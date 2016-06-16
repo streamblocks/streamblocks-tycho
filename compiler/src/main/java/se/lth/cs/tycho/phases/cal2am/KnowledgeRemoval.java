@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.phases.cal2am;
 
+import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.Setting;
 
 import java.util.EnumSet;
@@ -71,7 +72,7 @@ public final class KnowledgeRemoval {
 		}
 
 		@Override
-		public EnumSet<KnowledgeKind> defaultValue() {
+		public EnumSet<KnowledgeKind> defaultValue(Configuration configuration) {
 			return EnumSet.allOf(KnowledgeKind.class);
 		}
 	}

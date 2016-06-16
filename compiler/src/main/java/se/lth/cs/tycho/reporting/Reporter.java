@@ -40,7 +40,7 @@ public interface Reporter {
 		}
 
 		@Override
-		public Set<Diagnostic.Kind> defaultValue() {
+		public Set<Diagnostic.Kind> defaultValue(Configuration configuration) {
 			return Collections.unmodifiableSet(EnumSet.allOf(Diagnostic.Kind.class));
 		}
 	};

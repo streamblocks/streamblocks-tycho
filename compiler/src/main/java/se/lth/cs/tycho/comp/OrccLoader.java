@@ -10,6 +10,7 @@ import se.lth.cs.tycho.reporting.Reporter;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -24,11 +25,13 @@ public class OrccLoader implements Loader {
 	private final Reporter reporter;
 	private final Map<QID, List<SourceUnit>> sourceCache;
 	private final List<Path> directories;
+	private final boolean followLinks;
 	private Map<QID, List<Path>> fileRegister;
 
-	public OrccLoader(Reporter reporter, List<Path> directories) {
+	public OrccLoader(Reporter reporter, List<Path> directories, boolean followLinks) {
 		this.reporter = reporter;
 		this.directories = directories;
+		this.followLinks = followLinks;
 		this.fileRegister = null;
 		this.sourceCache = new HashMap<>();
 	}
@@ -48,7 +51,7 @@ public class OrccLoader implements Loader {
 		}
 	}
 
-	private QID scanNamespaceDecl__temporarily_disabled(Path p) {
+	private QID scanNamespaceDecl(Path p) {
 		NamespaceDecl ns = parse(p);
 		if (ns != null) {
 			return ns.getQID();
@@ -57,7 +60,7 @@ public class OrccLoader implements Loader {
 		}
 	}
 
-	private QID scanNamespaceDecl(Path p) {
+	private QID scanNamespaceDecl__temporarily_disabled(Path p) {
 		try (Reader reader = Files.newBufferedReader(p, Charset.forName("Latin1"))) {
 			OrccParser parser = new OrccParser(reader);
 			return parser.NamespaceScan();
@@ -73,7 +76,7 @@ public class OrccLoader implements Loader {
 		directories.stream()
 				.flatMap(p -> {
 					try {
-						return Files.walk(p);
+						return followLinks ? Files.walk(p, FileVisitOption.FOLLOW_LINKS) : Files.walk(p);
 					} catch (IOException e) {
 						reporter.report(new Diagnostic(Diagnostic.Kind.WARNING, e.getMessage()));
 						return Stream.empty();

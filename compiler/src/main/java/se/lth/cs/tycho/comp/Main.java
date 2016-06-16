@@ -155,7 +155,8 @@ public class Main {
 				Compiler.sourcePaths,
 				Compiler.orccSourcePaths,
 				Compiler.xdfSourcePaths,
-				Compiler.targetPath
+				Compiler.targetPath,
+				Loader.followLinks
 		).map(Setting::getKey).collect(Collectors.toList());
 	}
 

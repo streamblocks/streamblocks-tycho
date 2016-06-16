@@ -10,7 +10,7 @@
 	</parent>
 	<artifactId>backend-ir</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<name>Tycho Dataflow Compiler</name>
+	<name>Tycho Dataflow Compiler Backend</name>
 	<dependencies>
 		<dependency>
 			<groupId>se.lth.cs.tycho</groupId>

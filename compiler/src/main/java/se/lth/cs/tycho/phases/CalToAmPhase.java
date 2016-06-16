@@ -8,6 +8,8 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
 import se.lth.cs.tycho.phases.cal2am.CalToAm;
 import se.lth.cs.tycho.phases.cal2am.KnowledgeRemoval;
+import se.lth.cs.tycho.settings.Configuration;
+import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 
 import java.util.List;
@@ -17,6 +19,23 @@ public class CalToAmPhase implements Phase {
 	public String getDescription() {
 		return "Translates all Cal actors to actor machines";
 	}
+
+	public static final OnOffSetting actionAmbiguityDetection = new OnOffSetting() {
+		@Override
+		public String getKey() {
+			return "action-ambiguity-detection";
+		}
+
+		@Override
+		public String getDescription() {
+			return "Emits code that dynamically detects action ambiguities.";
+		}
+
+		@Override
+		public Boolean defaultValue(Configuration configuration) {
+			return false;
+		}
+	};
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
@@ -34,7 +53,8 @@ public class CalToAmPhase implements Phase {
 	public List<Setting<?>> getPhaseSettings() {
 		return ImmutableList.of(
 				KnowledgeRemoval.forgetOnExec,
-				KnowledgeRemoval.forgetOnWait
+				KnowledgeRemoval.forgetOnWait,
+				actionAmbiguityDetection
 		);
 	}
 }

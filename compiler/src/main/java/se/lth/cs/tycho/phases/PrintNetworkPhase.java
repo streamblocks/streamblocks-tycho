@@ -6,10 +6,10 @@ import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.reporting.Diagnostic;
+import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.PathSetting;
 import se.lth.cs.tycho.settings.Setting;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -40,7 +40,7 @@ public class PrintNetworkPhase implements Phase {
 		}
 
 		@Override
-		public Path defaultValue() {
+		public Path defaultValue(Configuration configuration) {
 			return null;
 		}
 	};

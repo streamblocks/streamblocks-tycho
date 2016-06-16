@@ -27,6 +27,7 @@ import se.lth.cs.tycho.phases.composition.SourcePort;
 import se.lth.cs.tycho.phases.composition.TargetPort;
 import se.lth.cs.tycho.phases.reduction.MergeStates;
 import se.lth.cs.tycho.phases.reduction.TransformedController;
+import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.transformation.RenameVariables;
@@ -61,7 +62,7 @@ public class CompositionPhase implements Phase {
 		}
 
 		@Override
-		public Boolean defaultValue() {
+		public Boolean defaultValue(Configuration configuration) {
 			return true;
 		}
 	};

@@ -8,6 +8,7 @@ import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -22,11 +23,13 @@ public class CalLoader implements Loader {
 	private final Reporter reporter;
 	private final Map<QID, List<SourceUnit>> sourceCache;
 	private final List<Path> directories;
+	private final boolean followLinks;
 	private Map<QID, List<Path>> fileRegister;
 
-	public CalLoader(Reporter reporter, List<Path> directories) {
+	public CalLoader(Reporter reporter, List<Path> directories, boolean followLinks) {
 		this.reporter = reporter;
 		this.directories = directories;
+		this.followLinks = followLinks;
 		this.fileRegister = null;
 		this.sourceCache = new HashMap<>();
 	}
@@ -60,7 +63,7 @@ public class CalLoader implements Loader {
 		directories.stream()
 				.flatMap(p -> {
 					try {
-						return Files.walk(p);
+						return followLinks ? Files.walk(p, FileVisitOption.FOLLOW_LINKS) : Files.walk(p);
 					} catch (IOException e) {
 						reporter.report(new Diagnostic(Diagnostic.Kind.WARNING, e.getMessage()));
 						return Stream.empty();
