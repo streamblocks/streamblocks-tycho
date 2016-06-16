@@ -57,6 +57,7 @@ public class Compiler {
 			new ProcessToCalPhase(),
 			new PrettyPrintPhase(),
 			new AddSchedulePhase(),
+			new ScheduleUntaggedPhase(),
 			new ScheduleInitializersPhase(),
 			new CalToAmPhase(),
 			new RemoveEmptyTransitionsPhase(),

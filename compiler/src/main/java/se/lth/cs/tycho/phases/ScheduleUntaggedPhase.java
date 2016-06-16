@@ -17,14 +17,13 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ScheduleInitializersPhase implements Phase {
+public class ScheduleUntaggedPhase implements Phase {
 
 	@Override
 	public String getDescription() {
-		return "Adds initializers to action schedule.";
+		return "Adds untagged actions to action schedule.";
 	}
 
 	@Override
@@ -34,7 +33,7 @@ public class ScheduleInitializersPhase implements Phase {
 
 	@Override
 	public Set<Class<? extends Phase>> dependencies() {
-		return Stream.of(ScheduleUntaggedPhase.class, AddSchedulePhase.class).collect(Collectors.toSet());
+		return Collections.singleton(AddSchedulePhase.class);
 	}
 
 	@Module
@@ -56,22 +55,31 @@ public class ScheduleInitializersPhase implements Phase {
 			return entity;
 		}
 		default IRNode transform(CalActor actor) {
-			if (actor.getInitializers().isEmpty()) {
+			if (actor.getActions().stream().noneMatch(action -> action.getTag() == null)) {
 				return actor;
-			} else {
-				String initState = "$init";
-				QID initTag = QID.of("$init");
-				ImmutableList<Transition> transitions = ImmutableList.<Transition> builder()
-						.add(new Transition(initState, actor.getScheduleFSM().getInitialState(), ImmutableList.of(initTag)))
-						.addAll(actor.getScheduleFSM().getTransitions())
-						.build();
-				ScheduleFSM schedule = actor.getScheduleFSM().copy(transitions, initState);
-				ImmutableList<Action> initActions = actor.getInitializers().map(a -> a.withTag(initTag));
-				ImmutableList<Action> allActions = ImmutableList.concat(initActions, actor.getActions());
-				return actor.withScheduleFSM(schedule)
-						.withActions(allActions)
-						.withInitialisers(ImmutableList.empty());
 			}
+			QID untagged = QID.of("$untagged");
+			ImmutableList<Action> actions = actor.getActions().stream()
+					.map(action -> {
+						if (action.getTag() == null) {
+							return action.withTag(untagged);
+						} else {
+							return action;
+						}
+					})
+					.collect(ImmutableList.collector());
+			Stream<Transition> untaggedTransitions = actor.getScheduleFSM().getTransitions().stream()
+					.flatMap(transition -> Stream.of(transition.getSourceState(), transition.getDestinationState()))
+					.sorted()
+					.distinct()
+					.map(state -> new Transition(state, state, ImmutableList.of(untagged)));
+
+			ImmutableList<Transition> transitions = Stream.concat(actor.getScheduleFSM().getTransitions().stream(), untaggedTransitions)
+					.collect(ImmutableList.collector());
+
+			ScheduleFSM schedule = actor.getScheduleFSM().copy(transitions, actor.getScheduleFSM().getInitialState());
+
+			return actor.withActions(actions).withScheduleFSM(schedule);
 		}
 	}
 }
