@@ -37,16 +37,16 @@ public interface NlNetworks {
 
 	default EntityInstanceExpr sourceInstance(StructureConnectionStmt connection) {
 		return enclosingNetwork(connection).getEntities().stream()
-				.filter(entry -> entry.getKey().equals(connection.getSrc().getEntityName()))
-				.map(entry -> evaluate(entry.getValue(), connection.getSrc().getEntityIndex()))
+				.filter(entry -> entry.getInstanceName().equals(connection.getSrc().getEntityName()))
+				.map(entry -> evaluate(entry.getEntityExpr(), connection.getSrc().getEntityIndex()))
 				.findFirst()
 				.get();
 	}
 
 	default EntityInstanceExpr targetInstance(StructureConnectionStmt connection) {
 		return enclosingNetwork(connection).getEntities().stream()
-				.filter(entry -> entry.getKey().equals(connection.getDst().getEntityName()))
-				.map(entry -> evaluate(entry.getValue(), connection.getDst().getEntityIndex()))
+				.filter(entry -> entry.getInstanceName().equals(connection.getDst().getEntityName()))
+				.map(entry -> evaluate(entry.getEntityExpr(), connection.getDst().getEntityIndex()))
 				.findFirst()
 				.get();
 	}

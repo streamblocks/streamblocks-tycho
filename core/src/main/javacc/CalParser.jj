@@ -657,7 +657,7 @@ EntityDecl NetworkDecl() :
 	ImmutableList<PortDecl> outputPorts;
 	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<TypeDecl> typeDecls = ImmutableList.builder();
-	ImmutableList<Map.Entry<String, EntityExpr>> instances = ImmutableList.empty();
+	ImmutableList<InstanceDecl> instances = ImmutableList.empty();
 	ImmutableList<StructureStatement> structure = ImmutableList.empty();
 	VarDecl varDecl;
 }
@@ -721,13 +721,13 @@ ImmutableList<ToolAttribute> OptToolAttributes() :
 	}
 }
 
-ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
+ImmutableList<InstanceDecl> EntityInstanceDecls() :
 {
 	Token instanceName;
 	Token entityName;
 	Token parameterName;
 	Expression parameter;
-	ImmutableList.Builder<Map.Entry<String, EntityExpr>> entities = ImmutableList.builder();
+	ImmutableList.Builder<InstanceDecl> entities = ImmutableList.builder();
 	ImmutableList.Builder<Parameter<Expression>> parameters;
 	ImmutableList<ToolAttribute> toolAttrs;
 }
@@ -762,7 +762,7 @@ ImmutableList<Map.Entry<String, EntityExpr>> EntityInstanceDecls() :
 		toolAttrs = OptToolAttributes()
 		";"
 		{
-			entities.add(ImmutableEntry.of(instanceName.image, new EntityInstanceExpr(entityName.image, parameters.build()).withAttributes(toolAttrs)));
+			entities.add(new InstanceDecl(instanceName.image, new EntityInstanceExpr(entityName.image, parameters.build()).withAttributes(toolAttrs)));
 		}
 	)*
 	{

@@ -8,8 +8,8 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
@@ -157,11 +157,11 @@ public class ElaborateNetworkPhase implements Phase {
 		ImmutableList<PortDecl> outputPorts = network.getOutputPorts().map(PortDecl::deepClone);
 
 		ImmutableList.Builder<Instance> instances = ImmutableList.builder();
-		for (Map.Entry<String, EntityExpr> entity : network.getEntities()) {
-			assert entity.getValue() instanceof EntityInstanceExpr;
-			EntityInstanceExpr expr = (EntityInstanceExpr) entity.getValue();
+		for (InstanceDecl entity : network.getEntities()) {
+			assert entity.getEntityExpr() instanceof EntityInstanceExpr;
+			EntityInstanceExpr expr = (EntityInstanceExpr) entity.getEntityExpr();
 			Instance instance = new Instance(
-					entity.getKey(),
+					entity.getInstanceName(),
 					expr.getEntityName(),
 					expr.getParameterAssignments().map(Parameter::deepClone),
 					ImmutableList.empty())

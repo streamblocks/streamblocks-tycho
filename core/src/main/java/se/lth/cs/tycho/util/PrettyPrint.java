@@ -15,7 +15,15 @@ import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.expr.*;
-import se.lth.cs.tycho.ir.stmt.*;
+import se.lth.cs.tycho.ir.stmt.Statement;
+import se.lth.cs.tycho.ir.stmt.StatementVisitor;
+import se.lth.cs.tycho.ir.stmt.StmtAssignment;
+import se.lth.cs.tycho.ir.stmt.StmtBlock;
+import se.lth.cs.tycho.ir.stmt.StmtCall;
+import se.lth.cs.tycho.ir.stmt.StmtConsume;
+import se.lth.cs.tycho.ir.stmt.StmtForeach;
+import se.lth.cs.tycho.ir.stmt.StmtIf;
+import se.lth.cs.tycho.ir.stmt.StmtWhile;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
@@ -26,7 +34,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisitor<Void, Void>, EntityExprVisitor<Void, Void>, StructureStmtVisitor<Void, Void>, LValueVisitor<Void, Void> {
 	private java.io.PrintStream out = System.out;
@@ -57,11 +64,11 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			indent();
 			out.append("entities");
 			incIndent();
-			for(Entry<String, EntityExpr> entity : network.getEntities()){
+			for(InstanceDecl entity : network.getEntities()){
 				indent();
-				out.append(entity.getKey());
+				out.append(entity.getInstanceName());
 				out.append(" = ");
-				print((EntityExpr)entity.getValue());
+				print((EntityExpr) entity.getEntityExpr());
 				out.append(";");
 			}
 			decIndent();

@@ -1,10 +1,8 @@
 package se.lth.cs.tycho.util;
 
 import se.lth.cs.tycho.ir.entity.nl.*;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -21,17 +19,17 @@ public final class NetworkUtils {
 		return removeInstance(result, name);
 	}
 	public static NlNetwork removeInstance(NlNetwork network, String name) {
-		ImmutableList.Builder<Map.Entry<String, EntityExpr>> builder = ImmutableList.builder();
-		for (Map.Entry<String, EntityExpr> entry : network.getEntities()) {
-			if (entry.getKey().equals(name)) {
-				if (entry.getValue() instanceof EntityListExpr) {
+		ImmutableList.Builder<InstanceDecl> builder = ImmutableList.builder();
+		for (InstanceDecl entry : network.getEntities()) {
+			if (entry.getInstanceName().equals(name)) {
+				if (entry.getEntityExpr() instanceof EntityListExpr) {
 					throw new IllegalArgumentException("Cannot remove a list of instances.");
 				}
 			} else {
 				builder.add(entry);
 			}
 		}
-		ImmutableList<Map.Entry<String, EntityExpr>> entities = builder.build();
+		ImmutableList<InstanceDecl> entities = builder.build();
 		int removed = network.getEntities().size() - entities.size();
 		if (removed == 0) {
 			throw new NoSuchElementException("No such instance found.");
@@ -74,13 +72,13 @@ public final class NetworkUtils {
 	}
 
 	public static NlNetwork addInstance(NlNetwork network, String name, EntityInstanceExpr instance) {
-		if (network.getEntities().stream().map(Map.Entry::getKey).anyMatch(name::equals)) {
+		if (network.getEntities().stream().map(InstanceDecl::getInstanceName).anyMatch(name::equals)) {
 			throw new IllegalArgumentException("Name is already used.");
 		}
 		return network.withEntities(
-				ImmutableList.<Map.Entry<String, EntityExpr>> builder()
+				ImmutableList.<InstanceDecl> builder()
 						.addAll(network.getEntities())
-						.add(ImmutableEntry.of(name, instance))
+						.add(new InstanceDecl(name, instance))
 						.build());
 	}
 

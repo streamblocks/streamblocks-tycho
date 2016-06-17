@@ -19,14 +19,14 @@ import java.util.function.Consumer;
 public class NlNetwork extends Entity implements Attributable {
 	private final ImmutableList<TypeDecl> typeDecls;
 	private final ImmutableList<VarDecl> varDecls;
-	private final ImmutableList<Entry<String, EntityExpr>> entities;
+	private final ImmutableList<InstanceDecl> entities;
 	private final ImmutableList<StructureStatement> structure;
 	private final ImmutableList<ToolAttribute> attributes;
 
 	public NlNetwork(List<TypeDecl> typePars,
 					 List<VarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
 					 List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-					 List<Entry<String, EntityExpr>> entities, List<StructureStatement> structure,
+					 List<InstanceDecl> entities, List<StructureStatement> structure,
 					 List<ToolAttribute> attributes) {
 		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure,
 				attributes);
@@ -35,7 +35,7 @@ public class NlNetwork extends Entity implements Attributable {
 	private NlNetwork(NlNetwork original,
 			List<TypeDecl> typePars, List<VarDecl> valuePars,
 			List<TypeDecl> typeDecls, List<VarDecl> varDecls, List<PortDecl> inputPorts,
-			List<PortDecl> outputPorts, List<Entry<String, EntityExpr>> entities,
+			List<PortDecl> outputPorts, List<InstanceDecl> entities,
 			List<StructureStatement> structure, List<ToolAttribute> attributes) {
 
 		super(original, inputPorts, outputPorts, typePars, valuePars);
@@ -50,7 +50,7 @@ public class NlNetwork extends Entity implements Attributable {
 	public NlNetwork copy(List<TypeDecl> typePars,
 			List<VarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-			List<Entry<String, EntityExpr>> entities, List<StructureStatement> structure,
+			List<InstanceDecl> entities, List<StructureStatement> structure,
 			List<ToolAttribute> toolAttributes) {
 		if (Lists.sameElements(this.typeParameters, typePars)
 				&& Lists.sameElements(this.valueParameters, valuePars)
@@ -82,7 +82,7 @@ public class NlNetwork extends Entity implements Attributable {
 				(ImmutableList) varDecls.map(transformation),
 				(ImmutableList) inputPorts.map(transformation),
 				(ImmutableList) outputPorts.map(transformation),
-				(ImmutableList) entities.map(entry -> ImmutableEntry.of(entry.getKey(), (EntityExpr) transformation.apply(entry.getValue()))),
+				(ImmutableList) entities.map(transformation),
 				(ImmutableList) structure.map(transformation),
 				(ImmutableList) attributes.map(transformation)
 		);
@@ -96,7 +96,7 @@ public class NlNetwork extends Entity implements Attributable {
 		varDecls.forEach(action);
 		inputPorts.forEach(action);
 		outputPorts.forEach(action);
-		entities.forEach(entry -> action.accept(entry.getValue()));
+		entities.forEach(action);
 		structure.forEach(action);
 		attributes.forEach(action);
 	}
@@ -120,11 +120,11 @@ public class NlNetwork extends Entity implements Attributable {
 		}
 	}
 
-	public ImmutableList<Entry<String, EntityExpr>> getEntities() {
+	public ImmutableList<InstanceDecl> getEntities() {
 		return entities;
 	}
 
-	public NlNetwork withEntities(List<Entry<String, EntityExpr>> entities) {
+	public NlNetwork withEntities(List<InstanceDecl> entities) {
 		if (Lists.sameElements(this.entities, entities)) {
 			return this;
 		} else {

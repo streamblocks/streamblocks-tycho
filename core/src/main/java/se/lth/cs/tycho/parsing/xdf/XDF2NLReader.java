@@ -5,8 +5,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
@@ -14,8 +14,8 @@ import se.lth.cs.tycho.ir.ToolValueAttribute;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
@@ -23,7 +23,6 @@ import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -51,7 +50,7 @@ public class XDF2NLReader {
 
 	private NamespaceDecl buildNetwork(Document doc, QID qid) {
 		ImmutableList.Builder<EntityDecl> entities = ImmutableList.builder();
-		ImmutableList.Builder<Map.Entry<String, EntityExpr>> instances = ImmutableList.builder();
+		ImmutableList.Builder<InstanceDecl> instances = ImmutableList.builder();
 		buildNodes(doc, qid.getButLast(), entities, instances);
 		ImmutableList.Builder<StructureStatement> connections = ImmutableList.builder();
 		buildConnections(doc, connections);
@@ -93,7 +92,7 @@ public class XDF2NLReader {
 		}
 	}
 
-	private void buildNodes(Document input, QID ns, ImmutableList.Builder<EntityDecl> imports, ImmutableList.Builder<Map.Entry<String, EntityExpr>> entities) {
+	private void buildNodes(Document input, QID ns, ImmutableList.Builder<EntityDecl> imports, ImmutableList.Builder<InstanceDecl> entities) {
 		ImportManager manager = new ImportManager(ns);
 		for (Element instance : selectChildren(input.getDocumentElement(), "Instance")) {
 			String instanceName = instance.getAttribute("id");
@@ -148,7 +147,7 @@ public class XDF2NLReader {
 			instanceParameters.put(instance, parameters);
 		}
 
-		public void generate(Consumer<EntityDecl> importConsumer, Consumer<Map.Entry<String, EntityExpr>> instanceConsumer) {
+		public void generate(Consumer<EntityDecl> importConsumer, Consumer<InstanceDecl> instanceConsumer) {
 			Set<String> usedNames = new HashSet<>();
 			Map<QID, String> localName = new HashMap<>();
 			for (QID entity : entities.values()) {
@@ -170,7 +169,7 @@ public class XDF2NLReader {
 			for (String instance : entities.keySet()) {
 				String entityName = localName.get(entities.get(instance));
 				EntityInstanceExpr instanceExpr = new EntityInstanceExpr(entityName, instanceParameters.get(instance));
-				instanceConsumer.accept(ImmutableEntry.of(instance, instanceExpr));
+				instanceConsumer.accept(new InstanceDecl(instance, instanceExpr));
 			}
 		}
 

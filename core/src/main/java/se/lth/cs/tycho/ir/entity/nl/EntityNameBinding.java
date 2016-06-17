@@ -1,7 +1,5 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import java.util.Map.Entry;
-
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 /**
@@ -11,22 +9,22 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
  *
  */
 
-public class EntityNameBinding implements StructureStmtVisitor<Object, ImmutableList<Entry<String,EntityExpr>>>{
+public class EntityNameBinding implements StructureStmtVisitor<Object, ImmutableList<InstanceDecl>>{
 
 	public EntityNameBinding(NlNetwork network){
-		ImmutableList<Entry<String,EntityExpr>> names = network.getEntities();
+		ImmutableList<InstanceDecl> names = network.getEntities();
 		for(StructureStatement s : network.getStructure()){
 			s.accept(this, names);
 		}
 	}
 
-	public Object visitStructureConnectionStmt(StructureConnectionStmt stmt, ImmutableList<Entry<String,EntityExpr>> names) {
+	public Object visitStructureConnectionStmt(StructureConnectionStmt stmt, ImmutableList<InstanceDecl> names) {
 		lookupEntity(stmt.getSrc(), names);
 		lookupEntity(stmt.getDst(), names);
 		return null;
 	}
 
-	public Object visitStructureIfStmt(StructureIfStmt stmt, ImmutableList<Entry<String,EntityExpr>> names) {
+	public Object visitStructureIfStmt(StructureIfStmt stmt, ImmutableList<InstanceDecl> names) {
 		for(StructureStatement s : stmt.getTrueStmt()){
 			s.accept(this, names);
 		}
@@ -38,19 +36,19 @@ public class EntityNameBinding implements StructureStmtVisitor<Object, Immutable
 		return null;
 	}
 
-	public Object visitStructureForeachStmt(StructureForeachStmt stmt, ImmutableList<Entry<String,EntityExpr>> names) {
+	public Object visitStructureForeachStmt(StructureForeachStmt stmt, ImmutableList<InstanceDecl> names) {
 		for(StructureStatement s : stmt.getStatements()){
 			s.accept(this, names);
 		}
 		return null;
 	}
-	private void lookupEntity(PortReference ref, ImmutableList<Entry<String,EntityExpr>> names){
+	private void lookupEntity(PortReference ref, ImmutableList<InstanceDecl> names){
 		EntityExpr entity = null;
 		String entityName = ref.getEntityName();
 		if(entityName != null){
-			for(Entry<String, EntityExpr> binding : names){
-				if(binding.getKey().equals(entityName)){
-					entity = binding.getValue();
+			for(InstanceDecl binding : names){
+				if(binding.getInstanceName().equals(entityName)){
+					entity = binding.getEntityExpr();
 					break;
 				}
 			}
