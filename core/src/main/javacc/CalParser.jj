@@ -684,7 +684,7 @@ EntityDecl NetworkDecl() :
 
 
 	{ return EntityDecl.global(Availability.PUBLIC, id.image, new NlNetwork(typePars, valuePars, typeDecls.build(), varDecls.build(), inputPorts, outputPorts,
-                 			instances, structure, ImmutableList.empty())); }
+                 			instances, structure)); }
 }
 
 ImmutableList<ToolAttribute> OptToolAttributes() :

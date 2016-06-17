@@ -83,7 +83,6 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			}
 			decIndent();
 		}
-		printToolAttributes(network.getAttributes());
 		decIndent();  // calActor body
 		indent();
 		out.append("end\n");

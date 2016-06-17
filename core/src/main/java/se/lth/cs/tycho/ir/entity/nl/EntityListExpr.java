@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -8,7 +9,7 @@ import se.lth.cs.tycho.ir.util.Lists;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class EntityListExpr extends EntityExpr {
+public class EntityListExpr extends AbstractIRNode implements EntityExpr {
 
 	public EntityListExpr(List<EntityExpr> entityList) {
 		this(null, entityList);
@@ -52,18 +53,12 @@ public class EntityListExpr extends EntityExpr {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		entityList.forEach(action);
-		getAttributes().forEach(action);
-	}
-
-	@Override
-	public EntityListExpr withAttributes(List<ToolAttribute> attributes) {
-		return (EntityListExpr) super.withAttributes(attributes);
 	}
 
 	@Override
 	public EntityListExpr transformChildren(Transformation transformation) {
 		return copy(
 				transformation.mapChecked(EntityExpr.class, entityList)
-		).withAttributes(transformation.mapChecked(ToolAttribute.class, getAttributes()));
+		);
 	}
 }

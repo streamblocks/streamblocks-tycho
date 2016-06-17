@@ -56,7 +56,7 @@ public class XDF2NLReader {
 		buildConnections(doc, connections);
 		ImmutableList<PortDecl> inputPorts = buildPorts(doc, true);
 		ImmutableList<PortDecl> outputPorts = buildPorts(doc, false);
-		NlNetwork network = new NlNetwork(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(), inputPorts, outputPorts, instances.build(), connections.build(), ImmutableList.empty());
+		NlNetwork network = new NlNetwork(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(), inputPorts, outputPorts, instances.build(), connections.build());
 		EntityDecl entityDecl = EntityDecl.global(Availability.PUBLIC, qid.getLast().toString(), network);
 		entities.add(entityDecl);
 		return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.empty(), entities.build(), ImmutableList.empty());

@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
  * 
  */
 
-public class StructureIfStmt extends StructureStatement {
+public class StructureIfStmt extends AbstractIRNode implements StructureStatement {
 	public StructureIfStmt(Expression condition, List<StructureStatement> trueStmt,
 						   List<StructureStatement> falseStmt) {
 		this(null, condition, trueStmt, falseStmt);
@@ -62,7 +63,6 @@ public class StructureIfStmt extends StructureStatement {
 		action.accept(condition);
 		trueStmt.forEach(action);
 		falseStmt.forEach(action);
-		getAttributes().forEach(action);
 	}
 
 	@Override
@@ -72,6 +72,6 @@ public class StructureIfStmt extends StructureStatement {
 				(Expression) transformation.apply(condition),
 				(List) trueStmt.map(transformation),
 				(List) falseStmt.map(transformation)
-		).withAttributes((List) getAttributes().map(transformation));
+		);
 	}
 }

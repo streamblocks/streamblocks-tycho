@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.ToolAttribute;
 
@@ -11,7 +12,7 @@ import java.util.function.Consumer;
  * 
  */
 
-public class StructureConnectionStmt extends StructureStatement {
+public class StructureConnectionStmt extends AttributableIRNode implements StructureStatement {
 
 	public StructureConnectionStmt(PortReference src, PortReference dst) {
 		this(null, src, dst);

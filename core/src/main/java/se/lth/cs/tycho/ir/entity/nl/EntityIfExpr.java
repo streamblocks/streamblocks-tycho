@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 
@@ -12,7 +13,7 @@ import java.util.function.Consumer;
  * 
  */
 
-public class EntityIfExpr extends EntityExpr {
+public class EntityIfExpr extends AbstractIRNode implements EntityExpr {
 
 	public EntityIfExpr(Expression condition, EntityExpr trueEntity, EntityExpr falseEntity) {
 		this(null, condition, trueEntity, falseEntity);
@@ -30,6 +31,10 @@ public class EntityIfExpr extends EntityExpr {
 			return this;
 		}
 		return new EntityIfExpr(this, condition, trueEntity, falseEntity);
+	}
+
+	public EntityIfExpr clone() {
+		return (EntityIfExpr) super.clone();
 	}
 
 	public Expression getCondition() {
@@ -57,7 +62,6 @@ public class EntityIfExpr extends EntityExpr {
 		action.accept(condition);
 		action.accept(trueEntity);
 		action.accept(falseEntity);
-		getAttributes().forEach(action);
 	}
 
 	@Override
@@ -67,6 +71,6 @@ public class EntityIfExpr extends EntityExpr {
 				(Expression) transformation.apply(condition),
 				(EntityExpr) transformation.apply(trueEntity),
 				(EntityExpr) transformation.apply(falseEntity)
-		).withAttributes((List) getAttributes().map(transformation));
+		);
 	}
 }

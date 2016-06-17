@@ -1,11 +1,6 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.AttributableIRNode;
-import se.lth.cs.tycho.ir.util.ImmutableList;
-
-import java.util.List;
 
 /**
  * 
@@ -13,15 +8,9 @@ import java.util.List;
  * 
  */
 
-public abstract class EntityExpr extends AttributableIRNode {
-	public EntityExpr(EntityExpr original) {
-		super(original);
-	}
-
-	public abstract <R, P> R accept(EntityExprVisitor<R, P> v, P p);
-
-	@Override
-	public EntityExpr deepClone() {
-		return (EntityExpr) super.deepClone();
+public interface EntityExpr extends IRNode {
+	<R, P> R accept(EntityExprVisitor<R, P> v, P p);
+	default <R> R accept(EntityExprVisitor<R, Void> v) {
+		return accept(v, null);
 	}
 }

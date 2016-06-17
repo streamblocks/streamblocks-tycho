@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.ToolAttribute;
@@ -16,13 +17,13 @@ import java.util.function.Consumer;
  * 
  */
 
-public class EntityInstanceExpr extends EntityExpr {
+public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr {
 
 	public EntityInstanceExpr(String entityName, List<Parameter<Expression>> parameterAssignments) {
 		this(null, entityName, parameterAssignments);
 	}
 
-	private EntityInstanceExpr(EntityExpr original, String entityName, List<Parameter<Expression>> parameterAssignments) {
+	private EntityInstanceExpr(EntityInstanceExpr original, String entityName, List<Parameter<Expression>> parameterAssignments) {
 		super(original);
 		this.entityName = entityName;
 		this.parameterAssignments = ImmutableList.from(parameterAssignments);

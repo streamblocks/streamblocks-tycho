@@ -1,42 +1,35 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
-import se.lth.cs.tycho.ir.Attributable;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.function.Consumer;
 
-public class NlNetwork extends Entity implements Attributable {
+public class NlNetwork extends Entity {
 	private final ImmutableList<TypeDecl> typeDecls;
 	private final ImmutableList<VarDecl> varDecls;
 	private final ImmutableList<InstanceDecl> entities;
 	private final ImmutableList<StructureStatement> structure;
-	private final ImmutableList<ToolAttribute> attributes;
 
 	public NlNetwork(List<TypeDecl> typePars,
 					 List<VarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
 					 List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-					 List<InstanceDecl> entities, List<StructureStatement> structure,
-					 List<ToolAttribute> attributes) {
-		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure,
-				attributes);
+					 List<InstanceDecl> entities, List<StructureStatement> structure) {
+		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
 	}
 
 	private NlNetwork(NlNetwork original,
 			List<TypeDecl> typePars, List<VarDecl> valuePars,
 			List<TypeDecl> typeDecls, List<VarDecl> varDecls, List<PortDecl> inputPorts,
 			List<PortDecl> outputPorts, List<InstanceDecl> entities,
-			List<StructureStatement> structure, List<ToolAttribute> attributes) {
+			List<StructureStatement> structure) {
 
 		super(original, inputPorts, outputPorts, typePars, valuePars);
 
@@ -44,14 +37,12 @@ public class NlNetwork extends Entity implements Attributable {
 		this.varDecls = ImmutableList.from(varDecls);
 		this.entities = ImmutableList.from(entities);
 		this.structure = ImmutableList.from(structure);
-		this.attributes = ImmutableList.from(attributes);
 	}
 
 	public NlNetwork copy(List<TypeDecl> typePars,
 			List<VarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-			List<InstanceDecl> entities, List<StructureStatement> structure,
-			List<ToolAttribute> toolAttributes) {
+			List<InstanceDecl> entities, List<StructureStatement> structure) {
 		if (Lists.sameElements(this.typeParameters, typePars)
 				&& Lists.sameElements(this.valueParameters, valuePars)
 				&& Lists.sameElements(this.typeDecls, typeDecls)
@@ -59,12 +50,11 @@ public class NlNetwork extends Entity implements Attributable {
 				&& Lists.sameElements(this.inputPorts, inputPorts)
 				&& Lists.sameElements(this.outputPorts, outputPorts)
 				&& Lists.sameElements(this.entities, entities)
-				&& Lists.sameElements(this.structure, structure)
-				&& Lists.sameElements(this.attributes, toolAttributes)) {
+				&& Lists.sameElements(this.structure, structure)) {
 			return this;
 		}
 		return new NlNetwork(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
-				entities, structure, toolAttributes);
+				entities, structure);
 	}
 
 	@Override
@@ -83,8 +73,7 @@ public class NlNetwork extends Entity implements Attributable {
 				(ImmutableList) inputPorts.map(transformation),
 				(ImmutableList) outputPorts.map(transformation),
 				(ImmutableList) entities.map(transformation),
-				(ImmutableList) structure.map(transformation),
-				(ImmutableList) attributes.map(transformation)
+				(ImmutableList) structure.map(transformation)
 		);
 	}
 
@@ -98,7 +87,6 @@ public class NlNetwork extends Entity implements Attributable {
 		outputPorts.forEach(action);
 		entities.forEach(action);
 		structure.forEach(action);
-		attributes.forEach(action);
 	}
 
 	public ImmutableList<VarDecl> getVarDecls() {
@@ -109,14 +97,14 @@ public class NlNetwork extends Entity implements Attributable {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
-			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure, attributes);
+			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
 		}
 	}
 	public NlNetwork withValueParameters(List<VarDecl> valueParameters) {
 		if (Lists.sameElements(this.valueParameters, valueParameters)) {
 			return this;
 		} else {
-			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure, attributes);
+			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
 		}
 	}
 
@@ -128,7 +116,7 @@ public class NlNetwork extends Entity implements Attributable {
 		if (Lists.sameElements(this.entities, entities)) {
 			return this;
 		} else {
-			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure, attributes);
+			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
 		}
 	}
 
@@ -140,21 +128,7 @@ public class NlNetwork extends Entity implements Attributable {
 		if (Lists.sameElements(this.structure, structure)) {
 			return this;
 		} else {
-			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure, attributes);
-		}
-	}
-
-	@Override
-	public ImmutableList<ToolAttribute> getAttributes() {
-		return attributes;
-	}
-
-	@Override
-	public Attributable withAttributes(List<ToolAttribute> attributes) {
-		if (Lists.sameElements(this.attributes, attributes)) {
-			return this;
-		} else {
-			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure, attributes);
+			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
 		}
 	}
 }

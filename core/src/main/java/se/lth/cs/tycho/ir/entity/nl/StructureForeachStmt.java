@@ -1,8 +1,8 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -10,7 +10,7 @@ import se.lth.cs.tycho.ir.util.Lists;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class StructureForeachStmt extends StructureStatement {
+public class StructureForeachStmt extends AbstractIRNode implements StructureStatement {
 
 	public StructureForeachStmt(Generator generator, List<Expression> filters, List<StructureStatement> statements) {
 		this(null, generator, filters, statements);
@@ -56,7 +56,6 @@ public class StructureForeachStmt extends StructureStatement {
 		action.accept(generator);
 		filters.forEach(action);
 		statements.forEach(action);
-		getAttributes().forEach(action);
 	}
 
 	@Override
@@ -65,6 +64,6 @@ public class StructureForeachStmt extends StructureStatement {
 				transformation.applyChecked(Generator.class, generator),
 				transformation.mapChecked(Expression.class, filters),
 				transformation.mapChecked(StructureStatement.class, statements)
-		).withAttributes(transformation.mapChecked(ToolAttribute.class, getAttributes()));
+		);
 	}
 }
