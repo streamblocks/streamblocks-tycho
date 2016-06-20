@@ -15,11 +15,11 @@ import java.util.function.Function;
 
 public class ImportDeclarations {
 	public static Optional<Tree<VarDecl>> followVariableImport(Tree<VarDecl> decl) {
-		return followImport(decl, NamespaceDecl::getVarDecls);
+		return decl.node().isImport() ? followImport(decl, NamespaceDecl::getVarDecls) : Optional.of(decl);
 	}
 
 	public static Optional<Tree<EntityDecl>> followEntityImport(Tree<EntityDecl> decl) {
-		return followImport(decl, NamespaceDecl::getEntityDecls);
+		return decl.node().isImport() ? followImport(decl, NamespaceDecl::getEntityDecls) : Optional.of(decl);
 	}
 
 	private static <D extends Decl> Optional<Tree<D>> followImport(Tree<D> decl, Function<NamespaceDecl, Collection<D>> getDecls) {
