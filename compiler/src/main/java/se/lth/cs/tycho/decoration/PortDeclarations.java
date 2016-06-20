@@ -1,7 +1,5 @@
 package se.lth.cs.tycho.decoration;
 
-import org.multij.Module;
-import org.multij.MultiJ;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -17,61 +15,52 @@ import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import java.util.Optional;
 
 public final class PortDeclarations {
-	private static final Lookup lookup = MultiJ.instance(Lookup.class);
 
 	private PortDeclarations() {}
 
-	public static Optional<PortDecl> getDeclaration(Tree<Port> port) {
-		return port.parent().flatMap(parent ->
-				lookup.lookupPort(parent, parent.node())
-		);
+	public static Optional<Tree<PortDecl>> getDeclaration(Tree<Port> port) {
+		if (isInputPort(port)) {
+			return lookupInputPort(port);
+		} else {
+			return lookupOutputPort(port);
+		}
 	}
 
-	private static Optional<PortDecl> lookupInputPort(Tree<?> context, Port port) {
-		return context.findParentOfType(Entity.class)
-				.flatMap(entity -> entity.node().getInputPorts().stream()
-						.filter(p -> p.getName().equals(port.getName())).findFirst());
-	}
-
-	private static Optional<PortDecl> lookupOutputPort(Tree<?> context, Port port) {
-		return context.findParentOfType(Entity.class)
-				.flatMap(entity -> entity.node().getOutputPorts().stream()
-						.filter(p -> p.getName().equals(port.getName())).findFirst());
-	}
-
-	@Module
-	interface Lookup {
-		Optional<PortDecl> lookupPort(Tree context, IRNode node);
-		default Optional<PortDecl> lookupPort(Tree context, PortCondition condition) {
-			if (condition.isInputCondition()) {
-				return lookupInputPort(context, condition.getPortName());
+	private static boolean isInputPort(Tree<Port> port) {
+		Optional<Tree<? extends IRNode>> parentTree = port.parent();
+		if (parentTree.isPresent()) {
+			IRNode parent = parentTree.get().node();
+			if (parent instanceof PortCondition) {
+				return ((PortCondition) parent).isInputCondition();
+			} else if (parent instanceof InputPattern) {
+				return true;
+			} else if (parent instanceof ExprInput) {
+				return true;
+			} else if (parent instanceof StmtConsume) {
+				return true;
+			} else if (parent instanceof StmtRead) {
+				return true;
+			} else if (parent instanceof OutputExpression) {
+				return false;
+			} else if (parent instanceof StmtWrite) {
+				return false;
 			} else {
-				return lookupOutputPort(context, condition.getPortName());
+				throw new RuntimeException("Port in unknown context.");
 			}
+		} else {
+			throw new IllegalArgumentException("Port has no context.");
 		}
+	}
 
-		default Optional<PortDecl> lookupPort(Tree context, InputPattern inputPattern) {
-			return lookupInputPort(context, inputPattern.getPort());
-		}
+	private static Optional<Tree<PortDecl>> lookupInputPort(Tree<Port> port) {
+		return port.findParentOfType(Entity.class)
+				.flatMap(entity -> entity.children(Entity::getInputPorts)
+						.filter(p -> p.node().getName().equals(port.node().getName())).findFirst());
+	}
 
-		default Optional<PortDecl> lookupPort(Tree context, OutputExpression outputExpression) {
-			return lookupOutputPort(context, outputExpression.getPort());
-		}
-
-		default Optional<PortDecl> lookupPort(Tree context, ExprInput input) {
-			return lookupInputPort(context, input.getPort());
-		}
-
-		default Optional<PortDecl> lookupPort(Tree context, StmtConsume consume) {
-			return lookupInputPort(context, consume.getPort());
-		}
-
-		default Optional<PortDecl> lookupPort(Tree context, StmtRead read) {
-			return lookupInputPort(context, read.getPort());
-		}
-
-		default Optional<PortDecl> lookupPort(Tree context, StmtWrite write) {
-			return lookupOutputPort(context, write.getPort());
-		}
+	private static Optional<Tree<PortDecl>> lookupOutputPort(Tree<Port> port) {
+		return port.findParentOfType(Entity.class)
+				.flatMap(entity -> entity.children(Entity::getOutputPorts)
+						.filter(p -> p.node().getName().equals(port.node().getName())).findFirst());
 	}
 }
