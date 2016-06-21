@@ -16,7 +16,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class ConstantFolding {
+public final class ConstantFolding {
+	private ConstantFolding() {}
+
 	private static final ConstantFoldingModule module = MultiJ.instance(ConstantFoldingModule.class);
 
 	public static Optional<BigInteger> integerConstant(Tree<Expression> expression) {
