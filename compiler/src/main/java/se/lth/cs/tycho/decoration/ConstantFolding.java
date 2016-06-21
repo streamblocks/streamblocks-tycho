@@ -5,6 +5,8 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
+import se.lth.cs.tycho.ir.expr.ExprIf;
+import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
@@ -35,6 +37,10 @@ public final class ConstantFolding {
 			return Optional.empty();
 		}
 
+		default Optional<Boolean> booleanConstant(Tree tree_, Expression expression) {
+			return Optional.empty();
+		}
+
 		default Optional<BigInteger> integerConstant(Tree tree_, ExprLiteral expression) {
 			if (expression.getKind() == ExprLiteral.Kind.Integer) {
 				String text = expression.getText();
@@ -48,11 +54,23 @@ public final class ConstantFolding {
 			}
 		}
 
-		default Optional<BigInteger> integerConstant(Tree tree_, ExprVariable expression) {
-			return variableConstant(reconstruct(tree_, expression), ConstantFolding::integerConstant);
+		default Optional<Boolean> booleanConstant(Tree tree_, ExprLiteral expression) {
+			switch (expression.getKind()) {
+				case True: return Optional.of(true);
+				case False: return Optional.of(false);
+				default: return Optional.empty();
+			}
 		}
 
-		default <T> Optional<T> variableConstant(Tree<ExprVariable> expr, Function<Tree<Expression>, Optional<T>> evaluator) {
+		default Optional<BigInteger> integerConstant(Tree tree_, ExprVariable expression) {
+			return genericVariable(reconstruct(tree_, expression), ConstantFolding::integerConstant);
+		}
+
+		default Optional<Boolean> booleanConstant(Tree tree_, ExprVariable expression) {
+			return genericVariable(reconstruct(tree_, expression), ConstantFolding::booleanConstant);
+		}
+
+		default <T> Optional<T> genericVariable(Tree<ExprVariable> expr, Function<Tree<Expression>, Optional<T>> evaluator) {
 			Optional<Tree<VarDecl>> decl = VariableDeclarations.getDeclaration(expr.child(ExprVariable::getVariable))
 					.flatMap(ImportDeclarations::followVariableImport);
 			if (decl.isPresent() && decl.get().node().isConstant()) {
@@ -67,6 +85,16 @@ public final class ConstantFolding {
 			if (operandValue.isPresent()) {
 				switch (expression.getOperation()) {
 					case "-": return Optional.of(operandValue.get().negate());
+				}
+			}
+			return Optional.empty();
+		}
+
+		default Optional<Boolean> booleanConstant(Tree tree_, ExprUnaryOp expression) {
+			Optional<Boolean> operandValue = ConstantFolding.booleanConstant(reconstruct(tree_, expression).child(ExprUnaryOp::getOperand));
+			if (operandValue.isPresent()) {
+				switch (expression.getOperation()) {
+					case "not": return Optional.of(!operandValue.get());
 				}
 			}
 			return Optional.empty();
@@ -111,22 +139,6 @@ public final class ConstantFolding {
 			}
 		}
 
-		default Optional<Boolean> booleanConstant(Tree tree_, Expression expression) {
-			return Optional.empty();
-		}
-
-		default Optional<Boolean> booleanConstant(Tree tree_, ExprLiteral expression) {
-			switch (expression.getKind()) {
-				case True: return Optional.of(true);
-				case False: return Optional.of(false);
-				default: return Optional.empty();
-			}
-		}
-
-		default Optional<Boolean> booleanConstant(Tree tree_, ExprVariable expression) {
-			return variableConstant(reconstruct(tree_, expression), ConstantFolding::booleanConstant);
-		}
-
 		default Optional<Boolean> booleanConstant(Tree tree_, ExprBinaryOp expression) {
 			return genericBinaryOp(reconstruct(tree_, expression), ConstantFolding::booleanConstant, this::booleanBinaryOp);
 		}
@@ -139,6 +151,27 @@ public final class ConstantFolding {
 				case "||": return Optional.of(x || y);
 				default: return Optional.empty();
 			}
+		}
+
+		default Optional<BigInteger> integerConstant(Tree tree_, ExprIf expression) {
+			return genericIf(reconstruct(tree_, expression), ConstantFolding::integerConstant);
+		}
+
+		default Optional<Boolean> booleanConstant(Tree tree_, ExprIf expression) {
+			return genericIf(reconstruct(tree_, expression), ConstantFolding::booleanConstant);
+		}
+
+		default <T> Optional<T> genericIf(Tree<ExprIf> tree, Function<Tree<Expression>, Optional<T>> evaluator) {
+			return ConstantFolding.booleanConstant(tree.child(ExprIf::getCondition))
+					.flatMap(result -> evaluator.apply(tree.child(result ? ExprIf::getThenExpr : ExprIf::getElseExpr)));
+		}
+
+		default Optional<BigInteger> integerConstant(Tree tree_, ExprLet expression) {
+			return ConstantFolding.integerConstant(reconstruct(tree_, expression).child(ExprLet::getBody));
+		}
+
+		default Optional<Boolean> booleanConstant(Tree tree_, ExprLet expression) {
+			return ConstantFolding.booleanConstant(reconstruct(tree_, expression).child(ExprLet::getBody));
 		}
 
 		@SuppressWarnings("unchecked")
