@@ -6,8 +6,6 @@ import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.ListType;
 import se.lth.cs.tycho.types.Type;
 
-import java.util.stream.Stream;
-
 @Module
 public interface DefaultValues {
 	String defaultValue(Type type);
