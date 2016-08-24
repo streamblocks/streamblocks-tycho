@@ -5,7 +5,9 @@ import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
 
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public interface Loader {
@@ -15,7 +17,8 @@ public interface Loader {
 		return new CombinedLoader(Arrays.asList(
 				new CalLoader(reporter, configuration.get(Compiler.sourcePaths), configuration.get(followLinks)),
 				new OrccLoader(reporter, configuration.get(Compiler.orccSourcePaths), configuration.get(followLinks)),
-				new XdfLoader(reporter, configuration.get(Compiler.xdfSourcePaths))));
+				new XdfLoader(reporter, configuration.get(Compiler.xdfSourcePaths)),
+				new PreludeLoader(reporter)));
 	}
 
 	OnOffSetting followLinks = new OnOffSetting() {

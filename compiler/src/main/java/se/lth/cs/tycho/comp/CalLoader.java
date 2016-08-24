@@ -39,7 +39,7 @@ public class CalLoader implements Loader {
 			CalParser parser = new CalParser(Files.newBufferedReader(p));
 			return parser.CompilationUnit();
 		} catch (IOException e) {
-			reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, e.getMessage()));
+			reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Error while reading file " + p.toAbsolutePath()));
 			return null;
 		} catch (ParseException e) {
 			reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not parse " + p.toAbsolutePath() + ", " + e.getMessage()));

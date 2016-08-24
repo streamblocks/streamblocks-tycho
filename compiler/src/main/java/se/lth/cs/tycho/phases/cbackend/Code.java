@@ -27,6 +27,7 @@ import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.ListType;
 import se.lth.cs.tycho.types.QueueType;
 import se.lth.cs.tycho.types.RealType;
+import se.lth.cs.tycho.types.StringType;
 import se.lth.cs.tycho.types.Type;
 import se.lth.cs.tycho.types.UnitType;
 
@@ -172,6 +173,8 @@ public interface Code {
 
 	default String declaration(BoolType type, String name) { return "_Bool " + name; }
 
+	default String declaration(StringType type, String name) { return "char *" + name; }
+
 	String type(Type type);
 
 	default String type(IntType type) {
@@ -224,6 +227,8 @@ public interface Code {
 			case False:
 				return "false";
 			case Real:
+				return literal.getText();
+			case String:
 				return literal.getText();
 			default:
 				throw new UnsupportedOperationException(literal.getText());

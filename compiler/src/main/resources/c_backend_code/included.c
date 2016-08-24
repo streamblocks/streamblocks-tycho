@@ -189,3 +189,7 @@ static _Bool output_actor_run(output_actor_t* actor) {
         return false;
     }
 }
+
+void println(char *text) {
+	printf("%s\n", text);
+}

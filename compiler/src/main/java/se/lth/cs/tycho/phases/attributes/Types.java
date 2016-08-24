@@ -237,6 +237,9 @@ public interface Types {
 				case "double": {
 					return RealType.f64;
 				}
+				case "String": {
+					return StringType.INSTANCE;
+				}
 				default:
 					return BottomType.INSTANCE;
 			}

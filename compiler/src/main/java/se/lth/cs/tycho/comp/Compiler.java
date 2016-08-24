@@ -29,6 +29,7 @@ public class Compiler {
 
 			// Parse
 			new LoadEntityPhase(),
+			new LoadPreludePhase(),
 			new LoadImportsPhase(),
 
 			// For debugging

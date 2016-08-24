@@ -59,7 +59,20 @@ public final class VariableDeclarations {
 		if (starImported.isPresent()) {
 			return starImported;
 		}
+		Optional<Tree<VarDecl>> inPrelude = lookupInPrelude(variable);
+		if (inPrelude.isPresent()) {
+			return inPrelude;
+		}
 		return Optional.empty();
+	}
+
+	private static Optional<Tree<VarDecl>> lookupInPrelude(Tree<Variable> variable) {
+		QID preludeQid = QID.of("prelude");
+		return getNamespaceDecls(variable)
+				.filter(namespaceTree -> namespaceTree.node().getQID().equals(preludeQid))
+				.flatMap(namespaceTree -> namespaceTree.children(NamespaceDecl::getVarDecls))
+				.filter(varTree -> varTree.node().getName().equals(variable.node().getName()))
+				.findFirst();
 	}
 
 	public static Optional<Tree<VarDecl>> getValueParameterDeclaration(Tree<Parameter<Expression>> parameter) {

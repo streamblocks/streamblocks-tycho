@@ -4,6 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -281,6 +282,9 @@ public interface Names {
 			}
 		}
 
+		default Optional<VarDecl> localLookup(CompilationTask task, IRNode context, String name) {
+			return Optional.ofNullable(globalNames().varDecl(QID.of("prelude", name), false));
+		}
 
 	}
 }
