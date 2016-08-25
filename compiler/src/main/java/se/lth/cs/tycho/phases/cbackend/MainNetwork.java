@@ -46,6 +46,10 @@ public interface MainNetwork {
 		List<Instance> instances = network.getInstances();
 
 
+
+		for (Instance instance : instances) {
+			emitter().emit("static %s_state %s;", instance.getEntityName(), instance.getInstanceName());
+		}
 		emitter().emit("static void run(int argc, char **argv) {");
 		emitter().increaseIndentation();
 
@@ -92,7 +96,6 @@ public interface MainNetwork {
 		}
 		emitter().emit("");
 		for (Instance instance : instances) {
-			emitter().emit("%s_state %s;", instance.getEntityName(), instance.getInstanceName());
 			List<String> initParameters = new ArrayList<>();
 			initParameters.add("&" + instance.getInstanceName());
 			EntityDecl entityDecl = globalNames().entityDecl(QID.of(instance.getEntityName()), true);
@@ -188,6 +191,7 @@ public interface MainNetwork {
 		emitter().decreaseIndentation();
 		emitter().emit("} while (progress && !interrupted);");
 		emitter().emit("");
+
 
 		emitter().emit("for (int i = 0; i < sizeof(channels)/sizeof(channels[0]); i++) {");
 		emitter().increaseIndentation();
