@@ -2,17 +2,13 @@ package se.lth.cs.tycho.decoration;
 
 import se.lth.cs.tycho.ir.IRNode;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * A tree class that represents a tree of IRNodes and a position in that tree. The type parameter denotes the type of
@@ -182,46 +178,6 @@ public final class Tree<N extends IRNode> {
 		}
 	}
 
-	/**
-	 * Applies the given action to each node in the sub-tree rooted in the current node. The action is applied to a node
-	 * before it is applied to its children.
-	 * @param action action to apply
-	 */
-	public void traverseTopDown(Consumer<Tree<? extends IRNode>> action) {
-		action.accept(this);
-		node.forEachChild(child -> withChild(child).traverseTopDown(action));
-	}
-
-	/**
-	 * Applies the given action to each node in the sub-tree rooted in the current node. The action is applied to all
-	 * children of a node before it is applied to the node itself.
-	 * @param action
-	 */
-	public void traverseBottomUp(Consumer<Tree<? extends IRNode>> action) {
-		node.forEachChild(child -> withChild(child).traverseBottomUp(action));
-		action.accept(this);
-	}
-
-	/**
-	 * Transforms the sub-tree rooted in the current node using the given transformation, transforming each node before
-	 * transforming its children.
-	 * @param transformation
-	 * @return
-	 */
-	public IRNode transformTopDown(Function<Tree<? extends IRNode>, IRNode> transformation) {
-		return withNode(transformation.apply(this)).transformChildren(tree -> tree.transformTopDown(transformation));
-	}
-
-	/**
-	 * Transforms the sub-tree rooted in the current node using the given transformation, transforming each child of a
-	 * node before transforming the node itself.
-	 * @param transformation
-	 * @return
-	 */
-	public IRNode transformBottomUp(Function<Tree<? extends IRNode>, IRNode> transformation) {
-		return transformation.apply(withNode(transformChildren(tree -> tree.transformBottomUp(transformation))));
-	}
-
 	public IRNode transformNodes(Function<Tree<? extends IRNode>, IRNode> transformation) {
 		HashMap<Tree<IRNode>, IRNode> transformedChildren = new HashMap<>();
 		node.forEachChild(child -> {
@@ -238,8 +194,47 @@ public final class Tree<N extends IRNode> {
 		});
 	}
 
-	private IRNode transformChildren(Function<Tree<? extends IRNode>, IRNode> transformation) {
-		return node.transformChildren(child -> transformation.apply(withChild(child)));
+	public void forEachChild(Consumer<Tree<? extends IRNode>> action) {
+		node.forEachChild(child -> action.accept(withChild(child)));
+	}
+
+	public void transformChildren(Function<Tree<? extends IRNode>, IRNode> transformation) {
+		node.transformChildren(child -> transformation.apply(withChild(child)));
+	}
+
+	public Stream<Tree<IRNode>> walk() {
+		TreeIterator iterator = new TreeIterator((Tree<IRNode>) this);
+		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.IMMUTABLE), false);
+	}
+
+	private static class TreeIterator implements Iterator<Tree<IRNode>> {
+		private final ArrayDeque<Tree<IRNode>> queue;
+		private final ArrayDeque<Tree<IRNode>> reverseList;
+
+		public TreeIterator(Tree<IRNode> root) {
+			queue = new ArrayDeque<>();
+			reverseList = new ArrayDeque<>();
+			queue.addLast(root);
+		}
+
+		@Override
+		public boolean hasNext() {
+			return !queue.isEmpty();
+		}
+
+		@Override
+		public Tree<IRNode> next() {
+			if (!hasNext()) {
+				throw new NoSuchElementException();
+			}
+			Tree<IRNode> next = queue.removeLast();
+			assert reverseList.isEmpty();
+			next.node().forEachChild(child -> reverseList.addLast(next.withChild(child)));
+			while (!reverseList.isEmpty()) {
+				queue.addLast(reverseList.removeLast());
+			}
+			return next;
+		}
 	}
 
 }

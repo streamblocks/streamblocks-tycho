@@ -96,7 +96,7 @@ public final class RenameVariables {
 
 	private static Map<Tree<Parameter<Expression>>, String> parameterNames(Tree<? extends IRNode> root, Map<Tree<VarDecl>, String> names) {
 		Map<Tree<Parameter<Expression>>, String> parameterNames = new HashMap<>();
-		root.traverseTopDown(tree ->
+		root.walk().forEach(tree ->
 				tree.tryCast(EntityInstanceExpr.class).ifPresent(inst ->
 						inst.children(EntityInstanceExpr::getParameterAssignments).forEach(param ->
 								VariableDeclarations.getValueParameterDeclaration(param).ifPresent(decl ->
@@ -107,7 +107,7 @@ public final class RenameVariables {
 
 	private static Map<Tree<Variable>, String> variableNames(Tree<? extends IRNode> tree, Map<Tree<VarDecl>, String> names) {
 		Map<Tree<Variable>, String> variableNames = new HashMap<>();
-		tree.traverseTopDown(t ->
+		tree.walk().forEach(t ->
 				t.tryCast(Variable.class).ifPresent(var ->
 						VariableDeclarations.getDeclaration(var).ifPresent(decl ->
 								Optional.ofNullable(names.get(decl)).ifPresent(name ->
@@ -117,7 +117,7 @@ public final class RenameVariables {
 
 	private static Map<Tree<VarDecl>, String> createNames(Tree<?> tree, LongSupplier uniqueNumbers) {
 		Map<Tree<VarDecl>, String> names = new HashMap<>();
-		tree.traverseTopDown(node -> {
+		tree.walk().forEach(node -> {
 			Optional<Tree<VarDecl>> decl = node.tryCast(VarDecl.class);
 			if (decl.isPresent()) {
 				String name = decl.get().node().getOriginalName() + "_" + uniqueNumbers.getAsLong();

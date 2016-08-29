@@ -30,7 +30,7 @@ public class NameAnalysisPhase implements Phase {
 		CheckNames2 checkNames = MultiJ.from(CheckNames2.class)
 				.bind("reporter").to(context.getReporter())
 				.instance();
-		Tree.of(task).traverseTopDown(checkNames::check);
+		Tree.of(task).walk().forEach(checkNames::check);
 		return task;
 //		Names names = context.getAttributeManager().getAttributeModule(Names.key, task);
 //		task.getSourceUnits().stream().forEach(unit -> {
