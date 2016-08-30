@@ -1,18 +1,29 @@
 package se.lth.cs.tycho.phases;
 
+import org.multij.Module;
+import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.StarImport;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.GlobalEntityReference;
+import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LoadImportsPhase implements Phase {
 	@Override
@@ -28,24 +39,63 @@ public class LoadImportsPhase implements Phase {
 		Queue<SourceUnit> queue = new ArrayDeque<>(task.getSourceUnits());
 		while (!queue.isEmpty()) {
 			SourceUnit sourceUnit = queue.remove();
-			for (Decl decl : sourceUnit.getTree().getAllDecls()) {
-				if (decl.isImport()) {
-					QID namespace = decl.getQualifiedIdentifier().getButLast();
-					if (loaded.add(namespace)) {
-						List<SourceUnit> ns = context.getLoader().loadNamespace(namespace);
-						result.addAll(ns);
-						queue.addAll(ns);
-					}
-				}
-			}
-			for (StarImport starImport : sourceUnit.getTree().getStarImports()) {
-				if (loaded.add(starImport.getQID())) {
-					List<SourceUnit> ns = context.getLoader().loadNamespace(starImport.getQID());
-					result.addAll(ns);
-					queue.addAll(ns);
-				}
-			}
+
+			sourceUnit.walk()
+					.flatMap(nsRefs::get)
+					.distinct()
+					.filter(ns -> !loaded.contains(ns))
+					.forEach(ns -> {
+						loaded.add(ns);
+						List<SourceUnit> unit = context.getLoader().loadNamespace(ns);
+						result.addAll(unit);
+						queue.addAll(unit);
+					});
 		}
 		return task.withSourceUnits(result);
+	}
+
+	private static final NamespaceReferences nsRefs = MultiJ.instance(NamespaceReferences.class);
+
+	@Module
+	interface NamespaceReferences {
+		default Stream<QID> get(IRNode node) {
+			return Stream.empty();
+		}
+
+		default Stream<QID> get(VarDecl decl) {
+			if (decl.isImport()) {
+				return Stream.of(decl.getQualifiedIdentifier().getButLast());
+			} else {
+				return Stream.empty();
+			}
+		}
+
+		default Stream<QID> get(EntityDecl decl) {
+			if (decl.isImport()) {
+				return Stream.of(decl.getQualifiedIdentifier().getButLast());
+			} else {
+				return Stream.empty();
+			}
+		}
+
+		default Stream<QID> get(TypeDecl decl) {
+			if (decl.isImport()) {
+				return Stream.of(decl.getQualifiedIdentifier().getButLast());
+			} else {
+				return Stream.empty();
+			}
+		}
+
+		default Stream<QID> get(StarImport imp) {
+			return Stream.of(imp.getQID());
+		}
+
+		default Stream<QID> get(ExprGlobalVariable variable) {
+			return Stream.of(variable.getGlobalName().getButLast());
+		}
+
+		default Stream<QID> get(GlobalEntityReference entity) {
+			return Stream.of(entity.getGlobalName().getButLast());
+		}
 	}
 }

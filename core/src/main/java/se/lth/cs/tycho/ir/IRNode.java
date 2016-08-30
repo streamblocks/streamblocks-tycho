@@ -3,8 +3,12 @@ package se.lth.cs.tycho.ir;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 
 public interface IRNode extends Cloneable {
@@ -12,6 +16,14 @@ public interface IRNode extends Cloneable {
 	void forEachChild(Consumer<? super IRNode> action);
 
 	IRNode transformChildren(Transformation transformation);
+
+	default Stream<IRNode> walk() {
+		return StreamSupport.stream(
+				Spliterators.spliteratorUnknownSize(
+						new IRNodeIterator(this),
+						Spliterator.IMMUTABLE),
+				false);
+	}
 
 	default int getFromLineNumber() {
 		return 0;
