@@ -1,6 +1,17 @@
 #!/bin/bash
 
-root=`dirname $0`
+
+function readlink_rec {
+	res="$(readlink $1 || echo $1)"
+	if [ $res = $1 ]
+	then
+		echo $res
+	else
+		readlink_rec $res
+	fi
+}
+
+root=`dirname "$(readlink_rec $0)"`
 lib="$root/compiler/target/lib"
 comp="$root/compiler/target/compiler-1.0-SNAPSHOT.jar"
 
