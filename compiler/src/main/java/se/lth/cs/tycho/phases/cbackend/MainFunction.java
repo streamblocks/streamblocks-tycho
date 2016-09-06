@@ -31,8 +31,7 @@ public interface MainFunction {
 
 	default void generateCode() {
 		CompilationTask task = backend().task();
-		String targetName = Namespaces.findEntities(task, task.getIdentifier())
-				.findFirst().get().getOriginalName();
+		String targetName = task.getIdentifier().getLast().toString();
 		Path path = backend().context().getConfiguration().get(Compiler.targetPath);
 		Path target = path.resolve(targetName + ".c");
 		emitter().open(target);

@@ -4,6 +4,8 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.TypeParameter;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -14,21 +16,21 @@ import java.util.function.Consumer;
 
 public class ModuleExpr extends AbstractIRNode {
 	private final String name;
-	private final ImmutableList<Parameter<TypeExpr>> typeParameters;
-	private final ImmutableList<Parameter<Expression>> valueParameters;
+	private final ImmutableList<TypeParameter> typeParameters;
+	private final ImmutableList<ValueParameter> valueParameters;
 
-	public ModuleExpr(String name, List<Parameter<TypeExpr>> typeParameters, List<Parameter<Expression>> valueParameters) {
+	public ModuleExpr(String name, List<TypeParameter> typeParameters, List<ValueParameter> valueParameters) {
 		this(null, name, typeParameters, valueParameters);
 	}
 
-	private ModuleExpr(IRNode original, String name, List<Parameter<TypeExpr>> typeParameters, List<Parameter<Expression>> valueParameters) {
+	private ModuleExpr(IRNode original, String name, List<TypeParameter> typeParameters, List<ValueParameter> valueParameters) {
 		super(original);
 		this.name = name;
 		this.typeParameters = ImmutableList.from(typeParameters);
 		this.valueParameters = ImmutableList.from(valueParameters);
 	}
 
-	public ModuleExpr copy(String name, List<Parameter<TypeExpr>> typeParameters, List<Parameter<Expression>> valueParameters) {
+	public ModuleExpr copy(String name, List<TypeParameter> typeParameters, List<ValueParameter> valueParameters) {
 		if (Objects.equals(this.name, name) && Lists.sameElements(this.typeParameters, valueParameters) && Lists.sameElements(this.valueParameters, valueParameters)) {
 			return this;
 		} else {
@@ -44,19 +46,19 @@ public class ModuleExpr extends AbstractIRNode {
 		return copy(name, typeParameters, valueParameters);
 	}
 
-	public ImmutableList<Parameter<TypeExpr>> getTypeParameters() {
+	public ImmutableList<TypeParameter> getTypeParameters() {
 		return typeParameters;
 	}
 
-	public ModuleExpr withTypeParameters(List<Parameter<TypeExpr>> typeParameters) {
+	public ModuleExpr withTypeParameters(List<TypeParameter> typeParameters) {
 		return copy(name, typeParameters, valueParameters);
 	}
 
-	public ImmutableList<Parameter<Expression>> getValueParameters() {
+	public ImmutableList<ValueParameter> getValueParameters() {
 		return valueParameters;
 	}
 
-	public ModuleExpr withValueParameters(List<Parameter<Expression>> valueParameters) {
+	public ModuleExpr withValueParameters(List<ValueParameter> valueParameters) {
 		return copy(name, typeParameters, valueParameters);
 	}
 

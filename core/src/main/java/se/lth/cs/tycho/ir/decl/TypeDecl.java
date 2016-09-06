@@ -8,7 +8,7 @@ public class TypeDecl extends Decl {
 
 	private TypeDecl(TypeDecl original, Availability availability, String name, DeclKind declKind,
 			LocationKind locationKind) {
-		super(original, locationKind, availability, declKind, name, null);
+		super(original, locationKind, availability, declKind, name);
 	}
 
 

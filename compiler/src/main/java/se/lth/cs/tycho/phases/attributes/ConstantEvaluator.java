@@ -8,6 +8,7 @@ import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.ir.decl.LocationKind;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
+import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
@@ -40,9 +41,6 @@ public interface ConstantEvaluator {
 	}
 
 	default OptionalLong intValue(VarDecl decl) {
-		if (decl.isImport()) {
-			return intValue(globalNames().varDecl(decl.getQualifiedIdentifier(), false));
-		}
 		if (decl.isConstant() &&
 				(decl.getLocationKind() == LocationKind.GLOBAL || decl.getLocationKind() == LocationKind.LOCAL) &&
 				decl.getValue() != null) {
@@ -54,6 +52,10 @@ public interface ConstantEvaluator {
 
 	default OptionalLong intValue(ExprVariable var) {
 		return intValue(names().declaration(var.getVariable()));
+	}
+
+	default OptionalLong intValue(ExprGlobalVariable var) {
+		return intValue(globalNames().varDecl(var.getGlobalName(), false));
 	}
 
 	default OptionalLong intValue(ExprLiteral literal) {

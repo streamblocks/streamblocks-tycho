@@ -308,11 +308,11 @@ NamespaceDecl CompilationUnit() :
 	NamespaceDecl ns;
 	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
-	ImmutableList.Builder<StarImport> starImports = ImmutableList.builder();
+	ImmutableList.Builder<Import> imports = ImmutableList.builder();
 	VarDecl varDecl;
 	EntityDecl e;
 	NamespaceDecl unit;
-	StarImport starImport;
+	Import imp;
 	QID qid = QID.empty();
 }
 {
@@ -322,10 +322,7 @@ NamespaceDecl CompilationUnit() :
 		";"
 	)?
 	(
-		LOOKAHEAD(StarImport())
-		starImport = StarImport() { starImports.add(starImport); }
-	|
-		varDecl = VarImport() { varDecls.add(varDecl); }
+		imp = Import() { imports.add(imp); }
 	)*
 	(
 		unit = OrccUnit()
@@ -339,7 +336,7 @@ NamespaceDecl CompilationUnit() :
 	)
 	<EOF>
 	{
-		NamespaceDecl pkg = new NamespaceDecl(qid, starImports.build(), varDecls.build(), entityDecls.build(), ImmutableList.empty());
+		NamespaceDecl pkg = new NamespaceDecl(qid, imports.build(), varDecls.build(), entityDecls.build(), ImmutableList.empty());
 		return pkg;
 	}
 }
@@ -481,35 +478,25 @@ VarDecl LocalVarDecl(boolean endWithSemicolon) :
 	}
 }
 
-VarDecl VarImport() :
+Import Import() :
 {
 	QID qid;
-	Token id = null;
-	String name;
-}
-{
-	"import"
-	qid = QID() { name = qid.getLast().toString(); }
-	";"
-	{
-		return VarDecl.importDecl(qid, name);
-	}
-}
-
-StarImport StarImport() :
-{
-	QID qid;
-	Token kind = null;
+	boolean groupImport = false;
 }
 {
 	"import"
 	qid = QID()
-	(".*" | "." "*")
+	(".*" {groupImport = true;} | "." "*" {groupImport = true;} )?
 	";"
 	{
-		return new StarImport(qid);
+		if (groupImport) {
+			return new GroupImport(Import.Kind.VAR, qid);
+		} else {
+			return new SingleImport(Import.Kind.VAR, qid, qid.getLast().toString());
+		}
 	}
 }
+
 
 NameAndDef<ExprLambda> FunDecl() :
 {
@@ -1256,8 +1243,8 @@ TypeExpr Type() :
 	Token attr;
 	TypeExpr typeAttr;
 	Expression exprAttr;
-	ImmutableList.Builder<Parameter<Expression>> vals = ImmutableList.builder();
-	ImmutableList.Builder<Parameter<TypeExpr>> types = ImmutableList.builder();
+	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
+	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
 	TypeExpr type;
 	Expression size;
 }
@@ -1268,20 +1255,20 @@ TypeExpr Type() :
 		attr = <ID>
 		(
 			":" typeAttr = Type()
-			{ types.add(Parameter.of(attr.image, typeAttr)); }
+			{ types.add(new TypeParameter(attr.image, typeAttr)); }
 		|
 			"=" exprAttr = Expression()
-			{ vals.add(Parameter.of(attr.image, exprAttr)); }
+			{ vals.add(new ValueParameter(attr.image, exprAttr)); }
 		)
 		(
 			","
 			attr = <ID>
 			(
 				":" typeAttr = Type()
-				{ types.add(Parameter.of(attr.image, typeAttr)); }
+				{ types.add(new TypeParameter(attr.image, typeAttr)); }
 			|
 				"=" exprAttr = Expression()
-				{ vals.add(Parameter.of(attr.image, exprAttr)); }
+				{ vals.add(new ValueParameter(attr.image, exprAttr)); }
 			)
 
 		)*
@@ -1298,8 +1285,8 @@ TypeExpr Type() :
 		"]"
 		{
 			type = new TypeExpr("List",
-					ImmutableList.of(Parameter.of("type", type)),
-					ImmutableList.of(Parameter.of("size", size)));
+					ImmutableList.of(new TypeParameter("type", type)),
+					ImmutableList.of(new ValueParameter("size", size)));
 		}
 	)*
 
@@ -1322,8 +1309,8 @@ TypeAndName VarDeclTypeName() :
 		"]"
 		{
 			type = new TypeExpr("List",
-					ImmutableList.of(Parameter.of("type", type)),
-					ImmutableList.of(Parameter.of("size", size)));
+					ImmutableList.of(new TypeParameter("type", type)),
+					ImmutableList.of(new ValueParameter("size", size)));
 		}
 	)*
 	{ return new TypeAndName(type, id.image); }

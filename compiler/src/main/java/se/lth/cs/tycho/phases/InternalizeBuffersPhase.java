@@ -45,6 +45,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
+import se.lth.cs.tycho.transformation.Rename;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -102,7 +103,7 @@ public class InternalizeBuffersPhase implements Phase {
 		ArrayList<Connection> connections = new ArrayList<>(task.getNetwork().getConnections());
 		for (Instance instance : task.getNetwork().getInstances()) {
 			if (selfLoops.containsKey(instance.getInstanceName())) {
-				EntityDecl entity = GlobalDeclarations.getEntity(task, QID.of(instance.getEntityName()));
+				EntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
 				List<Connection> conditionFreeAnySize = conditionFree((ActorMachine) entity.getEntity(), selfLoops.get(instance.getInstanceName()));
 				List<Connection> conditionFree = singleToken(conditionFreeAnySize);
 				if (conditionFree.isEmpty()) {
@@ -110,9 +111,10 @@ public class InternalizeBuffersPhase implements Phase {
 				} else {
 					connections.removeAll(conditionFree);
 					ActorMachine internalized = internalize((ActorMachine) entity.getEntity(), conditionFree, context.getUniqueNumbers());
+					internalized = Rename.renameVariables(internalized, d -> true, context.getUniqueNumbers()); // TODO: remove when the C backend gives unique names to local functions and procedures.
 					String name = entity.getOriginalName() + "_" + context.getUniqueNumbers().next();
 					entities.add(EntityDecl.global(Availability.PUBLIC, name, internalized));
-					resultInstances.add(instance.withEntity(name));
+					resultInstances.add(instance.withEntityName(QID.of(name)));
 				}
 			} else {
 				resultInstances.add(instance);

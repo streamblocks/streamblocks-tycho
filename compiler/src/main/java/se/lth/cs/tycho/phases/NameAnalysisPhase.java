@@ -15,6 +15,8 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
+import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
@@ -48,33 +50,40 @@ public class NameAnalysisPhase implements Phase {
 	public interface CheckNames2 {
 		@Binding Reporter reporter();
 
-		default void check(Tree<? extends IRNode> tree) {
+		default void check(Tree<?> tree) {
 			checkNode(tree, tree.node());
 		}
 
-		default void checkNode(Tree tree, IRNode node) {}
+		default void checkNode(Tree<?> tree, IRNode node) {}
 
-		default void checkNode(Tree tree_, Variable var) {
-			Tree<Variable> tree = tree_;
+		default void checkNode(Tree<?> tree_, Variable var) {
+			Tree<Variable> tree = tree_.assertNode(var);
 			if (!VariableDeclarations.getDeclaration(tree).isPresent()) {
 				SourceUnit unit = tree.findParentOfType(SourceUnit.class).map(Tree::node).orElse(null);
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variable " + var.getName() + " is not declared.", unit ,var));
 			}
 		}
 
-		default void checkNode(Tree tree_, Port port) {
-			Tree<Port> tree = tree_;
+		default void checkNode(Tree<?> tree_, Port port) {
+			Tree<Port> tree = tree_.assertNode(port);
 			if (!PortDeclarations.getDeclaration(tree).isPresent()) {
 				SourceUnit unit = tree.findParentOfType(SourceUnit.class).map(Tree::node).orElse(null);
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Port " + port.getName() + " is not declared.", unit, port));
 			}
 		}
 
-		default void checkNode(Tree tree_, EntityInstanceExpr instance) {
-			Tree<EntityInstanceExpr> tree = tree_;
-			if (!EntityDeclarations.getDeclaration(tree).isPresent()) {
+		default void checkNode(Tree<?> tree_, EntityReferenceGlobal reference) {
+			Tree<EntityReferenceGlobal> tree = tree_.assertNode(reference);
+			if (!EntityDeclarations.getGlobalDeclaration(tree).isPresent()) {
 				SourceUnit unit = tree.findParentOfType(SourceUnit.class).map(Tree::node).orElse(null);
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + instance.getEntityName() + " is not declared.", unit, instance));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getGlobalName() + " is not declared.", unit, reference));
+			}
+		}
+		default void checkNode(Tree<?> tree_, EntityReferenceLocal reference) {
+			Tree<EntityReferenceLocal> tree = tree_.assertNode(reference);
+			if (!EntityDeclarations.getLocalDeclaration(tree).isPresent()) {
+				SourceUnit unit = tree.findParentOfType(SourceUnit.class).map(Tree::node).orElse(null);
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", unit, reference));
 			}
 		}
 	}
@@ -108,9 +117,15 @@ public class NameAnalysisPhase implements Phase {
 			}
 		}
 
-		default void checkNames(EntityInstanceExpr instance) {
-			if (names().entityDeclaration(instance) == null) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + instance.getEntityName() + " is not declared.", sourceUnit(), instance));
+		default void checkNames(EntityReferenceGlobal reference) {
+			if (names().entityDeclaration(reference) == null) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getGlobalName() + " is not declared.", sourceUnit(), reference));
+			}
+		}
+
+		default void checkNames(EntityReferenceLocal reference) {
+			if (names().entityDeclaration(reference) == null) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", sourceUnit(), reference));
 			}
 		}
 	}

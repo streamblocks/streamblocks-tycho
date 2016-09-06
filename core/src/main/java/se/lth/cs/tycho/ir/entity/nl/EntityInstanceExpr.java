@@ -4,6 +4,7 @@ import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.ToolAttribute;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -19,29 +20,29 @@ import java.util.function.Consumer;
 
 public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr {
 
-	public EntityInstanceExpr(String entityName, List<Parameter<Expression>> parameterAssignments) {
-		this(null, entityName, parameterAssignments);
+	public EntityInstanceExpr(EntityReference entity, List<ValueParameter> parameterAssignments) {
+		this(null, entity, parameterAssignments);
 	}
 
-	private EntityInstanceExpr(EntityInstanceExpr original, String entityName, List<Parameter<Expression>> parameterAssignments) {
+	private EntityInstanceExpr(EntityInstanceExpr original, EntityReference entity, List<ValueParameter> parameterAssignments) {
 		super(original);
-		this.entityName = entityName;
+		this.entity = entity;
 		this.parameterAssignments = ImmutableList.from(parameterAssignments);
 	}
 
-	public EntityInstanceExpr copy(String entityName, List<Parameter<Expression>> parameterAssignments) {
-		if (Objects.equals(this.entityName, entityName)
+	public EntityInstanceExpr copy(EntityReference entity, List<ValueParameter> parameterAssignments) {
+		if (Objects.equals(this.entity, entity)
 				&& Lists.sameElements(this.parameterAssignments, parameterAssignments)) {
 			return this;
 		}
-		return new EntityInstanceExpr(this, entityName, parameterAssignments);
+		return new EntityInstanceExpr(this, entity, parameterAssignments);
 	}
 
-	public String getEntityName() {
-		return entityName;
+	public EntityReference getEntityName() {
+		return entity;
 	}
 
-	public ImmutableList<Parameter<Expression>> getParameterAssignments() {
+	public ImmutableList<ValueParameter> getParameterAssignments() {
 		return parameterAssignments;
 	}
 
@@ -50,11 +51,12 @@ public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr
 		return v.visitEntityInstanceExpr(this, p);
 	}
 
-	private final String entityName; // the name of the calActor/network
-	private final ImmutableList<Parameter<Expression>> parameterAssignments;
+	private final EntityReference entity;
+	private final ImmutableList<ValueParameter> parameterAssignments;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(entity);
 		parameterAssignments.forEach(action);
 		getAttributes().forEach(action);
 	}
@@ -67,7 +69,7 @@ public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr
 	@Override
 	@SuppressWarnings("unchecked")
 	public EntityInstanceExpr transformChildren(Transformation transformation) {
-		return copy(entityName,
+		return copy(transformation.applyChecked(EntityReference.class, entity),
 				(ImmutableList) parameterAssignments.map(transformation)
 		).withAttributes((List) getAttributes().map(transformation));
 	}

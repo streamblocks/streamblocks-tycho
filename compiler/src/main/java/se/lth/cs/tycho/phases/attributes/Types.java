@@ -108,9 +108,7 @@ public interface Types {
 		}
 
 		default Type computeDeclaredType(VarDecl varDecl) {
-			if (varDecl.isImport()) {
-				return declaredType(globalNames().varDecl(varDecl.getQualifiedIdentifier(), false));
-			} else if (varDecl.getType() != null) {
+			if (varDecl.getType() != null) {
 				return convert(varDecl.getType());
 			} else if (tree().parent(varDecl) instanceof InputPattern) {
 				InputPattern input = (InputPattern) tree().parent(varDecl);
@@ -245,7 +243,7 @@ public interface Types {
 			}
 		}
 
-		default <E extends IRNode> Optional<E> findParameter(List<Parameter<E>> parameters, String name) {
+		default <E extends IRNode, P extends Parameter<E, P>> Optional<E> findParameter(List<P> parameters, String name) {
 			return parameters.stream()
 					.filter(param -> param.getName().equals(name))
 					.map(Parameter::getValue)
@@ -329,6 +327,10 @@ public interface Types {
 
 		default Type computeType(ExprVariable var) {
 			return declaredType(names().declaration(var.getVariable()));
+		}
+
+		default Type computeType(ExprGlobalVariable var) {
+			return declaredType(globalNames().varDecl(var.getGlobalName(), true));
 		}
 
 		default Type computeType(ExprBinaryOp binary) {

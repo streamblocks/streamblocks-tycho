@@ -1,68 +1,35 @@
 package se.lth.cs.tycho.ir;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
-public class Parameter<T extends IRNode> extends AbstractIRNode {
-	private final String name;
-	private final T value;
+public interface Parameter<T extends IRNode, P extends Parameter<T, P>> extends IRNode {
+	String getName();
 
-	public Parameter(String name, T value) {
-		this(null, name, value);
+	default P withName(String name) {
+		return copy(name, getValue());
 	}
 
-	public Parameter(IRNode original, String name, T value) {
-		super(original);
-		this.name = name;
-		this.value = value;
+	T getValue();
+
+	default P withValue(T value) {
+		return copy(getName(), value);
 	}
 
-	public String getName() {
-		return name;
-	}
+	P copy(String name, T value);
 
-	public Parameter<T> withName(String name) {
-		return copy(name, value);
-	}
+	P clone();
 
-	public T getValue() {
-		return value;
-	}
-
-	public Parameter<T> withValue(T value) {
-		return copy(name, value);
-	}
-	
-	public static <T extends IRNode> Parameter<T> of(String name, T value) {
-		return new Parameter<>(name, value);
-	}
-
-	public Parameter<T> copy(String name, T value) {
-		if (Objects.equals(this.name, name) && Objects.equals(this.value, value)) {
-			return this;
-		} else {
-			return new Parameter<>(this, name, value);
-		}
+	default P deepClone() {
+		return (P) IRNode.super.deepClone();
 	}
 
 	@Override
-	public Parameter<T> clone() {
-		return (Parameter) super.clone();
+	default void forEachChild(Consumer<? super IRNode> action) {
+		action.accept(getValue());
 	}
 
 	@Override
-	public Parameter<T> deepClone() {
-		return (Parameter) super.deepClone();
-	}
-
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(value);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public Parameter<T> transformChildren(Transformation transformation) {
-		return copy(name, (T) transformation.apply(value));
+	default IRNode transformChildren(Transformation transformation) {
+		return copy(getName(), (T) transformation.apply(getValue()));
 	}
 }

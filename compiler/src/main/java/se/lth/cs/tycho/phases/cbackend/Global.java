@@ -2,6 +2,7 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprProc;
@@ -36,10 +37,12 @@ public interface Global {
 	void globalCallableDecl(VarDecl decl, Expression def);
 
 	default void globalCallableDecl(VarDecl decl, ExprProc proc) {
-		emitter().emit("static %s;", globalCallableHeader(decl, proc, false));
+		String modifier = proc.isExternal() ? "extern" : "static";
+		emitter().emit("%s %s;", modifier, globalCallableHeader(decl, proc, proc.isExternal()));
 	}
 	default void globalCallableDecl(VarDecl decl, ExprLambda lambda) {
-		emitter().emit("static %s;", globalCallableHeader(decl, lambda, false));
+		String modifier = lambda.isExternal() ? "extern" : "static";
+		emitter().emit("%s %s;", modifier, globalCallableHeader(decl, lambda, lambda.isExternal()));
 	}
 
 	void globalCallable(VarDecl decl, Expression def);
@@ -55,14 +58,14 @@ public interface Global {
 			emitter().emit("}");
 		} else {
 			emitter().emit("extern %s;", globalCallableHeader(decl, lambda, true));
-			String header = globalCallableHeader(decl, lambda, false);
-			emitter().emit("static %s {", header);
-			emitter().increaseIndentation();
-			emitter().emit("*result = %s(%s);", decl.getOriginalName(),
-				lambda.getValueParameters().stream()
-						.map(VarDecl::getName).collect(Collectors.joining(", ")));
-			emitter().decreaseIndentation();
-			emitter().emit("}");
+//			String header = globalCallableHeader(decl, lambda, false);
+//			emitter().emit("static %s {", header);
+//			emitter().increaseIndentation();
+//			emitter().emit("*result = %s(%s);", decl.getOriginalName(),
+//				lambda.getValueParameters().stream()
+//						.map(VarDecl::getName).collect(Collectors.joining(", ")));
+//			emitter().decreaseIndentation();
+//			emitter().emit("}");
 		}
 	}
 
@@ -76,13 +79,13 @@ public interface Global {
 			emitter().emit("}");
 		} else {
 			emitter().emit("extern %s;", globalCallableHeader(decl, proc, true));
-			String header = globalCallableHeader(decl, proc, false);
-			emitter().emit("static %s {", header);
-			emitter().increaseIndentation();
-			emitter().emit("%s(%s);", decl.getOriginalName(), proc.getValueParameters().stream()
-			.map(VarDecl::getName).collect(Collectors.joining(", ")));
-			emitter().decreaseIndentation();
-			emitter().emit("}");
+//			String header = globalCallableHeader(decl, proc, false);
+//			emitter().emit("static %s {", header);
+//			emitter().increaseIndentation();
+//			emitter().emit("%s(%s);", decl.getOriginalName(), proc.getValueParameters().stream()
+//			.map(VarDecl::getName).collect(Collectors.joining(", ")));
+//			emitter().decreaseIndentation();
+//			emitter().emit("}");
 		}
 	}
 
@@ -92,7 +95,7 @@ public interface Global {
 				.append(external ? decl.getOriginalName() : decl.getName())
 				.append("(")
 				.append(proc.getValueParameters().stream()
-						.map(par -> code().declaration(types().declaredType(par), par.getName()))
+						.map(par -> code().declaration(types().declaredType(par), backend().variables().declarationName(par)))
 						.collect(Collectors.joining(", ")));
 		builder.append(")");
 		return builder.toString();
@@ -107,7 +110,7 @@ public interface Global {
 					.append(decl.getOriginalName())
 					.append("(")
 					.append(lambda.getValueParameters().stream()
-							.map(par -> code().declaration(types().declaredType(par), par.getName()))
+							.map(par -> code().declaration(types().declaredType(par), backend().variables().declarationName(par)))
 							.collect(Collectors.joining(", ")))
 					.append(")");
 			return builder.toString();
@@ -117,7 +120,7 @@ public interface Global {
 					.append(decl.getName())
 					.append("(");
 			for (VarDecl par : lambda.getValueParameters()) {
-				builder.append(code().declaration(types().declaredType(par), par.getName()))
+				builder.append(code().declaration(types().declaredType(par), backend().variables().declarationName(par)))
 						.append(", ");
 			}
 			LambdaType type = (LambdaType) types().declaredType(decl);
@@ -137,7 +140,7 @@ public interface Global {
 		for (VarDecl decl : varDecls) {
 			Type type = types().declaredType(decl);
 			if (!(type instanceof CallableType)) {
-				String d = code().declaration(type, decl.getName());
+				String d = code().declaration(type, backend().variables().declarationName(decl));
 				String v = defVal().defaultValue(type);
 				emitter().emit("static %s = %s;", d, v);
 			}
@@ -155,7 +158,7 @@ public interface Global {
 			if (type instanceof CallableType) {
 				emitter().emit("// function %s", decl.getName());
 			} else {
-				code().assign(type, decl.getName(), decl.getValue());
+				code().assign(type, backend().variables().declarationName(decl), decl.getValue());
 			}
 		}
 		emitter().decreaseIndentation();

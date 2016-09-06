@@ -346,12 +346,12 @@ NamespaceDecl NamespaceDecl() :
 
 NamespaceDecl NamespaceDeclContents(QID name) :
 {
-	ImmutableList.Builder<StarImport> starImports = ImmutableList.builder();
+	ImmutableList.Builder<Import> imports = ImmutableList.builder();
 	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
 	ImmutableList.Builder<TypeDecl> typeDecls = ImmutableList.builder();
 
-	StarImport i;
+	Import i;
 	VarDecl v;
 	EntityDecl e;
 	TypeDecl t;
@@ -359,17 +359,7 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 {
 	(Annotation())*
 	(
-		LOOKAHEAD(StarImport())
-		i = StarImport() { starImports.add(i); }
-	|
-		LOOKAHEAD(2)
-		v = VarImport() { varDecls.add(v); }
-	|
-		LOOKAHEAD(2)
-		e = EntityImport() { entityDecls.add(e); }
-	|
-		LOOKAHEAD(2)
-		t = TypeImport() { typeDecls.add(t); }
+		i = Import() { imports.add(i); }
 	|
 		LOOKAHEAD(2)
 		v = GlobalVarDecl() { varDecls.add(v); }
@@ -379,7 +369,7 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 		e = NetworkDecl() { entityDecls.add(e); }
 	)*
 	{
-		return new NamespaceDecl(name, starImports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
+		return new NamespaceDecl(name, imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
 	}
 }
 
@@ -477,77 +467,65 @@ VarDecl LocalVarDecl(boolean endWithSemicolon) :
 	}
 }
 
-VarDecl VarImport() :
+Import Import() :
 {
-	QID qid;
-	Token id = null;
-	String name;
+	Import imp;
 }
 {
 	"import"
-	("var")?
-	qid = QID() { name = qid.getLast().toString(); }
 	(
-		"="
-		id = <ID> { name = id.image; }
-	)?
-	";"
+		imp = GroupImportTail()
+	|
+		imp = SingleImportTail()
+	)
 	{
-		return VarDecl.importDecl(qid, name);
+		return imp;
 	}
 }
 
-TypeDecl TypeImport() :
+GroupImport GroupImportTail() :
 {
-	QID qid;
-	Token id = null;
+	QID globalName;
+	Import.Kind kind = Import.Kind.VAR;
 }
 {
-	"import"
-	"type"
-	qid = QID()
-	(
-		"="
-		id = <ID>
-	)?
-	";"
+	"all"
+	(kind = ImportKind())?
+	globalName = QID()
 	{
-		return null;
+		return new GroupImport(kind, globalName);
 	}
 }
 
-EntityDecl EntityImport() :
+SingleImport SingleImportTail() :
 {
-	QID qid;
-	Token id = null;
+	QID globalName;
+	Import.Kind kind = Import.Kind.VAR;
+	Token localNameToken = null;
 }
 {
-	"import"
-	"entity"
-	qid = QID()
-	(
-		"="
-		id = <ID>
-	)?
-	";"
+	(kind = ImportKind())?
+	globalName = QID()
+	("=" localNameToken = <ID>)?
 	{
-		return EntityDecl.importDecl(Availability.LOCAL, id == null ? qid.getLast().toString() : id.image, qid);
+		String localName;
+		if (localNameToken == null) {
+			localName = globalName.getLast().toString();
+		} else {
+			localName = localNameToken.image;
+		}
+		return new SingleImport(kind, globalName, localName);
 	}
 }
 
-StarImport StarImport() :
+Import.Kind ImportKind() :
+{}
 {
-	QID qid;
-	Token kind = null;
-}
-{
-	"import"
-	qid = QID()
-	(".*" | "." "*")
-	";"
-	{
-		return new StarImport(qid);
-	}
+	"var" { return Import.Kind.VAR; }
+|
+	"type" { return Import.Kind.TYPE; }
+|
+	"entity" { return Import.Kind.ENTITY; }
 }
 
 NameAndDef<ExprLambda> FunDecl() :
@@ -728,7 +706,7 @@ ImmutableList<InstanceDecl> EntityInstanceDecls() :
 	Token parameterName;
 	Expression parameter;
 	ImmutableList.Builder<InstanceDecl> entities = ImmutableList.builder();
-	ImmutableList.Builder<Parameter<Expression>> parameters;
+	ImmutableList.Builder<ValueParameter> parameters;
 	ImmutableList<ToolAttribute> toolAttrs;
 }
 {
@@ -746,7 +724,7 @@ ImmutableList<InstanceDecl> EntityInstanceDecls() :
 			"="
 			parameter = Expression()
 			{
-				parameters.add(Parameter.of(parameterName.image, parameter));
+				parameters.add(new ValueParameter(parameterName.image, parameter));
 			}
 			(
 				","
@@ -754,7 +732,7 @@ ImmutableList<InstanceDecl> EntityInstanceDecls() :
 				"="
 				parameter = Expression()
 				{
-					parameters.add(Parameter.of(parameterName.image, parameter));
+					parameters.add(new ValueParameter(parameterName.image, parameter));
 				}
 			)*
 		)?
@@ -762,7 +740,7 @@ ImmutableList<InstanceDecl> EntityInstanceDecls() :
 		toolAttrs = OptToolAttributes()
 		";"
 		{
-			entities.add(new InstanceDecl(instanceName.image, new EntityInstanceExpr(entityName.image, parameters.build()).withAttributes(toolAttrs)));
+			entities.add(new InstanceDecl(instanceName.image, new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), parameters.build()).withAttributes(toolAttrs)));
 		}
 	)*
 	{
@@ -1606,8 +1584,8 @@ TypeExpr Type() :
 
 TypeExpr ParameterizedType(String name) :
 {
-	ImmutableList.Builder<Parameter<TypeExpr>> types = ImmutableList.builder();
-	ImmutableList.Builder<Parameter<Expression>> vals = ImmutableList.builder();
+	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
+	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
 }
 {
 	(
@@ -1622,8 +1600,8 @@ TypeExpr ParameterizedType(String name) :
 }
 
 void AddParameterAssignments(
-	ImmutableList.Builder<Parameter<TypeExpr>> types,
-	ImmutableList.Builder<Parameter<Expression>> vals) :
+	ImmutableList.Builder<TypeParameter> types,
+	ImmutableList.Builder<ValueParameter> vals) :
 {
 	Token name;
 	TypeExpr type;
@@ -1634,11 +1612,11 @@ void AddParameterAssignments(
 		LOOKAHEAD(2)
 		(name = <ID> | name = <TYPE>)
 		":" type = Type()
-		{ types.add(Parameter.of(name.image, type)); }
+		{ types.add(new TypeParameter(name.image, type)); }
 	|
 		name = <ID>
 		"=" expr = Expression()
-		{ vals.add(Parameter.of(name.image, expr)); }
+		{ vals.add(new ValueParameter(name.image, expr)); }
 	)
 }
 

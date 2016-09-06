@@ -71,8 +71,7 @@ public final class ConstantFolding {
 		}
 
 		default <T> Optional<T> genericVariable(Tree<ExprVariable> expr, Function<Tree<Expression>, Optional<T>> evaluator) {
-			Optional<Tree<VarDecl>> decl = VariableDeclarations.getDeclaration(expr.child(ExprVariable::getVariable))
-					.flatMap(ImportDeclarations::followVariableImport);
+			Optional<Tree<VarDecl>> decl = VariableDeclarations.getDeclaration(expr.child(ExprVariable::getVariable));
 			if (decl.isPresent() && decl.get().node().isConstant()) {
 				return evaluator.apply(decl.get().child(VarDecl::getValue));
 			} else {

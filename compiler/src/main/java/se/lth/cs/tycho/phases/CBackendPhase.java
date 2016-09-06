@@ -27,24 +27,11 @@ public class CBackendPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		String targetName = Namespaces.findEntities(task, task.getIdentifier())
-				.findFirst().get().getOriginalName();
-
-		Path path = context.getConfiguration().get(Compiler.targetPath);
-		Path target = path.resolve(targetName + ".c");
-		PrintWriter writer;
-		try {
-			writer = new PrintWriter(Files.newBufferedWriter(target));
-		} catch (IOException e) {
-			context.getReporter().report(new Diagnostic(Diagnostic.Kind.ERROR, e.getMessage()));
-			return task;
-		}
 		Backend backend = MultiJ.from(Backend.class)
 				.bind("task").to(task)
 				.bind("context").to(context)
 				.instance();
 		backend.main().generateCode();
-		writer.close();
 		return task;
 	}
 

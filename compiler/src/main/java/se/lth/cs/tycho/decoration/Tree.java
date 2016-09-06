@@ -178,6 +178,14 @@ public final class Tree<N extends IRNode> {
 		}
 	}
 
+	public <M extends IRNode> Tree<M> assertNode(M node) {
+		if (this.node == node) {
+			return (Tree<M>) this;
+		} else {
+			throw new AssertionError("this.node() != node");
+		}
+	}
+
 	public IRNode transformNodes(Function<Tree<? extends IRNode>, IRNode> transformation) {
 		HashMap<Tree<IRNode>, IRNode> transformedChildren = new HashMap<>();
 		node.forEachChild(child -> {

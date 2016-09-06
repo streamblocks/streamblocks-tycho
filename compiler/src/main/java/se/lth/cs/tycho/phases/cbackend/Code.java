@@ -186,7 +186,7 @@ public interface Code {
 			}
 			return String.format(type.isSigned() ? "int%d_t" : "uint%d_t", targetSize);
 		} else {
-			return type.isSigned() ? "int64_t" : "uint64_t";
+			return type.isSigned() ? "int32_t" : "uint32_t";
 		}
 	}
 
@@ -324,15 +324,16 @@ public interface Code {
 			String to = evaluate(binOp.getOperands().get(1));
 			for (VarDecl d : varDecls) {
 				Type type = types().declaredType(d);
-				emitter().emit("%s = %s;", declaration(type, d.getName()), from);
-				emitter().emit("while (%s <= %s) {", d.getName(), to);
+				String name = variables().declarationName(d);
+				emitter().emit("%s = %s;", declaration(type, name), from);
+				emitter().emit("while (%s <= %s) {", name, to);
 				emitter().increaseIndentation();
 			}
 			action.run();
 			List<VarDecl> reversed = new ArrayList<>(varDecls);
 			Collections.reverse(reversed);
 			for (VarDecl d : reversed) {
-				emitter().emit("%s++;", d.getName());
+				emitter().emit("%s++;", variables().declarationName(d));
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 			}
@@ -360,17 +361,19 @@ public interface Code {
 	void forEach(Expression collection, List<VarDecl> varDecls, Runnable action);
 
 	default void forEach(ExprBinaryOp binOp, List<VarDecl> varDecls, Runnable action) {
+		emitter().emit("{");
+		emitter().increaseIndentation();
 		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
 			Type type = types().declaredType(varDecls.get(0));
 			for (VarDecl d : varDecls) {
-				emitter().emit("%s;", declaration(type, d.getName()));
+				emitter().emit("%s;", declaration(type, variables().declarationName(d)));
 			}
 			String temp = variables().generateTemp();
 			emitter().emit("%s = %s;", declaration(type, temp), evaluate(binOp.getOperands().get(0)));
 			emitter().emit("while (%s <= %s) {", temp, evaluate(binOp.getOperands().get(1)));
 			emitter().increaseIndentation();
 			for (VarDecl d : varDecls) {
-				emitter().emit("%s = %s++;", d.getName(), temp);
+				emitter().emit("%s = %s++;", variables().declarationName(d), temp);
 			}
 			action.run();
 			emitter().decreaseIndentation();
@@ -378,6 +381,8 @@ public interface Code {
 		} else {
 			throw new UnsupportedOperationException(binOp.getOperations().get(0));
 		}
+		emitter().decreaseIndentation();
+		emitter().emit("}");
 	}
 
 	default String evaluate(ExprIndexer indexer) {
@@ -430,7 +435,7 @@ public interface Code {
 
 	default String evaluate(ExprLet let) {
 		for (VarDecl decl : let.getVarDecls()) {
-			emitter().emit("%s = %s;", declaration(types().declaredType(decl), decl.getName()), evaluate(decl.getValue()));
+			emitter().emit("%s = %s;", declaration(types().declaredType(decl), variables().declarationName(decl)), evaluate(decl.getValue()));
 		}
 		return evaluate(let.getBody());
 	}
@@ -467,15 +472,19 @@ public interface Code {
 	}
 
 	default void execute(StmtBlock block) {
+		emitter().emit("{");
+		emitter().increaseIndentation();
 		for (VarDecl decl : block.getVarDecls()) {
 			Type t = types().declaredType(decl);
-			String d = declaration(t, decl.getName());
+			String d = declaration(t, variables().declarationName(decl));
 			emitter().emit("%s;", d);
 			if (decl.getValue() != null) {
 				assign(t, decl.getName(), decl.getValue());
 			}
 		}
 		block.getStatements().forEach(this::execute);
+		emitter().decreaseIndentation();
+		emitter().emit("}");
 	}
 
 	default void execute(StmtIf stmt) {

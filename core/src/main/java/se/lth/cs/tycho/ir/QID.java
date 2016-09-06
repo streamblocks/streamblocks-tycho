@@ -105,8 +105,8 @@ public final class QID {
 	 * 
 	 * @return the names as a list
 	 */
-	public List<QID> parts() {
-		return parts.stream().map(QID::of).collect(Collectors.toList());
+	public List<String> parts() {
+		return Collections.unmodifiableList(parts);
 	}
 
 	/**

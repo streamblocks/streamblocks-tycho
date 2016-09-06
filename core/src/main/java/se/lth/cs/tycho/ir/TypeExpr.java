@@ -39,12 +39,11 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
-import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
@@ -56,11 +55,11 @@ public class TypeExpr extends AbstractIRNode implements Cloneable {
 		return name;
 	}
 
-	public ImmutableList<Parameter<TypeExpr>> getTypeParameters() {
+	public ImmutableList<TypeParameter> getTypeParameters() {
 		return typeParameters;
 	}
 
-	public ImmutableList<Parameter<Expression>> getValueParameters() {
+	public ImmutableList<ValueParameter> getValueParameters() {
 		return valueParameters;
 	}
 
@@ -68,13 +67,13 @@ public class TypeExpr extends AbstractIRNode implements Cloneable {
 		this(null, name, null, null);
 	}
 
-	public TypeExpr(String name, ImmutableList<Parameter<TypeExpr>> typeParameters,
-			ImmutableList<Parameter<Expression>> valueParameters) {
+	public TypeExpr(String name, ImmutableList<TypeParameter> typeParameters,
+			ImmutableList<ValueParameter> valueParameters) {
 		this(null, name, typeParameters, valueParameters);
 	}
 
-	private TypeExpr(TypeExpr original, String name, ImmutableList<Parameter<TypeExpr>> typeParameters,
-			ImmutableList<Parameter<Expression>> valueParameters) {
+	private TypeExpr(TypeExpr original, String name, ImmutableList<TypeParameter> typeParameters,
+			ImmutableList<ValueParameter> valueParameters) {
 		super(original);
 		this.name = name;
 		this.typeParameters = ImmutableList.from(typeParameters);
@@ -85,8 +84,8 @@ public class TypeExpr extends AbstractIRNode implements Cloneable {
 		return copy(name, null, null);
 	}
 
-	public TypeExpr copy(String name, ImmutableList<Parameter<TypeExpr>> typeParameters,
-			ImmutableList<Parameter<Expression>> valueParameters) {
+	public TypeExpr copy(String name, ImmutableList<TypeParameter> typeParameters,
+			ImmutableList<ValueParameter> valueParameters) {
 		if (Objects.equals(this.name, name) && Lists.equals(this.typeParameters, typeParameters)
 				&& Lists.equals(this.valueParameters, valueParameters)) {
 			return this;
@@ -95,8 +94,8 @@ public class TypeExpr extends AbstractIRNode implements Cloneable {
 	}
 
 	private final String name;
-	private final ImmutableList<Parameter<TypeExpr>> typeParameters;
-	private final ImmutableList<Parameter<Expression>> valueParameters;
+	private final ImmutableList<TypeParameter> typeParameters;
+	private final ImmutableList<ValueParameter> valueParameters;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {

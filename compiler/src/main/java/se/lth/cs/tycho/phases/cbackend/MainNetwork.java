@@ -48,7 +48,7 @@ public interface MainNetwork {
 
 
 		for (Instance instance : instances) {
-			emitter().emit("static %s_state %s;", instance.getEntityName(), instance.getInstanceName());
+			emitter().emit("static %s_state %s;", instance.getEntityName().getLast(), instance.getInstanceName());
 		}
 		emitter().emit("static void run(int argc, char **argv) {");
 		emitter().increaseIndentation();
@@ -78,7 +78,7 @@ public interface MainNetwork {
 					Instance instance = network.getInstances().stream()
 							.filter(inst -> inst.getInstanceName().equals(conn.getSource().getInstance().get()))
 							.findFirst().get();
-					EntityDecl entity = globalNames().entityDecl(QID.of(instance.getEntityName()), true);
+					EntityDecl entity = globalNames().entityDecl(instance.getEntityName(), true);
 					PortDecl portDecl = entity.getEntity().getOutputPorts().stream()
 							.filter(port -> port.getName().equals(conn.getSource().getPort()))
 							.findFirst().orElseThrow(() -> new AssertionError("Missing source port: " + conn));
@@ -98,10 +98,10 @@ public interface MainNetwork {
 		for (Instance instance : instances) {
 			List<String> initParameters = new ArrayList<>();
 			initParameters.add("&" + instance.getInstanceName());
-			EntityDecl entityDecl = globalNames().entityDecl(QID.of(instance.getEntityName()), true);
+			EntityDecl entityDecl = globalNames().entityDecl(instance.getEntityName(), true);
 			for (VarDecl par : entityDecl.getEntity().getValueParameters()) {
 				boolean assigned = false;
-				for (Parameter<Expression> assignment : instance.getValueParameters()) {
+				for (Parameter<Expression, ?> assignment : instance.getValueParameters()) {
 					if (par.getName().equals(assignment.getName())) {
 						initParameters.add(code().evaluate(assignment.getValue()));
 						assigned = true;
@@ -140,7 +140,7 @@ public interface MainNetwork {
 				initParameters.add(String.format("%s_%s", instance.getInstanceName(), port.getName()));
 				initParameters.add(Integer.toString(outgoing.cardinality()));
 			}
-			emitter().emit("%s_init_actor(%s);", instance.getEntityName(), String.join(", ", initParameters));
+			emitter().emit("%s_init_actor(%s);", instance.getEntityName().getLast(), String.join(", ", initParameters));
 			emitter().emit("");
 		}
 
@@ -183,7 +183,7 @@ public interface MainNetwork {
 			emitter().emit("progress |= input_actor_run(%s_input_actor);", inputPort.getName());
 		}
 		for (Instance instance : instances) {
-			emitter().emit("progress |= %s_run(&%s);", instance.getEntityName(), instance.getInstanceName());
+			emitter().emit("progress |= %s_run(&%s);", instance.getEntityName().getLast(), instance.getInstanceName());
 		}
 		for (PortDecl outputPort : network.getOutputPorts()) {
 			emitter().emit("progress |= output_actor_run(%s_output_actor);", outputPort.getName());

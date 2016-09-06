@@ -4,6 +4,8 @@ import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.TypeParameter;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -360,14 +362,14 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
    				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
 			out.append("(");
 			String sep = "";
-			for(Parameter<Expression> par : type.getValueParameters()){
+			for(ValueParameter par : type.getValueParameters()){
 				out.append(sep);
 				sep = ", ";
 				out.append(par.getName());
 				out.append("=");
 				par.getValue().accept(this, null);
 			}
-			for(Parameter<TypeExpr> par : type.getTypeParameters()){
+			for(TypeParameter par : type.getTypeParameters()){
 				out.append(sep);
 				sep = ", ";
 				out.append(par.getName());
@@ -707,10 +709,10 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		entity.accept(this, null);
 	}
 	public Void visitEntityInstanceExpr(EntityInstanceExpr e, Void p) {
-		out.append(e.getEntityName());
+		out.append(((EntityReferenceLocal) e.getEntityName()).getName());
 		out.append("(");
 		String sep = "";
-		for(Parameter<Expression> param : e.getParameterAssignments()){
+		for(ValueParameter param : e.getParameterAssignments()){
 			out.append(sep);
 			out.append(param.getName());
 			out.append(" = ");

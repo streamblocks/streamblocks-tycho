@@ -25,7 +25,7 @@ public class Compiler {
 	private final Context compilationContext;
 	public static final List<Phase> phases = Arrays.asList(
 			// Hack: pause to hook up profiler.
-			new WaitForInputPhase(),
+//			new WaitForInputPhase(),
 
 			// Parse
 			new LoadEntityPhase(),
@@ -41,19 +41,15 @@ public class Compiler {
 
 			// Name and type analyses and transformations
 			new DeclarationAnalysisPhase(),
-			new ImportAnalysisPhase(),
-			new ExpandStarImportsPhase(),
 			new NameAnalysisPhase(),
 			new TypeAnalysisPhase(),
-			new RenamePhase(),
-			new NameAnalysisPhase(),
-			new RemoveNamespacesPhase(),
-			new LiftConstantsPhase(),
 
 			new CreateNetworkPhase(),
+			new ResolveEntityNamesPhase(),
 			new ElaborateNetworkPhase(),
 
 			// Actor transformations
+			new RenameActorVariablesPhase(),
 			new LiftProcessVarDeclsPhase(),
 			new ProcessToCalPhase(),
 			new PrettyPrintPhase(),
@@ -69,7 +65,7 @@ public class Compiler {
 			new RemoveUnusedConditionsPhase(),
 
 			// Code generations
-			new RemoveUnusedEntityDeclsPhase(),
+//			new RemoveUnusedEntityDeclsPhase(),
 			new PrintNetworkPhase(),
 			new CBackendPhase()
 	);
@@ -108,7 +104,7 @@ public class Compiler {
 		Reporter reporter = Reporter.instance(configuration);
 		Loader loader = Loader.instance(configuration, reporter);
 		this.compilationContext = new Context(configuration, loader, reporter);
-		assert dependenciesSatisfied() : "Unsatisfied phase dependencies.";
+//		assert dependenciesSatisfied() : "Unsatisfied phase dependencies.";
 	}
 
 	private static boolean dependenciesSatisfied() {

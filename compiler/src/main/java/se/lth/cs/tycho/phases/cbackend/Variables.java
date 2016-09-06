@@ -2,10 +2,16 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.multij.BindingKind.MODULE;
 
@@ -18,14 +24,28 @@ public interface Variables {
 		return "t_" + backend().uniqueNumbers().next();
 	}
 
+	default String declarationName(VarDecl decl) {
+		IRNode parent = backend().tree().parent(decl);
+		if (parent instanceof Scope) {
+			return "a_" + decl.getName();
+		} else if (parent instanceof ActorMachine) {
+			return "a_" + decl.getName();
+		} else if (parent instanceof NamespaceDecl) {
+			QID ns = ((NamespaceDecl) parent).getQID();
+			return Stream.concat(ns.parts().stream(), Stream.of(decl.getName()))
+					.collect(Collectors.joining("_", "g_", ""));
+		} else {
+			return "l_" + decl.getName();
+		}
+	}
+
 	default String name(Variable var) {
 		VarDecl decl = backend().names().declaration(var);
-		if (backend().tree().parent(decl) instanceof Scope) {
-			return "self->" + var.getName();
-		} else if (backend().tree().parent(decl) instanceof ActorMachine) {
-			return "self->" + var.getName();
+		IRNode parent = backend().tree().parent(decl);
+		if (parent instanceof Scope || parent instanceof ActorMachine) {
+			return "self->" + declarationName(decl);
 		} else {
-			return var.getName();
+			return declarationName(decl);
 		}
 	}
 }

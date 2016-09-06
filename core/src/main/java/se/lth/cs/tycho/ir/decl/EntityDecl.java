@@ -15,21 +15,16 @@ public class EntityDecl extends Decl {
 	}
 
 	public EntityDecl withEntity(Entity entity) {
-		return entity == this.entity ? this : new EntityDecl(this, getAvailability(), getName(), entity, null);
+		return entity == this.entity ? this : new EntityDecl(this, getAvailability(), getName(), entity);
 	}
 
-	private EntityDecl(EntityDecl original, Availability availability, String name, Entity entity, QID qid) {
-		super(original, LocationKind.GLOBAL, availability, DeclKind.ENTITY, name, qid);
+	private EntityDecl(EntityDecl original, Availability availability, String name, Entity entity) {
+		super(original, LocationKind.GLOBAL, availability, DeclKind.ENTITY, name);
 		this.entity = entity;
 	}
 
 	public static EntityDecl global(Availability availability, String name, Entity entity) {
-		return new EntityDecl(null, availability, name, entity, null);
-	}
-
-	public static EntityDecl importDecl(Availability availability, String name, QID qid) {
-		assert qid != null;
-		return new EntityDecl(null, availability, name, null, qid);
+		return new EntityDecl(null, availability, name, entity);
 	}
 
 	@Override
@@ -50,7 +45,7 @@ public class EntityDecl extends Decl {
 		if (getName().equals(name)) {
 			return this;
 		} else {
-			return new EntityDecl(this, getAvailability(), name, entity, getQualifiedIdentifier());
+			return new EntityDecl(this, getAvailability(), name, entity);
 		}
 	}
 
@@ -58,15 +53,7 @@ public class EntityDecl extends Decl {
 		if (getAvailability() == availability) {
 			return this;
 		} else {
-			return new EntityDecl(this, availability, getName(), entity, getQualifiedIdentifier());
-		}
-	}
-
-	public EntityDecl withQualifiedIdentifier(QID qid) {
-		if (getQualifiedIdentifier().equals(qid)) {
-			return this;
-		} else {
-			return new EntityDecl(this, getAvailability(), getName(), entity, qid);
+			return new EntityDecl(this, availability, getName(), entity);
 		}
 	}
 }

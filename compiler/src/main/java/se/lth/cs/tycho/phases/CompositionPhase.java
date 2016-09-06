@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolValueAttribute;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -98,14 +99,14 @@ public class CompositionPhase implements Phase {
 				.map(Optional::get)
 				.distinct()
 				.collect(Collectors.toList());
-		List<String> entities = instances.stream()
+		List<QID> entities = instances.stream()
 				.map(name -> task.getNetwork().getInstances().stream()
 						.filter(instance -> instance.getInstanceName().equals(name))
 						.map(Instance::getEntityName)
 						.findFirst().get())
 				.collect(Collectors.toList());
 		List<ActorMachine> sourceActorMachines = entities.stream()
-				.map(name -> getActorMachine(task, QID.of(name)))
+				.map(name -> getActorMachine(task, name))
 				.collect(Collectors.toList());
 		List<ActorMachine> actorMachines = sourceActorMachines.stream()
 				.map(actorMachine -> RenameVariables.rename(actorMachine, uniqueNumbers))
@@ -120,13 +121,13 @@ public class CompositionPhase implements Phase {
 							bufferSize(connection));
 				})
 				.collect(Collectors.toList());
-		List<Parameter<Expression>> parameters = new ArrayList<>();
+		List<ValueParameter> parameters = new ArrayList<>();
 		for (Instance instance : task.getNetwork().getInstances()) {
 			int index = instances.indexOf(instance.getInstanceName());
 			if (index >= 0) {
 				ActorMachine sourceAm = sourceActorMachines.get(index);
 				ActorMachine am = actorMachines.get(index);
-				for (Parameter<Expression> param : instance.getValueParameters()) {
+				for (ValueParameter param : instance.getValueParameters()) {
 					int parameter = 0;
 					for (VarDecl parDecl : sourceAm.getValueParameters()) {
 						if (parDecl.getName().equals(param.getName())) {
@@ -146,7 +147,7 @@ public class CompositionPhase implements Phase {
 		String compositionEntityName = compositionId + "_" + uniqueNumbers.next();
 		composedEntities.accept(EntityDecl.global(Availability.PUBLIC, originalEntityName, composition).withName(compositionEntityName));
 		Stream<Instance> notComposed = task.getNetwork().getInstances().stream().filter(instance -> !instances.contains(instance.getInstanceName()));
-		Stream<Instance> composed = Stream.of(new Instance(compositionInstanceName, compositionEntityName, parameters, null));
+		Stream<Instance> composed = Stream.of(new Instance(compositionInstanceName, QID.of(compositionEntityName), parameters, null));
 		List<Instance> resultInstances = Stream.concat(notComposed, composed).collect(Collectors.toList());
 
 		List<Map<String, String>> inputPortMaps = getPortMap(actorMachines, composition, ActorMachine::getInputPorts);

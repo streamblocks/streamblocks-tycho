@@ -7,7 +7,8 @@ import se.lth.cs.tycho.comp.SyntheticSourceUnit;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
-import se.lth.cs.tycho.ir.decl.StarImport;
+import se.lth.cs.tycho.ir.decl.GroupImport;
+import se.lth.cs.tycho.ir.decl.Import;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.network.Instance;
@@ -29,18 +30,24 @@ public class RemoveUnusedEntityDeclsPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		Set<String> entities = new HashSet<>();
-		entities.add(task.getIdentifier().toString());
+		Set<QID> entities = new HashSet<>();
+		entities.add(task.getIdentifier());
 		task.getNetwork().getInstances().stream()
 				.map(Instance::getEntityName)
 				.forEach(entities::add);
 		List<VarDecl> varDecls = getAll(task, NamespaceDecl::getVarDecls).collect(Collectors.toList());
 		List<TypeDecl> typeDecls = getAll(task, NamespaceDecl::getTypeDecls).collect(Collectors.toList());
-		List<EntityDecl> entityDecls = getAll(task, NamespaceDecl::getEntityDecls)
-				.filter(decl -> entities.contains(decl.getName()))
-				.collect(Collectors.toList());
-		List<StarImport> starImports = getAll(task, NamespaceDecl::getStarImports).collect(Collectors.toList());
-		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), starImports, varDecls, entityDecls, typeDecls));
+		List<EntityDecl> entityDecls = task.getSourceUnits().stream()
+				.flatMap(unit -> {
+					QID ns = unit.getTree().getQID();
+					return unit.getTree().getEntityDecls().stream()
+							.filter(entity -> {
+								QID name = ns.concat(QID.of(entity.getName()));
+								return entities.contains(name);
+							});
+				}).collect(Collectors.toList());
+		List<Import> imports = getAll(task, NamespaceDecl::getImports).collect(Collectors.toList());
+		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), imports, varDecls, entityDecls, typeDecls));
 		return task.withSourceUnits(ImmutableList.of(unit));
 	}
 

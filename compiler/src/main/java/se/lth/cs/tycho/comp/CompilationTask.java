@@ -58,6 +58,7 @@ public class CompilationTask implements IRNode {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		sourceUnits.forEach(action);
+		if (network != null) action.accept(network);
 	}
 
 	@Override

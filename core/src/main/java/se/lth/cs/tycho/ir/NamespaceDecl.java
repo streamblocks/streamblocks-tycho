@@ -2,7 +2,7 @@ package se.lth.cs.tycho.ir;
 
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
-import se.lth.cs.tycho.ir.decl.StarImport;
+import se.lth.cs.tycho.ir.decl.Import;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -13,21 +13,21 @@ import java.util.function.Consumer;
 
 public class NamespaceDecl extends AbstractIRNode {
 	private final QID qid;
-	private final ImmutableList<StarImport> starImports;
+	private final ImmutableList<Import> imports;
 	private final ImmutableList<VarDecl> varDecls;
 	private final ImmutableList<EntityDecl> entityDecls;
 	private final ImmutableList<TypeDecl> typeDecls;
 
-	public NamespaceDecl(QID qid, List<StarImport> starImports, List<VarDecl> varDecls,
-			List<EntityDecl> entityDecls, List<TypeDecl> typeDecls) {
-		this(null, qid, starImports, varDecls, entityDecls, typeDecls);
+	public NamespaceDecl(QID qid, List<Import> imports, List<VarDecl> varDecls,
+						 List<EntityDecl> entityDecls, List<TypeDecl> typeDecls) {
+		this(null, qid, imports, varDecls, entityDecls, typeDecls);
 	}
 	
-	private NamespaceDecl(IRNode original, QID qid, List<StarImport> starImports, List<VarDecl> varDecls,
-			List<EntityDecl> entityDecls, List<TypeDecl> typeDecls) {
+	private NamespaceDecl(IRNode original, QID qid, List<Import> imports, List<VarDecl> varDecls,
+						  List<EntityDecl> entityDecls, List<TypeDecl> typeDecls) {
 		super(original);
 		this.qid = qid;
-		this.starImports = ImmutableList.from(starImports);
+		this.imports = ImmutableList.from(imports);
 		this.varDecls = ImmutableList.from(varDecls);
 		this.entityDecls = ImmutableList.from(entityDecls);
 		this.typeDecls = ImmutableList.from(typeDecls);
@@ -45,15 +45,15 @@ public class NamespaceDecl extends AbstractIRNode {
 		return builder.build();
 	}
 
-	public ImmutableList<StarImport> getStarImports() {
-		return starImports;
+	public ImmutableList<Import> getImports() {
+		return imports;
 	}
 
-	public NamespaceDecl withStarImports(List<StarImport> starImports) {
-		if (Lists.sameElements(this.starImports, starImports)) {
+	public NamespaceDecl withImports(List<Import> imports) {
+		if (Lists.sameElements(this.imports, imports)) {
 			return this;
 		} else {
-			return new NamespaceDecl(this, qid, ImmutableList.from(starImports), varDecls, entityDecls, typeDecls);
+			return new NamespaceDecl(this, qid, ImmutableList.from(imports), varDecls, entityDecls, typeDecls);
 		}
 	}
 
@@ -65,7 +65,7 @@ public class NamespaceDecl extends AbstractIRNode {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
-			return new NamespaceDecl(this, qid, starImports, ImmutableList.from(varDecls), entityDecls, typeDecls);
+			return new NamespaceDecl(this, qid, imports, ImmutableList.from(varDecls), entityDecls, typeDecls);
 		}
 	}
 
@@ -77,7 +77,7 @@ public class NamespaceDecl extends AbstractIRNode {
 		if (Lists.sameElements(this.entityDecls, entityDecls)) {
 			return this;
 		} else {
-			return new NamespaceDecl(this, qid, starImports, varDecls, ImmutableList.from(entityDecls), typeDecls);
+			return new NamespaceDecl(this, qid, imports, varDecls, ImmutableList.from(entityDecls), typeDecls);
 		}
 	}
 
@@ -89,7 +89,7 @@ public class NamespaceDecl extends AbstractIRNode {
 		if (Lists.sameElements(this.typeDecls, typeDecls)) {
 			return this;
 		} else {
-			return new NamespaceDecl(this, qid, starImports, varDecls, entityDecls, ImmutableList.from(typeDecls));
+			return new NamespaceDecl(this, qid, imports, varDecls, entityDecls, ImmutableList.from(typeDecls));
 		}
 	}
 
@@ -99,14 +99,14 @@ public class NamespaceDecl extends AbstractIRNode {
 		varDecls.forEach(action);
 		typeDecls.forEach(action);
 		entityDecls.forEach(action);
-		starImports.forEach(action);
+		imports.forEach(action);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public NamespaceDecl transformChildren(Transformation transformation) {
 		return new NamespaceDecl(this, qid,
-				(ImmutableList) starImports.map(transformation),
+				(ImmutableList) imports.map(transformation),
 				(ImmutableList) varDecls.map(transformation),
 				(ImmutableList) entityDecls.map(transformation),
 				(ImmutableList) typeDecls.map(transformation));

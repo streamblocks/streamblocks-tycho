@@ -3,6 +3,9 @@ package se.lth.cs.tycho.transformation;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.comp.SyntheticSourceUnit;
+import se.lth.cs.tycho.decoration.EntityDeclarations;
+import se.lth.cs.tycho.decoration.Namespaces;
+import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
@@ -35,17 +38,17 @@ public final class DuplicateEntity {
 				.findFirst()
 				.orElseThrow(() -> new NoSuchElementException("No such entity instance"));
 
-		EntityDecl original = task.getSourceUnits().stream()
-				.flatMap(unit -> unit.getTree().getEntityDecls().stream())
-				.filter(decl -> decl.getName().equals(instance.getEntityName()))
-				.findFirst()
-				.orElseThrow(() -> new RuntimeException("Entity not found"));
+		EntityDecl original = Namespaces.getEntityDeclarations(Tree.of(task), instance.getEntityName())
+				.findFirst().orElseThrow(() -> new RuntimeException("Entity not found")).node();
 
 		EntityDecl entity = original;
 
-		String entityName = entity.getOriginalName() + "_" + uniqueNumbers.getAsLong();
-		entity = RenameVariables.rename(entity, uniqueNumbers);
-		entity = entity.withName(entityName);
+		String localName = entity.getOriginalName() + "_" + uniqueNumbers.getAsLong();
+		QID namespace = instance.getEntityName().getButLast();
+		QID globalName = namespace.concat(QID.of(localName));
+		entity = Rename.renameVariables(entity, d -> true, uniqueNumbers);
+//		entity = RenameVariables.rename(entity, uniqueNumbers);
+		entity = entity.withName(localName);
 		entity = entity.withEntity(
 				entity.getEntity()
 						.withInputPorts(renamePorts(entity.getEntity().getInputPorts(), uniqueNumbers))
@@ -72,7 +75,7 @@ public final class DuplicateEntity {
 		Map<String, String> parameterNames = parameterNames(original.getEntity(), entity.getEntity());
 		List<Instance> instances = task.getNetwork().getInstances().map(inst -> {
 			if (inst.getInstanceName().equals(instanceName)) {
-				return inst.withEntity(entityName)
+				return inst.withEntityName(globalName)
 						.withValueParameters(inst.getValueParameters()
 								.map(par -> par.withName(parameterNames.get(par.getName()))));
 			} else {
@@ -83,7 +86,7 @@ public final class DuplicateEntity {
 		Network net = task.getNetwork()
 				.withConnections(connections)
 				.withInstances(instances);
-		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), null, null, ImmutableList.of(entity), null));
+		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(namespace, null, null, ImmutableList.of(entity), null));
 
 		return task.withNetwork(net).withSourceUnits(ImmutableList.concat(task.getSourceUnits(), ImmutableList.of(unit)));
 

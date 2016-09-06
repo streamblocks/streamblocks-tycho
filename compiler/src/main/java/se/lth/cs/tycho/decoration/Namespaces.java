@@ -5,8 +5,13 @@ import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public final class Namespaces {
@@ -32,5 +37,29 @@ public final class Namespaces {
 
 	public static Stream<Tree<NamespaceDecl>> getNamespace(Tree<? extends IRNode> tree, QID namespace) {
 		return getAllNamespaces(tree).filter(ns -> ns.node().getQID().equals(namespace));
+	}
+
+	public static Stream<Tree<VarDecl>> getVariableDeclarations(Tree<? extends IRNode> tree, QID globalName) {
+		return getNamespace(tree, globalName.getButLast())
+				.flatMap(ns -> ns.children(NamespaceDecl::getVarDecls))
+				.filter(decl -> decl.node().getName().equals(globalName.getLast().toString()));
+	}
+
+	public static Stream<Tree<EntityDecl>> getEntityDeclarations(Tree<? extends IRNode> tree, QID globalName) {
+		return getNamespace(tree, globalName.getButLast())
+				.flatMap(ns -> ns.children(NamespaceDecl::getEntityDecls))
+				.filter(decl -> decl.node().getName().equals(globalName.getLast().toString()));
+	}
+
+	public static Stream<Tree<TypeDecl>> getTypeDeclarations(Tree<? extends IRNode> tree, QID globalName) {
+		return getNamespace(tree, globalName.getButLast())
+				.flatMap(ns -> ns.children(NamespaceDecl::getTypeDecls))
+				.filter(decl -> decl.node().getName().equals(globalName.getLast().toString()));
+	}
+
+	public static <D extends Decl> Optional<QID> globalName(Tree<D> decl) {
+		return decl.parent()
+				.flatMap(p -> p.tryCast(NamespaceDecl.class))
+				.map(ns -> ns.node().getQID().concat(QID.of(decl.node().getName())));
 	}
 }

@@ -3,12 +3,13 @@ package se.lth.cs.tycho.phases;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.GlobalDeclarations;
-import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
@@ -43,7 +44,7 @@ public class ElaborateNetworkPhase implements Phase {
 	public Network fullyElaborate(CompilationTask task, Network network, Set<String> names) {
 		Network result = uniqueNames(network, names);
 		for (Instance instance : result.getInstances()) {
-			EntityDecl entity = GlobalDeclarations.getEntity(task, QID.of(instance.getEntityName()));
+			EntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
 			if (entity.getEntity() instanceof NlNetwork) {
 				Network elaborated = elaborate((NlNetwork) entity.getEntity());
 				elaborated = fullyElaborate(task, elaborated, names);
@@ -65,7 +66,7 @@ public class ElaborateNetworkPhase implements Phase {
 			names.add(name);
 		}
 		ImmutableList<Instance> instances = network.getInstances().stream()
-				.map(instance -> instance.withName(dictionary.get(instance.getInstanceName())))
+				.map(instance -> instance.withInstanceName(dictionary.get(instance.getInstanceName())))
 				.collect(ImmutableList.collector());
 		ImmutableList<Connection> connections = network.getConnections().stream()
 				.map(connection -> {
@@ -160,10 +161,12 @@ public class ElaborateNetworkPhase implements Phase {
 		for (InstanceDecl entity : network.getEntities()) {
 			assert entity.getEntityExpr() instanceof EntityInstanceExpr;
 			EntityInstanceExpr expr = (EntityInstanceExpr) entity.getEntityExpr();
+			assert expr.getEntityName() instanceof EntityReferenceGlobal;
+			QID entityName = ((EntityReferenceGlobal) expr.getEntityName()).getGlobalName();
 			Instance instance = new Instance(
 					entity.getInstanceName(),
-					expr.getEntityName(),
-					expr.getParameterAssignments().map(Parameter::deepClone),
+					entityName,
+					expr.getParameterAssignments().map(ValueParameter::deepClone),
 					ImmutableList.empty())
 					.withAttributes(expr.getAttributes().map(ToolAttribute::deepClone));
 			instances.add(instance);

@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.transformation;
 
-import se.lth.cs.tycho.decoration.ImportDeclarations;
 import se.lth.cs.tycho.decoration.Namespaces;
 import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.decoration.VariableDeclarations;
@@ -8,11 +7,11 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
-import se.lth.cs.tycho.ir.expr.Expression;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,15 +23,16 @@ public final class RenameVariables {
 
 	public static <N extends IRNode> N rename(N root, LongSupplier uniqueNumbers) {
 		Tree<N> tree = Tree.of(root);
-		Map<Tree<VarDecl>, String> names_ = createNames(tree, uniqueNumbers);
+		Map<Tree<VarDecl>, String> names = createNames(tree, uniqueNumbers);
 
-		Map<Tree<VarDecl>, String> names = unifyImportedNames(names_);
+		// TODO should imported names be unified?
+		// names = unifyImportedNames(names);
 
 		Map<QID, QID> publicVarDecls = publicVarDecls(tree, names);
 
 		Map<Tree<Variable>, String> variableNames = variableNames(tree, names);
 
-		Map<Tree<Parameter<Expression>>, String> parameterNames = parameterNames(tree, names);
+		Map<Tree<ValueParameter>, String> parameterNames = parameterNames(tree, names);
 
 		IRNode result = tree.transformNodes(node -> {
 			Optional<Tree<Variable>> var = node.tryCast(Variable.class);
@@ -49,9 +49,10 @@ public final class RenameVariables {
 				if (names.containsKey(decl.get())) {
 					varDecl = varDecl.withName(names.get(decl.get()));
 				}
-				if (varDecl.isImport() && publicVarDecls.containsKey(varDecl.getQualifiedIdentifier())) {
-					varDecl = varDecl.withQualifiedIdentifier(publicVarDecls.get(varDecl.getQualifiedIdentifier()));
-				}
+				// TODO should this be removed?
+//				if (varDecl.isImport() && publicVarDecls.containsKey(varDecl.getQualifiedIdentifier())) {
+//					varDecl = varDecl.withQualifiedIdentifier(publicVarDecls.get(varDecl.getQualifiedIdentifier()));
+//				}
 				return varDecl;
 			}
 			Optional<Tree<Parameter>> parameter = node.tryCast(Parameter.class);
@@ -68,19 +69,6 @@ public final class RenameVariables {
 		return (N) result;
 	}
 
-	private static Map<Tree<VarDecl>, String> unifyImportedNames(Map<Tree<VarDecl>, String> names) {
-		Map<Tree<VarDecl>, String> result = new HashMap<>();
-		for (Tree<VarDecl> varDeclTree : names.keySet()) {
-			Optional<Tree<VarDecl>> imported = ImportDeclarations.followVariableImport(varDeclTree);
-			if (imported.isPresent()) {
-				result.put(varDeclTree, names.get(imported.get()));
-			} else {
-				result.put(varDeclTree, names.get(varDeclTree));
-			}
-		}
-		return result;
-	}
-
 	private static Map<QID, QID> publicVarDecls(Tree<?> tree, Map<Tree<VarDecl>, String> names) {
 		Map<QID, QID> publicVarDecls = new HashMap<>();
 		Namespaces.getAllNamespaces(tree)
@@ -94,8 +82,8 @@ public final class RenameVariables {
 		return publicVarDecls;
 	}
 
-	private static Map<Tree<Parameter<Expression>>, String> parameterNames(Tree<? extends IRNode> root, Map<Tree<VarDecl>, String> names) {
-		Map<Tree<Parameter<Expression>>, String> parameterNames = new HashMap<>();
+	private static Map<Tree<ValueParameter>, String> parameterNames(Tree<? extends IRNode> root, Map<Tree<VarDecl>, String> names) {
+		Map<Tree<ValueParameter>, String> parameterNames = new HashMap<>();
 		root.walk().forEach(tree ->
 				tree.tryCast(EntityInstanceExpr.class).ifPresent(inst ->
 						inst.children(EntityInstanceExpr::getParameterAssignments).forEach(param ->

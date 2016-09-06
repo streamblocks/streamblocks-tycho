@@ -13,6 +13,9 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GroupImport;
+import se.lth.cs.tycho.ir.decl.Import;
+import se.lth.cs.tycho.ir.decl.SingleImport;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -23,6 +26,9 @@ import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityReference;
+import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
+import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.expr.ExprComprehension;
 import se.lth.cs.tycho.ir.expr.ExprInput;
@@ -41,6 +47,7 @@ import se.lth.cs.tycho.phases.TreeShadow;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public interface Names {
@@ -54,7 +61,7 @@ public interface Names {
 
 	PortDecl portDeclaration(Port port);
 
-	EntityDecl entityDeclaration(EntityInstanceExpr instance);
+	EntityDecl entityDeclaration(EntityReference reference);
 
 	@Module
 	interface Implementation extends Names, PortNames, VariableNames, EntityNames, Util {
@@ -70,10 +77,6 @@ public interface Names {
 
 		default PortDecl portDeclaration(Port port) {
 			return PortNames.super.portDeclaration(port);
-		}
-
-		default EntityDecl entityDeclaration(EntityInstanceExpr instance) {
-			return EntityNames.super.entityDeclaration(instance);
 		}
 
 	}
@@ -170,16 +173,26 @@ public interface Names {
 
 		GlobalNames globalNames();
 
-		default EntityDecl entityDeclaration(EntityInstanceExpr instance) {
-			return lookupEntity(tree().parent(instance), instance.getEntityName());
+		default EntityDecl entityDeclaration(EntityReference reference) {
+			return lookupEntity(reference);
 		}
 
-		default EntityDecl lookupEntity(IRNode node, String name) {
+		EntityDecl lookupEntity(EntityReference reference);
+
+		default EntityDecl lookupEntity(EntityReferenceGlobal reference) {
+			return globalNames().entityDecl(reference.getGlobalName(), false);
+		}
+
+		default EntityDecl lookupEntity(EntityReferenceLocal reference) {
+			return localEntityLookup(reference, reference.getName());
+		}
+
+		default EntityDecl localEntityLookup(IRNode node, String name) {
 			IRNode parent = tree().parent(node);
-			return parent == null ? null : lookupEntity(parent, name);
+			return parent == null ? null : localEntityLookup(parent, name);
 		}
 
-		default EntityDecl lookupEntity(NamespaceDecl namespaceDecl, String name) {
+		default EntityDecl localEntityLookup(NamespaceDecl namespaceDecl, String name) {
 			return findInStream(namespaceDecl.getEntityDecls().stream(), name)
 					.orElseGet(() -> globalNames().entityDecl(namespaceDecl.getQID().concat(QID.of(name)), true));
 		}
@@ -277,8 +290,33 @@ public interface Names {
 			Optional<VarDecl> result = findInStream(ns.getVarDecls().stream(), name);
 			if (result.isPresent()) {
 				return result;
+			}
+			VarDecl inNamespace = globalNames().varDecl(ns.getQID().concat(QID.of(name)), true);
+			if (inNamespace != null) {
+				return Optional.of(inNamespace);
+			}
+			for (Import imp : ns.getImports()) {
+				Optional<VarDecl> decl = varImportLookup(imp, name);
+				if (decl.isPresent()) return decl;
+			}
+			return Optional.empty();
+		}
+
+		Optional<VarDecl> varImportLookup(Import imp, String name);
+		default Optional<VarDecl> varImportLookup(SingleImport singleImport, String name) {
+			if (singleImport.getKind() == Import.Kind.VAR && singleImport.getLocalName().equals(name)) {
+				return Optional.of(globalNames().varDecl(singleImport.getGlobalName(), false));
 			} else {
-				return Optional.ofNullable(globalNames().varDecl(ns.getQID().concat(QID.of(name)), true));
+				return Optional.empty();
+			}
+		}
+
+		default Optional<VarDecl> varImportLookup(GroupImport groupImport, String name) {
+			if (groupImport.getKind() == Import.Kind.VAR) {
+				QID globalName = groupImport.getGlobalName().concat(QID.of(name));
+				return Optional.ofNullable(globalNames().varDecl(globalName, false));
+			} else {
+				return Optional.empty();
 			}
 		}
 

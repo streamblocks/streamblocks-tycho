@@ -13,16 +13,14 @@ public abstract class Decl extends AbstractIRNode {
 	private final String originalName;
 	private final DeclKind declKind;
 	private final LocationKind locationKind;
-	private final QID qualifiedIdentifier;
 
-	protected Decl(Decl original, LocationKind locationKind, Availability availability, DeclKind declKind, String name, QID qualifiedIdentifier) {
+	protected Decl(Decl original, LocationKind locationKind, Availability availability, DeclKind declKind, String name) {
 		super(original);
 		this.availability = availability;
 		this.name = name;
 		this.originalName = (original == null ? name : original.originalName);
 		this.declKind = declKind;
 		this.locationKind = locationKind;
-		this.qualifiedIdentifier = qualifiedIdentifier;
 	}
 
 	public Availability getAvailability() {
@@ -43,14 +41,6 @@ public abstract class Decl extends AbstractIRNode {
 
 	public LocationKind getLocationKind() {
 		return locationKind;
-	}
-
-	public QID getQualifiedIdentifier() {
-		return qualifiedIdentifier;
-	}
-
-	public boolean isImport() {
-		return qualifiedIdentifier != null;
 	}
 
 }

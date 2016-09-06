@@ -4,8 +4,11 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
+import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.TypeParameter;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -16,15 +19,15 @@ import java.util.function.Consumer;
 
 public class Instance extends AttributableIRNode {
 	private final String instanceName;
-	private final String entityName;
-	private final ImmutableList<Parameter<Expression>> valueParameters;
-	private final ImmutableList<Parameter<TypeExpr>> typeParameters;
+	private final QID entityName;
+	private final ImmutableList<ValueParameter> valueParameters;
+	private final ImmutableList<TypeParameter> typeParameters;
 
-	public Instance(String instanceName, String entityName, List<Parameter<Expression>> valueParameters, List<Parameter<TypeExpr>> typeParameters) {
+	public Instance(String instanceName, QID entityName, List<ValueParameter> valueParameters, List<TypeParameter> typeParameters) {
 		this(null, instanceName, entityName, valueParameters, typeParameters);
 	}
 
-	private Instance(Instance original, String instanceName, String entityName, List<Parameter<Expression>> valueParameters, List<Parameter<TypeExpr>> typeParameters) {
+	private Instance(Instance original, String instanceName, QID entityName, List<ValueParameter> valueParameters, List<TypeParameter> typeParameters) {
 		super(original);
 		this.instanceName = instanceName;
 		this.entityName = entityName;
@@ -32,14 +35,14 @@ public class Instance extends AttributableIRNode {
 		this.typeParameters = ImmutableList.from(typeParameters);
 	}
 
-	public Instance copy(String name, String entity, List<Parameter<Expression>> valueParameters, List<Parameter<TypeExpr>> typeParameters) {
-		if (Objects.equals(this.instanceName, name)
-				&& Objects.equals(this.entityName, entity)
+	public Instance copy(String instanceName, QID entityName, List<ValueParameter> valueParameters, List<TypeParameter> typeParameters) {
+		if (Objects.equals(this.instanceName, instanceName)
+				&& Objects.equals(this.entityName, entityName)
 				&& Lists.sameElements(this.valueParameters, valueParameters)
 				&& Lists.sameElements(this.typeParameters, typeParameters)) {
 			return this;
 		} else {
-			return new Instance(this, name, entity, valueParameters, typeParameters);
+			return new Instance(this, instanceName, entityName, valueParameters, typeParameters);
 		}
 	}
 
@@ -47,31 +50,31 @@ public class Instance extends AttributableIRNode {
 		return instanceName;
 	}
 
-	public Instance withName(String name) {
+	public Instance withInstanceName(String name) {
 		return copy(name, entityName, valueParameters, typeParameters);
 	}
 
-	public String getEntityName() {
+	public QID getEntityName() {
 		return entityName;
 	}
 
-	public Instance withEntity(String entity) {
+	public Instance withEntityName(QID entity) {
 		return copy(instanceName, entity, valueParameters, typeParameters);
 	}
 
-	public ImmutableList<Parameter<Expression>> getValueParameters() {
+	public ImmutableList<ValueParameter> getValueParameters() {
 		return valueParameters;
 	}
 
-	public Instance withValueParameters(List<Parameter<Expression>> valueParameters) {
+	public Instance withValueParameters(List<ValueParameter> valueParameters) {
 		return copy(instanceName, entityName, valueParameters, typeParameters);
 	}
 
-	public ImmutableList<Parameter<TypeExpr>> getTypeParameters() {
+	public ImmutableList<TypeParameter> getTypeParameters() {
 		return typeParameters;
 	}
 
-	public Instance withTypeParameters(List<Parameter<TypeExpr>> typeParameters) {
+	public Instance withTypeParameters(List<TypeParameter> typeParameters) {
 		return copy(instanceName, entityName, valueParameters, typeParameters);
 	}
 

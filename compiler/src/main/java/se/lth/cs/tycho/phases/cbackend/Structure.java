@@ -78,7 +78,7 @@ public interface Structure {
 
 		emitter().emit("// parameters");
 		actorMachine.getValueParameters().forEach(d -> {
-			emitter().emit("self->%s = %1$s;", d.getName());
+			emitter().emit("self->%s = %1$s;", backend().variables().declarationName(d));
 		});
 		emitter().emit("");
 
@@ -113,7 +113,7 @@ public interface Structure {
 		List<String> parameters = new ArrayList<>();
 		parameters.add(selfParameter);
 		actorMachine.getValueParameters().forEach(d -> {
-			parameters.add(code().declaration(types().declaredType(d), d.getName()));
+			parameters.add(code().declaration(types().declaredType(d), backend().variables().declarationName(d)));
 		});
 		actorMachine.getInputPorts().forEach(p -> {
 			parameters.add(String.format("channel_t *%s_channel", p.getName()));
@@ -177,7 +177,7 @@ public interface Structure {
 				if (types().declaredType(var) instanceof CallableType) {
 					emitter().emit("// function %s", var.getName());
 				} else if (var.getValue() != null) {
-					code().assign(types().declaredType(var), "self->" + var.getName(), var.getValue());
+					code().assign(types().declaredType(var), "self->" + backend().variables().declarationName(var), var.getValue());
 				}
 			}
 			emitter().decreaseIndentation();
@@ -212,7 +212,7 @@ public interface Structure {
 		for (VarDecl par : lambda.getValueParameters()) {
 			builder.append(code().type(types().declaredType(par)))
 					.append(" ")
-					.append(par.getName())
+					.append(backend().variables().declarationName(par))
 					.append(", ");
 		}
 		LambdaType type = (LambdaType) types().declaredType(decl);
@@ -237,7 +237,7 @@ public interface Structure {
 				.append("(")
 				.append(name).append("_state *self")
 				.append(proc.getValueParameters().stream()
-						.map(par -> ", " + code().type(types().declaredType(par)) + " " + par.getName())
+						.map(par -> ", " + code().type(types().declaredType(par)) + " " + backend().variables().declarationName(par))
 						.collect(Collectors.joining()))
 				.append(")");
 		String header = builder.toString();
@@ -262,7 +262,7 @@ public interface Structure {
 
 		emitter().emit("// parameters");
 		for (VarDecl param : actorMachine.getValueParameters()) {
-			String decl = code().declaration(types().declaredType(param), param.getName());
+			String decl = code().declaration(types().declaredType(param), backend().variables().declarationName(param));
 			emitter().emit("%s;", decl);
 		}
 		emitter().emit("");
@@ -287,7 +287,7 @@ public interface Structure {
 				if (types().declaredType(var) instanceof CallableType) {
 					emitter().emit("// function %s", var.getName());
 				} else {
-					String decl = code().declaration(types().declaredType(var), var.getName());
+					String decl = code().declaration(types().declaredType(var), backend().variables().declarationName(var));
 					emitter().emit("%s;", decl);
 				}
 			}
