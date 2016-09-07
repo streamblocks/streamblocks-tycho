@@ -9,6 +9,7 @@ import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,6 +38,11 @@ public interface Variables {
 		} else {
 			return "l_" + decl.getName();
 		}
+	}
+
+	default String globalName(ExprGlobalVariable var) {
+		return var.getGlobalName().parts().stream()
+				.collect(Collectors.joining("_", "g_", ""));
 	}
 
 	default String name(Variable var) {

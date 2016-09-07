@@ -359,7 +359,7 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 {
 	(Annotation())*
 	(
-		i = Import() { imports.add(i); }
+		i = Import() ";" { imports.add(i); }
 	|
 		LOOKAHEAD(2)
 		v = GlobalVarDecl() { varDecls.add(v); }

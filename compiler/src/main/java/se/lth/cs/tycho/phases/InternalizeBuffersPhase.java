@@ -17,6 +17,7 @@ import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.LocationKind;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
@@ -111,7 +112,7 @@ public class InternalizeBuffersPhase implements Phase {
 				} else {
 					connections.removeAll(conditionFree);
 					ActorMachine internalized = internalize((ActorMachine) entity.getEntity(), conditionFree, context.getUniqueNumbers());
-					internalized = Rename.renameVariables(internalized, d -> true, context.getUniqueNumbers()); // TODO: remove when the C backend gives unique names to local functions and procedures.
+					internalized = Rename.renameVariables(internalized, d -> d.node().getLocationKind() != LocationKind.PARAMETER, context.getUniqueNumbers()); // TODO: remove when the C backend gives unique names to local functions and procedures.
 					String name = entity.getOriginalName() + "_" + context.getUniqueNumbers().next();
 					entities.add(EntityDecl.global(Availability.PUBLIC, name, internalized));
 					resultInstances.add(instance.withEntityName(QID.of(name)));

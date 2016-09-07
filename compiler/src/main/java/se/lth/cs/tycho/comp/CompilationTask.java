@@ -62,6 +62,11 @@ public class CompilationTask implements IRNode {
 	}
 
 	@Override
+	public CompilationTask deepClone() {
+		return (CompilationTask) IRNode.super.deepClone();
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public CompilationTask transformChildren(Transformation transformation) {
 		return copy(

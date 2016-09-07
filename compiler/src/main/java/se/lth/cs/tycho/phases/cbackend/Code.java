@@ -82,9 +82,13 @@ public interface Code {
 		assert !input.hasRepeat() : "Cannot assign a repeated input to a scalar.";
 		Type portType = types().portType(input.getPort());
 		String tmp = variables().generateTemp();
-		emitter().emit("%s;", declaration(portType, tmp));
-		emitter().emit("channel_peek(self->%s_channel, %d, sizeof(%s), &%s);", input.getPort().getName(), input.getOffset(), type(portType), tmp);
-		emitter().emit("%s = %s;", lvalue, tmp); // should handle some discrepancies between port type and variable type.
+		if (input.getOffset() == 0) {
+			emitter().emit("%s = channel_peek_first_%s(self->%s_channel);", lvalue, type(portType), input.getPort().getName());
+		} else {
+			emitter().emit("%s;", declaration(portType, tmp));
+			emitter().emit("channel_peek_%s(self->%s_channel, %d, 1, &%s);", type(portType), input.getPort().getName(), input.getOffset(), tmp);
+			emitter().emit("%s = %s;", lvalue, tmp); // should handle some discrepancies between port type and variable type.
+		}
 	}
 
 	default void assignList(ListType type, String lvalue, Expression expr) {
@@ -95,8 +99,8 @@ public interface Code {
 		assert input.hasRepeat(); // only repeat assignments to lists are supported
 		assert input.getPatternLength() == 1; // only with one variable
 		assert input.getOffset() == 0; // and that variable is therefore the first
-		Type portType = new ListType(types().portType(input.getPort()), OptionalInt.of(input.getRepeat()));
-		emitter().emit("channel_peek(self->%s_channel, 0, sizeof(%s), (char*) &%s);", input.getPort().getName(), type(portType), lvalue);
+		Type portType = types().portType(input.getPort());
+		emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, (%1$s*) &%s);", type(portType), input.getPort().getName(), input.getRepeat(), lvalue);
 	}
 	default void assignList(ListType type, String lvalue, ExprVariable var) {
 		assert type.getSize().isPresent();
@@ -216,6 +220,10 @@ public interface Code {
 
 	default String evaluate(ExprVariable variable) {
 		return variables().name(variable.getVariable());
+	}
+
+	default String evaluate(ExprGlobalVariable variable) {
+		return variables().globalName(variable);
 	}
 
 	default String evaluate(ExprLiteral literal) {
@@ -417,19 +425,70 @@ public interface Code {
 	default void application(String result, Expression func, List<Expression> args) {
 		throw new UnsupportedOperationException();
 	}
-	default void application(String result, ExprVariable func, List<Expression> args) {
-		VarDecl decl = names().declaration(func.getVariable());
+	default void application(String result, ExprGlobalVariable func, List<Expression> args) {
+		VarDecl decl = backend().globalNames().varDecl(func.getGlobalName(), true);
+		boolean isExternal;
+		if (decl.getValue() instanceof ExprLambda) {
+			isExternal = ((ExprLambda) decl.getValue()).isExternal();
+		} else {
+			isExternal = false;
+		}
 		StringBuilder builder = new StringBuilder();
-		builder.append(func.getVariable().getName())
-				.append("(");
+		builder.append(result).append(" = ");
+		if (isExternal) {
+			builder.append(decl.getOriginalName());
+		} else {
+			builder.append(decl.getName());
+		}
+		builder.append("(");
 		IRNode parent = backend().tree().parent(decl);
-		if (parent instanceof Scope) {
-			builder.append("self, ");
+		boolean first = true;
+		if (parent instanceof Scope && !isExternal) {
+			builder.append("self");
+			first = false;
 		}
 		for (Expression arg : args) {
-			builder.append(evaluate(arg)).append(", ");
+			if (first) {
+				first = false;
+			} else {
+				builder.append(", ");
+			}
+			builder.append(evaluate(arg));
 		}
-		builder.append("&").append(result).append(");");
+		builder.append(");");
+		emitter().emit(builder.toString());
+	}
+	default void application(String result, ExprVariable func, List<Expression> args) {
+		VarDecl decl = names().declaration(func.getVariable());
+		boolean isExternal;
+		if (decl.getValue() instanceof ExprLambda) {
+			isExternal = ((ExprLambda) decl.getValue()).isExternal();
+		} else {
+			isExternal = false;
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append(result).append(" = ");
+		if (isExternal) {
+			builder.append(decl.getOriginalName());
+		} else {
+			builder.append(decl.getName());
+		}
+		builder.append("(");
+		IRNode parent = backend().tree().parent(decl);
+		boolean first = true;
+		if (parent instanceof Scope && !isExternal) {
+			builder.append("self");
+			first = false;
+		}
+		for (Expression arg : args) {
+			if (first) {
+				first = false;
+			} else {
+				builder.append(", ");
+			}
+			builder.append(evaluate(arg));
+		}
+		builder.append(");");
 		emitter().emit(builder.toString());
 	}
 
@@ -443,7 +502,7 @@ public interface Code {
 	void execute(Statement stmt);
 
 	default void execute(StmtConsume consume) {
-		emitter().emit("channel_consume(self->%s_channel, sizeof(%s)*%d);", consume.getPort().getName(), type(types().portType(consume.getPort())), consume.getNumberOfTokens());
+		emitter().emit("channel_consume_%s(self->%s_channel, %d);", type(types().portType(consume.getPort())), consume.getPort().getName(), consume.getNumberOfTokens());
 	}
 
 	default void execute(StmtWrite write) {
@@ -454,12 +513,12 @@ public interface Code {
 			emitter().emit("%s;", declaration(types().portType(write.getPort()), tmp));
 			for (Expression expr : write.getValues()) {
 				emitter().emit("%s = %s;", tmp, evaluate(expr));
-				emitter().emit("channel_write(self->%s_channels, self->%1$s_count, &%s, sizeof(%s));", portName, tmp, portType);
+				emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, &%s, 1);", portType, portName, tmp);
 			}
 		} else if (write.getValues().size() == 1) {
-			String portType = type(types().portTypeRepeated(write.getPort(), write.getRepeatExpression()));
+			String portType = type(types().portType(write.getPort()));
 			String value = evaluate(write.getValues().get(0));
-			emitter().emit("channel_write(self->%s_channels, self->%1$s_count, &%s, sizeof(%s));", portName, value, portType);
+			emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, &%s, %s);", portType, portName, value, evaluate(write.getRepeatExpression()));
 		} else {
 			throw new Error("not implemented");
 		}
@@ -521,13 +580,57 @@ public interface Code {
 	default void call(Expression proc, List<Expression> args) {
 		throw new UnsupportedOperationException();
 	}
+	default void call(ExprGlobalVariable proc, List<Expression> args) {
+		VarDecl decl = backend().globalNames().varDecl(proc.getGlobalName(), true);
+		boolean isExternal;
+		if (decl.getValue() instanceof ExprProc) {
+			isExternal = ((ExprProc) decl.getValue()).isExternal();
+		} else {
+			isExternal = false;
+		}
+		StringBuilder builder = new StringBuilder();
+		if (isExternal) {
+			builder.append(decl.getOriginalName());
+		} else {
+			builder.append(decl.getName());
+		}
+		builder.append("(");
+		IRNode parent = backend().tree().parent(decl);
+		if (parent instanceof Scope && !isExternal) {
+			builder.append("self");
+			if (!args.isEmpty()) {
+				builder.append(", ");
+			}
+		}
+		boolean first = true;
+		for (Expression arg : args) {
+			if (first) {
+				first = false;
+			} else {
+				builder.append(", ");
+			}
+			builder.append(evaluate(arg));
+		}
+		builder.append(");");
+		emitter().emit(builder.toString());
+	}
 	default void call(ExprVariable proc, List<Expression> args) {
 		VarDecl decl = names().declaration(proc.getVariable());
+		boolean isExternal;
+		if (decl.getValue() instanceof ExprProc) {
+			isExternal = ((ExprProc) decl.getValue()).isExternal();
+		} else {
+			isExternal = false;
+		}
 		StringBuilder builder = new StringBuilder();
-		builder.append(proc.getVariable().getName())
-				.append("(");
+		if (isExternal) {
+			builder.append(decl.getOriginalName());
+		} else {
+			builder.append(decl.getName());
+		}
+		builder.append("(");
 		IRNode parent = backend().tree().parent(decl);
-		if (parent instanceof Scope) {
+		if (parent instanceof Scope && !isExternal) {
 			builder.append("self");
 			if (!args.isEmpty()) {
 				builder.append(", ");

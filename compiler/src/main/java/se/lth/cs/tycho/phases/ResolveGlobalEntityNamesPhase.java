@@ -10,7 +10,7 @@ import se.lth.cs.tycho.ir.entity.nl.EntityReference;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 
-public class ResolveEntityNamesPhase implements Phase {
+public class ResolveGlobalEntityNamesPhase implements Phase {
 	@Override
 	public String getDescription() {
 		return "Resolves local entity names to global names.";

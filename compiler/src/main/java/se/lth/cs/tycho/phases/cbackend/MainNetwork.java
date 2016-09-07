@@ -47,9 +47,6 @@ public interface MainNetwork {
 
 
 
-		for (Instance instance : instances) {
-			emitter().emit("static %s_state %s;", instance.getEntityName().getLast(), instance.getInstanceName());
-		}
 		emitter().emit("static void run(int argc, char **argv) {");
 		emitter().increaseIndentation();
 
@@ -68,8 +65,8 @@ public interface MainNetwork {
 		emitter().emit("}");
 		emitter().emit("");
 
+		List<String> connectionTypes = new ArrayList<>();
 
-		emitter().emit("channel_t *channels[%d];", connections.size());
 		{
 			int i = 0;
 			for (Connection conn : connections) {
@@ -90,11 +87,15 @@ public interface MainNetwork {
 							.findFirst().get();
 					type = code().type(backend().types().declaredPortType(portDecl));
 				}
-				emitter().emit("channels[%d] = channel_create();", i);
+				connectionTypes.add(type);
+				emitter().emit("channel_%s *channel_%d = channel_create_%1$s();", type, i);
 				i = i + 1;
 			}
 		}
 		emitter().emit("");
+		for (Instance instance : instances) {
+			emitter().emit("%s_state %s;", instance.getEntityName().getLast(), instance.getInstanceName());
+		}
 		for (Instance instance : instances) {
 			List<String> initParameters = new ArrayList<>();
 			initParameters.add("&" + instance.getInstanceName());
@@ -122,7 +123,7 @@ public interface MainNetwork {
 					}
 					i = i + 1;
 				}
-				initParameters.add(String.format("channels[%d]", i));
+				initParameters.add(String.format("channel_%d", i));
 			}
 			for (PortDecl port : entityDecl.getEntity().getOutputPorts()) {
 				int i = 0;
@@ -135,8 +136,9 @@ public interface MainNetwork {
 					}
 					i = i + 1;
 				}
-				String channels = outgoing.stream().mapToObj(o -> String.format("channels[%d]", o)).collect(Collectors.joining(", "));
-				emitter().emit("channel_t *%s_%s[%d] = { %s };", instance.getInstanceName(), port.getName(), outgoing.cardinality(), channels);
+				String channels = outgoing.stream().mapToObj(o -> String.format("channel_%d", o)).collect(Collectors.joining(", "));
+				String tokenType = code().type(backend().types().declaredPortType(port));
+				emitter().emit("channel_%s *%s_%s[%d] = { %s };", tokenType, instance.getInstanceName(), port.getName(), outgoing.cardinality(), channels);
 				initParameters.add(String.format("%s_%s", instance.getInstanceName(), port.getName()));
 				initParameters.add(Integer.toString(outgoing.cardinality()));
 			}
@@ -154,10 +156,12 @@ public interface MainNetwork {
 				}
 				i = i + 1;
 			}
-			String channels = outgoing.stream().mapToObj(o -> String.format("channels[%d]", o)).collect(Collectors.joining(", "));
+			String channels = outgoing.stream().mapToObj(o -> String.format("channel_%d", o)).collect(Collectors.joining(", "));
 			emitter().emit("FILE *%s_input_file = fopen(argv[%d], \"r\");", port.getName(), argi);
-			emitter().emit("channel_t *%s_channels[%d] = { %s };", port.getName(), outgoing.cardinality(), channels);
-			emitter().emit("input_actor_t *%s_input_actor = input_actor_create(%1$s_input_file, %1$s_channels, %d);", port.getName(), outgoing.cardinality());
+			String tokenType = code().type(backend().types().declaredPortType(port));
+			emitter().emit("%s *%s_channels[%d] = { %s };", tokenType, port.getName(), outgoing.cardinality(), channels);
+			String type = backend().code().type(backend().types().declaredPortType(port));
+			emitter().emit("input_actor_%s *%s_input_actor = input_actor_create_%1$s(%2$s_input_file, %2$s_channels, %d);", type, port.getName(), outgoing.cardinality());
 			emitter().emit("");
 			argi = argi + 1;
 		}
@@ -166,7 +170,8 @@ public interface MainNetwork {
 			for (Connection conn : connections) {
 				if (!conn.getTarget().getInstance().isPresent() && conn.getTarget().getPort().equals(port.getName())) {
 					emitter().emit("FILE *%s_output_file = fopen(argv[%d], \"w\");", port.getName(), argi);
-					emitter().emit("output_actor_t *%s_output_actor = output_actor_create(%1$s_output_file, channels[%d]);", port.getName(), i);
+					String type = backend().code().type(backend().types().declaredPortType(port));
+					emitter().emit("output_actor_%s *%s_output_actor = output_actor_create_%1$s(%2$s_output_file, channel_%d);", type, port.getName(), i);
 					emitter().emit("");
 					argi = argi + 1;
 					break;
@@ -180,24 +185,25 @@ public interface MainNetwork {
 		emitter().increaseIndentation();
 		emitter().emit("progress = false;");
 		for (PortDecl inputPort : network.getInputPorts()) {
-			emitter().emit("progress |= input_actor_run(%s_input_actor);", inputPort.getName());
+			emitter().emit("progress |= input_actor_run_%s(%s_input_actor);", code().type(backend().types().declaredPortType(inputPort)), inputPort.getName());
 		}
 		for (Instance instance : instances) {
 			emitter().emit("progress |= %s_run(&%s);", instance.getEntityName().getLast(), instance.getInstanceName());
 		}
 		for (PortDecl outputPort : network.getOutputPorts()) {
-			emitter().emit("progress |= output_actor_run(%s_output_actor);", outputPort.getName());
+			emitter().emit("progress |= output_actor_run_%s(%s_output_actor);", code().type(backend().types().declaredPortType(outputPort)), outputPort.getName());
 		}
 		emitter().decreaseIndentation();
 		emitter().emit("} while (progress && !interrupted);");
 		emitter().emit("");
 
 
-		emitter().emit("for (int i = 0; i < sizeof(channels)/sizeof(channels[0]); i++) {");
-		emitter().increaseIndentation();
-		emitter().emit("channel_destroy(channels[i]);");
-		emitter().decreaseIndentation();
-		emitter().emit("}");
+		{
+			int i = 0;
+			for (String type : connectionTypes) {
+				emitter().emit("channel_destroy_%s(channel_%d);", type, i++);
+			}
+		}
 
 
 		for (PortDecl port : network.getInputPorts()) {
@@ -209,11 +215,11 @@ public interface MainNetwork {
 		}
 
 		for (PortDecl port : network.getInputPorts()) {
-			emitter().emit("input_actor_destroy(%s_input_actor);", port.getName());
+			emitter().emit("input_actor_destroy_%s(%s_input_actor);", code().type(backend().types().declaredPortType(port)), port.getName());
 		}
 
 		for (PortDecl port : network.getOutputPorts()) {
-			emitter().emit("output_actor_destroy(%s_output_actor);", port.getName());
+			emitter().emit("output_actor_destroy_%s(%s_output_actor);", code().type(backend().types().declaredPortType(port)), port.getName());
 		}
 
 		emitter().decreaseIndentation();

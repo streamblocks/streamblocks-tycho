@@ -12,6 +12,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class Namespaces {

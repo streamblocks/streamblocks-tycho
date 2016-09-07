@@ -116,16 +116,20 @@ public interface Global {
 			return builder.toString();
 		} else {
 			StringBuilder builder = new StringBuilder();
-			builder.append("void ")
-					.append(decl.getName())
-					.append("(");
-			for (VarDecl par : lambda.getValueParameters()) {
-				builder.append(code().declaration(types().declaredType(par), backend().variables().declarationName(par)))
-						.append(", ");
-			}
 			LambdaType type = (LambdaType) types().declaredType(decl);
 			builder.append(code().type(type.getReturnType()))
-					.append(" *result)");
+					.append(" ")
+					.append(decl.getName())
+					.append("(");
+			boolean first = true;
+			for (VarDecl par : lambda.getValueParameters()) {
+				if (first) {
+					first = false;
+				} else {
+					builder.append(", ");
+				}
+				builder.append(code().declaration(types().declaredType(par), backend().variables().declarationName(par)));
+			}
 			return builder.toString();
 		}
 	}

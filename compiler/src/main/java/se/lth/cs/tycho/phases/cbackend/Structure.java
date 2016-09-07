@@ -116,10 +116,12 @@ public interface Structure {
 			parameters.add(code().declaration(types().declaredType(d), backend().variables().declarationName(d)));
 		});
 		actorMachine.getInputPorts().forEach(p -> {
-			parameters.add(String.format("channel_t *%s_channel", p.getName()));
+			String type = code().type(types().declaredPortType(p));
+			parameters.add(String.format("channel_%s *%s_channel", type, p.getName()));
 		});
 		actorMachine.getOutputPorts().forEach(p -> {
-			parameters.add(String.format("channel_t **%s_channels", p.getName()));
+			String type = code().type(types().declaredPortType(p));
+			parameters.add(String.format("channel_%s **%s_channels", type, p.getName()));
 			parameters.add(String.format("size_t %s_count", p.getName()));
 		});
 		return parameters;
@@ -161,9 +163,9 @@ public interface Structure {
 
 	default String evaluateCondition(PortCondition condition) {
 		if (condition.isInputCondition()) {
-			return String.format("channel_has_data(self->%s_channel, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
+			return String.format("channel_has_data_%s(self->%s_channel, %d)", code().type(types().portType(condition.getPortName())), condition.getPortName().getName(), condition.N());
 		} else {
-			return String.format("channel_has_space(self->%s_channels, self->%1$s_count, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
+			return String.format("channel_has_space_%s(self->%s_channels, self->%2$s_count, %d)", code().type(types().portType(condition.getPortName())), condition.getPortName().getName(), condition.N());
 		}
 	}
 
@@ -205,26 +207,34 @@ public interface Structure {
 	void actorMachineCallable(String name, VarDecl decl, Expression value);
 	default void actorMachineCallable(String name, VarDecl decl, ExprLambda lambda) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("void ")
-				.append(decl.getName())
-				.append("(")
-				.append(name).append("_state *self, ");
+		LambdaType type = (LambdaType) types().declaredType(decl);
+		builder.append(code().type(type.getReturnType()));
+		builder.append(" ");
+		builder.append(lambda.isExternal() ? decl.getOriginalName() : decl.getName());
+		builder.append("(");
+		boolean first = true;
+		if (!lambda.isExternal()) {
+			builder.append(name).append("_state *self");
+			first = false;
+		}
 		for (VarDecl par : lambda.getValueParameters()) {
+			if (first) {
+				first = false;
+			} else {
+				builder.append(", ");
+			}
 			builder.append(code().type(types().declaredType(par)))
 					.append(" ")
-					.append(backend().variables().declarationName(par))
-					.append(", ");
+					.append(backend().variables().declarationName(par));
 		}
-		LambdaType type = (LambdaType) types().declaredType(decl);
-		builder.append(code().type(type.getReturnType()))
-				.append(" *result)");
+		builder.append(")");
 		String header = builder.toString();
-		if (lambda.getBody() == null) {
+		if (lambda.isExternal()) {
 			emitter().emit("%s;", header);
 		} else {
 			emitter().emit("static %s {", header);
 			emitter().increaseIndentation();
-			code().assign(type.getReturnType(), "*result", lambda.getBody());
+			emitter().emit("return %s;", code().evaluate(lambda.getBody()));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		}
@@ -232,16 +242,18 @@ public interface Structure {
 
 	default void actorMachineCallable(String name, VarDecl decl, ExprProc proc) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("void ")
-				.append(decl.getName())
-				.append("(")
-				.append(name).append("_state *self")
-				.append(proc.getValueParameters().stream()
-						.map(par -> ", " + code().type(types().declaredType(par)) + " " + backend().variables().declarationName(par))
-						.collect(Collectors.joining()))
+		builder.append("void ");
+		builder.append(proc.isExternal() ? decl.getOriginalName() : decl.getName());
+		builder.append("(");
+		if (!proc.isExternal()) {
+			builder.append(name).append("_state *self, ");
+		}
+		builder.append(proc.getValueParameters().stream()
+				.map(par -> code().type(types().declaredType(par)) + " " + backend().variables().declarationName(par))
+				.collect(Collectors.joining(", ")))
 				.append(")");
 		String header = builder.toString();
-		if (proc.getBody() == null) {
+		if (proc.isExternal()) {
 			emitter().emit("%s;", header);
 		} else {
 			emitter().emit("static %s {", header);
@@ -269,13 +281,15 @@ public interface Structure {
 
 		emitter().emit("// input ports");
 		for (PortDecl input : actorMachine.getInputPorts()) {
-			emitter().emit("channel_t *%s_channel;", input.getName());
+			String type = code().type(types().declaredPortType(input));
+			emitter().emit("channel_%s *%s_channel;", type, input.getName());
 		}
 		emitter().emit("");
 
 		emitter().emit("// output ports");
 		for (PortDecl output : actorMachine.getOutputPorts()) {
-			emitter().emit("channel_t **%s_channels;", output.getName());
+			String type = code().type(types().declaredPortType(output));
+			emitter().emit("channel_%s **%s_channels;", type, output.getName());
 			emitter().emit("size_t %s_count;", output.getName());
 		}
 		emitter().emit("");

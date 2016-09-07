@@ -95,25 +95,26 @@ public final class Rename {
 		}
 
 		private Variable renameVar(Tree<Variable> var) {
-			Optional<Tree<VarDecl>> decl = VariableDeclarations.getDeclaration(var);
-			assert decl.isPresent() : "Cannot rename unbound variables.";
-			return var.node().withName(name(decl.get()));
+			return VariableDeclarations.getDeclaration(var)
+					.map(decl -> var.node().withName(name(decl)))
+					.orElse(var.node());
 		}
 
 		private ValueParameter renamePar(Tree<ValueParameter> par) {
 			if (par.parent().get().node() instanceof TypeExpr) return par.node(); // TODO: remove this temporary workaround due to missing type declarations.
-			Optional<Tree<VarDecl>> decl = VariableDeclarations.getValueParameterDeclaration(par);
-			assert decl.isPresent() : "Cannot rename unbound variables.";
-			return par.node().withName(name(decl.get()));
+			return VariableDeclarations.getValueParameterDeclaration(par)
+					.map(decl -> par.node().withName(name(decl)))
+					.orElse(par.node());
 		}
 
 		private ExprGlobalVariable renameGlobalVar(Tree<ExprGlobalVariable> var) {
-			Optional<Tree<VarDecl>> decl = VariableDeclarations.getGlobalVariableDeclaration(var);
-			assert decl.isPresent() : "Cannot rename unbound variables.";
-			String name = name(decl.get());
-			QID namespace = var.node().getGlobalName().getButLast();
-			QID globalName = namespace.concat(QID.of(name));
-			return var.node().withGlobalName(globalName);
+			return VariableDeclarations.getGlobalVariableDeclaration(var)
+					.map(decl -> {
+						String name = name(decl);
+						QID namespace = var.node().getGlobalName().getButLast();
+						QID globalName = namespace.concat(QID.of(name));
+						return var.node().withGlobalName(globalName);
+					}).orElse(var.node());
 		}
 
 	}

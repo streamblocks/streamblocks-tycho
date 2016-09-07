@@ -47,7 +47,6 @@ public final class DuplicateEntity {
 		QID namespace = instance.getEntityName().getButLast();
 		QID globalName = namespace.concat(QID.of(localName));
 		entity = Rename.renameVariables(entity, d -> true, uniqueNumbers);
-//		entity = RenameVariables.rename(entity, uniqueNumbers);
 		entity = entity.withName(localName);
 		entity = entity.withEntity(
 				entity.getEntity()

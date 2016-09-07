@@ -44,7 +44,7 @@ public class SyntheticSourceUnit implements SourceUnit {
 
 	@Override
 	public InputLanguage getLanguage() {
-		return null;
+		return InputLanguage.CAL;
 	}
 
 	@Override

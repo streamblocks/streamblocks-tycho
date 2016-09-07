@@ -35,23 +35,9 @@ public class RemoveUnusedEntityDeclsPhase implements Phase {
 		task.getNetwork().getInstances().stream()
 				.map(Instance::getEntityName)
 				.forEach(entities::add);
-		List<VarDecl> varDecls = getAll(task, NamespaceDecl::getVarDecls).collect(Collectors.toList());
-		List<TypeDecl> typeDecls = getAll(task, NamespaceDecl::getTypeDecls).collect(Collectors.toList());
-		List<EntityDecl> entityDecls = task.getSourceUnits().stream()
-				.flatMap(unit -> {
-					QID ns = unit.getTree().getQID();
-					return unit.getTree().getEntityDecls().stream()
-							.filter(entity -> {
-								QID name = ns.concat(QID.of(entity.getName()));
-								return entities.contains(name);
-							});
-				}).collect(Collectors.toList());
-		List<Import> imports = getAll(task, NamespaceDecl::getImports).collect(Collectors.toList());
-		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), imports, varDecls, entityDecls, typeDecls));
-		return task.withSourceUnits(ImmutableList.of(unit));
+		return task.withSourceUnits(task.getSourceUnits().map(unit ->
+				unit.withTree(unit.getTree().withEntityDecls(unit.getTree().getEntityDecls().stream().filter(decl ->
+						entities.contains(unit.getTree().getQID().concat(QID.of(decl.getName())))).collect(Collectors.toList())))));
 	}
 
-	private <T> Stream<T> getAll(CompilationTask task, Function<NamespaceDecl, Collection<T>> get) {
-		return task.getSourceUnits().stream().map(SourceUnit::getTree).map(get).flatMap(Collection::stream);
-	}
 }

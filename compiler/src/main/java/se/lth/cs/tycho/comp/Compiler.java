@@ -45,7 +45,8 @@ public class Compiler {
 			new TypeAnalysisPhase(),
 
 			new CreateNetworkPhase(),
-			new ResolveEntityNamesPhase(),
+			new ResolveGlobalEntityNamesPhase(),
+			new ResolveGlobalVariableNamesPhase(),
 			new ElaborateNetworkPhase(),
 
 			// Actor transformations
@@ -56,6 +57,7 @@ public class Compiler {
 			new AddSchedulePhase(),
 			new ScheduleUntaggedPhase(),
 			new ScheduleInitializersPhase(),
+			new CloneTreePhase(),
 			new CalToAmPhase(),
 			new RemoveEmptyTransitionsPhase(),
 			new ReduceActorMachinePhase(),
@@ -65,7 +67,7 @@ public class Compiler {
 			new RemoveUnusedConditionsPhase(),
 
 			// Code generations
-//			new RemoveUnusedEntityDeclsPhase(),
+			new RemoveUnusedEntityDeclsPhase(),
 			new PrintNetworkPhase(),
 			new CBackendPhase()
 	);
