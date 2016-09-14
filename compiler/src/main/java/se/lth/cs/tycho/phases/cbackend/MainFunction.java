@@ -228,7 +228,7 @@ public interface MainFunction {
 		emitter().emit("            fwrite(&channel->buffer, 1, sizeof(%s) * tokens_after_wrap, actor->stream);", tokenType);
 		emitter().emit("        }");
 		emitter().emit("");
-		emitter().emit("        //channel->head = (channel->head + channel->tokens) %% channel->size;");
+		emitter().emit("        //channel->head = (channel->head + channel->tokens) %% BUFFER_SIZE;");
 		emitter().emit("        channel->tokens = 0;");
 		emitter().emit("        return true;");
 		emitter().emit("    } else {");

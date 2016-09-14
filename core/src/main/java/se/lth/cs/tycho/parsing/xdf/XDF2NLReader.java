@@ -10,6 +10,8 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ToolValueAttribute;
+import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
@@ -58,7 +60,8 @@ public class XDF2NLReader {
 		ImmutableList.Builder<PortDecl> builder = ImmutableList.builder();
 		for (Element port : selectChildren(doc.getDocumentElement(), "Port")) {
 			if (port.getAttribute("kind").equalsIgnoreCase(kind)) {
-				builder.add(new PortDecl(port.getAttribute("name")));
+				TypeExpr type = getTypeExpr(selectChild(port, "Type"));
+				builder.add(new PortDecl(port.getAttribute("name"), type));
 			}
 		}
 		return builder.build();
@@ -102,6 +105,25 @@ public class XDF2NLReader {
 		return entities.build();
 	}
 
+	private TypeExpr getTypeExpr(Element typeExpr) {
+		assert typeExpr.getTagName().equals("Type");
+		String name = typeExpr.getAttribute("name");
+		ImmutableList.Builder<ValueParameter> valueParameters = ImmutableList.builder();
+		ImmutableList.Builder<TypeParameter> typeParameters = ImmutableList.builder();
+		for (Element entry : selectChildren(typeExpr, "Entry")) {
+			String parameterName = entry.getAttribute("name");
+			switch (entry.getAttribute("kind")) {
+				case "Expr":
+					Expression value = buildExpression(selectChild(entry, "Expr"));
+					valueParameters.add(new ValueParameter(parameterName, value));
+					break;
+				default:
+					throw new UnsupportedOperationException("Unknown XDF type attribute kind: '" + entry.getAttribute("kind") + "'");
+			}
+		}
+		return new TypeExpr(name, typeParameters.build(), valueParameters.build());
+	}
+
 	private Expression buildExpression(Element expr) {
 		assert expr.getTagName().equals("Expr");
 		switch (expr.getAttribute("kind")) {
@@ -113,15 +135,27 @@ public class XDF2NLReader {
 						return new ExprLiteral(ExprLiteral.Kind.String, expr.getAttribute("value"));
 					case "Real":
 						return new ExprLiteral(ExprLiteral.Kind.Real, expr.getAttribute("value"));
+					case "Boolean":
+						boolean value;
+						switch (expr.getAttribute("value")) {
+							case "true":
+								value = true; break;
+							case "false":
+								value = false; break;
+							default:
+								throw new UnsupportedOperationException("Unknown XDF boolean literal : '" + expr.getAttribute("value") + "'");
+						}
+						return new ExprLiteral(value ? ExprLiteral.Kind.True : ExprLiteral.Kind.False);
+					default:
+						throw new UnsupportedOperationException("Unknown XDF literal kind: '" + expr.getAttribute("literal-kind") + "'");
 				}
-				break;
 			case "UnaryOp":
 				Element op = selectChild(expr, "Op");
 				String operation = op.getAttribute("name");
 				Expression operand = buildExpression(selectChild(expr, "Expr"));
 				return new ExprUnaryOp(operation, operand);
 		}
-		throw new UnsupportedOperationException("All parameter kinds are not implemented.");
+		throw new UnsupportedOperationException("Unknown XDF expression: '" + expr.getAttribute("kind") + "'");
 	}
 
 	private Element selectChild(Node n, String name) {

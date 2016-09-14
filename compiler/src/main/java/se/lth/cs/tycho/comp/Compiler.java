@@ -41,6 +41,7 @@ public class Compiler {
 
 			// Name and type analyses and transformations
 			new DeclarationAnalysisPhase(),
+			new ImportAnalysisPhase(),
 			new NameAnalysisPhase(),
 			new TypeAnalysisPhase(),
 

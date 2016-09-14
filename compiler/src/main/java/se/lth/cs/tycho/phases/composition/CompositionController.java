@@ -28,12 +28,14 @@ public class CompositionController implements Controller {
 	private final List<Connection> connections;
 	private final CompositionState initialState;
 	private final Map<CompositionState, CompositionState> cache;
+	private final boolean eagerTest;
 
-	public CompositionController(List<ActorMachine> actorMachines, List<Connection> connections) {
+	public CompositionController(List<ActorMachine> actorMachines, List<Connection> connections, boolean eagerTest) {
 		this.actorMachines = actorMachines;
 		this.connections = connections;
 		this.cache = new HashMap<>();
 		this.initialState = state(actorMachines.stream().map(am -> am.controller().getInitialState()).toArray(State[]::new), new int[connections.size()]);
+		this.eagerTest = eagerTest;
 	}
 
 	@Override
@@ -208,7 +210,7 @@ public class CompositionController implements Controller {
 				}
 			}
 			for (int actor = 0; actor < states.length; actor++) {
-				if (isExecReachable(actor, effectiveState[actor], new HashSet<>())) {
+				if (eagerTest || isExecReachable(actor, effectiveState[actor], new HashSet<>())) {
 					Instruction i = effectiveState[actor].getInstructions().get(0);
 					if (i instanceof Test) {
 						Instruction test = convert(actor, (Test) i);
@@ -216,14 +218,6 @@ public class CompositionController implements Controller {
 					}
 				}
 			}
-			// Not sure if this is needed.
-//			for (int actor = 0; actor < states.length; actor++) {
-//				Instruction i = effectiveState[actor].getInstructions().get(0);
-//				if (i instanceof Test) {
-//					Instruction test = convert(actor, (Test) i);
-//					return Collections.singletonList(test);
-//				}
-//			}
 			return Collections.singletonList(generateWait());
 		}
 

@@ -438,7 +438,7 @@ public interface Code {
 		if (isExternal) {
 			builder.append(decl.getOriginalName());
 		} else {
-			builder.append(decl.getName());
+			builder.append(variables().declarationName(decl));
 		}
 		builder.append("(");
 		IRNode parent = backend().tree().parent(decl);
@@ -471,7 +471,7 @@ public interface Code {
 		if (isExternal) {
 			builder.append(decl.getOriginalName());
 		} else {
-			builder.append(decl.getName());
+			builder.append(variables().declarationName(decl));
 		}
 		builder.append("(");
 		IRNode parent = backend().tree().parent(decl);
@@ -518,7 +518,7 @@ public interface Code {
 		} else if (write.getValues().size() == 1) {
 			String portType = type(types().portType(write.getPort()));
 			String value = evaluate(write.getValues().get(0));
-			emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, &%s, %s);", portType, portName, value, evaluate(write.getRepeatExpression()));
+			emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, %s, %s);", portType, portName, value, evaluate(write.getRepeatExpression()));
 		} else {
 			throw new Error("not implemented");
 		}
@@ -535,10 +535,11 @@ public interface Code {
 		emitter().increaseIndentation();
 		for (VarDecl decl : block.getVarDecls()) {
 			Type t = types().declaredType(decl);
-			String d = declaration(t, variables().declarationName(decl));
+			String declarationName = variables().declarationName(decl);
+			String d = declaration(t, declarationName);
 			emitter().emit("%s;", d);
 			if (decl.getValue() != null) {
-				assign(t, decl.getName(), decl.getValue());
+				assign(t, declarationName, decl.getValue());
 			}
 		}
 		block.getStatements().forEach(this::execute);
@@ -592,7 +593,7 @@ public interface Code {
 		if (isExternal) {
 			builder.append(decl.getOriginalName());
 		} else {
-			builder.append(decl.getName());
+			builder.append(variables().declarationName(decl));
 		}
 		builder.append("(");
 		IRNode parent = backend().tree().parent(decl);
@@ -626,7 +627,7 @@ public interface Code {
 		if (isExternal) {
 			builder.append(decl.getOriginalName());
 		} else {
-			builder.append(decl.getName());
+			builder.append(variables().declarationName(decl));
 		}
 		builder.append("(");
 		IRNode parent = backend().tree().parent(decl);

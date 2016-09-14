@@ -14,14 +14,14 @@ public final class KnowledgeRemoval {
 		@Override public String getKey() { return "forget-on-wait"; }
 		@Override public String getDescription() {
 			return "A ,-separated list of things that should be forgotten on wait-transitions in the " +
-					"translation from Cal to Actor Machines. There are three kinds: input, output and guards. ";
+					"translation from Cal to Actor Machines. There are three kinds: input, output and guards. Use none for an empty list.";
 		}
 	};
 	public static final Setting<EnumSet<KnowledgeKind>> forgetOnExec = new RemovalPolicy() {
 		@Override public String getKey() { return "forget-on-exec"; }
 		@Override public String getDescription() {
 			return "A ,-separated list of things that should be forgotten on exec-transitions in the " +
-					"translation from Cal to Actor Machines. There are three kinds: input, output and guards. ";
+					"translation from Cal to Actor Machines. There are three kinds: input, output and guards. Use none for an empty list.";
 		}
 	};
 
@@ -59,6 +59,9 @@ public final class KnowledgeRemoval {
 
 		@Override
 		public Optional<EnumSet<KnowledgeKind>> read(String string) {
+			if (string.equals("none")) {
+				return Optional.of(EnumSet.noneOf(KnowledgeKind.class));
+			}
 			String[] tags = string.split(" *, *");
 			List<Optional<KnowledgeKind>> kindList = Stream.of(tags).map(KnowledgeKind::fromTag).collect(Collectors.toList());
 			if (kindList.stream().allMatch(Optional::isPresent)) {

@@ -35,7 +35,7 @@ public final class PortKnowledge {
 	}
 
 	public PortKnowledge add(int n) {
-		return new PortKnowledge(Math.addExact(lowerBound, n), Math.addExact(upperBound, n));
+		return new PortKnowledge(Math.addExact(lowerBound, n), upperBound == INFINITY ? INFINITY : Math.addExact(upperBound, n));
 	}
 
 	public Knowledge has(int n) {

@@ -179,7 +179,11 @@ public interface Structure {
 				if (types().declaredType(var) instanceof CallableType) {
 					emitter().emit("// function %s", var.getName());
 				} else if (var.getValue() != null) {
+					emitter().emit("{");
+					emitter().increaseIndentation();
 					code().assign(types().declaredType(var), "self->" + backend().variables().declarationName(var), var.getValue());
+					emitter().decreaseIndentation();
+					emitter().emit("}");
 				}
 			}
 			emitter().decreaseIndentation();
@@ -195,7 +199,18 @@ public interface Structure {
 			for (VarDecl decl : scope.getDeclarations()) {
 				if (types().declaredType(decl) instanceof CallableType) {
 					if (scope.isPersistent() && decl.isConstant()) {
-						actorMachineCallable(name, decl, decl.getValue());
+						actorMachineCallable(name, decl, decl.getValue(), true);
+					} else {
+						throw new UnsupportedOperationException();
+					}
+				}
+			}
+		}
+		for (Scope scope : actorMachine.getScopes()) {
+			for (VarDecl decl : scope.getDeclarations()) {
+				if (types().declaredType(decl) instanceof CallableType) {
+					if (scope.isPersistent() && decl.isConstant()) {
+						actorMachineCallable(name, decl, decl.getValue(), false);
 					} else {
 						throw new UnsupportedOperationException();
 					}
@@ -204,13 +219,32 @@ public interface Structure {
 		}
 	}
 
-	void actorMachineCallable(String name, VarDecl decl, Expression value);
-	default void actorMachineCallable(String name, VarDecl decl, ExprLambda lambda) {
+
+	void actorMachineCallable(String name, VarDecl decl, Expression value, boolean declarationOnly);
+
+	String actorMachineCallableHeader(String name, VarDecl decl, Expression value);
+
+	default void actorMachineCallable(String name, VarDecl decl, ExprLambda lambda, boolean declarationOnly) {
+		String header = actorMachineCallableHeader(name, decl, lambda);
+		if (lambda.isExternal() && declarationOnly) {
+			emitter().emit("%s;", header);
+		} else if (declarationOnly) {
+			emitter().emit("static %s;", header);
+		} else {
+			emitter().emit("static %s {", header);
+			emitter().increaseIndentation();
+			emitter().emit("return %s;", code().evaluate(lambda.getBody()));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		}
+	}
+
+	default String actorMachineCallableHeader(String name, VarDecl decl, ExprLambda lambda) {
 		StringBuilder builder = new StringBuilder();
 		LambdaType type = (LambdaType) types().declaredType(decl);
 		builder.append(code().type(type.getReturnType()));
 		builder.append(" ");
-		builder.append(lambda.isExternal() ? decl.getOriginalName() : decl.getName());
+		builder.append(lambda.isExternal() ? decl.getOriginalName() : backend().variables().declarationName(decl));
 		builder.append("(");
 		boolean first = true;
 		if (!lambda.isExternal()) {
@@ -223,38 +257,18 @@ public interface Structure {
 			} else {
 				builder.append(", ");
 			}
-			builder.append(code().type(types().declaredType(par)))
-					.append(" ")
-					.append(backend().variables().declarationName(par));
+			builder.append(code().declaration(types().declaredType(par), backend().variables().declarationName(par)));
 		}
 		builder.append(")");
-		String header = builder.toString();
-		if (lambda.isExternal()) {
-			emitter().emit("%s;", header);
-		} else {
-			emitter().emit("static %s {", header);
-			emitter().increaseIndentation();
-			emitter().emit("return %s;", code().evaluate(lambda.getBody()));
-			emitter().decreaseIndentation();
-			emitter().emit("}");
-		}
+		return builder.toString();
 	}
 
-	default void actorMachineCallable(String name, VarDecl decl, ExprProc proc) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("void ");
-		builder.append(proc.isExternal() ? decl.getOriginalName() : decl.getName());
-		builder.append("(");
-		if (!proc.isExternal()) {
-			builder.append(name).append("_state *self, ");
-		}
-		builder.append(proc.getValueParameters().stream()
-				.map(par -> code().type(types().declaredType(par)) + " " + backend().variables().declarationName(par))
-				.collect(Collectors.joining(", ")))
-				.append(")");
-		String header = builder.toString();
-		if (proc.isExternal()) {
+	default void actorMachineCallable(String name, VarDecl decl, ExprProc proc, boolean declarationOnly) {
+		String header = actorMachineCallableHeader(name, decl, proc);
+		if (proc.isExternal() && declarationOnly) {
 			emitter().emit("%s;", header);
+		} else if (declarationOnly) {
+			emitter().emit("static %s;", header);
 		} else {
 			emitter().emit("static %s {", header);
 			emitter().increaseIndentation();
@@ -262,6 +276,24 @@ public interface Structure {
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		}
+	}
+
+	default String actorMachineCallableHeader(String name, VarDecl decl, ExprProc proc) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("void ");
+		builder.append(proc.isExternal() ? decl.getOriginalName() : backend().variables().declarationName(decl));
+		builder.append("(");
+		if (!proc.isExternal()) {
+			builder.append(name).append("_state *self");
+			if (!proc.getValueParameters().isEmpty()) {
+				builder.append(", ");
+			}
+		}
+		builder.append(proc.getValueParameters().stream()
+				.map(par -> code().declaration(types().declaredType(par), backend().variables().declarationName(par)))
+				.collect(Collectors.joining(", ")))
+				.append(")");
+		return builder.toString();
 	}
 
 

@@ -4,6 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -16,21 +17,23 @@ import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phases.CompositionPhase;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Composer {
 	private final List<ActorMachine> actorMachines;
 	private final List<Connection> connections;
+	private final boolean eagerTest;
 
-	public Composer(List<ActorMachine> actorMachines, List<Connection> connections) {
+	public Composer(List<ActorMachine> actorMachines, List<Connection> connections, Context context) {
 		this.actorMachines = actorMachines;
 		this.connections = connections;
+		this.eagerTest = context.getConfiguration().get(CompositionPhase.eagerTestSetting);
 	}
 
 	public ActorMachine compose() {
@@ -67,7 +70,7 @@ public class Composer {
 				collectAll(ActorMachine::getTypeParameters),
 				collectAll(ActorMachine::getValueParameters),
 				rename.mapChecked(Scope.class, collectAll(ActorMachine::getScopes)),
-				new CompositionController(actorMachines, connections),
+				new CompositionController(actorMachines, connections, eagerTest),
 				rename.mapChecked(Transition.class, collectAll(ActorMachine::getTransitions)),
 				rename.mapChecked(Condition.class, collectAll(ActorMachine::getConditions)));
 	}

@@ -34,6 +34,7 @@ import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.transformation.RenameVariables;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +51,24 @@ public class CompositionPhase implements Phase {
 	public String getDescription() {
 		return "Performes actor composition.";
 	}
+
+	public static final OnOffSetting eagerTestSetting = new OnOffSetting() {
+
+		@Override
+		public String getKey() {
+			return "composition-eager-test";
+		}
+
+		@Override
+		public String getDescription() {
+			return "Performs eager test in composition.";
+		}
+
+		@Override
+		public Boolean defaultValue(Configuration configuration) {
+			return false;
+		}
+	};
 
 	static final OnOffSetting actorComposition = new OnOffSetting() {
 		@Override
@@ -70,7 +89,7 @@ public class CompositionPhase implements Phase {
 
 	@Override
 	public List<Setting<?>> getPhaseSettings() {
-		return Collections.singletonList(actorComposition);
+		return Arrays.asList(actorComposition, eagerTestSetting);
 	}
 
 	@Override
@@ -85,13 +104,13 @@ public class CompositionPhase implements Phase {
 
 		ImmutableList.Builder<EntityDecl> composedEntities = ImmutableList.builder();
 		for (String compositionId : compositions.keySet()) {
-			task = task.withNetwork(compose(task, compositions.get(compositionId), composedEntities, compositionId, context.getUniqueNumbers()));
+			task = task.withNetwork(compose(task, compositions.get(compositionId), composedEntities, compositionId, context));
 		}
 		SourceUnit compUnit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), null, null, composedEntities.build(), null));
 		return task.withSourceUnits(ImmutableList.<SourceUnit> builder().addAll(task.getSourceUnits()).add(compUnit).build());
 	}
 
-	private Network compose(CompilationTask task, List<se.lth.cs.tycho.ir.network.Connection> connections, Consumer<EntityDecl> composedEntities, String compositionId, UniqueNumbers uniqueNumbers) {
+	private Network compose(CompilationTask task, List<se.lth.cs.tycho.ir.network.Connection> connections, Consumer<EntityDecl> composedEntities, String compositionId, Context context) {
 		assert connections.stream().allMatch(c -> c.getSource().getInstance().isPresent() && c.getTarget().getInstance().isPresent()) : "Cannot compose connections to network border.";
 		List<String> instances = connections.stream()
 				.flatMap(connection -> Stream.of(connection.getSource(), connection.getTarget()))
@@ -109,7 +128,7 @@ public class CompositionPhase implements Phase {
 				.map(name -> getActorMachine(task, name))
 				.collect(Collectors.toList());
 		List<ActorMachine> actorMachines = sourceActorMachines.stream()
-				.map(actorMachine -> RenameVariables.rename(actorMachine, uniqueNumbers))
+				.map(actorMachine -> RenameVariables.rename(actorMachine, context.getUniqueNumbers()))
 				.collect(Collectors.toList());
 		List<Connection> compositionConnections = connections.stream()
 				.map(connection -> {
@@ -140,11 +159,11 @@ public class CompositionPhase implements Phase {
 				}
 			}
 		}
-		ActorMachine composition = new Composer(actorMachines, compositionConnections).compose().deepClone();
+		ActorMachine composition = new Composer(actorMachines, compositionConnections, context).compose().deepClone();
 		composition = composition.withController(TransformedController.from(composition.controller(), Stream.generate(MergeStates::new).limit(10).collect(Collectors.toList())));
 		String compositionInstanceName = uniqueInstanceName(task.getNetwork(), compositionId);
 		String originalEntityName = compositionId;
-		String compositionEntityName = compositionId + "_" + uniqueNumbers.next();
+		String compositionEntityName = compositionId + "_" + context.getUniqueNumbers().next();
 		composedEntities.accept(EntityDecl.global(Availability.PUBLIC, originalEntityName, composition).withName(compositionEntityName));
 		Stream<Instance> notComposed = task.getNetwork().getInstances().stream().filter(instance -> !instances.contains(instance.getInstanceName()));
 		Stream<Instance> composed = Stream.of(new Instance(compositionInstanceName, QID.of(compositionEntityName), parameters, null));

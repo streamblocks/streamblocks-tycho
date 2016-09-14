@@ -159,7 +159,7 @@ public interface MainNetwork {
 			String channels = outgoing.stream().mapToObj(o -> String.format("channel_%d", o)).collect(Collectors.joining(", "));
 			emitter().emit("FILE *%s_input_file = fopen(argv[%d], \"r\");", port.getName(), argi);
 			String tokenType = code().type(backend().types().declaredPortType(port));
-			emitter().emit("%s *%s_channels[%d] = { %s };", tokenType, port.getName(), outgoing.cardinality(), channels);
+			emitter().emit("channel_%s *%s_channels[%d] = { %s };", tokenType, port.getName(), outgoing.cardinality(), channels);
 			String type = backend().code().type(backend().types().declaredPortType(port));
 			emitter().emit("input_actor_%s *%s_input_actor = input_actor_create_%1$s(%2$s_input_file, %2$s_channels, %d);", type, port.getName(), outgoing.cardinality());
 			emitter().emit("");

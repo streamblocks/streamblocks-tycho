@@ -215,7 +215,7 @@ public class CalToAm {
 			if (onExec.contains(KnowledgeRemoval.KnowledgeKind.GUARDS)) {
 				guards = null;
 			} else {
-				guards = null; // implement a more fine grained removal
+				guards = null; // TODO: implement a more fine grained removal
 			}
 			CalState target = cached(new CalState(schedule.targetState(state, action), input, output, guards));
 			return new Exec(transitions.getTransitionIndex(action), target);
