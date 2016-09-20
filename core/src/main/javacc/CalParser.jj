@@ -54,6 +54,26 @@ public class CalParser {
 			this.def = def;
 		}
 	}
+
+	public <T extends AbstractIRNode> T setPosition(T node, Token from, Token to) {
+		node.setPosition(from.beginLine, from.beginColumn, to.endLine, to.endColumn);
+		return (T) node;
+	}
+
+	public <T extends AbstractIRNode> T setPosition(T node, IRNode from, IRNode to) {
+		node.setPosition(from, to);
+		return (T) node;
+	}
+
+	public <T extends AbstractIRNode> T setPosition(T node, Token from, IRNode to) {
+		node.setPosition(from.beginLine, from.beginColumn, to.getToLineNumber(), to.getToColumnNumber());
+		return (T) node;
+	}
+
+	public <T extends AbstractIRNode> T setPosition(T node, IRNode from, Token to) {
+		node.setPosition(from.getFromLineNumber(), from.getFromColumnNumber(), to.endLine, to.endColumn);
+		return (T) node;
+	}
 }
 PARSER_END(CalParser)
 
@@ -530,6 +550,7 @@ Import.Kind ImportKind() :
 
 NameAndDef<ExprLambda> FunDecl() :
 {
+	boolean external = false;
 	Token id;
 	ImmutableList<VarDecl> valPars;
 	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
@@ -537,7 +558,7 @@ NameAndDef<ExprLambda> FunDecl() :
 	TypeExpr type = null;
 }
 {
-	("external")?
+	("external" {external = true;})?
 	"function"
 	id = <ID>
 	"("
@@ -564,7 +585,7 @@ NameAndDef<ExprLambda> FunDecl() :
 		if (!varDecls.isEmpty()) {
 			expr = new ExprLet(ImmutableList.empty(), varDecls, expr);
 		}
-		ExprLambda lambda = new ExprLambda(ImmutableList.empty(), valPars, expr, type);
+		ExprLambda lambda = new ExprLambda(ImmutableList.empty(), valPars, expr, type, external);
 		return new NameAndDef<ExprLambda>(id.image, lambda);
 	}
 }
@@ -1018,19 +1039,27 @@ ImmutableList<OutputExpression> OutputExpressions() :
 
 OutputExpression OutputExpression() :
 {
-	Token id;
+	Token first;
+	Token last;
+	Token id = null;
 	Port port = null;
 	ImmutableList<Expression> exprs;
 	Expression repeat = null;
 }
 {
 	( id = <ID> ":" { port = new Port(id.image); })?
-	"["
+	first = "["
 	exprs = ExpressionList()
-	"]"
+	last = "]"
 	( "repeat" repeat = Expression() )?
 	{
-		return new OutputExpression(port, exprs, repeat);
+		OutputExpression out = new OutputExpression(port, exprs, repeat);
+		if (port != null) { first = id; }
+		if (repeat != null) {
+			return setPosition(out, first, repeat);
+		} else {
+			return setPosition(out, first, last);
+		}
 	}
 }
 
@@ -1132,7 +1161,7 @@ Expression Expression() :
 		if (opList.isEmpty()) {
 			return expr;
 		} else {
-			return new ExprBinaryOp(opList, exprList);
+			return setPosition(new ExprBinaryOp(opList, exprList), exprList.get(0), exprList.get(exprList.size()-1));
 		}
 	}
 }
@@ -1164,12 +1193,13 @@ Expression PrimaryExpression() :
 	ImmutableList<Expression> args;
 	Expression index;
 	Field field;
+	Token lastToken;
 }
 {
 	expr = SingleExpression()
 	(
-		"(" args = ExpressionList() ")"
-		{ expr = new ExprApplication(expr, args); }
+		"(" args = ExpressionList() lastToken = ")"
+		{ expr = setPosition(new ExprApplication(expr, args), expr, lastToken); }
 	|
 		"["
 		index = Expression()
@@ -1225,9 +1255,7 @@ ExprVariable VariableExpression() :
 {
 	var = Variable()
 	{
-		ExprVariable result = new ExprVariable(var);
-		result.setPosition(var, var);
-		return result;
+		return setPosition(new ExprVariable(var), var, var);
 	}
 }
 
@@ -1238,9 +1266,7 @@ Variable Variable() :
 {
 	id = <ID>
 	{
-		Variable result = Variable.variable(id.image);
-		result.setPosition(id.beginLine, id.beginColumn, id.endLine, id.endColumn);
-		return result;
+		return setPosition(Variable.variable(id.image), id, id);
 	}
 }
 
@@ -1397,7 +1423,7 @@ ExprLambda LambdaExpression() :
 	)
 	("end" | "endlambda")
 	{
-		return new ExprLambda(typePars, valuePars, expr, type);
+		return new ExprLambda(typePars, valuePars, expr, type, false);
 	}
 }
 

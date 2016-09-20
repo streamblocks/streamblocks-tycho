@@ -35,6 +35,7 @@ public class Compiler {
 			// For debugging
 			new PrintLoadedSourceUnits(),
 			new PrintTreesPhase(),
+			new PrettyPrintPhase(),
 
 			// Post parse
 			new OperatorParsingPhase(),
@@ -54,7 +55,6 @@ public class Compiler {
 			new RenameActorVariablesPhase(),
 			new LiftProcessVarDeclsPhase(),
 			new ProcessToCalPhase(),
-			new PrettyPrintPhase(),
 			new AddSchedulePhase(),
 			new ScheduleUntaggedPhase(),
 			new ScheduleInitializersPhase(),

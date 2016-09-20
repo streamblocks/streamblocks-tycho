@@ -55,8 +55,12 @@ public class ExprLambda extends Expression {
 	}
 
 	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Expression body,
-			TypeExpr returnTypeExpr) {
+					  TypeExpr returnTypeExpr) {
 		this(null, typeParams, valueParams, body, returnTypeExpr, false);
+	}
+	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, Expression body,
+			TypeExpr returnTypeExpr, boolean external) {
+		this(null, typeParams, valueParams, body, returnTypeExpr, external);
 	}
 
 	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<VarDecl> valueParams, TypeExpr returnTypeExpr) {

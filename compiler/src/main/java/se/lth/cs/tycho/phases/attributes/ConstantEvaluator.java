@@ -16,6 +16,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
 
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.function.Function;
 
 @Module
 public interface ConstantEvaluator {
@@ -51,7 +52,8 @@ public interface ConstantEvaluator {
 	}
 
 	default OptionalLong intValue(ExprVariable var) {
-		return intValue(names().declaration(var.getVariable()));
+		VarDecl declaration = names().declaration(var.getVariable());
+		return declaration == null ? OptionalLong.empty() : intValue(declaration);
 	}
 
 	default OptionalLong intValue(ExprGlobalVariable var) {
