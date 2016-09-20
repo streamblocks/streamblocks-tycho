@@ -38,7 +38,6 @@ public class CalToAm {
 	private final CalActor actor;
 	private final EnumSet<KnowledgeRemoval.KnowledgeKind> onWait;
 	private final EnumSet<KnowledgeRemoval.KnowledgeKind> onExec;
-	private final boolean actionAmbiguityDetection;
 	private final Priorities priorities;
 	private final Schedule schedule;
 
@@ -52,7 +51,6 @@ public class CalToAm {
 		this.actor = actor;
 		this.onWait = configuration.get(KnowledgeRemoval.forgetOnWait);
 		this.onExec = configuration.get(KnowledgeRemoval.forgetOnExec);
-		this.actionAmbiguityDetection = configuration.get(CalToAmPhase.actionAmbiguityDetection);
 		this.priorities = new Priorities(actor);
 		this.schedule = new Schedule(actor);
 		this.conditions = new Conditions(actor, constants);
@@ -119,7 +117,7 @@ public class CalToAm {
 					.map(this::createExec)
 					.collect(Collectors.toList());
 
-			if (!actionAmbiguityDetection && !execInstrucitons.isEmpty()) {
+			if (!execInstrucitons.isEmpty()) {
 				return execInstrucitons;
 			}
 

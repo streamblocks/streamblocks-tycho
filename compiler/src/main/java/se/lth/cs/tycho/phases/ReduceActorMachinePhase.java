@@ -15,12 +15,17 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
 import se.lth.cs.tycho.phases.reduction.MergeStates;
+import se.lth.cs.tycho.phases.reduction.SelectRandom;
 import se.lth.cs.tycho.phases.reduction.SingleInstructionState;
 import se.lth.cs.tycho.phases.reduction.TransformedController;
 import se.lth.cs.tycho.settings.Configuration;
+import se.lth.cs.tycho.settings.EnumSetting;
 import se.lth.cs.tycho.settings.IntegerSetting;
+import se.lth.cs.tycho.settings.OptionalSetting;
 import se.lth.cs.tycho.settings.Setting;
+import se.lth.cs.tycho.settings.StringSetting;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -46,9 +51,50 @@ public class ReduceActorMachinePhase implements Phase {
 		}
 	};
 
+	public enum ReductionAlgorithm {
+		SELECT_FIRST, SELECT_RANDOM;
+	}
+
+	private static final Setting<ReductionAlgorithm> reductionAlgorithm = new EnumSetting<ReductionAlgorithm>(ReductionAlgorithm.class) {
+		@Override
+		public String getKey() {
+			return "reduction-algorithm";
+		}
+
+		@Override
+		public String getDescription() {
+			return "Actor machine reduction algorithm.";
+		}
+
+		@Override
+		public ReductionAlgorithm defaultValue(Configuration configuration) {
+			return ReductionAlgorithm.SELECT_FIRST;
+		}
+	};
+
+	private static final Setting<Optional<Integer>> randomSeed = new OptionalSetting<>(new IntegerSetting() {
+		@Override
+		public String getKey() {
+			return "random-reduction-seed";
+		}
+
+		@Override
+		public String getDescription() {
+			return "Seed for the random number generator in the random reducer.";
+		}
+
+		@Override
+		public Integer defaultValue(Configuration configuration) {
+			throw new UnsupportedOperationException();
+		}
+	}, "time");
+
 	@Override
 	public List<Setting<?>> getPhaseSettings() {
-		return Collections.singletonList(amStateMergeIterations);
+		return Arrays.asList(
+				amStateMergeIterations,
+				reductionAlgorithm,
+				randomSeed);
 	}
 
 	@Override
@@ -56,13 +102,20 @@ public class ReduceActorMachinePhase implements Phase {
 		return "Reduces the actor machines to deterministic actor machines.";
 	}
 
+	private Function<State, State> reductionAlgorithm(Configuration configuration) {
+		switch (configuration.get(reductionAlgorithm)) {
+			case SELECT_FIRST: return selectFirst;
+			case SELECT_RANDOM: return new SelectRandom(configuration.get(randomSeed).map(Integer::longValue).orElse(System.currentTimeMillis()));
+			default: throw new AssertionError();
+		}
+	}
+
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
 		int iterations = context.getConfiguration().get(amStateMergeIterations);
-		boolean actionAmbiguityDetection = context.getConfiguration().get(CalToAmPhase.actionAmbiguityDetection);
 		List<Function<State, State>> transformations =
 				Stream.concat(
-						Stream.of(actionAmbiguityDetection ? exhaustiveTest : selectFirst),
+						Stream.of(reductionAlgorithm(context.getConfiguration())),
 						Stream.generate(MergeStates::new).limit(iterations))
 				.collect(Collectors.toList());
 		return task.transformChildren(MultiJ.from(ReduceActorMachine.class)
@@ -108,19 +161,4 @@ public class ReduceActorMachinePhase implements Phase {
 	private static final Function<State, State> selectFirst =
 			state -> new SingleInstructionState(state.getInstructions().get(0));
 
-	private static final Function<State, State> exhaustiveTest = state -> {
-		Optional<Instruction> wait = state.getInstructions().stream()
-				.filter(instr -> instr instanceof Wait)
-				.findFirst();
-		if (wait.isPresent()) {
-			return new SingleInstructionState(wait.get());
-		}
-		Optional<Instruction> test = state.getInstructions().stream()
-				.filter(instr -> instr instanceof Test)
-				.findFirst();
-		if (test.isPresent()) {
-			return new SingleInstructionState(test.get());
-		}
-		return state;
-	};
 }

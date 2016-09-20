@@ -228,6 +228,7 @@ public interface Structure {
 		String header = actorMachineCallableHeader(name, decl, lambda);
 		if (lambda.isExternal() && declarationOnly) {
 			emitter().emit("%s;", header);
+		} else if (lambda.isExternal() && !declarationOnly) {
 		} else if (declarationOnly) {
 			emitter().emit("static %s;", header);
 		} else {
@@ -267,6 +268,7 @@ public interface Structure {
 		String header = actorMachineCallableHeader(name, decl, proc);
 		if (proc.isExternal() && declarationOnly) {
 			emitter().emit("%s;", header);
+		} else if (proc.isExternal() && !declarationOnly) {
 		} else if (declarationOnly) {
 			emitter().emit("static %s;", header);
 		} else {

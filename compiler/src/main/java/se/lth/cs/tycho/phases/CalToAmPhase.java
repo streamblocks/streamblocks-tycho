@@ -20,23 +20,6 @@ public class CalToAmPhase implements Phase {
 		return "Translates all Cal actors to actor machines";
 	}
 
-	public static final OnOffSetting actionAmbiguityDetection = new OnOffSetting() {
-		@Override
-		public String getKey() {
-			return "action-ambiguity-detection";
-		}
-
-		@Override
-		public String getDescription() {
-			return "Emits code that dynamically detects action ambiguities.";
-		}
-
-		@Override
-		public Boolean defaultValue(Configuration configuration) {
-			return false;
-		}
-	};
-
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
 		return Transformations.transformEntityDecls(task, decl -> {
@@ -53,8 +36,7 @@ public class CalToAmPhase implements Phase {
 	public List<Setting<?>> getPhaseSettings() {
 		return ImmutableList.of(
 				KnowledgeRemoval.forgetOnExec,
-				KnowledgeRemoval.forgetOnWait,
-				actionAmbiguityDetection
+				KnowledgeRemoval.forgetOnWait
 		);
 	}
 }
