@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.entity;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -14,9 +15,9 @@ public abstract class Entity extends AbstractIRNode {
 	protected final ImmutableList<PortDecl> inputPorts;
 	protected final ImmutableList<PortDecl> outputPorts;
 	protected final ImmutableList<TypeDecl> typeParameters;
-	protected final ImmutableList<VarDecl> valueParameters;
+	protected final ImmutableList<ParameterVarDecl> valueParameters;
 
-	public Entity(IRNode original, List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<VarDecl> valueParameters) {
+	public Entity(IRNode original, List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters) {
 		super(original);
 		this.inputPorts = ImmutableList.from(inputPorts);
 		this.outputPorts = ImmutableList.from(outputPorts);
@@ -46,7 +47,7 @@ public abstract class Entity extends AbstractIRNode {
 		return typeParameters;
 	}
 
-	public ImmutableList<VarDecl> getValueParameters() {
+	public ImmutableList<ParameterVarDecl> getValueParameters() {
 		return valueParameters;
 	}
 

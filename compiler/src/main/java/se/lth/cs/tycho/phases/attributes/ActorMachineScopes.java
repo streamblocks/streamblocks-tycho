@@ -7,7 +7,7 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
@@ -88,7 +88,7 @@ public interface ActorMachineScopes {
 			default void accept(Decl decl) {
 			}
 
-			default void accept(EntityDecl entityDecl) {
+			default void accept(GlobalEntityDecl entityDecl) {
 				accept(entityDecl.getEntity());
 			}
 

@@ -3,7 +3,7 @@ package se.lth.cs.tycho.phases;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.Transformations;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Controller;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Exec;
@@ -14,7 +14,6 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
 import se.lth.cs.tycho.phases.reduction.TransformedController;
 
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +31,7 @@ public class RemoveEmptyTransitionsPhase implements Phase {
 		return Transformations.transformEntityDecls(task, this::transformEntityDecl);
 	}
 
-	private EntityDecl transformEntityDecl(EntityDecl entityDecl) {
+	private GlobalEntityDecl transformEntityDecl(GlobalEntityDecl entityDecl) {
 		if (entityDecl.getEntity() instanceof ActorMachine) {
 			return entityDecl.withEntity(removeEmptyExec((ActorMachine) entityDecl.getEntity()));
 		} else {

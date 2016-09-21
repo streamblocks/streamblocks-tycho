@@ -9,6 +9,7 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.decl.GlobalDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -80,8 +81,8 @@ public class DeclarationAnalysisPhase implements Phase {
 		return success;
 	}
 
-	private <S> void collectNonLocalNames(S source, Map<QID, List<S>> sourceMap, QID ns, List<? extends Decl> decls) {
-		for (Decl d : decls) {
+	private <S> void collectNonLocalNames(S source, Map<QID, List<S>> sourceMap, QID ns, List<? extends GlobalDecl> decls) {
+		for (GlobalDecl d : decls) {
 			if (d.getAvailability() != Availability.LOCAL) {
 				QID qid = ns.concat(QID.of(d.getName()));
 				sourceMap.computeIfAbsent(qid, q -> new ArrayList<>())
@@ -90,8 +91,8 @@ public class DeclarationAnalysisPhase implements Phase {
 		}
 	}
 
-	private <S> void addConflictingLocalNames(S source, Map<QID, List<S>> sourceMap, QID ns, List<? extends Decl> decls) {
-		for (Decl d : decls) {
+	private <S> void addConflictingLocalNames(S source, Map<QID, List<S>> sourceMap, QID ns, List<? extends GlobalDecl> decls) {
+		for (GlobalDecl d : decls) {
 			if (d.getAvailability() == Availability.LOCAL) {
 				QID qid = ns.concat(QID.of(d.getName()));
 				if (sourceMap.containsKey(qid)) {

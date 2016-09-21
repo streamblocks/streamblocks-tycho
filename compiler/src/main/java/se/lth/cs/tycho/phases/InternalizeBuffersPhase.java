@@ -16,8 +16,7 @@ import se.lth.cs.tycho.ir.ToolValueAttribute;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Availability;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
-import se.lth.cs.tycho.ir.decl.LocationKind;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
@@ -27,7 +26,9 @@ import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
 import se.lth.cs.tycho.ir.expr.ExprInput;
+import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
+import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Connection;
@@ -100,11 +101,11 @@ public class InternalizeBuffersPhase implements Phase {
 				.filter(c -> c.getSource().getInstance().equals(c.getTarget().getInstance()))
 				.collect(Collectors.groupingBy(c -> c.getSource().getInstance().get()));
 		ImmutableList.Builder<Instance> resultInstances = ImmutableList.builder();
-		ImmutableList.Builder<EntityDecl> entities = ImmutableList.builder();
+		ImmutableList.Builder<GlobalEntityDecl> entities = ImmutableList.builder();
 		ArrayList<Connection> connections = new ArrayList<>(task.getNetwork().getConnections());
 		for (Instance instance : task.getNetwork().getInstances()) {
 			if (selfLoops.containsKey(instance.getInstanceName())) {
-				EntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
+				GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
 				List<Connection> conditionFreeAnySize = conditionFree((ActorMachine) entity.getEntity(), selfLoops.get(instance.getInstanceName()));
 				List<Connection> conditionFree = singleToken(conditionFreeAnySize);
 				if (conditionFree.isEmpty()) {
@@ -112,9 +113,9 @@ public class InternalizeBuffersPhase implements Phase {
 				} else {
 					connections.removeAll(conditionFree);
 					ActorMachine internalized = internalize((ActorMachine) entity.getEntity(), conditionFree, context.getUniqueNumbers());
-					internalized = Rename.renameVariables(internalized, d -> d.node().getLocationKind() != LocationKind.PARAMETER, context.getUniqueNumbers()); // TODO: remove when the C backend gives unique names to local functions and procedures.
+					internalized = Rename.renameVariables(internalized, d -> d.node().getValue() instanceof ExprProc || d.node().getValue() instanceof ExprLambda, context.getUniqueNumbers()); // TODO: remove when the C backend gives unique names to local functions and procedures.
 					String name = entity.getOriginalName() + "_" + context.getUniqueNumbers().next();
-					entities.add(EntityDecl.global(Availability.PUBLIC, name, internalized));
+					entities.add(GlobalEntityDecl.global(Availability.PUBLIC, name, internalized));
 					resultInstances.add(instance.withEntityName(QID.of(name)));
 				}
 			} else {

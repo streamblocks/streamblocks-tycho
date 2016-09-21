@@ -1,10 +1,10 @@
 package se.lth.cs.tycho.ir;
 
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
+import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.Import;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -14,17 +14,17 @@ import java.util.function.Consumer;
 public class NamespaceDecl extends AbstractIRNode {
 	private final QID qid;
 	private final ImmutableList<Import> imports;
-	private final ImmutableList<VarDecl> varDecls;
-	private final ImmutableList<EntityDecl> entityDecls;
-	private final ImmutableList<TypeDecl> typeDecls;
+	private final ImmutableList<GlobalVarDecl> varDecls;
+	private final ImmutableList<GlobalEntityDecl> entityDecls;
+	private final ImmutableList<GlobalTypeDecl> typeDecls;
 
-	public NamespaceDecl(QID qid, List<Import> imports, List<VarDecl> varDecls,
-						 List<EntityDecl> entityDecls, List<TypeDecl> typeDecls) {
+	public NamespaceDecl(QID qid, List<Import> imports, List<GlobalVarDecl> varDecls,
+						 List<GlobalEntityDecl> entityDecls, List<GlobalTypeDecl> typeDecls) {
 		this(null, qid, imports, varDecls, entityDecls, typeDecls);
 	}
 	
-	private NamespaceDecl(IRNode original, QID qid, List<Import> imports, List<VarDecl> varDecls,
-						  List<EntityDecl> entityDecls, List<TypeDecl> typeDecls) {
+	private NamespaceDecl(IRNode original, QID qid, List<Import> imports, List<GlobalVarDecl> varDecls,
+						  List<GlobalEntityDecl> entityDecls, List<GlobalTypeDecl> typeDecls) {
 		super(original);
 		this.qid = qid;
 		this.imports = ImmutableList.from(imports);
@@ -57,11 +57,11 @@ public class NamespaceDecl extends AbstractIRNode {
 		}
 	}
 
-	public ImmutableList<VarDecl> getVarDecls() {
+	public ImmutableList<GlobalVarDecl> getVarDecls() {
 		return varDecls;
 	}
 
-	public NamespaceDecl withVarDecls(List<VarDecl> varDecls) {
+	public NamespaceDecl withVarDecls(List<GlobalVarDecl> varDecls) {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
@@ -69,11 +69,11 @@ public class NamespaceDecl extends AbstractIRNode {
 		}
 	}
 
-	public ImmutableList<EntityDecl> getEntityDecls() {
+	public ImmutableList<GlobalEntityDecl> getEntityDecls() {
 		return entityDecls;
 	}
 
-	public NamespaceDecl withEntityDecls(List<EntityDecl> entityDecls) {
+	public NamespaceDecl withEntityDecls(List<GlobalEntityDecl> entityDecls) {
 		if (Lists.sameElements(this.entityDecls, entityDecls)) {
 			return this;
 		} else {
@@ -81,11 +81,11 @@ public class NamespaceDecl extends AbstractIRNode {
 		}
 	}
 
-	public ImmutableList<TypeDecl> getTypeDecls() {
+	public ImmutableList<GlobalTypeDecl> getTypeDecls() {
 		return typeDecls;
 	}
 
-	public NamespaceDecl withTypeDecls(List<TypeDecl> typeDecls) {
+	public NamespaceDecl withTypeDecls(List<GlobalTypeDecl> typeDecls) {
 		if (Lists.sameElements(this.typeDecls, typeDecls)) {
 			return this;
 		} else {

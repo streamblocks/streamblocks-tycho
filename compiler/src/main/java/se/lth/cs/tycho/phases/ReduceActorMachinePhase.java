@@ -7,13 +7,10 @@ import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
-import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
-import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
 import se.lth.cs.tycho.phases.reduction.MergeStates;
 import se.lth.cs.tycho.phases.reduction.SelectRandom;
 import se.lth.cs.tycho.phases.reduction.SingleInstructionState;
@@ -23,10 +20,8 @@ import se.lth.cs.tycho.settings.EnumSetting;
 import se.lth.cs.tycho.settings.IntegerSetting;
 import se.lth.cs.tycho.settings.OptionalSetting;
 import se.lth.cs.tycho.settings.Setting;
-import se.lth.cs.tycho.settings.StringSetting;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -144,7 +139,7 @@ public class ReduceActorMachinePhase implements Phase {
 			return decl;
 		}
 
-		default IRNode apply(EntityDecl decl) {
+		default IRNode apply(GlobalEntityDecl decl) {
 			return decl.transformChildren(this);
 		}
 

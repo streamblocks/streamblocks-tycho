@@ -8,13 +8,12 @@ import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Availability;
-import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 
 import java.util.EnumSet;
-import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -24,7 +23,7 @@ public interface GlobalNames {
 					.bind("root").to(unit)
 					.instance();
 
-	EntityDecl entityDecl(QID qid, boolean includingPrivate);
+	GlobalEntityDecl entityDecl(QID qid, boolean includingPrivate);
 	VarDecl varDecl(QID qid, boolean includingPrivate);
 	TypeDecl typeDecl(QID qid, boolean includingPrivate);
 
@@ -34,7 +33,7 @@ public interface GlobalNames {
 		CompilationTask root();
 
 		@Override
-		default EntityDecl entityDecl(QID qid, boolean includingPrivate) {
+		default GlobalEntityDecl entityDecl(QID qid, boolean includingPrivate) {
 			return find(qid, ns -> ns.getEntityDecls().stream(), includingPrivate);
 		}
 
@@ -48,7 +47,7 @@ public interface GlobalNames {
 			return find(qid, ns -> ns.getTypeDecls().stream(), includingPrivate);
 		}
 
-		default <D extends Decl> D find(QID qid, Function<NamespaceDecl, Stream<D>> getDecls, boolean includingPrivate) {
+		default <D extends GlobalDecl> D find(QID qid, Function<NamespaceDecl, Stream<D>> getDecls, boolean includingPrivate) {
 			QID ns = qid.getButLast();
 			String id = qid.getLast().toString();
 			EnumSet<Availability> availability = includingPrivate ? pubPriv : pub;

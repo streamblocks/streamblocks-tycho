@@ -4,7 +4,6 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
-import se.lth.cs.tycho.ir.decl.LocationKind;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 
@@ -29,7 +28,6 @@ public interface StaticConstants {
 
 	default Predicate<VarDecl> isConstant() {
 		return predicate(circular(false, (VarDecl decl) -> decl.isConstant()
-				&& decl.getLocationKind() != LocationKind.PARAMETER
 				&& decl.getValue() != null
 				&& isConstantExpr(decl.getValue())));
 	}

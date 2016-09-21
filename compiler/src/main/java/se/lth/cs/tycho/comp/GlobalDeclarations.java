@@ -2,7 +2,7 @@ package se.lth.cs.tycho.comp;
 
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 
@@ -11,12 +11,12 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 public final class GlobalDeclarations {
-	public static List<EntityDecl> findEntities(CompilationTask task, QID qid) {
-		return findDeclarations(task, qid, EntityDecl.class);
+	public static List<GlobalEntityDecl> findEntities(CompilationTask task, QID qid) {
+		return findDeclarations(task, qid, GlobalEntityDecl.class);
 	}
 
-	public static EntityDecl getEntity(CompilationTask task, QID qid) {
-		return getDeclaration(task, qid, EntityDecl.class);
+	public static GlobalEntityDecl getEntity(CompilationTask task, QID qid) {
+		return getDeclaration(task, qid, GlobalEntityDecl.class);
 	}
 
 	public static List<TypeDecl> findTypes(CompilationTask task, QID qid) {

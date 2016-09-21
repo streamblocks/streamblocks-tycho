@@ -3,8 +3,7 @@ package se.lth.cs.tycho.phases.cbackend;
 import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.Parameter;
-import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -75,7 +74,7 @@ public interface MainNetwork {
 					Instance instance = network.getInstances().stream()
 							.filter(inst -> inst.getInstanceName().equals(conn.getSource().getInstance().get()))
 							.findFirst().get();
-					EntityDecl entity = globalNames().entityDecl(instance.getEntityName(), true);
+					GlobalEntityDecl entity = globalNames().entityDecl(instance.getEntityName(), true);
 					PortDecl portDecl = entity.getEntity().getOutputPorts().stream()
 							.filter(port -> port.getName().equals(conn.getSource().getPort()))
 							.findFirst().orElseThrow(() -> new AssertionError("Missing source port: " + conn));
@@ -99,7 +98,7 @@ public interface MainNetwork {
 		for (Instance instance : instances) {
 			List<String> initParameters = new ArrayList<>();
 			initParameters.add("&" + instance.getInstanceName());
-			EntityDecl entityDecl = globalNames().entityDecl(instance.getEntityName(), true);
+			GlobalEntityDecl entityDecl = globalNames().entityDecl(instance.getEntityName(), true);
 			for (VarDecl par : entityDecl.getEntity().getValueParameters()) {
 				boolean assigned = false;
 				for (Parameter<Expression, ?> assignment : instance.getValueParameters()) {

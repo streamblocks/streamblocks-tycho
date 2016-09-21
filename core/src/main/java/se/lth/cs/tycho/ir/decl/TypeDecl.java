@@ -4,21 +4,15 @@ import se.lth.cs.tycho.ir.IRNode;
 
 import java.util.function.Consumer;
 
-public class TypeDecl extends Decl {
+public abstract class TypeDecl extends AbstractDecl {
 
-	private TypeDecl(TypeDecl original, Availability availability, String name, DeclKind declKind,
-			LocationKind locationKind) {
-		super(original, locationKind, availability, declKind, name);
+	private final Availability availability;
+
+	protected TypeDecl(TypeDecl original, Availability availability, String name) {
+		super(original, name);
+		this.availability = availability;
 	}
 
-
-	public TypeDecl withAvailability(Availability availability) {
-		if (getAvailability() == availability) {
-			return this;
-		} else {
-			return new TypeDecl(this, availability, getName(), getDeclKind(), getLocationKind());
-		}
-	}
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 	}
@@ -36,5 +30,9 @@ public class TypeDecl extends Decl {
 	@Override
 	public TypeDecl deepClone() {
 		return (TypeDecl) super.deepClone();
+	}
+
+	public Availability getAvailability() {
+		return availability;
 	}
 }

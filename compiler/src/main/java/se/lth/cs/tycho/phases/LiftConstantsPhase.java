@@ -10,6 +10,7 @@ import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
+import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -39,7 +40,7 @@ public class LiftConstantsPhase implements Phase {
 				.bind("constants").to(eval)
 				.instance();
 		NamespaceDecl target = unit.getTree().transformChildren(transformation);
-		ImmutableList<VarDecl> varDecls = ImmutableList.<VarDecl> builder()
+		ImmutableList<GlobalVarDecl> varDecls = ImmutableList.<GlobalVarDecl> builder()
 				.addAll(target.getVarDecls())
 				.addAll(transformation.lifted())
 				.build();
@@ -50,7 +51,7 @@ public class LiftConstantsPhase implements Phase {
 	@Module
 	interface Transformation extends IRNode.Transformation {
 		@Binding
-		default List<VarDecl> lifted() {
+		default List<GlobalVarDecl> lifted() {
 			return new ArrayList<>();
 		}
 
@@ -86,11 +87,12 @@ public class LiftConstantsPhase implements Phase {
 					.transformChildren(this);
 		}
 
-		default ImmutableList<VarDecl> transformVarDecls(ImmutableList<VarDecl> decls, Consumer<VarDecl> lifted) {
+		default ImmutableList<VarDecl> transformVarDecls(ImmutableList<VarDecl> decls, Consumer<GlobalVarDecl> lifted) {
 			ImmutableList.Builder<VarDecl> kept = ImmutableList.builder();
 			for (VarDecl decl : decls) {
 				if (constants().isConstant().test(decl)) {
-					lifted.accept(decl.withAvailability(Availability.PUBLIC));
+					GlobalVarDecl global = new GlobalVarDecl(Availability.PUBLIC, decl.getType(), decl.getName(), decl.getValue());
+					lifted.accept(global);
 				} else {
 					kept.add((VarDecl) transform(decl));
 				}

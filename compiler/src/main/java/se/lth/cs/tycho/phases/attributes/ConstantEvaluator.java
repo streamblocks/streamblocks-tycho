@@ -5,7 +5,6 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.ir.decl.LocationKind;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
@@ -16,7 +15,6 @@ import se.lth.cs.tycho.ir.expr.Expression;
 
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.function.Function;
 
 @Module
 public interface ConstantEvaluator {
@@ -42,9 +40,7 @@ public interface ConstantEvaluator {
 	}
 
 	default OptionalLong intValue(VarDecl decl) {
-		if (decl.isConstant() &&
-				(decl.getLocationKind() == LocationKind.GLOBAL || decl.getLocationKind() == LocationKind.LOCAL) &&
-				decl.getValue() != null) {
+		if (decl.isConstant() && decl.getValue() != null) {
 			return intValue(decl.getValue());
 		} else {
 			return OptionalLong.empty();

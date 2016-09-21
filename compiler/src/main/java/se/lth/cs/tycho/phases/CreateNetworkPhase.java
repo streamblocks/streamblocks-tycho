@@ -3,17 +3,14 @@ package se.lth.cs.tycho.phases;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.GlobalDeclarations;
-import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 
 public class CreateNetworkPhase implements Phase {
 	@Override
@@ -28,7 +25,7 @@ public class CreateNetworkPhase implements Phase {
 	}
 
 	private Network createNetwork(CompilationTask task) {
-		EntityDecl entityDecl = GlobalDeclarations.getEntity(task, task.getIdentifier());
+		GlobalEntityDecl entityDecl = GlobalDeclarations.getEntity(task, task.getIdentifier());
 		assert entityDecl.getEntity().getTypeParameters().isEmpty();
 		assert entityDecl.getEntity().getValueParameters().isEmpty();
 		ImmutableList<PortDecl> inputPorts = entityDecl.getEntity().getInputPorts().map(PortDecl::deepClone);

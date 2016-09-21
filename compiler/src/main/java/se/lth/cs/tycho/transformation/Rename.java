@@ -17,7 +17,6 @@ import se.lth.cs.tycho.ir.stmt.StmtBlock;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.function.Predicate;
@@ -53,7 +52,7 @@ public final class Rename {
 
 	private static final class RenameVariables implements Function<Tree<? extends IRNode>, IRNode> {
 		private final LongSupplier uniqueNumbers;
-		private final Map<Tree<VarDecl>, String> nameTable;
+		private final Map<Tree<? extends VarDecl>, String> nameTable;
 		private final Predicate<Tree<? extends VarDecl>> renamePredicate;
 
 		public RenameVariables(Predicate<Tree<? extends VarDecl>> renamePredicate, LongSupplier uniqueNumbers) {
@@ -78,11 +77,11 @@ public final class Rename {
 			}
 		}
 
-		private String name(Tree<VarDecl> decl) {
+		private String name(Tree<? extends VarDecl> decl) {
 			return nameTable.computeIfAbsent(decl, this::computeName);
 		}
 
-		private String computeName(Tree<VarDecl> decl) {
+		private String computeName(Tree<? extends VarDecl> decl) {
 			if (renamePredicate.test(decl)) {
 				return decl.node().getOriginalName() + "_" + uniqueNumbers.getAsLong();
 			} else {

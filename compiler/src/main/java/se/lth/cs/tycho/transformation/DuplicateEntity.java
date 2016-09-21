@@ -3,14 +3,14 @@ package se.lth.cs.tycho.transformation;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.comp.SyntheticSourceUnit;
-import se.lth.cs.tycho.decoration.EntityDeclarations;
 import se.lth.cs.tycho.decoration.Namespaces;
 import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -38,10 +38,10 @@ public final class DuplicateEntity {
 				.findFirst()
 				.orElseThrow(() -> new NoSuchElementException("No such entity instance"));
 
-		EntityDecl original = Namespaces.getEntityDeclarations(Tree.of(task), instance.getEntityName())
+		GlobalEntityDecl original = Namespaces.getEntityDeclarations(Tree.of(task), instance.getEntityName())
 				.findFirst().orElseThrow(() -> new RuntimeException("Entity not found")).node();
 
-		EntityDecl entity = original;
+		GlobalEntityDecl entity = original;
 
 		String localName = entity.getOriginalName() + "_" + uniqueNumbers.getAsLong();
 		QID namespace = instance.getEntityName().getButLast();
@@ -91,7 +91,7 @@ public final class DuplicateEntity {
 
 	}
 
-	private static EntityDecl renamePortUses(EntityDecl entity, Map<String, String> inputPorts, Map<String, String> outputPorts) {
+	private static GlobalEntityDecl renamePortUses(GlobalEntityDecl entity, Map<String, String> inputPorts, Map<String, String> outputPorts) {
 		Map<String, String> ports = new HashMap<>(inputPorts);
 		ports.putAll(outputPorts);
 		assert ports.size() == inputPorts.size() + outputPorts.size();
@@ -112,7 +112,7 @@ public final class DuplicateEntity {
 				}
 			}
 		};
-		return renamePorts.applyChecked(EntityDecl.class, entity);
+		return renamePorts.applyChecked(GlobalEntityDecl.class, entity);
 	}
 
 	private static Map<Port,Integer> tokenRates(Map<Port, Integer> rates, Map<String, String> ports) {
@@ -143,8 +143,8 @@ public final class DuplicateEntity {
 
 	private static Map<String, String> parameterNames(Entity original, Entity renamed) {
 		Map<String, String> names = new HashMap<>();
-		Iterator<VarDecl> originalParameters = original.getValueParameters().iterator();
-		Iterator<VarDecl> renamedParameters = renamed.getValueParameters().iterator();
+		Iterator<ParameterVarDecl> originalParameters = original.getValueParameters().iterator();
+		Iterator<ParameterVarDecl> renamedParameters = renamed.getValueParameters().iterator();
 		while (originalParameters.hasNext()) {
 			assert renamedParameters.hasNext();
 			VarDecl o = originalParameters.next();

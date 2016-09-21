@@ -6,7 +6,7 @@ import se.lth.cs.tycho.comp.GlobalDeclarations;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
@@ -44,7 +44,7 @@ public class ElaborateNetworkPhase implements Phase {
 	public Network fullyElaborate(CompilationTask task, Network network, Set<String> names) {
 		Network result = uniqueNames(network, names);
 		for (Instance instance : result.getInstances()) {
-			EntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
+			GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
 			if (entity.getEntity() instanceof NlNetwork) {
 				Network elaborated = elaborate((NlNetwork) entity.getEntity());
 				elaborated = fullyElaborate(task, elaborated, names);

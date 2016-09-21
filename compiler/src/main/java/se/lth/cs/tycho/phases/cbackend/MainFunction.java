@@ -4,8 +4,7 @@ import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Compiler;
-import se.lth.cs.tycho.comp.Namespaces;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.types.BoolType;
 import se.lth.cs.tycho.types.IntType;
@@ -51,7 +50,7 @@ public interface MainFunction {
 		ioCode(RealType.f32);
 		ioCode(RealType.f64);
 		List<VarDecl> varDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getVarDecls().stream()).collect(Collectors.toList());
-		List<EntityDecl> entityDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getEntityDecls().stream()).collect(Collectors.toList());
+		List<GlobalEntityDecl> entityDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getEntityDecls().stream()).collect(Collectors.toList());
 		backend().global().globalVariables(varDecls);
 		backend().structure().actorDecls(entityDecls);
 		mainNetwork().main(task.getNetwork());

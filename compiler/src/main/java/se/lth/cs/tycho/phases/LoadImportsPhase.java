@@ -7,10 +7,8 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.GroupImport;
 import se.lth.cs.tycho.ir.decl.SingleImport;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 

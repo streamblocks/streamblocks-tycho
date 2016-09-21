@@ -2,25 +2,12 @@ package se.lth.cs.tycho.phases;
 
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
-import se.lth.cs.tycho.comp.SourceUnit;
-import se.lth.cs.tycho.comp.SyntheticSourceUnit;
-import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
-import se.lth.cs.tycho.ir.decl.GroupImport;
-import se.lth.cs.tycho.ir.decl.Import;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.network.Instance;
-import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RemoveUnusedEntityDeclsPhase implements Phase {
 	@Override

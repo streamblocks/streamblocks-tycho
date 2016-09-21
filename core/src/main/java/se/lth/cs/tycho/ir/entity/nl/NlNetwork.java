@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -19,14 +20,14 @@ public class NlNetwork extends Entity {
 	private final ImmutableList<StructureStatement> structure;
 
 	public NlNetwork(List<TypeDecl> typePars,
-					 List<VarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+					 List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
 					 List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 					 List<InstanceDecl> entities, List<StructureStatement> structure) {
 		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
 	}
 
 	private NlNetwork(NlNetwork original,
-			List<TypeDecl> typePars, List<VarDecl> valuePars,
+			List<TypeDecl> typePars, List<ParameterVarDecl> valuePars,
 			List<TypeDecl> typeDecls, List<VarDecl> varDecls, List<PortDecl> inputPorts,
 			List<PortDecl> outputPorts, List<InstanceDecl> entities,
 			List<StructureStatement> structure) {
@@ -40,7 +41,7 @@ public class NlNetwork extends Entity {
 	}
 
 	public NlNetwork copy(List<TypeDecl> typePars,
-			List<VarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 			List<InstanceDecl> entities, List<StructureStatement> structure) {
 		if (Lists.sameElements(this.typeParameters, typePars)
@@ -100,7 +101,7 @@ public class NlNetwork extends Entity {
 			return new NlNetwork(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
 		}
 	}
-	public NlNetwork withValueParameters(List<VarDecl> valueParameters) {
+	public NlNetwork withValueParameters(List<ParameterVarDecl> valueParameters) {
 		if (Lists.sameElements(this.valueParameters, valueParameters)) {
 			return this;
 		} else {

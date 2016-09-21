@@ -3,7 +3,7 @@ package se.lth.cs.tycho.phases;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.Transformations;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Condition;
 import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
@@ -24,7 +24,7 @@ public class RemoveUnusedConditionsPhase implements Phase {
 		return Transformations.transformEntityDecls(task, this::removeUnusedConditions);
 	}
 
-	private EntityDecl removeUnusedConditions(EntityDecl entityDecl) {
+	private GlobalEntityDecl removeUnusedConditions(GlobalEntityDecl entityDecl) {
 		if (entityDecl.getEntity() instanceof ActorMachine) {
 			ActorMachine actorMachine = (ActorMachine) entityDecl.getEntity();
 			BitSet used = actorMachine.controller().getStateList().stream()

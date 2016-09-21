@@ -14,7 +14,7 @@ import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.Availability;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
@@ -51,7 +51,7 @@ public class XDF2NLReader {
 		ImmutableList<PortDecl> inputPorts = getPorts(doc, true);
 		ImmutableList<PortDecl> outputPorts = getPorts(doc, false);
 		NlNetwork network = new NlNetwork(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(), inputPorts, outputPorts, instances, connections);
-		EntityDecl networkDecl = EntityDecl.global(Availability.PUBLIC, qid.getLast().toString(), network);
+		GlobalEntityDecl networkDecl = GlobalEntityDecl.global(Availability.PUBLIC, qid.getLast().toString(), network);
 		return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.of(networkDecl), ImmutableList.empty());
 	}
 

@@ -7,7 +7,7 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -40,7 +40,7 @@ public class AddSchedulePhase implements Phase {
 			return decl;
 		}
 
-		default IRNode apply(EntityDecl entityDecl) {
+		default IRNode apply(GlobalEntityDecl entityDecl) {
 			return entityDecl.transformChildren(this);
 		}
 

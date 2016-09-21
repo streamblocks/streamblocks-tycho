@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.entity.am;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -55,13 +56,13 @@ public class ActorMachine extends Entity {
 	}
 
 	public ActorMachine(List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-						List<TypeDecl> typeParameters, List<VarDecl> valueParameters, List<Scope> scopes, Controller controller,
+						List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes, Controller controller,
 						List<Transition> transitions, List<Condition> conditions) {
 		this(null, inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
 	}
 
 	private ActorMachine(ActorMachine original, List<PortDecl> inputPorts,
-						 List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<VarDecl> valueParameters, List<Scope> scopes,
+						 List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes,
 						 Controller controller, List<Transition> transitions,
 						 List<Condition> conditions) {
 		super(original, inputPorts, outputPorts, typeParameters, valueParameters);
@@ -72,7 +73,7 @@ public class ActorMachine extends Entity {
 	}
 
 	public ActorMachine copy(List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<TypeDecl> typeParameters,
-							 List<VarDecl> valueParameters,
+							 List<ParameterVarDecl> valueParameters,
 							 List<Scope> scopes, Controller controller,
 							 List<Transition> transitions, List<Condition> conditions) {
 		if (Lists.sameElements(this.inputPorts, inputPorts)

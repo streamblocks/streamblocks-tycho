@@ -2,7 +2,7 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -46,7 +46,7 @@ public interface Structure {
 	default DefaultValues defVal() { return backend().defaultValues(); }
 
 
-	default void actorDecl(EntityDecl decl) {
+	default void actorDecl(GlobalEntityDecl decl) {
 		actor(decl.getName(), decl.getEntity());
 	}
 
@@ -348,7 +348,7 @@ public interface Structure {
 		emitter().emit("");
 	}
 
-	default void actorDecls(List<EntityDecl> entityDecls) {
+	default void actorDecls(List<GlobalEntityDecl> entityDecls) {
 		entityDecls.forEach(backend().structure()::actorDecl);
 	}
 }

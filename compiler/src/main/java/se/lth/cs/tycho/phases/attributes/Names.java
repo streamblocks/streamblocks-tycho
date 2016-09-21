@@ -12,7 +12,9 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.GroupImport;
 import se.lth.cs.tycho.ir.decl.Import;
 import se.lth.cs.tycho.ir.decl.SingleImport;
@@ -25,7 +27,6 @@ import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
-import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityReference;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
@@ -34,9 +35,7 @@ import se.lth.cs.tycho.ir.expr.ExprComprehension;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
-import se.lth.cs.tycho.ir.expr.ExprList;
 import se.lth.cs.tycho.ir.expr.ExprProc;
-import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
@@ -47,7 +46,6 @@ import se.lth.cs.tycho.phases.TreeShadow;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public interface Names {
@@ -61,7 +59,7 @@ public interface Names {
 
 	PortDecl portDeclaration(Port port);
 
-	EntityDecl entityDeclaration(EntityReference reference);
+	GlobalEntityDecl entityDeclaration(EntityReference reference);
 
 	@Module
 	interface Implementation extends Names, PortNames, VariableNames, EntityNames, Util {
@@ -173,26 +171,26 @@ public interface Names {
 
 		GlobalNames globalNames();
 
-		default EntityDecl entityDeclaration(EntityReference reference) {
+		default GlobalEntityDecl entityDeclaration(EntityReference reference) {
 			return lookupEntity(reference);
 		}
 
-		EntityDecl lookupEntity(EntityReference reference);
+		GlobalEntityDecl lookupEntity(EntityReference reference);
 
-		default EntityDecl lookupEntity(EntityReferenceGlobal reference) {
+		default GlobalEntityDecl lookupEntity(EntityReferenceGlobal reference) {
 			return globalNames().entityDecl(reference.getGlobalName(), false);
 		}
 
-		default EntityDecl lookupEntity(EntityReferenceLocal reference) {
+		default GlobalEntityDecl lookupEntity(EntityReferenceLocal reference) {
 			return localEntityLookup(reference, reference.getName());
 		}
 
-		default EntityDecl localEntityLookup(IRNode node, String name) {
+		default GlobalEntityDecl localEntityLookup(IRNode node, String name) {
 			IRNode parent = tree().parent(node);
 			return parent == null ? null : localEntityLookup(parent, name);
 		}
 
-		default EntityDecl localEntityLookup(NamespaceDecl namespaceDecl, String name) {
+		default GlobalEntityDecl localEntityLookup(NamespaceDecl namespaceDecl, String name) {
 			return findInStream(namespaceDecl.getEntityDecls().stream(), name)
 					.orElseGet(() -> globalNames().entityDecl(namespaceDecl.getQID().concat(QID.of(name)), true));
 		}
@@ -234,12 +232,16 @@ public interface Names {
 			return findInStream(let.getVarDecls().stream(), name);
 		}
 
+		static <A, B extends A> Optional<A> upCast(Optional<B> opt) {
+			return Optional.ofNullable(opt.orElse(null));
+		}
+
 		default Optional<VarDecl> localLookup(ExprLambda lambda, IRNode context, String name) {
-			return findInStream(lambda.getValueParameters().stream(), name);
+			return upCast(findInStream(lambda.getValueParameters().stream(), name));
 		}
 
 		default Optional<VarDecl> localLookup(ExprProc proc, IRNode context, String name) {
-			return findInStream(proc.getValueParameters().stream(), name);
+			return upCast(findInStream(proc.getValueParameters().stream(), name));
 		}
 
 		default Optional<VarDecl> localLookup(StmtBlock block, IRNode context, String name) {
@@ -287,9 +289,9 @@ public interface Names {
 		}
 
 		default Optional<VarDecl> localLookup(NamespaceDecl ns, IRNode context, String name) {
-			Optional<VarDecl> result = findInStream(ns.getVarDecls().stream(), name);
+			Optional<GlobalVarDecl> result = this.findInStream(ns.getVarDecls().stream(), name);
 			if (result.isPresent()) {
-				return result;
+				return Optional.of(result.get());
 			}
 			VarDecl inNamespace = globalNames().varDecl(ns.getQID().concat(QID.of(name)), true);
 			if (inNamespace != null) {

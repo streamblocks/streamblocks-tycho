@@ -178,6 +178,10 @@ public final class Tree<N extends IRNode> {
 		}
 	}
 
+	public static <To extends IRNode, From extends To> Tree<To> upCast(Tree<From> tree) {
+		return (Tree) tree;
+	}
+
 	public <M extends IRNode> Tree<M> assertNode(M node) {
 		if (this.node == node) {
 			return (Tree<M>) this;

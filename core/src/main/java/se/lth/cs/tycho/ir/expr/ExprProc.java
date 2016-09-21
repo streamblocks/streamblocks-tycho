@@ -41,7 +41,7 @@ package se.lth.cs.tycho.ir.expr;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -55,15 +55,15 @@ public class ExprProc extends Expression {
 		return v.visitExprProc(this, p);
 	}
 
-	public ExprProc(List<TypeDecl> typeParams, List<VarDecl> valueParams, List<Statement> body) {
+	public ExprProc(List<TypeDecl> typeParams, List<ParameterVarDecl> valueParams, List<Statement> body) {
 		this(null, typeParams, valueParams, body, false);
 	}
 
-	public ExprProc(List<TypeDecl> typeParams, List<VarDecl> valueParams) {
+	public ExprProc(List<TypeDecl> typeParams, List<ParameterVarDecl> valueParams) {
 		this(null, typeParams, valueParams, null, true);
 	}
 
-	private ExprProc(ExprProc original, List<TypeDecl> typeParams, List<VarDecl> valueParams, List<Statement> body, boolean external) {
+	private ExprProc(ExprProc original, List<TypeDecl> typeParams, List<ParameterVarDecl> valueParams, List<Statement> body, boolean external) {
 		super(original);
 		this.typeParameters = ImmutableList.from(typeParams);
 		this.valueParameters = ImmutableList.from(valueParams);
@@ -71,7 +71,7 @@ public class ExprProc extends Expression {
 		this.external = external;
 	}
 	
-	public ExprProc copy(List<TypeDecl> typeParams, List<VarDecl> valueParams, List<Statement> body, boolean external) {
+	public ExprProc copy(List<TypeDecl> typeParams, List<ParameterVarDecl> valueParams, List<Statement> body, boolean external) {
 		if (Lists.sameElements(typeParameters, typeParams)
 				&& Lists.sameElements(valueParameters, valueParams)
 				&& Lists.sameElements(this.body, body)
@@ -86,7 +86,7 @@ public class ExprProc extends Expression {
 		return typeParameters;
 	}
 
-	public ImmutableList<VarDecl> getValueParameters() {
+	public ImmutableList<ParameterVarDecl> getValueParameters() {
 		return valueParameters;
 	}
 
@@ -99,7 +99,7 @@ public class ExprProc extends Expression {
 	}
 
 	private final ImmutableList<TypeDecl> typeParameters;
-	private final ImmutableList<VarDecl> valueParameters;
+	private final ImmutableList<ParameterVarDecl> valueParameters;
 	private final ImmutableList<Statement> body;
 	private final boolean external;
 
@@ -114,7 +114,7 @@ public class ExprProc extends Expression {
 	public ExprProc transformChildren(Transformation transformation) {
 		return copy(
 				transformation.mapChecked(TypeDecl.class, typeParameters),
-				transformation.mapChecked(VarDecl.class, valueParameters),
+				transformation.mapChecked(ParameterVarDecl.class, valueParameters),
 				transformation.mapChecked(Statement.class, body),
 				external
 		);

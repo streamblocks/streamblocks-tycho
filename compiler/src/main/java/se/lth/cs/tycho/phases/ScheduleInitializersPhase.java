@@ -7,7 +7,7 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -15,7 +15,6 @@ import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,7 +48,7 @@ public class ScheduleInitializersPhase implements Phase {
 		default IRNode transform(Decl decl) {
 			return decl;
 		}
-		default IRNode transform(EntityDecl decl) {
+		default IRNode transform(GlobalEntityDecl decl) {
 			return decl.transformChildren(this);
 		}
 		default IRNode transform(Entity entity) {

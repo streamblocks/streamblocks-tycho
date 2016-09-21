@@ -43,6 +43,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -56,7 +57,7 @@ import java.util.function.Consumer;
 public class CalActor extends Entity {
 
 	public CalActor(ImmutableList<TypeDecl> typePars,
-			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
+			ImmutableList<ParameterVarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ProcessDescription process, ImmutableList<ImmutableList<QID>> priorities,
@@ -66,7 +67,7 @@ public class CalActor extends Entity {
 	}
 
 	private CalActor(CalActor original, ImmutableList<TypeDecl> typePars,
-			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
+			ImmutableList<ParameterVarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ProcessDescription process,	ImmutableList<ImmutableList<QID>> priorities,
@@ -84,7 +85,7 @@ public class CalActor extends Entity {
 	}
 
 	public CalActor copy(ImmutableList<TypeDecl> typePars,
-			ImmutableList<VarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
+			ImmutableList<ParameterVarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
 			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
 			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
 			ProcessDescription process, ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
@@ -192,7 +193,7 @@ public class CalActor extends Entity {
 		}
 	}
 
-	public CalActor withValueParameters(ImmutableList<VarDecl> valueParameters) {
+	public CalActor withValueParameters(ImmutableList<ParameterVarDecl> valueParameters) {
 		if (Lists.sameElements(this.valueParameters, valueParameters)) {
 			return this;
 		} else {

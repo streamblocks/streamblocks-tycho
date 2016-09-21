@@ -6,14 +6,15 @@ import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Availability;
-import se.lth.cs.tycho.ir.decl.EntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.GroupImport;
 import se.lth.cs.tycho.ir.decl.Import;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.SingleImport;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -28,7 +29,6 @@ import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
-import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
@@ -62,15 +62,15 @@ public final class VariableDeclarations {
 		}
 	}
 
-	public static Optional<Tree<VarDecl>> getValueParameterDeclaration(Tree<ValueParameter> parameter) {
+	public static Optional<Tree<ParameterVarDecl>> getValueParameterDeclaration(Tree<ValueParameter> parameter) {
 		Optional<Tree<? extends IRNode>> parent = parameter.parent();
 		if (!parent.isPresent()) return Optional.empty();
 		{
 			Optional<Tree<EntityInstanceExpr>> instanceExpr = parent.get().tryCast(EntityInstanceExpr.class);
 			if (instanceExpr.isPresent()) {
-				Optional<Tree<EntityDecl>> entityDecl = EntityDeclarations.getDeclaration(instanceExpr.get().child(EntityInstanceExpr::getEntityName));
+				Optional<Tree<GlobalEntityDecl>> entityDecl = EntityDeclarations.getDeclaration(instanceExpr.get().child(EntityInstanceExpr::getEntityName));
 				if (!entityDecl.isPresent()) return Optional.empty();
-				return entityDecl.get().child(EntityDecl::getEntity).children(Entity::getValueParameters)
+				return entityDecl.get().child(GlobalEntityDecl::getEntity).children(Entity::getValueParameters)
 						.filter(tree -> tree.node().getName().equals(parameter.node().getName()))
 						.findFirst();
 			}
@@ -81,12 +81,12 @@ public final class VariableDeclarations {
 				QID entityName = instance.get().node().getEntityName();
 				QID namespace = entityName.getButLast();
 				String name = entityName.getLast().toString();
-				Optional<Tree<EntityDecl>> entityDecl = Namespaces.getNamespace(parameter, namespace)
+				Optional<Tree<GlobalEntityDecl>> entityDecl = Namespaces.getNamespace(parameter, namespace)
 						.flatMap(ns -> ns.children(NamespaceDecl::getEntityDecls))
 						.filter(decl -> decl.node().getName().equals(name))
 						.findFirst();
 				if (!entityDecl.isPresent()) return Optional.empty();
-				return entityDecl.get().child(EntityDecl::getEntity).children(Entity::getValueParameters)
+				return entityDecl.get().child(GlobalEntityDecl::getEntity).children(Entity::getValueParameters)
 						.filter(tree -> tree.node().getName().equals(parameter.node().getName()))
 						.findFirst();
 			}
@@ -94,7 +94,7 @@ public final class VariableDeclarations {
 		return Optional.empty();
 	}
 
-	public static Optional<Tree<VarDecl>> getGlobalVariableDeclaration(Tree<ExprGlobalVariable> variable) {
+	public static Optional<Tree<GlobalVarDecl>> getGlobalVariableDeclaration(Tree<ExprGlobalVariable> variable) {
 		QID namespace = variable.node().getGlobalName().getButLast();
 		String name = variable.node().getGlobalName().getLast().toString();
 		return Namespaces.getNamespace(variable, namespace)
@@ -116,7 +116,7 @@ public final class VariableDeclarations {
 		return Collections.emptyList();
 	}
 
-	private static Predicate<Tree<VarDecl>> hasName(String name) {
+	private static Predicate<Tree<? extends VarDecl>> hasName(String name) {
 		return decl -> decl.node().getName().equals(name);
 	}
 	@Module
@@ -128,10 +128,10 @@ public final class VariableDeclarations {
 			return tree.assertNode(let).children(ExprLet::getVarDecls).filter(hasName(name));
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprLambda lambda, String name) {
-			return tree.assertNode(lambda).children(ExprLambda::getValueParameters).filter(hasName(name));
+			return tree.assertNode(lambda).children(ExprLambda::getValueParameters).filter(hasName(name)).map(Tree::upCast);
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprProc proc, String name) {
-			return tree.assertNode(proc).children(ExprProc::getValueParameters).filter(hasName(name));
+			return tree.assertNode(proc).children(ExprProc::getValueParameters).filter(hasName(name)).map(Tree::upCast);
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprComprehension comprehension, String name) {
 			return tree.assertNode(comprehension)
@@ -157,37 +157,42 @@ public final class VariableDeclarations {
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, CalActor actor, String name) {
 			Stream<Tree<VarDecl>> varDecls = tree.assertNode(actor).children(CalActor::getVarDecls);
-			Stream<Tree<VarDecl>> parameters = tree.assertNode(actor).children(CalActor::getValueParameters);
+			Stream<Tree<VarDecl>> parameters = tree.assertNode(actor).children(CalActor::getValueParameters).map(Tree::upCast);
 			return Stream.concat(varDecls, parameters).filter(hasName(name));
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, ActorMachine actorMachine, String name) {
 			Tree<ActorMachine> root = tree.assertNode(actorMachine);
 			Stream<Tree<VarDecl>> scopeVars = root.children(ActorMachine::getScopes)
 					.flatMap(t -> t.children(Scope::getDeclarations));
-			Stream<Tree<VarDecl>> parameters = root.children(ActorMachine::getValueParameters);
+			Stream<Tree<VarDecl>> parameters = root.children(ActorMachine::getValueParameters).map(Tree::upCast);
 			return Stream.concat(scopeVars, parameters).filter(hasName(name));
 		}
 
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, NamespaceDecl ns, String name) {
 			Tree<NamespaceDecl> nsTree = tree.assertNode(ns);
-			Stream<Tree<VarDecl>> localDecls = nsTree.children(NamespaceDecl::getVarDecls).filter(hasName(name));
-			Stream<Tree<VarDecl>> nsDecls = Namespaces.getNamespace(nsTree, ns.getQID())
+			Stream<Tree<GlobalVarDecl>> localDecls = nsTree.children(NamespaceDecl::getVarDecls)
+					.filter(hasName(name));
+			Stream<Tree<GlobalVarDecl>> nsDecls = Namespaces.getNamespace(nsTree, ns.getQID())
 					.flatMap(nsDecl -> nsDecl.children(NamespaceDecl::getVarDecls))
-					.filter(varDecl -> varDecl.node().getAvailability() != Availability.LOCAL).filter(hasName(name));
-			Stream<Tree<VarDecl>> imports = nsTree.children(NamespaceDecl::getImports)
+					.filter(varDecl -> varDecl.node().getAvailability() != Availability.LOCAL)
+					.filter(hasName(name));
+			Stream<Tree<GlobalVarDecl>> imports = nsTree.children(NamespaceDecl::getImports)
 					.flatMap(imp -> imports(imp, imp.node(), name));
-			return Stream.concat(localDecls, Stream.concat(nsDecls, imports)).distinct();
+			return Stream.concat(localDecls, Stream.concat(nsDecls, imports))
+					.distinct()
+					.map(Tree::upCast);
 		}
 
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, CompilationTask task, String name) {
 			return Namespaces.getNamespace(tree.assertNode(task), QID.of("prelude"))
 					.flatMap(ns -> ns.children(NamespaceDecl::getVarDecls))
-					.filter(decl -> decl.node().getAvailability() == Availability.PUBLIC);
+					.filter(decl -> decl.node().getAvailability() == Availability.PUBLIC)
+					.map(Tree::upCast);
 		}
 
-		Stream<Tree<VarDecl>> imports(Tree<?> tree, Import imp, String name);
+		Stream<Tree<GlobalVarDecl>> imports(Tree<?> tree, Import imp, String name);
 
-		default Stream<Tree<VarDecl>> imports(Tree<?> tree, GroupImport imp, String name) {
+		default Stream<Tree<GlobalVarDecl>> imports(Tree<?> tree, GroupImport imp, String name) {
 			if (imp.getKind() == Import.Kind.VAR) {
 				return Namespaces.getNamespace(tree.assertNode(imp), imp.getGlobalName())
 						.flatMap(nsDecl -> nsDecl.children(NamespaceDecl::getVarDecls))
@@ -198,7 +203,7 @@ public final class VariableDeclarations {
 			}
 		}
 
-		default Stream<Tree<VarDecl>> imports(Tree<?> tree, SingleImport imp, String name) {
+		default Stream<Tree<GlobalVarDecl>> imports(Tree<?> tree, SingleImport imp, String name) {
 			if (imp.getKind() == Import.Kind.VAR && imp.getLocalName().equals(name)) {
 				return Namespaces.getNamespace(tree.assertNode(imp), imp.getGlobalName().getButLast())
 						.flatMap(nsDecl -> nsDecl.children(NamespaceDecl::getVarDecls))

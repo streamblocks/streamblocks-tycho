@@ -306,11 +306,11 @@ QID NamespaceScan() :
 NamespaceDecl CompilationUnit() :
 {
 	NamespaceDecl ns;
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
-	ImmutableList.Builder<EntityDecl> entityDecls = ImmutableList.builder();
+	ImmutableList.Builder<GlobalVarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<GlobalEntityDecl> entityDecls = ImmutableList.builder();
 	ImmutableList.Builder<Import> imports = ImmutableList.builder();
-	VarDecl varDecl;
-	EntityDecl e;
+	GlobalVarDecl varDecl;
+	GlobalEntityDecl e;
 	NamespaceDecl unit;
 	Import imp;
 	QID qid = QID.empty();
@@ -344,8 +344,8 @@ NamespaceDecl CompilationUnit() :
 NamespaceDecl OrccUnit() :
 {
 	Token id;
-	ImmutableList.Builder<VarDecl> decls = ImmutableList.builder();
-	VarDecl decl;
+	ImmutableList.Builder<GlobalVarDecl> decls = ImmutableList.builder();
+	GlobalVarDecl decl;
 }
 {
 	"unit"
@@ -410,7 +410,7 @@ QID QID() :
 	{ return qid; }
 }
 
-VarDecl GlobalVarDecl() :
+GlobalVarDecl GlobalVarDecl() :
 {
 	Availability availability = Availability.PUBLIC;
 	String name;
@@ -502,7 +502,7 @@ NameAndDef<ExprLambda> FunDecl() :
 {
 	Annotation ann;
 	Token id;
-	ImmutableList<VarDecl> valPars;
+	ImmutableList<ParameterVarDecl> valPars;
 	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	Expression expr = null;
 	TypeExpr type = null;
@@ -558,7 +558,7 @@ NameAndDef<ExprProc> ProcDecl() :
 	Annotation ann;
 	boolean external = false;
 	Token id;
-	ImmutableList<VarDecl> valPars;
+	ImmutableList<ParameterVarDecl> valPars;
 	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts = ImmutableList.empty();
 }
@@ -617,12 +617,12 @@ ImmutableList<VarDecl> VarDecls() :
 }
 
 /* ActorDecl */
-EntityDecl ActorDecl() :
+GlobalEntityDecl ActorDecl() :
 {
 	Token id;
 	String name;
 	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
-	ImmutableList<VarDecl> valuePars;
+	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
 	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
 	VarDecl varDecl;
@@ -673,7 +673,7 @@ EntityDecl ActorDecl() :
 	)
 	{
 		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, null, priorities.build(), invariants.build());
-		return EntityDecl.global(Availability.PUBLIC, name, a);
+		return GlobalEntityDecl.global(Availability.PUBLIC, name, a);
 	}
 }
 
@@ -1145,10 +1145,10 @@ ExprLet LetExpression() :
 	{ return new ExprLet(typeDecls, varDecls, expr); }
 }
 
-ImmutableList<VarDecl> FormalValuePars() :
+ImmutableList<ParameterVarDecl> FormalValuePars() :
 {
-	ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
-	VarDecl decl;
+	ImmutableList.Builder<ParameterVarDecl> builder = ImmutableList.builder();
+	ParameterVarDecl decl;
 }
 {
 	(
@@ -1160,15 +1160,16 @@ ImmutableList<VarDecl> FormalValuePars() :
 	}
 }
 
-VarDecl FormalValueParameter() :
+ParameterVarDecl FormalValueParameter() :
 {
 	TypeAndName typeName;
+	Expression defaultValue = null;
 }
 {
 	typeName = VarDeclTypeName()
-	("=" Expression())?
+	("=" defaultValue = Expression())?
 	{
-		return VarDecl.parameter(typeName.type, typeName.name);
+		return VarDecl.parameter(typeName.type, typeName.name, defaultValue);
 	}
 }
 

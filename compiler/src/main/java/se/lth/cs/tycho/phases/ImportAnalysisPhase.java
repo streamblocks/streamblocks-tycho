@@ -7,11 +7,9 @@ import se.lth.cs.tycho.decoration.Namespaces;
 import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.Availability;
-import se.lth.cs.tycho.ir.decl.Decl;
+import se.lth.cs.tycho.ir.decl.GlobalDecl;
 import se.lth.cs.tycho.ir.decl.GroupImport;
-import se.lth.cs.tycho.ir.decl.Import;
 import se.lth.cs.tycho.ir.decl.SingleImport;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -37,7 +35,7 @@ public class ImportAnalysisPhase implements Phase {
 	}
 
 	private void checkSingleImport(Tree<SingleImport> singleImport, Reporter reporter) {
-		Stream<? extends Tree<? extends Decl>> declarations;
+		Stream<? extends Tree<? extends GlobalDecl>> declarations;
 		switch (singleImport.node().getKind()) {
 			case VAR:
 				declarations = Namespaces.getVariableDeclarations(singleImport, singleImport.node().getGlobalName());
@@ -51,7 +49,7 @@ public class ImportAnalysisPhase implements Phase {
 			default:
 				throw new AssertionError("Unknown enum variant");
 		}
-		List<? extends Tree<?extends Decl>> decls = declarations
+		List<? extends Tree<? extends GlobalDecl>> decls = declarations
 				.filter(decl -> decl.node().getAvailability() == Availability.PUBLIC)
 				.collect(Collectors.toList());
 		if (decls.isEmpty()) {
