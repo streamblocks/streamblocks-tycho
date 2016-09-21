@@ -2,7 +2,7 @@ package se.lth.cs.tycho.ir.decl;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 
-public abstract class AbstractDecl extends AbstractIRNode implements Decl {
+public abstract class AbstractDecl<This extends AbstractDecl<This>> extends AbstractIRNode implements Decl<This> {
 
 	private final String name;
 	private final String originalName;
@@ -19,9 +19,16 @@ public abstract class AbstractDecl extends AbstractIRNode implements Decl {
 	}
 
 	@Override
-	public abstract AbstractDecl withName(String name);
+	public String getOriginalName() { return originalName; }
 
 	@Override
-	public String getOriginalName() { return originalName; }
+	public final This clone() {
+		return (This) super.clone();
+	}
+
+	@Override
+	public final This deepClone() {
+		return (This) super.deepClone();
+	}
 
 }

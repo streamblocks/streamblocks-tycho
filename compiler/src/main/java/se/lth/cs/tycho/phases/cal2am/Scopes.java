@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.phases.cal2am;
 
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -54,7 +55,7 @@ public class Scopes {
 		for (InputPattern input : action.getInputPatterns()) {
 			if (input.getRepeatExpr() == null) {
 				int i = 0;
-				for (VarDecl var : input.getVariables()) {
+				for (LocalVarDecl var : input.getVariables()) {
 					varDecls.add(var.withValue(new ExprInput((Port) input.getPort().deepClone(), i)));
 					i = i + 1;
 				}
@@ -62,7 +63,7 @@ public class Scopes {
 				int repeat = (int) constants.intValue(input.getRepeatExpr()).getAsLong();
 				int patternLength = input.getVariables().size();
 				int i = 0;
-				for (VarDecl var : input.getVariables()) {
+				for (LocalVarDecl var : input.getVariables()) {
 					varDecls.add(var.withValue(new ExprInput((Port) input.getPort().deepClone(), i, repeat, patternLength)));
 					i = i + 1;
 				}

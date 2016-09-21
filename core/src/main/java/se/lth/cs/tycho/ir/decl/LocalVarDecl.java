@@ -7,7 +7,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class LocalVarDecl extends VarDecl {
+public class LocalVarDecl extends VarDecl<LocalVarDecl> {
 	public LocalVarDecl(TypeExpr type, String name, boolean constant, Expression value) {
 		this(null, type, name, constant, value);
 	}
@@ -30,7 +30,7 @@ public class LocalVarDecl extends VarDecl {
 	}
 
 	@Override
-	public IRNode transformChildren(Transformation transformation) {
+	public LocalVarDecl transformChildren(Transformation transformation) {
 		return copy(
 				getType() == null ? null : transformation.applyChecked(TypeExpr.class, getType()),
 				getName(),
@@ -39,27 +39,17 @@ public class LocalVarDecl extends VarDecl {
 	}
 
 	@Override
-	public VarDecl withType(TypeExpr type) {
+	public LocalVarDecl withType(TypeExpr type) {
 		return copy(type, getName(), isConstant(), getValue());
 	}
 
-	@Override
-	public VarDecl withValue(Expression value) {
+	public LocalVarDecl withValue(Expression value) {
 		return copy(getType(), getName(), isConstant(), value);
 	}
 
 	@Override
-	public VarDecl withName(String name) {
+	public LocalVarDecl withName(String name) {
 		return copy(getType(), name, isConstant(), getValue());
 	}
 
-	@Override
-	public LocalVarDecl clone() {
-		return (LocalVarDecl) super.clone();
-	}
-
-	@Override
-	public LocalVarDecl deepClone() {
-		return (LocalVarDecl) super.deepClone();
-	}
 }

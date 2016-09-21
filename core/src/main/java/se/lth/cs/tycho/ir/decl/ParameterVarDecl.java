@@ -7,7 +7,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class ParameterVarDecl extends VarDecl {
+public class ParameterVarDecl extends VarDecl<ParameterVarDecl> {
 	private final Expression defaultValue;
 
 	public ParameterVarDecl(TypeExpr type, String name, Expression defaultValue) {
@@ -41,7 +41,7 @@ public class ParameterVarDecl extends VarDecl {
 	}
 
 	@Override
-	public IRNode transformChildren(Transformation transformation) {
+	public ParameterVarDecl transformChildren(Transformation transformation) {
 		return copy(
 				getType() == null ? null : transformation.applyChecked(TypeExpr.class, getType()),
 				getName(),
@@ -49,17 +49,12 @@ public class ParameterVarDecl extends VarDecl {
 	}
 
 	@Override
-	public VarDecl withType(TypeExpr type) {
+	public ParameterVarDecl withType(TypeExpr type) {
 		return copy(type, getName(), defaultValue);
 	}
 
 	@Override
-	public VarDecl withValue(Expression value) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public VarDecl withName(String name) {
+	public ParameterVarDecl withName(String name) {
 		return copy(getType(), name, defaultValue);
 	}
 }

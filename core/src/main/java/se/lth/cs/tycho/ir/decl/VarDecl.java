@@ -3,7 +3,7 @@ package se.lth.cs.tycho.ir.decl;
 import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
 
-public abstract class VarDecl extends AbstractDecl {
+public abstract class VarDecl<This extends VarDecl<This>> extends AbstractDecl<This> {
 
 	private final TypeExpr type;
 	private final Expression value;
@@ -32,30 +32,14 @@ public abstract class VarDecl extends AbstractDecl {
 		return type;
 	}
 
-	public abstract VarDecl withType(TypeExpr type);
+	public abstract This withType(TypeExpr type);
 
 	public Expression getValue() {
 		return value;
 	}
 
-	public abstract VarDecl withValue(Expression value);
-
 	public boolean isConstant() {
 		return constant;
-	}
-
-
-	@Override
-	public abstract VarDecl withName(String name);
-
-	@Override
-	public VarDecl clone() {
-		return (VarDecl) super.clone();
-	}
-
-	@Override
-	public VarDecl deepClone() {
-		return (VarDecl) super.deepClone();
 	}
 
 }

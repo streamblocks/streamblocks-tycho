@@ -4,7 +4,7 @@ import se.lth.cs.tycho.ir.IRNode;
 
 import java.util.function.Consumer;
 
-public abstract class TypeDecl extends AbstractDecl {
+public abstract class TypeDecl<This extends TypeDecl<This>> extends AbstractDecl<This> {
 
 	private final Availability availability;
 
@@ -15,21 +15,6 @@ public abstract class TypeDecl extends AbstractDecl {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-	}
-
-	@Override
-	public TypeDecl transformChildren(Transformation transformation) {
-		return this;
-	}
-
-	@Override
-	public TypeDecl clone() {
-		return (TypeDecl) super.clone();
-	}
-
-	@Override
-	public TypeDecl deepClone() {
-		return (TypeDecl) super.deepClone();
 	}
 
 	public Availability getAvailability() {

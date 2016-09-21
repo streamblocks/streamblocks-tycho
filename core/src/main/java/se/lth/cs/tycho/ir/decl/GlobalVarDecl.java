@@ -7,7 +7,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class GlobalVarDecl extends VarDecl implements GlobalDecl {
+public class GlobalVarDecl extends VarDecl<GlobalVarDecl> implements GlobalDecl<GlobalVarDecl> {
 	private final Availability availability;
 
 	public GlobalVarDecl(Availability availability, TypeExpr type, String name, Expression value) {
@@ -37,17 +37,16 @@ public class GlobalVarDecl extends VarDecl implements GlobalDecl {
 	}
 
 	@Override
-	public VarDecl withType(TypeExpr type) {
+	public GlobalVarDecl withType(TypeExpr type) {
 		return copy(availability, type, getName(), getValue());
 	}
 
-	@Override
-	public VarDecl withValue(Expression value) {
+	public GlobalVarDecl withValue(Expression value) {
 		return copy(availability, getType(), getName(), value);
 	}
 
 	@Override
-	public VarDecl withName(String name) {
+	public GlobalVarDecl withName(String name) {
 		return copy(availability, getType(), name, getValue());
 	}
 

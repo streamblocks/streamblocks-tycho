@@ -45,7 +45,7 @@ public final class RenameVariables {
 			}
 			Optional<Tree<VarDecl>> decl = node.tryCast(VarDecl.class);
 			if (decl.isPresent()) {
-				VarDecl varDecl = decl.get().node();
+				VarDecl<?> varDecl = decl.get().node();
 				if (names.containsKey(decl.get())) {
 					varDecl = varDecl.withName(names.get(decl.get()));
 				}

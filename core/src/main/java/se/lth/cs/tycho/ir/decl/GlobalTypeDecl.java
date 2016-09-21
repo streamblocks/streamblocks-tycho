@@ -2,7 +2,7 @@ package se.lth.cs.tycho.ir.decl;
 
 import java.util.Objects;
 
-public class GlobalTypeDecl extends TypeDecl implements GlobalDecl {
+public class GlobalTypeDecl extends TypeDecl<GlobalTypeDecl> implements GlobalDecl<GlobalTypeDecl> {
 	protected GlobalTypeDecl(TypeDecl original, Availability availability, String name) {
 		super(original, availability, name);
 	}
@@ -13,7 +13,12 @@ public class GlobalTypeDecl extends TypeDecl implements GlobalDecl {
 	}
 
 	@Override
-	public AbstractDecl withName(String name) {
+	public GlobalTypeDecl withName(String name) {
 		return Objects.equals(getName(), name) ? this : new GlobalTypeDecl(this, getAvailability(), name);
+	}
+
+	@Override
+	public GlobalTypeDecl transformChildren(Transformation transformation) {
+		return this;
 	}
 }

@@ -150,10 +150,10 @@ public final class VariableDeclarations {
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, Action action, String name) {
 			Tree<Action> actionTree = tree.assertNode(action);
-			return Stream.concat(
+			return Stream.<Tree<VarDecl>> concat(
 					actionTree.children(Action::getVarDecls),
 					actionTree.children(Action::getInputPatterns)
-							.flatMap(t -> t.children(InputPattern::getVariables))).filter(hasName(name));
+							.flatMap(t -> t.children(InputPattern::getVariables)).map(Tree::upCast)).filter(hasName(name));
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, CalActor actor, String name) {
 			Stream<Tree<VarDecl>> varDecls = tree.assertNode(actor).children(CalActor::getVarDecls);

@@ -89,7 +89,7 @@ public final class Rename {
 			}
 		}
 
-		private VarDecl renameDecl(Tree<VarDecl> decl) {
+		private <D extends VarDecl<D>> D renameDecl(Tree<D> decl) {
 			return decl.node().withName(name(decl));
 		}
 

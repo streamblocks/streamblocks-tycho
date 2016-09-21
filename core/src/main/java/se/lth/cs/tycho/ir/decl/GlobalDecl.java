@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.ir.decl;
 
-public interface GlobalDecl extends Decl {
+public interface GlobalDecl<This extends GlobalDecl<This>> extends Decl<This> {
 	Availability getAvailability();
-	GlobalDecl withAvailability(Availability availability);
+	This withAvailability(Availability availability);
 }

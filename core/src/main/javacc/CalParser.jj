@@ -983,7 +983,7 @@ InputPattern InputPattern() :
 {
 	Token id;
 	Port port = null;
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
 	Expression repeat = null;
 }
 {

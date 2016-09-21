@@ -1,11 +1,11 @@
 package se.lth.cs.tycho.ir.decl;
 
-import java.util.function.Consumer;
-
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.Entity;
 
-public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
+import java.util.function.Consumer;
+
+public class GlobalEntityDecl extends AbstractDecl<GlobalEntityDecl> implements GlobalDecl<GlobalEntityDecl> {
 
 	private final Entity entity;
 	private final Availability availability;
