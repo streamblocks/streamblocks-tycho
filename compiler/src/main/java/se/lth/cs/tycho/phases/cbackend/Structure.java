@@ -161,9 +161,13 @@ public interface Structure {
 
 	default String evaluateCondition(PortCondition condition) {
 		if (condition.isInputCondition()) {
-			return String.format("channel_has_data(self->%s_channel, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
+			return String.format("fifo_tokens(self->%s_channel, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
+
+			//return String.format("channel_has_data(self->%s_channel, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
 		} else {
-			return String.format("channel_has_space(self->%s_channels, self->%1$s_count, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
+			return String.format("fifo_space(self->%s_channels, self->%1$s_count, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
+
+			//return String.format("channel_has_space(self->%s_channels, self->%1$s_count, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
 		}
 	}
 

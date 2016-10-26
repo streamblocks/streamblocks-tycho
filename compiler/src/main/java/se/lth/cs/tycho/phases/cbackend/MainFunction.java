@@ -2,17 +2,24 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Binding;
 import org.multij.Module;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Compiler;
 import se.lth.cs.tycho.comp.Namespaces;
 import se.lth.cs.tycho.ir.decl.EntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,27 +37,169 @@ public interface MainFunction {
 	}
 
 	default void generateCode() {
+
 		CompilationTask task = backend().task();
 		String targetName = Namespaces.findEntities(task, task.getIdentifier())
 				.findFirst().get().getOriginalName();
+		//System.out.println("There are " + Namespaces.findEntities(task, task.getIdentifier()).count() + "Entities");
+		System.out.println(targetName);
 		Path path = backend().context().getConfiguration().get(Compiler.targetPath);
-		Path target = path.resolve(targetName + ".c");
-		emitter().open(target);
-		include();
 		List<VarDecl> varDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getVarDecls().stream()).collect(Collectors.toList());
 		List<EntityDecl> entityDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getEntityDecls().stream()).collect(Collectors.toList());
-		backend().global().globalVariables(varDecls);
-		backend().structure().actorDecls(entityDecls);
-		mainNetwork().main(task.getNetwork());
-		emitter().close();
+		//List<StarImport>
+		System.out.println("There are " + varDecls.size() + " varDecls");
+		System.out.println("There are " + entityDecls.size() + " entityDecls");
+		for (int i =0; i < entityDecls.size(); i++) {
+			System.out.println("Actor: " + entityDecls.get(i).getName());
+			Path target = path.resolve(entityDecls.get(i).getName() + ".c");
+			emitter().open(target);
+			include();
+			backend().global().globalVariables(varDecls);
+			List<EntityDecl> l = new ArrayList<EntityDecl>();
+			l.add(entityDecls.get(i));
+			backend().structure().actorDecls(l);
+			mainNetwork().main(task.getNetwork(), entityDecls.get(i).getName());
+			emitter().close();
+		}
+
+		generateHostProgram();
+		generateMakefile();
 	}
 
+	default void generateMakefile() {
+		Path target = backend().context().getConfiguration().get(Compiler.targetPath);
+		Path host_target = target.resolve("Makefile");
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(Files.newBufferedWriter(host_target));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		try (InputStream in = ClassLoader.getSystemResourceAsStream("c_backend_code/Makefile")) {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				writer.println(line);
+				writer.flush();
+			}
+		} catch (IOException e) {
+			throw new Error(e);
+		}
+
+	}
+
+	default void generateHostProgram() {
+		Path target = backend().context().getConfiguration().get(Compiler.targetPath);
+		Path host_target = target.resolve("host.cpp");
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(Files.newBufferedWriter(host_target));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		//writer.println("Hello Harsha!");
+		include_host("host_prolog", writer);
+		loadCores(writer);
+		include_host("host_epilog", writer);
+		writer.close();
+	}
+
+	public static void loadCores(PrintWriter writer) {
+		try {
+			//File fXmlFile = new File("/home/vivek/work/xml/config.xml");
+			InputStream fXmlFile = ClassLoader.getSystemResourceAsStream("config.xml");
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(fXmlFile);
+
+			doc.getDocumentElement().normalize();
+			NodeList nList = doc.getElementsByTagName("Configuration");
+
+			Node nNode = nList.item(0);
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+				NodeList actors = doc.getElementsByTagName("actor_info");
+				int count = 0;
+				while(count < actors.getLength()) {
+					// load each actor
+					Element actor = (Element) actors.item(count);
+					String actor_name = actor.getElementsByTagName("name").item(0).getTextContent();
+					int row = Integer.parseInt(actor.getElementsByTagName("row").item(0).getTextContent());
+					int col = Integer.parseInt(actor.getElementsByTagName("col").item(0).getTextContent());
+					//System.out.println("Name is " + actor_name + " row = " + row + " col " + col);
+					writer.println("    e_load_group(\"" + actor_name + ".srec\", &edev, " + row + ", " + col + ", 1, 1, E_TRUE);");
+					count++;
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	public static int getBufferSize() {
+		int bufferSize = 0;
+		try {
+			//File fXmlFile = new File("/home/vivek/work/xml/config.xml");
+			InputStream fXmlFile = ClassLoader.getSystemResourceAsStream("config.xml");
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(fXmlFile);
+
+			doc.getDocumentElement().normalize();
+			NodeList nList = doc.getElementsByTagName("Configuration");
+
+			Node nNode = nList.item(0);
+
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+				Element eElement = (Element) nNode;
+				bufferSize = Integer.parseInt(doc.getElementsByTagName("BUFFER_SIZE").item(0).getTextContent());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return bufferSize;
+	}
+
+
 	default void include() {
-		try (InputStream in = ClassLoader.getSystemResourceAsStream("c_backend_code/included.c")) {
+		emitter().emitRawLine("\n");
+		emitter().emit("%s", "#ifndef BUFFER_SIZE");
+		emitter().emit("#define BUFFER_SIZE %d", getBufferSize());
+		emitter().emit("%s", "#endif");
+		emitter().emitRawLine("\n");
+		try (InputStream in = ClassLoader.getSystemResourceAsStream("c_backend_code/included_fifo.c")) {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 			reader.lines().forEach(emitter()::emitRawLine);
 		} catch (IOException e) {
 			throw new Error(e);
+		}
+
+	}
+
+	default void include_host(String name, PrintWriter writer) {
+		if(name == "host_prolog") {
+			try (InputStream in = ClassLoader.getSystemResourceAsStream("c_backend_code/host_prolog")) {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+				String line;
+				while ((line = reader.readLine()) != null) {
+					writer.println(line);
+				}
+			} catch (IOException e) {
+				throw new Error(e);
+			}
+		} else if(name == "host_epilog") {
+			try (InputStream in = ClassLoader.getSystemResourceAsStream("c_backend_code/host_epilog")) {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+				String line;
+				while ((line = reader.readLine()) != null) {
+					writer.println(line);
+				}
+			} catch (IOException e) {
+				throw new Error(e);
+			}
 		}
 	}
 

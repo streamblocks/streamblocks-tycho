@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/fb.h>
+#include <sys/mman.h>
+#include <stdint.h>
+#include <time.h>
+#include <e-hal.h>
+#include <fstream>
+
+#define HOST
+#include "actor_macros.h"
+#include "fifo.h"
+#include "fifo_sizes.h"
+#include "shared_data.h"
+
+#include <iostream>
+#include <iomanip>
+
+#define BUF_OFFSET 0x01000000
+#define MAXCORES 16
+#define FBDEV "/dev/fb0"
+#define ROWS 4
+#define COLS 4
+
+#include "actors.h"
+int start();
+msg_block_t* shared;
+
+
+int main(int argc, char *argv[])
+{
+  e_platform_t eplat;
+  e_epiphany_t edev;
+  e_mem_t emem, emem2;
+  static msg_block_t msg;
+  memset(&msg, 0, sizeof(msg));
+  timespec time;
+  double time0, time1;
+
+
+  e_init(NULL);
+  e_reset_system();
+  e_get_platform_info(&eplat);
+  e_alloc(&emem, BUF_OFFSET, 16000000);
+  sharedMemory=emem.base;
+
+  e_open(&edev, 0, 0, ROWS, COLS);
+  e_write(&emem, 0, 0, 0, &msg, sizeof(msg));
+
+   shared=(msg_block_t*)sharedMemory;
+
+   g_emem=&emem;
+   g_edev=&edev;
+
+  e_reset_group(&edev);
+

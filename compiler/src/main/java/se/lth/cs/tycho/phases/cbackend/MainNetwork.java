@@ -41,7 +41,7 @@ public interface MainNetwork {
 		return backend().code();
 	}
 
-	default void main(Network network) {
+	default void main(Network network, String name) {
 		List<Connection> connections = network.getConnections();
 		List<Instance> instances = network.getInstances();
 
@@ -92,6 +92,9 @@ public interface MainNetwork {
 		}
 		emitter().emit("");
 		for (Instance instance : instances) {
+			if(!name.equals(instance.getEntityName())) {
+				continue;
+			}
 			emitter().emit("%s_state %s;", instance.getEntityName(), instance.getInstanceName());
 			List<String> initParameters = new ArrayList<>();
 			initParameters.add("&" + instance.getInstanceName());
@@ -180,6 +183,10 @@ public interface MainNetwork {
 			emitter().emit("progress |= input_actor_run(%s_input_actor);", inputPort.getName());
 		}
 		for (Instance instance : instances) {
+			if(!name.equals(instance.getEntityName())) {
+				continue;
+			}
+
 			emitter().emit("progress |= %s_run(&%s);", instance.getEntityName(), instance.getInstanceName());
 		}
 		for (PortDecl outputPort : network.getOutputPorts()) {

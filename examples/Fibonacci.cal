@@ -1,0 +1,47 @@
+namespace Fibonacci :
+    local int INT_SIZE = 32;
+
+//    actor Split() int(size=INT_SIZE) In ==> int(size=INT_SIZE) Pos, int(size=INT_SIZE) Neg :
+//        int(size=INT_SIZE) x;
+//        repeat
+//            In --> x;
+//            if x >= 0 then
+//                Pos <-- x;
+//            else
+//                Neg <-- x;
+//            end
+//        end
+//    end
+
+    actor Add() int(size=INT_SIZE) A, int(size=INT_SIZE) B ==> int(size=INT_SIZE) Out :
+        int(size=INT_SIZE) a := 0;
+        int(size=INT_SIZE) b := 0;
+        repeat
+            A --> a;
+            B --> b;
+            Out <-- a + b;
+        end
+    end
+
+    actor Delay(int(size=INT_SIZE) init) int(size=INT_SIZE) X ==> int(size=INT_SIZE) Y :
+        v := init;
+        repeat
+            Y <-- v;
+            X --> v;
+        end
+    end
+
+    network Fibonacci() ==> int(size=INT_SIZE) Values :
+        entities
+        add = Add();
+        d1 = Delay(init=1);
+        d2 = Delay(init=1);
+
+        structure
+        d2.Y --> Values;
+        add.Out --> d1.X;
+        d1.Y --> add.A;
+        d1.Y --> d2.X;
+        d2.Y --> add.B;
+    end
+end

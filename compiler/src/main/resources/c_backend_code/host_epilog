@@ -1,0 +1,10 @@
+
+
+while (true) {
+    actor_loop();
+ }
+ e_close(&edev);
+  e_free(&emem);
+  e_finalize();
+  return 0;
+}
