@@ -17,7 +17,6 @@ import java.lang.SuppressWarnings;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.expr.*;
@@ -55,22 +54,38 @@ public class CalParser {
 		}
 	}
 
-	public <T extends AbstractIRNode> T setPosition(T node, Token from, Token to) {
+	public static FunctionTypeExpr lambdaToType(ExprLambda lambda) {
+		ImmutableList.Builder<TypeExpr> parameterTypes = ImmutableList.builder();
+		for (ParameterVarDecl parameter : lambda.getValueParameters()) {
+			parameterTypes.add(parameter.getType());
+		}
+		return new FunctionTypeExpr(parameterTypes.build(), lambda.getReturnType());
+	}
+
+	public static ProcedureTypeExpr procToType(ExprProc proc) {
+		ImmutableList.Builder<TypeExpr> parameterTypes = ImmutableList.builder();
+		for (ParameterVarDecl parameter : proc.getValueParameters()) {
+			parameterTypes.add(parameter.getType());
+		}
+		return new ProcedureTypeExpr(parameterTypes.build());
+	}
+
+	public static <T extends AbstractIRNode> T setPosition(T node, Token from, Token to) {
 		node.setPosition(from.beginLine, from.beginColumn, to.endLine, to.endColumn);
 		return (T) node;
 	}
 
-	public <T extends AbstractIRNode> T setPosition(T node, IRNode from, IRNode to) {
+	public static <T extends AbstractIRNode> T setPosition(T node, IRNode from, IRNode to) {
 		node.setPosition(from, to);
 		return (T) node;
 	}
 
-	public <T extends AbstractIRNode> T setPosition(T node, Token from, IRNode to) {
+	public static <T extends AbstractIRNode> T setPosition(T node, Token from, IRNode to) {
 		node.setPosition(from.beginLine, from.beginColumn, to.getToLineNumber(), to.getToColumnNumber());
 		return (T) node;
 	}
 
-	public <T extends AbstractIRNode> T setPosition(T node, IRNode from, Token to) {
+	public static <T extends AbstractIRNode> T setPosition(T node, IRNode from, Token to) {
 		node.setPosition(from.getFromLineNumber(), from.getFromColumnNumber(), to.endLine, to.endColumn);
 		return (T) node;
 	}
@@ -400,9 +415,11 @@ GlobalVarDecl GlobalVarDecl() :
 	String name;
 	TypeExpr type = null;
 	Expression expr;
+	boolean external = false;
 }
 {
 	(availability = Availability())?
+	("external" { external = true; })?
 	(
 		{ TypeAndName typeName; }
 		typeName = VarDeclTypeName()
@@ -414,19 +431,35 @@ GlobalVarDecl GlobalVarDecl() :
 		LOOKAHEAD(2)
 		{ NameAndDef<ExprLambda> fun; }
 		fun = FunDecl()
-		{ name = fun.name; expr = fun.def; }
+		{
+			name = fun.name;
+			if (external && fun.def != null) {
+				type = lambdaToType(fun.def);
+				expr = null;
+			} else {
+				expr = fun.def;
+			}
+		}
 	|
 		{ NameAndDef<ExprProc> proc; }
 		proc = ProcDecl()
-		{ name = proc.name; expr = proc.def; }
+		{
+			name = proc.name;
+			if (external && proc.def != null) {
+				type = procToType(proc.def);
+				expr = null;
+			} else {
+				expr = proc.def;
+			}
+		}
 	)
 	{
-		return VarDecl.global(availability, type, name, expr);
+		return VarDecl.global(availability, type, name, expr).asExternal(external);
 	}
 }
 
 
-VarDecl LocalVarDecl(boolean endWithSemicolon) :
+LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 {
 	TypeExpr type = null;
 	String name;
@@ -457,7 +490,7 @@ VarDecl LocalVarDecl(boolean endWithSemicolon) :
 		{ name = proc.name; expr = proc.def; }
 	)
 	{
-		return VarDecl.local(type, name, !assignable, expr);
+		return VarDecl.local(type, name, expr, !assignable);
 	}
 }
 
@@ -524,15 +557,13 @@ Import.Kind ImportKind() :
 
 NameAndDef<ExprLambda> FunDecl() :
 {
-	boolean external = false;
 	Token id;
 	ImmutableList<ParameterVarDecl> valPars;
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	Expression expr = null;
 	TypeExpr type = null;
 }
 {
-	("external" {external = true;})?
 	"function"
 	id = <ID>
 	"("
@@ -552,14 +583,12 @@ NameAndDef<ExprLambda> FunDecl() :
 		"end"
 	|
 		";"
-	|
-		"end"
 	)
 	{
 		if (!varDecls.isEmpty()) {
 			expr = new ExprLet(ImmutableList.empty(), varDecls, expr);
 		}
-		ExprLambda lambda = new ExprLambda(ImmutableList.empty(), valPars, expr, type, external);
+		ExprLambda lambda = new ExprLambda(valPars, expr, type);
 		return new NameAndDef<ExprLambda>(id.image, lambda);
 	}
 }
@@ -568,12 +597,11 @@ NameAndDef<ExprProc> ProcDecl() :
 {
 	Token id;
 	ImmutableList<ParameterVarDecl> valPars;
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts = ImmutableList.empty();
-	boolean external = false;
+	boolean isAbstract = false;
 }
 {
-	("external" {external=true;})?
 	"procedure"
 	id = <ID>
 	"("
@@ -584,32 +612,28 @@ NameAndDef<ExprProc> ProcDecl() :
 		varDecls = VarDecls()
 	)?
 	(
-		";"
+		";" { isAbstract = true; }
 	|
 		("begin" | "do")
 		stmts = Statements()
 		"end"
-	|
-		"end"
 	)
 	{
 		ExprProc proc;
-		if (external) {
-			proc = new ExprProc(ImmutableList.empty(), valPars);
-		} else if (varDecls.isEmpty()) {
-			proc = new ExprProc(ImmutableList.empty(), valPars, stmts);
+		if (varDecls.isEmpty()) {
+			proc = new ExprProc(valPars, stmts);
 		} else {
 			StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
-			proc = new ExprProc(ImmutableList.empty(), valPars, ImmutableList.of(block));
+			proc = new ExprProc(valPars, ImmutableList.of(block));
 		}
 		return new NameAndDef<ExprProc>(id.image, proc);
 	}
 }
 
-ImmutableList<VarDecl> VarDecls() :
+ImmutableList<LocalVarDecl> VarDecls() :
 {
-	ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
-	VarDecl decl;
+	ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
+	LocalVarDecl decl;
 }
 {
 	(
@@ -628,11 +652,11 @@ GlobalEntityDecl NetworkDecl() :
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<PortDecl> inputPorts;
 	ImmutableList<PortDecl> outputPorts;
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<TypeDecl> typeDecls = ImmutableList.builder();
 	ImmutableList<InstanceDecl> instances = ImmutableList.empty();
 	ImmutableList<StructureStatement> structure = ImmutableList.empty();
-	VarDecl varDecl;
+	LocalVarDecl varDecl;
 }
 {
 	"network"
@@ -779,8 +803,8 @@ GlobalEntityDecl ActorDecl() :
 	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
-	VarDecl varDecl;
+	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	LocalVarDecl varDecl;
 	ImmutableList<PortDecl> inputPorts = ImmutableList.empty();
 	ImmutableList<PortDecl> outputPorts = ImmutableList.empty();
 	ImmutableList.Builder<Action> initializers = ImmutableList.builder();
@@ -915,7 +939,7 @@ Action Action() :
 	ImmutableList<InputPattern> inputPatterns;
 	ImmutableList<OutputExpression> outputExpressions;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Expression> guards = ImmutableList.empty();
 	ImmutableList<Statement> body = ImmutableList.empty();
 	Expression delay = null;
@@ -944,7 +968,7 @@ Action InitializationAction() :
 	ImmutableList<InputPattern> inputPatterns = ImmutableList.empty();
 	ImmutableList<OutputExpression> outputExpressions;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Expression> guards = ImmutableList.empty();
 	ImmutableList<Statement> body = ImmutableList.empty();
 	Expression delay = null;
@@ -983,15 +1007,15 @@ InputPattern InputPattern() :
 {
 	Token id;
 	Port port = null;
-	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<InputVarDecl> varDecls = ImmutableList.builder();
 	Expression repeat = null;
 }
 {
 	( id = <ID> ":" { port = new Port(id.image); })?
 	"["
 	(
-		id = <ID> { varDecls.add(VarDecl.local(null, id.image, true, null)); }
-		("," id = <ID> { varDecls.add(VarDecl.local(null, id.image, true, null)); } )*
+		id = <ID> { varDecls.add(VarDecl.input(id.image)); }
+		("," id = <ID> { varDecls.add(VarDecl.input(id.image)); } )*
 	)?
 	"]"
 	("repeat" repeat = Expression())?
@@ -1360,7 +1384,7 @@ ExprIf ElseIfExpression() :
 ExprLet LetExpression() :
 {
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<VarDecl> varDecls;
+	ImmutableList<LocalVarDecl> varDecls;
 	Expression expr;
 }
 {
@@ -1375,7 +1399,6 @@ ExprLet LetExpression() :
 
 ExprLambda LambdaExpression() :
 {
-	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	TypeExpr type = null;
 	Expression expr;
@@ -1386,7 +1409,7 @@ ExprLambda LambdaExpression() :
 	(
 		{
 			ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-			ImmutableList<VarDecl> varDecls;
+			ImmutableList<LocalVarDecl> varDecls;
 		}
 		"var" varDecls = VarDecls() ":" expr = Expression()
 		{
@@ -1397,7 +1420,7 @@ ExprLambda LambdaExpression() :
 	)
 	("end" | "endlambda")
 	{
-		return new ExprLambda(typePars, valuePars, expr, type, false);
+		return new ExprLambda(valuePars, expr, type);
 	}
 }
 
@@ -1433,10 +1456,9 @@ ParameterVarDecl FormalValueParameter() :
 
 ExprProc ProcExpression() :
 {
-	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts;
 }
 {
@@ -1447,7 +1469,7 @@ ExprProc ProcExpression() :
 	( "end" | "endproc" )
 	{
 		StmtBlock block = new StmtBlock(typeDecls, varDecls, stmts);
-		return new ExprProc(typePars, valuePars, ImmutableList.of(block));
+		return new ExprProc(valuePars, ImmutableList.of(block));
 	}
 }
 
@@ -1531,7 +1553,7 @@ Expression ComprehensionFor(Expression contents) :
 {
 	TypeExpr type = null;
 	Token id;
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<GeneratorVarDecl> varDecls = ImmutableList.builder();
 	Expression collection;
 	Expression filter;
 	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
@@ -1539,18 +1561,18 @@ Expression ComprehensionFor(Expression contents) :
 {
 	"for"
 	(
-		LOOKAHEAD(2)
+		LOOKAHEAD(Type() <ID>)
 		type = Type()
 	)?
 	id = <ID>
 	{
-		varDecls.add(VarDecl.local(type == null ? null : type.deepClone(), id.image, false, null));
+		varDecls.add(VarDecl.generator(id.image));
 	}
 	(
 		","
 		id = <ID>
 		{
-			varDecls.add(VarDecl.local(type == null ? null : type.deepClone(), id.image, false, null));
+			varDecls.add(VarDecl.generator(id.image));
 		}
 	)*
 	"in"
@@ -1566,7 +1588,7 @@ Expression ComprehensionFor(Expression contents) :
 		contents = ComprehensionFor(contents)
 	)?
 	{
-		return new ExprComprehension(new Generator(varDecls.build(), collection), filters.build(), contents);
+		return new ExprComprehension(new Generator(type, varDecls.build(), collection), filters.build(), contents);
 	}
 }
 
@@ -1596,7 +1618,7 @@ TypeExpr ParameterizedType(String name) :
 		")"
 	)?
 	{
-		return new TypeExpr(name, types.build(), vals.build());
+		return new NominalTypeExpr(name, types.build(), vals.build());
 	}
 }
 
@@ -1833,7 +1855,7 @@ StmtCall CallStmt() :
 
 StmtBlock BlockStmt() :
 {
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts;
 }
 {
@@ -1900,7 +1922,7 @@ ImmutableList<Statement> ElseIfStmt() :
 StmtWhile WhileStmt() :
 {
 	Expression cond;
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> statements;
 }
 {
@@ -1938,7 +1960,7 @@ StmtForeach ForeachStmtHeader() :
 {
 	TypeExpr type = null;
 	Token id;
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<GeneratorVarDecl> varDecls = ImmutableList.builder();
 	Expression collection;
 	Expression filter;
 	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
@@ -1951,11 +1973,11 @@ StmtForeach ForeachStmtHeader() :
 		type = Type()
 	)?
 	id = <ID>
-	{ varDecls.add(VarDecl.local(type, id.image, false, null)); }
+	{ varDecls.add(VarDecl.generator(id.image)); }
 	(
 		","
 		id = <ID>
-		{ varDecls.add(VarDecl.local(type.deepClone(), id.image, false, null)); }
+		{ varDecls.add(VarDecl.generator(id.image)); }
 	)*
 	"in"
 	 collection = Expression()
@@ -1967,14 +1989,14 @@ StmtForeach ForeachStmtHeader() :
 	)*
 	body = ForeachStmtBody()
 	{
-		return new StmtForeach(new Generator(varDecls.build(), collection), filters.build(), body);
+		return new StmtForeach(new Generator(type, varDecls.build(), collection), filters.build(), body);
 	}
 }
 
 ImmutableList<Statement> ForeachStmtBody() :
 {
 	Statement result;
-	ImmutableList<VarDecl> varDecls = null;
+	ImmutableList<LocalVarDecl> varDecls = null;
 	ImmutableList<Statement> stmts;
 }
 {

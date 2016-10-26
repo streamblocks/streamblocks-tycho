@@ -7,9 +7,12 @@ import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.decl.AbstractDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalDecl;
+import se.lth.cs.tycho.ir.decl.InputVarDecl;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -81,8 +84,8 @@ public class DeclarationAnalysisPhase implements Phase {
 		return success;
 	}
 
-	private <S> void collectNonLocalNames(S source, Map<QID, List<S>> sourceMap, QID ns, List<? extends GlobalDecl> decls) {
-		for (GlobalDecl d : decls) {
+	private <S, D extends GlobalDecl> void collectNonLocalNames(S source, Map<QID, List<S>> sourceMap, QID ns, List<D> decls) {
+		for (D d : decls) {
 			if (d.getAvailability() != Availability.LOCAL) {
 				QID qid = ns.concat(QID.of(d.getName()));
 				sourceMap.computeIfAbsent(qid, q -> new ArrayList<>())
@@ -91,8 +94,8 @@ public class DeclarationAnalysisPhase implements Phase {
 		}
 	}
 
-	private <S> void addConflictingLocalNames(S source, Map<QID, List<S>> sourceMap, QID ns, List<? extends GlobalDecl> decls) {
-		for (GlobalDecl d : decls) {
+	private <S, D extends GlobalDecl> void addConflictingLocalNames(S source, Map<QID, List<S>> sourceMap, QID ns, List<D> decls) {
+		for (D d : decls) {
 			if (d.getAvailability() == Availability.LOCAL) {
 				QID qid = ns.concat(QID.of(d.getName()));
 				if (sourceMap.containsKey(qid)) {
@@ -119,10 +122,8 @@ public class DeclarationAnalysisPhase implements Phase {
 				check(((ExprLet) node).getTypeDecls());
 				check(((ExprLet) node).getVarDecls());
 			} else if (node instanceof ExprLambda) {
-				check(((ExprLambda) node).getTypeParameters());
 				check(((ExprLambda) node).getValueParameters());
 			} else if (node instanceof ExprProc) {
-				check(((ExprProc) node).getTypeParameters());
 				check(((ExprProc) node).getValueParameters());
 			} else if (node instanceof StmtBlock) {
 				check(((StmtBlock) node).getTypeDecls());
@@ -132,8 +133,8 @@ public class DeclarationAnalysisPhase implements Phase {
 			} else if (node instanceof Action) {
 				Action action = (Action) node;
 				check(action.getTypeDecls());
-				Stream<VarDecl> actionVars = action.getVarDecls().stream();
-				Stream<VarDecl> inputVars = action.getInputPatterns().stream().flatMap(inputPattern -> inputPattern.getVariables().stream());
+				Stream<LocalVarDecl> actionVars = action.getVarDecls().stream();
+				Stream<InputVarDecl> inputVars = action.getInputPatterns().stream().flatMap(inputPattern -> inputPattern.getVariables().stream());
 				check(Stream.concat(inputVars, actionVars));
 			} else if (node instanceof CalActor) {
 				check(((CalActor) node).getTypeDecls());

@@ -5,14 +5,25 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
+import se.lth.cs.tycho.ir.FunctionTypeExpr;
+import se.lth.cs.tycho.ir.Generator;
+import se.lth.cs.tycho.ir.NominalTypeExpr;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.ProcedureTypeExpr;
+import se.lth.cs.tycho.ir.TupleTypeExpr;
 import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.InputVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.*;
+import se.lth.cs.tycho.ir.network.Connection;
+import se.lth.cs.tycho.ir.network.Instance;
+import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
@@ -51,6 +62,7 @@ public interface Types {
 	Type declaredPortType(PortDecl port);
 	Type portType(Port port);
 	Type portTypeRepeated(Port port, Expression repeat);
+	Type connectionType(Network network, Connection conn);
 
 	@Module
 	interface Implementation extends Types {
@@ -110,21 +122,45 @@ public interface Types {
 		default Type computeDeclaredType(VarDecl varDecl) {
 			if (varDecl.getType() != null) {
 				return convert(varDecl.getType());
-			} else if (tree().parent(varDecl) instanceof InputPattern) {
-				InputPattern input = (InputPattern) tree().parent(varDecl);
-				PortDecl port = names().portDeclaration(input.getPort());
-				Type result = convert(port.getType());
-				if (input.getRepeatExpr() != null) {
-					OptionalLong size = constants().intValue(input.getRepeatExpr());
-					return new ListType(result, toOptInt(size));
-				} else {
-					return result;
-				}
 			} else if (varDecl.getValue() != null) {
 				return type(varDecl.getValue());
 			} else {
 				return BottomType.INSTANCE;
 			}
+		}
+
+		default Type computeDeclaredType(InputVarDecl varDecl) {
+			InputPattern input = (InputPattern) tree().parent(varDecl);
+			PortDecl port = names().portDeclaration(input.getPort());
+			Type result = convert(port.getType());
+			if (input.getRepeatExpr() != null) {
+				OptionalLong size = constants().intValue(input.getRepeatExpr());
+				return new ListType(result, toOptInt(size));
+			} else {
+				return result;
+			}
+		}
+
+		default Type computeDeclaredType(GeneratorVarDecl varDecl) {
+			Generator generator = (Generator) tree().parent(varDecl);
+			if (generator.getType() != null) {
+				return convert(generator.getType());
+			} else {
+				return elementType(type(generator.getCollection()))
+						.orElse(BottomType.INSTANCE);
+			}
+		}
+
+		default Optional<Type> elementType(Type type) {
+			return Optional.empty();
+		}
+
+		default Optional<Type> elementType(RangeType type) {
+			return Optional.of(type.getType());
+		}
+
+		default Optional<Type> elementType(ListType type) {
+			return Optional.of(type.getElementType());
 		}
 
 		@Binding
@@ -150,6 +186,26 @@ public interface Types {
 			return new ListType(element, toOptInt(size));
 		}
 
+		default Type connectionType(Network network, Connection conn) {
+			Type tokenType;
+			if (conn.getSource().getInstance().isPresent()) {
+				Instance instance = network.getInstances().stream()
+						.filter(inst -> inst.getInstanceName().equals(conn.getSource().getInstance().get()))
+						.findFirst().get();
+				GlobalEntityDecl entity = globalNames().entityDecl(instance.getEntityName(), true);
+				PortDecl portDecl = entity.getEntity().getOutputPorts().stream()
+						.filter(port -> port.getName().equals(conn.getSource().getPort()))
+						.findFirst().orElseThrow(() -> new AssertionError("Missing source port: " + conn));
+				tokenType = declaredPortType(portDecl);
+			} else {
+				PortDecl portDecl = network.getInputPorts().stream()
+						.filter(port -> port.getName().equals(conn.getSource().getPort()))
+						.findFirst().get();
+				tokenType = declaredPortType(portDecl);
+			}
+			return tokenType;
+		}
+
 		Type computeLValueType(LValue lvalue);
 
 		default Type computeLValueType(LValueVariable var) {
@@ -166,7 +222,21 @@ public interface Types {
 		}
 
 
-		default Type convert(TypeExpr t) {
+		Type convert(TypeExpr t);
+
+		default TupleType convert(TupleTypeExpr t) {
+			return new TupleType(t.getTypes().map(this::convert));
+		}
+
+		default LambdaType convert(FunctionTypeExpr t) {
+			return new LambdaType(t.getParameterTypes().map(this::convert), convert(t.getReturnType()));
+		}
+
+		default ProcType convert(ProcedureTypeExpr t) {
+			return new ProcType(t.getParameterTypes().map(this::convert));
+		}
+
+		default Type convert(NominalTypeExpr t) {
 			switch (t.getName()) {
 				case "List": {
 					Optional<TypeExpr> e = findParameter(t.getTypeParameters(), "type");
@@ -196,6 +266,12 @@ public interface Types {
 						}
 					}
 					return BottomType.INSTANCE;
+				}
+				case "Ref": {
+					return findParameter(t.getTypeParameters(), "type")
+							.map(this::convert)
+							.<Type> map(RefType::new)
+							.orElse(BottomType.INSTANCE);
 				}
 				case "int": {
 					Optional<Expression> s = findParameter(t.getValueParameters(), "size");

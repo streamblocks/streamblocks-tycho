@@ -5,6 +5,7 @@ import org.multij.Module;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.Variable;
@@ -45,11 +46,22 @@ public interface Variables {
 				.collect(Collectors.joining("_", "g_", ""));
 	}
 
+	default String reference(VarDecl decl) {
+		IRNode parent = backend().tree().parent(decl);
+		if (parent instanceof Scope || parent instanceof ActorMachine) {
+			return "&(self->" + declarationName(decl) + ")";
+		} else {
+			return "&" + declarationName(decl);
+		}
+	}
+
 	default String name(Variable var) {
 		VarDecl decl = backend().names().declaration(var);
 		IRNode parent = backend().tree().parent(decl);
-		if (parent instanceof Scope || parent instanceof ActorMachine) {
-			return "self->" + declarationName(decl);
+		if (decl instanceof ClosureVarDecl) {
+			return "(env->" + declarationName(decl) + ")";
+		} else if (parent instanceof Scope || parent instanceof ActorMachine) {
+			return "(self->" + declarationName(decl) + ")";
 		} else {
 			return declarationName(decl);
 		}

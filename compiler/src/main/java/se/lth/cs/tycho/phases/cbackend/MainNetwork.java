@@ -12,6 +12,7 @@ import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.attributes.Names;
+import se.lth.cs.tycho.types.Type;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -69,25 +70,10 @@ public interface MainNetwork {
 		{
 			int i = 0;
 			for (Connection conn : connections) {
-				String type;
-				if (conn.getSource().getInstance().isPresent()) {
-					Instance instance = network.getInstances().stream()
-							.filter(inst -> inst.getInstanceName().equals(conn.getSource().getInstance().get()))
-							.findFirst().get();
-					GlobalEntityDecl entity = globalNames().entityDecl(instance.getEntityName(), true);
-					PortDecl portDecl = entity.getEntity().getOutputPorts().stream()
-							.filter(port -> port.getName().equals(conn.getSource().getPort()))
-							.findFirst().orElseThrow(() -> new AssertionError("Missing source port: " + conn));
-
-					type = code().type(backend().types().declaredPortType(portDecl));
-				} else {
-					PortDecl portDecl = network.getInputPorts().stream()
-							.filter(port -> port.getName().equals(conn.getSource().getPort()))
-							.findFirst().get();
-					type = code().type(backend().types().declaredPortType(portDecl));
-				}
-				connectionTypes.add(type);
-				emitter().emit("channel_%s *channel_%d = channel_create_%1$s();", type, i);
+				Type tokenType = backend().types().connectionType(network, conn);
+				String typeName = code().type(tokenType);
+				connectionTypes.add(typeName);
+				emitter().emit("channel_%s *channel_%d = channel_create_%1$s();", typeName, i);
 				i = i + 1;
 			}
 		}
@@ -226,5 +212,6 @@ public interface MainNetwork {
 		emitter().emit("");
 		emitter().emit("");
 	}
+
 
 }

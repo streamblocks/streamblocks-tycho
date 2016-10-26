@@ -7,9 +7,12 @@ import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.decl.AbstractDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
+import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalDecl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 
@@ -38,7 +41,7 @@ public interface GlobalNames {
 		}
 
 		@Override
-		default VarDecl varDecl(QID qid, boolean includingPrivate) {
+		default GlobalVarDecl varDecl(QID qid, boolean includingPrivate) {
 			return find(qid, ns -> ns.getVarDecls().stream(), includingPrivate);
 		}
 

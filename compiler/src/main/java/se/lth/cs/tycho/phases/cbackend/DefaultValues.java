@@ -2,6 +2,7 @@ package se.lth.cs.tycho.phases.cbackend;
 
 import org.multij.Module;
 import se.lth.cs.tycho.types.BoolType;
+import se.lth.cs.tycho.types.CallableType;
 import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.ListType;
 import se.lth.cs.tycho.types.Type;
@@ -9,6 +10,9 @@ import se.lth.cs.tycho.types.Type;
 @Module
 public interface DefaultValues {
 	String defaultValue(Type type);
+	default String defaultValue(CallableType t) {
+		return "{ NULL, NULL }";
+	}
 	default String defaultValue(BoolType t) {
 		return "false";
 	}

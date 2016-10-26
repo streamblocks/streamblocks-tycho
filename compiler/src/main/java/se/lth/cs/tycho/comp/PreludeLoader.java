@@ -59,7 +59,7 @@ public class PreludeLoader implements Loader {
 
 		@Override
 		public SourceUnit withTree(NamespaceDecl ns) {
-			return new PreludeUnit(ns);
+			return namespace == ns ? this : new PreludeUnit(ns);
 		}
 
 		@Override

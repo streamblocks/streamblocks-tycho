@@ -12,6 +12,7 @@ import se.lth.cs.tycho.comp.Transformations;
 import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.decl.InputVarDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -215,8 +216,8 @@ public class ProcessToCalPhase implements Phase {
 				Statement last = block.getStatements().get(block.getStatements().size() - 1);
 				if (first instanceof StmtRead) {
 					StmtRead read = (StmtRead) first;
-					ImmutableList<Map.Entry<LValue, LocalVarDecl>> varDecls = read.getLValues()
-							.map(lvalue -> ImmutableEntry.of(lvalue, VarDecl.local(null, "t_" + uniqueNumbers().next(), true, null)));
+					ImmutableList<Map.Entry<LValue, InputVarDecl>> varDecls = read.getLValues()
+							.map(lvalue -> ImmutableEntry.of(lvalue, VarDecl.input("t_" + uniqueNumbers().next())));
 					InputPattern input = new InputPattern(read.getPort(), varDecls.map(Map.Entry::getValue), read.getRepeatExpression());
 					ImmutableList.Builder<Statement> bodyBuilder = ImmutableList.builder();
 					varDecls.forEach(entry -> bodyBuilder.add(new StmtAssignment(entry.getKey(),

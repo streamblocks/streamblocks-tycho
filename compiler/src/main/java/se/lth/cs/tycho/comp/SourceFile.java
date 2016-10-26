@@ -31,7 +31,7 @@ public class SourceFile implements SourceUnit {
 
 	@Override
 	public SourceUnit withTree(NamespaceDecl tree) {
-		return new SourceFile(file, tree, language);
+		return tree == this.tree ? this : new SourceFile(file, tree, language);
 	}
 
 	@Override

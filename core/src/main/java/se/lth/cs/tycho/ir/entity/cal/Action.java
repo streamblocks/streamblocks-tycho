@@ -47,7 +47,7 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -57,7 +57,7 @@ public class Action extends AbstractIRNode {
 
 	public Action(QID tag, ImmutableList<InputPattern> inputPatterns,
 				  ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
-				  ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+				  ImmutableList<LocalVarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
 				  Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
 		this(null, tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions,
 				postconditions);
@@ -65,7 +65,7 @@ public class Action extends AbstractIRNode {
 
 	private Action(Action original, QID tag, ImmutableList<InputPattern> inputPatterns,
 				   ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
-				   ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+				   ImmutableList<LocalVarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
 				   Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
 		super(original);
 		this.tag = tag;
@@ -82,7 +82,7 @@ public class Action extends AbstractIRNode {
 
 	public Action copy(QID tag, ImmutableList<InputPattern> inputPatterns,
 					   ImmutableList<OutputExpression> outputExpressions, ImmutableList<TypeDecl> typeDecls,
-					   ImmutableList<VarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
+					   ImmutableList<LocalVarDecl> varDecls, ImmutableList<Expression> guards, ImmutableList<Statement> body,
 					   Expression delay, ImmutableList<Expression> preconditions, ImmutableList<Expression> postconditions) {
 		if (Objects.equals(this.tag, tag) && Lists.equals(this.inputPatterns, inputPatterns)
 				&& Lists.equals(this.outputExpressions, outputExpressions) && Lists.equals(this.typeDecls, typeDecls)
@@ -111,7 +111,7 @@ public class Action extends AbstractIRNode {
 		return typeDecls;
 	}
 
-	public ImmutableList<VarDecl> getVarDecls() {
+	public ImmutableList<LocalVarDecl> getVarDecls() {
 		return varDecls;
 	}
 
@@ -135,7 +135,7 @@ public class Action extends AbstractIRNode {
 		return postconditions;
 	}
 
-	public Action withVarDecls(List<VarDecl> varDecls) {
+	public Action withVarDecls(List<LocalVarDecl> varDecls) {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
@@ -147,7 +147,7 @@ public class Action extends AbstractIRNode {
 	private ImmutableList<InputPattern> inputPatterns;
 	private ImmutableList<OutputExpression> outputExpressions;
 	private ImmutableList<TypeDecl> typeDecls;
-	private ImmutableList<VarDecl> varDecls;
+	private ImmutableList<LocalVarDecl> varDecls;
 	private ImmutableList<Expression> guards;
 	private ImmutableList<Statement> body;
 	private Expression delay;

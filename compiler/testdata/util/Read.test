@@ -1,0 +1,12 @@
+{
+  "description": "Test numtext.Read",
+  "source-paths": ["."],
+  "external-sources": ["int_conv.c"],
+  "entity": "numtext.Read",
+  "test-data": [
+    {
+      "input": ["numbers.text"],
+      "reference": ["numbers.data"]
+    }
+  ]
+}

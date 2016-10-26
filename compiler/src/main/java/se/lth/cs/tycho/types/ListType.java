@@ -1,8 +1,9 @@
 package se.lth.cs.tycho.types;
 
+import java.util.Objects;
 import java.util.OptionalInt;
 
-public class ListType implements Type {
+public final class ListType implements Type {
 	private final Type elementType;
 	private final OptionalInt size;
 
@@ -22,5 +23,19 @@ public class ListType implements Type {
 	@Override
 	public String toString() {
 		return "List(type:" + elementType + (size.isPresent() ? ", size=" + size.getAsInt() : "") + ")";
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		ListType listType = (ListType) o;
+		return Objects.equals(elementType, listType.elementType) &&
+				Objects.equals(size, listType.size);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(elementType, size);
 	}
 }

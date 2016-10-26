@@ -9,14 +9,7 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.Availability;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
-import se.lth.cs.tycho.ir.decl.GroupImport;
-import se.lth.cs.tycho.ir.decl.Import;
-import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
-import se.lth.cs.tycho.ir.decl.SingleImport;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Scope;
@@ -50,7 +43,7 @@ public final class VariableDeclarations {
 	 * @param variable the context of the variable whose definition is looked up
 	 * @return the declaration of the varaible, if it is present in the tree.
 	 */
-	public static Optional<Tree<VarDecl>> getDeclaration(Tree<Variable> variable) {
+	public static Optional<Tree<? extends VarDecl>> getDeclaration(Tree<Variable> variable) {
 		return first(getDeclarations(variable));
 	}
 
@@ -103,11 +96,11 @@ public final class VariableDeclarations {
 				.findFirst();
 	}
 
-	private static List<Tree<VarDecl>> getDeclarations(Tree<Variable> variable) {
+	private static List<Tree<? extends VarDecl>> getDeclarations(Tree<Variable> variable) {
 		String name = variable.node().getName();
 		Optional<Tree<?>> parent = variable.parent();
 		while (parent.isPresent()) {
-			List<Tree<VarDecl>> result = declarations.get(parent.get(), parent.get().node(), name).collect(Collectors.toList());
+			List<Tree<? extends VarDecl>> result = declarations.get(parent.get(), parent.get().node(), name).collect(Collectors.toList());
 			if (!result.isEmpty()) {
 				return result;
 			}
@@ -121,54 +114,60 @@ public final class VariableDeclarations {
 	}
 	@Module
 	interface Declarations {
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, IRNode node, String name) {
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, IRNode node, String name) {
 			return Stream.empty();
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprLet let, String name) {
-			return tree.assertNode(let).children(ExprLet::getVarDecls).filter(hasName(name));
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, ExprLet let, String name) {
+			return tree.assertNode(let).children(ExprLet::getVarDecls).filter(hasName(name)).map(Tree::upCast);
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprLambda lambda, String name) {
-			return tree.assertNode(lambda).children(ExprLambda::getValueParameters).filter(hasName(name)).map(Tree::upCast);
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, ExprLambda lambda, String name) {
+			Stream<Tree<ClosureVarDecl>> closure = tree.assertNode(lambda).children(ExprLambda::getClosure);
+			Stream<Tree<ParameterVarDecl>> parameters = tree.assertNode(lambda).children(ExprLambda::getValueParameters);
+			return Stream.concat(closure, parameters).filter(hasName(name));
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprProc proc, String name) {
-			return tree.assertNode(proc).children(ExprProc::getValueParameters).filter(hasName(name)).map(Tree::upCast);
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, ExprProc proc, String name) {
+			Stream<Tree<ClosureVarDecl>> closure = tree.assertNode(proc).children(ExprProc::getClosure);
+			Stream<Tree<ParameterVarDecl>> parameters = tree.assertNode(proc).children(ExprProc::getValueParameters);
+			return Stream.concat(closure, parameters).filter(hasName(name));
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprComprehension comprehension, String name) {
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, ExprComprehension comprehension, String name) {
 			return tree.assertNode(comprehension)
 					.child(ExprComprehension::getGenerator)
 					.children(Generator::getVarDecls)
-					.filter(hasName(name));
+					.filter(hasName(name))
+					.map(Tree::upCast);
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, StmtBlock block, String name) {
-			return tree.assertNode(block).children(StmtBlock::getVarDecls).filter(hasName(name));
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, StmtBlock block, String name) {
+			return tree.assertNode(block).children(StmtBlock::getVarDecls).filter(hasName(name)).map(Tree::upCast);
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, StmtForeach foreach, String name) {
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, StmtForeach foreach, String name) {
 			return tree.assertNode(foreach)
 					.child(StmtForeach::getGenerator)
 					.children(Generator::getVarDecls)
-					.filter(hasName(name));
+					.filter(hasName(name))
+					.map(Tree::upCast);
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, Action action, String name) {
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, Action action, String name) {
 			Tree<Action> actionTree = tree.assertNode(action);
-			return Stream.<Tree<VarDecl>> concat(
+			return Stream.concat(
 					actionTree.children(Action::getVarDecls),
 					actionTree.children(Action::getInputPatterns)
 							.flatMap(t -> t.children(InputPattern::getVariables)).map(Tree::upCast)).filter(hasName(name));
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, CalActor actor, String name) {
-			Stream<Tree<VarDecl>> varDecls = tree.assertNode(actor).children(CalActor::getVarDecls);
-			Stream<Tree<VarDecl>> parameters = tree.assertNode(actor).children(CalActor::getValueParameters).map(Tree::upCast);
-			return Stream.concat(varDecls, parameters).filter(hasName(name));
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, CalActor actor, String name) {
+			Stream<Tree<LocalVarDecl>> varDecls = tree.assertNode(actor).children(CalActor::getVarDecls);
+			Stream<Tree<ParameterVarDecl>> parameters = tree.assertNode(actor).children(CalActor::getValueParameters).map(Tree::upCast);
+			return Stream.concat(varDecls, parameters).filter(hasName(name)).map(Tree::upCast);
 		}
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, ActorMachine actorMachine, String name) {
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, ActorMachine actorMachine, String name) {
 			Tree<ActorMachine> root = tree.assertNode(actorMachine);
-			Stream<Tree<VarDecl>> scopeVars = root.children(ActorMachine::getScopes)
+			Stream<Tree<? extends VarDecl>> scopeVars = root.children(ActorMachine::getScopes)
 					.flatMap(t -> t.children(Scope::getDeclarations));
-			Stream<Tree<VarDecl>> parameters = root.children(ActorMachine::getValueParameters).map(Tree::upCast);
+			Stream<Tree<? extends VarDecl>> parameters = root.children(ActorMachine::getValueParameters).map(Tree::upCast);
 			return Stream.concat(scopeVars, parameters).filter(hasName(name));
 		}
 
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, NamespaceDecl ns, String name) {
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, NamespaceDecl ns, String name) {
 			Tree<NamespaceDecl> nsTree = tree.assertNode(ns);
 			Stream<Tree<GlobalVarDecl>> localDecls = nsTree.children(NamespaceDecl::getVarDecls)
 					.filter(hasName(name));
@@ -183,10 +182,11 @@ public final class VariableDeclarations {
 					.map(Tree::upCast);
 		}
 
-		default Stream<Tree<VarDecl>> get(Tree<?> tree, CompilationTask task, String name) {
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, CompilationTask task, String name) {
 			return Namespaces.getNamespace(tree.assertNode(task), QID.of("prelude"))
 					.flatMap(ns -> ns.children(NamespaceDecl::getVarDecls))
 					.filter(decl -> decl.node().getAvailability() == Availability.PUBLIC)
+					.filter(hasName(name))
 					.map(Tree::upCast);
 		}
 

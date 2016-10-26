@@ -7,22 +7,22 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class GlobalVarDecl extends VarDecl<GlobalVarDecl> implements GlobalDecl<GlobalVarDecl> {
+public class GlobalVarDecl extends VarDecl implements GlobalDecl {
 	private final Availability availability;
 
 	public GlobalVarDecl(Availability availability, TypeExpr type, String name, Expression value) {
-		this(null, availability, type, name, value);
+		this(null, availability, type, name, value, false);
 	}
-	private GlobalVarDecl(VarDecl original, Availability availability, TypeExpr type, String name, Expression value) {
-		super(original, type, name, true, value);
+	private GlobalVarDecl(VarDecl original, Availability availability, TypeExpr type, String name, Expression value, boolean external) {
+		super(original, type, name, value, true, external);
 		this.availability = availability;
 	}
 
-	public GlobalVarDecl copy(Availability availability, TypeExpr type, String name, Expression value) {
-		if (this.availability == availability && getType() == type && Objects.equals(getName(), name) && getValue() == value) {
+	private GlobalVarDecl copy(Availability availability, TypeExpr type, String name, Expression value, boolean external) {
+		if (this.availability == availability && getType() == type && Objects.equals(getName(), name) && getValue() == value && isExternal() == external) {
 			return this;
 		} else {
-			return new GlobalVarDecl(this, availability, type, name, value);
+			return new GlobalVarDecl(this, availability, type, name, value, external);
 		}
 	}
 
@@ -33,21 +33,24 @@ public class GlobalVarDecl extends VarDecl<GlobalVarDecl> implements GlobalDecl<
 
 	@Override
 	public GlobalVarDecl withAvailability(Availability availability) {
-		return copy(availability, getType(), getName(), getValue());
+		return copy(availability, getType(), getName(), getValue(), isExternal());
 	}
 
-	@Override
 	public GlobalVarDecl withType(TypeExpr type) {
-		return copy(availability, type, getName(), getValue());
+		return copy(availability, type, getName(), getValue(), isExternal());
 	}
 
 	public GlobalVarDecl withValue(Expression value) {
-		return copy(availability, getType(), getName(), value);
+		return copy(availability, getType(), getName(), value, isExternal());
 	}
 
 	@Override
 	public GlobalVarDecl withName(String name) {
-		return copy(availability, getType(), name, getValue());
+		return copy(availability, getType(), name, getValue(), isExternal());
+	}
+
+	public GlobalVarDecl asExternal(boolean external) {
+		return copy(availability, getType(), getName(), getValue(), external);
 	}
 
 	@Override
@@ -62,7 +65,8 @@ public class GlobalVarDecl extends VarDecl<GlobalVarDecl> implements GlobalDecl<
 				availability,
 				getType() == null ? null : transformation.applyChecked(TypeExpr.class, getType()),
 				getName(),
-				getValue() == null ? null : transformation.applyChecked(Expression.class, getValue()));
+				getValue() == null ? null : transformation.applyChecked(Expression.class, getValue()),
+				isExternal());
 	}
 
 }

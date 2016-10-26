@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.util;
 
+import se.lth.cs.tycho.ir.NominalTypeExpr;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
@@ -26,6 +27,7 @@ import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
 import se.lth.cs.tycho.ir.stmt.StmtIf;
 import se.lth.cs.tycho.ir.stmt.StmtWhile;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
@@ -317,7 +319,7 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			var.getValue().accept(this, null);
 		}
 	}
-	public void printVarDecls(Iterable<VarDecl> varDecls) { // comma separated list
+	public void printVarDecls(Iterable<? extends VarDecl> varDecls) { // comma separated list
 		String sep = "";
 		for(VarDecl v : varDecls){
 			out.append(sep);
@@ -356,27 +358,30 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 			stmt.accept(this);
 		}
 	}
-	public void print(TypeExpr type){
-		out.append(type.getName());
-		if((type.getTypeParameters() != null && !type.getTypeParameters().isEmpty()) || 
-   				  (type.getValueParameters() != null && !type.getValueParameters().isEmpty())){
-			out.append("(");
-			String sep = "";
-			for(ValueParameter par : type.getValueParameters()){
-				out.append(sep);
-				sep = ", ";
-				out.append(par.getName());
-				out.append("=");
-				par.getValue().accept(this, null);
+	public void print(TypeExpr typ){
+		if (typ instanceof NominalTypeExpr) {
+			NominalTypeExpr type = (NominalTypeExpr) typ;
+			out.append(type.getName());
+			if ((type.getTypeParameters() != null && !type.getTypeParameters().isEmpty()) ||
+					(type.getValueParameters() != null && !type.getValueParameters().isEmpty())) {
+				out.append("(");
+				String sep = "";
+				for (ValueParameter par : type.getValueParameters()) {
+					out.append(sep);
+					sep = ", ";
+					out.append(par.getName());
+					out.append("=");
+					par.getValue().accept(this, null);
+				}
+				for (TypeParameter par : type.getTypeParameters()) {
+					out.append(sep);
+					sep = ", ";
+					out.append(par.getName());
+					out.append(":");
+					print(par.getValue());
+				}
+				out.append(")");
 			}
-			for(TypeParameter par : type.getTypeParameters()){
-				out.append(sep);
-				sep = ", ";
-				out.append(par.getName());
-				out.append(":");
-				print(par.getValue());
-			}
-			out.append(")");
 		}
 	}
 
@@ -699,6 +704,12 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		lvalue.getStructure().accept(this, null);
 		out.append(".");
 		out.append(lvalue.getField().getName());
+		return null;
+	}
+
+	@Override
+	public Void visitLValueDeref(LValueDeref lvalue, Void parameter) {
+		lvalue.getVariable().accept(this, null);
 		return null;
 	}
 

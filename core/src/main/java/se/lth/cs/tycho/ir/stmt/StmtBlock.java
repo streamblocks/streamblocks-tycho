@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.stmt;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -58,12 +59,12 @@ public class StmtBlock extends Statement {
 		return v.visitStmtBlock(this, p);
 	}
 
-	public StmtBlock(List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+	public StmtBlock(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<Statement> statements) {
 		this(null, typeDecls, varDecls, statements);
 	}
 	
-	private StmtBlock(StmtBlock original, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+	private StmtBlock(StmtBlock original, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<Statement> statements) {
 		super(original);
 		this.typeDecls = ImmutableList.from(typeDecls);
@@ -71,7 +72,7 @@ public class StmtBlock extends Statement {
 		this.statements = ImmutableList.from(statements);
 	}
 
-	public StmtBlock copy(List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+	public StmtBlock copy(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<Statement> statements) {
 		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
 				&& Lists.equals(this.statements, statements)) {
@@ -84,7 +85,7 @@ public class StmtBlock extends Statement {
 		return typeDecls;
 	}
 
-	public ImmutableList<VarDecl> getVarDecls() {
+	public ImmutableList<LocalVarDecl> getVarDecls() {
 		return varDecls;
 	}
 
@@ -92,7 +93,7 @@ public class StmtBlock extends Statement {
 		return statements;
 	}
 
-	public StmtBlock withVarDecls(List<VarDecl> varDecls) {
+	public StmtBlock withVarDecls(List<LocalVarDecl> varDecls) {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
@@ -101,7 +102,7 @@ public class StmtBlock extends Statement {
 	}
 
 	private ImmutableList<TypeDecl> typeDecls;
-	private ImmutableList<VarDecl> varDecls;
+	private ImmutableList<LocalVarDecl> varDecls;
 	private ImmutableList<Statement> statements;
 
 	@Override

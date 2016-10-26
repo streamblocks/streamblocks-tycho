@@ -127,6 +127,12 @@ public final class Tree<N extends IRNode> {
 		return getChildren.apply(node).stream().map(this::withChild);
 	}
 
+	public Stream<Tree<IRNode>> children() {
+		Stream.Builder<Tree<IRNode>> builder = Stream.builder();
+		node.forEachChild(node -> builder.add(withChild(node)));
+		return builder.build();
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(parent, node);
@@ -200,7 +206,7 @@ public final class Tree<N extends IRNode> {
 		return transformedNode.transformChildren(child -> {
 			Tree<IRNode> node = withChild(child);
 			if (!transformedChildren.containsKey(node)) {
-				throw new IllegalStateException("A child node was possibly transformed twice.");
+				throw new IllegalStateException("Transformation error.");
 			}
 			return transformedChildren.get(node);
 		});
@@ -210,8 +216,8 @@ public final class Tree<N extends IRNode> {
 		node.forEachChild(child -> action.accept(withChild(child)));
 	}
 
-	public void transformChildren(Function<Tree<? extends IRNode>, IRNode> transformation) {
-		node.transformChildren(child -> transformation.apply(withChild(child)));
+	public IRNode transformChildren(Function<Tree<? extends IRNode>, IRNode> transformation) {
+		return node.transformChildren(child -> transformation.apply(withChild(child)));
 	}
 
 	public Stream<Tree<IRNode>> walk() {

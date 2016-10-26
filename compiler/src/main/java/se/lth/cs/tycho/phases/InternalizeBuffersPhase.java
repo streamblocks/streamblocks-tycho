@@ -17,6 +17,7 @@ import se.lth.cs.tycho.ir.TypeExpr;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
@@ -171,8 +172,8 @@ public class InternalizeBuffersPhase implements Phase {
 		ImmutableList<PortDecl> inputPorts = getPorts(actorMachine.getInputPorts(), connections, Connection::getTarget);
 		ImmutableList<PortDecl> outputPorts = getPorts(actorMachine.getOutputPorts(), connections, Connection::getSource);
 
-		Map<String, VarDecl> outputPortMap = sourcePortVariables(actorMachine, connections, uniqueNumbers);
-		Map<String, VarDecl> inputPortMap = targetPortVariables(outputPortMap, connections);
+		Map<String, LocalVarDecl> outputPortMap = sourcePortVariables(actorMachine, connections, uniqueNumbers);
+		Map<String, LocalVarDecl> inputPortMap = targetPortVariables(outputPortMap, connections);
 
 		ImmutableList<Scope> scopes = transformScopes(actorMachine.getScopes(), inputPortMap, outputPortMap);
 		ImmutableList<Transition> transitions = transformTransitions(actorMachine.getTransitions(), inputPortMap.keySet(), outputPortMap);
@@ -186,14 +187,14 @@ public class InternalizeBuffersPhase implements Phase {
 				actorMachine.getConditions()).deepClone();
 	}
 
-	private ImmutableList<Scope> transformScopes(ImmutableList<Scope> scopes, Map<String, VarDecl> inputPortMap, Map<String, VarDecl> outputPortMap) {
+	private ImmutableList<Scope> transformScopes(ImmutableList<Scope> scopes, Map<String, LocalVarDecl> inputPortMap, Map<String, LocalVarDecl> outputPortMap) {
 		IRNode.Transformation transformation = new ExprInputToExprVariable(inputPortMap);
 		ImmutableList<Scope> transformed = scopes.map(scope -> scope.transformChildren(transformation));
 		Scope ports = new Scope(outputPortMap.values().stream().collect(ImmutableList.collector()), true);
 		return ImmutableList.<Scope> builder().addAll(transformed).add(ports).build();
 	}
 
-	private ImmutableList<Transition> transformTransitions(ImmutableList<Transition> transitions, Set<String> inputPorts, Map<String, VarDecl> outputPortMap) {
+	private ImmutableList<Transition> transformTransitions(ImmutableList<Transition> transitions, Set<String> inputPorts, Map<String, LocalVarDecl> outputPortMap) {
 		IRNode.Transformation removeConsume = MultiJ.from(RemoveStmtConsume.class)
 				.bind("inputPorts").to(inputPorts)
 				.instance();
@@ -204,9 +205,9 @@ public class InternalizeBuffersPhase implements Phase {
 	}
 
 	private static class WriteToAssign implements IRNode.Transformation {
-		private final Map<String, VarDecl> outputPortMap;
+		private final Map<String, LocalVarDecl> outputPortMap;
 
-		public WriteToAssign(Map<String, VarDecl> outputPortMap) {
+		public WriteToAssign(Map<String, LocalVarDecl> outputPortMap) {
 			this.outputPortMap = outputPortMap;
 		}
 
@@ -224,9 +225,9 @@ public class InternalizeBuffersPhase implements Phase {
 	}
 
 	private static class ExprInputToExprVariable implements IRNode.Transformation {
-		private final Map<String, VarDecl> inputPortMap;
+		private final Map<String, LocalVarDecl> inputPortMap;
 
-		public ExprInputToExprVariable(Map<String, VarDecl> inputPortMap) {
+		public ExprInputToExprVariable(Map<String, LocalVarDecl> inputPortMap) {
 			this.inputPortMap = inputPortMap;
 		}
 
@@ -295,18 +296,18 @@ public class InternalizeBuffersPhase implements Phase {
 		}
 	}
 
-	private Map<String, VarDecl> sourcePortVariables(ActorMachine actorMachine, List<Connection> connections, UniqueNumbers uniqueNumbers) {
+	private Map<String, LocalVarDecl> sourcePortVariables(ActorMachine actorMachine, List<Connection> connections, UniqueNumbers uniqueNumbers) {
 		return connections.stream()
 				.map(Connection::getSource)
 				.map(Connection.End::getPort)
 				.distinct() // one variable per port, irrespective of how many consumers
 				.collect(Collectors.toMap(Function.identity(), port -> {
 					TypeExpr type = actorMachine.getOutputPorts().stream().filter(p -> p.getName().equals(port)).findFirst().get().getType();
-					return VarDecl.local(type, String.format("%s_%d", port, uniqueNumbers.next()), false, null);
+					return VarDecl.local(type, String.format("%s_%d", port, uniqueNumbers.next()), null, false);
 				}));
 	}
 
-	private Map<String, VarDecl> targetPortVariables(Map<String, VarDecl> sourcePortVariables, List<Connection> connections) {
+	private Map<String, LocalVarDecl> targetPortVariables(Map<String, LocalVarDecl> sourcePortVariables, List<Connection> connections) {
 		return connections.stream()
 				.collect(Collectors.toMap(c -> c.getTarget().getPort(), c -> sourcePortVariables.get(c.getSource().getPort())));
 	}

@@ -2,7 +2,7 @@ package se.lth.cs.tycho.ir.decl;
 
 import java.util.Objects;
 
-public class GlobalTypeDecl extends TypeDecl<GlobalTypeDecl> implements GlobalDecl<GlobalTypeDecl> {
+public class GlobalTypeDecl extends TypeDecl implements GlobalDecl {
 	protected GlobalTypeDecl(TypeDecl original, Availability availability, String name) {
 		super(original, availability, name);
 	}

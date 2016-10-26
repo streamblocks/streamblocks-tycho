@@ -41,12 +41,12 @@ package se.lth.cs.tycho.ir.expr;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class ExprLambda extends Expression {
@@ -55,39 +55,28 @@ public class ExprLambda extends Expression {
 		return v.visitExprLambda(this, p);
 	}
 
-	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<ParameterVarDecl> valueParams, Expression body,
+	public ExprLambda(List<ParameterVarDecl> valueParams, Expression body,
 					  TypeExpr returnTypeExpr) {
-		this(null, typeParams, valueParams, body, returnTypeExpr, false);
+		this(null, valueParams, body, returnTypeExpr, null);
 	}
-	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<ParameterVarDecl> valueParams, Expression body,
-			TypeExpr returnTypeExpr, boolean external) {
-		this(null, typeParams, valueParams, body, returnTypeExpr, external);
+	public ExprLambda(List<ParameterVarDecl> valueParams, TypeExpr returnTypeExpr) {
+		this(null, valueParams, null, returnTypeExpr, null);
 	}
-
-	public ExprLambda(ImmutableList<TypeDecl> typeParams, ImmutableList<ParameterVarDecl> valueParams, TypeExpr returnTypeExpr) {
-		this(null, typeParams, valueParams, null, returnTypeExpr, true);
-	}
-	private ExprLambda(ExprLambda original, ImmutableList<TypeDecl> typeParams,
-					   ImmutableList<ParameterVarDecl> valueParams, Expression body, TypeExpr returnTypeExpr, boolean external) {
+	private ExprLambda(ExprLambda original, List<ParameterVarDecl> valueParams, Expression body, TypeExpr returnTypeExpr, List<ClosureVarDecl> closure) {
 		super(original);
-		this.typeParameters = ImmutableList.from(typeParams);
 		this.valueParameters = ImmutableList.from(valueParams);
 		this.body = body;
 		this.returnTypeExpr = returnTypeExpr;
-		this.external = external;
+		this.closure = ImmutableList.from(closure);
 	}
 
-	public ExprLambda copy(ImmutableList<TypeDecl> typeParams, ImmutableList<ParameterVarDecl> valueParams,
-						   Expression body, TypeExpr returnTypeExpr, boolean external) {
-		if (Lists.sameElements(typeParameters, typeParams) && Lists.sameElements(valueParameters, valueParams)
-				&& this.body == body && this.returnTypeExpr  == returnTypeExpr && this.external == external) {
+	public ExprLambda copy(List<ParameterVarDecl> valueParams,
+						   Expression body, TypeExpr returnTypeExpr, List<ClosureVarDecl> closure) {
+		if (Lists.sameElements(valueParameters, valueParams) && this.body == body && this.returnTypeExpr == returnTypeExpr
+				&& Lists.sameElements(this.closure, closure)) {
 			return this;
 		}
-		return new ExprLambda(this, typeParams, valueParams, body, returnTypeExpr, external);
-	}
-
-	public ImmutableList<TypeDecl> getTypeParameters() {
-		return typeParameters;
+		return new ExprLambda(this, valueParams, body, returnTypeExpr, closure);
 	}
 
 	public ImmutableList<ParameterVarDecl> getValueParameters() {
@@ -102,33 +91,34 @@ public class ExprLambda extends Expression {
 		return returnTypeExpr;
 	}
 
-	public boolean isExternal() {
-		return external;
+	public ImmutableList<ClosureVarDecl> getClosure() {
+		return closure;
 	}
 
-	private final ImmutableList<TypeDecl> typeParameters;
+	public ExprLambda withClosure(List<ClosureVarDecl> closure) {
+		return copy(valueParameters, body, returnTypeExpr, closure);
+	}
+
+	private final ImmutableList<ClosureVarDecl> closure;
 	private final ImmutableList<ParameterVarDecl> valueParameters;
 	private final Expression body;
 	private final TypeExpr returnTypeExpr;
-	private final boolean external;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		typeParameters.forEach(action);
 		valueParameters.forEach(action);
 		if (returnTypeExpr != null) action.accept(returnTypeExpr);
 		if (body != null) action.accept(body);
+		closure.forEach(action);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public ExprLambda transformChildren(Transformation transformation) {
 		return copy(
-				(ImmutableList) typeParameters.map(transformation),
-				(ImmutableList) valueParameters.map(transformation),
-				body == null ? null : (Expression) transformation.apply(body),
-				returnTypeExpr == null ? null : (TypeExpr) transformation.apply(returnTypeExpr),
-				external
-		);
+				transformation.mapChecked(ParameterVarDecl.class, valueParameters),
+				transformation.applyChecked(Expression.class, body),
+				returnTypeExpr == null ? null : transformation.applyChecked(TypeExpr.class, returnTypeExpr),
+				transformation.mapChecked(ClosureVarDecl.class, closure));
 	}
 }

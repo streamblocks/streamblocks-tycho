@@ -12,8 +12,8 @@ import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 
 import static org.multij.BindingKind.INJECTED;
-import static org.multij.BindingKind.MODULE;
 import static org.multij.BindingKind.LAZY;
+import static org.multij.BindingKind.MODULE;
 
 @Module
 public interface Backend {
@@ -38,4 +38,5 @@ public interface Backend {
 	@Binding(MODULE) MainNetwork mainNetwork();
 	@Binding(MODULE) Global global();
 	@Binding(MODULE) DefaultValues defaultValues();
+	@Binding(MODULE) Callables callables();
 }

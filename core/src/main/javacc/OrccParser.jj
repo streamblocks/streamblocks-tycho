@@ -26,6 +26,7 @@ import se.lth.cs.tycho.ir.entity.cal.*;
 import se.lth.cs.tycho.ir.entity.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
+import se.lth.cs.tycho.parsing.cal.CalParser;
 
 @SuppressWarnings("unused")
 public class OrccParser {
@@ -412,12 +413,22 @@ QID QID() :
 
 GlobalVarDecl GlobalVarDecl() :
 {
+	Annotation ann;
 	Availability availability = Availability.PUBLIC;
 	String name;
 	TypeExpr type = null;
 	Expression expr;
+	boolean external = false;
 }
 {
+	(
+		ann = Annotation()
+		{
+			if (ann.getName().equals("native")) {
+				external = true;
+			}
+		}
+	)*
 	(
 		{ TypeAndName typeName; }
 		typeName = VarDeclTypeName()
@@ -426,23 +437,37 @@ GlobalVarDecl GlobalVarDecl() :
 		";"
 		{ name = typeName.name; type = typeName.type; }
 	|
-		LOOKAHEAD( (Annotation())* "function" )
 		{ NameAndDef<ExprLambda> fun; }
 		fun = FunDecl()
-		{ name = fun.name; expr = fun.def; }
+		{
+			name = fun.name;
+			if (external && fun.def != null) {
+				type = CalParser.lambdaToType(fun.def);
+				expr = null;
+			} else {
+				expr = fun.def;
+			}
+		}
 	|
-		LOOKAHEAD( (Annotation())* "procedure" )
 		{ NameAndDef<ExprProc> proc; }
 		proc = ProcDecl()
-		{ name = proc.name; expr = proc.def; }
+		{
+			name = proc.name;
+			if (external && proc.def != null) {
+				type = CalParser.procToType(proc.def);
+				expr = null;
+			} else {
+				expr = proc.def;
+			}
+		}
 	)
 	{
-		return VarDecl.global(availability, type, name, expr);
+		return VarDecl.global(availability, type, name, expr).asExternal(external);
 	}
 }
 
 
-VarDecl LocalVarDecl(boolean endWithSemicolon) :
+LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 {
 	TypeExpr type = null;
 	String name;
@@ -474,7 +499,7 @@ VarDecl LocalVarDecl(boolean endWithSemicolon) :
 		{ name = proc.name; expr = proc.def; }
 	)
 	{
-		return VarDecl.local(type, name, !assignable, expr);
+		return VarDecl.local(type, name, expr, !assignable);
 	}
 }
 
@@ -503,20 +528,12 @@ NameAndDef<ExprLambda> FunDecl() :
 	Annotation ann;
 	Token id;
 	ImmutableList<ParameterVarDecl> valPars;
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	Expression expr = null;
 	TypeExpr type = null;
 	boolean external = false;
 }
 {
-	(
-		ann = Annotation()
-		{
-			if (ann.getName().equals("native")) {
-				external = true;
-			}
-		}
-	)*
 	"function"
 	id = <ID>
 	"("
@@ -542,12 +559,12 @@ NameAndDef<ExprLambda> FunDecl() :
 	{
 		ExprLambda lambda;
 		if (external) {
-			lambda = new ExprLambda(ImmutableList.empty(), valPars, type);
+			lambda = new ExprLambda(valPars, type);
 		} else {
 			if (!varDecls.isEmpty()) {
 				expr = new ExprLet(ImmutableList.empty(), varDecls, expr);
 			}
-			lambda = new ExprLambda(ImmutableList.empty(), valPars, expr, type);
+			lambda = new ExprLambda(valPars, expr, type);
 		}
 		return new NameAndDef<ExprLambda>(id.image, lambda);
 	}
@@ -559,18 +576,10 @@ NameAndDef<ExprProc> ProcDecl() :
 	boolean external = false;
 	Token id;
 	ImmutableList<ParameterVarDecl> valPars;
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts = ImmutableList.empty();
 }
 {
-	(
-		ann = Annotation()
-		{
-			if (ann.getName().equals("native")) {
-				external = true;
-			}
-		}
-	)*
 	"procedure"
 	id = <ID>
 	"("
@@ -593,18 +602,18 @@ NameAndDef<ExprProc> ProcDecl() :
 		StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
 		ExprProc proc;
 		if (external) {
-			proc = new ExprProc(ImmutableList.empty(), valPars);
+			proc = new ExprProc(valPars);
 		} else {
-			proc = new ExprProc(ImmutableList.empty(), valPars, ImmutableList.of(block));
+			proc = new ExprProc(valPars, ImmutableList.of(block));
 		}
 		return new NameAndDef<ExprProc>(id.image, proc);
 	}
 }
 
-ImmutableList<VarDecl> VarDecls() :
+ImmutableList<LocalVarDecl> VarDecls() :
 {
-	ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
-	VarDecl decl;
+	ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
+	LocalVarDecl decl;
 }
 {
 	(
@@ -624,8 +633,8 @@ GlobalEntityDecl ActorDecl() :
 	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
-	VarDecl varDecl;
+	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	LocalVarDecl varDecl;
 	ImmutableList<PortDecl> inputPorts = ImmutableList.empty();
 	ImmutableList<PortDecl> outputPorts = ImmutableList.empty();
 	ImmutableList.Builder<Action> initializers = ImmutableList.builder();
@@ -714,7 +723,7 @@ Action Action() :
 	ImmutableList<InputPattern> inputPatterns;
 	ImmutableList<OutputExpression> outputExpressions;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Expression> guards = ImmutableList.empty();
 	ImmutableList<Statement> body = ImmutableList.empty();
 	Expression delay = null;
@@ -742,7 +751,7 @@ Action InitializationAction() :
 	ImmutableList<InputPattern> inputPatterns = ImmutableList.empty();
 	ImmutableList<OutputExpression> outputExpressions;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Expression> guards = ImmutableList.empty();
 	ImmutableList<Statement> body = ImmutableList.empty();
 	Expression delay = null;
@@ -780,15 +789,15 @@ InputPattern InputPattern() :
 {
 	Token id;
 	Port port = null;
-	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<InputVarDecl> varDecls = ImmutableList.builder();
 	Expression repeat = null;
 }
 {
 	( id = <ID> ":" { port = new Port(id.image); })?
 	"["
 	(
-		id = <ID> { varDecls.add(VarDecl.local(null, id.image, true, null)); }
-		("," id = <ID> { varDecls.add(VarDecl.local(null, id.image, true, null)); } )*
+		id = <ID> { varDecls.add(VarDecl.input(id.image)); }
+		("," id = <ID> { varDecls.add(VarDecl.input(id.image)); } )*
 	)?
 	"]"
 	("repeat" repeat = Expression())?
@@ -1133,7 +1142,7 @@ ExprIf ElseIfExpression() :
 ExprLet LetExpression() :
 {
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
-	ImmutableList<VarDecl> varDecls;
+	ImmutableList<LocalVarDecl> varDecls;
 	Expression expr;
 }
 {
@@ -1197,26 +1206,23 @@ Expression ComprehensionFor(Expression contents) :
 {
 	TypeExpr type = null;
 	Token id;
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<GeneratorVarDecl> varDecls = ImmutableList.builder();
 	Expression collection;
 	Expression filter;
 	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
 }
 {
 	"for"
-	(
-		LOOKAHEAD(2)
-		type = Type()
-	)?
+	type = Type()
 	id = <ID>
 	{
-		varDecls.add(VarDecl.local(type == null ? null : type.deepClone(), id.image, false, null));
+		varDecls.add(VarDecl.generator(id.image));
 	}
 	(
 		","
 		id = <ID>
 		{
-			varDecls.add(VarDecl.local(type == null ? null : type.deepClone(), id.image, false, null));
+			varDecls.add(VarDecl.generator(id.image));
 		}
 	)*
 	"in"
@@ -1232,7 +1238,7 @@ Expression ComprehensionFor(Expression contents) :
 		contents = ComprehensionFor(contents)
 	)?
 	{
-		return new ExprComprehension(new Generator(varDecls.build(), collection), filters.build(), contents);
+		return new ExprComprehension(new Generator(type, varDecls.build(), collection), filters.build(), contents);
 	}
 }
 
@@ -1275,17 +1281,17 @@ TypeExpr Type() :
 		)*
 		")"
 		{
-			return new TypeExpr(name.image, types.build(), vals.build());
+			return new NominalTypeExpr(name.image, types.build(), vals.build());
 		}
 	)?
 
-	{ type = new TypeExpr(name.image, ImmutableList.empty(), ImmutableList.empty()); }
+	{ type = new NominalTypeExpr(name.image, ImmutableList.empty(), ImmutableList.empty()); }
 	(
 		"["
 		size = Expression()
 		"]"
 		{
-			type = new TypeExpr("List",
+			type = new NominalTypeExpr("List",
 					ImmutableList.of(new TypeParameter("type", type)),
 					ImmutableList.of(new ValueParameter("size", size)));
 		}
@@ -1309,7 +1315,7 @@ TypeAndName VarDeclTypeName() :
 		size = Expression()
 		"]"
 		{
-			type = new TypeExpr("List",
+			type = new NominalTypeExpr("List",
 					ImmutableList.of(new TypeParameter("type", type)),
 					ImmutableList.of(new ValueParameter("size", size)));
 		}
@@ -1418,7 +1424,7 @@ StmtCall CallStmt() :
 
 StmtBlock BlockStmt() :
 {
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> stmts;
 }
 {
@@ -1485,7 +1491,7 @@ ImmutableList<Statement> ElseIfStmt() :
 StmtWhile WhileStmt() :
 {
 	Expression cond;
-	ImmutableList<VarDecl> varDecls = ImmutableList.empty();
+	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	ImmutableList<Statement> statements;
 }
 {
@@ -1523,7 +1529,7 @@ StmtForeach ForeachStmtHeader() :
 {
 	TypeExpr type = null;
 	Token id;
-	ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+	ImmutableList.Builder<GeneratorVarDecl> varDecls = ImmutableList.builder();
 	Expression collection;
 	Expression filter;
 	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
@@ -1531,16 +1537,13 @@ StmtForeach ForeachStmtHeader() :
 }
 {
 	"foreach"
-	(
-		LOOKAHEAD(2)
-		type = Type()
-	)?
+	type = Type()
 	id = <ID>
-	{ varDecls.add(VarDecl.local(type, id.image, false, null)); }
+	{ varDecls.add(VarDecl.generator(id.image)); }
 	(
 		","
 		id = <ID>
-		{ varDecls.add(VarDecl.local(type.deepClone(), id.image, false, null)); }
+		{ varDecls.add(VarDecl.generator(id.image)); }
 	)*
 	"in"
 	 collection = Expression()
@@ -1552,14 +1555,14 @@ StmtForeach ForeachStmtHeader() :
 	)*
 	body = ForeachStmtBody()
 	{
-		return new StmtForeach(new Generator(varDecls.build(), collection), filters.build(), body);
+		return new StmtForeach(new Generator(type, varDecls.build(), collection), filters.build(), body);
 	}
 }
 
 ImmutableList<Statement> ForeachStmtBody() :
 {
 	Statement result;
-	ImmutableList<VarDecl> varDecls = null;
+	ImmutableList<LocalVarDecl> varDecls = null;
 	ImmutableList<Statement> stmts;
 }
 {

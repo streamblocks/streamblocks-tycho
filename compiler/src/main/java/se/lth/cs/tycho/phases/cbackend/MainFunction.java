@@ -6,6 +6,7 @@ import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Compiler;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.types.BoolType;
 import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.RealType;
@@ -40,21 +41,40 @@ public interface MainFunction {
 		Path target = path.resolve(targetName + ".c");
 		emitter().open(target);
 		include();
-		for (int size : new int[]{8, 16, 32, 64}) {
-			for (boolean signed : new boolean[] { true, false }) {
-				IntType type = new IntType(OptionalInt.of(size), signed);
-				ioCode(type);
-			}
-		}
-		ioCode(BoolType.INSTANCE);
-		ioCode(RealType.f32);
-		ioCode(RealType.f64);
+		for (Type t : channelTypes()) { channelCode(t); }
+		for (Type t : inputActorTypes()) { inputActorCode(t); }
+		for (Type t : outputActorTypes()) { outputActorCode(t); }
+		backend().callables().defineCallables();
 		List<VarDecl> varDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getVarDecls().stream()).collect(Collectors.toList());
 		List<GlobalEntityDecl> entityDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getEntityDecls().stream()).collect(Collectors.toList());
 		backend().global().globalVariables(varDecls);
 		backend().structure().actorDecls(entityDecls);
 		mainNetwork().main(task.getNetwork());
 		emitter().close();
+	}
+
+	default List<Type> channelTypes() {
+		Network network = backend().task().getNetwork();
+		return backend().task().getNetwork().getConnections().stream()
+				.map(connection -> backend().types().connectionType(network, connection))
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	default List<Type> outputActorTypes() {
+		Network network = backend().task().getNetwork();
+		return network.getOutputPorts().stream()
+				.map(backend().types()::declaredPortType)
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	default List<Type> inputActorTypes() {
+		Network network = backend().task().getNetwork();
+		return network.getInputPorts().stream()
+				.map(backend().types()::declaredPortType)
+				.distinct()
+				.collect(Collectors.toList());
 	}
 
 	default void include() {
@@ -176,7 +196,7 @@ public interface MainFunction {
 		emitter().emit("    }");
 		emitter().emit("    if (tokens > 0) {");
 		emitter().emit("        %s buf[tokens];", tokenType);
-		emitter().emit("        tokens = fread(buf, 1, sizeof(%s)*tokens, actor->stream);", tokenType);
+		emitter().emit("        tokens = fread(buf, sizeof(%s), tokens, actor->stream);", tokenType);
 		emitter().emit("        if (tokens > 0) {");
 		emitter().emit("            channel_write_%s(actor->channelv, actor->channelc, buf, tokens);", tokenType);
 		emitter().emit("            return true;");
@@ -220,11 +240,11 @@ public interface MainFunction {
 		emitter().emit("            wrap_or_end = BUFFER_SIZE;");
 		emitter().emit("        }");
 		emitter().emit("        size_t tokens_before_wrap = wrap_or_end - channel->head;");
-		emitter().emit("        fwrite(&channel->buffer[channel->head], 1, sizeof(%s) * tokens_before_wrap, actor->stream);", tokenType);
+		emitter().emit("        fwrite(&channel->buffer[channel->head], sizeof(%s), tokens_before_wrap, actor->stream);", tokenType);
 		emitter().emit("");
 		emitter().emit("        size_t tokens_after_wrap = channel->tokens - tokens_before_wrap;");
 		emitter().emit("        if (tokens_after_wrap > 0) {");
-		emitter().emit("            fwrite(&channel->buffer, 1, sizeof(%s) * tokens_after_wrap, actor->stream);", tokenType);
+		emitter().emit("            fwrite(&channel->buffer, sizeof(%s), tokens_after_wrap, actor->stream);", tokenType);
 		emitter().emit("        }");
 		emitter().emit("");
 		emitter().emit("        //channel->head = (channel->head + channel->tokens) %% BUFFER_SIZE;");

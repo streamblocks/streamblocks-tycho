@@ -1,0 +1,67 @@
+namespace numtext :
+
+	uint(size=8) minus = 45;
+	uint(size=8) zero = 48;
+	uint(size=8) nine = 57;
+	uint(size=8) newline = 10;
+	external function to_uint_8(int(size=64) v) --> uint(size=8);
+
+	actor Write() int(size=64) Numbers ==> uint(size=8) Chars :
+		int(size=64) n;
+		int(size=8) divisor;
+		bool negative;
+
+		repeat
+			Numbers --> n;
+
+			negative := n < 0;
+			if negative then
+				n := -n;
+				Chars <-- minus;
+			end
+
+			divisor := 1;
+			while n / divisor >= 10 do
+				divisor := divisor * 10;
+			end
+
+			while divisor >= 1 do
+				Chars <-- to_uint_8(((n / divisor) mod 10) + zero);
+				divisor := divisor / 10;
+			end
+
+			Chars <-- newline;
+		end
+	end
+
+	actor Read() uint(size=8) Chars ==> int(size=64) Numbers :
+		bool negative := false;
+		int(size=64) number := 0;
+		uint(size=8) c := 0;
+
+		repeat
+			// reset state
+			number := 0;
+			negative := false;
+
+			// consume garbage
+			while c != minus and not (c >= zero and c <= nine) do
+				Chars --> c;
+			end
+
+			// optionally read minus
+			if c = minus then
+				negative := true;
+				Chars --> c;
+			end
+
+			// read digits
+			while c >= zero and c <= nine do
+				number := number * 10 + (c - zero);
+				Chars --> c;
+			end
+
+			Numbers <-- if negative then -number else number end;
+		end
+	end
+end

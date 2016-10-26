@@ -5,7 +5,7 @@ import se.lth.cs.tycho.ir.entity.Entity;
 
 import java.util.function.Consumer;
 
-public class GlobalEntityDecl extends AbstractDecl<GlobalEntityDecl> implements GlobalDecl<GlobalEntityDecl> {
+public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
 
 	private final Entity entity;
 	private final Availability availability;

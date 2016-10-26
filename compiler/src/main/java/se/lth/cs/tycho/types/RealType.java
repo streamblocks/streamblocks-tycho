@@ -1,6 +1,8 @@
 package se.lth.cs.tycho.types;
 
-public class RealType implements Type {
+import java.util.Objects;
+
+public final class RealType implements Type {
 	private final int size;
 
 	public static final RealType f32 = new RealType(32);
@@ -25,5 +27,18 @@ public class RealType implements Type {
 	@Override
 	public String toString() {
 		return String.format("real(%d)", size);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		RealType realType = (RealType) o;
+		return size == realType.size;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(size);
 	}
 }

@@ -6,6 +6,7 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.Transformations;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -36,7 +37,7 @@ public class LiftProcessVarDeclsPhase implements Phase {
 				ProcessDescription process = actor.getProcessDescription();
 				ImmutableList<Statement> statements = process.getStatements().map(transformation::transform);
 				ProcessDescription transformed = process.copy(statements, process.isRepeated());
-				ImmutableList<VarDecl> liftedVarDecls = transformation.builder().build();
+				ImmutableList<LocalVarDecl> liftedVarDecls = transformation.builder().build();
 				return actor
 						.withProcessDescription(transformed)
 						.withVarDecls(ImmutableList.concat(actor.getVarDecls(), liftedVarDecls));
@@ -51,7 +52,7 @@ public class LiftProcessVarDeclsPhase implements Phase {
 	@Module
 	interface VarDeclTransformation {
 		@Binding
-		default ImmutableList.Builder<VarDecl> builder() {
+		default ImmutableList.Builder<LocalVarDecl> builder() {
 			return ImmutableList.builder();
 		}
 		default Statement transform(Statement stmt) {

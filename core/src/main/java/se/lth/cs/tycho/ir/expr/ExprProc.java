@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -55,57 +55,48 @@ public class ExprProc extends Expression {
 		return v.visitExprProc(this, p);
 	}
 
-	public ExprProc(List<TypeDecl> typeParams, List<ParameterVarDecl> valueParams, List<Statement> body) {
-		this(null, typeParams, valueParams, body, false);
+	public ExprProc(List<ParameterVarDecl> valueParams, List<Statement> body) {
+		this(null, valueParams, body, false);
 	}
 
-	public ExprProc(List<TypeDecl> typeParams, List<ParameterVarDecl> valueParams) {
-		this(null, typeParams, valueParams, null, true);
+	public ExprProc(List<ParameterVarDecl> valueParams) {
+		this(null, valueParams, null, true);
 	}
 
-	private ExprProc(ExprProc original, List<TypeDecl> typeParams, List<ParameterVarDecl> valueParams, List<Statement> body, boolean external) {
+	private ExprProc(ExprProc original, List<ParameterVarDecl> valueParams, List<Statement> body, boolean hasBody) {
 		super(original);
-		this.typeParameters = ImmutableList.from(typeParams);
 		this.valueParameters = ImmutableList.from(valueParams);
 		this.body = ImmutableList.from(body);
-		this.external = external;
+		this.hasBody = hasBody;
 	}
 	
-	public ExprProc copy(List<TypeDecl> typeParams, List<ParameterVarDecl> valueParams, List<Statement> body, boolean external) {
-		if (Lists.sameElements(typeParameters, typeParams)
-				&& Lists.sameElements(valueParameters, valueParams)
+	public ExprProc copy(List<ParameterVarDecl> valueParams, List<Statement> body, boolean external) {
+		if (Lists.sameElements(valueParameters, valueParams)
 				&& Lists.sameElements(this.body, body)
-				&& this.external == external) {
+				&& this.hasBody == external) {
 			return this;
 		}
-		return new ExprProc(this, typeParams, valueParams, body, external);
-	}
-
-
-	public ImmutableList<TypeDecl> getTypeParameters() {
-		return typeParameters;
+		return new ExprProc(this, valueParams, body, external);
 	}
 
 	public ImmutableList<ParameterVarDecl> getValueParameters() {
 		return valueParameters;
 	}
 
+	public ImmutableList<ClosureVarDecl> getClosure() {
+		throw new UnsupportedOperationException();
+	}
+
 	public ImmutableList<Statement> getBody() {
 		return body;
 	}
 
-	public boolean isExternal() {
-		return external;
-	}
-
-	private final ImmutableList<TypeDecl> typeParameters;
 	private final ImmutableList<ParameterVarDecl> valueParameters;
 	private final ImmutableList<Statement> body;
-	private final boolean external;
+	private final boolean hasBody;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		typeParameters.forEach(action);
 		valueParameters.forEach(action);
 		body.forEach(action);
 	}
@@ -113,10 +104,9 @@ public class ExprProc extends Expression {
 	@Override
 	public ExprProc transformChildren(Transformation transformation) {
 		return copy(
-				transformation.mapChecked(TypeDecl.class, typeParameters),
 				transformation.mapChecked(ParameterVarDecl.class, valueParameters),
 				transformation.mapChecked(Statement.class, body),
-				external
+				hasBody
 		);
 	}
 }

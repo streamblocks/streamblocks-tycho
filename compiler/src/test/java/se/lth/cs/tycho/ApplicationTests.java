@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,9 +37,11 @@ public class ApplicationTests {
 
 	@Test
 	public void test() throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
-		ProgramTester tester = ProgramTester.compile(test.getSourcePaths(), test.getEntity());
+		Path target = Files.createTempDirectory(test.getEntity().toString());
+		Path temp = Files.createTempDirectory("temp");
+		ProgramTester tester = ProgramTester.compile(test.getSourcePaths(), test.getExternalSources(), test.getEntity(), target);
 		for (TestDescription.TestData data : test.getTestData()) {
-			tester.run(data.getInput(), data.getReference());
+			tester.run(data.getInput(), data.getReference(), temp);
 		}
 	}
 }

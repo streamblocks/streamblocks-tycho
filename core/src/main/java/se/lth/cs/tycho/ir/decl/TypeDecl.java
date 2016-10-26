@@ -4,7 +4,7 @@ import se.lth.cs.tycho.ir.IRNode;
 
 import java.util.function.Consumer;
 
-public abstract class TypeDecl<This extends TypeDecl<This>> extends AbstractDecl<This> {
+public abstract class TypeDecl extends AbstractDecl {
 
 	private final Availability availability;
 

@@ -6,6 +6,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.NominalTypeExpr;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
@@ -121,7 +122,7 @@ public class XDF2NLReader {
 					throw new UnsupportedOperationException("Unknown XDF type attribute kind: '" + entry.getAttribute("kind") + "'");
 			}
 		}
-		return new TypeExpr(name, typeParameters.build(), valueParameters.build());
+		return new NominalTypeExpr(name, typeParameters.build(), valueParameters.build());
 	}
 
 	private Expression buildExpression(Element expr) {

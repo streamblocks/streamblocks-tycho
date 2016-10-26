@@ -54,7 +54,7 @@ public interface Structure {
 
 	default void actor(String name, ActorMachine actorMachine) {
 		actorMachineState(name, actorMachine);
-		actorMachineCallables(name, actorMachine);
+//		actorMachineCallables(name, actorMachine);
 		actorMachineStateInit(name, actorMachine);
 		actorMachineInit(name, actorMachine);
 		actorMachineTransitions(name, actorMachine);
@@ -176,9 +176,7 @@ public interface Structure {
 			emitter().emit("static void %s_init_scope_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
 			for (VarDecl var : scope.getDeclarations()) {
-				if (types().declaredType(var) instanceof CallableType) {
-					emitter().emit("// function %s", var.getName());
-				} else if (var.getValue() != null) {
+				if (var.getValue() != null) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
 					code().assign(types().declaredType(var), "self->" + backend().variables().declarationName(var), var.getValue());
@@ -192,110 +190,6 @@ public interface Structure {
 			emitter().emit("");
 			i++;
 		}
-	}
-
-	default void actorMachineCallables(String name, ActorMachine actorMachine) {
-		for (Scope scope : actorMachine.getScopes()) {
-			for (VarDecl decl : scope.getDeclarations()) {
-				if (types().declaredType(decl) instanceof CallableType) {
-					if (scope.isPersistent() && decl.isConstant()) {
-						actorMachineCallable(name, decl, decl.getValue(), true);
-					} else {
-						throw new UnsupportedOperationException();
-					}
-				}
-			}
-		}
-		for (Scope scope : actorMachine.getScopes()) {
-			for (VarDecl decl : scope.getDeclarations()) {
-				if (types().declaredType(decl) instanceof CallableType) {
-					if (scope.isPersistent() && decl.isConstant()) {
-						actorMachineCallable(name, decl, decl.getValue(), false);
-					} else {
-						throw new UnsupportedOperationException();
-					}
-				}
-			}
-		}
-	}
-
-
-	void actorMachineCallable(String name, VarDecl decl, Expression value, boolean declarationOnly);
-
-	String actorMachineCallableHeader(String name, VarDecl decl, Expression value);
-
-	default void actorMachineCallable(String name, VarDecl decl, ExprLambda lambda, boolean declarationOnly) {
-		String header = actorMachineCallableHeader(name, decl, lambda);
-		if (lambda.isExternal() && declarationOnly) {
-			emitter().emit("%s;", header);
-		} else if (lambda.isExternal() && !declarationOnly) {
-		} else if (declarationOnly) {
-			emitter().emit("static %s;", header);
-		} else {
-			emitter().emit("static %s {", header);
-			emitter().increaseIndentation();
-			emitter().emit("return %s;", code().evaluate(lambda.getBody()));
-			emitter().decreaseIndentation();
-			emitter().emit("}");
-		}
-	}
-
-	default String actorMachineCallableHeader(String name, VarDecl decl, ExprLambda lambda) {
-		StringBuilder builder = new StringBuilder();
-		LambdaType type = (LambdaType) types().declaredType(decl);
-		builder.append(code().type(type.getReturnType()));
-		builder.append(" ");
-		builder.append(lambda.isExternal() ? decl.getOriginalName() : backend().variables().declarationName(decl));
-		builder.append("(");
-		boolean first = true;
-		if (!lambda.isExternal()) {
-			builder.append(name).append("_state *self");
-			first = false;
-		}
-		for (VarDecl par : lambda.getValueParameters()) {
-			if (first) {
-				first = false;
-			} else {
-				builder.append(", ");
-			}
-			builder.append(code().declaration(types().declaredType(par), backend().variables().declarationName(par)));
-		}
-		builder.append(")");
-		return builder.toString();
-	}
-
-	default void actorMachineCallable(String name, VarDecl decl, ExprProc proc, boolean declarationOnly) {
-		String header = actorMachineCallableHeader(name, decl, proc);
-		if (proc.isExternal() && declarationOnly) {
-			emitter().emit("%s;", header);
-		} else if (proc.isExternal() && !declarationOnly) {
-		} else if (declarationOnly) {
-			emitter().emit("static %s;", header);
-		} else {
-			emitter().emit("static %s {", header);
-			emitter().increaseIndentation();
-			proc.getBody().forEach(code()::execute);
-			emitter().decreaseIndentation();
-			emitter().emit("}");
-		}
-	}
-
-	default String actorMachineCallableHeader(String name, VarDecl decl, ExprProc proc) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("void ");
-		builder.append(proc.isExternal() ? decl.getOriginalName() : backend().variables().declarationName(decl));
-		builder.append("(");
-		if (!proc.isExternal()) {
-			builder.append(name).append("_state *self");
-			if (!proc.getValueParameters().isEmpty()) {
-				builder.append(", ");
-			}
-		}
-		builder.append(proc.getValueParameters().stream()
-				.map(par -> code().declaration(types().declaredType(par), backend().variables().declarationName(par)))
-				.collect(Collectors.joining(", ")))
-				.append(")");
-		return builder.toString();
 	}
 
 
@@ -331,13 +225,10 @@ public interface Structure {
 		int i = 0;
 		for (Scope scope : actorMachine.getScopes()) {
 			emitter().emit("// scope %d", i);
+			backend().callables().declareEnvironmentForCallablesInScope(scope);
 			for (VarDecl var : scope.getDeclarations()) {
-				if (types().declaredType(var) instanceof CallableType) {
-					emitter().emit("// function %s", var.getName());
-				} else {
-					String decl = code().declaration(types().declaredType(var), backend().variables().declarationName(var));
-					emitter().emit("%s;", decl);
-				}
+				String decl = code().declaration(types().declaredType(var), backend().variables().declarationName(var));
+				emitter().emit("%s;", decl);
 			}
 			emitter().emit("");
 			i++;

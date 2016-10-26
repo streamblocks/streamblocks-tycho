@@ -1,9 +1,10 @@
 package se.lth.cs.tycho.phases.cal2am;
 
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.decl.InputVarDecl;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
@@ -51,20 +52,20 @@ public class Scopes {
 	}
 
 	private Scope createScope(Action action) {
-		ImmutableList.Builder<VarDecl> varDecls = ImmutableList.builder();
+		ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
 		for (InputPattern input : action.getInputPatterns()) {
 			if (input.getRepeatExpr() == null) {
 				int i = 0;
-				for (LocalVarDecl var : input.getVariables()) {
-					varDecls.add(var.withValue(new ExprInput((Port) input.getPort().deepClone(), i)));
+				for (InputVarDecl var : input.getVariables()) {
+					varDecls.add(VarDecl.local(var.getType(), var.getName(), new ExprInput((Port) input.getPort().deepClone(), i), var.isConstant()));
 					i = i + 1;
 				}
 			} else {
 				int repeat = (int) constants.intValue(input.getRepeatExpr()).getAsLong();
 				int patternLength = input.getVariables().size();
 				int i = 0;
-				for (LocalVarDecl var : input.getVariables()) {
-					varDecls.add(var.withValue(new ExprInput((Port) input.getPort().deepClone(), i, repeat, patternLength)));
+				for (InputVarDecl var : input.getVariables()) {
+					varDecls.add(VarDecl.local(var.getType(), var.getName(), new ExprInput((Port) input.getPort().deepClone(), i, repeat, patternLength), var.isConstant()));
 					i = i + 1;
 				}
 			}

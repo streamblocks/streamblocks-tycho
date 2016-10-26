@@ -89,8 +89,8 @@ public final class Rename {
 			}
 		}
 
-		private <D extends VarDecl<D>> D renameDecl(Tree<D> decl) {
-			return decl.node().withName(name(decl));
+		private <D extends VarDecl> D renameDecl(Tree<D> decl) {
+			return (D) decl.node().withName(name(decl));
 		}
 
 		private Variable renameVar(Tree<Variable> var) {

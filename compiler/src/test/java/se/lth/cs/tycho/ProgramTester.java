@@ -1,6 +1,7 @@
 package se.lth.cs.tycho;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import se.lth.cs.tycho.comp.Compiler;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
@@ -9,13 +10,16 @@ import se.lth.cs.tycho.settings.SettingsManager;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class ProgramTester {
 	private final Path executable;
@@ -24,8 +28,7 @@ public class ProgramTester {
 		this.executable = executable;
 	}
 
-	public static ProgramTester compile(List<Path> source, QID name) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
-		Path target = Files.createTempDirectory(name.toString());
+	public static ProgramTester compile(List<Path> source, List<Path> external, QID name, Path target) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
 		SettingsManager settings = Compiler.defaultSettingsManager();
 		Configuration config = Configuration.builder(settings)
 				.set(Compiler.sourcePaths, source)
@@ -38,7 +41,12 @@ public class ProgramTester {
 					.filter(file -> file.toString().endsWith(".c"))
 					.findFirst();
 			if (cfile.isPresent()) {
-				Process cc = new ProcessBuilder("cc", "-std=c99", cfile.get().getFileName().toString())
+				List<String> command = new ArrayList<>();
+				command.add("cc");
+				command.add("-std=c99");
+				command.add(cfile.get().getFileName().toString());
+				external.forEach(p -> command.add(p.toAbsolutePath().toString()));
+				Process cc = new ProcessBuilder(command)
 						.directory(target.toFile())
 						.start();
 				String error = IOUtils.toString(cc.getErrorStream());
@@ -49,7 +57,7 @@ public class ProgramTester {
 					}
 					return new ProgramTester(aout);
 				} else {
-					throw new RuntimeException(error);
+					throw new RuntimeException(String.format("Compilation error in %s:\n%s", cfile.get(), error));
 				}
 			} else {
 				throw new RuntimeException("Compilation error." + Files.list(target).map(Path::getFileName).map(Path::toString).collect(Collectors.joining(", ", "[", "]")));
@@ -59,8 +67,7 @@ public class ProgramTester {
 		}
 	}
 
-	public void run(List<Path> input, List<Path> reference) throws IOException, InterruptedException {
-		Path temp = Files.createTempDirectory("test");
+	public void run(List<Path> input, List<Path> reference, Path temp) throws IOException, InterruptedException {
 		List<Path> in = input.stream()
 				.map(Path::toAbsolutePath)
 				.collect(Collectors.toList());

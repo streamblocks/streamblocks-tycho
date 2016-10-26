@@ -1,6 +1,5 @@
 package se.lth.cs.tycho;
 
-import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
@@ -9,6 +8,7 @@ import se.lth.cs.tycho.ir.QID;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +21,8 @@ public class TestDescription {
 	private String description;
 	@SerializedName("source-paths")
 	private List<Path> sourcePaths;
+	@SerializedName("external-sources")
+	private List<Path> externalSources;
 	private QID entity;
 	@SerializedName("test-data")
 	private List<TestData> testData;
@@ -36,6 +38,10 @@ public class TestDescription {
 		return sourcePaths;
 	}
 
+	public List<Path> getExternalSources() {
+		return externalSources == null ? Collections.emptyList() : externalSources;
+	}
+
 	public QID getEntity() {
 		return entity;
 	}
@@ -49,6 +55,7 @@ public class TestDescription {
 		TestDescription result = new TestDescription();
 		result.description = description;
 		result.sourcePaths = sourcePaths.stream().map(directory::resolve).collect(Collectors.toList());
+		result.externalSources = getExternalSources().stream().map(directory::resolve).collect(Collectors.toList());
 		result.entity = entity;
 		result.testData = testData.stream().map(d -> d.resolvePaths(testFile)).collect(Collectors.toList());
 		return result;

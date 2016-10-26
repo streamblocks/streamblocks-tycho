@@ -9,6 +9,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class NamespaceDecl extends AbstractIRNode {
@@ -31,6 +32,14 @@ public class NamespaceDecl extends AbstractIRNode {
 		this.varDecls = ImmutableList.from(varDecls);
 		this.entityDecls = ImmutableList.from(entityDecls);
 		this.typeDecls = ImmutableList.from(typeDecls);
+	}
+	private NamespaceDecl copy(QID qid, List<Import> imports, List<GlobalVarDecl> varDecls,
+						 List<GlobalEntityDecl> entityDecls, List<GlobalTypeDecl> typeDecls) {
+		if (Objects.equals(this.qid, qid) && Lists.sameElements(this.imports, imports) && Lists.sameElements(this.varDecls, varDecls) && Lists.sameElements(this.entityDecls, entityDecls) && Lists.sameElements(this.typeDecls, typeDecls)) {
+			return this;
+		} else {
+			return new NamespaceDecl(this, qid, imports, varDecls, entityDecls, typeDecls);
+		}
 	}
 
 	public QID getQID() {
@@ -105,11 +114,11 @@ public class NamespaceDecl extends AbstractIRNode {
 	@Override
 	@SuppressWarnings("unchecked")
 	public NamespaceDecl transformChildren(Transformation transformation) {
-		return new NamespaceDecl(this, qid,
-				(ImmutableList) imports.map(transformation),
-				(ImmutableList) varDecls.map(transformation),
-				(ImmutableList) entityDecls.map(transformation),
-				(ImmutableList) typeDecls.map(transformation));
+		return copy(qid,
+				transformation.mapChecked(Import.class, imports),
+				transformation.mapChecked(GlobalVarDecl.class, varDecls),
+				transformation.mapChecked(GlobalEntityDecl.class, entityDecls),
+				transformation.mapChecked(GlobalTypeDecl.class, typeDecls));
 	}
 
 }

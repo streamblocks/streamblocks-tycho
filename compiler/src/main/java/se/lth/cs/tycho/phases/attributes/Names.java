@@ -12,7 +12,6 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.GlobalDecl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.GroupImport;
@@ -214,7 +213,7 @@ public interface Names {
 		default VarDecl lookup(IRNode context, String name) {
 			IRNode node = tree().parent(context);
 			while (node != null) {
-				Optional<VarDecl> d = localLookup(node, context, name);
+				Optional<? extends VarDecl> d = localLookup(node, context, name);
 				if (d.isPresent()) {
 					return d.get();
 				}
@@ -224,11 +223,11 @@ public interface Names {
 			return null;
 		}
 
-		default Optional<VarDecl> localLookup(IRNode node, IRNode context, String name) {
+		default Optional<? extends VarDecl> localLookup(IRNode node, IRNode context, String name) {
 			return Optional.empty();
 		}
 
-		default Optional<VarDecl> localLookup(ExprLet let, IRNode context, String name) {
+		default Optional<? extends VarDecl> localLookup(ExprLet let, IRNode context, String name) {
 			return findInStream(let.getVarDecls().stream(), name);
 		}
 
@@ -236,41 +235,41 @@ public interface Names {
 			return Optional.ofNullable(opt.orElse(null));
 		}
 
-		default Optional<VarDecl> localLookup(ExprLambda lambda, IRNode context, String name) {
-			return upCast(findInStream(lambda.getValueParameters().stream(), name));
+		default Optional<? extends VarDecl> localLookup(ExprLambda lambda, IRNode context, String name) {
+			return upCast(findInStream(Stream.concat(lambda.getClosure().stream(), lambda.getValueParameters().stream()), name));
 		}
 
-		default Optional<VarDecl> localLookup(ExprProc proc, IRNode context, String name) {
-			return upCast(findInStream(proc.getValueParameters().stream(), name));
+		default Optional<? extends VarDecl> localLookup(ExprProc proc, IRNode context, String name) {
+			return upCast(findInStream(Stream.concat(proc.getClosure().stream(), proc.getValueParameters().stream()), name));
 		}
 
-		default Optional<VarDecl> localLookup(StmtBlock block, IRNode context, String name) {
+		default Optional<? extends VarDecl> localLookup(StmtBlock block, IRNode context, String name) {
 			return findInStream(block.getVarDecls().stream(), name);
 		}
 
-		default Optional<VarDecl> localLookup(ExprComprehension comprehension, IRNode context, String name) {
-			return findInStream(comprehension.getGenerator().getVarDecls().stream(), name);
+		default Optional<? extends VarDecl> localLookup(ExprComprehension comprehension, IRNode context, String name) {
+			return upCast(findInStream(comprehension.getGenerator().getVarDecls().stream(), name));
 		}
 
-		default Optional<VarDecl> localLookup(ExprComprehension comprehension, Generator context, String name) {
+		default Optional<? extends VarDecl> localLookup(ExprComprehension comprehension, Generator context, String name) {
 			return Optional.empty();
 		}
 
-		default Optional<VarDecl> localLookup(Generator generator, IRNode context, String name) {
+		default Optional<? extends VarDecl> localLookup(Generator generator, IRNode context, String name) {
 			return Optional.empty();
 		}
 
-		default Optional<VarDecl> localLookup(StmtForeach foreach, IRNode context, String name) {
-			return findInStream(foreach.getGenerator().getVarDecls().stream(), name);
+		default Optional<? extends VarDecl> localLookup(StmtForeach foreach, IRNode context, String name) {
+			return upCast(findInStream(foreach.getGenerator().getVarDecls().stream(), name));
 		}
 
-		default Optional<VarDecl> localLookup(StmtForeach foreach, Generator context, String name) {
+		default Optional<? extends VarDecl> localLookup(StmtForeach foreach, Generator context, String name) {
 			return Optional.empty();
 		}
 
-		default Optional<VarDecl> localLookup(Action action, IRNode context, String name) {
-			Stream<VarDecl> actionVars = action.getVarDecls().stream();
-			Stream<VarDecl> inputVars = action.getInputPatterns().stream()
+		default Optional<? extends VarDecl> localLookup(Action action, IRNode context, String name) {
+			Stream<? extends VarDecl> actionVars = action.getVarDecls().stream();
+			Stream<? extends VarDecl> inputVars = action.getInputPatterns().stream()
 					.flatMap(inputPattern -> inputPattern.getVariables().stream());
 
 			return findInStream(Stream.concat(actionVars, inputVars), name);

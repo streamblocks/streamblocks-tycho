@@ -7,4 +7,5 @@ public interface LValueVisitor<R, P> {
 	R visitLValueVariable(LValueVariable lvalue, P parameter);
 	R visitLValueIndexer(LValueIndexer lvalue, P parameter);
 	R visitLValueField(LValueField lvalue, P parameter);
+	R visitLValueDeref(LValueDeref lvalue, P parameter);
 }

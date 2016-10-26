@@ -4,6 +4,8 @@ import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
+import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.expr.*;
@@ -22,14 +24,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
-import se.lth.cs.tycho.types.BoolType;
-import se.lth.cs.tycho.types.IntType;
-import se.lth.cs.tycho.types.ListType;
-import se.lth.cs.tycho.types.QueueType;
-import se.lth.cs.tycho.types.RealType;
-import se.lth.cs.tycho.types.StringType;
-import se.lth.cs.tycho.types.Type;
-import se.lth.cs.tycho.types.UnitType;
+import se.lth.cs.tycho.types.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +54,14 @@ public interface Code {
 	default Names names() { return backend().names(); }
 
 	void assign(Type type, String lvalue, Expression expr);
+
+	default void assign(RefType type, String lvalue, Expression expr) {
+		assignScalar(type, lvalue, expr);
+	}
+
+	default void assign(LambdaType type, String lvalue, Expression expr) {
+		assignScalar(type, lvalue, expr);
+	}
 
 	default void assign(IntType type, String lvalue, Expression expr) {
 		assignScalar(type, lvalue, expr);
@@ -158,6 +161,20 @@ public interface Code {
 
 	default String declaration(UnitType type, String name) { return "char " + name; }
 
+	default String declaration(RefType type, String name) {
+		return declaration(type.getType(), String.format("(*%s)", name));
+	}
+
+	default String declaration(LambdaType type, String name) {
+		String t = backend().callables().mangle(type).encode();
+		return t + " " + name;
+	}
+
+	default String declaration(ProcType type, String name) {
+		String t = backend().callables().mangle(type).encode();
+		return t + " " + name;
+	}
+
 	default String declaration(ListType type, String name) {
 		if (type.getSize().isPresent()) {
 			return String.format("%s[%d]", declaration(type.getElementType(), name), type.getSize().getAsInt());
@@ -203,7 +220,7 @@ public interface Code {
 	}
 
 	default String type(UnitType type) {
-		return "char";
+		return "void";
 	}
 
 	default String type(ListType type) {
@@ -214,12 +231,24 @@ public interface Code {
 		}
 	}
 
+	default String type(StringType type) {
+		return "char*";
+	}
+
 	default String type(BoolType type) { return "_Bool"; }
 
 	String evaluate(Expression expr);
 
 	default String evaluate(ExprVariable variable) {
 		return variables().name(variable.getVariable());
+	}
+
+	default String evaluate(ExprRef ref) {
+		return "(&"+variables().name(ref.getVariable())+")";
+	}
+
+	default String evaluate(ExprDeref deref) {
+		return "(*"+evaluate(deref.getReference())+")";
 	}
 
 	default String evaluate(ExprGlobalVariable variable) {
@@ -324,9 +353,9 @@ public interface Code {
 		);
 	}
 
-	void withGenerator(Expression collection, ImmutableList<VarDecl> varDecls, Runnable body);
+	void withGenerator(Expression collection, ImmutableList<GeneratorVarDecl> varDecls, Runnable body);
 
-	default void withGenerator(ExprBinaryOp binOp, ImmutableList<VarDecl> varDecls, Runnable action) {
+	default void withGenerator(ExprBinaryOp binOp, ImmutableList<GeneratorVarDecl> varDecls, Runnable action) {
 		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
 			String from = evaluate(binOp.getOperands().get(0));
 			String to = evaluate(binOp.getOperands().get(1));
@@ -366,9 +395,9 @@ public interface Code {
 		}
 	}
 
-	void forEach(Expression collection, List<VarDecl> varDecls, Runnable action);
+	void forEach(Expression collection, List<GeneratorVarDecl> varDecls, Runnable action);
 
-	default void forEach(ExprBinaryOp binOp, List<VarDecl> varDecls, Runnable action) {
+	default void forEach(ExprBinaryOp binOp, List<GeneratorVarDecl> varDecls, Runnable action) {
 		emitter().emit("{");
 		emitter().increaseIndentation();
 		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
@@ -415,84 +444,39 @@ public interface Code {
 	}
 
 	default String evaluate(ExprApplication apply) {
-		String tmp = variables().generateTemp();
-		String type = type(types().type(apply));
-		emitter().emit("%s %s;", type, tmp);
-		application(tmp, apply.getFunction(), apply.getArgs());
-		return tmp;
+		String fn = evaluate(apply.getFunction());
+		List<String> parameters = new ArrayList<>();
+		parameters.add(fn+".env");
+		for (Expression parameter : apply.getArgs()) {
+			parameters.add(evaluate(parameter));
+		}
+		String result = variables().generateTemp();
+		String decl = declaration(types().type(apply), result);
+		emitter().emit("%s = %s.f(%s);", decl, fn, String.join(", ", parameters));
+		return result;
 	}
 
-	default void application(String result, Expression func, List<Expression> args) {
-		throw new UnsupportedOperationException();
+	default String evaluate(ExprLambda lambda) {
+		backend().emitter().emit("// begin evaluate(ExprLambda)");
+		String functionName = backend().callables().functionName(lambda);
+		String env = backend().callables().environmentName(lambda);
+		String envt = "envt_" + functionName;
+		for (ClosureVarDecl var : lambda.getClosure()) {
+			assign(types().declaredType(var), env+"."+variables().declarationName(var), var.getValue());
+		}
+
+		Type type = backend().types().type(lambda);
+		String typeName = backend().callables().mangle(type).encode();
+		String funPtr = backend().variables().generateTemp();
+		backend().emitter().emit("%s %s = { &%s, &%s };", typeName, funPtr, functionName, env);
+
+		backend().emitter().emit("// end evaluate(ExprLambda)");
+		return funPtr;
 	}
-	default void application(String result, ExprGlobalVariable func, List<Expression> args) {
-		VarDecl decl = backend().globalNames().varDecl(func.getGlobalName(), true);
-		boolean isExternal;
-		if (decl.getValue() instanceof ExprLambda) {
-			isExternal = ((ExprLambda) decl.getValue()).isExternal();
-		} else {
-			isExternal = false;
-		}
-		StringBuilder builder = new StringBuilder();
-		builder.append(result).append(" = ");
-		if (isExternal) {
-			builder.append(decl.getOriginalName());
-		} else {
-			builder.append(variables().declarationName(decl));
-		}
-		builder.append("(");
-		IRNode parent = backend().tree().parent(decl);
-		boolean first = true;
-		if (parent instanceof Scope && !isExternal) {
-			builder.append("self");
-			first = false;
-		}
-		for (Expression arg : args) {
-			if (first) {
-				first = false;
-			} else {
-				builder.append(", ");
-			}
-			builder.append(evaluate(arg));
-		}
-		builder.append(");");
-		emitter().emit(builder.toString());
-	}
-	default void application(String result, ExprVariable func, List<Expression> args) {
-		VarDecl decl = names().declaration(func.getVariable());
-		boolean isExternal;
-		if (decl.getValue() instanceof ExprLambda) {
-			isExternal = ((ExprLambda) decl.getValue()).isExternal();
-		} else {
-			isExternal = false;
-		}
-		StringBuilder builder = new StringBuilder();
-		builder.append(result).append(" = ");
-		if (isExternal) {
-			builder.append(decl.getOriginalName());
-		} else {
-			builder.append(variables().declarationName(decl));
-		}
-		builder.append("(");
-		IRNode parent = backend().tree().parent(decl);
-		boolean first = true;
-		if (parent instanceof Scope && !isExternal) {
-			builder.append("self");
-			first = false;
-		}
-		for (Expression arg : args) {
-			if (first) {
-				first = false;
-			} else {
-				builder.append(", ");
-			}
-			builder.append(evaluate(arg));
-		}
-		builder.append(");");
-		emitter().emit(builder.toString());
-	}
+
 
 	default String evaluate(ExprLet let) {
+		let.forEachChild(backend().callables()::declareEnvironmentForCallablesInScope);
 		for (VarDecl decl : let.getVarDecls()) {
 			emitter().emit("%s = %s;", declaration(types().declaredType(decl), variables().declarationName(decl)), evaluate(decl.getValue()));
 		}
@@ -533,6 +517,7 @@ public interface Code {
 	default void execute(StmtBlock block) {
 		emitter().emit("{");
 		emitter().increaseIndentation();
+		backend().callables().declareEnvironmentForCallablesInScope(block);
 		for (VarDecl decl : block.getVarDecls()) {
 			Type t = types().declaredType(decl);
 			String declarationName = variables().declarationName(decl);
@@ -576,78 +561,13 @@ public interface Code {
 	}
 
 	default void execute(StmtCall call) {
-		call(call.getProcedure(), call.getArgs());
-	}
-	default void call(Expression proc, List<Expression> args) {
-		throw new UnsupportedOperationException();
-	}
-	default void call(ExprGlobalVariable proc, List<Expression> args) {
-		VarDecl decl = backend().globalNames().varDecl(proc.getGlobalName(), true);
-		boolean isExternal;
-		if (decl.getValue() instanceof ExprProc) {
-			isExternal = ((ExprProc) decl.getValue()).isExternal();
-		} else {
-			isExternal = false;
+		String proc = evaluate(call.getProcedure());
+		List<String> parameters = new ArrayList<>();
+		parameters.add(proc+".env");
+		for (Expression parameter : call.getArgs()) {
+			parameters.add(evaluate(parameter));
 		}
-		StringBuilder builder = new StringBuilder();
-		if (isExternal) {
-			builder.append(decl.getOriginalName());
-		} else {
-			builder.append(variables().declarationName(decl));
-		}
-		builder.append("(");
-		IRNode parent = backend().tree().parent(decl);
-		if (parent instanceof Scope && !isExternal) {
-			builder.append("self");
-			if (!args.isEmpty()) {
-				builder.append(", ");
-			}
-		}
-		boolean first = true;
-		for (Expression arg : args) {
-			if (first) {
-				first = false;
-			} else {
-				builder.append(", ");
-			}
-			builder.append(evaluate(arg));
-		}
-		builder.append(");");
-		emitter().emit(builder.toString());
-	}
-	default void call(ExprVariable proc, List<Expression> args) {
-		VarDecl decl = names().declaration(proc.getVariable());
-		boolean isExternal;
-		if (decl.getValue() instanceof ExprProc) {
-			isExternal = ((ExprProc) decl.getValue()).isExternal();
-		} else {
-			isExternal = false;
-		}
-		StringBuilder builder = new StringBuilder();
-		if (isExternal) {
-			builder.append(decl.getOriginalName());
-		} else {
-			builder.append(variables().declarationName(decl));
-		}
-		builder.append("(");
-		IRNode parent = backend().tree().parent(decl);
-		if (parent instanceof Scope && !isExternal) {
-			builder.append("self");
-			if (!args.isEmpty()) {
-				builder.append(", ");
-			}
-		}
-		boolean first = true;
-		for (Expression arg : args) {
-			if (first) {
-				first = false;
-			} else {
-				builder.append(", ");
-			}
-			builder.append(evaluate(arg));
-		}
-		builder.append(");");
-		emitter().emit(builder.toString());
+		emitter().emit("%s.f(%s);", proc, String.join(", ", parameters));
 	}
 
 	default void execute(StmtWhile stmt) {

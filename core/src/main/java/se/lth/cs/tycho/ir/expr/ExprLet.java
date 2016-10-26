@@ -44,6 +44,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -55,11 +56,11 @@ public class ExprLet extends Expression {
 		return v.visitExprLet(this, p);
 	}
 
-	public ExprLet(ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls, Expression body) {
+	public ExprLet(ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, Expression body) {
 		this(null, typeDecls, varDecls, body);
 	}
 
-	private ExprLet(ExprLet original, ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls,
+	private ExprLet(ExprLet original, ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
 			Expression body) {
 		super(original);
 		this.body = body;
@@ -67,7 +68,7 @@ public class ExprLet extends Expression {
 		this.varDecls = ImmutableList.from(varDecls);
 	}
 
-	public ExprLet copy(ImmutableList<TypeDecl> typeDecls, ImmutableList<VarDecl> varDecls, Expression body) {
+	public ExprLet copy(ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, Expression body) {
 		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
 				&& Objects.equals(this.body, body)) {
 			return this;
@@ -79,7 +80,7 @@ public class ExprLet extends Expression {
 		return typeDecls;
 	}
 
-	public ImmutableList<VarDecl> getVarDecls() {
+	public ImmutableList<LocalVarDecl> getVarDecls() {
 		return varDecls;
 	}
 
@@ -87,7 +88,7 @@ public class ExprLet extends Expression {
 		return body;
 	}
 
-	public ExprLet withVarDecls(List<VarDecl> varDecls) {
+	public ExprLet withVarDecls(List<LocalVarDecl> varDecls) {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
@@ -96,7 +97,7 @@ public class ExprLet extends Expression {
 	}
 
 	private ImmutableList<TypeDecl> typeDecls;
-	private ImmutableList<VarDecl> varDecls;
+	private ImmutableList<LocalVarDecl> varDecls;
 	private Expression body;
 
 	@Override

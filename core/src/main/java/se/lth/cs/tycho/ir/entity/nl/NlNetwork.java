@@ -1,9 +1,9 @@
 package se.lth.cs.tycho.ir.entity.nl;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -15,12 +15,12 @@ import java.util.function.Consumer;
 
 public class NlNetwork extends Entity {
 	private final ImmutableList<TypeDecl> typeDecls;
-	private final ImmutableList<VarDecl> varDecls;
+	private final ImmutableList<LocalVarDecl> varDecls;
 	private final ImmutableList<InstanceDecl> entities;
 	private final ImmutableList<StructureStatement> structure;
 
 	public NlNetwork(List<TypeDecl> typePars,
-					 List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+					 List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 					 List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 					 List<InstanceDecl> entities, List<StructureStatement> structure) {
 		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
@@ -28,7 +28,7 @@ public class NlNetwork extends Entity {
 
 	private NlNetwork(NlNetwork original,
 			List<TypeDecl> typePars, List<ParameterVarDecl> valuePars,
-			List<TypeDecl> typeDecls, List<VarDecl> varDecls, List<PortDecl> inputPorts,
+			List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls, List<PortDecl> inputPorts,
 			List<PortDecl> outputPorts, List<InstanceDecl> entities,
 			List<StructureStatement> structure) {
 
@@ -41,7 +41,7 @@ public class NlNetwork extends Entity {
 	}
 
 	public NlNetwork copy(List<TypeDecl> typePars,
-			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<VarDecl> varDecls,
+			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 			List<InstanceDecl> entities, List<StructureStatement> structure) {
 		if (Lists.sameElements(this.typeParameters, typePars)
@@ -90,11 +90,11 @@ public class NlNetwork extends Entity {
 		structure.forEach(action);
 	}
 
-	public ImmutableList<VarDecl> getVarDecls() {
+	public ImmutableList<LocalVarDecl> getVarDecls() {
 		return varDecls;
 	}
 
-	public NlNetwork withVarDecls(List<VarDecl> varDecls) {
+	public NlNetwork withVarDecls(List<LocalVarDecl> varDecls) {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {

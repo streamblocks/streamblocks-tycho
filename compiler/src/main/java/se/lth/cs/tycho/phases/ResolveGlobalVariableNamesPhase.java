@@ -6,7 +6,6 @@ import se.lth.cs.tycho.decoration.Namespaces;
 import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.decoration.VariableDeclarations;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
@@ -33,11 +32,11 @@ public class ResolveGlobalVariableNamesPhase implements Phase {
 				.orElse(tree.node());
 	}
 
-	private Optional<Tree<VarDecl>> getDeclaration(Tree<ExprVariable> var) {
+	private Optional<Tree<? extends VarDecl>> getDeclaration(Tree<ExprVariable> var) {
 		return VariableDeclarations.getDeclaration(var.child(ExprVariable::getVariable));
 	}
 
-	private Optional<QID> getGlobalName(Tree<VarDecl> var) {
+	private Optional<QID> getGlobalName(Tree<? extends VarDecl> var) {
 		return Namespaces.globalName(var);
 	}
 }

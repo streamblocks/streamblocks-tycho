@@ -7,14 +7,14 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class ParameterVarDecl extends VarDecl<ParameterVarDecl> {
+public class ParameterVarDecl extends VarDecl {
 	private final Expression defaultValue;
 
 	public ParameterVarDecl(TypeExpr type, String name, Expression defaultValue) {
 		this(null, type, name, defaultValue);
 	}
 	private ParameterVarDecl(VarDecl original, TypeExpr type, String name, Expression defaultValue) {
-		super(original, type, name, true, null);
+		super(original, type, name, null, true, false);
 		this.defaultValue = defaultValue;
 	}
 
@@ -48,7 +48,6 @@ public class ParameterVarDecl extends VarDecl<ParameterVarDecl> {
 				getDefaultValue() == null ? null : transformation.applyChecked(Expression.class, defaultValue));
 	}
 
-	@Override
 	public ParameterVarDecl withType(TypeExpr type) {
 		return copy(type, getName(), defaultValue);
 	}
