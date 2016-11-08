@@ -5,15 +5,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.ir.NominalTypeExpr;
-import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.ToolValueAttribute;
-import se.lth.cs.tycho.ir.TypeExpr;
-import se.lth.cs.tycho.ir.TypeParameter;
-import se.lth.cs.tycho.ir.ValueParameter;
+import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
@@ -26,6 +18,7 @@ import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
+import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
@@ -160,6 +153,9 @@ public class XDF2NLReader {
 				String operation = op.getAttribute("name");
 				Expression operand = buildExpression(selectChild(expr, "Expr"));
 				return new ExprUnaryOp(operation, operand);
+			case "Var":
+				String name = expr.getAttribute("name");
+				return new ExprVariable(Variable.variable(name));
 		}
 		throw new UnsupportedOperationException("Unknown XDF expression: '" + expr.getAttribute("kind") + "'");
 	}
