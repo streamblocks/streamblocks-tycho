@@ -1,3 +1,4 @@
 namespace prelude :
 	public external procedure println(String text);
+	public external procedure print(String text);
 end

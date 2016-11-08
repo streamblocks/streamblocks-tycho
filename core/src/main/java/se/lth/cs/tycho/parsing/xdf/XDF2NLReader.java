@@ -8,6 +8,8 @@ import org.xml.sax.SAXException;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
@@ -16,6 +18,7 @@ import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
+import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
@@ -29,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class XDF2NLReader {
 	private final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -42,9 +46,11 @@ public class XDF2NLReader {
 	private NamespaceDecl buildNetwork(Document doc, QID qid) {
 		ImmutableList<InstanceDecl> instances = getInstances(doc);
 		ImmutableList<StructureStatement> connections = getConnections(doc);
+		ImmutableList<ParameterVarDecl> parameters = getParameters(doc);
+		ImmutableList<LocalVarDecl> varDecls = getVariableDeclarations(doc);
 		ImmutableList<PortDecl> inputPorts = getPorts(doc, true);
 		ImmutableList<PortDecl> outputPorts = getPorts(doc, false);
-		NlNetwork network = new NlNetwork(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(), inputPorts, outputPorts, instances, connections);
+		NlNetwork network = new NlNetwork(ImmutableList.empty(), parameters, ImmutableList.empty(), varDecls, inputPorts, outputPorts, instances, connections);
 		GlobalEntityDecl networkDecl = GlobalEntityDecl.global(Availability.PUBLIC, qid.getLast().toString(), network);
 		return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.of(networkDecl), ImmutableList.empty());
 	}
@@ -61,6 +67,31 @@ public class XDF2NLReader {
 					TypeExpr type = getTypeExpr(ts.get(0));
 					builder.add(new PortDecl(port.getAttribute("name"), type));
 				}
+			}
+		}
+		return builder.build();
+	}
+
+	private ImmutableList<ParameterVarDecl> getParameters(Document doc) {
+		ImmutableList.Builder<ParameterVarDecl> builder = ImmutableList.builder();
+		for (Element decl : selectChildren(doc.getDocumentElement(), "Decl")) {
+			if (decl.getAttribute("kind").equals("Param")) {
+				String name = decl.getAttribute("name");
+				TypeExpr type = getTypeExpr(selectChild(decl, "Type"));
+				builder.add(new ParameterVarDecl(type, name, null));
+			}
+		}
+		return builder.build();
+	}
+
+	private ImmutableList<LocalVarDecl> getVariableDeclarations(Document doc) {
+		ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
+		for (Element decl : selectChildren(doc.getDocumentElement(), "Decl")) {
+			if (decl.getAttribute("kind").equals("Variable")) {
+				String name = decl.getAttribute("name");
+				TypeExpr type = getTypeExpr(selectChild(decl, "Type"));
+				Expression value = buildExpression(selectChild(decl, "Expr"));
+				builder.add(new LocalVarDecl(type, name, value, true));
 			}
 		}
 		return builder.build();
@@ -156,6 +187,14 @@ public class XDF2NLReader {
 			case "Var":
 				String name = expr.getAttribute("name");
 				return new ExprVariable(Variable.variable(name));
+			case "BinOpSeq":
+				ImmutableList<Expression> exprs = selectChildren(expr, "Expr").stream()
+						.map(this::buildExpression)
+						.collect(ImmutableList.collector());
+				ImmutableList<String> ops = selectChildren(expr, "Op").stream()
+						.map(o -> o.getAttribute("name"))
+						.collect(ImmutableList.collector());
+				return new ExprBinaryOp(ops, exprs);
 		}
 		throw new UnsupportedOperationException("Unknown XDF expression: '" + expr.getAttribute("kind") + "'");
 	}

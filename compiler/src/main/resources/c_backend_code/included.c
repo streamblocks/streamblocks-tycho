@@ -36,5 +36,9 @@ int main(int argc, char **argv) {
 
 
 void println(char *text) {
-	printf("%s\n", text);
+	puts(text);
+}
+
+void print(char *text) {
+	fputs(text, stdout);
 }

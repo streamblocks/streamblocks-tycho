@@ -17,6 +17,7 @@ import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.expr.ExprComprehension;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
@@ -159,6 +160,13 @@ public final class VariableDeclarations {
 			Stream<Tree<ParameterVarDecl>> parameters = tree.assertNode(actor).children(CalActor::getValueParameters).map(Tree::upCast);
 			return Stream.concat(varDecls, parameters).filter(hasName(name)).map(Tree::upCast);
 		}
+
+		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, NlNetwork network, String name) {
+			Stream<Tree<LocalVarDecl>> varDecls = tree.assertNode(network).children(NlNetwork::getVarDecls);
+			Stream<Tree<ParameterVarDecl>> parameters = tree.assertNode(network).children(NlNetwork::getValueParameters).map(Tree::upCast);
+			return Stream.concat(varDecls, parameters).filter(hasName(name)).map(Tree::upCast);
+		}
+
 		default Stream<Tree<? extends VarDecl>> get(Tree<?> tree, ActorMachine actorMachine, String name) {
 			Tree<ActorMachine> root = tree.assertNode(actorMachine);
 			Stream<Tree<? extends VarDecl>> scopeVars = root.children(ActorMachine::getScopes)

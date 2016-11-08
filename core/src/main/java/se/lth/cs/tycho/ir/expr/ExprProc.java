@@ -56,35 +56,39 @@ public class ExprProc extends Expression {
 	}
 
 	public ExprProc(List<ParameterVarDecl> valueParams, List<Statement> body) {
-		this(null, valueParams, body, false);
+		this(null, valueParams, body, null);
 	}
 
 	public ExprProc(List<ParameterVarDecl> valueParams) {
-		this(null, valueParams, null, true);
+		this(null, valueParams, null, null);
 	}
 
-	private ExprProc(ExprProc original, List<ParameterVarDecl> valueParams, List<Statement> body, boolean hasBody) {
+	private ExprProc(ExprProc original, List<ParameterVarDecl> valueParams, List<Statement> body, List<ClosureVarDecl> closure) {
 		super(original);
 		this.valueParameters = ImmutableList.from(valueParams);
 		this.body = ImmutableList.from(body);
-		this.hasBody = hasBody;
+		this.closure = ImmutableList.from(closure);
 	}
 	
-	public ExprProc copy(List<ParameterVarDecl> valueParams, List<Statement> body, boolean external) {
+	private ExprProc copy(List<ParameterVarDecl> valueParams, List<Statement> body, List<ClosureVarDecl> closure) {
 		if (Lists.sameElements(valueParameters, valueParams)
 				&& Lists.sameElements(this.body, body)
-				&& this.hasBody == external) {
+				&& Lists.sameElements(this.closure, closure)) {
 			return this;
 		}
-		return new ExprProc(this, valueParams, body, external);
+		return new ExprProc(this, valueParams, body, closure);
 	}
 
 	public ImmutableList<ParameterVarDecl> getValueParameters() {
 		return valueParameters;
 	}
 
+	public ExprProc withClosure(List<ClosureVarDecl> closure) {
+		return copy(valueParameters, body, closure);
+	}
+
 	public ImmutableList<ClosureVarDecl> getClosure() {
-		throw new UnsupportedOperationException();
+		return closure;
 	}
 
 	public ImmutableList<Statement> getBody() {
@@ -93,12 +97,13 @@ public class ExprProc extends Expression {
 
 	private final ImmutableList<ParameterVarDecl> valueParameters;
 	private final ImmutableList<Statement> body;
-	private final boolean hasBody;
+	private final ImmutableList<ClosureVarDecl> closure;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		valueParameters.forEach(action);
 		body.forEach(action);
+		closure.forEach(action);
 	}
 
 	@Override
@@ -106,7 +111,7 @@ public class ExprProc extends Expression {
 		return copy(
 				transformation.mapChecked(ParameterVarDecl.class, valueParameters),
 				transformation.mapChecked(Statement.class, body),
-				hasBody
+				transformation.mapChecked(ClosureVarDecl.class, closure)
 		);
 	}
 }

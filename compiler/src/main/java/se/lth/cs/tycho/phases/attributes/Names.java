@@ -45,6 +45,7 @@ import se.lth.cs.tycho.phases.TreeShadow;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface Names {
