@@ -141,7 +141,7 @@ MORE :
 |
   < "/" ("*")+ "*/" >
 |
-  < "/" "*" (<OP>)* > : IN_MULTI_LINE_COMMENT
+  < "/" ("*") + > : IN_MULTI_LINE_COMMENT
 }
 
 <IN_MULTI_LINE_COMMENT>
@@ -162,10 +162,8 @@ TOKEN :
 {
 	< ACTION: "action" >
 |	< ACTOR: "actor" >
-|	< AND: "and" >
 |	< BEGIN: "begin" >
 |	< CONST: "const" >
-|	< DIV: "div" >
 |	< DO: "do" >
 |	< ELSE: "else" >
 |	< ELSIF: "elsif" >
@@ -182,11 +180,8 @@ TOKEN :
 |	< IN: "in" >
 |	< INITIALIZE: "initialize" >
 |	< LET: "let" >
-|	< MOD: "mod" >
-|	< NOT: "not" >
 |	< NULL: "null" >
 |	< OLD: "old" >
-|	< OR: "or" >
 |	< PRIORITY: "priority" >
 |	< PROCEDURE: "procedure" >
 |	< REPEAT: "repeat" >
@@ -225,9 +220,9 @@ TOKEN: {
 |	< STAR: "*" >
 |	< DOT_STAR: ".*" >
 |	< CINNAMON_BUN: "@" >
-|	< OP: <OP_CHAR> (<OP_CHAR> | "=")* >
-|	< #OP_CHAR: ["!", "#", "$", "%", "^", "&", "*", "/",
-		"+", "-", "<", ">", "?", "~", "|", "."] >
+|	< ANY_OP: "-" >
+|	< BIN_OP: "&" | "|" | "^" | "/" | "div" | "==" | "**" | ">=" | "<=" | "&&" | "and" | "||" | "or" | "<" | "%" | "mod" | "!=" | "+" | "<<" | ">>" | ".." >
+|	< UN_OP: "~" | "!" | "not" | "#" >
 }
 
 /* String literals */
@@ -966,6 +961,13 @@ Expression PrimaryExpression() :
 	Token l, r;
 }
 {
+	l = <LPAREN>
+	expr = Expression()
+	r = <RPAREN>
+	{ expr.setPosition(l.beginLine, l.beginColumn, r.endLine, r.endColumn); }
+	{ return expr; }
+|
+	(Annotation())*
 	(
 		expr = VariableExpression()
 		(
@@ -979,11 +981,6 @@ Expression PrimaryExpression() :
 		)*
 	|
 		expr = ExpressionLiteral()
-	|
-		l = <LPAREN>
-		expr = Expression()
-		r = <RPAREN>
-		{ expr.setPosition(l.beginLine, l.beginColumn, r.endLine, r.endColumn); }
 	|
 		expr = IfExpression()
 	|
@@ -1072,8 +1069,7 @@ String BinaryOperator() :
 }
 {
 	(
-		op = <OP> | op = "=" | op = "-->" | op = ">" | op = "*" | op = ".*"
-		| op = "and" | op = "or" | op = "in" | op = "div" | op = "mod"
+		op = <BIN_OP> | op = <ANY_OP> | op = "*" | op = ">" | op = "="
 	)
 	{ return op.image; }
 }
@@ -1084,8 +1080,7 @@ String UnaryOperator() :
 }
 {
 	(
-		op = <OP> | op = "=" | op = "-->" | op = ">" | op = "*" | op = ".*"
-		| op = "not" | op = "old"
+		op = <UN_OP> | op = <ANY_OP>
 	)
 	{ return op.image; }
 }
