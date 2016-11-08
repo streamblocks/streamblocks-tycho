@@ -469,12 +469,22 @@ GlobalVarDecl GlobalVarDecl() :
 
 LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 {
+	Annotation ann;
+	boolean external = false;
 	TypeExpr type = null;
 	String name;
 	Expression expr = null;
 	boolean assignable = false;
 }
 {
+	(
+		ann = Annotation()
+		{
+			if (ann.getName().equals("native")) {
+				external = true;
+			}
+		}
+	)*
 	(
 		{ TypeAndName typeName; }
 		typeName = VarDeclTypeName()
@@ -488,18 +498,16 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 		)?
 		{ name = typeName.name; type = typeName.type; }
 	|
-		LOOKAHEAD( (Annotation())* "function" )
 		{ NameAndDef<ExprLambda> fun; }
 		fun = FunDecl()
-		{ name = fun.name; expr = fun.def; }
+		{ name = fun.name; expr = fun.def; assignable = false; }
 	|
-		LOOKAHEAD( (Annotation())* "procedure" )
 		{ NameAndDef<ExprProc> proc; }
 		proc = ProcDecl()
-		{ name = proc.name; expr = proc.def; }
+		{ name = proc.name; expr = proc.def; assignable = false; }
 	)
 	{
-		return VarDecl.local(type, name, expr, !assignable);
+		return VarDecl.local(type, name, expr, !assignable).asExternal(external);
 	}
 }
 
@@ -525,13 +533,11 @@ Import Import() :
 
 NameAndDef<ExprLambda> FunDecl() :
 {
-	Annotation ann;
 	Token id;
 	ImmutableList<ParameterVarDecl> valPars;
 	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
 	Expression expr = null;
 	TypeExpr type = null;
-	boolean external = false;
 }
 {
 	"function"
@@ -557,23 +563,16 @@ NameAndDef<ExprLambda> FunDecl() :
 		"end"
 	)
 	{
-		ExprLambda lambda;
-		if (external) {
-			lambda = new ExprLambda(valPars, type);
-		} else {
-			if (!varDecls.isEmpty()) {
-				expr = new ExprLet(ImmutableList.empty(), varDecls, expr);
-			}
-			lambda = new ExprLambda(valPars, expr, type);
+		if (!varDecls.isEmpty()) {
+			expr = new ExprLet(ImmutableList.empty(), varDecls, expr);
 		}
+		ExprLambda lambda = new ExprLambda(valPars, expr, type);
 		return new NameAndDef<ExprLambda>(id.image, lambda);
 	}
 }
 
 NameAndDef<ExprProc> ProcDecl() :
 {
-	Annotation ann;
-	boolean external = false;
 	Token id;
 	ImmutableList<ParameterVarDecl> valPars;
 	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
@@ -600,12 +599,7 @@ NameAndDef<ExprProc> ProcDecl() :
 	)
 	{
 		StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
-		ExprProc proc;
-		if (external) {
-			proc = new ExprProc(valPars);
-		} else {
-			proc = new ExprProc(valPars, ImmutableList.of(block));
-		}
+		ExprProc proc = new ExprProc(valPars, ImmutableList.of(block));
 		return new NameAndDef<ExprProc>(id.image, proc);
 	}
 }

@@ -61,8 +61,13 @@ public class XDF2NLReader {
 		ImmutableList.Builder<PortDecl> builder = ImmutableList.builder();
 		for (Element port : selectChildren(doc.getDocumentElement(), "Port")) {
 			if (port.getAttribute("kind").equalsIgnoreCase(kind)) {
-				TypeExpr type = getTypeExpr(selectChild(port, "Type"));
-				builder.add(new PortDecl(port.getAttribute("name"), type));
+				List<Element> ts = selectChildren(port, "Type");
+				if (ts.isEmpty()) {
+					builder.add(new PortDecl(port.getAttribute("name")));
+				} else {
+					TypeExpr type = getTypeExpr(ts.get(0));
+					builder.add(new PortDecl(port.getAttribute("name"), type));
+				}
 			}
 		}
 		return builder.build();

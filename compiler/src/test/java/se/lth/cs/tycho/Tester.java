@@ -23,7 +23,7 @@ public class Tester {
 
 	public void run() throws InterruptedException, IOException, Configuration.Builder.UnknownKeyException {
 		for (TestDescription test : descriptions) {
-			ProgramTester tester = ProgramTester.compile(test.getSourcePaths(), test.getExternalSources(), test.getEntity(), targetPath);
+			ProgramTester tester = ProgramTester.compile(test, targetPath);
 			for (TestDescription.TestData data : test.getTestData()) {
 				tester.run(data.getInput(), data.getReference(), targetPath);
 			}

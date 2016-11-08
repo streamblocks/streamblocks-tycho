@@ -117,7 +117,7 @@ public class ExprLambda extends Expression {
 	public ExprLambda transformChildren(Transformation transformation) {
 		return copy(
 				transformation.mapChecked(ParameterVarDecl.class, valueParameters),
-				transformation.applyChecked(Expression.class, body),
+				body == null ? null : transformation.applyChecked(Expression.class, body),
 				returnTypeExpr == null ? null : transformation.applyChecked(TypeExpr.class, returnTypeExpr),
 				transformation.mapChecked(ClosureVarDecl.class, closure));
 	}

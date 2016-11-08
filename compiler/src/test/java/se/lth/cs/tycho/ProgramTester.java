@@ -1,7 +1,6 @@
 package se.lth.cs.tycho;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
 import se.lth.cs.tycho.comp.Compiler;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
@@ -17,9 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class ProgramTester {
 	private final Path executable;
@@ -28,13 +25,16 @@ public class ProgramTester {
 		this.executable = executable;
 	}
 
-	public static ProgramTester compile(List<Path> source, List<Path> external, QID name, Path target) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
+	public static ProgramTester compile(TestDescription test, Path target) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
 		SettingsManager settings = Compiler.defaultSettingsManager();
 		Configuration config = Configuration.builder(settings)
-				.set(Compiler.sourcePaths, source)
+				.set(Compiler.sourcePaths, test.getSourcePaths())
+				.set(Compiler.orccSourcePaths, test.getOrccSourcePaths())
+				.set(Compiler.xdfSourcePaths, test.getXDFSourcePaths())
 				.set(Compiler.targetPath, target)
 				.build();
 		Compiler comp = new Compiler(config);
+		QID name = test.getEntity();
 		if (comp.compile(name)) {
 			Optional<Path> cfile = Files.list(target)
 					.filter(file -> file.getFileName().toString().startsWith(name.getLast().toString()))
@@ -45,7 +45,7 @@ public class ProgramTester {
 				command.add("cc");
 				command.add("-std=c99");
 				command.add(cfile.get().getFileName().toString());
-				external.forEach(p -> command.add(p.toAbsolutePath().toString()));
+				test.getExternalSources().forEach(p -> command.add(p.toAbsolutePath().toString()));
 				Process cc = new ProcessBuilder(command)
 						.directory(target.toFile())
 						.start();

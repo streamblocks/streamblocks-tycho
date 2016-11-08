@@ -1,0 +1,16 @@
+{
+  "description": "LMS",
+  "source-paths": ["../../util", "src"],
+  "external-sources": ["../../util/int_conv.c"],
+  "orcc-source-paths": ["../../orc-apps/DigitalFiltering/src"],
+  "entity": "Top_LMS_lowlevel",
+  "test-data": [
+    {
+      "input": [
+        "../../orc-apps/DigitalFiltering/lib/input_signals/lms/input_0.in",
+        "../../orc-apps/DigitalFiltering/lib/input_signals/lms/input_1.in"
+      ],
+      "reference": ["lib/reference_output/lms/sink.out"]
+    }
+  ]
+}

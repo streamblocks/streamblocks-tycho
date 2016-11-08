@@ -1,0 +1,136 @@
+import all entity common;
+import all entity numtext;
+import common.constants.SAMPLE_SZ;
+
+network Top_LMS_lowlevel () uint(size=8) input_0, uint(size=8) input_1 ==> uint(size=8) sink :
+entities
+	lms = LMS_lowlevel_open();
+
+	source_xk = Read();
+	trunc_xk = Int64toInt32();
+
+	source_yk = Read();
+	trunc_yk = Int64toInt32();
+
+	sink = Write();
+	expand_sink = Int32toInt64();
+
+structure
+	input_0 --> source_xk.Chars;
+	source_xk.Numbers --> trunc_xk.X;
+	trunc_xk.Y --> lms.input_0;
+
+	input_1 --> source_yk.Chars;
+	source_yk.Numbers --> trunc_yk.X;
+	trunc_yk.Y --> lms.input_1;
+
+	lms.sink --> expand_sink.X;
+	expand_sink.Y --> sink.Numbers;
+	sink.Chars --> sink;
+end
+
+network LMS_lowlevel_open () int(size=SAMPLE_SZ) input_0, int(size=SAMPLE_SZ) input_1 ==> int(size=SAMPLE_SZ) sink :
+entities
+	delay_1 = delay(initial_sample = 0);
+	delay_2 = delay(initial_sample = 0);
+	delay_3 = delay(initial_sample = 0);
+	delay_4 = delay(initial_sample = 0);
+	delay_5 = delay(initial_sample = 0);
+	delay_6 = delay(initial_sample = 0);
+	mul_a1 = mul();
+	mul_a2 = mul();
+	mul_a3 = mul();
+	mul_a4 = mul();
+	mul_a5 = mul();
+	mul_a6 = mul();
+	mul_a7 = mul();
+	add_a1 = add();
+	add_a2 = add();
+	add_a3 = add();
+	add_a4 = add();
+	add_a5 = add();
+	add_a6 = add();
+	mul_b1 = mul();
+	mul_b2 = mul();
+	mul_b3 = mul();
+	mul_b4 = mul();
+	mul_b5 = mul();
+	mul_b6 = mul();
+	mul_b7 = mul();
+	acc_1 = acc(initial_sample = 0);
+	acc_2 = acc(initial_sample = 0);
+	acc_3 = acc(initial_sample = 0);
+	acc_4 = acc(initial_sample = 0);
+	acc_5 = acc(initial_sample = 0);
+	acc_6 = acc(initial_sample = 0);
+	acc_7 = acc(initial_sample = 0);
+	source_xk = addc(constant = -128);
+	sink = addc(constant = 128);
+	sub = sub();
+	source_yk = addc(constant = -128);
+	mul_mu = lshiftc(constant = 3);
+	rshift = rshiftc(constant = 24);
+
+structure
+	input_0 --> source_xk.operand_1;
+	input_1 --> source_yk.operand_1;
+	source_xk.result --> delay_1.operand_1;
+	delay_1.result --> delay_2.operand_1;
+	delay_2.result --> delay_3.operand_1;
+	delay_3.result --> delay_4.operand_1;
+	delay_4.result --> delay_5.operand_1;
+	delay_5.result --> delay_6.operand_1;
+	source_xk.result --> mul_a1.operand_1;
+	delay_1.result --> mul_a2.operand_1;
+	delay_2.result --> mul_a3.operand_1;
+	delay_3.result --> mul_a4.operand_1;
+	delay_4.result --> mul_a5.operand_1;
+	delay_5.result --> mul_a6.operand_1;
+	delay_6.result --> mul_a7.operand_1;
+	source_xk.result --> mul_b1.operand_1;
+	delay_1.result --> mul_b2.operand_1;
+	delay_2.result --> mul_b3.operand_1;
+	delay_3.result --> mul_b4.operand_1;
+	delay_4.result --> mul_b5.operand_1;
+	delay_5.result --> mul_b6.operand_1;
+	delay_6.result --> mul_b7.operand_1;
+	add_a1.result --> add_a2.operand_2;
+	add_a2.result --> add_a3.operand_2;
+	mul_b1.result --> add_a1.operand_2;
+	mul_b2.result --> add_a1.operand_1;
+	mul_b3.result --> add_a2.operand_1;
+	mul_b4.result --> add_a3.operand_1;
+	add_a3.result --> add_a4.operand_2;
+	mul_b5.result --> add_a4.operand_1;
+	mul_b6.result --> add_a5.operand_1;
+	add_a4.result --> add_a5.operand_2;
+	add_a5.result --> add_a6.operand_2;
+	mul_b7.result --> add_a6.operand_1;
+	mul_mu.result --> mul_a7.operand_2;
+	mul_mu.result --> mul_a6.operand_2;
+	mul_mu.result --> mul_a5.operand_2;
+	mul_mu.result --> mul_a4.operand_2;
+	mul_mu.result --> mul_a3.operand_2;
+	mul_mu.result --> mul_a2.operand_2;
+	mul_mu.result --> mul_a1.operand_2;
+	mul_a1.result --> acc_1.operand_1;
+	acc_1.result --> mul_b1.operand_2;
+	mul_a2.result --> acc_2.operand_1;
+	acc_2.result --> mul_b2.operand_2;
+	mul_a3.result --> acc_3.operand_1;
+	acc_3.result --> mul_b3.operand_2;
+	mul_a4.result --> acc_4.operand_1;
+	acc_4.result --> mul_b4.operand_2;
+	mul_a5.result --> acc_5.operand_1;
+	acc_5.result --> mul_b5.operand_2;
+	mul_a6.result --> acc_6.operand_1;
+	acc_6.result --> mul_b6.operand_2;
+	mul_a7.result --> acc_7.operand_1;
+	acc_7.result --> mul_b7.operand_2;
+	sub.result --> mul_mu.operand_1;
+	sink.result --> sink;
+	sub.result --> sink.operand_1;
+	add_a6.result --> rshift.operand_1;
+	rshift.result --> sub.operand_2;
+	source_yk.result --> sub.operand_1;
+end

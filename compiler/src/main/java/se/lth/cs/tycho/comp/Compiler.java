@@ -38,6 +38,7 @@ public class Compiler {
 			new PrettyPrintPhase(),
 
 			// Post parse
+			new RemoveExternStubPhase(),
 			new OperatorParsingPhase(),
 
 			// Name and type analyses and transformations

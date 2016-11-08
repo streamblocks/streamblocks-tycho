@@ -1,0 +1,9 @@
+external function to_int32_t(int(size=64) x) --> int(size=32);
+
+actor Int64toInt32 () int(size=64) X ==> int(size=32) Y :
+	action X:[x] ==> Y:[to_int32_t(x)] end
+end
+
+actor Int32toInt64 () int(size=32) X ==> int(size=64) Y :
+	action X:[x] ==> Y:[x] end
+end
