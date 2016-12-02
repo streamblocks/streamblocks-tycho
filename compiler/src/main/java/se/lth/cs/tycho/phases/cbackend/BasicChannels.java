@@ -77,20 +77,17 @@ public interface BasicChannels extends Channels {
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static channel_%s *channel_create_%1$s() {", tokenType);
+		emitter().emit("static void channel_create_%1$s(channel_%1$s *channel) {", tokenType);
 		emitter().emit("	%s *buffer = malloc(sizeof(%1$s)*BUFFER_SIZE);", tokenType);
-		emitter().emit("	channel_%s *channel = malloc(sizeof(channel_%1$s));", tokenType);
 		emitter().emit("	channel->head = 0;");
 		emitter().emit("	channel->tokens = 0;");
 		emitter().emit("	channel->buffer = buffer;");
-		emitter().emit("	return channel;");
 		emitter().emit("}");
 		emitter().emit("");
 
 
 		emitter().emit("static void channel_destroy_%s(channel_%1$s *channel) {", tokenType);
 		emitter().emit("	free(channel->buffer);");
-		emitter().emit("	free(channel);");
 		emitter().emit("}");
 		emitter().emit("");
 	}
