@@ -39,4 +39,5 @@ public interface Backend {
 	@Binding(MODULE) Global global();
 	@Binding(MODULE) DefaultValues defaultValues();
 	@Binding(MODULE) Callables callables();
+	@Binding(MODULE) BasicChannels channels();
 }
