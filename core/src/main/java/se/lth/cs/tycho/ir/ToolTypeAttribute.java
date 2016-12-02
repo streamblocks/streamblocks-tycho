@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir;
 import java.util.Objects;
 
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.util.PrettyPrint;
 
 /**

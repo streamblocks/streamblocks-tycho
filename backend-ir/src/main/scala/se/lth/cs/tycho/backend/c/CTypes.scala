@@ -14,7 +14,7 @@ object CTypes {
     case ArrayType(element, Some(size)) => declaration(s"($name[$size])", element)
     case ArrayType(element, None) => declaration(s"($name[])", element)
     case FunctionType(params, ret) => declaration(s"$name${parameterList(params)}", ret)
-    case UnitType => "void"
+    case UnitType() => "void"
     case NominalType(typename) => s"$typename $name"
   }
 

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XDF name="Decoding_Y">
+    <Port kind="Input" name="MV">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="PartSZ">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="Coef_ACR">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="BTYPE">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="INTRA_INFO">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Output" name="Display_L">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Instance id="IS_IQ_IT">
+        <Class name="configurations.decoders.avs.ISIQIT"/>
+    </Instance>
+    <Instance id="Algo_add_avs">
+        <Class name="avs.decode.intra.Algo_Add_avs"/>
+    </Instance>
+    <Instance id="Algo_IntraModePred_LUMA_AVSJZ">
+        <Class name="avs.decode.intra.Algo_IntraModePred_LUMA_AVSJZ"/>
+    </Instance>
+    <Instance id="Algo_Intra_Luma_Addr_LeftTop_AVSJZ">
+        <Class name="avs.decode.intra.Algo_Intra_Luma_Addr_LeftTop_AVSJZ"/>
+    </Instance>
+    <Instance id="Mgnt_IntraPred_LUMA_Addr">
+        <Class name="avs.decode.intra.Mgnt_IntraPred_LUMA_Addr"/>
+    </Instance>
+    <Instance id="Algo_IntraPred_LUMA_8x8_AVSJZ">
+        <Class name="avs.decode.intra.Algo_IntraPred_LUMA_8x8_AVSJZ"/>
+    </Instance>
+    <Instance id="Select_block">
+        <Class name="avs.decode.inter.Algo_select"/>
+    </Instance>
+    <Instance id="Algo_Interp_HalfandQuarterPel_AVSJZ">
+        <Class name="avs.P.Algo_Interp_HalfandQuarterPel_AVSJZ"/>
+    </Instance>
+    <Instance id="feed">
+        <Class name="feed"/>
+    </Instance>
+    <Connection dst="IS_IQ_IT" dst-port="BTYPE" src="" src-port="BTYPE"/>
+    <Connection dst="Algo_add_avs" dst-port="res" src="IS_IQ_IT" src-port="res"/>
+    <Connection dst="Algo_add_avs" dst-port="BTYPE" src="" src-port="BTYPE"/>
+    <Connection dst="IS_IQ_IT" dst-port="IS_IN" src="" src-port="Coef_ACR"/>
+    <Connection dst="" dst-port="Display_L" src="Algo_add_avs" src-port="RecData"/>
+    <Connection dst="Algo_IntraModePred_LUMA_AVSJZ"
+        dst-port="INTRA_INFO" src="" src-port="INTRA_INFO"/>
+    <Connection dst="Algo_IntraModePred_LUMA_AVSJZ" dst-port="BTYPE"
+        src="" src-port="BTYPE"/>
+    <Connection dst="Algo_Intra_Luma_Addr_LeftTop_AVSJZ"
+        dst-port="BTYPE" src="" src-port="BTYPE"/>
+    <Connection dst="Algo_IntraModePred_LUMA_AVSJZ" dst-port="B"
+        src="Algo_Intra_Luma_Addr_LeftTop_AVSJZ" src-port="B"/>
+    <Connection dst="Algo_IntraModePred_LUMA_AVSJZ" dst-port="A"
+        src="Algo_Intra_Luma_Addr_LeftTop_AVSJZ" src-port="A"/>
+    <Connection dst="Mgnt_IntraPred_LUMA_Addr" dst-port="BTYPE" src="" src-port="BTYPE"/>
+    <Connection dst="Algo_IntraPred_LUMA_8x8_AVSJZ" dst-port="RecData"
+        src="Algo_add_avs" src-port="RecData"/>
+    <Connection dst="Algo_IntraPred_LUMA_8x8_AVSJZ" dst-port="BTYPE"
+        src="" src-port="BTYPE"/>
+    <Connection dst="Algo_IntraPred_LUMA_8x8_AVSJZ" dst-port="AVAIL"
+        src="Mgnt_IntraPred_LUMA_Addr" src-port="AVAIL"/>
+    <Connection dst="Algo_IntraPred_LUMA_8x8_AVSJZ"
+        dst-port="IntraLumaPredMode" src="Algo_IntraModePred_LUMA_AVSJZ" src-port="IntraLumaPredMode"/>
+    <Connection dst="Select_block" dst-port="PRED_INTRA"
+        src="Algo_IntraPred_LUMA_8x8_AVSJZ" src-port="IntraPred_Y"/>
+    <Connection dst="Algo_add_avs" dst-port="Pred" src="Select_block" src-port="PRED"/>
+    <Connection dst="Select_block" dst-port="BTYPE" src="" src-port="BTYPE"/>
+    <Connection dst="Algo_Interp_HalfandQuarterPel_AVSJZ"
+        dst-port="PartSZ" src="" src-port="PartSZ"/>
+    <Connection dst="Algo_Interp_HalfandQuarterPel_AVSJZ" dst-port="RD"
+        src="feed" src-port="OUT"/>
+    <Connection dst="Algo_Interp_HalfandQuarterPel_AVSJZ" dst-port="MV"
+        src="" src-port="MV"/>
+    <Connection dst="Select_block" dst-port="PRED_INTER"
+        src="Algo_Interp_HalfandQuarterPel_AVSJZ" src-port="INTERP"/>
+</XDF>

@@ -1,0 +1,12 @@
+{
+  "description": "Closure test",
+  "source-paths": ["../util", "."],
+  "external-sources": ["../util/int_conv.c"],
+  "entity": "closure.ClosureTest",
+  "test-data": [
+    {
+      "input": [],
+      "reference": ["ref.txt"]
+    }
+  ]
+}

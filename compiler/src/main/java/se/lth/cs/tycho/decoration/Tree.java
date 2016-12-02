@@ -18,6 +18,7 @@ import java.util.stream.StreamSupport;
 public final class Tree<N extends IRNode> {
 	private final Tree<? extends IRNode> parent;
 	private final N node;
+	private final int hashCode;
 
 	private Tree(Tree<? extends IRNode> parent, N node) {
 		if (node == null) {
@@ -25,6 +26,7 @@ public final class Tree<N extends IRNode> {
 		}
 		this.parent = parent;
 		this.node = node;
+		this.hashCode = Objects.hash(parent, node);
 	}
 
 	/**
@@ -135,7 +137,7 @@ public final class Tree<N extends IRNode> {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(parent, node);
+		return hashCode;
 	}
 
 	@Override

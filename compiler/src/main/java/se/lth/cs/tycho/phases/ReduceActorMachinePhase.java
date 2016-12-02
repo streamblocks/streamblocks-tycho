@@ -13,6 +13,7 @@ import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.phases.reduction.MergeStates;
 import se.lth.cs.tycho.phases.reduction.SelectRandom;
+import se.lth.cs.tycho.phases.reduction.ShortestPathToExec;
 import se.lth.cs.tycho.phases.reduction.SingleInstructionState;
 import se.lth.cs.tycho.phases.reduction.TransformedController;
 import se.lth.cs.tycho.settings.Configuration;
@@ -47,7 +48,7 @@ public class ReduceActorMachinePhase implements Phase {
 	};
 
 	public enum ReductionAlgorithm {
-		SELECT_FIRST, SELECT_RANDOM;
+		SELECT_FIRST, SELECT_RANDOM, SHORTEST_PATH_TO_EXEC;
 	}
 
 	private static final Setting<ReductionAlgorithm> reductionAlgorithm = new EnumSetting<ReductionAlgorithm>(ReductionAlgorithm.class) {
@@ -101,6 +102,7 @@ public class ReduceActorMachinePhase implements Phase {
 		switch (configuration.get(reductionAlgorithm)) {
 			case SELECT_FIRST: return selectFirst;
 			case SELECT_RANDOM: return new SelectRandom(configuration.get(randomSeed).map(Integer::longValue).orElse(System.currentTimeMillis()));
+			case SHORTEST_PATH_TO_EXEC: return new ShortestPathToExec();
 			default: throw new AssertionError();
 		}
 	}

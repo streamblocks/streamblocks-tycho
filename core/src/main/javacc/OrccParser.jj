@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import se.lth.cs.tycho.ir.*;
+import se.lth.cs.tycho.ir.type.*;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;

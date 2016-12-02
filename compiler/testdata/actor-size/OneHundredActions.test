@@ -1,0 +1,11 @@
+{
+  "description": "One hundred actions",
+  "source-paths": ["."],
+  "entity": "actorsize.OneHundredActions",
+  "test-data": [
+    {
+      "input": ["../random1k.data"],
+      "reference": ["../random1k.data"]
+    }
+  ]
+}

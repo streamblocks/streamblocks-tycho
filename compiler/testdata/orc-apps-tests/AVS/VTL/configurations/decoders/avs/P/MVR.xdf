@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XDF name="MVR">
+    <Port kind="Input" name="MbType">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="Location">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="Mvd">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="Is_P_Skip">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="IsIntraMb">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="ref_Frame">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="reF">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="Part_SZ">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="picture_distance_out">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="img_Imgtr_last_P">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="img_Imgtr_last_prev_P">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Input" name="img_Imgtr_next_P">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Output" name="MV">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Output" name="PartSZ">
+        <Type name="int">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="32"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Instance id="Buffer">
+        <Class name="avs.parser.motion.Mgnt_Buffer"/>
+    </Instance>
+    <Instance id="P_Skip">
+        <Class name="avs.parser.motion.Algo_P_Skip_AVSJZ"/>
+    </Instance>
+    <Instance id="MVP">
+        <Class name="avs.parser.motion.Algo_MV_Prediction"/>
+    </Instance>
+    <Instance id="MVReconstruct">
+        <Class name="avs.parser.motion.Algo_MVReconstruct_AVSJZ"/>
+    </Instance>
+    <Connection dst="P_Skip" dst-port="mb_available_up" src="Buffer" src-port="mb_available_up"/>
+    <Connection dst="P_Skip" dst-port="mb_available_left" src="Buffer" src-port="mb_available_left"/>
+    <Connection dst="Buffer" dst-port="Location" src="" src-port="Location"/>
+    <Connection dst="Buffer" dst-port="Part_SZ" src="" src-port="Part_SZ"/>
+    <Connection dst="MVReconstruct" dst-port="Mvd" src="" src-port="Mvd"/>
+    <Connection dst="MVReconstruct" dst-port="Mv_Pred" src="MVP" src-port="pmv"/>
+    <Connection dst="Buffer" dst-port="Mv" src="MVReconstruct" src-port="Mv"/>
+    <Connection dst="Buffer" dst-port="IsIntraMb" src="" src-port="IsIntraMb"/>
+    <Connection dst="Buffer" dst-port="Ref_Frame" src="" src-port="ref_Frame"/>
+    <Connection dst="Buffer" dst-port="Ref" src="" src-port="reF"/>
+    <Connection dst="P_Skip" dst-port="refFr_L" src="Buffer" src-port="refFr_L"/>
+    <Connection dst="P_Skip" dst-port="refFr_U" src="Buffer" src-port="refFr_U"/>
+    <Connection dst="P_Skip" dst-port="refFr_UR" src="Buffer" src-port="refFr_UR"/>
+    <Connection dst="P_Skip" dst-port="refFr_UL" src="Buffer" src-port="refFr_UL"/>
+    <Connection dst="P_Skip" dst-port="tmp_Mv_L" src="Buffer" src-port="tmp_Mv_L"/>
+    <Connection dst="P_Skip" dst-port="tmp_Mv_U" src="Buffer" src-port="tmp_Mv_U"/>
+    <Connection dst="P_Skip" dst-port="tmp_Mv_UL" src="Buffer" src-port="tmp_Mv_UL"/>
+    <Connection dst="P_Skip" dst-port="tmp_Mv_UR" src="Buffer" src-port="tmp_Mv_UR"/>
+    <Connection dst="MVP" dst-port="refFr_U" src="P_Skip" src-port="refFr_U_out"/>
+    <Connection dst="MVP" dst-port="refFr_UR" src="P_Skip" src-port="refFr_UR_out"/>
+    <Connection dst="MVP" dst-port="refFr_UL" src="P_Skip" src-port="refFr_UL_out"/>
+    <Connection dst="MVP" dst-port="tmp_Mv_L" src="P_Skip" src-port="tmp_Mv_L_out"/>
+    <Connection dst="MVP" dst-port="tmp_Mv_U" src="P_Skip" src-port="tmp_Mv_U_out"/>
+    <Connection dst="MVP" dst-port="tmp_Mv_UL" src="P_Skip" src-port="tmp_Mv_UL_out"/>
+    <Connection dst="MVP" dst-port="tmp_Mv_UR" src="P_Skip" src-port="tmp_Mv_UR_out"/>
+    <Connection dst="Buffer" dst-port="MbType" src="" src-port="MbType"/>
+    <Connection dst="Buffer" dst-port="Is_P_Skip" src="" src-port="Is_P_Skip"/>
+    <Connection dst="MVReconstruct" dst-port="Is_P_Skip" src="Buffer" src-port="Is_P_SkipOut"/>
+    <Connection dst="P_Skip" dst-port="Is_P_Skip" src="Buffer" src-port="Is_P_SkipOut"/>
+    <Connection dst="MVP" dst-port="block_available_left" src="Buffer" src-port="block_available_left"/>
+    <Connection dst="MVP" dst-port="block_available_up" src="Buffer" src-port="block_available_up"/>
+    <Connection dst="MVP" dst-port="block_available_upleft" src="Buffer" src-port="block_available_upleft"/>
+    <Connection dst="MVP" dst-port="block_available_upright"
+        src="Buffer" src-port="block_available_upright"/>
+    <Connection dst="MVP" dst-port="refFr_L" src="P_Skip" src-port="refFr_L_out"/>
+    <Connection dst="MVP" dst-port="ref_Frame" src="" src-port="ref_Frame"/>
+    <Connection dst="MVP" dst-port="reF" src="" src-port="reF"/>
+    <Connection dst="MVP" dst-port="block_X" src="Buffer" src-port="block_X"/>
+    <Connection dst="MVP" dst-port="block_Y" src="Buffer" src-port="block_Y"/>
+    <Connection dst="MVP" dst-port="PartSZ" src="Buffer" src-port="Part_SZ_Out"/>
+    <Connection dst="MVP" dst-port="MbTypeP" src="Buffer" src-port="MbTypeP"/>
+    <Connection dst="MVP" dst-port="picture_Distance" src="" src-port="picture_distance_out"/>
+    <Connection dst="MVP" dst-port="img_Imgtr_next_P" src="" src-port="img_Imgtr_next_P"/>
+    <Connection dst="MVP" dst-port="img_Imgtr_last_prev_P" src="" src-port="img_Imgtr_last_prev_P"/>
+    <Connection dst="MVP" dst-port="img_Imgtr_last_P" src="" src-port="img_Imgtr_last_P"/>
+    <Connection dst="" dst-port="MV" src="MVReconstruct" src-port="Mv"/>
+    <Connection dst="" dst-port="PartSZ" src="Buffer" src-port="Part_SZ_Out"/>
+</XDF>

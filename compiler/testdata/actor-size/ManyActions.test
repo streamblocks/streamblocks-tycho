@@ -1,0 +1,11 @@
+{
+  "description": "Many conditions",
+  "source-paths": ["."],
+  "entity": "actorsize.ManyConditions",
+  "test-data": [
+    {
+      "input": ["../random1k.data"],
+      "reference": ["../random1k.data"]
+    }
+  ]
+}

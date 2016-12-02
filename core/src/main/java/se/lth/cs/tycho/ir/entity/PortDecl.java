@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 
 /**
  * Port declaration.

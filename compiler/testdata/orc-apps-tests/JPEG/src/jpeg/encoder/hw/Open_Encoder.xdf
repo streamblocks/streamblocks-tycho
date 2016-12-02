@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XDF name="Open_Encoder">
+    <Port kind="Input" name="In">
+        <Type name="uint">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="8"/>
+            </Entry>
+        </Type>
+    </Port>
+    <Port kind="Output" name="Out">
+        <Type name="uint">
+            <Entry kind="Expr" name="size">
+                <Expr kind="Literal" literal-kind="Integer" value="8"/>
+            </Entry>
+        </Type>
+    </Port>
+     <Instance id="encoder">
+        <Class name="jpeg.encoder.hw.Encoder"/>
+    </Instance>
+    <Instance id="readYCbCr">
+        <Class name="jpeg.encoder.converter.RawYCbCr"/>
+        <Parameter name="height">
+            <Expr kind="Literal" literal-kind="Integer" value="144"/>
+        </Parameter>
+        <Parameter name="width">
+            <Expr kind="Literal" literal-kind="Integer" value="176"/>
+        </Parameter>
+    </Instance>
+    <Connection dst="encoder" dst-port="Y" src="readYCbCr" src-port="Y"/>
+    <Connection dst="encoder" dst-port="CbCr" src="readYCbCr" src-port="CbCr"/>
+    <Connection dst="encoder" dst-port="SOI" src="readYCbCr" src-port="SOI"/>
+    <Connection dst="readYCbCr" dst-port="In" src="" src-port="In"/>
+    <Connection dst="" dst-port="Out" src="encoder" src-port="Bitstream"/>
+</XDF>

@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.ir;
 
+import se.lth.cs.tycho.ir.type.TypeExpr;
+
 import java.util.Objects;
 
 public final class TypeParameter extends AbstractIRNode implements Parameter<TypeExpr, TypeParameter> {

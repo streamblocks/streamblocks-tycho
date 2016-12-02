@@ -56,7 +56,8 @@ public interface IRNode extends Cloneable {
 		IRNode apply(IRNode node);
 		default <T extends IRNode> T applyChecked(Class<T> type, T node) {
 			IRNode result = apply(node);
-			return type.cast(result);
+			assert type.isInstance(result);
+			return (T) result;
 		}
 		default <T extends IRNode> List<T> mapChecked(Class<T> type, List<T> nodes) {
 			return nodes.stream()

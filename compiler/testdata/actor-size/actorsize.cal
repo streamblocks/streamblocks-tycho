@@ -1,0 +1,361 @@
+namespace actorsize :
+	actor OneHundredActions () uint(size=8) X ==> uint(size=8) Y :
+		a0: action X:[v] ==> Y:[v] guard v = 0 end
+		a1: action X:[v] ==> Y:[v] guard v = 1 end
+		a2: action X:[v] ==> Y:[v] guard v = 2 end
+		a3: action X:[v] ==> Y:[v] guard v = 3 end
+		a4: action X:[v] ==> Y:[v] guard v = 4 end
+		a5: action X:[v] ==> Y:[v] guard v = 5 end
+		a6: action X:[v] ==> Y:[v] guard v = 6 end
+		a7: action X:[v] ==> Y:[v] guard v = 7 end
+		a8: action X:[v] ==> Y:[v] guard v = 8 end
+		a9: action X:[v] ==> Y:[v] guard v = 9 end
+		a10: action X:[v] ==> Y:[v] guard v = 10 end
+		a11: action X:[v] ==> Y:[v] guard v = 11 end
+		a12: action X:[v] ==> Y:[v] guard v = 12 end
+		a13: action X:[v] ==> Y:[v] guard v = 13 end
+		a14: action X:[v] ==> Y:[v] guard v = 14 end
+		a15: action X:[v] ==> Y:[v] guard v = 15 end
+		a16: action X:[v] ==> Y:[v] guard v = 16 end
+		a17: action X:[v] ==> Y:[v] guard v = 17 end
+		a18: action X:[v] ==> Y:[v] guard v = 18 end
+		a19: action X:[v] ==> Y:[v] guard v = 19 end
+		a20: action X:[v] ==> Y:[v] guard v = 20 end
+		a21: action X:[v] ==> Y:[v] guard v = 21 end
+		a22: action X:[v] ==> Y:[v] guard v = 22 end
+		a23: action X:[v] ==> Y:[v] guard v = 23 end
+		a24: action X:[v] ==> Y:[v] guard v = 24 end
+		a25: action X:[v] ==> Y:[v] guard v = 25 end
+		a26: action X:[v] ==> Y:[v] guard v = 26 end
+		a27: action X:[v] ==> Y:[v] guard v = 27 end
+		a28: action X:[v] ==> Y:[v] guard v = 28 end
+		a29: action X:[v] ==> Y:[v] guard v = 29 end
+		a30: action X:[v] ==> Y:[v] guard v = 30 end
+		a31: action X:[v] ==> Y:[v] guard v = 31 end
+		a32: action X:[v] ==> Y:[v] guard v = 32 end
+		a33: action X:[v] ==> Y:[v] guard v = 33 end
+		a34: action X:[v] ==> Y:[v] guard v = 34 end
+		a35: action X:[v] ==> Y:[v] guard v = 35 end
+		a36: action X:[v] ==> Y:[v] guard v = 36 end
+		a37: action X:[v] ==> Y:[v] guard v = 37 end
+		a38: action X:[v] ==> Y:[v] guard v = 38 end
+		a39: action X:[v] ==> Y:[v] guard v = 39 end
+		a40: action X:[v] ==> Y:[v] guard v = 40 end
+		a41: action X:[v] ==> Y:[v] guard v = 41 end
+		a42: action X:[v] ==> Y:[v] guard v = 42 end
+		a43: action X:[v] ==> Y:[v] guard v = 43 end
+		a44: action X:[v] ==> Y:[v] guard v = 44 end
+		a45: action X:[v] ==> Y:[v] guard v = 45 end
+		a46: action X:[v] ==> Y:[v] guard v = 46 end
+		a47: action X:[v] ==> Y:[v] guard v = 47 end
+		a48: action X:[v] ==> Y:[v] guard v = 48 end
+		a49: action X:[v] ==> Y:[v] guard v = 49 end
+		a50: action X:[v] ==> Y:[v] guard v = 50 end
+		a51: action X:[v] ==> Y:[v] guard v = 51 end
+		a52: action X:[v] ==> Y:[v] guard v = 52 end
+		a53: action X:[v] ==> Y:[v] guard v = 53 end
+		a54: action X:[v] ==> Y:[v] guard v = 54 end
+		a55: action X:[v] ==> Y:[v] guard v = 55 end
+		a56: action X:[v] ==> Y:[v] guard v = 56 end
+		a57: action X:[v] ==> Y:[v] guard v = 57 end
+		a58: action X:[v] ==> Y:[v] guard v = 58 end
+		a59: action X:[v] ==> Y:[v] guard v = 59 end
+		a60: action X:[v] ==> Y:[v] guard v = 60 end
+		a61: action X:[v] ==> Y:[v] guard v = 61 end
+		a62: action X:[v] ==> Y:[v] guard v = 62 end
+		a63: action X:[v] ==> Y:[v] guard v = 63 end
+		a64: action X:[v] ==> Y:[v] guard v = 64 end
+		a65: action X:[v] ==> Y:[v] guard v = 65 end
+		a66: action X:[v] ==> Y:[v] guard v = 66 end
+		a67: action X:[v] ==> Y:[v] guard v = 67 end
+		a68: action X:[v] ==> Y:[v] guard v = 68 end
+		a69: action X:[v] ==> Y:[v] guard v = 69 end
+		a70: action X:[v] ==> Y:[v] guard v = 70 end
+		a71: action X:[v] ==> Y:[v] guard v = 71 end
+		a72: action X:[v] ==> Y:[v] guard v = 72 end
+		a73: action X:[v] ==> Y:[v] guard v = 73 end
+		a74: action X:[v] ==> Y:[v] guard v = 74 end
+		a75: action X:[v] ==> Y:[v] guard v = 75 end
+		a76: action X:[v] ==> Y:[v] guard v = 76 end
+		a77: action X:[v] ==> Y:[v] guard v = 77 end
+		a78: action X:[v] ==> Y:[v] guard v = 78 end
+		a79: action X:[v] ==> Y:[v] guard v = 79 end
+		a80: action X:[v] ==> Y:[v] guard v = 80 end
+		a81: action X:[v] ==> Y:[v] guard v = 81 end
+		a82: action X:[v] ==> Y:[v] guard v = 82 end
+		a83: action X:[v] ==> Y:[v] guard v = 83 end
+		a84: action X:[v] ==> Y:[v] guard v = 84 end
+		a85: action X:[v] ==> Y:[v] guard v = 85 end
+		a86: action X:[v] ==> Y:[v] guard v = 86 end
+		a87: action X:[v] ==> Y:[v] guard v = 87 end
+		a88: action X:[v] ==> Y:[v] guard v = 88 end
+		a89: action X:[v] ==> Y:[v] guard v = 89 end
+		a90: action X:[v] ==> Y:[v] guard v = 90 end
+		a91: action X:[v] ==> Y:[v] guard v = 91 end
+		a92: action X:[v] ==> Y:[v] guard v = 92 end
+		a93: action X:[v] ==> Y:[v] guard v = 93 end
+		a94: action X:[v] ==> Y:[v] guard v = 94 end
+		a95: action X:[v] ==> Y:[v] guard v = 95 end
+		a96: action X:[v] ==> Y:[v] guard v = 96 end
+		a97: action X:[v] ==> Y:[v] guard v = 97 end
+		a98: action X:[v] ==> Y:[v] guard v = 98 end
+		a99: action X:[v] ==> Y:[v] guard v >= 99 end
+	end
+
+	actor OneHundredPrioritizedActions () uint(size=8) X ==> uint(size=8) Y :
+		a0: action X:[v] ==> Y:[v] guard v = 0 end
+		a1: action X:[v] ==> Y:[v] guard v = 1 end
+		a2: action X:[v] ==> Y:[v] guard v = 2 end
+		a3: action X:[v] ==> Y:[v] guard v = 3 end
+		a4: action X:[v] ==> Y:[v] guard v = 4 end
+		a5: action X:[v] ==> Y:[v] guard v = 5 end
+		a6: action X:[v] ==> Y:[v] guard v = 6 end
+		a7: action X:[v] ==> Y:[v] guard v = 7 end
+		a8: action X:[v] ==> Y:[v] guard v = 8 end
+		a9: action X:[v] ==> Y:[v] guard v = 9 end
+		a10: action X:[v] ==> Y:[v] guard v = 10 end
+		a11: action X:[v] ==> Y:[v] guard v = 11 end
+		a12: action X:[v] ==> Y:[v] guard v = 12 end
+		a13: action X:[v] ==> Y:[v] guard v = 13 end
+		a14: action X:[v] ==> Y:[v] guard v = 14 end
+		a15: action X:[v] ==> Y:[v] guard v = 15 end
+		a16: action X:[v] ==> Y:[v] guard v = 16 end
+		a17: action X:[v] ==> Y:[v] guard v = 17 end
+		a18: action X:[v] ==> Y:[v] guard v = 18 end
+		a19: action X:[v] ==> Y:[v] guard v = 19 end
+		a20: action X:[v] ==> Y:[v] guard v = 20 end
+		a21: action X:[v] ==> Y:[v] guard v = 21 end
+		a22: action X:[v] ==> Y:[v] guard v = 22 end
+		a23: action X:[v] ==> Y:[v] guard v = 23 end
+		a24: action X:[v] ==> Y:[v] guard v = 24 end
+		a25: action X:[v] ==> Y:[v] guard v = 25 end
+		a26: action X:[v] ==> Y:[v] guard v = 26 end
+		a27: action X:[v] ==> Y:[v] guard v = 27 end
+		a28: action X:[v] ==> Y:[v] guard v = 28 end
+		a29: action X:[v] ==> Y:[v] guard v = 29 end
+		a30: action X:[v] ==> Y:[v] guard v = 30 end
+		a31: action X:[v] ==> Y:[v] guard v = 31 end
+		a32: action X:[v] ==> Y:[v] guard v = 32 end
+		a33: action X:[v] ==> Y:[v] guard v = 33 end
+		a34: action X:[v] ==> Y:[v] guard v = 34 end
+		a35: action X:[v] ==> Y:[v] guard v = 35 end
+		a36: action X:[v] ==> Y:[v] guard v = 36 end
+		a37: action X:[v] ==> Y:[v] guard v = 37 end
+		a38: action X:[v] ==> Y:[v] guard v = 38 end
+		a39: action X:[v] ==> Y:[v] guard v = 39 end
+		a40: action X:[v] ==> Y:[v] guard v = 40 end
+		a41: action X:[v] ==> Y:[v] guard v = 41 end
+		a42: action X:[v] ==> Y:[v] guard v = 42 end
+		a43: action X:[v] ==> Y:[v] guard v = 43 end
+		a44: action X:[v] ==> Y:[v] guard v = 44 end
+		a45: action X:[v] ==> Y:[v] guard v = 45 end
+		a46: action X:[v] ==> Y:[v] guard v = 46 end
+		a47: action X:[v] ==> Y:[v] guard v = 47 end
+		a48: action X:[v] ==> Y:[v] guard v = 48 end
+		a49: action X:[v] ==> Y:[v] guard v = 49 end
+		a50: action X:[v] ==> Y:[v] guard v = 50 end
+		a51: action X:[v] ==> Y:[v] guard v = 51 end
+		a52: action X:[v] ==> Y:[v] guard v = 52 end
+		a53: action X:[v] ==> Y:[v] guard v = 53 end
+		a54: action X:[v] ==> Y:[v] guard v = 54 end
+		a55: action X:[v] ==> Y:[v] guard v = 55 end
+		a56: action X:[v] ==> Y:[v] guard v = 56 end
+		a57: action X:[v] ==> Y:[v] guard v = 57 end
+		a58: action X:[v] ==> Y:[v] guard v = 58 end
+		a59: action X:[v] ==> Y:[v] guard v = 59 end
+		a60: action X:[v] ==> Y:[v] guard v = 60 end
+		a61: action X:[v] ==> Y:[v] guard v = 61 end
+		a62: action X:[v] ==> Y:[v] guard v = 62 end
+		a63: action X:[v] ==> Y:[v] guard v = 63 end
+		a64: action X:[v] ==> Y:[v] guard v = 64 end
+		a65: action X:[v] ==> Y:[v] guard v = 65 end
+		a66: action X:[v] ==> Y:[v] guard v = 66 end
+		a67: action X:[v] ==> Y:[v] guard v = 67 end
+		a68: action X:[v] ==> Y:[v] guard v = 68 end
+		a69: action X:[v] ==> Y:[v] guard v = 69 end
+		a70: action X:[v] ==> Y:[v] guard v = 70 end
+		a71: action X:[v] ==> Y:[v] guard v = 71 end
+		a72: action X:[v] ==> Y:[v] guard v = 72 end
+		a73: action X:[v] ==> Y:[v] guard v = 73 end
+		a74: action X:[v] ==> Y:[v] guard v = 74 end
+		a75: action X:[v] ==> Y:[v] guard v = 75 end
+		a76: action X:[v] ==> Y:[v] guard v = 76 end
+		a77: action X:[v] ==> Y:[v] guard v = 77 end
+		a78: action X:[v] ==> Y:[v] guard v = 78 end
+		a79: action X:[v] ==> Y:[v] guard v = 79 end
+		a80: action X:[v] ==> Y:[v] guard v = 80 end
+		a81: action X:[v] ==> Y:[v] guard v = 81 end
+		a82: action X:[v] ==> Y:[v] guard v = 82 end
+		a83: action X:[v] ==> Y:[v] guard v = 83 end
+		a84: action X:[v] ==> Y:[v] guard v = 84 end
+		a85: action X:[v] ==> Y:[v] guard v = 85 end
+		a86: action X:[v] ==> Y:[v] guard v = 86 end
+		a87: action X:[v] ==> Y:[v] guard v = 87 end
+		a88: action X:[v] ==> Y:[v] guard v = 88 end
+		a89: action X:[v] ==> Y:[v] guard v = 89 end
+		a90: action X:[v] ==> Y:[v] guard v = 90 end
+		a91: action X:[v] ==> Y:[v] guard v = 91 end
+		a92: action X:[v] ==> Y:[v] guard v = 92 end
+		a93: action X:[v] ==> Y:[v] guard v = 93 end
+		a94: action X:[v] ==> Y:[v] guard v = 94 end
+		a95: action X:[v] ==> Y:[v] guard v = 95 end
+		a96: action X:[v] ==> Y:[v] guard v = 96 end
+		a97: action X:[v] ==> Y:[v] guard v = 97 end
+		a98: action X:[v] ==> Y:[v] guard v = 98 end
+		a99: action X:[v] ==> Y:[v] guard v >= 99 end
+
+		priority
+			a0 > a1 > a2 > a3 > a4 > a5 > a6 > a7 > a8 > a9 > a10 > a11 > a12 > a13 > a14 > a15 > a16 > a17 > a18 > a19 > a20 > a21 > a22 > a23 > a24 > a25 > a26 > a27 > a28 > a29 > a30 > a31 > a32 > a33 > a34 > a35 > a36 > a37 > a38 > a39 > a40 > a41 > a42 > a43 > a44 > a45 > a46 > a47 > a48 > a49 > a50 > a51 > a52 > a53 > a54 > a55 > a56 > a57 > a58 > a59 > a60 > a61 > a62 > a63 > a64 > a65 > a66 > a67 > a68 > a69 > a70 > a71 > a72 > a73 > a74 > a75 > a76 > a77 > a78 > a79 > a80 > a81 > a82 > a83 > a84 > a85 > a86 > a87 > a88 > a89 > a90 > a91 > a92 > a93 > a94 > a95 > a96 > a97 > a98 > a99;
+		end
+	end
+
+	actor OneHundredActorStates () uint(size=8) X ==> uint(size=8) Y :
+		a: action X:[v] ==> Y:[v] end
+
+		schedule fsm S0:
+			S0 (a) --> S1;
+            S1 (a) --> S2;
+            S2 (a) --> S3;
+            S3 (a) --> S4;
+            S4 (a) --> S5;
+            S5 (a) --> S6;
+            S6 (a) --> S7;
+            S7 (a) --> S8;
+            S8 (a) --> S9;
+            S9 (a) --> S10;
+            S10 (a) --> S11;
+            S11 (a) --> S12;
+            S12 (a) --> S13;
+            S13 (a) --> S14;
+            S14 (a) --> S15;
+            S15 (a) --> S16;
+            S16 (a) --> S17;
+            S17 (a) --> S18;
+            S18 (a) --> S19;
+            S19 (a) --> S20;
+            S20 (a) --> S21;
+            S21 (a) --> S22;
+            S22 (a) --> S23;
+            S23 (a) --> S24;
+            S24 (a) --> S25;
+            S25 (a) --> S26;
+            S26 (a) --> S27;
+            S27 (a) --> S28;
+            S28 (a) --> S29;
+            S29 (a) --> S30;
+            S30 (a) --> S31;
+            S31 (a) --> S32;
+            S32 (a) --> S33;
+            S33 (a) --> S34;
+            S34 (a) --> S35;
+            S35 (a) --> S36;
+            S36 (a) --> S37;
+            S37 (a) --> S38;
+            S38 (a) --> S39;
+            S39 (a) --> S40;
+            S40 (a) --> S41;
+            S41 (a) --> S42;
+            S42 (a) --> S43;
+            S43 (a) --> S44;
+            S44 (a) --> S45;
+            S45 (a) --> S46;
+            S46 (a) --> S47;
+            S47 (a) --> S48;
+            S48 (a) --> S49;
+            S49 (a) --> S50;
+            S50 (a) --> S51;
+            S51 (a) --> S52;
+            S52 (a) --> S53;
+            S53 (a) --> S54;
+            S54 (a) --> S55;
+            S55 (a) --> S56;
+            S56 (a) --> S57;
+            S57 (a) --> S58;
+            S58 (a) --> S59;
+            S59 (a) --> S60;
+            S60 (a) --> S61;
+            S61 (a) --> S62;
+            S62 (a) --> S63;
+            S63 (a) --> S64;
+            S64 (a) --> S65;
+            S65 (a) --> S66;
+            S66 (a) --> S67;
+            S67 (a) --> S68;
+            S68 (a) --> S69;
+            S69 (a) --> S70;
+            S70 (a) --> S71;
+            S71 (a) --> S72;
+            S72 (a) --> S73;
+            S73 (a) --> S74;
+            S74 (a) --> S75;
+            S75 (a) --> S76;
+            S76 (a) --> S77;
+            S77 (a) --> S78;
+            S78 (a) --> S79;
+            S79 (a) --> S80;
+            S80 (a) --> S81;
+            S81 (a) --> S82;
+            S82 (a) --> S83;
+            S83 (a) --> S84;
+            S84 (a) --> S85;
+            S85 (a) --> S86;
+            S86 (a) --> S87;
+            S87 (a) --> S88;
+            S88 (a) --> S89;
+            S89 (a) --> S90;
+            S90 (a) --> S91;
+            S91 (a) --> S92;
+            S92 (a) --> S93;
+            S93 (a) --> S94;
+            S94 (a) --> S95;
+            S95 (a) --> S96;
+            S96 (a) --> S97;
+            S97 (a) --> S98;
+            S98 (a) --> S99;
+            S99 (a) --> S0;
+		end
+	end
+
+// def printAction(i: Int, n: Int) = {
+//   println(s"a$i: action X:[v] ==> Y:[v]")
+//   println(Vector.fill(n)(s"v = $i").mkString("guard ", ", ", " end"))
+//   println()
+// }
+// for (i <- 0 until 10) printAction(i, 10)
+
+	actor ManyConditions () uint(size=8) X ==> uint(size=8) Y :
+		a: action X:[v] ==> Y:[v]
+		guard v = 0, v = 0, v = 0, v = 0, v = 0, v = 0, v = 0, v = 0, v = 0, v = 0 end
+
+		a: action X:[v] ==> Y:[v]
+		guard v = 1, v = 1, v = 1, v = 1, v = 1, v = 1, v = 1, v = 1, v = 1, v = 1 end
+
+		a: action X:[v] ==> Y:[v]
+		guard v = 2, v = 2, v = 2, v = 2, v = 2, v = 2, v = 2, v = 2, v = 2, v = 2 end
+
+		a: action X:[v] ==> Y:[v]
+		guard v = 3, v = 3, v = 3, v = 3, v = 3, v = 3, v = 3, v = 3, v = 3, v = 3 end
+
+//		a: action X:[v] ==> Y:[v]
+//		guard v = 4, v = 4, v = 4, v = 4, v = 4, v = 4, v = 4, v = 4, v = 4, v = 4 end
+
+//		a: action X:[v] ==> Y:[v]
+//		guard v = 5, v = 5, v = 5, v = 5, v = 5, v = 5, v = 5, v = 5, v = 5, v = 5 end
+
+//		a: action X:[v] ==> Y:[v]
+//		guard v = 6, v = 6, v = 6, v = 6, v = 6, v = 6, v = 6, v = 6, v = 6, v = 6 end
+
+//		a: action X:[v] ==> Y:[v]
+//		guard v = 7, v = 7, v = 7, v = 7, v = 7, v = 7, v = 7, v = 7, v = 7, v = 7 end
+
+//		a: action X:[v] ==> Y:[v]
+//		guard v = 8, v = 8, v = 8, v = 8, v = 8, v = 8, v = 8, v = 8, v = 8, v = 8 end
+
+//		a: action X:[v] ==> Y:[v]
+//		guard v = 9, v = 9, v = 9, v = 9, v = 9, v = 9, v = 9, v = 9, v = 9, v = 9 end
+
+		every: action X:[v] ==> Y:[v] end
+
+		priority a > every; end
+	end
+end

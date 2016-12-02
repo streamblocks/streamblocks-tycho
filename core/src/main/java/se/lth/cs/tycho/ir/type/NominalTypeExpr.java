@@ -37,8 +37,12 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
  */
 
-package se.lth.cs.tycho.ir;
+package se.lth.cs.tycho.ir.type;
 
+import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.TypeParameter;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 

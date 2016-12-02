@@ -5,15 +5,17 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.ir.FunctionTypeExpr;
+import se.lth.cs.tycho.comp.SourceUnit;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
+import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
 import se.lth.cs.tycho.ir.Generator;
-import se.lth.cs.tycho.ir.NominalTypeExpr;
+import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.ProcedureTypeExpr;
-import se.lth.cs.tycho.ir.TupleTypeExpr;
-import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
+import se.lth.cs.tycho.ir.type.TupleTypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.InputVarDecl;
@@ -28,6 +30,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.phases.TreeShadow;
+import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.types.*;
 
 import java.util.ArrayList;
@@ -105,9 +108,19 @@ public interface Types {
 			return new ConcurrentHashMap<>();
 		}
 
+		default SourceUnit getSourceUnit(IRNode node) {
+			do {
+				if (node instanceof SourceUnit) {
+					return (SourceUnit) node;
+				}
+				node = tree().parent(node);
+			} while (node != null);
+			return null;
+		}
+
 		default Type declaredType(VarDecl varDecl) {
 			if (currentlyComputing().get().contains(varDecl)) {
-				return BottomType.INSTANCE;
+				return new ErrorType(new Diagnostic(Diagnostic.Kind.ERROR, "Type of variable has circular dependency.", getSourceUnit(varDecl), varDecl));
 			} else if (declaredTypeMap().containsKey(varDecl)) {
 				return declaredTypeMap().get(varDecl);
 			} else {
@@ -125,7 +138,7 @@ public interface Types {
 			} else if (varDecl.getValue() != null) {
 				return type(varDecl.getValue());
 			} else {
-				return BottomType.INSTANCE;
+				return new ErrorType(new Diagnostic(Diagnostic.Kind.ERROR, "Variable declaration requires initial value or type.", getSourceUnit(varDecl), varDecl));
 			}
 		}
 
@@ -210,6 +223,15 @@ public interface Types {
 
 		default Type computeLValueType(LValueVariable var) {
 			return declaredType(names().declaration(var.getVariable()));
+		}
+
+		default Type computeLValueType(LValueDeref deref) {
+			Type referenceType = computeLValueType(deref.getVariable());
+			if (referenceType instanceof RefType) {
+				return ((RefType) referenceType).getType();
+			} else {
+				return BottomType.INSTANCE;
+			}
 		}
 
 		default Type computeLValueType(LValueIndexer indexer) {
@@ -326,8 +348,15 @@ public interface Types {
 					.findFirst();
 		}
 
-		default Type computeType(Expression e) {
-			return BottomType.INSTANCE;
+		Type computeType(Expression e);
+
+		default Type computeType(ExprDeref e) {
+			Type referenceType = type(e.getReference());
+			if (referenceType instanceof RefType) {
+				return ((RefType) referenceType).getType();
+			} else {
+				return BottomType.INSTANCE;
+			}
 		}
 
 		default Type computeType(ExprLiteral e) {

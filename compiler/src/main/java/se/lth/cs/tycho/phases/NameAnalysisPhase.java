@@ -8,18 +8,25 @@ import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.decoration.EntityDeclarations;
+import se.lth.cs.tycho.decoration.InstanceDeclarations;
 import se.lth.cs.tycho.decoration.PortDeclarations;
 import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.decoration.VariableDeclarations;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
+import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
+import se.lth.cs.tycho.ir.entity.nl.PortReference;
+import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
+
+import java.util.Optional;
 
 public class NameAnalysisPhase implements Phase {
 	@Override
@@ -86,6 +93,27 @@ public class NameAnalysisPhase implements Phase {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", unit, reference));
 			}
 		}
+
+		default void checkNode(Tree<?> tree_, PortReference portReference) {
+			Tree<PortReference> tree = tree_.assertNode(portReference);
+			boolean checkPort = true;
+			if (!InstanceDeclarations.isBoundaryPort(portReference)) {
+				Optional<Tree<InstanceDecl>> inst = InstanceDeclarations.getDeclaration(tree);
+				if (!inst.isPresent()) {
+					SourceUnit unit = tree.findParentOfType(SourceUnit.class).map(Tree::node).orElse(null);
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Instance " + portReference.getEntityName() + " is not declared.", unit, portReference));
+					checkPort = false;
+				}
+			}
+			if (checkPort) {
+				Optional<Tree<PortDecl>> port = PortDeclarations.getConnectionEnd(tree);
+				if (!port.isPresent()) {
+					SourceUnit unit = tree.findParentOfType(SourceUnit.class).map(Tree::node).orElse(null);
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Port " + portReference.getPortName() + " is not declared.", unit, portReference));
+				}
+			}
+		}
+
 	}
 	@Module
 	public interface CheckNames {

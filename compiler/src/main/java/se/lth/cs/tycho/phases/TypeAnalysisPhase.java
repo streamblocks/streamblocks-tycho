@@ -53,17 +53,35 @@ public class TypeAnalysisPhase implements Phase {
 	@Module
 	interface CalTypeChecker  extends TypeChecker {
 
+		default boolean isConvertible(Type to, Type from) {
+			return isAssignable(to, from);
+		}
+
+		default boolean isConvertible(IntType to, IntType from) {
+			return true;
+		}
+
 		default boolean isAssignable(Type to, Type from) {
+			return false;
+		}
+		default boolean isAssignable(ErrorType to, Type from) {
 			return false;
 		}
 		default boolean isAssignable(BottomType to, Type from) {
 			return false;
 		}
+		default boolean isAssignable(Type to, ErrorType from) {
+			return true;
+		}
 		default boolean isAssignable(Type to, BottomType from) {
 			return true;
 		}
 		default boolean isAssignable(BottomType to, BottomType from) { return true; }
+		default boolean isAssignable(ErrorType to, ErrorType from) { return true; }
 		default boolean isAssignable(TopType to, Type from) {
+			return true;
+		}
+		default boolean isAssignable(TopType to, ErrorType from) {
 			return true;
 		}
 		default boolean isAssignable(TopType to, BottomType from) {
@@ -135,16 +153,32 @@ public class TypeAnalysisPhase implements Phase {
 	@Module
 	interface OrccTypeChecker  extends TypeChecker {
 
+		default boolean isConvertible(Type to, Type from) {
+			return isAssignable(to, from);
+		}
+
 		default boolean isAssignable(Type to, Type from) {
+			return to.equals(from);
+		}
+		default boolean isAssignable(StringType to, IntType from) {
+			return true;
+		}
+		default boolean isAssignable(ErrorType to, Type from) {
 			return false;
 		}
 		default boolean isAssignable(BottomType to, Type from) {
 			return false;
 		}
+		default boolean isAssignable(Type to, ErrorType from) {
+			return true;
+		}
 		default boolean isAssignable(Type to, BottomType from) {
 			return true;
 		}
 		default boolean isAssignable(TopType to, Type from) {
+			return true;
+		}
+		default boolean isAssignable(TopType to, ErrorType from) {
 			return true;
 		}
 		default boolean isAssignable(TopType to, BottomType from) {
@@ -202,9 +236,15 @@ public class TypeAnalysisPhase implements Phase {
 
 		boolean isAssignable(Type a, Type b);
 
+		boolean isConvertible(Type a, Type b);
+
 		default void checkAssignment(Type to, Type from, IRNode node) {
 			if (!isAssignable(to, from)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + to + " but was " + from + ".", sourceUnit(), node));
+				if (isConvertible(to, from)) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + from + " to " + to + ".", sourceUnit(), node));
+				} else {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + to + " but was " + from + ".", sourceUnit(), node));
+				}
 			}
 		}
 

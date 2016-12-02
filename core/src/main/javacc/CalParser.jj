@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import se.lth.cs.tycho.ir.*;
+import se.lth.cs.tycho.ir.type.*;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
@@ -465,8 +466,10 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 	String name;
 	Expression expr = null;
 	boolean assignable = false;
+	boolean external = false;
 }
 {
+	("external" {external = true;})?
 	(
 		{ TypeAndName typeName; }
 		typeName = VarDeclTypeName()
@@ -490,7 +493,7 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 		{ name = proc.name; expr = proc.def; }
 	)
 	{
-		return VarDecl.local(type, name, expr, !assignable);
+		return VarDecl.local(type, name, expr, !assignable).asExternal(external);
 	}
 }
 
@@ -784,10 +787,15 @@ ImmutableList<StructureStatement> StructureStmts() :
 		toolAttrs = OptToolAttributes()
 		";"
 		{
-			builder.add(new StructureConnectionStmt(
-					new PortReference(src == null ? null : src.image, ImmutableList.empty(), srcPort.image),
-					new PortReference(tgt == null ? null : tgt.image, ImmutableList.empty(), tgtPort.image)
-					).withAttributes(toolAttrs));
+			PortReference sourcePort = new PortReference(src == null ? null : src.image, ImmutableList.empty(), srcPort.image);
+			sourcePort = setPosition(sourcePort, src == null ? srcPort : src, srcPort);
+			PortReference targetPort = new PortReference(tgt == null ? null : tgt.image, ImmutableList.empty(), tgtPort.image);
+			targetPort = setPosition(targetPort, tgt == null ? tgtPort : tgt, tgtPort);
+
+			StructureConnectionStmt conn = new StructureConnectionStmt(sourcePort, targetPort).withAttributes(toolAttrs);
+			conn = setPosition(conn, sourcePort, targetPort);
+
+			builder.add(conn);
 		}
 	)*
 	{
@@ -1597,28 +1605,21 @@ Expression ComprehensionFor(Expression contents) :
 TypeExpr Type() :
 {
 	Token name;
-	TypeExpr type;
+	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
+	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
+	Token last;
 }
 {
 	name = <ID>
-	type = ParameterizedType(name.image)
-	{ return type; }
-}
-
-TypeExpr ParameterizedType(String name) :
-{
-	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
-	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
-}
-{
+	{ last = name; }
 	(
 		"("
 		AddParameterAssignments(types, vals)
 		("," AddParameterAssignments(types, vals))*
-		")"
+		last = ")"
 	)?
 	{
-		return new NominalTypeExpr(name, types.build(), vals.build());
+		return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
 	}
 }
 
@@ -1635,11 +1636,11 @@ void AddParameterAssignments(
 		LOOKAHEAD(2)
 		(name = <ID> | name = <TYPE>)
 		":" type = Type()
-		{ types.add(new TypeParameter(name.image, type)); }
+		{ types.add(setPosition(new TypeParameter(name.image, type), name, type)); }
 	|
 		name = <ID>
 		"=" expr = Expression()
-		{ vals.add(new ValueParameter(name.image, expr)); }
+		{ vals.add(setPosition(new ValueParameter(name.image, expr), name, expr)); }
 	)
 }
 

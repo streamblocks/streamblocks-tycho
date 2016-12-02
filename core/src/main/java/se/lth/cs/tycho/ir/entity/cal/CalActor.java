@@ -56,22 +56,22 @@ import java.util.function.Consumer;
 
 public class CalActor extends Entity {
 
-	public CalActor(ImmutableList<TypeDecl> typePars,
-			ImmutableList<ParameterVarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
-			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
-			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
-			ProcessDescription process, ImmutableList<ImmutableList<QID>> priorities,
-			ImmutableList<Expression> invariants) {
+	public CalActor(List<TypeDecl> typePars,
+			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
+			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
+			List<Action> initializers, List<Action> actions, ScheduleFSM scheduleFSM,
+			ProcessDescription process, List<ImmutableList<QID>> priorities,
+			List<Expression> invariants) {
 		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
 				actions, scheduleFSM, process, priorities, invariants);
 	}
 
-	private CalActor(CalActor original, ImmutableList<TypeDecl> typePars,
-			ImmutableList<ParameterVarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
-			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
-			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
-			ProcessDescription process,	ImmutableList<ImmutableList<QID>> priorities,
-			ImmutableList<Expression> invariants) {
+	private CalActor(CalActor original, List<TypeDecl> typePars,
+			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
+			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
+			List<Action> initializers, List<Action> actions, ScheduleFSM scheduleFSM,
+			ProcessDescription process,	List<ImmutableList<QID>> priorities,
+			List<Expression> invariants) {
 		super(original, inputPorts, outputPorts, typePars, valuePars);
 
 		this.typeDecls = ImmutableList.from(typeDecls);
@@ -84,11 +84,11 @@ public class CalActor extends Entity {
 		this.invariants = ImmutableList.from(invariants);
 	}
 
-	public CalActor copy(ImmutableList<TypeDecl> typePars,
-			ImmutableList<ParameterVarDecl> valuePars, ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
-			ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts,
-			ImmutableList<Action> initializers, ImmutableList<Action> actions, ScheduleFSM scheduleFSM,
-			ProcessDescription process, ImmutableList<ImmutableList<QID>> priorities, ImmutableList<Expression> invariants) {
+	public CalActor copy(List<TypeDecl> typePars,
+			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
+			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
+			List<Action> initializers, List<Action> actions, ScheduleFSM scheduleFSM,
+			ProcessDescription process, List<ImmutableList<QID>> priorities, List<Expression> invariants) {
 		if (Lists.sameElements(this.typeParameters, typePars)
 				&& Lists.sameElements(this.valueParameters, valuePars)
 				&& Lists.sameElements(this.typeDecls, typeDecls)
@@ -185,7 +185,7 @@ public class CalActor extends Entity {
 		);
 	}
 
-	public CalActor withVarDecls(ImmutableList<LocalVarDecl> varDecls) {
+	public CalActor withVarDecls(List<LocalVarDecl> varDecls) {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {

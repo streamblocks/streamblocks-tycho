@@ -1,0 +1,12 @@
+{
+  "description": "External functions and procedures",
+  "source-paths": ["src"],
+  "external-sources": ["ext-src/ext.c"],
+  "entity": "ext.Test",
+  "test-data": [
+    {
+      "input": ["../random1k.data"],
+      "reference": ["../random1k.data"]
+    }
+  ]
+}

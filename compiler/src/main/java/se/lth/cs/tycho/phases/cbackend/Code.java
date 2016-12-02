@@ -19,6 +19,7 @@ import se.lth.cs.tycho.ir.stmt.StmtIf;
 import se.lth.cs.tycho.ir.stmt.StmtWhile;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -60,6 +61,10 @@ public interface Code {
 	}
 
 	default void assign(LambdaType type, String lvalue, Expression expr) {
+		assignScalar(type, lvalue, expr);
+	}
+
+	default void assign(ProcType type, String lvalue, Expression expr) {
 		assignScalar(type, lvalue, expr);
 	}
 
@@ -177,8 +182,7 @@ public interface Code {
 
 	default String declaration(ListType type, String name) {
 		if (type.getSize().isPresent()) {
-			return String.format("%s[%d]", declaration(type.getElementType(), name), type.getSize().getAsInt());
-			//return declaration(type.getElementType(), String.format("%s[%d]", name, type.getSize().getAsInt()));
+			return declaration(type.getElementType(), String.format("%s[%d]", name, type.getSize().getAsInt()));
 		} else {
 			return String.format("%s %s[] /* TODO IMPLEMENT */ ", type(type.getElementType()), name);
 		}
@@ -460,7 +464,6 @@ public interface Code {
 		backend().emitter().emit("// begin evaluate(ExprLambda)");
 		String functionName = backend().callables().functionName(lambda);
 		String env = backend().callables().environmentName(lambda);
-		String envt = "envt_" + functionName;
 		for (ClosureVarDecl var : lambda.getClosure()) {
 			assign(types().declaredType(var), env+"."+variables().declarationName(var), var.getValue());
 		}
@@ -474,6 +477,22 @@ public interface Code {
 		return funPtr;
 	}
 
+	default String evaluate(ExprProc proc) {
+		backend().emitter().emit("// begin evaluate(ExprProc)");
+		String functionName = backend().callables().functionName(proc);
+		String env = backend().callables().environmentName(proc);
+		for (ClosureVarDecl var : proc.getClosure()) {
+			assign(types().declaredType(var), env+"."+variables().declarationName(var), var.getValue());
+		}
+
+		Type type = backend().types().type(proc);
+		String typeName = backend().callables().mangle(type).encode();
+		String funPtr = backend().variables().generateTemp();
+		backend().emitter().emit("%s %s = { &%s, &%s };", typeName, funPtr, functionName, env);
+
+		backend().emitter().emit("// end evaluate(ExprProc)");
+		return funPtr;
+	}
 
 	default String evaluate(ExprLet let) {
 		let.forEachChild(backend().callables()::declareEnvironmentForCallablesInScope);
@@ -497,12 +516,19 @@ public interface Code {
 			emitter().emit("%s;", declaration(types().portType(write.getPort()), tmp));
 			for (Expression expr : write.getValues()) {
 				emitter().emit("%s = %s;", tmp, evaluate(expr));
-				emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, &%s, 1);", portType, portName, tmp);
+				emitter().emit("channel_write_one_%s(self->%s_channels, self->%2$s_count, %s);", portType, portName, tmp);
 			}
 		} else if (write.getValues().size() == 1) {
 			String portType = type(types().portType(write.getPort()));
 			String value = evaluate(write.getValues().get(0));
-			emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, %s, %s);", portType, portName, value, evaluate(write.getRepeatExpression()));
+			String repeat = evaluate(write.getRepeatExpression());
+			String temp = variables().generateTemp();
+			emitter().emit("for (size_t %1$s = 0; %1$s < %2$s; %1$s++) {", temp, repeat);
+			emitter().increaseIndentation();
+			emitter().emit("channel_write_one_%1$s(self->%2$s_channels, self->%2$s_count, %3$s[%4$s]);", portType, portName, value, temp);
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+//			emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, %s, %s);", portType, portName, value, evaluate(write.getRepeatExpression()));
 		} else {
 			throw new Error("not implemented");
 		}
@@ -573,7 +599,7 @@ public interface Code {
 	default void execute(StmtWhile stmt) {
 		emitter().emit("while (true) {");
 		emitter().increaseIndentation();
-		emitter().emit("if (%s) break;", evaluate(stmt.getCondition()));
+		emitter().emit("if (!%s) break;", evaluate(stmt.getCondition()));
 		stmt.getBody().forEach(this::execute);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
@@ -583,6 +609,10 @@ public interface Code {
 
 	default String lvalue(LValueVariable var) {
 		return variables().name(var.getVariable());
+	}
+
+	default String lvalue(LValueDeref deref) {
+		return "*"+lvalue(deref.getVariable());
 	}
 
 	default String lvalue(LValueIndexer indexer) {

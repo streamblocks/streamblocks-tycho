@@ -1,0 +1,39 @@
+namespace ext:
+
+	external procedure nsSetGlobal(int(size=8) x);
+
+	external function nsAddGlobal(int(size=8) x) --> int(size=8);
+
+	actor TestActor(int(size=8) value) int(size=8) In ==> int(size=8) Out :
+		external procedure actorSetGlobal(int(size=8) x);
+		external function actorAddGlobal(int(size=8) x) --> int(size=8);
+
+		initialize ==> do
+			actorSetGlobal(value);
+		end
+
+		action In:[x] ==> Out:[actorAddGlobal(x)] end
+
+	end
+
+	actor TestNs(int(size=8) value) int(size=8) In ==> int(size=8) Out :
+
+		initialize ==> do
+			nsSetGlobal(value);
+		end
+
+		action In:[x] ==> Out:[nsAddGlobal(x)] end
+
+	end
+
+	network Test() int(size=8) In ==> int(size=8) Out :
+	entities
+		testActor = TestActor(value = 42);
+		testNs = TestNs(value = -42);
+	structure
+		In --> testActor.In;
+		testActor.Out --> testNs.In;
+		testNs.Out --> Out;
+	end
+
+end

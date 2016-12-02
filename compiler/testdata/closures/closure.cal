@@ -1,0 +1,29 @@
+namespace closure :
+
+	actor Closure () ==> int(size=64) Numbers :
+		int(size=64) x := 5;
+
+		procedure inc() begin
+			x := x + 1;
+		end
+
+		function get() --> int(size=64) : x end
+
+		do
+			inc();
+			Numbers <-- get();
+		end
+	end
+
+	import entity numtext.Write;
+
+	network ClosureTest () ==> uint(size=8) Chars :
+	entities
+		c = Closure();
+		out = Write();
+	structure
+		c.Numbers --> out.Numbers;
+		out.Chars --> Chars;
+	end
+
+end

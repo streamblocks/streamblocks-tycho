@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CalToAm {
-	private final CalActor actor;
+	protected final CalActor actor;
 	private final EnumSet<KnowledgeRemoval.KnowledgeKind> onWait;
 	private final EnumSet<KnowledgeRemoval.KnowledgeKind> onExec;
 	private final Priorities priorities;
@@ -325,11 +325,16 @@ public class CalToAm {
 
 			CalState calState = (CalState) o;
 
+			if (getActor() != calState.getActor())
 			if (!state.equals(calState.state)) return false;
 			if (!inputPorts.equals(calState.inputPorts)) return false;
 			if (!outputPorts.equals(calState.outputPorts)) return false;
 			return predicateConditions.equals(calState.predicateConditions);
 
+		}
+
+		private CalActor getActor() {
+			return actor;
 		}
 
 		@Override

@@ -1,0 +1,12 @@
+{
+  "description": "JPEG encoder",
+  "xdf-source-paths": ["src", "../../orc-apps/JPEG/src"],
+  "orcc-source-paths": ["../../orc-apps/JPEG/src"],
+  "entity": "jpeg.encoder.hw.Open_Encoder",
+  "test-data": [
+    {
+      "input": ["example"],
+      "reference": ["ref"]
+    }
+  ]
+}

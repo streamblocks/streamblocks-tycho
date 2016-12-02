@@ -8,14 +8,15 @@ import se.lth.cs.tycho.decoration.FreeVariables;
 import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.decoration.VariableDeclarations;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.NominalTypeExpr;
-import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.type.NominalTypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprDeref;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
+import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.ExprRef;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -53,7 +54,8 @@ public class ComputeClosures {
 
 		@Override
 		default IRNode apply(Tree<? extends IRNode> node) {
-			return transform(node, node.node());
+			IRNode result = transform(node, node.node());
+			return result;
 		}
 
 		default IRNode transform(Tree<?> tree, IRNode node) {
@@ -66,6 +68,21 @@ public class ComputeClosures {
 				Map<Tree<? extends VarDecl>, String> renameTable = renameTable(freeVariables);
 				VariableTransformation varTransform = new VariableTransformation(renameTable);
 				ExprLambda transformed = (ExprLambda) varTransform.transform(tree);
+				ImmutableList<ClosureVarDecl> decls = freeVariables.stream()
+						.map(decl -> createClosureVarDecl(decl.node(), renameTable.get(decl)))
+						.collect(ImmutableList.collector());
+				return transformed.withClosure(ImmutableList.concat(transformed.getClosure(), decls));
+			} else {
+				return tree.transformChildren(this);
+			}
+		}
+
+		default IRNode transform(Tree<?> tree, ExprProc proc) {
+			Set<Tree<? extends VarDecl>> freeVariables = FreeVariables.freeVariables(tree);
+			if (!freeVariables.isEmpty()) {
+				Map<Tree<? extends VarDecl>, String> renameTable = renameTable(freeVariables);
+				VariableTransformation varTransform = new VariableTransformation(renameTable);
+				ExprProc transformed = (ExprProc) varTransform.transform(tree);
 				ImmutableList<ClosureVarDecl> decls = freeVariables.stream()
 						.map(decl -> createClosureVarDecl(decl.node(), renameTable.get(decl)))
 						.collect(ImmutableList.collector());

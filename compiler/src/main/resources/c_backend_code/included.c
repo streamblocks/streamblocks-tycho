@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <signal.h>
+#include <string.h>
 
 
 #ifndef BUFFER_SIZE

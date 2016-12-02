@@ -1,0 +1,22 @@
+namespace whileloop :
+
+	actor WhileLoop() uint(size=8) X ==> uint(size=8) Y :
+		action X:[x] ==> Y:[y]
+		var
+			uint(size=8) y := 0
+		do
+			while y < x do
+				y := y + 1;
+			end
+		end
+	end
+
+	network WhileLoopNet () uint(size=8) X ==> uint(size=8) Y :
+	entities
+		loop = WhileLoop();
+	structure
+		X --> loop.X;
+		loop.Y --> Y;
+	end
+
+end

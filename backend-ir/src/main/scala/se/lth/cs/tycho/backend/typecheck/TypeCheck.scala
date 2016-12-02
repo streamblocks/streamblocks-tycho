@@ -57,7 +57,7 @@ class CodeUnitTypeContext(unit: CodeUnit) extends TypeContext {
 
   private def computeStructuralType(t: Type): Type = t match {
     case IntegerType(_,_) => t
-    case UnitType => t
+    case UnitType() => t
     case FunctionType(param, ret) => FunctionType(param.map(structuralType), structuralType(ret))
     case ArrayType(elem, size) => ArrayType(structuralType(elem), size)
     case ReferenceType(ref) => ReferenceType(structuralType(ref))

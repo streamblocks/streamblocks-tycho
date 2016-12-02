@@ -44,19 +44,39 @@ public interface MainFunction {
 		for (Type t : channelTypes()) { channelCode(t); }
 		for (Type t : inputActorTypes()) { inputActorCode(t); }
 		for (Type t : outputActorTypes()) { outputActorCode(t); }
-		backend().callables().defineCallables();
+		backend().callables().declareCallables();
 		List<VarDecl> varDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getVarDecls().stream()).collect(Collectors.toList());
 		List<GlobalEntityDecl> entityDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getEntityDecls().stream()).collect(Collectors.toList());
+		backend().callables().declareEnvironmentForCallablesInScope(task);
 		backend().global().globalVariables(varDecls);
+		backend().callables().defineCallables();
 		backend().structure().actorDecls(entityDecls);
 		mainNetwork().main(task.getNetwork());
 		emitter().close();
+	}
+
+	default Type intToNearest8Mult(Type t) {
+		return t;
+	}
+
+	default IntType intToNearest8Mult(IntType t) {
+		if (t.getSize().isPresent()) {
+			int size = t.getSize().getAsInt();
+			int limit = 8;
+			while (size > limit) {
+				limit = limit + limit;
+			}
+			return new IntType(OptionalInt.of(limit), t.isSigned());
+		} else {
+			return new IntType(OptionalInt.of(32), t.isSigned());
+		}
 	}
 
 	default List<Type> channelTypes() {
 		Network network = backend().task().getNetwork();
 		return backend().task().getNetwork().getConnections().stream()
 				.map(connection -> backend().types().connectionType(network, connection))
+				.map(this::intToNearest8Mult)
 				.distinct()
 				.collect(Collectors.toList());
 	}
@@ -94,6 +114,7 @@ public interface MainFunction {
 
 	default void channelCode(Type type) {
 		String tokenType = backend().code().type(type);
+		emitter().emit("// CHANNEL %s", type);
 		emitter().emit("typedef struct {");
 		emitter().emit("	size_t head;");
 		emitter().emit("	size_t tokens;");
@@ -101,12 +122,12 @@ public interface MainFunction {
 		emitter().emit("} channel_%s;", tokenType);
 		emitter().emit("");
 
-		emitter().emit("static _Bool channel_has_data_%s(channel_%1$s *channel, size_t tokens) {", tokenType);
+		emitter().emit("static inline _Bool channel_has_data_%s(channel_%1$s *channel, size_t tokens) {", tokenType);
 		emitter().emit("	return channel->tokens >= tokens;");
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static _Bool channel_has_space_%s(channel_%1$s *channel_vector[], size_t channel_count, size_t tokens) {", tokenType);
+		emitter().emit("static inline _Bool channel_has_space_%s(channel_%1$s *channel_vector[], size_t channel_count, size_t tokens) {", tokenType);
 		emitter().emit("	for (size_t i = 0; i < channel_count; i++) {");
 		emitter().emit("		if (BUFFER_SIZE - channel_vector[i]->tokens < tokens) {");
 		emitter().emit("			return false;");
@@ -116,7 +137,16 @@ public interface MainFunction {
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static void channel_write_%s(channel_%1$s *channel_vector[], size_t channel_count, %1$s *data, size_t tokens) {", tokenType);
+		emitter().emit("static inline void channel_write_one_%s(channel_%1$s *channel_vector[], size_t channel_count, %1$s data) {", tokenType);
+		emitter().emit("	for (size_t c = 0; c < channel_count; c++) {");
+		emitter().emit("		channel_%s *chan = channel_vector[c];", tokenType);
+		emitter().emit("		chan->buffer[(chan->head + chan->tokens) %% BUFFER_SIZE] = data;");
+		emitter().emit("		chan->tokens++;");
+		emitter().emit("	}");
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static inline void channel_write_%s(channel_%1$s *channel_vector[], size_t channel_count, %1$s *data, size_t tokens) {", tokenType);
 		emitter().emit("	for (size_t c = 0; c < channel_count; c++) {");
 		emitter().emit("		channel_%s *chan = channel_vector[c];", tokenType);
 		emitter().emit("		for (size_t i = 0; i < tokens; i++) {");
@@ -127,12 +157,12 @@ public interface MainFunction {
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static %s channel_peek_first_%1$s(channel_%1$s *channel) {", tokenType);
+		emitter().emit("static inline %s channel_peek_first_%1$s(channel_%1$s *channel) {", tokenType);
 		emitter().emit("	return channel->buffer[channel->head];");
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static void channel_peek_%s(channel_%1$s *channel, size_t offset, size_t tokens, %1$s *result) {", tokenType);
+		emitter().emit("static inline void channel_peek_%s(channel_%1$s *channel, size_t offset, size_t tokens, %1$s *result) {", tokenType);
 		emitter().emit("	%s *res = result;", tokenType);
 		emitter().emit("	for (size_t i = 0; i < tokens; i++) {");
 		emitter().emit("		res[i] = channel->buffer[(channel->head+i+offset) %% BUFFER_SIZE];");
@@ -140,7 +170,7 @@ public interface MainFunction {
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static void channel_consume_%s(channel_%1$s *channel, size_t tokens) {", tokenType);
+		emitter().emit("static inline void channel_consume_%s(channel_%1$s *channel, size_t tokens) {", tokenType);
 		emitter().emit("	channel->tokens -= tokens;");
 		emitter().emit("	channel->head = (channel->head + tokens) %% BUFFER_SIZE;");
 		emitter().emit("}");

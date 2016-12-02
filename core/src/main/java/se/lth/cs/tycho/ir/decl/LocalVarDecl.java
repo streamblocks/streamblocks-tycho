@@ -1,7 +1,7 @@
 package se.lth.cs.tycho.ir.decl;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 import java.util.Objects;
@@ -11,7 +11,7 @@ public class LocalVarDecl extends VarDecl {
 	public LocalVarDecl(TypeExpr type, String name, Expression value, boolean constant) {
 		this(null, type, name, value, constant, false);
 	}
-	private LocalVarDecl(LocalVarDecl original, TypeExpr type, String name, Expression value, boolean constant, boolean external) {
+	private LocalVarDecl(VarDecl original, TypeExpr type, String name, Expression value, boolean constant, boolean external) {
 		super(original, type, name, value, constant, external);
 	}
 
@@ -34,7 +34,8 @@ public class LocalVarDecl extends VarDecl {
 		return copy(
 				getType() == null ? null : transformation.applyChecked(TypeExpr.class, getType()),
 				getName(),
-				getValue() == null ? null : transformation.applyChecked(Expression.class, getValue()), isConstant(),
+				getValue() == null ? null : transformation.applyChecked(Expression.class, getValue()),
+				isConstant(),
 				isExternal());
 	}
 

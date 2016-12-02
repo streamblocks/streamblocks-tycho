@@ -1,10 +1,9 @@
 package se.lth.cs.tycho.util;
 
-import se.lth.cs.tycho.ir.NominalTypeExpr;
-import se.lth.cs.tycho.ir.Parameter;
+import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
-import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.TypeDecl;

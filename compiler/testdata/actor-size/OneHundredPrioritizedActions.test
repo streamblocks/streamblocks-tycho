@@ -1,0 +1,11 @@
+{
+  "description": "One hundred prioritized actions",
+  "source-paths": ["."],
+  "entity": "actorsize.OneHundredPrioritizedActions",
+  "test-data": [
+    {
+      "input": ["../random1k.data"],
+      "reference": ["../random1k.data"]
+    }
+  ]
+}

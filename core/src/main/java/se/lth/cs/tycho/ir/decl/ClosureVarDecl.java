@@ -1,7 +1,7 @@
 package se.lth.cs.tycho.ir.decl;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 import java.util.Objects;

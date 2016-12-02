@@ -1,0 +1,11 @@
+{
+  "description": "One hundred actor states",
+  "source-paths": ["."],
+  "entity": "actorsize.OneHundredActorStates",
+  "test-data": [
+    {
+      "input": ["../random1k.data"],
+      "reference": ["../random1k.data"]
+    }
+  ]
+}

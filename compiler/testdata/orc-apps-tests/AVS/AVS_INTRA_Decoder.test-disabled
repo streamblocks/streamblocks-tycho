@@ -1,0 +1,12 @@
+{
+  "description": "AVS",
+  "orcc-source-paths": ["../../orc-apps/AVS/VTL", "../../orc-apps/System/src"],
+  "xdf-source-paths": ["VTL"],
+  "entity": "configurations.decoders.avs.AVS_INTRA_Decoder",
+  "test-data": [
+    {
+      "input": ["../../orc-apps/AVS/avs_bitstream/carphone_qcif_10_qp28.bit"],
+      "reference": ["../../orc-apps/AVS/avs_bitstream/carphone_qcif_10_qp28.yuv"]
+    }
+  ]
+}

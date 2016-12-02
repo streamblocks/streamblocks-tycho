@@ -7,6 +7,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
@@ -49,7 +50,7 @@ public interface Callables {
 	- create fat function pointer with envorinment for all ExprLambda and ExprProc.
 	 */
 
-	default void defineCallables() {
+	default void declareCallables() {
 		backend().emitter().emit("// FUNCTION AND PROCEDURE FAT POINTER TYPES");
 		declareCallableFatPointerTypes();
 		backend().emitter().emit("");
@@ -59,11 +60,13 @@ public interface Callables {
 		backend().emitter().emit("// EXTERNAL FUNCTION AND PROCEDURE DEFINITIONS");
 		backend().task().walk().forEach(this::externalCallableDefinition);
 		backend().emitter().emit("");
+	}
+
+	default void defineCallables() {
 		backend().emitter().emit("// FUNCTION AND PROCEDURE DEFINITIONS");
 		backend().task().walk().forEach(this::callableDefinition);
 		backend().emitter().emit("");
 	}
-
 	// typedef for fat function pointer with environment pointer
 	default void declareCallableFatPointerTypes() {
 		Set<CallableType> visited = new LinkedHashSet<>();
@@ -116,13 +119,14 @@ public interface Callables {
 
 	default void collectCallablesInScope(ExprLet let, Consumer<Expression> collector) { }
 	default void collectCallablesInScope(StmtBlock block, Consumer<Expression> collector) { }
+	default void collectCallablesInScope(Entity entity, Consumer<Expression> collector) { }
 
 	default void declareCallableFatPointerType(CallableType type) {
 		String name = mangle(type).encode();
 		String returnType = backend().code().type(type.getReturnType());
 		Stream<String> parameterStream = type.getParameterTypes().stream()
 				.map(backend().code()::type);
-		String parameters = Stream.concat(Stream.of("void*"), parameterStream).collect(Collectors.joining(", "));
+		String parameters = Stream.concat(Stream.of("void *restrict"), parameterStream).collect(Collectors.joining(", "));
 		backend().emitter().emit("typedef struct {");
 		backend().emitter().increaseIndentation();
 		backend().emitter().emit("%s (*f)(%s);", returnType, parameters);
@@ -183,6 +187,12 @@ public interface Callables {
 		backend().emitter().emit("static %s;", lambdaHeader(lambda));
 	}
 
+	default void callablePrototype(ExprProc lambda) {
+		String name = functionName(lambda);
+		closureTypedef(lambda.getClosure(), name);
+		backend().emitter().emit("static %s;", procHeader(lambda));
+	}
+
 	default void closureTypedef(ImmutableList<ClosureVarDecl> closure, String name) {
 		backend().emitter().emit("typedef struct {");
 		backend().emitter().increaseIndentation();
@@ -193,10 +203,6 @@ public interface Callables {
 		}
 		backend().emitter().decreaseIndentation();
 		backend().emitter().emit("} envt_%s;", name);
-	}
-
-	default void callablePrototype(ExprProc proc) {
-		backend().emitter().emit("static %s;", procHeader(proc));
 	}
 
 

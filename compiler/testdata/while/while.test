@@ -1,0 +1,11 @@
+{
+  "description": "Test while loops",
+  "source-paths": ["src"],
+  "entity": "whileloop.WhileLoopNet",
+  "test-data": [
+    {
+      "input": ["../random1k.data"],
+      "reference": ["../random1k.data"]
+    }
+  ]
+}

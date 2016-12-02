@@ -19,6 +19,7 @@ import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.CallableType;
 import se.lth.cs.tycho.types.LambdaType;
+import se.lth.cs.tycho.types.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -176,7 +177,13 @@ public interface Structure {
 			emitter().emit("static void %s_init_scope_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
 			for (VarDecl var : scope.getDeclarations()) {
-				if (var.getValue() != null) {
+				Type type = types().declaredType(var);
+				if (var.isExternal() && type instanceof CallableType) {
+					String wrapperName = backend().callables().externalWrapperFunctionName(var);
+					String variableName = backend().variables().declarationName(var);
+					String t = backend().callables().mangle(type).encode();
+					emitter().emit("self->%s = (%s) { *%s, NULL };", variableName, t, wrapperName);
+				} else if (var.getValue() != null) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
 					code().assign(types().declaredType(var), "self->" + backend().variables().declarationName(var), var.getValue());

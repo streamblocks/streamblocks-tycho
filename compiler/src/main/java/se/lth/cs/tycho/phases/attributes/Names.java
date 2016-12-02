@@ -5,6 +5,8 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
+import se.lth.cs.tycho.decoration.Tree;
+import se.lth.cs.tycho.decoration.VariableDeclarations;
 import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -41,6 +43,7 @@ import se.lth.cs.tycho.ir.stmt.StmtForeach;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.phases.TreeShadow;
+import se.lth.cs.tycho.phases.TreeShadowNew;
 
 import java.util.Map;
 import java.util.Optional;
@@ -208,8 +211,14 @@ public interface Names {
 		}
 
 		default VarDecl declaration(Variable var) {
-			return declarationMap().computeIfAbsent(var, v -> lookup(v, v.getName()));
+			TreeShadowNew tree = (TreeShadowNew) tree();
+			Tree<Variable> node = tree.tree(var);
+			Optional<Tree<? extends VarDecl>> declaration = VariableDeclarations.getDeclaration(node);
+			return declaration.map(Tree::upCast).<VarDecl> map(Tree::node).orElse(null);
 		}
+//		default VarDecl declaration(Variable var) {
+//			return declarationMap().computeIfAbsent(var, v -> lookup(v, v.getName()));
+//		}
 
 		default VarDecl lookup(IRNode context, String name) {
 			IRNode node = tree().parent(context);

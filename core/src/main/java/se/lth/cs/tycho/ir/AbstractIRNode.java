@@ -54,11 +54,12 @@ public abstract class AbstractIRNode implements IRNode {
 	private int toColumnNumber = 0;
 
 	public AbstractIRNode(IRNode original) {
-		if (original != null) setPosition(
-				original.getFromLineNumber(),
-				original.getFromColumnNumber(),
-				original.getToLineNumber(),
-				original.getToColumnNumber());
+		if (original != null)
+			setPosition(
+					original.getFromLineNumber(),
+					original.getFromColumnNumber(),
+					original.getToLineNumber(),
+					original.getToColumnNumber());
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.ir.decl;
 
-import se.lth.cs.tycho.ir.TypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 public abstract class VarDecl extends AbstractDecl {

@@ -31,6 +31,7 @@ public class OperatorParsingPhase implements Phase {
 			switch (unit.getLanguage()) {
 				case CAL: operatorMap = calOperators; break;
 				case ORCC: operatorMap = orccOperators; break;
+				case XDF: operatorMap = orccOperators; break;
 				default: operatorMap = noOperators;
 			}
 			Helper helper = new Helper(unit, context.getReporter(), operatorMap);

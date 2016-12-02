@@ -45,12 +45,15 @@ public class Compiler {
 			new DeclarationAnalysisPhase(),
 			new ImportAnalysisPhase(),
 			new NameAnalysisPhase(),
+			new TypeAnnotationAnalysisPhase(),
 			new TypeAnalysisPhase(),
+			new AddTypeAnnotationsPhase(),
 
 			new CreateNetworkPhase(),
 			new ResolveGlobalEntityNamesPhase(),
 			new ResolveGlobalVariableNamesPhase(),
 			new ElaborateNetworkPhase(),
+			new DeadDeclEliminationPhase(),
 			new ComputeClosuresPhase(),
 
 			// Actor transformations
