@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <string.h>
 
+#pragma GCC diagnostic ignored "-Wparentheses-equality"
 
 #ifndef BUFFER_SIZE
 #define BUFFER_SIZE 256
