@@ -150,9 +150,9 @@ public class ElaborateNetworkPhase implements Phase {
 	}
 
 	private Network elaborate(NlNetwork network) {
-		assert network.getValueParameters().isEmpty();
-		assert network.getTypeParameters().isEmpty();
-		assert network.getVarDecls().isEmpty();
+//		assert network.getValueParameters().isEmpty();
+//		assert network.getTypeParameters().isEmpty();
+//		assert network.getVarDecls().isEmpty();
 
 		ImmutableList<PortDecl> inputPorts = network.getInputPorts().map(PortDecl::deepClone);
 		ImmutableList<PortDecl> outputPorts = network.getOutputPorts().map(PortDecl::deepClone);

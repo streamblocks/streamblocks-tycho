@@ -7,7 +7,7 @@
 
 
 #ifndef BUFFER_SIZE
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 256
 #endif
 
 static volatile _Bool interrupted = false;

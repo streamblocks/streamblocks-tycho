@@ -1,0 +1,16 @@
+{
+  "description": "RVC decoder",
+  "orcc-source-paths": ["../../orc-apps/RVC/src", "../../orc-apps/System/src"],
+  "xdf-source-paths": ["../../orc-apps/RVC/src"],
+  "entity": "org.sc29.wg11.mpeg4.part2.sp.RVC_decoder",
+  "test-data": [
+    {
+      "input": ["foreman_qcif_30/bits.in"],
+      "reference": [
+        "foreman_qcif_30/WIDTH.out",
+        "foreman_qcif_30/HEIGHT.out",
+        "foreman_qcif_30/VID.out"
+      ]
+    }
+  ]
+}
