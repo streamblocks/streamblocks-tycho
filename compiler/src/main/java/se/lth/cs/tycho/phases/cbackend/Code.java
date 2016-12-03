@@ -134,9 +134,13 @@ public interface Code {
 	}
 
 	default void assignList(ListType type, String lvalue, ExprComprehension list) {
+		emitter().emit("{");
+		emitter().increaseIndentation();
 		String index = variables().generateTemp();
 		emitter().emit("size_t %s = 0;", index);
 		assignListComprehension(type, lvalue, index, list);
+		emitter().decreaseIndentation();
+		emitter().emit("}");
 	}
 
 	void assignListComprehension(ListType type, String lvalue, String index, Expression list);
