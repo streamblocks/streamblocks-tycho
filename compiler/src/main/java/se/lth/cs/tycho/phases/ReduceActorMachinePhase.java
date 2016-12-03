@@ -33,7 +33,7 @@ public class ReduceActorMachinePhase implements Phase {
 	private static final Setting<Integer> amStateMergeIterations = new IntegerSetting() {
 		@Override
 		public String getKey() {
-			return "am-state-merge-interations";
+			return "am-state-merge-iterations";
 		}
 
 		@Override

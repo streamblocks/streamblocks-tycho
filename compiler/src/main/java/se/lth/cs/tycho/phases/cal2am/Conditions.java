@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.phases.cal2am;
 
+import se.lth.cs.tycho.decoration.StructuralEquality;
 import se.lth.cs.tycho.ir.entity.am.Condition;
 import se.lth.cs.tycho.ir.entity.am.PortCondition;
 import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Conditions {
 	private final ImmutableList<Condition> conditions;
@@ -48,7 +50,13 @@ public class Conditions {
 				outputCond.put(output, outputRateCond.get(rate));
 			}
 			for (Expression guard : action.getGuards()) {
-				if (!predicateCond.containsKey(guard)) {
+				Optional<Integer> conditionIndex = predicateCond.entrySet().stream()
+						.filter(entry -> StructuralEquality.equals(entry.getKey(), guard))
+						.findFirst()
+						.map(Map.Entry::getValue);
+				if (conditionIndex.isPresent()) {
+					predicateCond.put(guard, conditionIndex.get());
+				} else {
 					predicateCond.put(guard, conditions.size());
 					conditions.add(new PredicateCondition(guard));
 				}
