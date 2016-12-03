@@ -5,6 +5,8 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
+import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
+import se.lth.cs.tycho.ir.expr.ExprIndexer;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
@@ -51,6 +53,14 @@ public final class StructuralEquality {
 
 		default boolean eq(ExprLiteral a, ExprLiteral b) {
 			return a.getKind() == b.getKind() && Objects.equals(a.getText(), b.getText());
+		}
+
+		default boolean eq(ExprGlobalVariable a, ExprGlobalVariable b) {
+			return Objects.equals(a.getGlobalName(), b.getGlobalName());
+		}
+
+		default boolean eq(ExprIndexer a, ExprIndexer b) {
+			return eq(a.getStructure(), b.getStructure()) && eq(a.getIndex(), b.getIndex());
 		}
 
 		default <T> boolean listEquals(List<T> a, List<T> b, BiPredicate<T, T> equals) {
