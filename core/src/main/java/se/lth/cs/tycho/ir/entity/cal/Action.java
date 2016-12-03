@@ -119,6 +119,14 @@ public class Action extends AbstractIRNode {
 		return guards;
 	}
 
+	public Action withGuards(List<Expression> guards) {
+		if (Lists.sameElements(this.guards, guards)) {
+			return this;
+		} else {
+			return new Action(this, tag, inputPatterns, outputExpressions, typeDecls, varDecls, ImmutableList.from(guards), body, delay, preconditions, postconditions);
+		}
+	}
+
 	public ImmutableList<Statement> getBody() {
 		return body;
 	}

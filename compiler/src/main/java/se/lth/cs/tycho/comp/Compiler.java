@@ -64,6 +64,7 @@ public class Compiler {
 			new ScheduleUntaggedPhase(),
 			new ScheduleInitializersPhase(),
 			new CloneTreePhase(),
+			new MergeManyGuardsPhase(),
 			new CalToAmPhase(),
 			new RemoveEmptyTransitionsPhase(),
 			new ReduceActorMachinePhase(),

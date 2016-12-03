@@ -152,8 +152,9 @@ public class ReduceActorMachinePhase implements Phase {
 		}
 
 		default IRNode apply(ActorMachine actorMachine) {
-			return actorMachine.withController(TransformedController.from(actorMachine.controller(),
+			ActorMachine reduced = actorMachine.withController(TransformedController.from(actorMachine.controller(),
 					transformations().transformations));
+			return reduced;
 		}
 	}
 
