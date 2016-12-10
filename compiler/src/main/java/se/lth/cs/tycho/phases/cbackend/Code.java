@@ -308,10 +308,32 @@ public interface Code {
 				return String.format("(%s %% %s)", evaluate(left), evaluate(right));
 			case "and":
 			case "&&":
-				return String.format("(%s && /* TODO: IMPLEMET CORRECTLY */ %s)", evaluate(left), evaluate(right));
+				String andResult = variables().generateTemp();
+				emitter().emit("_Bool %s;", andResult);
+				emitter().emit("if (%s) {", evaluate(left));
+				emitter().increaseIndentation();
+				emitter().emit("%s = %s;", andResult, evaluate(right));
+				emitter().decreaseIndentation();
+				emitter().emit("} else {");
+				emitter().increaseIndentation();
+				emitter().emit("%s = false;", andResult);
+				emitter().decreaseIndentation();
+				emitter().emit("}");
+				return andResult;
 			case "||":
 			case "or":
-				return String.format("(%s || /* TODO: IMPLEMET CORRECTLY */ %s)", evaluate(left), evaluate(right));
+				String orResult = variables().generateTemp();
+				emitter().emit("_Bool %s;", orResult);
+				emitter().emit("if (%s) {", evaluate(left));
+				emitter().increaseIndentation();
+				emitter().emit("%s = true;", orResult);
+				emitter().decreaseIndentation();
+				emitter().emit("} else {");
+				emitter().increaseIndentation();
+				emitter().emit("%s = %s;", orResult, evaluate(right));
+				emitter().decreaseIndentation();
+				emitter().emit("}");
+				return orResult;
 			default:
 				throw new UnsupportedOperationException(operation);
 		}
