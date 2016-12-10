@@ -1276,17 +1276,6 @@ TypeExpr Type() :
 	)?
 
 	{ type = new NominalTypeExpr(name.image, ImmutableList.empty(), ImmutableList.empty()); }
-	(
-		"["
-		size = Expression()
-		"]"
-		{
-			type = new NominalTypeExpr("List",
-					ImmutableList.of(new TypeParameter("type", type)),
-					ImmutableList.of(new ValueParameter("size", size)));
-		}
-	)*
-
 	{ return type; }
 }
 
@@ -1300,16 +1289,22 @@ TypeAndName VarDeclTypeName() :
 {
 	type = Type()
 	id = <ID>
+	{
+		LinkedList<Expression> arraySize = new LinkedList<Expression>();
+	}
 	(
 		"["
 		size = Expression()
 		"]"
-		{
+		{ arraySize.addFirst(size); }
+	)*
+	{
+		for (Expression sz : arraySize) {
 			type = new NominalTypeExpr("List",
 					ImmutableList.of(new TypeParameter("type", type)),
-					ImmutableList.of(new ValueParameter("size", size)));
+					ImmutableList.of(new ValueParameter("size", sz)));
 		}
-	)*
+	}
 	{ return new TypeAndName(type, id.image); }
 }
 
