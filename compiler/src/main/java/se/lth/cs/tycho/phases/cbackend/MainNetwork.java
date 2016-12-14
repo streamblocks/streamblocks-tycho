@@ -108,7 +108,7 @@ public interface MainNetwork {
 		}
 		emitter().emit("");
 		for (Instance instance : instances) {
-			emitter().emit("%s_state %s;", instance.getEntityName().getLast(), instance.getInstanceName());
+			emitter().emit("static %s_state %s;", instance.getEntityName().getLast(), instance.getInstanceName());
 			emitter().emit("memset(&%s, 0, sizeof(%s_state));", instance.getInstanceName(), instance.getEntityName().getLast());
 		}
 		for (Instance instance : instances) {
