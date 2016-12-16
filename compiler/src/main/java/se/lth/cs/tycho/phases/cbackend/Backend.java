@@ -5,23 +5,33 @@ import org.multij.Module;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.UniqueNumbers;
+import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.phases.TreeShadow;
 import se.lth.cs.tycho.phases.attributes.ActorMachineScopes;
 import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 import static org.multij.BindingKind.INJECTED;
 import static org.multij.BindingKind.LAZY;
 import static org.multij.BindingKind.MODULE;
 
 @Module
-public interface Backend {
+public interface Backend extends Closeable {
 	// Attributes
 	@Binding(INJECTED) CompilationTask task();
 	@Binding(INJECTED) Context context();
+	@Binding(INJECTED) Instance instance();
+	@Binding(INJECTED) Emitter emitter();
 
-	@Binding(LAZY) default Emitter emitter() { return new Emitter(); }
+	@Override
+	default void close() {
+		emitter().close();
+	}
+
 	@Binding(LAZY) default Types types() { return context().getAttributeManager().getAttributeModule(Types.key, task()); }
 	@Binding(LAZY) default Names names() { return context().getAttributeManager().getAttributeModule(Names.key, task()); }
 	@Binding(LAZY) default GlobalNames globalNames() { return context().getAttributeManager().getAttributeModule(GlobalNames.key, task()); }

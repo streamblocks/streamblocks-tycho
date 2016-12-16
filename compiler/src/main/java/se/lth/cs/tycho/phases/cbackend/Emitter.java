@@ -8,22 +8,14 @@ import java.nio.file.Path;
 public class Emitter {
 
 	private int indentation;
-	private PrintWriter writer;
+	private final PrintWriter writer;
 
-	public void open(Path file) {
-		if (writer != null) {
-			throw new IllegalStateException("Current file is not closed.");
-		}
-		try {
-			writer = new PrintWriter(Files.newBufferedWriter(file));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+	public Emitter(Path file) throws IOException {
+		writer = new PrintWriter(Files.newBufferedWriter(file));
 	}
 
 	public void close() {
 		writer.close();
-		writer = null;
 	}
 
 	public void increaseIndentation() {

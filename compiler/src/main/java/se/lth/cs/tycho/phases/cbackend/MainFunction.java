@@ -40,10 +40,6 @@ public interface MainFunction {
 
 	default void generateCode() {
 		CompilationTask task = backend().task();
-		String targetName = task.getIdentifier().getLast().toString();
-		Path path = backend().context().getConfiguration().get(Compiler.targetPath);
-		Path target = path.resolve(targetName + ".c");
-		emitter().open(target);
 		include();
 		for (Type t : channelTypes()) { channels().channelCode(t); }
 		for (Type t : inputActorTypes()) { channels().inputActorCode(t); }
@@ -56,7 +52,6 @@ public interface MainFunction {
 		backend().callables().defineCallables();
 		backend().structure().actorDecls(entityDecls);
 		mainNetwork().main(task.getNetwork());
-		emitter().close();
 	}
 
 	default Type intToNearest8Mult(Type t) {
