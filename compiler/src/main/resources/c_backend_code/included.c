@@ -4,12 +4,9 @@
 #include <inttypes.h>
 #include <signal.h>
 #include <string.h>
+#include "fifo.h"
 
-#pragma GCC diagnostic ignored "-Wparentheses-equality"
-
-#ifndef BUFFER_SIZE
-#define BUFFER_SIZE 256
-#endif
+#pragma gcc diagnostic ignored "-Wparentheses-equality"
 
 static volatile _Bool interrupted = false;
 
