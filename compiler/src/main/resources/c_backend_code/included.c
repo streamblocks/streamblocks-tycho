@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <string.h>
 #include "fifo.h"
+#include "prelude.h"
 
 #pragma gcc diagnostic ignored "-Wparentheses-equality"
 
@@ -31,13 +32,4 @@ int main(int argc, char **argv) {
 	} else {
 		return EXIT_SUCCESS;
 	}
-}
-
-
-void println(char *text) {
-	puts(text);
-}
-
-void print(char *text) {
-	fputs(text, stdout);
 }

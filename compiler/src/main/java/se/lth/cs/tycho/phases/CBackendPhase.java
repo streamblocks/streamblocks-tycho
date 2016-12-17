@@ -10,6 +10,7 @@ import se.lth.cs.tycho.phases.cbackend.Emitter;
 import se.lth.cs.tycho.reporting.Diagnostic;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -24,9 +25,19 @@ public class CBackendPhase implements Phase {
 		String targetName = task.getIdentifier().getLast().toString();
 		Path path = context.getConfiguration().get(Compiler.targetPath);
 		Path mainTarget = path.resolve(targetName + ".c");
+		String filename = "prelude.h";
+		copyResource(context, path, filename);
 		withBackend(task, context, path.resolve("fifo.h"), backend -> backend.channels().fifo_h());
 		withBackend(task, context, mainTarget, backend -> backend.main().generateCode());
 		return task;
+	}
+
+	private void copyResource(Context context, Path path, String filename) {
+		try {
+			Files.copy(ClassLoader.getSystemResourceAsStream("c_backend_code/"+filename), path.resolve(filename));
+		} catch (IOException e) {
+			context.getReporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not generate code to \""+filename+"\""));
+		}
 	}
 
 	private void withBackend(CompilationTask task, Context context, Path target, Consumer<Backend> action) {
