@@ -9,7 +9,6 @@
 	<modules>
 		<module>core</module>
 		<module>compiler</module>
-		<module>backend-ir</module>
 	</modules>
 
 	<properties>
