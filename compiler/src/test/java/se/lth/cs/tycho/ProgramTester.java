@@ -36,15 +36,15 @@ public class ProgramTester {
 		Compiler comp = new Compiler(config);
 		QID name = test.getEntity();
 		if (comp.compile(name)) {
-			Optional<Path> cfile = Files.list(target)
-					.filter(file -> file.getFileName().toString().startsWith(name.getLast().toString()))
+			List<Path> cfiles = Files.list(target)
 					.filter(file -> file.toString().endsWith(".c"))
-					.findFirst();
-			if (cfile.isPresent()) {
+					.collect(Collectors.toList());
+			if (!cfiles.isEmpty()) {
 				List<String> command = new ArrayList<>();
 				command.add("cc");
 				command.add("-std=c99");
-				command.add(cfile.get().getFileName().toString());
+				command.add(String.format("-I%s", target));
+				cfiles.forEach(p -> command.add(p.toAbsolutePath().toString()));
 				test.getExternalSources().forEach(p -> command.add(p.toAbsolutePath().toString()));
 				Process cc = new ProcessBuilder(command)
 						.directory(target.toFile())
@@ -57,7 +57,7 @@ public class ProgramTester {
 					}
 					return new ProgramTester(aout);
 				} else {
-					throw new RuntimeException(String.format("Compilation error in %s:\n%s", cfile.get(), error));
+					throw new RuntimeException(String.format("Compilation error in %s:\n%s", cfiles, error));
 				}
 			} else {
 				throw new RuntimeException("Compilation error." + Files.list(target).map(Path::getFileName).map(Path::toString).collect(Collectors.joining(", ", "[", "]")));
