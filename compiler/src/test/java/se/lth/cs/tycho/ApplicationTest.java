@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
-public class ApplicationTests {
+public class ApplicationTest {
 	private final TestDescription test;
 
 	@BeforeClass
@@ -51,7 +51,7 @@ public class ApplicationTests {
 		return testParameters;
 	}
 
-	public ApplicationTests(String description, TestDescription test) {
+	public ApplicationTest(String description, TestDescription test) {
 		this.test = test;
 	}
 
