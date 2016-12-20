@@ -6,8 +6,9 @@
 #include <string.h>
 #include "fifo.h"
 #include "prelude.h"
+#include "global.h"
 
-#pragma gcc diagnostic ignored "-Wparentheses-equality"
+#pragma clang diagnostic ignored "-Wparentheses-equality"
 
 static volatile _Bool interrupted = false;
 

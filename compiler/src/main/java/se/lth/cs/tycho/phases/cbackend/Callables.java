@@ -57,12 +57,15 @@ public interface Callables {
 		backend().emitter().emit("// FUNCTION AND PROCEDURE PROTOTYPES");
 		backend().task().walk().forEach(this::callablePrototype);
 		backend().emitter().emit("");
-		backend().emitter().emit("// EXTERNAL FUNCTION AND PROCEDURE DEFINITIONS");
-		backend().task().walk().forEach(this::externalCallableDefinition);
+		backend().emitter().emit("// EXTERNAL FUNCTION AND PROCEDURE DECLARATIONS");
+		backend().task().walk().forEach(this::externalCallableDeclaration);
 		backend().emitter().emit("");
 	}
 
 	default void defineCallables() {
+		backend().emitter().emit("// EXTERNAL FUNCTION AND PROCEDURE DEFINITIONS");
+		backend().task().walk().forEach(this::externalCallableDefinition);
+		backend().emitter().emit("");
 		backend().emitter().emit("// FUNCTION AND PROCEDURE DEFINITIONS");
 		backend().task().walk().forEach(this::callableDefinition);
 		backend().emitter().emit("");
@@ -184,13 +187,13 @@ public interface Callables {
 	default void callablePrototype(ExprLambda lambda) {
 		String name = functionName(lambda);
 		closureTypedef(lambda.getClosure(), name);
-		backend().emitter().emit("static %s;", lambdaHeader(lambda));
+		backend().emitter().emit("%s;", lambdaHeader(lambda));
 	}
 
 	default void callablePrototype(ExprProc lambda) {
 		String name = functionName(lambda);
 		closureTypedef(lambda.getClosure(), name);
-		backend().emitter().emit("static %s;", procHeader(lambda));
+		backend().emitter().emit("%s;", procHeader(lambda));
 	}
 
 	default void closureTypedef(ImmutableList<ClosureVarDecl> closure, String name) {
@@ -212,7 +215,7 @@ public interface Callables {
 
 	default void callableDefinition(ExprLambda lambda) {
 		String name = functionName(lambda);
-		backend().emitter().emit("static %s {", lambdaHeader(lambda));
+		backend().emitter().emit("%s {", lambdaHeader(lambda));
 		backend().emitter().increaseIndentation();
 		lambda.forEachChild(this::declareEnvironmentForCallablesInScope);
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
@@ -223,7 +226,7 @@ public interface Callables {
 
 	default void callableDefinition(ExprProc proc) {
 		String name = functionName(proc);
-		backend().emitter().emit("static %s {", procHeader(proc));
+		backend().emitter().emit("%s {", procHeader(proc));
 		backend().emitter().increaseIndentation();
 		proc.forEachChild(this::declareEnvironmentForCallablesInScope);
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
@@ -245,7 +248,7 @@ public interface Callables {
 	default Map<Expression, String> callablesNames() { return new HashMap<>(); }
 
 	@Binding(BindingKind.LAZY)
-	default Map<VarDecl, String> externalNames() { return new HashMap<>(); }
+	default Map<VarDecl, String> externalNames() { return new HashMap<>(); } // TODO: persist between backends?
 
 	@Binding(BindingKind.LAZY)
 	default Set<String> usedNames() { return new HashSet<>(); }
@@ -260,7 +263,7 @@ public interface Callables {
 				VarDecl decl = (VarDecl) parent;
 				candidate = "f_" + decl.getName();
 			} else {
-				candidate = "f_annon";
+				candidate = "f_anon";
 			}
 			int i = 0;
 			while (usedNames().contains(candidate + "_" + i)) {
@@ -316,7 +319,24 @@ public interface Callables {
 		return externalNames().get(external);
 	}
 
-	default void externalCallableDefinition(IRNode varDecl) { }
+	default void externalCallableDeclaration(IRNode varDecl) { }
+
+	default void externalCallableDeclaration(VarDecl varDecl) {
+		if (varDecl.isExternal()) {
+			Type type = backend().types().declaredType(varDecl);
+			assert type instanceof CallableType : "External declaration must be function or procedure";
+			CallableType callable = (CallableType) type;
+			List<String> parameterNames = new ArrayList<>();
+			for (int i = 0; i < callable.getParameterTypes().size(); i++) {
+				parameterNames.add("p_" + i);
+			}
+			backend().emitter().emit("%s;", callableHeader(varDecl.getOriginalName(), callable, parameterNames, false));
+			String name = externalWrapperFunctionName(varDecl);
+			backend().emitter().emit("%s;", callableHeader(name, callable, parameterNames, true));
+		}
+	}
+
+	default void externalCallableDefinition(IRNode node) { }
 
 	default void externalCallableDefinition(VarDecl varDecl) {
 		if (varDecl.isExternal()) {
@@ -327,9 +347,8 @@ public interface Callables {
 			for (int i = 0; i < callable.getParameterTypes().size(); i++) {
 				parameterNames.add("p_" + i);
 			}
-			backend().emitter().emit("extern %s;", callableHeader(varDecl.getOriginalName(), callable, parameterNames, false));
 			String name = externalWrapperFunctionName(varDecl);
-			backend().emitter().emit("static %s {", callableHeader(name, callable, parameterNames, true));
+			backend().emitter().emit("%s {", callableHeader(name, callable, parameterNames, true));
 			backend().emitter().increaseIndentation();
 			String call = varDecl.getOriginalName() + "(" + String.join(", ", parameterNames) + ")";
 			if (callable.getReturnType().equals(UnitType.INSTANCE)) {

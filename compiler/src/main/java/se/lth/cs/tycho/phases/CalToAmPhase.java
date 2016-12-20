@@ -8,8 +8,6 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
 import se.lth.cs.tycho.phases.cal2am.CalToAm;
 import se.lth.cs.tycho.phases.cal2am.KnowledgeRemoval;
-import se.lth.cs.tycho.settings.Configuration;
-import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 
 import java.util.List;

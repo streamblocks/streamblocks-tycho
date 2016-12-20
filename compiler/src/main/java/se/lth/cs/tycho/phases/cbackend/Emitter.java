@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.phases.cbackend;
 
+import se.lth.cs.tycho.reporting.CompilationException;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -8,14 +10,24 @@ import java.nio.file.Path;
 public class Emitter {
 
 	private int indentation;
-	private final PrintWriter writer;
+	private PrintWriter writer;
 
-	public Emitter(Path file) throws IOException {
-		writer = new PrintWriter(Files.newBufferedWriter(file));
+	public Emitter() { }
+
+	public void open(Path file) {
+		if (writer != null) throw new IllegalStateException("Must close previous file before opening a new.");
+		try {
+			writer = new PrintWriter(Files.newBufferedWriter(file));
+		} catch (IOException e) {
+			throw CompilationException.from(e);
+		}
+		indentation = 0;
 	}
 
 	public void close() {
+		writer.flush();
 		writer.close();
+		writer = null;
 	}
 
 	public void increaseIndentation() {

@@ -3,6 +3,7 @@ package se.lth.cs.tycho.phases.cbackend;
 import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprProc;
@@ -32,29 +33,53 @@ public interface Global {
 		return backend().types();
 	}
 
-	default DefaultValues defVal() { return backend().defaultValues(); }
+	default void generateGlobalCode() {
+		emitter().emit("#include <stdlib.h>");
+		emitter().emit("#include <stdint.h>");
+		emitter().emit("#include <stdbool.h>");
+		emitter().emit("#include \"global.h\"");
+		emitter().emit("");
+		backend().callables().defineCallables();
+		emitter().emit("");
+		globalVariableInitializer(getGlobalVarDecls());
+	}
 
+	default void generateGlobalHeader() {
+		emitter().emit("#ifndef GLOBAL_H");
+		emitter().emit("#define GLOBAL_H");
+		emitter().emit("");
+		emitter().emit("#include <stdlib.h>");
+		emitter().emit("#include <stdint.h>");
+		emitter().emit("#include <stdbool.h>");
+		emitter().emit("");
+		emitter().emit("void init_global_variables(void);");
+		emitter().emit("");
+		backend().callables().declareCallables();
+		emitter().emit("");
+		backend().callables().declareEnvironmentForCallablesInScope(backend().task());
+		emitter().emit("");
+		globalVariableDeclarations(getGlobalVarDecls());
+		emitter().emit("");
+		emitter().emit("#endif");
+	}
 
-	default void globalVariables(List<VarDecl> varDecls) {
-//		for (VarDecl decl : varDecls) {
-//			Type type = types().declaredType(decl);
-//			if (type instanceof CallableType) {
-//				globalCallableDecl(decl, decl.getValue());
-//			}
-//		}
+	default List<GlobalVarDecl> getGlobalVarDecls() {
+		return backend().task()
+					.getSourceUnits().stream()
+					.flatMap(unit -> unit.getTree().getVarDecls().stream())
+					.collect(Collectors.toList());
+	}
+
+	default void globalVariableDeclarations(List<GlobalVarDecl> varDecls) {
 		for (VarDecl decl : varDecls) {
 			Type type = types().declaredType(decl);
 			String d = code().declaration(type, backend().variables().declarationName(decl));
-			String v = defVal().defaultValue(type);
-			emitter().emit("static %s = %s;", d, v);
+			emitter().emit("%s;", d);
 		}
-//		for (VarDecl decl : varDecls) {
-//			Type type = types().declaredType(decl);
-//			if (type instanceof CallableType) {
-//				globalCallable(decl, decl.getValue());
-//			}
-//		}
-		emitter().emit("static void init_global_variables() {");
+	}
+
+	default void globalVariableInitializer(List<GlobalVarDecl> varDecls) {
+		emitter().emit("void init_global_variables() {");
 		emitter().increaseIndentation();
 		for (VarDecl decl : varDecls) {
 			Type type = types().declaredType(decl);

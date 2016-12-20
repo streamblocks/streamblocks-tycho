@@ -2,6 +2,7 @@ package se.lth.cs.tycho.comp;
 
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.phases.*;
+import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.settings.Configuration;
@@ -12,6 +13,8 @@ import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.settings.SettingsManager;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -147,15 +150,23 @@ public class Compiler {
 		long[] phaseExecutionTime = new long[phases.size()];
 		int currentPhaseNumber = 0;
 		boolean success = true;
-		for (Phase phase : phases) {
-			long startTime = System.nanoTime();
-			compilationTask = phase.execute(compilationTask, compilationContext);
-			phaseExecutionTime[currentPhaseNumber] = System.nanoTime() - startTime;
-			currentPhaseNumber += 1;
-			if (compilationContext.getReporter().getMessageCount(Diagnostic.Kind.ERROR) > 0) {
-				success = false;
-				break;
+		try {
+			for (Phase phase : phases) {
+				long startTime = System.nanoTime();
+				compilationTask = phase.execute(compilationTask, compilationContext);
+				phaseExecutionTime[currentPhaseNumber] = System.nanoTime() - startTime;
+				currentPhaseNumber += 1;
+				if (compilationContext.getReporter().getMessageCount(Diagnostic.Kind.ERROR) > 0) {
+					success = false;
+					break;
+				}
 			}
+		} catch (CompilationException e) {
+			compilationContext.getReporter().report(e.getDiagnostic());
+			success = false;
+		} catch (RuntimeException e) {
+			compilationContext.getReporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "An internal compiler error has occured with the following message:\n" + e.getMessage()));
+			success = false;
 		}
 		if (compilationContext.getConfiguration().get(phaseTimer)) {
 			System.out.println("Execution time report:");

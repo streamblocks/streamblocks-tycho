@@ -6,7 +6,6 @@ import se.lth.cs.tycho.decoration.EntityDeclarations;
 import se.lth.cs.tycho.decoration.Namespaces;
 import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.entity.nl.EntityReference;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 

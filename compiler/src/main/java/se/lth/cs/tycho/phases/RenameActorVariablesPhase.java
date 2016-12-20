@@ -7,7 +7,6 @@ import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.transformation.Rename;
-import se.lth.cs.tycho.transformation.RenameVariables;
 
 import java.util.function.Function;
 

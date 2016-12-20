@@ -2,6 +2,7 @@ package se.lth.cs.tycho.phases;
 
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
+import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.settings.Setting;
 
 import java.util.Collections;
@@ -20,7 +21,7 @@ public interface Phase {
 
 	String getDescription();
 
-	CompilationTask execute(CompilationTask task, Context context);
+	CompilationTask execute(CompilationTask task, Context context) throws CompilationException;
 
 	default List<Setting<?>> getPhaseSettings() {
 		return Collections.emptyList();
