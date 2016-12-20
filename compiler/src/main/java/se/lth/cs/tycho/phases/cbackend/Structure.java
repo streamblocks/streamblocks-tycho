@@ -47,11 +47,13 @@ public interface Structure {
 	default DefaultValues defVal() { return backend().defaultValues(); }
 
 	default void actorHdr(GlobalEntityDecl decl) {
-		actorHeader(decl.getName(), decl.getEntity());
+		String name = backend().instance().get().getInstanceName();
+		actorHeader(name, decl.getEntity());
 	}
 
 	default void actorDecl(GlobalEntityDecl decl) {
-		actor(decl.getName(), decl.getEntity());
+		String name = backend().instance().get().getInstanceName();
+		actor(name, decl.getEntity());
 	}
 
 	default void actorHeader(String name, Entity entity) {}

@@ -108,8 +108,8 @@ public interface MainNetwork {
 		}
 		emitter().emit("");
 		for (Instance instance : instances) {
-			emitter().emit("static %s_state %s;", instance.getEntityName().getLast(), instance.getInstanceName());
-			emitter().emit("memset(&%s, 0, sizeof(%s_state));", instance.getInstanceName(), instance.getEntityName().getLast());
+			emitter().emit("static %s_state %1$s;", instance.getInstanceName());
+			emitter().emit("memset(&%s, 0, sizeof(%1$s_state));", instance.getInstanceName());
 		}
 		for (Instance instance : instances) {
 			List<String> initParameters = new ArrayList<>();
@@ -141,7 +141,7 @@ public interface MainNetwork {
 				initParameters.add(String.format("%s_%s", instance.getInstanceName(), port.getName()));
 				initParameters.add(Integer.toString(outgoing.size()));
 			}
-			emitter().emit("%s_init_actor(%s);", instance.getEntityName().getLast(), String.join(", ", initParameters));
+			emitter().emit("%s_init_actor(%s);", instance.getInstanceName(), String.join(", ", initParameters));
 			emitter().emit("");
 		}
 
@@ -176,7 +176,7 @@ public interface MainNetwork {
 			emitter().emit("progress |= input_actor_run_%s(%s_input_actor);", code().type(backend().types().declaredPortType(inputPort)), inputPort.getName());
 		}
 		for (Instance instance : instances) {
-			emitter().emit("progress |= %s_run(&%s);", instance.getEntityName().getLast(), instance.getInstanceName());
+			emitter().emit("progress |= %s_run(&%1$s);", instance.getInstanceName());
 		}
 		for (PortDecl outputPort : network.getOutputPorts()) {
 			emitter().emit("progress |= output_actor_run_%s(%s_output_actor);", code().type(backend().types().declaredPortType(outputPort)), outputPort.getName());

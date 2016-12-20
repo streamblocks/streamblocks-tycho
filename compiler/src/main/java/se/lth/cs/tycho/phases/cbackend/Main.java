@@ -4,7 +4,9 @@ import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Compiler;
+import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.reporting.CompilationException;
 
 import java.io.BufferedReader;
@@ -80,9 +82,7 @@ public interface Main {
 	}
 
 	default void actors() {
-		backend().task().getSourceUnits().stream()
-				.flatMap(unit -> unit.getTree().getEntityDecls().stream())
-				.forEach(this::actor);
+		backend().task().getNetwork().getInstances().forEach(this::actor);
 	}
 
 	@Binding(LAZY)
@@ -100,8 +100,15 @@ public interface Main {
 		return name;
 	}
 
-	default void actor(GlobalEntityDecl actor) {
-		String fileNameBase = actorFileName(actor.getOriginalName());
+	default void actor(Instance instance) {
+		backend().instance().set(instance);
+		GlobalEntityDecl actor = backend().task().getSourceUnits().stream()
+				.map(SourceUnit::getTree)
+				.filter(ns -> ns.getQID().equals(instance.getEntityName().getButLast()))
+				.flatMap(ns -> ns.getEntityDecls().stream())
+				.filter(decl -> decl.getName().equals(instance.getEntityName().getLast().toString()))
+				.findFirst().get();
+		String fileNameBase = actorFileName(instance.getInstanceName());
 		String headerFileName = fileNameBase + ".h";
 		emitter().open(target().resolve(headerFileName));
 		String headerGuard = headerGuard(headerFileName);
@@ -119,6 +126,7 @@ public interface Main {
 		includeUser(headerFileName);
 		backend().structure().actorDecl(actor);
 		emitter().close();
+		backend().instance().clear();
 	}
 
 	default String headerGuard(String fileName) {
