@@ -46,16 +46,25 @@ public interface Structure {
 
 	default DefaultValues defVal() { return backend().defaultValues(); }
 
+	default void actorHdr(GlobalEntityDecl decl) {
+		actorHeader(decl.getName(), decl.getEntity());
+	}
 
 	default void actorDecl(GlobalEntityDecl decl) {
 		actor(decl.getName(), decl.getEntity());
 	}
 
+	default void actorHeader(String name, Entity entity) {}
+
+	default void actorHeader(String name, ActorMachine actorMachine) {
+		actorMachineState(name, actorMachine);
+		actorMachineInitHeader(name, actorMachine);
+		actorMachineControllerHeader(name, actorMachine);
+	}
+
 	default void actor(String name, Entity entity) {}
 
 	default void actor(String name, ActorMachine actorMachine) {
-		actorMachineState(name, actorMachine);
-//		actorMachineCallables(name, actorMachine);
 		actorMachineStateInit(name, actorMachine);
 		actorMachineInit(name, actorMachine);
 		actorMachineTransitions(name, actorMachine);
@@ -63,16 +72,27 @@ public interface Structure {
 		actorMachineController(name, actorMachine);
 	}
 
+	default void actorMachineControllerHeader(String name, ActorMachine actorMachine) {
+		backend().controllers().emitControllerHeader(name, actorMachine);
+		emitter().emit("");
+	}
 	default void actorMachineController(String name, ActorMachine actorMachine) {
 		backend().controllers().emitController(name, actorMachine);
 		emitter().emit("");
 		emitter().emit("");
 	}
 
+	default void actorMachineInitHeader(String name, ActorMachine actorMachine) {
+		String selfParameter = name + "_state *self";
+		List<String> parameters = getEntityInitParameters(selfParameter, actorMachine);
+		emitter().emit("void %s_init_actor(%s);", name, String.join(", ", parameters));
+		emitter().emit("");
+	}
+
 	default void actorMachineInit(String name, ActorMachine actorMachine) {
 		String selfParameter = name + "_state *self";
 		List<String> parameters = getEntityInitParameters(selfParameter, actorMachine);
-		emitter().emit("static void %s_init_actor(%s) {", name, String.join(", ", parameters));
+		emitter().emit("void %s_init_actor(%s) {", name, String.join(", ", parameters));
 		emitter().increaseIndentation();
 		emitter().emit("self->program_counter = 0;");
 		emitter().emit("");

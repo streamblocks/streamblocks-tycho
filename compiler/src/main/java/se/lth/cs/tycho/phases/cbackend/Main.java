@@ -3,8 +3,8 @@ package se.lth.cs.tycho.phases.cbackend;
 import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.comp.Compiler;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.reporting.CompilationException;
 
 import java.io.BufferedReader;
@@ -12,8 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import static org.multij.BindingKind.LAZY;
 
 @Module
 public interface Main {
@@ -35,6 +37,7 @@ public interface Main {
 	default void generateCode() {
 		global();
 		fifo();
+		actors();
 		main();
 	}
 
@@ -54,18 +57,81 @@ public interface Main {
 	}
 
 	default void main() {
-		String targetName = backend().task().getIdentifier().getLast().toString();
-		Path mainTarget = target().resolve(targetName + ".c");
+		Path mainTarget = target().resolve("main.c");
 		emitter().open(mainTarget);
 		CompilationTask task = backend().task();
+		includeSystem("stdlib.h");
+		includeSystem("stdio.h");
+		includeSystem("stdbool.h");
+		includeSystem("stdint.h");
+		includeSystem("signal.h");
+		includeSystem("string.h");
+		includeUser("fifo.h");
+		includeUser("prelude.h");
+		includeUser("global.h");
 		include();
+		for (String fileNameBase : actorFileNames()) {
+			includeUser(fileNameBase + ".h");
+		}
 		channels().inputActorCode();
 		channels().outputActorCode();
-		List<GlobalEntityDecl> entityDecls = task.getSourceUnits().stream().flatMap(unit -> unit.getTree().getEntityDecls().stream()).collect(Collectors.toList());
-		backend().structure().actorDecls(entityDecls);
 		mainNetwork().main(task.getNetwork());
 		emitter().close();
 	}
+
+	default void actors() {
+		backend().task().getSourceUnits().stream()
+				.flatMap(unit -> unit.getTree().getEntityDecls().stream())
+				.forEach(this::actor);
+	}
+
+	@Binding(LAZY)
+	default Set<String> actorFileNames() {
+		return new LinkedHashSet<>();
+	}
+
+	default String actorFileName(String base) {
+		String name = base;
+		int i = 1;
+		while (actorFileNames().contains(name)) {
+			name = base + "_" + i;
+		}
+		actorFileNames().add(name);
+		return name;
+	}
+
+	default void actor(GlobalEntityDecl actor) {
+		String fileNameBase = actorFileName(actor.getOriginalName());
+		String headerFileName = fileNameBase + ".h";
+		emitter().open(target().resolve(headerFileName));
+		String headerGuard = headerGuard(headerFileName);
+		emitter().emit("#ifndef %s", headerGuard);
+		emitter().emit("#define %s", headerGuard);
+		emitDefaultHeaders();
+		backend().structure().actorHdr(actor);
+		emitter().emit("#endif");
+		emitter().close();
+
+		emitter().open(target().resolve(fileNameBase + ".c"));
+		emitDefaultHeaders();
+		includeUser("fifo.h");
+		includeUser("global.h");
+		includeUser(headerFileName);
+		backend().structure().actorDecl(actor);
+		emitter().close();
+	}
+
+	default String headerGuard(String fileName) {
+		return fileName.replaceAll("[^a-zA-Z0-9]", "_").toUpperCase();
+	}
+
+	default void emitDefaultHeaders() {
+		includeSystem("stdint.h");
+		includeSystem("stdbool.h");
+		includeSystem("stdlib.h");
+	}
+	default void includeSystem(String h) { emitter().emit("#include <%s>", h); }
+	default void includeUser(String h) { emitter().emit("#include \"%s\"", h); }
 
 	default Path target() {
 		return backend().context().getConfiguration().get(Compiler.targetPath);
