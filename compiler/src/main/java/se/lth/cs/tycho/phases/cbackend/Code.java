@@ -3,12 +3,12 @@ package se.lth.cs.tycho.phases.cbackend;
 import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.Generator;
-import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
 import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.expr.*;
+import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
@@ -30,7 +30,7 @@ import se.lth.cs.tycho.types.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.OptionalInt;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.multij.BindingKind.MODULE;
@@ -54,6 +54,14 @@ public interface Code {
 
 	default Names names() { return backend().names(); }
 
+	default String outputPortTypeSize(Port port) {
+		Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), port.getName());
+		return backend().channels().sourceEndTypeSize(source);
+	}
+
+	default String inputPortTypeSize(Port port) {
+		return backend().channels().targetEndTypeSize(new Connection.End(Optional.of(backend().instance().get().getInstanceName()), port.getName()));
+	}
 	void assign(Type type, String lvalue, Expression expr);
 
 	default void assign(RefType type, String lvalue, Expression expr) {
@@ -91,10 +99,10 @@ public interface Code {
 		Type portType = types().portType(input.getPort());
 		String tmp = variables().generateTemp();
 		if (input.getOffset() == 0) {
-			emitter().emit("%s = channel_peek_first_%s(self->%s_channel);", lvalue, type(portType), input.getPort().getName());
+			emitter().emit("%s = channel_peek_first_%s(self->%s_channel);", lvalue, inputPortTypeSize(input.getPort()), input.getPort().getName());
 		} else {
 			emitter().emit("%s;", declaration(portType, tmp));
-			emitter().emit("channel_peek_%s(self->%s_channel, %d, 1, &%s);", type(portType), input.getPort().getName(), input.getOffset(), tmp);
+			emitter().emit("channel_peek_%s(self->%s_channel, %d, 1, &%s);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getOffset(), tmp);
 			emitter().emit("%s = %s;", lvalue, tmp); // should handle some discrepancies between port type and variable type.
 		}
 	}
@@ -108,7 +116,7 @@ public interface Code {
 		assert input.getPatternLength() == 1; // only with one variable
 		assert input.getOffset() == 0; // and that variable is therefore the first
 		Type portType = types().portType(input.getPort());
-		emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, (%1$s*) &%s);", type(portType), input.getPort().getName(), input.getRepeat(), lvalue);
+		emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, (%s*) &%s);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getRepeat(), type(portType), lvalue);
 	}
 	default void assignList(ListType type, String lvalue, ExprVariable var) {
 		assert type.getSize().isPresent();
@@ -531,7 +539,7 @@ public interface Code {
 	void execute(Statement stmt);
 
 	default void execute(StmtConsume consume) {
-		emitter().emit("channel_consume_%s(self->%s_channel, %d);", type(types().portType(consume.getPort())), consume.getPort().getName(), consume.getNumberOfTokens());
+		emitter().emit("channel_consume_%s(self->%s_channel, %d);", inputPortTypeSize(consume.getPort()), consume.getPort().getName(), consume.getNumberOfTokens());
 	}
 
 	default void execute(StmtWrite write) {
@@ -542,7 +550,7 @@ public interface Code {
 			emitter().emit("%s;", declaration(types().portType(write.getPort()), tmp));
 			for (Expression expr : write.getValues()) {
 				emitter().emit("%s = %s;", tmp, evaluate(expr));
-				emitter().emit("channel_write_one_%s(self->%s_channels, self->%2$s_count, %s);", portType, portName, tmp);
+				emitter().emit("channel_write_one_%s(self->%s_channels, self->%2$s_count, %s);", outputPortTypeSize(write.getPort()), portName, tmp);
 			}
 		} else if (write.getValues().size() == 1) {
 			String portType = type(types().portType(write.getPort()));
@@ -551,7 +559,7 @@ public interface Code {
 			String temp = variables().generateTemp();
 			emitter().emit("for (size_t %1$s = 0; %1$s < %2$s; %1$s++) {", temp, repeat);
 			emitter().increaseIndentation();
-			emitter().emit("channel_write_one_%1$s(self->%2$s_channels, self->%2$s_count, %3$s[%4$s]);", portType, portName, value, temp);
+			emitter().emit("channel_write_one_%1$s(self->%2$s_channels, self->%2$s_count, %3$s[%4$s]);", outputPortTypeSize(write.getPort()), portName, value, temp);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 //			emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, %s, %s);", portType, portName, value, evaluate(write.getRepeatExpression()));

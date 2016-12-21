@@ -17,11 +17,11 @@ import se.lth.cs.tycho.types.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -97,12 +97,12 @@ public interface MainNetwork {
 			int i = 0;
 			for (Map.Entry<Connection.End, PortDecl> targetPort : targetPorts.entrySet()) {
 				Type tokenType = backend().types().declaredPortType(targetPort.getValue());
-				String typeName = code().type(tokenType);
+				String typeSize = backend().channels().targetEndTypeSize(targetPort.getKey());
 				String channelName = "channel_" + i;
-				connectionTypes.put(targetPort.getKey(), typeName);
+				connectionTypes.put(targetPort.getKey(), typeSize);
 				connectionNames.put(targetPort.getKey(), channelName);
-				emitter().emit("channel_%s %s;", typeName, channelName);
-				emitter().emit("channel_create_%s(&%s);", typeName, channelName);
+				emitter().emit("channel_%s %s;", typeSize, channelName);
+				emitter().emit("channel_create_%s(&%s);", typeSize, channelName);
 				i = i + 1;
 			}
 		}
@@ -136,7 +136,8 @@ public interface MainNetwork {
 				Connection.End end = new Connection.End(Optional.of(instance.getInstanceName()), port.getName());
 				List<Connection.End> outgoing = srcToTgt.getOrDefault(end, Collections.emptyList());
 				String channels = outgoing.stream().map(connectionNames::get).map(c -> "&"+c).collect(Collectors.joining(", "));
-				String tokenType = code().type(backend().types().declaredPortType(port));
+				Connection.End source = new Connection.End(Optional.of(instance.getInstanceName()), port.getName());
+				String tokenType = backend().channels().sourceEndTypeSize(source);
 				emitter().emit("channel_%s *%s_%s[%d] = { %s };", tokenType, instance.getInstanceName(), port.getName(), outgoing.size(), channels);
 				initParameters.add(String.format("%s_%s", instance.getInstanceName(), port.getName()));
 				initParameters.add(Integer.toString(outgoing.size()));
@@ -151,9 +152,10 @@ public interface MainNetwork {
 			List<Connection.End> outgoing = srcToTgt.getOrDefault(end, Collections.emptyList());
 			String channels = outgoing.stream().map(connectionNames::get).collect(Collectors.joining(", "));
 			emitter().emit("FILE *%s_input_file = fopen(argv[%d], \"r\");", port.getName(), argi);
-			String tokenType = code().type(backend().types().declaredPortType(port));
+//			String tokenType = code().type(backend().types().declaredPortType(port));
+			String tokenType = backend().channels().sourceEndTypeSize(new Connection.End(Optional.empty(), port.getName()));
 			emitter().emit("channel_%s *%s_channels[%d] = { &%s };", tokenType, port.getName(), outgoing.size(), channels);
-			String type = backend().code().type(backend().types().declaredPortType(port));
+			String type = backend().channels().sourceEndTypeSize(end);
 			emitter().emit("input_actor_%s *%s_input_actor = input_actor_create_%1$s(%2$s_input_file, %2$s_channels, %d);", type, port.getName(), outgoing.size());
 			emitter().emit("");
 			argi = argi + 1;
@@ -162,7 +164,7 @@ public interface MainNetwork {
 			Connection.End end = new Connection.End(Optional.empty(), port.getName());
 			String channel = connectionNames.get(end);
 			emitter().emit("FILE *%s_output_file = fopen(argv[%d], \"w\");", port.getName(), argi);
-			String type = backend().code().type(backend().types().declaredPortType(port));
+			String type = backend().channels().targetEndTypeSize(end);
 			emitter().emit("output_actor_%s *%s_output_actor = output_actor_create_%1$s(%2$s_output_file, &%s);", type, port.getName(), channel);
 			emitter().emit("");
 			argi = argi + 1;
@@ -173,13 +175,13 @@ public interface MainNetwork {
 		emitter().increaseIndentation();
 		emitter().emit("progress = false;");
 		for (PortDecl inputPort : network.getInputPorts()) {
-			emitter().emit("progress |= input_actor_run_%s(%s_input_actor);", code().type(backend().types().declaredPortType(inputPort)), inputPort.getName());
+			emitter().emit("progress |= input_actor_run_%s(%s_input_actor);", backend().channels().sourceEndTypeSize(new Connection.End(Optional.empty(), inputPort.getName())), inputPort.getName());
 		}
 		for (Instance instance : instances) {
 			emitter().emit("progress |= %s_run(&%1$s);", instance.getInstanceName());
 		}
 		for (PortDecl outputPort : network.getOutputPorts()) {
-			emitter().emit("progress |= output_actor_run_%s(%s_output_actor);", code().type(backend().types().declaredPortType(outputPort)), outputPort.getName());
+			emitter().emit("progress |= output_actor_run_%s(%s_output_actor);", backend().channels().targetEndTypeSize(new Connection.End(Optional.empty(), outputPort.getName())), outputPort.getName());
 		}
 		emitter().decreaseIndentation();
 		emitter().emit("} while (progress && !interrupted);");
@@ -202,11 +204,11 @@ public interface MainNetwork {
 		}
 
 		for (PortDecl port : network.getInputPorts()) {
-			emitter().emit("input_actor_destroy_%s(%s_input_actor);", code().type(backend().types().declaredPortType(port)), port.getName());
+			emitter().emit("input_actor_destroy_%s(%s_input_actor);", backend().channels().sourceEndTypeSize(new Connection.End(Optional.empty(), port.getName())), port.getName());
 		}
 
 		for (PortDecl port : network.getOutputPorts()) {
-			emitter().emit("output_actor_destroy_%s(%s_output_actor);", code().type(backend().types().declaredPortType(port)), port.getName());
+			emitter().emit("output_actor_destroy_%s(%s_output_actor);", backend().channels().targetEndTypeSize(new Connection.End(Optional.empty(), port.getName())), port.getName());
 		}
 
 		emitter().decreaseIndentation();

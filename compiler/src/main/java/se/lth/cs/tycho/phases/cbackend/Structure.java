@@ -12,18 +12,15 @@ import se.lth.cs.tycho.ir.entity.am.PortCondition;
 import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.entity.am.Transition;
-import se.lth.cs.tycho.ir.expr.ExprLambda;
-import se.lth.cs.tycho.ir.expr.ExprProc;
-import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.CallableType;
-import se.lth.cs.tycho.types.LambdaType;
 import se.lth.cs.tycho.types.Type;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Module
 public interface Structure {
@@ -139,11 +136,12 @@ public interface Structure {
 			parameters.add(code().declaration(types().declaredType(d), backend().variables().declarationName(d)));
 		});
 		actorMachine.getInputPorts().forEach(p -> {
-			String type = code().type(types().declaredPortType(p));
+			String type = backend().channels().targetEndTypeSize(new Connection.End(Optional.of(backend().instance().get().getInstanceName()), p.getName()));
 			parameters.add(String.format("channel_%s *%s_channel", type, p.getName()));
 		});
 		actorMachine.getOutputPorts().forEach(p -> {
-			String type = code().type(types().declaredPortType(p));
+			Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), p.getName());
+			String type = backend().channels().sourceEndTypeSize(source);
 			parameters.add(String.format("channel_%s **%s_channels", type, p.getName()));
 			parameters.add(String.format("size_t %s_count", p.getName()));
 		});
@@ -186,9 +184,9 @@ public interface Structure {
 
 	default String evaluateCondition(PortCondition condition) {
 		if (condition.isInputCondition()) {
-			return String.format("channel_has_data_%s(self->%s_channel, %d)", code().type(types().portType(condition.getPortName())), condition.getPortName().getName(), condition.N());
+			return String.format("channel_has_data_%s(self->%s_channel, %d)", code().inputPortTypeSize(condition.getPortName()), condition.getPortName().getName(), condition.N());
 		} else {
-			return String.format("channel_has_space_%s(self->%s_channels, self->%2$s_count, %d)", code().type(types().portType(condition.getPortName())), condition.getPortName().getName(), condition.N());
+			return String.format("channel_has_space_%s(self->%s_channels, self->%2$s_count, %d)", code().outputPortTypeSize(condition.getPortName()), condition.getPortName().getName(), condition.N());
 		}
 	}
 
@@ -238,14 +236,15 @@ public interface Structure {
 
 		emitter().emit("// input ports");
 		for (PortDecl input : actorMachine.getInputPorts()) {
-			String type = code().type(types().declaredPortType(input));
+			String type = backend().channels().targetEndTypeSize(new Connection.End(Optional.of(backend().instance().get().getInstanceName()), input.getName()));
 			emitter().emit("channel_%s *%s_channel;", type, input.getName());
 		}
 		emitter().emit("");
 
 		emitter().emit("// output ports");
 		for (PortDecl output : actorMachine.getOutputPorts()) {
-			String type = code().type(types().declaredPortType(output));
+			Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), output.getName());
+			String type = backend().channels().sourceEndTypeSize(source);
 			emitter().emit("channel_%s **%s_channels;", type, output.getName());
 			emitter().emit("size_t %s_count;", output.getName());
 		}

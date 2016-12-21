@@ -13,7 +13,7 @@ public interface BasicChannels extends Channels {
 		return backend().emitter();
 	}
 
-	default void channelCodeForType(Type type) {
+	default void channelCodeForType(Type type, int size) {
 		String tokenType = backend().code().type(type);
 		emitter().emit("// CHANNEL %s", type);
 		emitter().emit("typedef struct {");
@@ -92,7 +92,7 @@ public interface BasicChannels extends Channels {
 		emitter().emit("");
 	}
 
-	default void inputActorCodeForType(Type type) {
+	default void inputActorCodeForType(Type type, int size) {
 		String tokenType = backend().code().type(type);
 
 		emitter().emit("typedef struct {");
@@ -138,7 +138,7 @@ public interface BasicChannels extends Channels {
 		emitter().emit("");
 	}
 
-	default void outputActorCodeForType(Type type) {
+	default void outputActorCodeForType(Type type, int size) {
 		String tokenType = backend().code().type(type);
 
 		emitter().emit("typedef struct {");

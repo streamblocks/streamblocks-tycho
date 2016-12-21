@@ -9,8 +9,10 @@ import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 
 import java.io.IOException;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 public class CBackendPhase implements Phase {
 	@Override
@@ -33,7 +35,7 @@ public class CBackendPhase implements Phase {
 
 	private void copyResource(Path path, String filename) {
 		try {
-			Files.copy(ClassLoader.getSystemResourceAsStream("c_backend_code/"+filename), path.resolve(filename));
+			Files.copy(ClassLoader.getSystemResourceAsStream("c_backend_code/"+filename), path.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Could not generate code to \""+filename+"\""));
 		}

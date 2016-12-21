@@ -91,6 +91,7 @@ public interface Main {
 	}
 
 	default String actorFileName(String base) {
+		base = "actor_" + base;
 		String name = base;
 		int i = 1;
 		while (actorFileNames().contains(name)) {

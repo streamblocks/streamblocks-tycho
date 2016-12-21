@@ -13,22 +13,23 @@ public interface Channels {
 	@Binding Backend backend();
 	default Emitter emitter() { return backend().emitter(); }
 
-	void channelCodeForType(Type type);
-	void inputActorCodeForType(Type type);
-	void outputActorCodeForType(Type type);
+	void channelCodeForType(Type type, int size);
+	void channelListCodeForType(Type type, int size);
+	void inputActorCodeForType(Type type, int size);
+	void outputActorCodeForType(Type type, int size);
 
 	default void outputActorCode() {
 		backend().task().getNetwork().getOutputPorts().stream()
 				.map(backend().types()::declaredPortType)
 				.distinct()
-				.forEach(this::outputActorCodeForType);
+				.forEach((type) -> outputActorCodeForType(type, 0));
 	}
 
 	default void inputActorCode() {
 		backend().task().getNetwork().getInputPorts().stream()
 				.map(backend().types()::declaredPortType)
 				.distinct()
-				.forEach(this::inputActorCodeForType);
+				.forEach((type) -> inputActorCodeForType(type, 0));
 	}
 
 	default void fifo_h() {
@@ -46,7 +47,10 @@ public interface Channels {
 				.map(connection -> backend().types().connectionType(network, connection))
 				.map(this::intToNearest8Mult)
 				.distinct()
-				.forEach(this::channelCodeForType);
+				.forEach(type -> {
+					channelCodeForType(type, 0);
+					channelListCodeForType(type, 0);
+				});
 	}
 
 	default Type intToNearest8Mult(Type t) {
