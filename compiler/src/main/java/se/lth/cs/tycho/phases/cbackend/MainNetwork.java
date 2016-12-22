@@ -138,9 +138,8 @@ public interface MainNetwork {
 				String channels = outgoing.stream().map(connectionNames::get).map(c -> "&"+c).collect(Collectors.joining(", "));
 				Connection.End source = new Connection.End(Optional.of(instance.getInstanceName()), port.getName());
 				String tokenType = backend().channels().sourceEndTypeSize(source);
-				emitter().emit("channel_%s *%s_%s[%d] = { %s };", tokenType, instance.getInstanceName(), port.getName(), outgoing.size(), channels);
+				emitter().emit("channel_list_%s %s_%s = { %s };", tokenType, instance.getInstanceName(), port.getName(), channels);
 				initParameters.add(String.format("%s_%s", instance.getInstanceName(), port.getName()));
-				initParameters.add(Integer.toString(outgoing.size()));
 			}
 			emitter().emit("%s_init_actor(%s);", instance.getInstanceName(), String.join(", ", initParameters));
 			emitter().emit("");
@@ -152,11 +151,10 @@ public interface MainNetwork {
 			List<Connection.End> outgoing = srcToTgt.getOrDefault(end, Collections.emptyList());
 			String channels = outgoing.stream().map(connectionNames::get).collect(Collectors.joining(", "));
 			emitter().emit("FILE *%s_input_file = fopen(argv[%d], \"r\");", port.getName(), argi);
-//			String tokenType = code().type(backend().types().declaredPortType(port));
 			String tokenType = backend().channels().sourceEndTypeSize(new Connection.End(Optional.empty(), port.getName()));
-			emitter().emit("channel_%s *%s_channels[%d] = { &%s };", tokenType, port.getName(), outgoing.size(), channels);
+			emitter().emit("channel_list_%s %s_channels = { &%s };", tokenType, port.getName(), channels);
 			String type = backend().channels().sourceEndTypeSize(end);
-			emitter().emit("input_actor_%s *%s_input_actor = input_actor_create_%1$s(%2$s_input_file, %2$s_channels, %d);", type, port.getName(), outgoing.size());
+			emitter().emit("input_actor_%s *%s_input_actor = input_actor_create_%1$s(%2$s_input_file, %2$s_channels);", type, port.getName());
 			emitter().emit("");
 			argi = argi + 1;
 		}

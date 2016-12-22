@@ -111,7 +111,6 @@ public interface Structure {
 		emitter().emit("// output ports");
 		actorMachine.getOutputPorts().forEach(p -> {
 			emitter().emit("self->%s_channels = %1$s_channels;", p.getName());
-			emitter().emit("self->%s_count = %1$s_count;", p.getName());
 		});
 		emitter().emit("");
 
@@ -142,8 +141,7 @@ public interface Structure {
 		actorMachine.getOutputPorts().forEach(p -> {
 			Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), p.getName());
 			String type = backend().channels().sourceEndTypeSize(source);
-			parameters.add(String.format("channel_%s **%s_channels", type, p.getName()));
-			parameters.add(String.format("size_t %s_count", p.getName()));
+			parameters.add(String.format("channel_list_%s %s_channels", type, p.getName()));
 		});
 		return parameters;
 	}
@@ -186,7 +184,7 @@ public interface Structure {
 		if (condition.isInputCondition()) {
 			return String.format("channel_has_data_%s(self->%s_channel, %d)", code().inputPortTypeSize(condition.getPortName()), condition.getPortName().getName(), condition.N());
 		} else {
-			return String.format("channel_has_space_%s(self->%s_channels, self->%2$s_count, %d)", code().outputPortTypeSize(condition.getPortName()), condition.getPortName().getName(), condition.N());
+			return String.format("channel_has_space_%s(self->%s_channels, %d)", code().outputPortTypeSize(condition.getPortName()), condition.getPortName().getName(), condition.N());
 		}
 	}
 
@@ -245,8 +243,7 @@ public interface Structure {
 		for (PortDecl output : actorMachine.getOutputPorts()) {
 			Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), output.getName());
 			String type = backend().channels().sourceEndTypeSize(source);
-			emitter().emit("channel_%s **%s_channels;", type, output.getName());
-			emitter().emit("size_t %s_count;", output.getName());
+			emitter().emit("channel_list_%s %s_channels;", type, output.getName());
 		}
 		emitter().emit("");
 

@@ -107,16 +107,22 @@ public class XDF2NLReader {
 			String dst = conn.getAttribute("dst");
 			if (dst.isEmpty()) dst = null;
 			Port dstPort = new Port(conn.getAttribute("dst-port"));
-			ImmutableList<ToolAttribute> attributes;
-			String bufferSize = conn.getAttribute("buffer-size");
-			if (bufferSize.equals("")) {
-				attributes = ImmutableList.empty();
-			} else {
-				attributes = ImmutableList.of(new ToolValueAttribute("buffer-size", new ExprLiteral(ExprLiteral.Kind.Integer, bufferSize)));
-			}
+			ImmutableList<ToolAttribute> attributes = getAttributes(conn);
 			connections.add(new StructureConnectionStmt(new PortReference(src, ImmutableList.empty(), srcPort.getName()), new PortReference(dst, ImmutableList.empty(), dstPort.getName())).withAttributes(attributes));
 		}
 		return connections.build();
+	}
+
+	private ImmutableList<ToolAttribute> getAttributes(Element element) {
+		ImmutableList.Builder<ToolAttribute> builder = ImmutableList.builder();
+		for (Element attribute : selectChildren(element, "Attribute")) {
+			if (attribute.getAttribute("kind").equals("Value")) {
+				String name = attribute.getAttribute("name");
+				Expression value = buildExpression(selectChild(attribute, "Expr"));
+				builder.add(new ToolValueAttribute(name, value));
+			}
+		}
+		return builder.build();
 	}
 
 	private ImmutableList<InstanceDecl> getInstances(Document input) {

@@ -550,7 +550,7 @@ public interface Code {
 			emitter().emit("%s;", declaration(types().portType(write.getPort()), tmp));
 			for (Expression expr : write.getValues()) {
 				emitter().emit("%s = %s;", tmp, evaluate(expr));
-				emitter().emit("channel_write_one_%s(self->%s_channels, self->%2$s_count, %s);", outputPortTypeSize(write.getPort()), portName, tmp);
+				emitter().emit("channel_write_one_%s(self->%s_channels, %s);", outputPortTypeSize(write.getPort()), portName, tmp);
 			}
 		} else if (write.getValues().size() == 1) {
 			String portType = type(types().portType(write.getPort()));
@@ -559,10 +559,9 @@ public interface Code {
 			String temp = variables().generateTemp();
 			emitter().emit("for (size_t %1$s = 0; %1$s < %2$s; %1$s++) {", temp, repeat);
 			emitter().increaseIndentation();
-			emitter().emit("channel_write_one_%1$s(self->%2$s_channels, self->%2$s_count, %3$s[%4$s]);", outputPortTypeSize(write.getPort()), portName, value, temp);
+			emitter().emit("channel_write_one_%1$s(self->%2$s_channels, %3$s[%4$s]);", outputPortTypeSize(write.getPort()), portName, value, temp);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
-//			emitter().emit("channel_write_%s(self->%s_channels, self->%2$s_count, %s, %s);", portType, portName, value, evaluate(write.getRepeatExpression()));
 		} else {
 			throw new Error("not implemented");
 		}

@@ -6,8 +6,8 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.types.Type;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Module
@@ -19,41 +19,83 @@ public interface AlternativeChannels extends Channels {
 		return backend().emitter();
 	}
 
-	default void channelListCodeForType(Type type, int size) {
+	default void channelListCodeForType(Type type, int[] size) {
 		String tokenType = backend().code().type(type);
-		String sizeString = sizeToString(size);
+		List<String> sizeStrings = Arrays.stream(size)
+				.mapToObj(this::sizeToString)
+				.collect(Collectors.toList());
+		List<String> bufferSizes = Arrays.stream(size)
+				.mapToObj(s -> sizeToBufferSize(s))
+				.collect(Collectors.toList());
 
+		emitter().emit("typedef struct {");
+		int index = 0;
+		for (String sizeString : sizeStrings) {
+			emitter().emit("	channel_%s_%s *channel_%d;", tokenType, sizeString, index);
+			index += 1;
+		}
 		emitter().emit("");
-		emitter().emit("static inline _Bool channel_has_space_%s_%s(channel_%1$s_%2$s *channel_vector[], size_t channel_count, size_t tokens) {", tokenType, sizeString);
-		emitter().emit("	for (size_t i = 0; i < channel_count; i++) {");
-		emitter().emit("		if (BUFFER_SIZE - (channel_vector[i]->write - channel_vector[i]->read) < tokens) {");
-		emitter().emit("			return false;");
-		emitter().emit("		}");
-		emitter().emit("	}");
+		emitter().emit("} channel_list_%s_%s;", tokenType, String.join("_", sizeStrings));
+		emitter().emit("");
+
+		emitter().emit("static inline size_t channel_space_%s_%s(channel_list_%1$s_%2$s channel_list) {", tokenType, String.join("_", sizeStrings));
+		index = 0;
+		emitter().emit("	size_t min = SIZE_MAX;");
+		for (String bufferSize : bufferSizes) {
+			emitter().emit("	{");
+			emitter().emit("		size_t s = %s - (channel_list.channel_%d->write - channel_list.channel_%2$d->read);", bufferSize, index);
+			emitter().emit("		if (s < min) { min = s; }");
+			emitter().emit("	}");
+			index += 1;
+		}
+		emitter().emit("	return min;");
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static inline _Bool channel_has_space_%s_%s(channel_list_%1$s_%2$s channel_list, size_t tokens) {", tokenType, String.join("_", sizeStrings));
+		index = 0;
+		for (String bufferSize : bufferSizes) {
+			emitter().emit("	if (%s - (channel_list.channel_%d->write - channel_list.channel_%2$d->read) < tokens) {", bufferSize, index);
+			emitter().emit("		return false;");
+			emitter().emit("	}");
+			index += 1;
+		}
 		emitter().emit("	return true;");
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static inline void channel_write_one_%s_%s(channel_%1$s_%2$s *channel_vector[], size_t channel_count, %1$s data) {", tokenType, sizeString);
-		emitter().emit("	for (size_t c = 0; c < channel_count; c++) {");
-		emitter().emit("		channel_%s_%s *chan = channel_vector[c];", tokenType, sizeString);
-		emitter().emit("		chan->buffer[chan->write %% BUFFER_SIZE] = data;");
-		emitter().emit("		chan->write++;");
-		emitter().emit("	}");
+		emitter().emit("static inline void channel_write_one_%s_%s(channel_list_%1$s_%2$s channel_list, %1$s data) {", tokenType, String.join("_", sizeStrings));
+		index = 0;
+		for (int s : size) {
+			emitter().emit("	{");
+			emitter().emit("		channel_%s_%s *chan = channel_list.channel_%d;", tokenType, sizeToString(s), index);
+			emitter().emit("		chan->buffer[chan->write %% %s] = data;", sizeToBufferSize(s));
+			emitter().emit("		chan->write++;");
+			emitter().emit("	}");
+			index += 1;
+		}
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static inline void channel_write_%s_%s(channel_%1$s_%2$s *channel_vector[], size_t channel_count, %1$s *data, size_t tokens) {", tokenType, sizeString);
-		emitter().emit("	for (size_t c = 0; c < channel_count; c++) {");
-		emitter().emit("		channel_%s_%s *chan = channel_vector[c];", tokenType, sizeString);
-		emitter().emit("		for (size_t i = 0; i < tokens; i++) {");
-		emitter().emit("			chan->buffer[chan->write %% BUFFER_SIZE] = data[i];");
-		emitter().emit("			chan->write++;");
-		emitter().emit("		}");
-		emitter().emit("	}");
+		emitter().emit("static inline void channel_write_%s_%s(channel_list_%1$s_%2$s channel_list, %1$s *data, size_t tokens) {", tokenType, String.join("_", sizeStrings));
+		index = 0;
+		for (int s : size) {
+			emitter().emit("	{");
+			emitter().emit("		channel_%s_%s *chan = channel_list.channel_%d;", tokenType, sizeToString(s), index);
+			emitter().emit("		for (size_t i = 0; i < tokens; i++) {");
+			emitter().emit("			chan->buffer[chan->write %% %s] = data[i];", sizeToBufferSize(s));
+			emitter().emit("			chan->write++;");
+			emitter().emit("		}");
+			emitter().emit("	}");
+			index += 1;
+		}
 		emitter().emit("}");
 		emitter().emit("");
 
+	}
+
+	default String sizeToBufferSize(int size) {
+		return size == 0 ? "BUFFER_SIZE" : Integer.toString(size);
 	}
 
 	default String sourceEndTypeSize(Connection.End source) {
@@ -62,10 +104,9 @@ public interface AlternativeChannels extends Channels {
 				.filter(conn -> conn.getSource().equals(source))
 				.collect(Collectors.toList());
 		Type type = backend().types().connectionType(network, connections.get(0));
-//		String size = connections.stream()
-//				.map(c -> connectionSize(c).map(Object::toString).orElse("D"))
-//				.collect(Collectors.joining("_"));
-		String size = "D";
+		String size = connections.stream()
+				.map(c -> sizeToString(connectionBufferSize(c)))
+				.collect(Collectors.joining("_"));
 		return backend().code().type(type) + "_" + size;
 	}
 
@@ -75,14 +116,10 @@ public interface AlternativeChannels extends Channels {
 				.filter(conn -> conn.getTarget().equals(target))
 				.findFirst().get();
 		Type type = backend().types().connectionType(network, connection);
-		String size = connectionSize(connection).map(Object::toString).orElse("D");
+		String size = sizeToString(connectionBufferSize(connection));
 		return backend().code().type(type) + "_" + size;
 	}
 
-	default Optional<Long> connectionSize(Connection connection) {
-		return connection.getValueAttribute("bufferSize")
-				.map(attr -> backend().constants().intValue(attr.getValue()).getAsLong());
-	}
 
 	default String sizeToString(int size) {
 		if (size == 0) {
@@ -97,6 +134,8 @@ public interface AlternativeChannels extends Channels {
 	default void channelCodeForType(Type type, int size) {
 		String tokenType = backend().code().type(type);
 		String sizeString = sizeToString(size);
+		String bufferSize = sizeToBufferSize(size);
+
 		emitter().emit("// CHANNEL %s", type);
 		emitter().emit("typedef struct {");
 		emitter().emit("	size_t read;");
@@ -111,14 +150,14 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("");
 
 		emitter().emit("static inline %s channel_peek_first_%1$s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
-		emitter().emit("	return channel->buffer[channel->read %% BUFFER_SIZE];");
+		emitter().emit("	return channel->buffer[channel->read %% %s];", bufferSize);
 		emitter().emit("}");
 		emitter().emit("");
 
 		emitter().emit("static inline void channel_peek_%s_%s(channel_%1$s_%2$s *channel, size_t offset, size_t tokens, %1$s *result) {", tokenType, sizeString);
 		emitter().emit("	%s *res = result;", tokenType);
 		emitter().emit("	for (size_t i = 0; i < tokens; i++) {");
-		emitter().emit("		res[i] = channel->buffer[(channel->read+i+offset) %% BUFFER_SIZE];");
+		emitter().emit("		res[i] = channel->buffer[(channel->read+i+offset) %% %s];", bufferSize);
 		emitter().emit("	}");
 		emitter().emit("}");
 		emitter().emit("");
@@ -129,7 +168,7 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("");
 
 		emitter().emit("static void channel_create_%s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
-		emitter().emit("	%s *buffer = malloc(sizeof(%1$s)*BUFFER_SIZE);", tokenType);
+		emitter().emit("	%s *buffer = malloc(sizeof(%1$s)*%s);", tokenType, bufferSize);
 		emitter().emit("	channel->read = 0;");
 		emitter().emit("	channel->write = 0;");
 		emitter().emit("	channel->buffer = buffer;");
@@ -143,21 +182,25 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("");
 	}
 
-	default void inputActorCodeForType(Type type, int size) {
+	default void inputActorCodeForType(Type type, int[] size) {
 		String tokenType = backend().code().type(type);
-		String typeSize = tokenType + "_" + sizeToString(size);
+		List<String> sizeStrings = Arrays.stream(size)
+				.mapToObj(this::sizeToString)
+				.collect(Collectors.toList());
+		List<String> bufferSizes = Arrays.stream(size)
+				.mapToObj(this::sizeToBufferSize)
+				.collect(Collectors.toList());
+		String typeSize = tokenType + "_" + String.join("_", sizeStrings);
 
 		emitter().emit("typedef struct {");
-		emitter().emit("	size_t channelc;");
-		emitter().emit("	channel_%s **channelv;", typeSize);
+		emitter().emit("	channel_list_%s channel_list;", typeSize);
 		emitter().emit("	FILE *stream;");
 		emitter().emit("} input_actor_%s;", typeSize);
 		emitter().emit("");
 
-		emitter().emit("static input_actor_%s *input_actor_create_%1$s(FILE *stream, channel_%1$s *channel_vector[], size_t channel_count) {", typeSize);
+		emitter().emit("static input_actor_%s *input_actor_create_%1$s(FILE *stream, channel_list_%1$s channel_list) {", typeSize);
 		emitter().emit("    input_actor_%s *actor = malloc(sizeof(input_actor_%1$s));", typeSize);
-		emitter().emit("    actor->channelv = channel_vector;");
-		emitter().emit("    actor->channelc = channel_count;");
+		emitter().emit("    actor->channel_list = channel_list;");
 		emitter().emit("    actor->stream = stream;");
 		emitter().emit("    return actor;");
 		emitter().emit("}");
@@ -169,26 +212,15 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("");
 
 		emitter().emit("static _Bool input_actor_run_%s(input_actor_%1$s *actor) {", typeSize);
-		emitter().emit("	size_t tokens = 0;");
-		emitter().emit("	size_t write = actor->channelv[0]->write;");
-		emitter().emit("	for (size_t i = 0; i < actor->channelc; i++) {");
-		emitter().emit("		channel_%s *c = actor->channelv[i];", typeSize);
-		emitter().emit("		size_t this_tokens = (write - c->read);");
-		emitter().emit("		if (this_tokens > tokens) { tokens = this_tokens; }");
+		emitter().emit("	size_t space_before = channel_space_%s(actor->channel_list);", typeSize);
+		emitter().emit("	size_t space = space_before;");
+		emitter().emit("	while (space > 0 && !feof(actor->stream)) {");
+		emitter().emit("		%s v[1024];", tokenType);
+		emitter().emit("		size_t read = fread(&v, sizeof(%s), space > 1024 ? 1024 : space, actor->stream);", tokenType);
+		emitter().emit("		channel_write_%s(actor->channel_list, v, read);", typeSize);
+		emitter().emit("		space -= read;");
 		emitter().emit("	}");
-		emitter().emit("	size_t space = BUFFER_SIZE - tokens;");
-		emitter().emit("    if (space > 0) {");
-		emitter().emit("        %s buf[space];", tokenType);
-		emitter().emit("        space = fread(buf, sizeof(%s), space, actor->stream);", tokenType);
-		emitter().emit("        if (space > 0) {");
-		emitter().emit("			channel_write_%s(actor->channelv, actor->channelc, buf, space);", typeSize);
-		emitter().emit("            return true;");
-		emitter().emit("        } else {");
-		emitter().emit("            return false;");
-		emitter().emit("        }");
-		emitter().emit("    } else {");
-		emitter().emit("        return false;");
-		emitter().emit("    }");
+		emitter().emit("	return space != space_before;");
 		emitter().emit("}");
 		emitter().emit("");
 	}
