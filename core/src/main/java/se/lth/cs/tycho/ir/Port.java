@@ -24,7 +24,7 @@ public class Port extends AbstractIRNode {
 		this.name = name;
 	}
 	
-	public Port copy(String name) {
+	public Port withName(String name) {
 		if (this.name.equals(name)) {
 			return this;
 		} else {
@@ -32,10 +32,6 @@ public class Port extends AbstractIRNode {
 		}
 	}
 	
-	public Port copy(String name, int offset) {
-		throw new RuntimeException();
-	}
-
 	/**
 	 * Returns the name of the port.
 	 * 
@@ -43,26 +39,6 @@ public class Port extends AbstractIRNode {
 	 */
 	public String getName() {
 		return name;
-	}
-
-	/**
-	 * Returns true if the port is referred to by offset into the list of port
-	 * declarations.
-	 * 
-	 * @return true if the port has a location
-	 */
-	public boolean hasLocation() {
-		return false;
-	}
-
-	/**
-	 * Returns the offset into the list of port declarations if the port has a
-	 * location.
-	 * 
-	 * @return the offset
-	 */
-	public int getOffset() {
-		return -1;
 	}
 
 	@Override

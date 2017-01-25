@@ -14,7 +14,6 @@ import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
@@ -100,28 +99,13 @@ public final class DuplicateEntity {
 			public IRNode apply(IRNode node) {
 				if (node instanceof Port) {
 					Port port = (Port) node;
-					return port.copy(ports.get(port.getName()));
-				} else if (node instanceof Transition) {
-					Transition transition = (Transition) node;
-					Map<Port, Integer> inputRates = tokenRates(transition.getInputRates(), ports);
-					Map<Port, Integer> outputRates = tokenRates(transition.getOutputRates(), ports);
-					transition = transition.copy(inputRates, outputRates, transition.getScopesToKill(), transition.getBody());
-					return transition.transformChildren(this);
+					return port.withName(ports.get(port.getName()));
 				} else {
 					return node.transformChildren(this);
 				}
 			}
 		};
 		return renamePorts.applyChecked(GlobalEntityDecl.class, entity);
-	}
-
-	private static Map<Port,Integer> tokenRates(Map<Port, Integer> rates, Map<String, String> ports) {
-		Map<Port, Integer> result = new HashMap<>();
-		for (Port p : rates.keySet()) {
-			Port q = p.copy(ports.get(p.getName()));
-			result.put(q, rates.get(p));
-		}
-		return result;
 	}
 
 	private static ImmutableList<PortDecl> renamePorts(ImmutableList<PortDecl> ports, LongSupplier uniqueNumbers) {

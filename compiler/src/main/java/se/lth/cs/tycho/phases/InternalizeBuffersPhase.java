@@ -11,6 +11,7 @@ import se.lth.cs.tycho.comp.SyntheticSourceUnit;
 import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolValueAttribute;
 import se.lth.cs.tycho.ir.type.TypeExpr;
@@ -52,6 +53,7 @@ import se.lth.cs.tycho.transformation.Rename;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -219,6 +221,14 @@ public class InternalizeBuffersPhase implements Phase {
 				if (portVariable != null) {
 					return new StmtAssignment(new LValueVariable(Variable.variable(portVariable.getName())), write.getValues().get(0));
 				}
+			} else if (node instanceof Transition) {
+				Transition transition = (Transition) node;
+				Map<Port, Integer> outputRates = transition.getOutputRates().keySet().stream()
+						.filter(port -> !outputPortMap.containsKey(port.getName()))
+						.collect(Collectors.toMap(Function.identity(), transition.getOutputRates()::get));
+				transition = transition.copy(transition.getInputRates(), outputRates, transition.getScopesToKill(), transition.getBody());
+				transition = transition.transformChildren(this);
+				return transition;
 			}
 			return node.transformChildren(this);
 		}
@@ -280,7 +290,14 @@ public class InternalizeBuffersPhase implements Phase {
 		}
 
 		default IRNode transform(Transition transition) {
-			return transition.withBody(filterInternalConsume(transition.getBody()));
+			Map<Port, Integer> inputRates = transition.getInputRates().keySet().stream()
+					.filter(port -> !inputPorts().contains(port.getName()))
+					.collect(Collectors.toMap(Function.identity(), transition.getInputRates()::get));
+			return transition.copy(
+					inputRates,
+					transition.getOutputRates(),
+					transition.getScopesToKill(),
+					filterInternalConsume(transition.getBody()));
 		}
 
 		default ImmutableList<Statement> filterInternalConsume(ImmutableList<Statement> statements) {

@@ -84,17 +84,31 @@ public class Transition extends AbstractIRNode {
 
 	private final ImmutableList<Integer> kill;
 	private final ImmutableList<Statement> body;
-	private final Map<Port, Integer> inputRates; // TODO compute
-	private final Map<Port, Integer> outputRates; // TODO compute
+	private final Map<Port, Integer> inputRates;
+	private final Map<Port, Integer> outputRates;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
+		inputRates.keySet().forEach(action);
+		outputRates.keySet().forEach(action);
 		body.forEach(action);
 	}
 
 	@Override
 	public Transition transformChildren(Transformation transformation) {
-		return copy(inputRates, outputRates, kill, transformation.mapChecked(Statement.class, body));
+		return copy(
+				transformRates(inputRates, transformation),
+				transformRates(outputRates, transformation),
+				kill,
+				transformation.mapChecked(Statement.class, body));
+	}
+
+	private Map<Port, Integer> transformRates(Map<Port, Integer> rates, Transformation transformation) {
+		Map<Port, Integer> result = new HashMap<>();
+		for (Port p : rates.keySet()) {
+			result.put(transformation.applyChecked(Port.class, p), rates.get(p));
+		}
+		return result;
 	}
 
 	public Transition withBody(List<Statement> body) {

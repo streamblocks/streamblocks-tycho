@@ -24,6 +24,7 @@ import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.PortCondition;
+import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
@@ -111,6 +112,16 @@ public interface Names {
 
 		default PortDecl lookupPort(InputPattern input, Port port) {
 			return lookupInputPort(input, port);
+		}
+
+		default PortDecl lookupPort(Transition transition, Port port) {
+			if (transition.getInputRates().containsKey(port)) {
+				return lookupInputPort(transition, port);
+			} else if (transition.getOutputRates().containsKey(port)) {
+				return lookupOutputPort(transition, port);
+			} else {
+				throw new AssertionError();
+			}
 		}
 
 		default PortDecl lookupPort(OutputExpression output, Port port) {

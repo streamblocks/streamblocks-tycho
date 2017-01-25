@@ -92,11 +92,11 @@ public class Composer {
 		Map outputPorts();
 
 		default Port inputPort(Port port) {
-			return port.copy((String) inputPorts().get(port.getName()));
+			return port.withName((String) inputPorts().get(port.getName()));
 		}
 
 		default Port outputPort(Port port) {
-			return port.copy((String) outputPorts().get(port.getName()));
+			return port.withName((String) outputPorts().get(port.getName()));
 		}
 
 		@Override

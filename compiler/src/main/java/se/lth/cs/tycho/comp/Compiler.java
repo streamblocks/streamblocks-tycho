@@ -166,6 +166,7 @@ public class Compiler {
 			success = false;
 		} catch (RuntimeException e) {
 			compilationContext.getReporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "An internal compiler error has occured with the following message:\n" + e.getMessage()));
+			e.printStackTrace();
 			success = false;
 		}
 		if (compilationContext.getConfiguration().get(phaseTimer)) {
