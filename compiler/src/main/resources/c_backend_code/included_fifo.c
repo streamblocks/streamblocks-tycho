@@ -49,35 +49,79 @@ void* to_local_address(int col, int row, void* addr);
     }
 
 
+struct __attribute__((aligned(8))) reader_container
+{
+  int8_t row;
+  int8_t col;
+  void* address;
+};
+struct __attribute__((aligned(8))) fifo_table
+{
+  reader_container readers[200];
+  void* mem_map[4][4];
+};
+
 struct fifo_writer;
 
 
 struct __attribute__((aligned(8))) fifo_reader
 {
-   int read;
-   volatile int write;
+    int ID;
+    int read;
+    volatile int write;
 
 	fifo_writer* shadow;
     char  buffer [BUFFER_SIZE+1];
-    void init(volatile fifo_table* table);
-
-	void update(){
-		shadow->read = read;
-	}
 
 };
 
 struct __attribute__((aligned(8))) fifo_writer
 {
+    int ID;
 	volatile int read;
 	int write;
 	fifo_reader* shadow;
-	void init(volatile fifo_table* table);
-	void update(){
-		shadow->write = write;
-
-	}
 };
+
+  	void reader_update(fifo_reader * reader, int read){
+   		reader->shadow->read = read;
+    }
+
+void reader_init(volatile fifo_table* table,
+    fifo_reader * reader, int ID, )
+{
+    reader->ID = ID;
+	reader->read = 0;
+	reader->write = 0;
+	//std::cout << "rrr " << (uint32_t)this << std::endl;
+	get_my_global_e_address(reader);
+	table->readers[reader->ID].row = core_row;
+	table->readers[reader->ID].col = core_col;
+
+	table->readers[reader->ID].address = get_my_global_e_address(reader);
+}
+
+	void writer_init(volatile fifo_table* table,
+	    fifo_writer * writer, int ID)
+	{
+	    writer->ID = ID;
+	    writer->read = 0;
+	    writer->write = 0;
+	    while (table->readers[writer->ID].address == NULL)
+		    ;
+	    writer->shadow = (fifo_reader*) to_local_address(table->readers[writer->ID].col, table->readers[writer->ID].row, table->readers[writer->ID].address);
+	//
+	    if (table->readers[writer->ID].col < 0)
+	    {
+		    writer->shadow->shadow = (fifo_writer*) ((uint32_t)table->mem_map[core_row][core_col] + (uint32_t)writer);
+	    }
+	    else
+	        writer->shadow->shadow = (fifo_writer*) get_my_global_e_address(writer);
+    }
+
+	void writer_update(fifo_writer * writer, int write){
+		writer->shadow->write = write;
+	}
 
 
     typedef struct {
@@ -92,9 +136,18 @@ struct __attribute__((aligned(8))) fifo_writer
         FILE *stream;
     } output_actor_t;
 
+ fifo_reader *fifo_create(int ID) {
+    fifo_reader * reader = (fifo_reader *)malloc(sizeof(fifo_reader));
 
+    reader->ID = ID;
+    reader->read = 0;
+	reader->write = 0;
+	reader->shadow = get_my_global_e_address(core_row, core_col);
+	reader_init(reader);
+	return reader;
+   }
 
-static _Bool fifo_tokens(fifo_reader* reader, int n)
+ bool fifo_tokens(fifo_reader* reader, int n)
 {
 	return (reader->write - reader->read + BUFFER_SIZE + 1) % (BUFFER_SIZE + 1) >= n;
 }
@@ -109,15 +162,14 @@ bool fifo_space(fifo_writer* writer, int n)
 void  fifo_consume(fifo_reader* reader, int n)
 {
 	reader->read = (reader->read + n) % (BUFFER_SIZE + 1);
-	reader->update();
+	reader_update(reader);
 }
 
 
-void fifo_write(fifo_writer* writer, A value)
+void fifo_write(fifo_writer* writer, void * value, size_t size)
 {
-	writer->shadow->buffer[writer->write] = (value);
+	memcpy(&writer->shadow->buffer[writer->write], (value), size);
 	writer->write = (writer->write + 1) % (BUFFER_SIZE + 1);
-	writer->update();
 }
 
 
@@ -126,73 +178,4 @@ char fifo_peek(fifo_reader* reader, int pos)
 	return (reader->buffer[(reader->read + pos) % (BUFFER_SIZE + 1)]);
 }
 
-    static input_actor_t *input_actor_create(FILE *stream, channel_t *channel_vector[], size_t channel_count) {
-        input_actor_t *actor = malloc(sizeof(input_actor_t));
-        actor->channelv = channel_vector;
-        actor->channelc = channel_count;
-        actor->stream = stream;
-        return actor;
-    }
 
-
-    static output_actor_t *output_actor_create(FILE *stream, channel_t *channel) {
-        output_actor_t *actor = malloc(sizeof(output_actor_t));
-        actor->channel = channel;
-        actor->stream = stream;
-        return actor;
-    }
-
-
-    static void input_actor_destroy(input_actor_t *actor) {
-        free(actor);
-    }
-
-
-    static void output_actor_destroy(output_actor_t *actor) {
-        free(actor);
-    }
-
-
-    static _Bool input_actor_run(input_actor_t* actor) {
-        size_t bytes = SIZE_MAX;
-        for (size_t i = 0; i < actor->channelc; i++) {
-            size_t s = BUFFER_SIZE - actor->channelv[i]->bytes;
-            bytes = s < bytes ? s : bytes;
-        }
-        if (bytes > 0) {
-            char buf[bytes];
-            bytes = fread(buf, 1, bytes, actor->stream);
-            if (bytes > 0) {
-                channel_write(actor->channelv, actor->channelc, buf, bytes);
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-
-    static _Bool output_actor_run(output_actor_t* actor) {
-        channel_t *channel = actor->channel;
-        if (channel->bytes > 0) {
-            size_t wrap_or_end = channel->head + channel->bytes;
-            if (wrap_or_end > BUFFER_SIZE) {
-                wrap_or_end = BUFFER_SIZE;
-            }
-            size_t bytes_before_wrap = wrap_or_end - channel->head;
-            fwrite(&channel->buffer[channel->head], 1, bytes_before_wrap, actor->stream);
-
-            size_t bytes_after_wrap = channel->bytes - bytes_before_wrap;
-            if (bytes_after_wrap > 0) {
-                fwrite(&channel->buffer, 1, bytes_after_wrap, actor->stream);
-            }
-
-            //channel->head = (channel->head + channel->bytes) % channel->size;
-            channel->bytes = 0;
-            return true;
-        } else {
-            return false;
-        }
-    }

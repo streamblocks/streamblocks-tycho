@@ -82,7 +82,7 @@ public interface Code {
 		Type portType = types().portType(input.getPort());
 		String tmp = variables().generateTemp();
 		emitter().emit("%s;", declaration(portType, tmp));
-		emitter().emit("channel_peek(self->%s_channel, %d, sizeof(%s), &%s);", input.getPort().getName(), input.getOffset(), type(portType), tmp);
+		emitter().emit("fifo_peek(self->%s_reader, %d, sizeof(%s), &%s);", input.getPort().getName(), input.getOffset(), type(portType), tmp);
 		emitter().emit("%s = %s;", lvalue, tmp); // should handle some discrepancies between port type and variable type.
 	}
 
@@ -95,7 +95,7 @@ public interface Code {
 		assert input.getPatternLength() == 1; // only with one variable
 		assert input.getOffset() == 0; // and that variable is therefore the first
 		Type portType = new ListType(types().portType(input.getPort()), OptionalInt.of(input.getRepeat()));
-		emitter().emit("channel_peek(self->%s_channel, 0, sizeof(%s), (char*) &%s);", input.getPort().getName(), type(portType), lvalue);
+		emitter().emit("fifo_peek(self->%s_reader, 0, sizeof(%s), (char*) &%s);", input.getPort().getName(), type(portType), lvalue);
 	}
 	default void assignList(ListType type, String lvalue, ExprVariable var) {
 		assert type.getSize().isPresent();
@@ -433,7 +433,7 @@ public interface Code {
 	void execute(Statement stmt);
 
 	default void execute(StmtConsume consume) {
-		emitter().emit("channel_consume(self->%s_channel, sizeof(%s)*%d);", consume.getPort().getName(), type(types().portType(consume.getPort())), consume.getNumberOfTokens());
+		emitter().emit("fifo_consume(self->%s_reader, sizeof(%s)*%d);", consume.getPort().getName(), type(types().portType(consume.getPort())), consume.getNumberOfTokens());
 	}
 
 	default void execute(StmtWrite write) {
@@ -444,12 +444,12 @@ public interface Code {
 			emitter().emit("%s;", declaration(types().portType(write.getPort()), tmp));
 			for (Expression expr : write.getValues()) {
 				emitter().emit("%s = %s;", tmp, evaluate(expr));
-				emitter().emit("channel_write(self->%s_channels, self->%1$s_count, &%s, sizeof(%s));", portName, tmp, portType);
+				emitter().emit("fifo_write(self->%s_writers, self->%1$s_count, &%s, sizeof(%s));", portName, tmp, portType);
 			}
 		} else if (write.getValues().size() == 1) {
 			String portType = type(types().portTypeRepeated(write.getPort(), write.getRepeatExpression()));
 			String value = evaluate(write.getValues().get(0));
-			emitter().emit("channel_write(self->%s_channels, self->%1$s_count, &%s, sizeof(%s));", portName, value, portType);
+			emitter().emit("fifo_write(self->%s_writerss, self->%1$s_count, &%s, sizeof(%s));", portName, value, portType);
 		} else {
 			throw new Error("not implemented");
 		}

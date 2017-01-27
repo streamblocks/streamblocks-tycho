@@ -65,7 +65,7 @@ public interface MainNetwork {
 		emitter().emit("");
 
 
-		emitter().emit("channel_t *channels[%d];", connections.size());
+		emitter().emit("fifo_reader *fifo[%d];", connections.size());
 		{
 			int i = 0;
 			for (Connection conn : connections) {
@@ -86,7 +86,7 @@ public interface MainNetwork {
 							.findFirst().get();
 					type = code().type(backend().types().declaredPortType(portDecl));
 				}
-				emitter().emit("channels[%d] = channel_create();", i);
+				emitter().emit("fifo[%d] = fifo_create(%d);", i, i);
 				i = i + 1;
 			}
 		}
@@ -122,7 +122,7 @@ public interface MainNetwork {
 					}
 					i = i + 1;
 				}
-				initParameters.add(String.format("channels[%d]", i));
+				initParameters.add(String.format("fifo[%d]", i));
 			}
 			for (PortDecl port : entityDecl.getEntity().getOutputPorts()) {
 				int i = 0;
@@ -135,8 +135,8 @@ public interface MainNetwork {
 					}
 					i = i + 1;
 				}
-				String channels = outgoing.stream().mapToObj(o -> String.format("channels[%d]", o)).collect(Collectors.joining(", "));
-				emitter().emit("channel_t *%s_%s[%d] = { %s };", instance.getInstanceName(), port.getName(), outgoing.cardinality(), channels);
+				String channels = outgoing.stream().mapToObj(o -> String.format("fifo[%d]", o)).collect(Collectors.joining(", "));
+				emitter().emit("fifo_reader *%s_%s[%d] = { %s };", instance.getInstanceName(), port.getName(), outgoing.cardinality(), channels);
 				initParameters.add(String.format("%s_%s", instance.getInstanceName(), port.getName()));
 				initParameters.add(Integer.toString(outgoing.cardinality()));
 			}
@@ -154,10 +154,10 @@ public interface MainNetwork {
 				}
 				i = i + 1;
 			}
-			String channels = outgoing.stream().mapToObj(o -> String.format("channels[%d]", o)).collect(Collectors.joining(", "));
+			String channels = outgoing.stream().mapToObj(o -> String.format("fifo[%d]", o)).collect(Collectors.joining(", "));
 			emitter().emit("FILE *%s_input_file = fopen(argv[%d], \"r\");", port.getName(), argi);
-			emitter().emit("channel_t *%s_channels[%d] = { %s };", port.getName(), outgoing.cardinality(), channels);
-			emitter().emit("input_actor_t *%s_input_actor = input_actor_create(%1$s_input_file, %1$s_channels, %d);", port.getName(), outgoing.cardinality());
+			emitter().emit("fifo_reader *%s_fifos[%d] = { %s };", port.getName(), outgoing.cardinality(), channels);
+			emitter().emit("input_actor_t *%s_input_actor = input_actor_create(%1$s_input_file, %1$s_fifos, %d);", port.getName(), outgoing.cardinality());
 			emitter().emit("");
 			argi = argi + 1;
 		}
@@ -166,7 +166,7 @@ public interface MainNetwork {
 			for (Connection conn : connections) {
 				if (!conn.getTarget().getInstance().isPresent() && conn.getTarget().getPort().equals(port.getName())) {
 					emitter().emit("FILE *%s_output_file = fopen(argv[%d], \"w\");", port.getName(), argi);
-					emitter().emit("output_actor_t *%s_output_actor = output_actor_create(%1$s_output_file, channels[%d]);", port.getName(), i);
+					emitter().emit("output_actor_t *%s_output_actor = output_actor_create(%1$s_output_file, fifo[%d]);", port.getName(), i);
 					emitter().emit("");
 					argi = argi + 1;
 					break;
@@ -196,9 +196,9 @@ public interface MainNetwork {
 		emitter().emit("} while (progress && !interrupted);");
 		emitter().emit("");
 
-		emitter().emit("for (int i = 0; i < sizeof(channels)/sizeof(channels[0]); i++) {");
+		emitter().emit("for (int i = 0; i < sizeof(fifo)/sizeof(fifo[0]); i++) {");
 		emitter().increaseIndentation();
-		emitter().emit("channel_destroy(channels[i]);");
+		emitter().emit("fifo_destroy(fifo[i]);");
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 

@@ -51,10 +51,16 @@ int main(int argc, char *argv[])
   e_open(&edev, 0, 0, ROWS, COLS);
   e_write(&emem, 0, 0, 0, &msg, sizeof(msg));
 
-   shared=(msg_block_t*)sharedMemory;
 
+   shared=(msg_block_t*)sharedMemory;
+   for (int i = 0; i < edev.rows; i++)
+   {
+	   for (int j = 0; j < edev.cols; j++)
+	   {
+		   shared->fifotable.mem_map[i][j] = edev.core[i][j].mems.base;
+
+		   std::cout<<std::dec<< "r:" << edev.core[i][j].row << " c:" << edev.core[i][j].col << "mem: " << std::hex << (uint32_t)edev.core[i][j].mems.base << std::endl;
+	   }
+   }
    g_emem=&emem;
    g_edev=&edev;
-
-  e_reset_group(&edev);
-

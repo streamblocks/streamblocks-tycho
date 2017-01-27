@@ -84,13 +84,13 @@ public interface Structure {
 
 		emitter().emit("// input ports");
 		actorMachine.getInputPorts().forEach(p -> {
-			emitter().emit("self->%s_channel = %1$s_channel;", p.getName());
+			emitter().emit("self->%s_reader = %1$s_reader;", p.getName());
 		});
 		emitter().emit("");
 
 		emitter().emit("// output ports");
 		actorMachine.getOutputPorts().forEach(p -> {
-			emitter().emit("self->%s_channels = %1$s_channels;", p.getName());
+			emitter().emit("self->%s_writers = %1$s_writers;", p.getName());
 			emitter().emit("self->%s_count = %1$s_count;", p.getName());
 		});
 		emitter().emit("");
@@ -116,10 +116,10 @@ public interface Structure {
 			parameters.add(code().declaration(types().declaredType(d), d.getName()));
 		});
 		actorMachine.getInputPorts().forEach(p -> {
-			parameters.add(String.format("channel_t *%s_channel", p.getName()));
+			parameters.add(String.format("fifo_reader *%s_writer", p.getName()));
 		});
 		actorMachine.getOutputPorts().forEach(p -> {
-			parameters.add(String.format("channel_t **%s_channels", p.getName()));
+			parameters.add(String.format("fifo_writer **%s_readers", p.getName()));
 			parameters.add(String.format("size_t %s_count", p.getName()));
 		});
 		return parameters;
@@ -161,11 +161,11 @@ public interface Structure {
 
 	default String evaluateCondition(PortCondition condition) {
 		if (condition.isInputCondition()) {
-			return String.format("fifo_tokens(self->%s_channel, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
+			return String.format("fifo_tokens(self->%s_reader, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
 
 			//return String.format("channel_has_data(self->%s_channel, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
 		} else {
-			return String.format("fifo_space(self->%s_channels, self->%1$s_count, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
+			return String.format("fifo_space(self->%s_writers, self->%1$s_count, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
 
 			//return String.format("channel_has_space(self->%s_channels, self->%1$s_count, sizeof(%s) * %d)", condition.getPortName().getName(), code().type(types().portType(condition.getPortName())), condition.N());
 		}
@@ -273,13 +273,13 @@ public interface Structure {
 
 		emitter().emit("// input ports");
 		for (PortDecl input : actorMachine.getInputPorts()) {
-			emitter().emit("channel_t *%s_channel;", input.getName());
+			emitter().emit("fifo_reader *%s_reader;", input.getName());
 		}
 		emitter().emit("");
 
 		emitter().emit("// output ports");
 		for (PortDecl output : actorMachine.getOutputPorts()) {
-			emitter().emit("channel_t **%s_channels;", output.getName());
+			emitter().emit("fifo_writer **%s_writers;", output.getName());
 			emitter().emit("size_t %s_count;", output.getName());
 		}
 		emitter().emit("");

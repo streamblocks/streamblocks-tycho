@@ -16,6 +16,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -76,6 +77,7 @@ public interface MainFunction {
 			throw new RuntimeException(e);
 		}
 
+		String listLine;
 		try (InputStream in = ClassLoader.getSystemResourceAsStream("c_backend_code/Makefile")) {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 			String line;
@@ -83,8 +85,31 @@ public interface MainFunction {
 				writer.println(line);
 				writer.flush();
 			}
+
+			ArrayList<ActorInfo> al = loadActorInfo();
+			listLine = "LIST = ";
+			for(ActorInfo a : al) {
+				listLine += a.getName() + " ";
+			}
 		} catch (IOException e) {
 			throw new Error(e);
+		}
+
+		List<String> fileContent = null;
+		try {
+			fileContent = new ArrayList<>(Files.readAllLines(host_target, StandardCharsets.UTF_8));
+
+			for (int i = 0; i < fileContent.size(); i++) {
+				if (fileContent.get(i).equals("LIST=")) {
+					fileContent.set(i, listLine);
+					break;
+				}
+			}
+
+			Files.write(host_target, fileContent, StandardCharsets.UTF_8);
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 	}
@@ -98,12 +123,69 @@ public interface MainFunction {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		//writer.println("Hello Harsha!");
+
 		include_host("host_prolog", writer);
 		loadCores(writer);
 		include_host("host_epilog", writer);
 		writer.close();
 	}
+
+	public class ActorInfo {
+		public String name;
+		public int row;
+		public int col;
+
+		public ActorInfo() {
+			name = "";
+			row = 0;
+			col = 0;
+		}
+
+		public ActorInfo(String n, int r, int c) {
+			name = n;
+			row = r;
+			col = c;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
+
+	public static ArrayList<ActorInfo> loadActorInfo() {
+		ArrayList<ActorInfo> al = new ArrayList<ActorInfo>();
+		try {
+			InputStream fXmlFile = ClassLoader.getSystemResourceAsStream("config.xml");
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(fXmlFile);
+
+			doc.getDocumentElement().normalize();
+			NodeList nList = doc.getElementsByTagName("Configuration");
+
+			Node nNode = nList.item(0);
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+				NodeList actors = doc.getElementsByTagName("actor_info");
+				int count = 0;
+				while(count < actors.getLength()) {
+					// load each actor
+					Element actor = (Element) actors.item(count);
+					String actor_name = actor.getElementsByTagName("name").item(0).getTextContent();
+					int row = Integer.parseInt(actor.getElementsByTagName("row").item(0).getTextContent());
+					int col = Integer.parseInt(actor.getElementsByTagName("col").item(0).getTextContent());
+					//System.out.println("Name is " + actor_name + " row = " + row + " col " + col);
+					ActorInfo a = new ActorInfo(actor_name, row, col);
+					al.add(a);
+					count++;
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return al;
+	}
+
 
 	public static void loadCores(PrintWriter writer) {
 		try {
