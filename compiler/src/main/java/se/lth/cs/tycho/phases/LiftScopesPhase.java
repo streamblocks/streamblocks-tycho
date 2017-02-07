@@ -102,8 +102,8 @@ public class LiftScopesPhase implements Phase {
 			if (condition.node() instanceof PredicateCondition) {
 				Set<Tree<Scope>> liftable = getLiftableScopes(condition);
 				PredicateCondition cond = (PredicateCondition) condition.node();
-				if (!liftable.isEmpty()) { // will only lift one scope
-					assert liftable.size() == 1;
+				if (!liftable.isEmpty()) {
+					assert liftable.size() == 1; // TODO implement lifting of several scopes
 					Scope s = liftable.iterator().next().node();
 					Expression expr = cond.getExpression();
 					expr = new ExprLet(ImmutableList.empty(), s.getDeclarations(), expr);
@@ -115,7 +115,7 @@ public class LiftScopesPhase implements Phase {
 
 		public Transition transformTransition(Tree<Transition> transition) {
 			Set<Tree<Scope>> liftable = getLiftableScopes(transition);
-			if (!liftable.isEmpty()) { // will only lift one scope
+			if (!liftable.isEmpty()) {
 				assert liftable.size() == 1;
 				Scope s = liftable.iterator().next().node();
 				ImmutableList<Statement> statements = transition.node().getBody();
@@ -140,16 +140,10 @@ public class LiftScopesPhase implements Phase {
 					.collect(Collectors.toSet());
 		}
 
-		private boolean isLiftableScope(Tree<Scope> scope) { // will only lift one scope
+		private boolean isLiftableScope(Tree<Scope> scope) {
 			if (scope.node().isPersistent()) return false;
 			Set<Tree<?>> revDeps = reverseDependencies(scope);
-			if (revDeps.size() == 1) {
-				Tree<?> revDep = revDeps.iterator().next();
-				Set<Tree<Scope>> siblingDeps = dependencies(revDep);
-				return siblingDeps.size() == 1;
-			} else {
-				return false;
-			}
+			return revDeps.size() == 1;
 		}
 
 		private Set<Tree<Scope>> dependencies(Tree<?> revDep) {
