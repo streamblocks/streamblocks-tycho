@@ -25,8 +25,16 @@ public class ActorMachine extends Entity {
 		return scopes;
 	}
 
+	public ActorMachine withScopes(List<Scope> scopes) {
+		return copy(inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
+	}
+
 	public ImmutableList<Transition> getTransitions() {
 		return transitions;
+	}
+
+	public ActorMachine withTransitions(List<Transition> transitions) {
+		return copy(inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
 	}
 
 	public ImmutableList<Condition> getConditions() {
@@ -134,4 +142,5 @@ public class ActorMachine extends Entity {
 			return new ActorMachine(this, inputPorts, outputPorts, typeParameters, valueParameters, scopes, ctrl, transitions, conditions);
 		}
 	}
+
 }

@@ -75,6 +75,7 @@ public class Compiler {
 			new CompositionPhase(),
 			new InternalizeBuffersPhase(),
 			new RemoveUnusedConditionsPhase(),
+			new LiftScopesPhase(),
 
 			// Code generations
 			new RemoveUnusedEntityDeclsPhase(),

@@ -531,7 +531,10 @@ public interface Code {
 	default String evaluate(ExprLet let) {
 		let.forEachChild(backend().callables()::declareEnvironmentForCallablesInScope);
 		for (VarDecl decl : let.getVarDecls()) {
-			emitter().emit("%s = %s;", declaration(types().declaredType(decl), variables().declarationName(decl)), evaluate(decl.getValue()));
+			Type type = types().declaredType(decl);
+			String name = variables().declarationName(decl);
+			emitter().emit("%s;", declaration(type, name));
+			assign(type, name, decl.getValue());
 		}
 		return evaluate(let.getBody());
 	}
