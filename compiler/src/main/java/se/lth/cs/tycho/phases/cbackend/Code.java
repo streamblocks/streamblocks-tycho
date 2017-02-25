@@ -482,15 +482,23 @@ public interface Code {
 	}
 
 	default String evaluate(ExprApplication apply) {
-		String fn = evaluate(apply.getFunction());
+		Optional<String> directlyCallable = backend().callables().directlyCallableLambdaName(apply.getFunction());
+		String fn;
 		List<String> parameters = new ArrayList<>();
-		parameters.add(fn+".env");
+		if (directlyCallable.isPresent()) {
+			fn = directlyCallable.get();
+			parameters.add("NULL");
+		} else {
+			String name = evaluate(apply.getFunction());
+			fn = name + ".f";
+			parameters.add(name+".env");
+		}
 		for (Expression parameter : apply.getArgs()) {
 			parameters.add(evaluate(parameter));
 		}
 		String result = variables().generateTemp();
 		String decl = declaration(types().type(apply), result);
-		emitter().emit("%s = %s.f(%s);", decl, fn, String.join(", ", parameters));
+		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
 		return result;
 	}
 
@@ -623,13 +631,21 @@ public interface Code {
 	}
 
 	default void execute(StmtCall call) {
-		String proc = evaluate(call.getProcedure());
+		Optional<String> directlyCallable = backend().callables().directlyCallableProcName(call.getProcedure());
+		String proc;
 		List<String> parameters = new ArrayList<>();
-		parameters.add(proc+".env");
+		if (directlyCallable.isPresent()) {
+			proc = directlyCallable.get();
+			parameters.add("NULL");
+		} else {
+			String name = evaluate(call.getProcedure());
+			proc = name + ".f";
+			parameters.add(name + ".env");
+		}
 		for (Expression parameter : call.getArgs()) {
 			parameters.add(evaluate(parameter));
 		}
-		emitter().emit("%s.f(%s);", proc, String.join(", ", parameters));
+		emitter().emit("%s(%s);", proc, String.join(", ", parameters));
 	}
 
 	default void execute(StmtWhile stmt) {

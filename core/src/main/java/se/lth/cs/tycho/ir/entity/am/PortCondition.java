@@ -85,4 +85,9 @@ public class PortCondition extends Condition {
 	public PortCondition transformChildren(Transformation transformation) {
 		return copy((Port) transformation.apply(port), n, isInputCondition);
 	}
+
+	@Override
+	public PortCondition deepClone() {
+		return (PortCondition) super.deepClone();
+	}
 }

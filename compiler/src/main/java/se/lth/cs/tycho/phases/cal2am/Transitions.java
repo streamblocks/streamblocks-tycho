@@ -59,12 +59,14 @@ public class Transitions {
 	private Map<Port, Integer> getOutputRates(ImmutableList<OutputExpression> outputExpressions) {
 		return outputExpressions.stream()
 				.map(conditions::getCondition)
+				.map(PortCondition::deepClone)
 				.collect(Collectors.toMap(PortCondition::getPortName, PortCondition::N));
 	}
 
 	private Map<Port, Integer> getInputRates(ImmutableList<InputPattern> inputPatterns) {
 		return inputPatterns.stream()
 				.map(conditions::getCondition)
+				.map(PortCondition::deepClone)
 				.collect(Collectors.toMap(PortCondition::getPortName, PortCondition::N));
 	}
 

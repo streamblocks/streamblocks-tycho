@@ -15,6 +15,7 @@ import se.lth.cs.tycho.types.IntType;
 import se.lth.cs.tycho.types.LambdaType;
 import se.lth.cs.tycho.types.ListType;
 import se.lth.cs.tycho.types.ProcType;
+import se.lth.cs.tycho.types.RealType;
 import se.lth.cs.tycho.types.Type;
 
 import java.util.List;
@@ -52,6 +53,18 @@ public final class TypeToTypeExpr {
 				parameter = ImmutableList.empty();
 			}
 			return new NominalTypeExpr(name, ImmutableList.empty(), parameter);
+		}
+
+		default NominalTypeExpr convert(RealType type) {
+			String name;
+			if (type.getSize() == 32) {
+				name = "float";
+			} else if (type.getSize() == 64) {
+				name = "double";
+			} else {
+				throw new AssertionError();
+			}
+			return new NominalTypeExpr(name, ImmutableList.empty(), ImmutableList.empty());
 		}
 
 		default FunctionTypeExpr convert(LambdaType type) {

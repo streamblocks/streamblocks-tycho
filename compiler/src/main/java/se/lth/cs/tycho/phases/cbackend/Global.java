@@ -34,9 +34,7 @@ public interface Global {
 	}
 
 	default void generateGlobalCode() {
-		emitter().emit("#include <stdlib.h>");
-		emitter().emit("#include <stdint.h>");
-		emitter().emit("#include <stdbool.h>");
+		backend().main().emitDefaultHeaders();
 		emitter().emit("#include \"global.h\"");
 		emitter().emit("");
 		backend().callables().defineCallables();

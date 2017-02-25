@@ -65,7 +65,7 @@ public class ReduceActorMachinePhase implements Phase {
 
 		@Override
 		public ReductionAlgorithm defaultValue(Configuration configuration) {
-			return ReductionAlgorithm.SELECT_FIRST;
+			return ReductionAlgorithm.SELECT_INFORMATIVE_TESTS;
 		}
 	};
 

@@ -38,6 +38,13 @@ public class BitSets {
 		result.and(b);
 		return result;
 	}
+
+	public static BitSet difference(BitSet a, BitSet b) {
+		BitSet result = new BitSet();
+		result.or(a);
+		result.andNot(b);
+		return result;
+	}
 	
 	public static BitSet copyOf(BitSet original) {
 		BitSet copy = new BitSet();

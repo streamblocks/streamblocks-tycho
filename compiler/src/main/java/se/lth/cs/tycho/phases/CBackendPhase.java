@@ -4,20 +4,29 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Compiler;
 import se.lth.cs.tycho.comp.Context;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.cbackend.Backend;
+import se.lth.cs.tycho.phases.cbackend.Controllers;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
+import se.lth.cs.tycho.settings.Setting;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 public class CBackendPhase implements Phase {
 	@Override
 	public String getDescription() {
 		return null;
+	}
+
+	@Override
+	public List<Setting<?>> getPhaseSettings() {
+		return ImmutableList.of(Controllers.scopeLivenessAnalysis);
 	}
 
 	@Override

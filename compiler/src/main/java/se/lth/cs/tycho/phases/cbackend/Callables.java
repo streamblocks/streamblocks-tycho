@@ -9,9 +9,11 @@ import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.Scope;
+import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
+import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -25,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -179,6 +182,10 @@ public interface Callables {
 			size = "X";
 		}
 		return name(kind + size);
+	}
+
+	default NameExpression mangle(RealType type) {
+		return seq(name("real"), name(Integer.toString(type.getSize())));
 	}
 
 	// function prototype
@@ -421,5 +428,51 @@ public interface Callables {
 		Type type = backend().types().declaredType(decl);
 		String name = backend().variables().declarationName(decl);
 		return backend().code().declaration(type, name);
+	}
+
+	default Optional<String> directlyCallableLambdaName(Expression lambda) {
+		return Optional.empty();
+	}
+
+	default Optional<String> directlyCallableLambdaName(ExprLambda lambda) {
+		if (lambda.getClosure().isEmpty()) {
+			return Optional.of(functionName(lambda));
+		} else {
+			return Optional.empty();
+		}
+	}
+
+	default Optional<String> directlyCallableLambdaName(ExprVariable var) {
+		VarDecl declaration = backend().names().declaration(var.getVariable());
+		if (declaration.isConstant() && declaration.getValue() != null) {
+			return directlyCallableLambdaName(declaration.getValue());
+		} else if (declaration.isExternal()) {
+			return Optional.of(externalWrapperFunctionName(declaration));
+		} else {
+			return Optional.empty();
+		}
+	}
+
+	default Optional<String> directlyCallableProcName(Expression proc) {
+		return Optional.empty();
+	}
+
+	default Optional<String> directlyCallableProcName(ExprProc proc) {
+		if (proc.getClosure().isEmpty()) {
+			return Optional.of(functionName(proc));
+		} else {
+			return Optional.empty();
+		}
+	}
+
+	default Optional<String> directlyCallableProcName(ExprVariable var) {
+		VarDecl declaration = backend().names().declaration(var.getVariable());
+		if (declaration.isConstant() && declaration.getValue() != null) {
+			return directlyCallableProcName(declaration.getValue());
+		} else if (declaration.isExternal()) {
+			return Optional.of(externalWrapperFunctionName(declaration));
+		} else {
+			return Optional.empty();
+		}
 	}
 }

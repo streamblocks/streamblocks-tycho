@@ -10,6 +10,9 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
 import se.lth.cs.tycho.phases.CalToAmPhase;
+import se.lth.cs.tycho.phases.attributes.ScopeLiveness;
+import se.lth.cs.tycho.settings.Configuration;
+import se.lth.cs.tycho.settings.OnOffSetting;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -18,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Module
@@ -33,6 +37,24 @@ public interface Controllers {
 		emitter().emit("_Bool %s_run(%1$s_state *self);", name);
 	}
 
+	OnOffSetting scopeLivenessAnalysis = new OnOffSetting() {
+		@Override
+		public String getKey() {
+			return "scope-liveness-analysis";
+		}
+
+		@Override
+		public String getDescription() {
+			return "Analyzes actor machine scope liveness for initialization.";
+		}
+
+		@Override
+		public Boolean defaultValue(Configuration configuration) {
+			return true;
+		}
+	};
+
+
 	default void emitController(String name, ActorMachine actorMachine) {
 		List<? extends State> stateList = actorMachine.controller().getStateList();
 		Map<State, Integer> stateMap = stateMap(stateList);
@@ -46,10 +68,18 @@ public interface Controllers {
 
 		jumpInto(waitTargets.stream().mapToInt(stateMap::get).collect(BitSet::new, BitSet::set, BitSet::or));
 
+		Function<Instruction, BitSet> initialize;
+		if (backend().context().getConfiguration().get(scopeLivenessAnalysis)) {
+			ScopeLiveness liveness = new ScopeLiveness(backend().scopes(), actorMachine);
+			initialize = liveness::init;
+		} else {
+			initialize = instruction -> backend().scopes().init(actorMachine, instruction);
+		}
+
 		for (State s : stateList) {
 			emitter().emit("S%d:", stateMap.get(s));
 			Instruction instruction = s.getInstructions().get(0);
-			backend().scopes().init(actorMachine, instruction).stream().forEach(scope ->
+			initialize.apply(instruction).stream().forEach(scope ->
 					emitter().emit("%s_init_scope_%d(self);", name, scope)
 			);
 			emitInstruction(name, instruction, stateMap);

@@ -138,6 +138,7 @@ public interface Main {
 		includeSystem("stdint.h");
 		includeSystem("stdbool.h");
 		includeSystem("stdlib.h");
+		emitter().emit("#pragma clang diagnostic ignored \"-Wparentheses-equality\"");
 	}
 	default void includeSystem(String h) { emitter().emit("#include <%s>", h); }
 	default void includeUser(String h) { emitter().emit("#include \"%s\"", h); }
