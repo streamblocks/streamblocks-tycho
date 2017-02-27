@@ -70,7 +70,7 @@ public interface Controllers {
 
 		Function<Instruction, BitSet> initialize;
 		if (backend().context().getConfiguration().get(scopeLivenessAnalysis)) {
-			ScopeLiveness liveness = new ScopeLiveness(backend().scopes(), actorMachine);
+			ScopeLiveness liveness = new ScopeLiveness(backend().scopes(), actorMachine, backend().tree());
 			initialize = liveness::init;
 		} else {
 			initialize = instruction -> backend().scopes().init(actorMachine, instruction);

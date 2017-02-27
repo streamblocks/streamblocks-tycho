@@ -7,6 +7,7 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.phases.TreeShadow;
+import se.lth.cs.tycho.phases.TreeShadowNew;
 import se.lth.cs.tycho.phases.attributes.ActorMachineScopes;
 import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
 import se.lth.cs.tycho.phases.attributes.GlobalNames;
@@ -31,7 +32,7 @@ public interface Backend {
 	@Binding(LAZY) default Names names() { return context().getAttributeManager().getAttributeModule(Names.key, task()); }
 	@Binding(LAZY) default GlobalNames globalNames() { return context().getAttributeManager().getAttributeModule(GlobalNames.key, task()); }
 	@Binding(LAZY) default UniqueNumbers uniqueNumbers() { return context().getUniqueNumbers(); }
-	@Binding(LAZY) default TreeShadow tree() { return context().getAttributeManager().getAttributeModule(TreeShadow.key, task()); }
+	@Binding(LAZY) default TreeShadowNew tree() { return context().getAttributeManager().getAttributeModule(TreeShadow.key, task()); }
 	@Binding(LAZY) default ActorMachineScopes scopes() { return context().getAttributeManager().getAttributeModule(ActorMachineScopes.key, task()); }
 
 	// Code generator

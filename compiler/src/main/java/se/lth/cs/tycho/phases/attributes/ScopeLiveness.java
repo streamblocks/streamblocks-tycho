@@ -4,6 +4,7 @@ import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phases.TreeShadowNew;
 import se.lth.cs.tycho.util.BitSets;
 
 import java.util.ArrayDeque;
@@ -19,13 +20,15 @@ public class ScopeLiveness {
 	private final HashMap<Instruction, State> sourceState;
 	private final HashMap<State, List<Instruction>> incoming;
 	private final HashMap<State, BitSet> alive;
+	private final ScopeInvalidation invalidation;
 
-	public ScopeLiveness(ActorMachineScopes scopes, ActorMachine actorMachine) {
+	public ScopeLiveness(ActorMachineScopes scopes, ActorMachine actorMachine, TreeShadowNew shadow) {
 		this.scopes = scopes;
 		this.actorMachine = actorMachine;
 		this.sourceState = new HashMap<>();
 		this.incoming = new HashMap<>();
 		this.alive = new HashMap<>();
+		invalidation = new ScopeInvalidation(actorMachine, scopes, shadow);
 		initLinks();
 		computeLiveness();
 	}
@@ -74,10 +77,14 @@ public class ScopeLiveness {
 	}
 
 	private BitSet kill(Instruction i) {
-		return i.accept(
-				exec -> transientScopes(),
-				test -> new BitSet(),
-				wait -> new BitSet());
+		if (true) {
+			return invalidation.killed(i);
+		} else {
+			return i.accept(
+					exec -> transientScopes(),
+					test -> new BitSet(),
+					wait -> new BitSet());
+		}
 	}
 
 	private BitSet aliveOut(Instruction i) {

@@ -167,7 +167,6 @@ public interface MainNetwork {
 			emitter().emit("");
 			argi = argi + 1;
 		}
-
 		emitter().emit("_Bool progress;");
 		emitter().emit("do {");
 		emitter().increaseIndentation();
