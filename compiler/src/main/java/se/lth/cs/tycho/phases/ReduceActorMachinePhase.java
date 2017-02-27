@@ -12,10 +12,11 @@ import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.phases.reduction.MergeStates;
+import se.lth.cs.tycho.phases.reduction.SelectFatalTests;
+import se.lth.cs.tycho.phases.reduction.SelectFirstInstruction;
 import se.lth.cs.tycho.phases.reduction.SelectInformativeTests;
 import se.lth.cs.tycho.phases.reduction.SelectRandom;
 import se.lth.cs.tycho.phases.reduction.ShortestPathToExec;
-import se.lth.cs.tycho.phases.reduction.SingleInstructionState;
 import se.lth.cs.tycho.phases.reduction.TransformedController;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.EnumSetting;
@@ -49,7 +50,7 @@ public class ReduceActorMachinePhase implements Phase {
 	};
 
 	public enum ReductionAlgorithm {
-		SELECT_FIRST, SELECT_RANDOM, SHORTEST_PATH_TO_EXEC, SELECT_INFORMATIVE_TESTS
+		SELECT_FIRST, SELECT_RANDOM, SHORTEST_PATH_TO_EXEC, SELECT_FATAL_TESTS, SELECT_INFORMATIVE_TESTS
 	}
 
 	private static final Setting<ReductionAlgorithm> reductionAlgorithm = new EnumSetting<ReductionAlgorithm>(ReductionAlgorithm.class) {
@@ -101,10 +102,11 @@ public class ReduceActorMachinePhase implements Phase {
 
 	private Function<State, State> reductionAlgorithm(Configuration configuration) {
 		switch (configuration.get(reductionAlgorithm)) {
-			case SELECT_FIRST: return selectFirst;
+			case SELECT_FIRST: return new SelectFirstInstruction();
 			case SELECT_RANDOM: return new SelectRandom(configuration.get(randomSeed).map(Integer::longValue).orElse(System.currentTimeMillis()));
 			case SHORTEST_PATH_TO_EXEC: return new ShortestPathToExec();
-			case SELECT_INFORMATIVE_TESTS: return new SelectInformativeTests();
+			case SELECT_INFORMATIVE_TESTS: return new SelectInformativeTests().andThen(new SelectFirstInstruction());
+			case SELECT_FATAL_TESTS: return new SelectFatalTests().andThen(new SelectFirstInstruction());
 			default: throw new AssertionError();
 		}
 	}
@@ -157,8 +159,5 @@ public class ReduceActorMachinePhase implements Phase {
 			return reduced;
 		}
 	}
-
-	private static final Function<State, State> selectFirst =
-			state -> new SingleInstructionState(state.getInstructions().get(0));
 
 }

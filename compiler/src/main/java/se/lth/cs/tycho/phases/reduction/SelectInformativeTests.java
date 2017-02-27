@@ -6,20 +6,29 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.InstructionVisitor;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Test;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Wait;
+import se.lth.cs.tycho.util.TychoCollectors;
 
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.ToIntFunction;
+import java.util.stream.Collectors;
 
 public class SelectInformativeTests implements Function<State, State> {
 	@Override
 	public State apply(State state) {
-		Optional<Instruction> min = state.getInstructions().stream()
-				.min(Comparator.comparing(new TransitionsFromTraget()));
-		return new SingleInstructionState(min.get());
+		return new MultiInstructionState(
+				state.getInstructions().stream().collect(
+						TychoCollectors.minimaBy(
+								Comparator.comparingInt(new TransitionsFromTraget()),
+								Collectors.toList()
+						)
+				)
+		);
 	}
 
-	private static class TransitionsFromTraget implements InstructionVisitor<Integer, Void>, Function<Instruction, Integer> {
+	private static class TransitionsFromTraget implements InstructionVisitor<Integer, Void>, ToIntFunction<Instruction> {
 
 		@Override
 		public Integer visitExec(Exec t, Void aVoid) {
@@ -37,7 +46,7 @@ public class SelectInformativeTests implements Function<State, State> {
 		}
 
 		@Override
-		public Integer apply(Instruction instruction) {
+		public int applyAsInt(Instruction instruction) {
 			return instruction.accept(this);
 		}
 	}
