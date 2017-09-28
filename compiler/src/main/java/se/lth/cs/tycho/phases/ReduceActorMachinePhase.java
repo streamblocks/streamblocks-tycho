@@ -12,23 +12,24 @@ import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.phases.reduction.MergeStates;
-import se.lth.cs.tycho.phases.reduction.SelectFatalTests;
 import se.lth.cs.tycho.phases.reduction.SelectFirstInstruction;
 import se.lth.cs.tycho.phases.reduction.SelectInformativeTests;
 import se.lth.cs.tycho.phases.reduction.SelectRandom;
-import se.lth.cs.tycho.phases.reduction.ShortestPathToExec;
+import se.lth.cs.tycho.phases.reduction.ShortestPath;
 import se.lth.cs.tycho.phases.reduction.TransformedController;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.EnumSetting;
 import se.lth.cs.tycho.settings.IntegerSetting;
+import se.lth.cs.tycho.settings.ListSetting;
 import se.lth.cs.tycho.settings.OptionalSetting;
 import se.lth.cs.tycho.settings.Setting;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ReduceActorMachinePhase implements Phase {
@@ -50,23 +51,29 @@ public class ReduceActorMachinePhase implements Phase {
 	};
 
 	public enum ReductionAlgorithm {
-		SELECT_FIRST, SELECT_RANDOM, SHORTEST_PATH_TO_EXEC, SELECT_FATAL_TESTS, SELECT_INFORMATIVE_TESTS
+		FIRST, RANDOM, SHORTEST_PATH_TO_EXEC, INFORMATIVE_TESTS, INFORMATIVE_TESTS_IF_TRUE, INFORMATIVE_TESTS_IF_FALSE
 	}
 
-	private static final Setting<ReductionAlgorithm> reductionAlgorithm = new EnumSetting<ReductionAlgorithm>(ReductionAlgorithm.class) {
-		@Override
-		public String getKey() {
-			return "reduction-algorithm";
-		}
+	private static final Setting<List<ReductionAlgorithm>> reductionAlgorithm = new ListSetting<ReductionAlgorithm>(
+			new EnumSetting<ReductionAlgorithm>(ReductionAlgorithm.class) {
+				@Override
+				public String getKey() {
+					return "reduction-algorithm";
+				}
 
-		@Override
-		public String getDescription() {
-			return "Actor machine reduction algorithm.";
-		}
+				@Override
+				public String getDescription() {
+					return "Actor machine reduction algorithm.";
+				}
 
+				@Override
+				public ReductionAlgorithm defaultValue(Configuration configuration) {
+					throw new AssertionError();
+				}
+			}, ",") {
 		@Override
-		public ReductionAlgorithm defaultValue(Configuration configuration) {
-			return ReductionAlgorithm.SELECT_INFORMATIVE_TESTS;
+		public List<ReductionAlgorithm> defaultValue(Configuration configuration) {
+			return Collections.singletonList(ReductionAlgorithm.INFORMATIVE_TESTS);
 		}
 	};
 
@@ -100,41 +107,59 @@ public class ReduceActorMachinePhase implements Phase {
 		return "Reduces the actor machines to deterministic actor machines.";
 	}
 
-	private Function<State, State> reductionAlgorithm(Configuration configuration) {
-		switch (configuration.get(reductionAlgorithm)) {
-			case SELECT_FIRST: return new SelectFirstInstruction();
-			case SELECT_RANDOM: return new SelectRandom(configuration.get(randomSeed).map(Integer::longValue).orElse(System.currentTimeMillis()));
-			case SHORTEST_PATH_TO_EXEC: return new ShortestPathToExec();
-			case SELECT_INFORMATIVE_TESTS: return new SelectInformativeTests().andThen(new SelectFirstInstruction());
-			case SELECT_FATAL_TESTS: return new SelectFatalTests().andThen(new SelectFirstInstruction());
-			default: throw new AssertionError();
+	private static List<Function<State, State>> reductionAlgorithms(Configuration configuration) {
+		List<Function<State, State>> result = new ArrayList<>();
+		for (ReductionAlgorithm algorithm : configuration.get(reductionAlgorithm)) {
+			switch (algorithm) {
+				case FIRST:
+					result.add(new SelectFirstInstruction());
+					break;
+				case RANDOM:
+					result.add(new SelectRandom(configuration.get(randomSeed).map(Integer::longValue).orElse(System.currentTimeMillis())));
+					break;
+				case SHORTEST_PATH_TO_EXEC:
+					result.add(new ShortestPath());
+					break;
+				case INFORMATIVE_TESTS:
+					result.add(SelectInformativeTests.informative());
+					break;
+				case INFORMATIVE_TESTS_IF_TRUE:
+					result.add(SelectInformativeTests.falseInformative());
+					break;
+				case INFORMATIVE_TESTS_IF_FALSE:
+					result.add(SelectInformativeTests.trueInformative());
+					break;
+				default:
+					throw new AssertionError();
+			}
 		}
+		return result;
+	}
+
+	private static List<Function<State, State>> reductionList(Configuration configuration) {
+		int iterations = configuration.get(amStateMergeIterations);
+		List<Function<State, State>> reducers = new ArrayList<>();
+		reducers.addAll(reductionAlgorithms(configuration));
+		reducers.add(new SelectFirstInstruction());
+		Stream.generate(MergeStates::new).limit(iterations).forEach(reducers::add);
+		return reducers;
 	}
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		int iterations = context.getConfiguration().get(amStateMergeIterations);
-		List<Function<State, State>> transformations =
-				Stream.concat(
-						Stream.of(reductionAlgorithm(context.getConfiguration())),
-						Stream.generate(MergeStates::new).limit(iterations))
-				.collect(Collectors.toList());
 		return task.transformChildren(MultiJ.from(ReduceActorMachine.class)
-				.bind("transformations").to(new TransformationList(transformations)).instance());
-	}
-
-	public static class TransformationList {
-		public final List<Function<State, State>> transformations;
-
-		public TransformationList(List<Function<State, State>> transformations) {
-			this.transformations = transformations;
-		}
+				.bind("config").to(context.getConfiguration())
+				.instance());
 	}
 
 	@Module
 	interface ReduceActorMachine extends IRNode.Transformation {
 		@Binding
-		TransformationList transformations();
+		Configuration config();
+
+		default List<Function<State, State>> transformations() {
+			return reductionList(config());
+		}
 
 		@Override
 		default IRNode apply(IRNode node) {
@@ -154,9 +179,8 @@ public class ReduceActorMachinePhase implements Phase {
 		}
 
 		default IRNode apply(ActorMachine actorMachine) {
-			ActorMachine reduced = actorMachine.withController(TransformedController.from(actorMachine.controller(),
-					transformations().transformations));
-			return reduced;
+			return actorMachine.withController(TransformedController.from(actorMachine.controller(),
+					transformations()));
 		}
 	}
 
