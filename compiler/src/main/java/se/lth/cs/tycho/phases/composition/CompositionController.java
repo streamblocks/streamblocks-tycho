@@ -218,6 +218,13 @@ public class CompositionController implements Controller {
 					}
 				}
 			}
+			for (int actor = 0; actor < states.length; actor++) {
+				Instruction i = effectiveState[actor].getInstructions().get(0);
+				if (i instanceof Test) {
+					Instruction test = convert(actor, (Test) i);
+					return Collections.singletonList(test);
+				}
+			}
 			return Collections.singletonList(generateWait());
 		}
 
