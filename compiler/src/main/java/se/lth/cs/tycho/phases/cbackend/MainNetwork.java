@@ -11,17 +11,9 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.phases.attributes.GlobalNames;
-import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.types.Type;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,10 +24,6 @@ public interface MainNetwork {
 
 	default Emitter emitter() {
 		return backend().emitter();
-	}
-
-	default Names names() {
-		return backend().names();
 	}
 
 	default GlobalNames globalNames() {

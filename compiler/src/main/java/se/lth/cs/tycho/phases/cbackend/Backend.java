@@ -8,11 +8,7 @@ import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.phases.TreeShadow;
 import se.lth.cs.tycho.phases.TreeShadowNew;
-import se.lth.cs.tycho.phases.attributes.ActorMachineScopes;
-import se.lth.cs.tycho.phases.attributes.ConstantEvaluator;
-import se.lth.cs.tycho.phases.attributes.GlobalNames;
-import se.lth.cs.tycho.phases.attributes.Names;
-import se.lth.cs.tycho.phases.attributes.Types;
+import se.lth.cs.tycho.phases.attributes.*;
 import se.lth.cs.tycho.phases.cbackend.util.Box;
 
 import static org.multij.BindingKind.INJECTED;
@@ -29,7 +25,7 @@ public interface Backend {
 	@Binding(LAZY) default Emitter emitter() { return new Emitter(); };
 	@Binding(LAZY) default Types types() { return context().getAttributeManager().getAttributeModule(Types.key, task()); }
 	@Binding(LAZY) default ConstantEvaluator constants() { return context().getAttributeManager().getAttributeModule(ConstantEvaluator.key, task()); }
-	@Binding(LAZY) default Names names() { return context().getAttributeManager().getAttributeModule(Names.key, task()); }
+	@Binding(LAZY) default VariableDeclarations varDecls() { return context().getAttributeManager().getAttributeModule(VariableDeclarations.key, task()); }
 	@Binding(LAZY) default GlobalNames globalNames() { return context().getAttributeManager().getAttributeModule(GlobalNames.key, task()); }
 	@Binding(LAZY) default UniqueNumbers uniqueNumbers() { return context().getUniqueNumbers(); }
 	@Binding(LAZY) default TreeShadowNew tree() { return context().getAttributeManager().getAttributeModule(TreeShadow.key, task()); }

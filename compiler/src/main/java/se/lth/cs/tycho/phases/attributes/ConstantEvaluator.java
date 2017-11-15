@@ -23,14 +23,14 @@ public interface ConstantEvaluator {
 		@Override
 		public ConstantEvaluator createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(ConstantEvaluator.class)
-					.bind("names").to(manager.getAttributeModule(Names.key, unit))
+					.bind("varDecls").to(manager.getAttributeModule(VariableDeclarations.key, unit))
 					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
 					.instance();
 		}
 	};
 
 	@Binding(BindingKind.INJECTED)
-	Names names();
+	VariableDeclarations varDecls();
 
 	@Binding(BindingKind.INJECTED)
 	GlobalNames globalNames();
@@ -48,7 +48,7 @@ public interface ConstantEvaluator {
 	}
 
 	default OptionalLong intValue(ExprVariable var) {
-		VarDecl declaration = names().declaration(var.getVariable());
+		VarDecl declaration = varDecls().declaration(var.getVariable());
 		return declaration == null ? OptionalLong.empty() : intValue(declaration);
 	}
 

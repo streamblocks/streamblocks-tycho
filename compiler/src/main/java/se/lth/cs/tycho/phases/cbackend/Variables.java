@@ -56,7 +56,7 @@ public interface Variables {
 	}
 
 	default String name(Variable var) {
-		VarDecl decl = backend().names().declaration(var);
+		VarDecl decl = backend().varDecls().declaration(var);
 		IRNode parent = backend().tree().parent(decl);
 		if (decl instanceof ClosureVarDecl) {
 			return "(env->" + declarationName(decl) + ")";

@@ -51,7 +51,8 @@ public interface Types {
 		@Override
 		public Types createInstance(CompilationTask unit, AttributeManager manager) {
 			return MultiJ.from(Implementation.class)
-					.bind("names").to(manager.getAttributeModule(Names.key, unit))
+					.bind("ports").to(manager.getAttributeModule(Ports.key, unit))
+					.bind("variables").to(manager.getAttributeModule(VariableDeclarations.key, unit))
 					.bind("constants").to(manager.getAttributeModule(ConstantEvaluator.key, unit))
 					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
 					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
@@ -70,9 +71,11 @@ public interface Types {
 	@Module
 	interface Implementation extends Types {
 
+		@Binding(BindingKind.INJECTED)
+		VariableDeclarations variables();
 
 		@Binding(BindingKind.INJECTED)
-		Names names();
+		Ports ports();
 
 		@Binding(BindingKind.INJECTED)
 		GlobalNames globalNames();
@@ -144,7 +147,7 @@ public interface Types {
 
 		default Type computeDeclaredType(InputVarDecl varDecl) {
 			InputPattern input = (InputPattern) tree().parent(varDecl);
-			PortDecl port = names().portDeclaration(input.getPort());
+			PortDecl port = ports().declaration(input.getPort());
 			Type result = convert(port.getType());
 			if (input.getRepeatExpr() != null) {
 				OptionalLong size = constants().intValue(input.getRepeatExpr());
@@ -190,7 +193,7 @@ public interface Types {
 		}
 
 		default Type portType(Port port) {
-			return declaredPortType(names().portDeclaration(port));
+			return declaredPortType(ports().declaration(port));
 		}
 
 		default Type portTypeRepeated(Port port, Expression repeat) {
@@ -222,7 +225,7 @@ public interface Types {
 		Type computeLValueType(LValue lvalue);
 
 		default Type computeLValueType(LValueVariable var) {
-			return declaredType(names().declaration(var.getVariable()));
+			return declaredType(variables().declaration(var.getVariable()));
 		}
 
 		default Type computeLValueType(LValueDeref deref) {
@@ -431,7 +434,7 @@ public interface Types {
 		}
 
 		default Type computeType(ExprVariable var) {
-			return declaredType(names().declaration(var.getVariable()));
+			return declaredType(variables().declaration(var.getVariable()));
 		}
 
 		default Type computeType(ExprGlobalVariable var) {

@@ -443,7 +443,7 @@ public interface Callables {
 	}
 
 	default Optional<String> directlyCallableLambdaName(ExprVariable var) {
-		VarDecl declaration = backend().names().declaration(var.getVariable());
+		VarDecl declaration = backend().varDecls().declaration(var.getVariable());
 		if (declaration.isConstant() && declaration.getValue() != null) {
 			return directlyCallableLambdaName(declaration.getValue());
 		} else if (declaration.isExternal()) {
@@ -466,7 +466,7 @@ public interface Callables {
 	}
 
 	default Optional<String> directlyCallableProcName(ExprVariable var) {
-		VarDecl declaration = backend().names().declaration(var.getVariable());
+		VarDecl declaration = backend().varDecls().declaration(var.getVariable());
 		if (declaration.isConstant() && declaration.getValue() != null) {
 			return directlyCallableProcName(declaration.getValue());
 		} else if (declaration.isExternal()) {

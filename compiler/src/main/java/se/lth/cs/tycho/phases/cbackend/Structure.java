@@ -6,14 +6,8 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
-import se.lth.cs.tycho.ir.entity.am.Condition;
-import se.lth.cs.tycho.ir.entity.am.PortCondition;
-import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
-import se.lth.cs.tycho.ir.entity.am.Scope;
-import se.lth.cs.tycho.ir.entity.am.Transition;
+import se.lth.cs.tycho.ir.entity.am.*;
 import se.lth.cs.tycho.ir.network.Connection;
-import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.CallableType;
 import se.lth.cs.tycho.types.Type;
@@ -38,8 +32,6 @@ public interface Structure {
 	default Types types() {
 		return backend().types();
 	}
-
-	default Names names() { return backend().names(); }
 
 	default DefaultValues defVal() { return backend().defaultValues(); }
 

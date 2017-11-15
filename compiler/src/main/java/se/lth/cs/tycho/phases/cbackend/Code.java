@@ -9,21 +9,12 @@ import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.network.Connection;
-import se.lth.cs.tycho.ir.stmt.Statement;
-import se.lth.cs.tycho.ir.stmt.StmtAssignment;
-import se.lth.cs.tycho.ir.stmt.StmtBlock;
-import se.lth.cs.tycho.ir.stmt.StmtCall;
-import se.lth.cs.tycho.ir.stmt.StmtConsume;
-import se.lth.cs.tycho.ir.stmt.StmtForeach;
-import se.lth.cs.tycho.ir.stmt.StmtIf;
-import se.lth.cs.tycho.ir.stmt.StmtWhile;
-import se.lth.cs.tycho.ir.stmt.StmtWrite;
+import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.phases.attributes.Names;
 import se.lth.cs.tycho.phases.attributes.Types;
 import se.lth.cs.tycho.types.*;
 
@@ -51,8 +42,6 @@ public interface Code {
 	default Variables variables() {
 		return backend().variables();
 	}
-
-	default Names names() { return backend().names(); }
 
 	default String outputPortTypeSize(Port port) {
 		Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), port.getName());

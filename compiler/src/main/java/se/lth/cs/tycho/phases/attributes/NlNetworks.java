@@ -22,15 +22,11 @@ import java.util.OptionalLong;
 public interface NlNetworks {
 	ModuleKey<NlNetworks> key = (unit, manager) -> MultiJ.from(NlNetworks.class)
 			.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
-			.bind("names").to(manager.getAttributeModule(Names.key, unit))
 			.bind("constants").to(manager.getAttributeModule(ConstantEvaluator.key, unit))
 			.instance();
 
 	@Binding(BindingKind.INJECTED)
 	TreeShadow tree();
-
-	@Binding(BindingKind.INJECTED)
-	Names names();
 
 	@Binding(BindingKind.INJECTED)
 	ConstantEvaluator constants();
