@@ -56,7 +56,7 @@ public class Compiler {
 			new ResolveGlobalEntityNamesPhase(),
 			new ResolveGlobalVariableNamesPhase(),
 			new ElaborateNetworkPhase(),
-			new DeadDeclEliminationPhase(),
+			new RemoveUnusedGlobalDeclarations(),
 
 			// Actor transformations
 			new RenameActorVariablesPhase(),
