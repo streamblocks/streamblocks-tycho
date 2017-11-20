@@ -207,14 +207,12 @@ public final class VariableDeclarations {
 			return tree.assertNode(let).children(ExprLet::getVarDecls).map(Tree::upCast);
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprLambda lambda) {
-			Stream<Tree<ClosureVarDecl>> closure = tree.assertNode(lambda).children(ExprLambda::getClosure);
 			Stream<Tree<ParameterVarDecl>> parameters = tree.assertNode(lambda).children(ExprLambda::getValueParameters);
-			return Stream.concat(closure, parameters).map(Tree::upCast);
+			return parameters.map(Tree::upCast);
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprProc proc) {
-			Stream<Tree<ClosureVarDecl>> closure = tree.assertNode(proc).children(ExprProc::getClosure);
 			Stream<Tree<ParameterVarDecl>> parameters = tree.assertNode(proc).children(ExprProc::getValueParameters);
-			return Stream.concat(closure, parameters).map(Tree::upCast);
+			return parameters.map(Tree::upCast);
 		}
 		default Stream<Tree<VarDecl>> get(Tree<?> tree, ExprComprehension comprehension) {
 			return tree.assertNode(comprehension)

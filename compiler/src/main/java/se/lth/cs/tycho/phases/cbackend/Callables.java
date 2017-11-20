@@ -4,7 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
+import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -189,25 +189,32 @@ public interface Callables {
 	}
 
 	// function prototype
+
+	default ImmutableList<VarDecl> closure(IRNode node) {
+		return backend().freeVariables().freeVariables(node).stream()
+				.map(backend().varDecls()::declaration)
+                .distinct()
+				.collect(ImmutableList.collector());
+	}
 	default void callablePrototype(IRNode callable) {};
 
 	default void callablePrototype(ExprLambda lambda) {
 		String name = functionName(lambda);
-		closureTypedef(lambda.getClosure(), name);
+		closureTypedef(closure(lambda), name);
 		backend().emitter().emit("%s;", lambdaHeader(lambda));
 	}
 
-	default void callablePrototype(ExprProc lambda) {
-		String name = functionName(lambda);
-		closureTypedef(lambda.getClosure(), name);
-		backend().emitter().emit("%s;", procHeader(lambda));
+	default void callablePrototype(ExprProc proc) {
+		String name = functionName(proc);
+		closureTypedef(closure(proc), name);
+		backend().emitter().emit("%s;", procHeader(proc));
 	}
 
-	default void closureTypedef(ImmutableList<ClosureVarDecl> closure, String name) {
+	default void closureTypedef(ImmutableList<VarDecl> closure, String name) {
 		backend().emitter().emit("typedef struct {");
 		backend().emitter().increaseIndentation();
-		for (ClosureVarDecl var : closure) {
-			Type type = backend().types().declaredType(var);
+		for (VarDecl var : closure) {
+			Type type = new RefType(backend().types().declaredType(var));
 			String varName = backend().variables().declarationName(var);
 			backend().emitter().emit("%s;", backend().code().declaration(type, varName));
 		}
@@ -435,7 +442,8 @@ public interface Callables {
 	}
 
 	default Optional<String> directlyCallableLambdaName(ExprLambda lambda) {
-		if (lambda.getClosure().isEmpty()) {
+		Set<Variable> closure = backend().freeVariables().freeVariables(lambda);
+		if (closure.isEmpty()) {
 			return Optional.of(functionName(lambda));
 		} else {
 			return Optional.empty();
@@ -458,7 +466,8 @@ public interface Callables {
 	}
 
 	default Optional<String> directlyCallableProcName(ExprProc proc) {
-		if (proc.getClosure().isEmpty()) {
+		Set<Variable> closure = backend().freeVariables().freeVariables(proc);
+		if (closure.isEmpty()) {
 			return Optional.of(functionName(proc));
 		} else {
 			return Optional.empty();

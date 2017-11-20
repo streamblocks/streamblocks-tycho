@@ -53,11 +53,11 @@ public interface VariableScopes {
         // Expressions
 
         default ImmutableList<VarDecl> declarations(ExprLambda lambda) {
-            return ImmutableList.concat(lambda.getValueParameters(), lambda.getClosure());
+            return ImmutableList.covariance(lambda.getValueParameters());
         }
 
         default ImmutableList<VarDecl> declarations(ExprProc proc) {
-            return ImmutableList.concat(proc.getValueParameters(), proc.getClosure());
+            return ImmutableList.covariance(proc.getValueParameters());
         }
 
         default ImmutableList<VarDecl> declarations(ExprLet let) {

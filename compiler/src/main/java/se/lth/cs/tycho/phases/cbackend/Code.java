@@ -4,7 +4,7 @@ import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
+import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.*;
@@ -495,8 +495,8 @@ public interface Code {
 		backend().emitter().emit("// begin evaluate(ExprLambda)");
 		String functionName = backend().callables().functionName(lambda);
 		String env = backend().callables().environmentName(lambda);
-		for (ClosureVarDecl var : lambda.getClosure()) {
-			assign(types().declaredType(var), env+"."+variables().declarationName(var), var.getValue());
+		for (VarDecl var : backend().callables().closure(lambda)) {
+			emitter().emit("%s.%s = %s;", env, variables().declarationName(var), variables().reference(var));
 		}
 
 		Type type = backend().types().type(lambda);
@@ -512,8 +512,8 @@ public interface Code {
 		backend().emitter().emit("// begin evaluate(ExprProc)");
 		String functionName = backend().callables().functionName(proc);
 		String env = backend().callables().environmentName(proc);
-		for (ClosureVarDecl var : proc.getClosure()) {
-			assign(types().declaredType(var), env+"."+variables().declarationName(var), var.getValue());
+		for (VarDecl var : backend().callables().closure(proc)) {
+			emitter().emit("%s.%s = %s;", env, variables().declarationName(var), variables().reference(var));
 		}
 
 		Type type = backend().types().type(proc);

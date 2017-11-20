@@ -40,7 +40,6 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.expr;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -56,39 +55,29 @@ public class ExprProc extends Expression {
 	}
 
 	public ExprProc(List<ParameterVarDecl> valueParams, List<Statement> body) {
-		this(null, valueParams, body, null);
+		this(null, valueParams, body);
 	}
 
 	public ExprProc(List<ParameterVarDecl> valueParams) {
-		this(null, valueParams, null, null);
+		this(null, valueParams, null);
 	}
 
-	private ExprProc(ExprProc original, List<ParameterVarDecl> valueParams, List<Statement> body, List<ClosureVarDecl> closure) {
+	private ExprProc(ExprProc original, List<ParameterVarDecl> valueParams, List<Statement> body) {
 		super(original);
 		this.valueParameters = ImmutableList.from(valueParams);
 		this.body = ImmutableList.from(body);
-		this.closure = ImmutableList.from(closure);
 	}
 	
-	private ExprProc copy(List<ParameterVarDecl> valueParams, List<Statement> body, List<ClosureVarDecl> closure) {
+	private ExprProc copy(List<ParameterVarDecl> valueParams, List<Statement> body) {
 		if (Lists.sameElements(valueParameters, valueParams)
-				&& Lists.sameElements(this.body, body)
-				&& Lists.sameElements(this.closure, closure)) {
+				&& Lists.sameElements(this.body, body)) {
 			return this;
 		}
-		return new ExprProc(this, valueParams, body, closure);
+		return new ExprProc(this, valueParams, body);
 	}
 
 	public ImmutableList<ParameterVarDecl> getValueParameters() {
 		return valueParameters;
-	}
-
-	public ExprProc withClosure(List<ClosureVarDecl> closure) {
-		return copy(valueParameters, body, closure);
-	}
-
-	public ImmutableList<ClosureVarDecl> getClosure() {
-		return closure;
 	}
 
 	public ImmutableList<Statement> getBody() {
@@ -97,21 +86,18 @@ public class ExprProc extends Expression {
 
 	private final ImmutableList<ParameterVarDecl> valueParameters;
 	private final ImmutableList<Statement> body;
-	private final ImmutableList<ClosureVarDecl> closure;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		valueParameters.forEach(action);
 		body.forEach(action);
-		closure.forEach(action);
 	}
 
 	@Override
 	public ExprProc transformChildren(Transformation transformation) {
 		return copy(
 				transformation.mapChecked(ParameterVarDecl.class, valueParameters),
-				transformation.mapChecked(Statement.class, body),
-				transformation.mapChecked(ClosureVarDecl.class, closure)
+				transformation.mapChecked(Statement.class, body)
 		);
 	}
 }

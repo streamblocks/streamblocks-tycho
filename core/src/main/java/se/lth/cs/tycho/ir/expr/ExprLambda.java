@@ -41,7 +41,6 @@ package se.lth.cs.tycho.ir.expr;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.type.TypeExpr;
-import se.lth.cs.tycho.ir.decl.ClosureVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
@@ -55,28 +54,25 @@ public class ExprLambda extends Expression {
 		return v.visitExprLambda(this, p);
 	}
 
-	public ExprLambda(List<ParameterVarDecl> valueParams, Expression body,
-					  TypeExpr returnTypeExpr) {
-		this(null, valueParams, body, returnTypeExpr, null);
+	public ExprLambda(List<ParameterVarDecl> valueParams, Expression body, TypeExpr returnTypeExpr) {
+		this(null, valueParams, body, returnTypeExpr);
 	}
 	public ExprLambda(List<ParameterVarDecl> valueParams, TypeExpr returnTypeExpr) {
-		this(null, valueParams, null, returnTypeExpr, null);
+		this(null, valueParams, null, returnTypeExpr);
 	}
-	private ExprLambda(ExprLambda original, List<ParameterVarDecl> valueParams, Expression body, TypeExpr returnTypeExpr, List<ClosureVarDecl> closure) {
+	private ExprLambda(ExprLambda original, List<ParameterVarDecl> valueParams, Expression body, TypeExpr returnTypeExpr) {
 		super(original);
 		this.valueParameters = ImmutableList.from(valueParams);
 		this.body = body;
 		this.returnTypeExpr = returnTypeExpr;
-		this.closure = ImmutableList.from(closure);
 	}
 
 	public ExprLambda copy(List<ParameterVarDecl> valueParams,
-						   Expression body, TypeExpr returnTypeExpr, List<ClosureVarDecl> closure) {
-		if (Lists.sameElements(valueParameters, valueParams) && this.body == body && this.returnTypeExpr == returnTypeExpr
-				&& Lists.sameElements(this.closure, closure)) {
+						   Expression body, TypeExpr returnTypeExpr) {
+		if (Lists.sameElements(valueParameters, valueParams) && this.body == body && this.returnTypeExpr == returnTypeExpr) {
 			return this;
 		}
-		return new ExprLambda(this, valueParams, body, returnTypeExpr, closure);
+		return new ExprLambda(this, valueParams, body, returnTypeExpr);
 	}
 
 	public ImmutableList<ParameterVarDecl> getValueParameters() {
@@ -91,15 +87,6 @@ public class ExprLambda extends Expression {
 		return returnTypeExpr;
 	}
 
-	public ImmutableList<ClosureVarDecl> getClosure() {
-		return closure;
-	}
-
-	public ExprLambda withClosure(List<ClosureVarDecl> closure) {
-		return copy(valueParameters, body, returnTypeExpr, closure);
-	}
-
-	private final ImmutableList<ClosureVarDecl> closure;
 	private final ImmutableList<ParameterVarDecl> valueParameters;
 	private final Expression body;
 	private final TypeExpr returnTypeExpr;
@@ -109,7 +96,6 @@ public class ExprLambda extends Expression {
 		valueParameters.forEach(action);
 		if (returnTypeExpr != null) action.accept(returnTypeExpr);
 		if (body != null) action.accept(body);
-		closure.forEach(action);
 	}
 
 	@Override
@@ -118,7 +104,6 @@ public class ExprLambda extends Expression {
 		return copy(
 				transformation.mapChecked(ParameterVarDecl.class, valueParameters),
 				body == null ? null : transformation.applyChecked(Expression.class, body),
-				returnTypeExpr == null ? null : transformation.applyChecked(TypeExpr.class, returnTypeExpr),
-				transformation.mapChecked(ClosureVarDecl.class, closure));
+				returnTypeExpr == null ? null : transformation.applyChecked(TypeExpr.class, returnTypeExpr));
 	}
 }
