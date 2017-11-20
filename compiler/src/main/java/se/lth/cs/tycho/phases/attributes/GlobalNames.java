@@ -5,6 +5,7 @@ import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.SourceUnit;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.AbstractDecl;
@@ -15,8 +16,10 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.phases.TreeShadow;
 
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -24,16 +27,36 @@ public interface GlobalNames {
 	ModuleKey<GlobalNames> key = (unit, manager) ->
 			MultiJ.from(Implementation.class)
 					.bind("root").to(unit)
+					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
 					.instance();
 
 	GlobalEntityDecl entityDecl(QID qid, boolean includingPrivate);
 	VarDecl varDecl(QID qid, boolean includingPrivate);
 	TypeDecl typeDecl(QID qid, boolean includingPrivate);
 
+	Optional<QID> globalName(Decl declaration);
+
 	@Module
 	interface Implementation extends GlobalNames {
 		@Binding
 		CompilationTask root();
+
+		@Binding
+		TreeShadow tree();
+
+		default Optional<QID> globalName(IRNode node) {
+			return Optional.empty();
+		}
+
+		default Optional<QID> globalName(Decl decl) {
+			return globalName(tree().parent(decl))
+					.map(parent -> parent.concat(QID.of(decl.getName())));
+		}
+
+		default Optional<QID> globalName(NamespaceDecl decl) {
+			return Optional.of(decl.getQID());
+		}
+
 
 		@Override
 		default GlobalEntityDecl entityDecl(QID qid, boolean includingPrivate) {

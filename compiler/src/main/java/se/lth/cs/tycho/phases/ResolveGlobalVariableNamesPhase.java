@@ -7,14 +7,13 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.phases.attributes.AttributeManager;
+import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.attributes.VariableDeclarations;
 
 import java.util.Optional;
@@ -52,6 +51,11 @@ public class ResolveGlobalVariableNamesPhase implements Phase {
 			return attributes().getAttributeModule(TreeShadow.key, task());
 		}
 
+		@Binding(BindingKind.LAZY)
+		default GlobalNames globalNames() {
+			return attributes().getAttributeModule(GlobalNames.key, task());
+		}
+
 		default IRNode transform(IRNode node) {
 			return node.transformChildren(this::transform);
 		}
@@ -62,17 +66,8 @@ public class ResolveGlobalVariableNamesPhase implements Phase {
 
 		default Expression transform(ExprVariable var) {
 			VarDecl decl = variables().declaration(var);
-			Optional<QID> globalName = globalName(decl);
+			Optional<QID> globalName = globalNames().globalName(decl);
 			return globalName.<Expression>map(ExprGlobalVariable::new).orElse(var);
-		}
-
-		default Optional<QID> globalName(VarDecl decl) {
-			return Optional.empty();
-		}
-
-		default Optional<QID> globalName(GlobalVarDecl decl) {
-			NamespaceDecl ns = (NamespaceDecl) tree().parent(decl);
-			return Optional.of(ns.getQID().concat(QID.of(decl.getName())));
 		}
 	}
 }
