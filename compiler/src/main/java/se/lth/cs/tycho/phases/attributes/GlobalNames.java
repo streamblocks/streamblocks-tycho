@@ -91,6 +91,4 @@ public interface GlobalNames {
 		EnumSet<Availability> pubPriv = EnumSet.of(Availability.PUBLIC, Availability.PRIVATE);
 
 	}
-
-
 }

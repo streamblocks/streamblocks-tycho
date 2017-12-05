@@ -57,4 +57,7 @@ public abstract class VarDecl extends AbstractDecl {
 		return external;
 	}
 
+	@Override
+	public abstract VarDecl transformChildren(Transformation transformation);
+
 }
