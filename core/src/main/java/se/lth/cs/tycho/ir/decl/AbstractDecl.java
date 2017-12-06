@@ -22,12 +22,12 @@ public abstract class AbstractDecl extends AbstractIRNode implements Decl {
 	public String getOriginalName() { return originalName; }
 
 	@Override
-	public final AbstractDecl clone() {
+	public AbstractDecl clone() {
 		return (AbstractDecl) super.clone();
 	}
 
 	@Override
-	public final AbstractDecl deepClone() {
+	public AbstractDecl deepClone() {
 		return (AbstractDecl) super.deepClone();
 	}
 

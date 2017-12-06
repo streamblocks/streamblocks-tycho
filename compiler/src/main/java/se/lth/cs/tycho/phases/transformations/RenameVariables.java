@@ -27,20 +27,24 @@ public final class RenameVariables {
     private RenameVariables() {}
 
     /**
-     * Renames the variables in the tree using the name generator {@code newName}.
+     * Renames the variables in the {@code tree} using the name generator {@code newName}.
+     *
+     * The {@code tree} must be a subtree of {@code task}.
+     *
+     * @param tree the tree to rename
      * @param newName the name generator
      * @param task the compilation task
      * @param attributes the attribute manager
      * @return a transformed tree with renamed variables
      */
-    public static CompilationTask rename(Function<VarDecl, String> newName, CompilationTask task, AttributeManager attributes) {
+    public static IRNode rename(IRNode tree, Function<VarDecl, String> newName, CompilationTask task, AttributeManager attributes) {
         RenameFunction renameFunction = newName::apply;
         return MultiJ.from(Transformation.class)
                 .bind("newName").to(renameFunction)
                 .bind("variables").to(attributes.getAttributeModule(VariableDeclarations.key, task))
                 .bind("tree").to(attributes.getAttributeModule(TreeShadow.key, task))
                 .instance()
-                .apply(task);
+                .apply(tree);
     }
 
     /**
@@ -53,10 +57,10 @@ public final class RenameVariables {
      * @param attributes the attribute manager
      * @return a transformed tree with renamed variables.
      */
-    public static CompilationTask appendNumber(Predicate<VarDecl> variablesToRename, LongSupplier numbers, CompilationTask task, AttributeManager attributes) {
+    public static IRNode appendNumber(IRNode tree, Predicate<VarDecl> variablesToRename, LongSupplier numbers, CompilationTask task, AttributeManager attributes) {
         Map<VarDecl, String> renameTable = new HashMap<>();
         Function<VarDecl, String> createName = var -> var.getOriginalName() + "_" + numbers.getAsLong();
-        return rename(var -> variablesToRename.test(var) ? renameTable.computeIfAbsent(var, createName) : var.getName(), task, attributes);
+        return rename(tree, var -> variablesToRename.test(var) ? renameTable.computeIfAbsent(var, createName) : var.getName(), task, attributes);
     }
 
     @FunctionalInterface

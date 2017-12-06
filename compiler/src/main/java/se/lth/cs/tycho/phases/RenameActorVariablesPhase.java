@@ -25,7 +25,8 @@ public class RenameActorVariablesPhase implements Phase {
 	    VariableKinds kinds = MultiJ.from(VariableKinds.class)
 				.bind("tree").to(context.getAttributeManager().getAttributeModule(TreeShadow.key, task))
 				.instance();
-		return RenameVariables.appendNumber(
+		return (CompilationTask) RenameVariables.appendNumber(
+				task,
 				d -> kinds.isActorVariable(d) || kinds.isActionVariable(d) || kinds.isInputVariable(d),
 				context.getUniqueNumbers(),
 				task,

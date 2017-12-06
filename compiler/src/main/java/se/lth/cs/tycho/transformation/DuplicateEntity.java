@@ -18,6 +18,8 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phases.attributes.AttributeManager;
+import se.lth.cs.tycho.phases.transformations.RenameVariables;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,7 +33,7 @@ import java.util.function.LongSupplier;
 public final class DuplicateEntity {
 	public DuplicateEntity() {}
 
-	public static CompilationTask duplicateEntity(CompilationTask task, String instanceName, LongSupplier uniqueNumbers) {
+	public static CompilationTask duplicateEntity(CompilationTask task, String instanceName, LongSupplier uniqueNumbers, AttributeManager attributes) {
 		Instance instance = task.getNetwork().getInstances().stream()
 				.filter(inst -> inst.getInstanceName().equals(instanceName))
 				.findFirst()
@@ -45,7 +47,7 @@ public final class DuplicateEntity {
 		String localName = entity.getOriginalName() + "_" + uniqueNumbers.getAsLong();
 		QID namespace = instance.getEntityName().getButLast();
 		QID globalName = namespace.concat(QID.of(localName));
-		entity = Rename.renameVariables(entity, d -> true, uniqueNumbers);
+		entity = (GlobalEntityDecl) RenameVariables.appendNumber(entity, d -> true, uniqueNumbers, task, attributes);
 		entity = entity.withName(localName);
 		entity = entity.withEntity(
 				entity.getEntity()
@@ -84,7 +86,7 @@ public final class DuplicateEntity {
 		Network net = task.getNetwork()
 				.withConnections(connections)
 				.withInstances(instances);
-		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(namespace, null, null, ImmutableList.of(entity), null));
+		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(namespace, null, null, ImmutableList.of(entity.deepClone()), null));
 
 		return task.withNetwork(net).withSourceUnits(ImmutableList.concat(task.getSourceUnits(), ImmutableList.of(unit)));
 

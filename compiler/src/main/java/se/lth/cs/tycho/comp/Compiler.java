@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.comp;
 
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.phases.*;
 import se.lth.cs.tycho.reporting.CompilationException;
@@ -17,11 +18,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Compiler {
@@ -154,6 +151,7 @@ public class Compiler {
 			for (Phase phase : phases) {
 				long startTime = System.nanoTime();
 				compilationTask = phase.execute(compilationTask, compilationContext);
+				checkTree(compilationTask);
 				phaseExecutionTime[currentPhaseNumber] = System.nanoTime() - startTime;
 				currentPhaseNumber += 1;
 				if (compilationContext.getReporter().getMessageCount(Diagnostic.Kind.ERROR) > 0) {
@@ -176,6 +174,23 @@ public class Compiler {
 			}
 		}
 		return success;
+	}
+
+	private void checkTree(IRNode tree) {
+		Map<IRNode, IRNode> parent = new IdentityHashMap<>();
+		Queue<IRNode> queue = new ArrayDeque<>();
+		queue.add(tree);
+		while (!queue.isEmpty()) {
+			IRNode node = queue.remove();
+			node.forEachChild(child -> {
+				if (parent.containsKey(child)) {
+					throw new RuntimeException("Node " + child + " has multiple parents:\n" + node + "\n" + parent.get(child));
+				} else {
+					parent.put(child, node);
+					queue.add(child);
+				}
+			});
+		}
 	}
 
 }

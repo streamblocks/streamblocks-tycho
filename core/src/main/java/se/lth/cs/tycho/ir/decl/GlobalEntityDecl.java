@@ -61,4 +61,14 @@ public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
 	public Availability getAvailability() {
 		return availability;
 	}
+
+	@Override
+	public GlobalEntityDecl clone() {
+		return (GlobalEntityDecl) super.clone();
+	}
+
+	@Override
+	public GlobalEntityDecl deepClone() {
+		return (GlobalEntityDecl) super.deepClone();
+	}
 }
