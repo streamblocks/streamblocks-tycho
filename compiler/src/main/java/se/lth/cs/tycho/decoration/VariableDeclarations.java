@@ -62,47 +62,6 @@ public final class VariableDeclarations {
 		}
 	}
 
-	public static Optional<Tree<ParameterVarDecl>> getValueParameterDeclaration(Tree<ValueParameter> parameter) {
-		Optional<Tree<? extends IRNode>> parent = parameter.parent();
-		if (!parent.isPresent()) return Optional.empty();
-		{
-			Optional<Tree<EntityInstanceExpr>> instanceExpr = parent.get().tryCast(EntityInstanceExpr.class);
-			if (instanceExpr.isPresent()) {
-				Optional<Tree<GlobalEntityDecl>> entityDecl = EntityDeclarations.getDeclaration(instanceExpr.get().child(EntityInstanceExpr::getEntityName));
-				if (!entityDecl.isPresent()) return Optional.empty();
-				return entityDecl.get().child(GlobalEntityDecl::getEntity).children(Entity::getValueParameters)
-						.filter(tree -> tree.node().getName().equals(parameter.node().getName()))
-						.findFirst();
-			}
-		}
-		{
-			Optional<Tree<Instance>> instance = parent.get().tryCast(Instance.class);
-			if (instance.isPresent()) {
-				QID entityName = instance.get().node().getEntityName();
-				QID namespace = entityName.getButLast();
-				String name = entityName.getLast().toString();
-				Optional<Tree<GlobalEntityDecl>> entityDecl = Namespaces.getNamespace(parameter, namespace)
-						.flatMap(ns -> ns.children(NamespaceDecl::getEntityDecls))
-						.filter(decl -> decl.node().getName().equals(name))
-						.findFirst();
-				if (!entityDecl.isPresent()) return Optional.empty();
-				return entityDecl.get().child(GlobalEntityDecl::getEntity).children(Entity::getValueParameters)
-						.filter(tree -> tree.node().getName().equals(parameter.node().getName()))
-						.findFirst();
-			}
-		}
-		return Optional.empty();
-	}
-
-	public static Optional<Tree<GlobalVarDecl>> getGlobalVariableDeclaration(Tree<ExprGlobalVariable> variable) {
-		QID namespace = variable.node().getGlobalName().getButLast();
-		String name = variable.node().getGlobalName().getLast().toString();
-		return Namespaces.getNamespace(variable, namespace)
-				.flatMap(ns -> ns.children(NamespaceDecl::getVarDecls))
-				.filter(decl -> decl.node().getName().equals(name))
-				.findFirst();
-	}
-
 	private static List<Tree<? extends VarDecl>> getDeclarations(Tree<Variable> variable) {
 		String name = variable.node().getName();
 		Optional<Tree<?>> parent = variable.parent();
