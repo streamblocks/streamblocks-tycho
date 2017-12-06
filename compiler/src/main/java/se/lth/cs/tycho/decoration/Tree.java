@@ -15,6 +15,7 @@ import java.util.stream.StreamSupport;
  * the node pointed at.
  * @param <N> type of the node pointed at
  */
+@Deprecated
 public final class Tree<N extends IRNode> {
 	private final Tree<? extends IRNode> parent;
 	private final N node;
