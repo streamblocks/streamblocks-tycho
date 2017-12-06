@@ -1,0 +1,32 @@
+namespace composition_parameters :
+  actor ConstAdd (uint(size=8) c) uint(size=8) In ==> uint(size=8) Out :
+    action In:[x] ==> Out:[x+c] end
+  end
+
+  actor ConstMul (uint(size=8) c) uint(size=8) In ==> uint(size=8) Out :
+    action In:[x] ==> Out:[x*c] end
+  end
+
+  // used to test composition of same parameterized actor
+  network Add2Add3 () uint(size=8) In ==> uint(size=8) Out :
+  entities
+    add2 = ConstAdd(c=2);
+    add3 = ConstAdd(c=3);
+  structure
+    In --> add2.In;
+    add2.Out --> add3.In {composition="add2add3"; buffersize=1;};
+    add3.Out --> Out;
+  end
+
+  // used to test composition of parameterized actors with colliding names
+  network Mul2Add3 () uint(size=8) In ==> uint(size=8) Out :
+  entities
+    mul2 = ConstMul(c=2);
+    add3 = ConstAdd(c=3);
+  structure
+    In --> mul2.In;
+    mul2.Out --> add3.In {composition="mul2add3"; buffersize=1;};
+    add3.Out --> Out;
+  end
+
+end

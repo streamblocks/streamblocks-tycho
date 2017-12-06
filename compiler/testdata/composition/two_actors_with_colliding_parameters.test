@@ -1,0 +1,11 @@
+{
+  "description": "Composition of two instances of same parameterized actor",
+  "source-paths": ["."],
+  "entity": "composition_parameters.Mul2Add3",
+  "test-data": [
+    {
+      "input": ["33"],
+      "reference": ["69"]
+    }
+  ]
+}

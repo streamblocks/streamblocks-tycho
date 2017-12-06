@@ -1,18 +1,9 @@
 package se.lth.cs.tycho.phases;
 
-import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.comp.Context;
-import se.lth.cs.tycho.comp.GlobalDeclarations;
-import se.lth.cs.tycho.comp.SourceUnit;
-import se.lth.cs.tycho.comp.SyntheticSourceUnit;
-import se.lth.cs.tycho.ir.Attributable;
-import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.ToolValueAttribute;
-import se.lth.cs.tycho.ir.ValueParameter;
+import se.lth.cs.tycho.comp.*;
+import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
@@ -29,15 +20,8 @@ import se.lth.cs.tycho.phases.reduction.TransformedController;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
-import se.lth.cs.tycho.transformation.RenameVariables;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -109,60 +93,47 @@ public class CompositionPhase implements Phase {
 
 	private Network compose(CompilationTask task, List<se.lth.cs.tycho.ir.network.Connection> connections, Consumer<GlobalEntityDecl> composedEntities, String compositionId, Context context) {
 		assert connections.stream().allMatch(c -> c.getSource().getInstance().isPresent() && c.getTarget().getInstance().isPresent()) : "Cannot compose connections to network border.";
-		List<String> instances = connections.stream()
+		Set<String> instanceNameSet = connections.stream()
 				.flatMap(connection -> Stream.of(connection.getSource(), connection.getTarget()))
 				.map(se.lth.cs.tycho.ir.network.Connection.End::getInstance)
 				.map(Optional::get)
-				.distinct()
+				.collect(Collectors.toSet());
+
+		List<Instance> instances = task.getNetwork().getInstances().stream()
+				.filter(instance -> instanceNameSet.contains(instance.getInstanceName()))
 				.collect(Collectors.toList());
-		List<QID> entities = instances.stream()
-				.map(name -> task.getNetwork().getInstances().stream()
-						.filter(instance -> instance.getInstanceName().equals(name))
-						.map(Instance::getEntityName)
-						.findFirst().get())
+
+		List<String> instanceNames = instances.stream()
+				.map(Instance::getInstanceName)
 				.collect(Collectors.toList());
-		List<ActorMachine> sourceActorMachines = entities.stream()
+
+		List<ActorMachine> actorMachines = instances.stream()
+                .map(Instance::getEntityName)
 				.map(name -> getActorMachine(task, name))
 				.collect(Collectors.toList());
-		List<ActorMachine> actorMachines = sourceActorMachines.stream()
-				.map(actorMachine -> RenameVariables.rename(actorMachine, context.getUniqueNumbers()))
-				.collect(Collectors.toList());
+
 		List<Connection> compositionConnections = connections.stream()
 				.map(connection -> {
 					se.lth.cs.tycho.ir.network.Connection.End src = connection.getSource();
 					se.lth.cs.tycho.ir.network.Connection.End tgt = connection.getTarget();
 					return new Connection(
-							new SourcePort(instances.indexOf(src.getInstance().get()), src.getPort()),
-							new TargetPort(instances.indexOf(tgt.getInstance().get()), tgt.getPort()),
+							new SourcePort(instanceNames.indexOf(src.getInstance().get()), src.getPort()),
+							new TargetPort(instanceNames.indexOf(tgt.getInstance().get()), tgt.getPort()),
 							bufferSize(connection));
 				})
 				.collect(Collectors.toList());
-		List<ValueParameter> parameters = new ArrayList<>();
-		for (Instance instance : task.getNetwork().getInstances()) {
-			int index = instances.indexOf(instance.getInstanceName());
-			if (index >= 0) {
-				ActorMachine sourceAm = sourceActorMachines.get(index);
-				ActorMachine am = actorMachines.get(index);
-				for (ValueParameter param : instance.getValueParameters()) {
-					int parameter = 0;
-					for (VarDecl parDecl : sourceAm.getValueParameters()) {
-						if (parDecl.getName().equals(param.getName())) {
-							break;
-						}
-						parameter++;
-					}
-					String name = am.getValueParameters().get(parameter).getName();
-					parameters.add(param.withName(name));
-				}
-			}
-		}
+
+		List<ValueParameter> parameters = instances.stream()
+				.flatMap(instance -> instance.getValueParameters().stream())
+				.collect(Collectors.toList());
+
 		ActorMachine composition = new Composer(actorMachines, compositionConnections, context).compose().deepClone();
 		composition = composition.withController(TransformedController.from(composition.controller(), Stream.generate(MergeStates::new).limit(10).collect(Collectors.toList())));
 		String compositionInstanceName = uniqueInstanceName(task.getNetwork(), compositionId);
 		String originalEntityName = compositionId;
 		String compositionEntityName = compositionId + "_" + context.getUniqueNumbers().next();
 		composedEntities.accept(GlobalEntityDecl.global(Availability.PUBLIC, originalEntityName, composition).withName(compositionEntityName));
-		Stream<Instance> notComposed = task.getNetwork().getInstances().stream().filter(instance -> !instances.contains(instance.getInstanceName()));
+		Stream<Instance> notComposed = task.getNetwork().getInstances().stream().filter(instance -> !instanceNameSet.contains(instance.getInstanceName()));
 		Stream<Instance> composed = Stream.of(new Instance(compositionInstanceName, QID.of(compositionEntityName), parameters, null));
 		List<Instance> resultInstances = Stream.concat(notComposed, composed).collect(Collectors.toList());
 
@@ -172,14 +143,14 @@ public class CompositionPhase implements Phase {
 		List<se.lth.cs.tycho.ir.network.Connection> resultConnections = new ArrayList<>();
 		for (se.lth.cs.tycho.ir.network.Connection connection : task.getNetwork().getConnections()) {
 			se.lth.cs.tycho.ir.network.Connection.End src = connection.getSource();
-			if (src.getInstance().isPresent() && instances.contains(src.getInstance().get())) {
+			if (src.getInstance().isPresent() && instanceNameSet.contains(src.getInstance().get())) {
 				src = src.withInstance(Optional.of(compositionInstanceName))
-						.withPort(outputPortMaps.get(instances.indexOf(src.getInstance().get())).get(src.getPort()));
+						.withPort(outputPortMaps.get(instanceNames.indexOf(src.getInstance().get())).get(src.getPort()));
 			}
 			se.lth.cs.tycho.ir.network.Connection.End tgt = connection.getTarget();
-			if (tgt.getInstance().isPresent() && instances.contains(tgt.getInstance().get())) {
+			if (tgt.getInstance().isPresent() && instanceNameSet.contains(tgt.getInstance().get())) {
 				tgt = tgt.withInstance(Optional.of(compositionInstanceName))
-						.withPort(inputPortMaps.get(instances.indexOf(tgt.getInstance().get())).get(tgt.getPort()));
+						.withPort(inputPortMaps.get(instanceNames.indexOf(tgt.getInstance().get())).get(tgt.getPort()));
 			}
 			se.lth.cs.tycho.ir.network.Connection rerouted = connection.withSource(src).withTarget(tgt);
 			resultConnections.add(rerouted);
