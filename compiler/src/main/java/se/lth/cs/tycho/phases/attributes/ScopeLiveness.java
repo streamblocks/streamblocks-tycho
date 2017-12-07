@@ -4,15 +4,9 @@ import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.phases.TreeShadowNew;
 import se.lth.cs.tycho.util.BitSets;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class ScopeLiveness {
 	private final ActorMachineScopes scopes;
@@ -22,13 +16,13 @@ public class ScopeLiveness {
 	private final HashMap<State, BitSet> alive;
 	private final ScopeInvalidation invalidation;
 
-	public ScopeLiveness(ActorMachineScopes scopes, ActorMachine actorMachine, TreeShadowNew shadow) {
+	public ScopeLiveness(ActorMachineScopes scopes, ActorMachine actorMachine, ScopeDependencies scopeDependencies) {
 		this.scopes = scopes;
 		this.actorMachine = actorMachine;
 		this.sourceState = new HashMap<>();
 		this.incoming = new HashMap<>();
 		this.alive = new HashMap<>();
-		invalidation = new ScopeInvalidation(actorMachine, scopes, shadow);
+		invalidation = new ScopeInvalidation(actorMachine, scopes, scopeDependencies);
 		initLinks();
 		computeLiveness();
 	}

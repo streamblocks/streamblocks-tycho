@@ -32,6 +32,7 @@ public interface Backend {
 	@Binding(LAZY) default ActorMachineScopes scopes() { return context().getAttributeManager().getAttributeModule(ActorMachineScopes.key, task()); }
 	@Binding(LAZY) default Closures closures() { return context().getAttributeManager().getAttributeModule(Closures.key, task()); }
 	@Binding(LAZY) default FreeVariables freeVariables() { return context().getAttributeManager().getAttributeModule(FreeVariables.key, task()); }
+	@Binding(LAZY) default ScopeDependencies scopeDependencies() { return context().getAttributeManager().getAttributeModule(ScopeDependencies.key, task()); }
 
 	// Code generator
 	@Binding(MODULE) Variables variables();

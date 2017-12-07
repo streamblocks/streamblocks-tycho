@@ -1,7 +1,5 @@
 package se.lth.cs.tycho.phases.attributes;
 
-import se.lth.cs.tycho.decoration.ScopeDependencies;
-import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Scope;
@@ -11,16 +9,9 @@ import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
-import se.lth.cs.tycho.phases.TreeShadowNew;
 import se.lth.cs.tycho.util.BitSets;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -30,13 +21,13 @@ public class ScopeInvalidation {
 	private final List<Set<String>> portsConsumedFromByTransitions;
 	private final Map<String, BitSet> scopesReadingFromPort;
 	private final Map<Scope, Integer> scopeIndex;
-	private TreeShadowNew shadow;
+	private final ScopeDependencies scopeDependencies;
 
 
-	public ScopeInvalidation(ActorMachine actorMachine, ActorMachineScopes scopes, TreeShadowNew shadow) {
+	public ScopeInvalidation(ActorMachine actorMachine, ActorMachineScopes scopes, ScopeDependencies scopeDependencies) {
 		this.actorMachine = actorMachine;
 		this.scopes = scopes;
-		this.shadow = shadow;
+		this.scopeDependencies = scopeDependencies;
 		portsConsumedFromByTransitions = new ArrayList<>();
 		for (Transition t : actorMachine.getTransitions()) {
 			Set<String> inputPorts = new HashSet<>();
@@ -91,8 +82,8 @@ public class ScopeInvalidation {
 
 	private BitSet scopeDependencies(int s) {
 		Scope scope = actorMachine.getScopes().get(s);
-		Set<Tree<Scope>> deps = ScopeDependencies.scopeDependencies(shadow.tree(scope));
-		IntStream scopes = deps.stream().map(Tree::node).mapToInt(scopeIndex::get);
+		Set<Scope> deps = scopeDependencies.ofScope(scope);
+		IntStream scopes = deps.stream().mapToInt(scopeIndex::get);
 		return BitSets.collect(scopes);
 	}
 
