@@ -3,8 +3,6 @@ package se.lth.cs.tycho.transformation;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.comp.SyntheticSourceUnit;
-import se.lth.cs.tycho.decoration.Namespaces;
-import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
@@ -19,14 +17,10 @@ import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phases.attributes.AttributeManager;
+import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.transformations.RenameVariables;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 
@@ -39,8 +33,7 @@ public final class DuplicateEntity {
 				.findFirst()
 				.orElseThrow(() -> new NoSuchElementException("No such entity instance"));
 
-		GlobalEntityDecl original = Namespaces.getEntityDeclarations(Tree.of(task), instance.getEntityName())
-				.findFirst().orElseThrow(() -> new RuntimeException("Entity not found")).node();
+		GlobalEntityDecl original = attributes.getAttributeModule(GlobalNames.key, task).entityDecl(instance.getEntityName(),false);
 
 		GlobalEntityDecl entity = original;
 
