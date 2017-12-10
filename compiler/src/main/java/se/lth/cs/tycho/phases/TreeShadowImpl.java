@@ -7,19 +7,19 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
-public class TreeShadowOld implements TreeShadow {
+public class TreeShadowImpl implements TreeShadow {
 	private final IRNode root;
 	private final Map<IRNode, IRNode> parentMap;
 
-	private TreeShadowOld(IRNode root, Map<IRNode, IRNode> parentMap) {
+	private TreeShadowImpl(IRNode root, Map<IRNode, IRNode> parentMap) {
 		this.root = root;
 		this.parentMap = parentMap;
 	}
 
-	public static TreeShadowOld of(IRNode root) {
+	public static TreeShadowImpl of(IRNode root) {
 		Builder builder = new Builder();
 		builder.accept(root);
-		return new TreeShadowOld(root, builder.parentMap);
+		return new TreeShadowImpl(root, builder.parentMap);
 	}
 
 	public IRNode parent(IRNode node) {

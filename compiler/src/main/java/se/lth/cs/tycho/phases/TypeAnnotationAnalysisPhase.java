@@ -1,23 +1,22 @@
 package se.lth.cs.tycho.phases;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.comp.CompilationTask;
 import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.SourceUnit;
-import se.lth.cs.tycho.decoration.Tree;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.Parameter;
+import se.lth.cs.tycho.ir.TypeParameter;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.function.Consumer;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class TypeAnnotationAnalysisPhase implements Phase {
 	@Override
@@ -27,70 +26,76 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		TypeAnnotationChecker checker = MultiJ.from(TypeAnnotationChecker.class)
+		TypeExprChecker checker = MultiJ.from(TypeExprChecker.class)
 				.bind("reporter").to(context.getReporter())
+				.bind("tree").to(context.getAttributeManager().getAttributeModule(TreeShadow.key, task))
 				.instance();
-		Tree.of(task).walk().forEach(checker);
+		checker.checkTree(task);
 		return task;
 	}
 
 	@Module
-	interface TypeAnnotationChecker extends Consumer<Tree<?>> {
-		@Binding
+	interface TypeExprChecker {
+		@Binding(BindingKind.INJECTED)
 		Reporter reporter();
 
-		@Override
-		default void accept(Tree<?> node) {
-			check(node, node.node());
+		@Binding(BindingKind.INJECTED)
+		TreeShadow tree();
+
+		default void checkTree(IRNode node) {
+			checkNode(node);
+			node.forEachChild(this::checkTree);
 		}
 
-		default SourceUnit unit(Tree<?> tree) {
-			return tree.findParentOfType(SourceUnit.class).get().node();
-		}
+		default void checkNode(IRNode node) {}
 
-		default void check(Tree<?> tree, IRNode node) {}
-
-		default <P extends Parameter<?, P>> void checkDuplicateNames(Stream<Tree<P>> parameters) {
-			Stream<List<Tree<P>>> duplicates = parameters.collect(Collectors.groupingBy(par -> par.node().getName()))
-					.values().stream()
-					.filter(list -> list.size() > 1);
-
-			duplicates.forEach(duplicate -> {
-				Iterator<Tree<P>> iter = duplicate.iterator();
-				Tree<P> first = iter.next();
-				while (iter.hasNext()) {
-					Tree<P> def = iter.next();
-					String message = "Parameter " + def.node().getName() + " is already defined.";
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, unit(def), def.node()));
-				}
-				String message = "Parameter " + first.node().getName() + " is defined here.";
-				reporter().report(new Diagnostic(Diagnostic.Kind.INFO, message, unit(first), first.node()));
-			});
-		}
-
-		default void check(Tree<?> tree, NominalTypeExpr typeExpr) {
-			Tree<NominalTypeExpr> type = tree.assertNode(typeExpr);
-			checkDuplicateNames(type.children(NominalTypeExpr::getTypeParameters));
-			checkDuplicateNames(type.children(NominalTypeExpr::getValueParameters));
-			switch (typeExpr.getName()) {
-				case "List": {
-
+		default void checkNode(NominalTypeExpr type) {
+			switch (type.getName()) {
+				case "List":
+					checkTypeParams(type, "type");
+					checkValueParams(type, "size");
 					break;
-				}
+				case "uint":
 				case "int":
-				case "uint": {
-
+					checkTypeParams(type);
+				    checkValueParams(type, "size");
 					break;
-				}
-				case "bool": {
-
+                case "float":
+				case "double":
+				case "bool":
+				case "String":
+					checkTypeParams(type);
+					checkValueParams(type);
 					break;
-				}
-				case "float": {
+				default:
+				    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, String.format("Unknown type %s", type.getName()), sourceUnit(type), type));
+			}
+		}
 
-					break;
+		default void checkTypeParams(NominalTypeExpr type, String... names) {
+			Set<String> nameSet = Arrays.stream(names).collect(Collectors.toSet());
+			for (TypeParameter par : type.getTypeParameters()) {
+				if (!nameSet.contains(par.getName())) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, String.format("Unknown parameter %s. Expected one of %s", par.getName(), Arrays.toString(names)), sourceUnit(type), type));
 				}
 			}
+		}
+
+		default void checkValueParams(NominalTypeExpr type, String... names) {
+			Set<String> nameSet = Arrays.stream(names).collect(Collectors.toSet());
+			for (ValueParameter par : type.getValueParameters()) {
+				if (!nameSet.contains(par.getName())) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, String.format("Unknown parameter %s. Expected one of %s", par.getName(), Arrays.toString(names)), sourceUnit(type), type));
+				}
+			}
+		}
+
+		default SourceUnit sourceUnit(IRNode node) {
+			return sourceUnit(tree().parent(node));
+		}
+
+		default SourceUnit sourceUnit(SourceUnit unit) {
+			return unit;
 		}
 	}
 }

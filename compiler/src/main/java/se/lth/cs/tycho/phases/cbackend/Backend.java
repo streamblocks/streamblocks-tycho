@@ -7,7 +7,6 @@ import se.lth.cs.tycho.comp.Context;
 import se.lth.cs.tycho.comp.UniqueNumbers;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.phases.TreeShadow;
-import se.lth.cs.tycho.phases.TreeShadowNew;
 import se.lth.cs.tycho.phases.attributes.*;
 import se.lth.cs.tycho.phases.cbackend.util.Box;
 
@@ -28,7 +27,7 @@ public interface Backend {
 	@Binding(LAZY) default VariableDeclarations varDecls() { return context().getAttributeManager().getAttributeModule(VariableDeclarations.key, task()); }
 	@Binding(LAZY) default GlobalNames globalNames() { return context().getAttributeManager().getAttributeModule(GlobalNames.key, task()); }
 	@Binding(LAZY) default UniqueNumbers uniqueNumbers() { return context().getUniqueNumbers(); }
-	@Binding(LAZY) default TreeShadowNew tree() { return context().getAttributeManager().getAttributeModule(TreeShadow.key, task()); }
+	@Binding(LAZY) default TreeShadow tree() { return context().getAttributeManager().getAttributeModule(TreeShadow.key, task()); }
 	@Binding(LAZY) default ActorMachineScopes scopes() { return context().getAttributeManager().getAttributeModule(ActorMachineScopes.key, task()); }
 	@Binding(LAZY) default Closures closures() { return context().getAttributeManager().getAttributeModule(Closures.key, task()); }
 	@Binding(LAZY) default FreeVariables freeVariables() { return context().getAttributeManager().getAttributeModule(FreeVariables.key, task()); }
