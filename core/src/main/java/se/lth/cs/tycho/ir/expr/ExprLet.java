@@ -56,11 +56,11 @@ public class ExprLet extends Expression {
 		return v.visitExprLet(this, p);
 	}
 
-	public ExprLet(ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, Expression body) {
+	public ExprLet(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls, Expression body) {
 		this(null, typeDecls, varDecls, body);
 	}
 
-	private ExprLet(ExprLet original, ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls,
+	private ExprLet(ExprLet original, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			Expression body) {
 		super(original);
 		this.body = body;
@@ -68,7 +68,7 @@ public class ExprLet extends Expression {
 		this.varDecls = ImmutableList.from(varDecls);
 	}
 
-	public ExprLet copy(ImmutableList<TypeDecl> typeDecls, ImmutableList<LocalVarDecl> varDecls, Expression body) {
+	public ExprLet copy(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls, Expression body) {
 		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
 				&& Objects.equals(this.body, body)) {
 			return this;

@@ -12,6 +12,8 @@ import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.phases.TreeShadow;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,27 +28,57 @@ public interface ScopeDependencies {
     Set<Scope> ofTransition(Transition trans);
     Set<Scope> ofScope(Scope scope);
 
+    Set<Condition> conditionsUsingScope(Scope scope);
+    Set<Transition> transitionsUsingScope(Scope scope);
+    Set<Scope> scopesUsingScope(Scope scope);
+
     @Module
     interface Implementation extends ScopeDependencies {
         @Binding(BindingKind.INJECTED)
         TreeShadow tree();
 
-        @Binding
+        @Binding(BindingKind.INJECTED)
         FreeVariables freeVariables();
+
+        @Binding(BindingKind.LAZY)
+        default Map<IRNode, Set<Scope>> deps() {
+            return new IdentityHashMap<>();
+        }
 
         @Override
         default Set<Scope> ofCondition(Condition cond) {
-            return scopeDependencies(cond);
+            return deps().computeIfAbsent(cond, this::scopeDependencies);
         }
 
         @Override
         default Set<Scope> ofTransition(Transition trans) {
-            return scopeDependencies(trans);
+            return deps().computeIfAbsent(trans, this::scopeDependencies);
         }
 
         @Override
         default Set<Scope> ofScope(Scope scope) {
-            return scopeDependencies(scope);
+            return deps().computeIfAbsent(scope, this::scopeDependencies);
+        }
+
+        @Override
+        default Set<Condition> conditionsUsingScope(Scope scope) {
+            return actorMachine(scope).getConditions().stream()
+                    .filter(c -> ofCondition(c).contains(scope))
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        default Set<Transition> transitionsUsingScope(Scope scope) {
+            return actorMachine(scope).getTransitions().stream()
+                    .filter(t -> ofTransition(t).contains(scope))
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        default Set<Scope> scopesUsingScope(Scope scope) {
+            return actorMachine(scope).getScopes().stream()
+                    .filter(s -> ofScope(s).contains(scope))
+                    .collect(Collectors.toSet());
         }
 
         default Set<Scope> scopeDependencies(IRNode node) {
