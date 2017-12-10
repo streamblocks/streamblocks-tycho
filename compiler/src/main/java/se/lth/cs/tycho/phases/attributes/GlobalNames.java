@@ -20,7 +20,9 @@ import se.lth.cs.tycho.phases.TreeShadow;
 
 import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface GlobalNames {
@@ -33,6 +35,8 @@ public interface GlobalNames {
 	GlobalEntityDecl entityDecl(QID qid, boolean includingPrivate);
 	VarDecl varDecl(QID qid, boolean includingPrivate);
 	TypeDecl typeDecl(QID qid, boolean includingPrivate);
+
+	Set<NamespaceDecl> namespaceDecls(QID qid);
 
 	Optional<QID> globalName(Decl declaration);
 
@@ -85,6 +89,13 @@ public interface GlobalNames {
 					.filter(decl -> availability.contains(decl.getAvailability()))
 					.findFirst()
 					.orElse(null);
+		}
+
+		default Set<NamespaceDecl> namespaceDecls(QID qid) {
+			return root().getSourceUnits().stream()
+					.map(SourceUnit::getTree)
+					.filter(tree -> tree.getQID().equals(qid))
+					.collect(Collectors.toSet());
 		}
 
 		EnumSet<Availability> pub = EnumSet.of(Availability.PUBLIC);
