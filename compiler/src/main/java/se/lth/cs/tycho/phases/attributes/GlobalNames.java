@@ -8,7 +8,6 @@ import se.lth.cs.tycho.comp.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.AbstractDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalDecl;
@@ -26,11 +25,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface GlobalNames {
-	ModuleKey<GlobalNames> key = (unit, manager) ->
-			MultiJ.from(Implementation.class)
-					.bind("root").to(unit)
-					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
-					.instance();
+	ModuleKey<GlobalNames> key = task -> MultiJ.from(Implementation.class)
+            .bind("root").to(task)
+            .bind("tree").to(task.getModule(TreeShadow.key))
+            .instance();
 
 	GlobalEntityDecl entityDecl(QID qid, boolean includingPrivate);
 	VarDecl varDecl(QID qid, boolean includingPrivate);

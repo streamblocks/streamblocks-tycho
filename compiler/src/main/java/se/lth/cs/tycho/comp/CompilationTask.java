@@ -5,7 +5,9 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
+import se.lth.cs.tycho.phases.attributes.ModuleKey;
 
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -14,11 +16,17 @@ public class CompilationTask implements IRNode {
 	private final ImmutableList<SourceUnit> sourceUnits;
 	private final QID identifier;
 	private final Network network;
+	private final IdentityHashMap<ModuleKey<?>, Object> moduleStore;
 
 	public CompilationTask(List<SourceUnit> sourceUnits, QID identifier, Network network) {
 		this.sourceUnits = ImmutableList.from(sourceUnits);
 		this.identifier = identifier;
 		this.network = network;
+		this.moduleStore = new IdentityHashMap<>();
+	}
+
+	public <M> M getModule(ModuleKey<M> key) {
+		return (M) moduleStore.computeIfAbsent(key, k -> k.createInstance(this));
 	}
 
 	public CompilationTask copy(List<SourceUnit> sourceUnits, QID identifier, Network network) {

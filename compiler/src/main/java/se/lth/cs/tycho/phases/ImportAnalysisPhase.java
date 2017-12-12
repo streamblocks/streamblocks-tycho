@@ -24,8 +24,8 @@ public class ImportAnalysisPhase implements Phase {
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
 		ImportChecker checker = MultiJ.from(ImportChecker.class)
-				.bind("global").to(context.getAttributeManager().getAttributeModule(GlobalNames.key, task))
-				.bind("tree").to(context.getAttributeManager().getAttributeModule(TreeShadow.key, task))
+				.bind("global").to(task.getModule(GlobalNames.key))
+				.bind("tree").to(task.getModule(TreeShadow.key))
 				.bind("reporter").to(context.getReporter())
 				.instance();
 		checker.checkTree(task);

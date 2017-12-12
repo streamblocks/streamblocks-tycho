@@ -19,15 +19,10 @@ import java.util.OptionalLong;
 @Module
 public interface ConstantEvaluator {
 
-	ModuleKey<ConstantEvaluator> key = new ModuleKey<ConstantEvaluator>() {
-		@Override
-		public ConstantEvaluator createInstance(CompilationTask unit, AttributeManager manager) {
-			return MultiJ.from(ConstantEvaluator.class)
-					.bind("varDecls").to(manager.getAttributeModule(VariableDeclarations.key, unit))
-					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
-					.instance();
-		}
-	};
+	ModuleKey<ConstantEvaluator> key = task -> MultiJ.from(ConstantEvaluator.class)
+            .bind("varDecls").to(task.getModule(VariableDeclarations.key))
+            .bind("globalNames").to(task.getModule(GlobalNames.key))
+            .instance();
 
 	@Binding(BindingKind.INJECTED)
 	VariableDeclarations varDecls();

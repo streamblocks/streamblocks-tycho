@@ -13,9 +13,9 @@ import se.lth.cs.tycho.phases.TreeShadow;
 
 public interface Closures {
 
-    ModuleKey<Closures> key = (unit, manager) -> MultiJ.from(Implementation.class)
-            .bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
-            .bind("freeVariables").to(manager.getAttributeModule(FreeVariables.key, unit))
+    ModuleKey<Closures> key = task -> MultiJ.from(Implementation.class)
+            .bind("tree").to(task.getModule(TreeShadow.key))
+            .bind("freeVariables").to(task.getModule(FreeVariables.key))
             .instance();
 
     /**

@@ -15,8 +15,8 @@ import se.lth.cs.tycho.phases.TreeShadow;
 import java.util.stream.Stream;
 
 public interface EntityScopes {
-    ModuleKey<EntityScopes> key = (unit, manager) -> MultiJ.from(Implementation.class)
-            .bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
+    ModuleKey<EntityScopes> key = task -> MultiJ.from(Implementation.class)
+            .bind("tree").to(task.getModule(TreeShadow.key))
             .instance();
 
     ImmutableList<GlobalEntityDecl> declarations(IRNode node);

@@ -28,8 +28,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public interface ActorMachineScopes {
-	ModuleKey<ActorMachineScopes> key = (task, manager) -> MultiJ.from(Implementation.class)
-			.bind("tree").to(manager.getAttributeModule(TreeShadow.key, task))
+	ModuleKey<ActorMachineScopes> key = task -> MultiJ.from(Implementation.class)
+			.bind("tree").to(task.getModule(TreeShadow.key))
 			.instance();
 
 	BitSet required(ActorMachine actorMachine, Instruction instruction);

@@ -16,11 +16,11 @@ import se.lth.cs.tycho.phases.TreeShadow;
 
 public interface EntityDeclarations {
 
-    ModuleKey<EntityDeclarations> key = (unit, manager) -> MultiJ.from(Implementation.class)
-            .bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
-            .bind("entityScopes").to(manager.getAttributeModule(EntityScopes.key, unit))
-            .bind("imports").to(manager.getAttributeModule(ImportDeclarations.key, unit))
-            .bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
+    ModuleKey<EntityDeclarations> key = task -> MultiJ.from(Implementation.class)
+            .bind("tree").to(task.getModule(TreeShadow.key))
+            .bind("entityScopes").to(task.getModule(EntityScopes.key))
+            .bind("imports").to(task.getModule(ImportDeclarations.key))
+            .bind("globalNames").to(task.getModule(GlobalNames.key))
             .instance();
 
     GlobalEntityDecl declaration(EntityReference entity);

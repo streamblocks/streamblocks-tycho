@@ -16,7 +16,6 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.phases.attributes.AttributeManager;
 import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.transformations.RenameVariables;
 
@@ -27,20 +26,20 @@ import java.util.function.LongSupplier;
 public final class DuplicateEntity {
 	public DuplicateEntity() {}
 
-	public static CompilationTask duplicateEntity(CompilationTask task, String instanceName, LongSupplier uniqueNumbers, AttributeManager attributes) {
+	public static CompilationTask duplicateEntity(CompilationTask task, String instanceName, LongSupplier uniqueNumbers) {
 		Instance instance = task.getNetwork().getInstances().stream()
 				.filter(inst -> inst.getInstanceName().equals(instanceName))
 				.findFirst()
 				.orElseThrow(() -> new NoSuchElementException("No such entity instance"));
 
-		GlobalEntityDecl original = attributes.getAttributeModule(GlobalNames.key, task).entityDecl(instance.getEntityName(),false);
+        GlobalEntityDecl original = task.getModule(GlobalNames.key).entityDecl(instance.getEntityName(),false);
 
 		GlobalEntityDecl entity = original;
 
 		String localName = entity.getOriginalName() + "_" + uniqueNumbers.getAsLong();
 		QID namespace = instance.getEntityName().getButLast();
 		QID globalName = namespace.concat(QID.of(localName));
-		entity = (GlobalEntityDecl) RenameVariables.appendNumber(entity, d -> true, uniqueNumbers, task, attributes);
+		entity = (GlobalEntityDecl) RenameVariables.appendNumber(entity, d -> true, uniqueNumbers, task);
 		entity = entity.withName(localName);
 		entity = entity.withEntity(
 				entity.getEntity()

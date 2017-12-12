@@ -17,11 +17,11 @@ import se.lth.cs.tycho.phases.TreeShadow;
 
 public interface VariableDeclarations {
 
-    ModuleKey<VariableDeclarations> key = (unit, manager) -> MultiJ.from(Implementation.class)
-            .bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
-            .bind("varScopes").to(manager.getAttributeModule(VariableScopes.key, unit))
-            .bind("imports").to(manager.getAttributeModule(ImportDeclarations.key, unit))
-            .bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
+    ModuleKey<VariableDeclarations> key = task -> MultiJ.from(Implementation.class)
+            .bind("tree").to(task.getModule(TreeShadow.key))
+            .bind("varScopes").to(task.getModule(VariableScopes.key))
+            .bind("imports").to(task.getModule(ImportDeclarations.key))
+            .bind("globalNames").to(task.getModule(GlobalNames.key))
             .instance();
 
     VarDecl declaration(Variable var);

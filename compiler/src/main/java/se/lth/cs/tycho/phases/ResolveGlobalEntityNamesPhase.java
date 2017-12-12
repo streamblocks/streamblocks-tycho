@@ -25,9 +25,9 @@ public class ResolveGlobalEntityNamesPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		Transformation transformation = MultiJ.from(Transformation.class)
-				.bind("entities").to(context.getAttributeManager().getAttributeModule(EntityDeclarations.key, task))
-				.bind("globalNames").to(context.getAttributeManager().getAttributeModule(GlobalNames.key, task))
+        Transformation transformation = MultiJ.from(Transformation.class)
+				.bind("entities").to(task.getModule(EntityDeclarations.key))
+				.bind("globalNames").to(task.getModule(GlobalNames.key))
 				.instance();
 		return task.transformChildren(transformation);
 	}

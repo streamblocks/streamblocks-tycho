@@ -49,13 +49,13 @@ public interface Types {
 
 	ModuleKey<Types> key = new ModuleKey<Types>() {
 		@Override
-		public Types createInstance(CompilationTask unit, AttributeManager manager) {
-			return MultiJ.from(Implementation.class)
-					.bind("ports").to(manager.getAttributeModule(Ports.key, unit))
-					.bind("variables").to(manager.getAttributeModule(VariableDeclarations.key, unit))
-					.bind("constants").to(manager.getAttributeModule(ConstantEvaluator.key, unit))
-					.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
-					.bind("globalNames").to(manager.getAttributeModule(GlobalNames.key, unit))
+		public Types createInstance(CompilationTask unit) {
+            return MultiJ.from(Implementation.class)
+					.bind("ports").to(unit.getModule(Ports.key))
+					.bind("variables").to(unit.getModule(VariableDeclarations.key))
+					.bind("constants").to(unit.getModule(ConstantEvaluator.key))
+					.bind("tree").to(unit.getModule(TreeShadow.key))
+					.bind("globalNames").to(unit.getModule(GlobalNames.key))
 					.instance();
 		}
 	};

@@ -22,15 +22,15 @@ public class RenameActorVariablesPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-	    VariableKinds kinds = MultiJ.from(VariableKinds.class)
-				.bind("tree").to(context.getAttributeManager().getAttributeModule(TreeShadow.key, task))
+        VariableKinds kinds = MultiJ.from(VariableKinds.class)
+				.bind("tree").to(task.getModule(TreeShadow.key))
 				.instance();
 		return (CompilationTask) RenameVariables.appendNumber(
 				task,
 				d -> kinds.isActorVariable(d) || kinds.isActionVariable(d) || kinds.isInputVariable(d),
 				context.getUniqueNumbers(),
-				task,
-				context.getAttributeManager());
+				task
+		);
 	}
 
 	@Module

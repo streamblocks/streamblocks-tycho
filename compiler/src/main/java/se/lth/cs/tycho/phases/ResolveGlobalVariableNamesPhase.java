@@ -12,7 +12,6 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.phases.attributes.AttributeManager;
 import se.lth.cs.tycho.phases.attributes.GlobalNames;
 import se.lth.cs.tycho.phases.attributes.VariableDeclarations;
 
@@ -28,7 +27,6 @@ public class ResolveGlobalVariableNamesPhase implements Phase {
 	public CompilationTask execute(CompilationTask task, Context context) {
 		Transformation transformation = MultiJ.from(Transformation.class)
 				.bind("task").to(task)
-				.bind("attributes").to(context.getAttributeManager())
 				.instance();
 		return transformation.transform(task);
 	}
@@ -38,23 +36,20 @@ public class ResolveGlobalVariableNamesPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		CompilationTask task();
 
-		@Binding(BindingKind.INJECTED)
-		AttributeManager attributes();
-
 		@Binding(BindingKind.LAZY)
 		default VariableDeclarations variables() {
-			return attributes().getAttributeModule(VariableDeclarations.key, task());
-		}
+            return task().getModule(VariableDeclarations.key);
+        }
 
 		@Binding(BindingKind.LAZY)
 		default TreeShadow tree() {
-			return attributes().getAttributeModule(TreeShadow.key, task());
-		}
+            return task().getModule(TreeShadow.key);
+        }
 
 		@Binding(BindingKind.LAZY)
 		default GlobalNames globalNames() {
-			return attributes().getAttributeModule(GlobalNames.key, task());
-		}
+            return task().getModule(GlobalNames.key);
+        }
 
 		default IRNode transform(IRNode node) {
 			return node.transformChildren(this::transform);

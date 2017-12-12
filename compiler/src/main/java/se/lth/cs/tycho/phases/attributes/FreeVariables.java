@@ -14,8 +14,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public interface FreeVariables {
-    ModuleKey<FreeVariables> key = (unit, manager) -> MultiJ.from(FreeVariables.Implementation.class)
-            .bind("scopes").to(manager.getAttributeModule(VariableScopes.key, unit))
+    ModuleKey<FreeVariables> key = task -> MultiJ.from(Implementation.class)
+            .bind("scopes").to(task.getModule(VariableScopes.key))
             .instance();
 
     Set<Variable> freeVariables(IRNode node);

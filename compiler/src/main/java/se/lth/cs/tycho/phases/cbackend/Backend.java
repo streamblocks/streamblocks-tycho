@@ -22,16 +22,34 @@ public interface Backend {
 
 	@Binding(LAZY) default Box<Instance> instance() { return Box.empty(); }
 	@Binding(LAZY) default Emitter emitter() { return new Emitter(); };
-	@Binding(LAZY) default Types types() { return context().getAttributeManager().getAttributeModule(Types.key, task()); }
-	@Binding(LAZY) default ConstantEvaluator constants() { return context().getAttributeManager().getAttributeModule(ConstantEvaluator.key, task()); }
-	@Binding(LAZY) default VariableDeclarations varDecls() { return context().getAttributeManager().getAttributeModule(VariableDeclarations.key, task()); }
-	@Binding(LAZY) default GlobalNames globalNames() { return context().getAttributeManager().getAttributeModule(GlobalNames.key, task()); }
+	@Binding(LAZY) default Types types() {
+		return task().getModule(Types.key);
+	}
+	@Binding(LAZY) default ConstantEvaluator constants() {
+		return task().getModule(ConstantEvaluator.key);
+	}
+	@Binding(LAZY) default VariableDeclarations varDecls() {
+		return task().getModule(VariableDeclarations.key);
+	}
+	@Binding(LAZY) default GlobalNames globalNames() {
+		return task().getModule(GlobalNames.key);
+	}
 	@Binding(LAZY) default UniqueNumbers uniqueNumbers() { return context().getUniqueNumbers(); }
-	@Binding(LAZY) default TreeShadow tree() { return context().getAttributeManager().getAttributeModule(TreeShadow.key, task()); }
-	@Binding(LAZY) default ActorMachineScopes scopes() { return context().getAttributeManager().getAttributeModule(ActorMachineScopes.key, task()); }
-	@Binding(LAZY) default Closures closures() { return context().getAttributeManager().getAttributeModule(Closures.key, task()); }
-	@Binding(LAZY) default FreeVariables freeVariables() { return context().getAttributeManager().getAttributeModule(FreeVariables.key, task()); }
-	@Binding(LAZY) default ScopeDependencies scopeDependencies() { return context().getAttributeManager().getAttributeModule(ScopeDependencies.key, task()); }
+	@Binding(LAZY) default TreeShadow tree() {
+		return task().getModule(TreeShadow.key);
+	}
+	@Binding(LAZY) default ActorMachineScopes scopes() {
+		return task().getModule(ActorMachineScopes.key);
+	}
+	@Binding(LAZY) default Closures closures() {
+		return task().getModule(Closures.key);
+	}
+	@Binding(LAZY) default FreeVariables freeVariables() {
+		return task().getModule(FreeVariables.key);
+	}
+	@Binding(LAZY) default ScopeDependencies scopeDependencies() {
+		return task().getModule(ScopeDependencies.key);
+	}
 
 	// Code generator
 	@Binding(MODULE) Variables variables();

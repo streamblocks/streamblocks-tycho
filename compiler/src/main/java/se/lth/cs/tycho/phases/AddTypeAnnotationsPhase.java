@@ -26,8 +26,8 @@ public class AddTypeAnnotationsPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		TypeAnnotationAdder typeAnnotationAdder = MultiJ.from(TypeAnnotationAdder.class)
-				.bind("types").to(context.getAttributeManager().getAttributeModule(Types.key, task))
+        TypeAnnotationAdder typeAnnotationAdder = MultiJ.from(TypeAnnotationAdder.class)
+				.bind("types").to(task.getModule(Types.key))
 				.instance();
 		return typeAnnotationAdder.applyChecked(CompilationTask.class, task);
 		}

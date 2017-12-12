@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phases.attributes.ScopeDependencies;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.OnOffSetting;
@@ -44,8 +45,8 @@ public class LiftScopesPhase implements Phase {
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
 		if (context.getConfiguration().get(liftScopes)) {
-		    Transformation t = MultiJ.from(Transformation.class)
-					.bind("scopes").to(context.getAttributeManager().getAttributeModule(se.lth.cs.tycho.phases.attributes.ScopeDependencies.key, task))
+			Transformation t = MultiJ.from(Transformation.class)
+					.bind("scopes").to(task.getModule(ScopeDependencies.key))
                     .instance();
 		    return task.transformChildren(t);
 		}

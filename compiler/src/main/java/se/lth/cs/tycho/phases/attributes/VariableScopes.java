@@ -28,8 +28,8 @@ import se.lth.cs.tycho.phases.TreeShadow;
 import java.util.stream.Stream;
 
 public interface VariableScopes {
-    ModuleKey<VariableScopes> key = (unit, manager) -> MultiJ.from(Implementation.class)
-            .bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
+    ModuleKey<VariableScopes> key = task -> MultiJ.from(Implementation.class)
+            .bind("tree").to(task.getModule(TreeShadow.key))
             .instance();
 
     /**

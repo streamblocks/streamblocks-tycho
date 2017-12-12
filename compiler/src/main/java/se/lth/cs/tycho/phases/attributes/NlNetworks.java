@@ -20,9 +20,9 @@ import java.util.OptionalLong;
 
 @Module
 public interface NlNetworks {
-	ModuleKey<NlNetworks> key = (unit, manager) -> MultiJ.from(NlNetworks.class)
-			.bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
-			.bind("constants").to(manager.getAttributeModule(ConstantEvaluator.key, unit))
+	ModuleKey<NlNetworks> key = task -> MultiJ.from(NlNetworks.class)
+			.bind("tree").to(task.getModule(TreeShadow.key))
+			.bind("constants").to(task.getModule(ConstantEvaluator.key))
 			.instance();
 
 	@Binding(BindingKind.INJECTED)

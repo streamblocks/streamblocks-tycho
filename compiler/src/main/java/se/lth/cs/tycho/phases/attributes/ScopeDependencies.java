@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
 
 public interface ScopeDependencies {
 
-    ModuleKey<ScopeDependencies> key = (task, manager) -> MultiJ.from(Implementation.class)
-            .bind("tree").to(manager.getAttributeModule(TreeShadow.key, task))
-            .bind("freeVariables").to(manager.getAttributeModule(FreeVariables.key, task))
+    ModuleKey<ScopeDependencies> key = task -> MultiJ.from(Implementation.class)
+            .bind("tree").to(task.getModule(TreeShadow.key))
+            .bind("freeVariables").to(task.getModule(FreeVariables.key))
             .instance();
 
     Set<Scope> ofCondition(Condition cond);

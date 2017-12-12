@@ -28,7 +28,7 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 	public CompilationTask execute(CompilationTask task, Context context) {
 		TypeExprChecker checker = MultiJ.from(TypeExprChecker.class)
 				.bind("reporter").to(context.getReporter())
-				.bind("tree").to(context.getAttributeManager().getAttributeModule(TreeShadow.key, task))
+				.bind("tree").to(task.getModule(TreeShadow.key))
 				.instance();
 		checker.checkTree(task);
 		return task;

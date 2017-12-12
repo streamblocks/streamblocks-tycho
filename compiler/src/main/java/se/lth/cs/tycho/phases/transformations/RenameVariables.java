@@ -10,7 +10,6 @@ import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.phases.TreeShadow;
-import se.lth.cs.tycho.phases.attributes.AttributeManager;
 import se.lth.cs.tycho.phases.attributes.VariableDeclarations;
 
 import java.util.HashMap;
@@ -34,15 +33,14 @@ public final class RenameVariables {
      * @param tree the tree to rename
      * @param newName the name generator
      * @param task the compilation task
-     * @param attributes the attribute manager
      * @return a transformed tree with renamed variables
      */
-    public static IRNode rename(IRNode tree, Function<VarDecl, String> newName, CompilationTask task, AttributeManager attributes) {
+    public static IRNode rename(IRNode tree, Function<VarDecl, String> newName, CompilationTask task) {
         RenameFunction renameFunction = newName::apply;
         return MultiJ.from(Transformation.class)
                 .bind("newName").to(renameFunction)
-                .bind("variables").to(attributes.getAttributeModule(VariableDeclarations.key, task))
-                .bind("tree").to(attributes.getAttributeModule(TreeShadow.key, task))
+                .bind("variables").to(task.getModule(VariableDeclarations.key))
+                .bind("tree").to(task.getModule(TreeShadow.key))
                 .instance()
                 .apply(tree);
     }
@@ -54,13 +52,12 @@ public final class RenameVariables {
      * @param variablesToRename variables to rename
      * @param numbers number generator
      * @param task the root of the transformation
-     * @param attributes the attribute manager
      * @return a transformed tree with renamed variables.
      */
-    public static IRNode appendNumber(IRNode tree, Predicate<VarDecl> variablesToRename, LongSupplier numbers, CompilationTask task, AttributeManager attributes) {
+    public static IRNode appendNumber(IRNode tree, Predicate<VarDecl> variablesToRename, LongSupplier numbers, CompilationTask task) {
         Map<VarDecl, String> renameTable = new HashMap<>();
         Function<VarDecl, String> createName = var -> var.getOriginalName() + "_" + numbers.getAsLong();
-        return rename(tree, var -> variablesToRename.test(var) ? renameTable.computeIfAbsent(var, createName) : var.getName(), task, attributes);
+        return rename(tree, var -> variablesToRename.test(var) ? renameTable.computeIfAbsent(var, createName) : var.getName(), task);
     }
 
     @FunctionalInterface

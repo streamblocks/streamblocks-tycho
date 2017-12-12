@@ -4,7 +4,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.phases.attributes.ModuleKey;
 
 public interface TreeShadow {
-	ModuleKey<TreeShadow> key = (unit, manager) -> TreeShadowImpl.of(unit);
+	ModuleKey<TreeShadow> key = task -> TreeShadowImpl.of(task);
 
 	IRNode parent(IRNode node);
 

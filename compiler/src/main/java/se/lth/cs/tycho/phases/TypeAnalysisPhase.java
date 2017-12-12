@@ -40,8 +40,8 @@ public class TypeAnalysisPhase implements Phase {
 				case ORCC: module = OrccTypeChecker.class; break;
 				default: module = CalTypeChecker.class; break;
 			}
-			TypeChecker checker = MultiJ.from(module)
-					.bind("types").to(context.getAttributeManager().getAttributeModule(Types.key, task))
+            TypeChecker checker = MultiJ.from(module)
+					.bind("types").to(task.getModule(Types.key))
 					.bind("reporter").to(context.getReporter())
 					.bind("sourceUnit").to(sourceUnit)
 					.instance();

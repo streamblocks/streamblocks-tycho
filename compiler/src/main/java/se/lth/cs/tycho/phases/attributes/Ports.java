@@ -21,8 +21,8 @@ import se.lth.cs.tycho.phases.TreeShadow;
 import java.util.Optional;
 
 public interface Ports {
-    ModuleKey<Ports> key = (unit, manager) -> MultiJ.from(Ports.Implementation.class)
-            .bind("tree").to(manager.getAttributeModule(TreeShadow.key, unit))
+    ModuleKey<Ports> key = task -> MultiJ.from(Implementation.class)
+            .bind("tree").to(task.getModule(TreeShadow.key))
             .instance();
 
     PortDecl declaration(Port port);

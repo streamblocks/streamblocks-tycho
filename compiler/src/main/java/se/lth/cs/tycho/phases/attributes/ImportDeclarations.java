@@ -12,7 +12,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import java.util.stream.Stream;
 
 public interface ImportDeclarations {
-    ModuleKey<ImportDeclarations> key = (unit, manager) -> MultiJ.from(Implementation.class).instance();
+    ModuleKey<ImportDeclarations> key = task -> MultiJ.instance(Implementation.class);
 
     ImmutableList<SingleImport> variableImports(IRNode node);
     ImmutableList<SingleImport> entityImports(IRNode node);

@@ -12,9 +12,7 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
-import se.lth.cs.tycho.phases.attributes.EntityDeclarations;
-import se.lth.cs.tycho.phases.attributes.Ports;
-import se.lth.cs.tycho.phases.attributes.VariableDeclarations;
+import se.lth.cs.tycho.phases.attributes.*;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -26,9 +24,9 @@ public class NameAnalysisPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		Ports ports = context.getAttributeManager().getAttributeModule(Ports.key, task);
-		VariableDeclarations varDecls = context.getAttributeManager().getAttributeModule(VariableDeclarations.key, task);
-		EntityDeclarations entityDecls = context.getAttributeManager().getAttributeModule(EntityDeclarations.key, task);
+        Ports ports = task.getModule(Ports.key);
+        VariableDeclarations varDecls = task.getModule(VariableDeclarations.key);
+        EntityDeclarations entityDecls = task.getModule(EntityDeclarations.key);
 		task.getSourceUnits().stream().forEach(unit -> {
 			CheckNames analysis = MultiJ.from(CheckNames.class)
 					.bind("ports").to(ports)
