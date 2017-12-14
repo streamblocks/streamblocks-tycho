@@ -1,0 +1,26 @@
+#!/bin/bash
+
+
+function readlink_rec {
+	res="$(readlink $1 || echo $1)"
+	if [ $res = $1 ]
+	then
+		echo $res
+	else
+		readlink_rec $res
+	fi
+}
+
+root=`dirname "$(readlink_rec $0)"`
+lib="$root/compiler/target/lib"
+comp="$root/compiler/target/compiler-1.0-SNAPSHOT.jar"
+test="$root/compiler/target/test-classes"
+
+if [ -f "$comp" ]
+then
+	java -cp "$comp:$test:$lib/core-1.0-SNAPSHOT.jar:$lib/multij-core-0.1-SNAPSHOT.jar:$lib/gson-2.3.1.jar:$lib/commons-io-2.4.jar:$lib/junit-4.11.jar" se.lth.cs.tycho.Tester "$@"
+else
+	echo "Tycho is not compiled. Please, run \"mvn install\" to compile Tycho."
+	exit 1
+fi
+
