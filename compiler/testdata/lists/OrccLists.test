@@ -1,0 +1,13 @@
+{
+  "description": "Orcc lists",
+  "source-paths": ["../util", "cal"],
+  "orcc-source-paths": ["orcc"],
+  "external-sources": ["../util/int_conv.c"],
+  "entity": "OrccLists",
+  "test-data": [
+    {
+      "input": [],
+      "reference": ["0122"]
+    }
+  ]
+}

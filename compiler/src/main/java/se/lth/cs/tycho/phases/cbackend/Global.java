@@ -52,6 +52,8 @@ public interface Global {
 		emitter().emit("");
 		emitter().emit("void init_global_variables(void);");
 		emitter().emit("");
+		backend().lists().declareListTypes();
+		emitter().emit("");
 		backend().callables().declareCallables();
 		emitter().emit("");
 		backend().callables().declareEnvironmentForCallablesInScope(backend().task());
@@ -87,7 +89,7 @@ public interface Global {
 				String t = backend().callables().mangle(type).encode();
 				emitter().emit("%s = (%s) { *%s, NULL };", variableName, t, wrapperName);
 			} else {
-				code().assign(type, backend().variables().declarationName(decl), decl.getValue());
+				code().copy(type, backend().variables().declarationName(decl), types().type(decl.getValue()), code().evaluate(decl.getValue()));
 			}
 		}
 		emitter().decreaseIndentation();

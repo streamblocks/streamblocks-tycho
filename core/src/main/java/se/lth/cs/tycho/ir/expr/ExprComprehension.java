@@ -79,7 +79,7 @@ public class ExprComprehension extends Expression {
 	}
 
 	@Override
-	public IRNode transformChildren(Transformation transformation) {
+	public ExprComprehension transformChildren(Transformation transformation) {
 		return copy(
 				transformation.applyChecked(Generator.class, generator),
 				transformation.mapChecked(Expression.class, filters),

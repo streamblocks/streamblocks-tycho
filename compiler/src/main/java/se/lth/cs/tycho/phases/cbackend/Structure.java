@@ -196,7 +196,7 @@ public interface Structure {
 				} else if (var.getValue() != null) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
-					code().assign(types().declaredType(var), "self->" + backend().variables().declarationName(var), var.getValue());
+					code().copy(types().declaredType(var), "self->" + backend().variables().declarationName(var), types().type(var.getValue()), code().evaluate(var.getValue()));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				}

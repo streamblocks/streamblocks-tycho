@@ -52,6 +52,7 @@ public interface Backend {
 	}
 
 	// Code generator
+	@Binding(MODULE) Lists lists();
 	@Binding(MODULE) Variables variables();
 	@Binding(MODULE) Structure structure();
 	@Binding(MODULE) Code code();

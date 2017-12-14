@@ -80,8 +80,16 @@ public class ExprProc extends Expression {
 		return valueParameters;
 	}
 
+	public ExprProc withValueParameters(List<ParameterVarDecl> valueParameters) {
+		return copy(valueParameters, body);
+	}
+
 	public ImmutableList<Statement> getBody() {
 		return body;
+	}
+
+	public ExprProc withBody(List<Statement> body) {
+		return copy(valueParameters, body);
 	}
 
 	private final ImmutableList<ParameterVarDecl> valueParameters;

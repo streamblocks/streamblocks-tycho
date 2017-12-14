@@ -57,7 +57,7 @@ public class ExprBinaryOp extends Expression {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public AbstractIRNode transformChildren(Transformation transformation) {
+	public ExprBinaryOp transformChildren(Transformation transformation) {
 		return copy(operations, (ImmutableList) operands.map(transformation));
 	}
 }

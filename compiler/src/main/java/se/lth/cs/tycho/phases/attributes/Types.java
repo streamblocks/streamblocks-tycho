@@ -426,11 +426,19 @@ public interface Types {
 			return withCollectionSize(collectionType, size);
 		}
 
+		default Type computeType(ExprLet let) {
+			return type(let.getBody());
+		}
+
 		default Type computeType(ExprList list) {
 			Type elementType = list.getElements().stream()
 					.map(this::type)
 					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 			return new ListType(elementType, OptionalInt.of(list.getElements().size()));
+		}
+
+		default Type computeType(ExprRef ref) {
+			return new RefType(declaredType(variables().declaration(ref.getVariable())));
 		}
 
 		default Type computeType(ExprVariable var) {

@@ -1,0 +1,10 @@
+import entity numtext.Write;
+
+network OrccLists () ==> uint(size=8) Chars :
+entities
+    lists = Lists();
+    write = Write();
+structure
+    lists.Out --> write.Numbers;
+    write.Chars --> Chars;
+end

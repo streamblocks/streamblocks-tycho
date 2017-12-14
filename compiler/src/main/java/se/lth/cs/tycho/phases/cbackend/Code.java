@@ -51,117 +51,25 @@ public interface Code {
 	default String inputPortTypeSize(Port port) {
 		return backend().channels().targetEndTypeSize(new Connection.End(Optional.of(backend().instance().get().getInstanceName()), port.getName()));
 	}
-	void assign(Type type, String lvalue, Expression expr);
 
-	default void assign(RefType type, String lvalue, Expression expr) {
-		assignScalar(type, lvalue, expr);
-	}
-
-	default void assign(LambdaType type, String lvalue, Expression expr) {
-		assignScalar(type, lvalue, expr);
+    default void copy(Type lvalueType, String lvalue, Type rvalueType, String rvalue) {
+        emitter().emit("%s = %s;", lvalue, rvalue);
 	}
 
-	default void assign(ProcType type, String lvalue, Expression expr) {
-		assignScalar(type, lvalue, expr);
-	}
-
-	default void assign(IntType type, String lvalue, Expression expr) {
-		assignScalar(type, lvalue, expr);
-	}
-	default void assign(RealType type, String lvalue, Expression expr) {
-		assignScalar(type, lvalue, expr);
-	}
-	default void assign(BoolType type, String lvalue, Expression expr) {
-		assignScalar(type, lvalue, expr);
-	}
-	default void assign(UnitType type, String lvalue, Expression expr) { emitter().emit("%s = 0;", lvalue); }
-	default void assign(ListType type, String lvalue, Expression expr) {
-		assignList(type, lvalue, expr);
-	}
-
-	default void assignScalar(Type type, String lvalue, Expression expr) {
-		emitter().emit("%s = %s;", lvalue, evaluate(expr));
-	}
-
-	default void assignScalar(Type type, String lvalue, ExprInput input) {
-		assert !input.hasRepeat() : "Cannot assign a repeated input to a scalar.";
-		Type portType = types().portType(input.getPort());
-		String tmp = variables().generateTemp();
-		if (input.getOffset() == 0) {
-			emitter().emit("%s = channel_peek_first_%s(self->%s_channel);", lvalue, inputPortTypeSize(input.getPort()), input.getPort().getName());
+	default void copy(ListType lvalueType, String lvalue, ListType rvalueType, String rvalue) {
+		if (lvalueType.equals(rvalueType)) {
+			emitter().emit("%s = %s;", lvalue, rvalue);
 		} else {
-			emitter().emit("%s;", declaration(portType, tmp));
-			emitter().emit("channel_peek_%s(self->%s_channel, %d, 1, &%s);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getOffset(), tmp);
-			emitter().emit("%s = %s;", lvalue, tmp); // should handle some discrepancies between port type and variable type.
+			String index = variables().generateTemp();
+			emitter().emit("for (size_t %1$s = 0; %1$s < %2$s; %1$s++) {", index, lvalueType.getSize().getAsInt());
+			emitter().increaseIndentation();
+			copy(lvalueType.getElementType(), String.format("%s.data[%s]", lvalue, index), rvalueType.getElementType(), String.format("%s.data[%s]", rvalue, index));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
 		}
 	}
 
-	default void assignList(ListType type, String lvalue, Expression expr) {
-		emitter().emit("%s = %s", lvalue, evaluate(expr));
-	}
-
-	default void assignList(ListType type, String lvalue, ExprInput input) {
-		assert input.hasRepeat(); // only repeat assignments to lists are supported
-		assert input.getPatternLength() == 1; // only with one variable
-		assert input.getOffset() == 0; // and that variable is therefore the first
-		Type portType = types().portType(input.getPort());
-		emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, (%s*) &%s);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getRepeat(), type(portType), lvalue);
-	}
-	default void assignList(ListType type, String lvalue, ExprVariable var) {
-		assert type.getSize().isPresent();
-		String tmp = variables().generateTemp();
-		String rvalue = evaluate(var);
-		emitter().emit("for (size_t %s=0; %1$s < %d; %1$s++) {", tmp, type.getSize().getAsInt());
-		emitter().increaseIndentation();
-		emitter().emit("%s[%s] = %s[%2$s];", lvalue, tmp, rvalue);
-		emitter().decreaseIndentation();
-		emitter().emit("}");
-	}
-
-	default void assignList(ListType type, String lvalue, ExprList list) {
-		if (type.getSize().isPresent()) {
-			int i = 0;
-			for (Expression element : list.getElements()) {
-				assign(type.getElementType(), String.format("%s[%d]", lvalue, i), element);
-				i = i + 1;
-			}
-		} else {
-			emitter().emit("// dynamic list assignment is not implemented");
-		}
-	}
-
-	default void assignList(ListType type, String lvalue, ExprComprehension list) {
-		emitter().emit("{");
-		emitter().increaseIndentation();
-		String index = variables().generateTemp();
-		emitter().emit("size_t %s = 0;", index);
-		assignListComprehension(type, lvalue, index, list);
-		emitter().decreaseIndentation();
-		emitter().emit("}");
-	}
-
-	void assignListComprehension(ListType type, String lvalue, String index, Expression list);
-	default void assignListComprehension(ListType type, String lvalue, String index, ExprComprehension list) {
-		if (!list.getFilters().isEmpty()) {
-			throw new UnsupportedOperationException();
-		}
-		Generator generator = list.getGenerator();
-		withGenerator(generator.getCollection(), generator.getVarDecls(), () -> {
-			assignListComprehension(type, lvalue, index, list.getCollection());
-		});
-	}
-
-	default void assignListComprehension(ListType type, String lvalue, String index, ExprList list) {
-		for (Expression element : list.getElements()) {
-			assign(type.getElementType(), String.format("%s[%s]", lvalue, index), element);
-			emitter().emit("%s++;", index);
-		}
-	}
-
-	String declaration(Type type, String name);
-
-
-	default String declaration(IntType type, String name) {
+	default String declaration(Type type, String name) {
 		return type(type) + " " + name;
 	}
 
@@ -179,22 +87,6 @@ public interface Code {
 	default String declaration(ProcType type, String name) {
 		String t = backend().callables().mangle(type).encode();
 		return t + " " + name;
-	}
-
-	default String declaration(ListType type, String name) {
-		if (type.getSize().isPresent()) {
-			return declaration(type.getElementType(), String.format("%s[%d]", name, type.getSize().getAsInt()));
-		} else {
-			return String.format("%s %s[] /* TODO IMPLEMENT */ ", type(type.getElementType()), name);
-		}
-	}
-
-	default String declaration(RealType type, String name) {
-		return String.format("%s %s", type(type), name);
-	}
-
-	default String declaration(QueueType type, String name) {
-		return String.format("/* delcaration of internal queue */");
 	}
 
 	default String declaration(BoolType type, String name) { return "_Bool " + name; }
@@ -229,11 +121,7 @@ public interface Code {
 	}
 
 	default String type(ListType type) {
-		if (type.getSize().isPresent()) {
-			return String.format("%s[%s]", type(type.getElementType()), type.getSize().getAsInt());
-		} else {
-			return "void*";
-		}
+		return backend().callables().mangle(type).encode();
 	}
 
 	default String type(StringType type) {
@@ -241,6 +129,8 @@ public interface Code {
 	}
 
 	default String type(BoolType type) { return "_Bool"; }
+
+	default String type(RefType type) { return type(type.getType()) + "*"; }
 
 	String evaluate(Expression expr);
 
@@ -276,6 +166,26 @@ public interface Code {
 				throw new UnsupportedOperationException(literal.getText());
 		}
 	}
+
+	default String evaluate(ExprInput input) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s;", declaration(types().type(input), tmp));
+		if (input.hasRepeat()) {
+		    if (input.getOffset() == 0) {
+				emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, %s.data);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getRepeat(), tmp);
+			} else {
+		    	throw new RuntimeException("not implemented");
+			}
+		} else {
+			if (input.getOffset() == 0) {
+				emitter().emit("%s = channel_peek_first_%s(self->%s_channel);", tmp, inputPortTypeSize(input.getPort()), input.getPort().getName());
+			} else {
+				emitter().emit("channel_peek_%s(self->%s_channel, %d, 1, &%s);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getOffset(), tmp);
+			}
+		}
+		return tmp;
+	}
+
 
 	default String evaluate(ExprBinaryOp binaryOp) {
 		assert binaryOp.getOperations().size() == 1 && binaryOp.getOperands().size() == 2;
@@ -376,7 +286,7 @@ public interface Code {
 
 	default void evaluateListComprehension(ExprList list, String result, String index) {
 		list.getElements().forEach(element ->
-				emitter().emit("%s[%s++] = %s;", result, index, evaluate(element))
+				emitter().emit("%s.data[%s++] = %s;", result, index, evaluate(element))
 		);
 	}
 
@@ -414,7 +324,7 @@ public interface Code {
 			String decl = declaration(t, name);
 			String value = list.getElements().stream().sequential()
 					.map(this::evaluate)
-					.collect(Collectors.joining(", ", "{", "}"));
+					.collect(Collectors.joining(", ", "{ .data = {", "}}"));
 			emitter().emit("%s = %s;", decl, value);
 			return name;
 		} else {
@@ -450,7 +360,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprIndexer indexer) {
-		return String.format("%s[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
+		return String.format("%s.data[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
 	}
 
 	default String evaluate(ExprIf expr) {
@@ -460,11 +370,15 @@ public interface Code {
 		emitter().emit("%s;", decl);
 		emitter().emit("if (%s) {", evaluate(expr.getCondition()));
 		emitter().increaseIndentation();
-		assign(type, temp, expr.getThenExpr()); // this kind of assignment?
+		Type thenType = types().type(expr.getThenExpr());
+		String thenValue = evaluate(expr.getThenExpr());
+		copy(type, temp, thenType, thenValue);
 		emitter().decreaseIndentation();
 		emitter().emit("} else {");
 		emitter().increaseIndentation();
-		assign(type, temp, expr.getElseExpr()); // this kind of assignment?
+		Type elseType = types().type(expr.getElseExpr());
+		String elseValue = evaluate(expr.getElseExpr());
+		copy(type, temp, elseType, elseValue);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		return temp;
@@ -531,7 +445,7 @@ public interface Code {
 			Type type = types().declaredType(decl);
 			String name = variables().declarationName(decl);
 			emitter().emit("%s;", declaration(type, name));
-			assign(type, name, decl.getValue());
+			copy(type, name, types().type(decl.getValue()), evaluate(decl.getValue()));
 		}
 		return evaluate(let.getBody());
 	}
@@ -559,7 +473,7 @@ public interface Code {
 			String temp = variables().generateTemp();
 			emitter().emit("for (size_t %1$s = 0; %1$s < %2$s; %1$s++) {", temp, repeat);
 			emitter().increaseIndentation();
-			emitter().emit("channel_write_one_%1$s(self->%2$s_channels, %3$s[%4$s]);", outputPortTypeSize(write.getPort()), portName, value, temp);
+			emitter().emit("channel_write_one_%1$s(self->%2$s_channels, %3$s.data[%4$s]);", outputPortTypeSize(write.getPort()), portName, value, temp);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		} else {
@@ -570,7 +484,7 @@ public interface Code {
 	default void execute(StmtAssignment assign) {
 		Type type = types().lvalueType(assign.getLValue());
 		String lvalue = lvalue(assign.getLValue());
-		assign(type, lvalue, assign.getExpression());
+		copy(type, lvalue, types().type(assign.getExpression()), evaluate(assign.getExpression()));
 	}
 
 	default void execute(StmtBlock block) {
@@ -583,7 +497,7 @@ public interface Code {
 			String d = declaration(t, declarationName);
 			emitter().emit("%s;", d);
 			if (decl.getValue() != null) {
-				assign(t, declarationName, decl.getValue());
+				copy(t, declarationName, types().type(decl.getValue()), evaluate(decl.getValue()));
 			}
 		}
 		block.getStatements().forEach(this::execute);
@@ -653,10 +567,10 @@ public interface Code {
 	}
 
 	default String lvalue(LValueDeref deref) {
-		return "*"+lvalue(deref.getVariable());
+		return "(*"+lvalue(deref.getVariable())+")";
 	}
 
 	default String lvalue(LValueIndexer indexer) {
-		return String.format("%s[%s]", lvalue(indexer.getStructure()), evaluate(indexer.getIndex()));
+		return String.format("%s.data[%s]", lvalue(indexer.getStructure()), evaluate(indexer.getIndex()));
 	}
 }

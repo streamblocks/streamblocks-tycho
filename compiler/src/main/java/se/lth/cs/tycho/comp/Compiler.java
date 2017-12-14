@@ -55,6 +55,9 @@ public class Compiler {
 			new ElaborateNetworkPhase(),
 			new RemoveUnusedGlobalDeclarations(),
 
+			// Orcc lists
+			new OrccListParameters(),
+
 			// Actor transformations
 			new RenameActorVariablesPhase(),
 			new LiftProcessVarDeclsPhase(),

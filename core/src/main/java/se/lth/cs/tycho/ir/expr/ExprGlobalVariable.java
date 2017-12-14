@@ -35,7 +35,7 @@ public class ExprGlobalVariable extends Expression {
 	}
 
 	@Override
-	public IRNode transformChildren(Transformation transformation) {
+	public ExprGlobalVariable transformChildren(Transformation transformation) {
 		return this;
 	}
 

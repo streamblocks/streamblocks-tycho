@@ -144,6 +144,10 @@ public interface Callables {
 
 	NameExpression mangle(Type t);
 
+	default NameExpression mangle(RefType type) {
+		return seq(name("ref"), mangle(type.getType()));
+	}
+
 	default NameExpression mangle(CallableType type) {
 		NameExpression kind = name("fn");
 		NameExpression returnType = mangle(type.getReturnType());

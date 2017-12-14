@@ -1,0 +1,48 @@
+actor Lists () ==> uint(size=8) Out :
+    List(type:uint(size=8), size=4) list := [0,0,0,0];
+
+    procedure assignIndividual(List(type:uint(size=8), size=4) l) begin
+        l[0] := 1;
+        l[1] := 1;
+        l[2] := 1;
+        l[3] := 1;
+    end
+
+    procedure assignList(List(type:uint(size=8), size=4) l) begin
+        l := [2, 2, 2, 2];
+    end
+
+    procedure assignToCopy(List(type:uint(size=8), size=4) l)
+    var
+        List(type:uint(size=8), size=4) m := l
+    begin
+    	    m := [3,3,3,3];
+    end
+
+    write: action ==> Out:[list] repeat 4 end
+
+    individual: action ==> do
+        assignIndividual(list);
+    end
+
+    lst: action ==> do
+        assignList(list);
+    end
+
+    cpy: action ==> do
+        assignToCopy(list);
+    end
+
+    done: action ==> guard false end
+
+    schedule fsm write1 :
+        write1 (write) --> indi;
+        indi (individual) --> write2;
+        write2 (write) --> list;
+        list (lst) --> write3;
+        write3 (write) --> copy;
+        copy (cpy) --> write4;
+        write4 (write) --> done;
+        done (done) --> done;
+    end
+end
