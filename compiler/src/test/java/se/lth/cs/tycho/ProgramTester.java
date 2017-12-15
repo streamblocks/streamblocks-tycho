@@ -1,7 +1,7 @@
 package se.lth.cs.tycho;
 
 import org.apache.commons.io.IOUtils;
-import se.lth.cs.tycho.comp.Compiler;
+import se.lth.cs.tycho.compiler.Compiler;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.SettingsManager;
@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

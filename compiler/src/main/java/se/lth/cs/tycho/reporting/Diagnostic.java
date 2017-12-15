@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.reporting;
 
-import se.lth.cs.tycho.comp.SourceUnit;
+import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 
 import java.io.BufferedReader;
@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Diagnostic {

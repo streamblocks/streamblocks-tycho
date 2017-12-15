@@ -1,8 +1,8 @@
 package se.lth.cs.tycho.transformation;
 
-import se.lth.cs.tycho.comp.CompilationTask;
-import se.lth.cs.tycho.comp.SourceUnit;
-import se.lth.cs.tycho.comp.SyntheticSourceUnit;
+import se.lth.cs.tycho.compiler.CompilationTask;
+import se.lth.cs.tycho.compiler.SourceUnit;
+import se.lth.cs.tycho.compiler.SyntheticSourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.Port;
@@ -16,8 +16,7 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.phases.attributes.GlobalNames;
-import se.lth.cs.tycho.phases.transformations.RenameVariables;
+import se.lth.cs.tycho.attribute.GlobalNames;
 
 import java.util.*;
 import java.util.function.Function;
