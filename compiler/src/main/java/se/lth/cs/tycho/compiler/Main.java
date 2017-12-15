@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.compiler;
 
+import se.lth.cs.tycho.compiler.platform.Platform;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.Setting;
@@ -7,6 +8,7 @@ import se.lth.cs.tycho.settings.SettingsManager;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,12 +23,38 @@ public class Main {
 		main.run(args);
 	}
 
+	private Optional<String> platformName(String... args) {
+		if (args.length >= 2 && !args[0].startsWith("-")) {
+			return Optional.of(args[0]);
+		} else {
+			return Optional.empty();
+		}
+	}
+
+	private Platform selectPlatformOrExit(String name) {
+		Optional<Platform> platform = Compiler.selectPlatform(name);
+		if (platform.isPresent()) {
+			return platform.get();
+		} else {
+			System.out.println("Unknown platform \'" + name + "\'");
+			printPlatforms();
+			System.exit(1);
+			return null;
+		}
+	}
+
+
 	private void run(String... args) {
-		SettingsManager settingsManager = Compiler.defaultSettingsManager();
+		Optional<String> platformName = platformName(args);
+		Platform platform = platformName
+				.map(this::selectPlatformOrExit)
+				.orElse(Compiler.defaultPlatform());
+		SettingsManager settingsManager = platform.settingsManager();
 		Configuration.Builder builder = Configuration.builder(settingsManager);
 		List<String> promotedSettings = promotedSettings();
 		QID qid = null;
 		int i = 0;
+		if (platformName.isPresent()) i = 1;
 		try {
 			while (i < args.length) {
 				switch (args[i]) {
@@ -39,7 +67,11 @@ public class Main {
 						System.exit(0);
 					}
 					case "--print-phases": { // hidden option
-						printPhases();
+						printPhases(platform);
+						System.exit(0);
+					}
+					case "--print-platforms": {
+						printPlatforms();
 						System.exit(0);
 					}
 					case "--settings": {
@@ -93,18 +125,28 @@ public class Main {
 
 
 		Configuration config = builder.build();
-		Compiler compiler = new Compiler(config);
+		Compiler compiler = new Compiler(platform, config);
 		if (!compiler.compile(qid)) {
 			System.exit(1);
 		}
 	}
 
-	private void printPhases() {
-		Compiler.phases.forEach(phase -> {
+	private void printPhases(Platform platform) {
+		platform.phases().forEach(phase -> {
 			System.out.println(phase.getName());
 			System.out.println(phase.getDescription());
 			System.out.println();
 		});
+	}
+
+	private void printPlatforms() {
+		System.out.println("Available platforms:");
+		System.out.println();
+		for (Platform platform : Compiler.getPlatforms()) {
+			System.out.println(platform.name());
+			System.out.println("\t" + platform.description());
+			System.out.println();
+		}
 	}
 
 	private void printSettings(SettingsManager settingsManager) {

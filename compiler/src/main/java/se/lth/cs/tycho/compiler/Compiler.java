@@ -1,7 +1,10 @@
 package se.lth.cs.tycho.compiler;
 
+import se.lth.cs.tycho.compiler.platform.C;
+import se.lth.cs.tycho.compiler.platform.Platform;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.*;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -21,61 +24,81 @@ import java.util.stream.Collectors;
 
 public class Compiler {
 	private final Context compilationContext;
-	public static final List<Phase> phases = Arrays.asList(
-			// Parse
-			new LoadEntityPhase(),
-			new LoadPreludePhase(),
-			new LoadImportsPhase(),
 
-			// For debugging
-			new PrintLoadedSourceUnits(),
-			new PrintTreesPhase(),
-			new PrettyPrintPhase(),
+	private final Platform platform;
 
-			// Post parse
-			new RemoveExternStubPhase(),
-			new OperatorParsingPhase(),
+	private static final List<Platform> platforms = ImmutableList.of(new C());
 
-			// Name and type analyses and transformations
-			new DeclarationAnalysisPhase(),
-			new ImportAnalysisPhase(),
-			new NameAnalysisPhase(),
-			new TypeAnnotationAnalysisPhase(),
-			new TypeAnalysisPhase(),
-			new AddTypeAnnotationsPhase(),
+	public static List<Platform> getPlatforms() {
+		return platforms;
+	}
 
-			// Orcc lists
-			new OrccListParameters(),
+	public static Optional<Platform> selectPlatform(String name) {
+		return platforms.stream().filter(p -> p.name().equals(name)).findFirst();
+	}
 
-			// Create network
-			new CreateNetworkPhase(),
-			new ResolveGlobalEntityNamesPhase(),
-			new ResolveGlobalVariableNamesPhase(),
-			new ElaborateNetworkPhase(),
-			new RemoveUnusedGlobalDeclarations(),
+	public static Platform defaultPlatform() {
+		return new C();
+	}
 
-			// Actor transformations
-			new RenameActorVariablesPhase(),
-			new LiftProcessVarDeclsPhase(),
-			new ProcessToCalPhase(),
-			new AddSchedulePhase(),
-			new ScheduleUntaggedPhase(),
-			new ScheduleInitializersPhase(),
-			new MergeManyGuardsPhase(),
-			new CalToAmPhase(),
-			new RemoveEmptyTransitionsPhase(),
-			new ReduceActorMachinePhase(),
-			new CompositionEntitiesUniquePhase(),
-			new CompositionPhase(),
-			new InternalizeBuffersPhase(),
-			new RemoveUnusedConditionsPhase(),
-			new LiftScopesPhase(),
+	public static ImmutableList<Phase> frontendPhases() {
+		return ImmutableList.of(
+				// Parse
+				new LoadEntityPhase(),
+				new LoadPreludePhase(),
+				new LoadImportsPhase(),
 
-			// Code generations
-			new RemoveUnusedEntityDeclsPhase(),
-			new PrintNetworkPhase(),
-			new CBackendPhase()
-	);
+				// For debugging
+				new PrintLoadedSourceUnits(),
+				new PrintTreesPhase(),
+				new PrettyPrintPhase(),
+
+				// Post parse
+				new RemoveExternStubPhase(),
+				new OperatorParsingPhase(),
+
+				// Name and type analyses and transformations
+				new DeclarationAnalysisPhase(),
+				new ImportAnalysisPhase(),
+				new NameAnalysisPhase(),
+				new TypeAnnotationAnalysisPhase(),
+				new TypeAnalysisPhase(),
+				new AddTypeAnnotationsPhase(),
+
+				// Orcc list parameters
+				new OrccListParameters()
+		);
+	}
+
+	public static List<Phase> networkElaborationPhases() {
+		return ImmutableList.of(
+				new CreateNetworkPhase(),
+				new ResolveGlobalEntityNamesPhase(),
+				new ResolveGlobalVariableNamesPhase(),
+				new ElaborateNetworkPhase(),
+				new RemoveUnusedGlobalDeclarations()
+		);
+	}
+
+	public static List<Phase> actorMachinePhases() {
+		return ImmutableList.of(
+				new RenameActorVariablesPhase(),
+				new LiftProcessVarDeclsPhase(),
+				new ProcessToCalPhase(),
+				new AddSchedulePhase(),
+				new ScheduleUntaggedPhase(),
+				new ScheduleInitializersPhase(),
+				new MergeManyGuardsPhase(),
+				new CalToAmPhase(),
+				new RemoveEmptyTransitionsPhase(),
+				new ReduceActorMachinePhase(),
+				new CompositionEntitiesUniquePhase(),
+				new CompositionPhase(),
+				new InternalizeBuffersPhase(),
+				new RemoveUnusedConditionsPhase(),
+				new LiftScopesPhase()
+		);
+	}
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {
 		@Override public String getKey() { return "source-paths"; }
@@ -107,37 +130,23 @@ public class Compiler {
 		@Override public Boolean defaultValue(Configuration configuration) { return false; }
 	};
 
-	public Compiler(Configuration configuration) {
+	public Compiler(Platform platform, Configuration configuration) {
 		Reporter reporter = Reporter.instance(configuration);
 		Loader loader = Loader.instance(configuration, reporter);
 		this.compilationContext = new Context(configuration, loader, reporter);
+		this.platform = platform;
 		assert dependenciesSatisfied() : "Unsatisfied phase dependencies.";
 	}
 
-	private static boolean dependenciesSatisfied() {
+	private boolean dependenciesSatisfied() {
 		Set<Class<? extends Phase>> executed = new HashSet<>();
-		for (Phase phase : phases) {
+		for (Phase phase : platform.phases()) {
 			if (!executed.containsAll(phase.dependencies())) {
 				return false;
 			}
 			executed.add(phase.getClass());
 		}
 		return true;
-	}
-
-	public static SettingsManager defaultSettingsManager() {
-		return SettingsManager.builder()
-				.add(sourcePaths)
-				.add(orccSourcePaths)
-				.add(xdfSourcePaths)
-				.add(targetPath)
-				.add(Reporter.reportingLevel)
-				.add(phaseTimer)
-				.add(Loader.followLinks)
-				.addAll(phases.stream()
-						.flatMap(phase -> phase.getPhaseSettings().stream())
-						.collect(Collectors.toList()))
-				.build();
 	}
 
 	private boolean assertsEnabled() {
@@ -148,12 +157,12 @@ public class Compiler {
 
 	public boolean compile(QID entity) {
 		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity, null);
-		long[] phaseExecutionTime = new long[phases.size()];
+		long[] phaseExecutionTime = new long[platform.phases().size()];
 		int currentPhaseNumber = 0;
 		boolean checkTree = assertsEnabled();
 		boolean success = true;
 		try {
-			for (Phase phase : phases) {
+			for (Phase phase : platform.phases()) {
 				long startTime = System.nanoTime();
 				compilationTask = phase.execute(compilationTask, compilationContext);
 				if (checkTree) checkTree(compilationTask);
@@ -175,7 +184,7 @@ public class Compiler {
 		if (compilationContext.getConfiguration().get(phaseTimer)) {
 			System.out.println("Execution time report:");
 			for (int j = 0; j < currentPhaseNumber; j++) {
-				System.out.println(phases.get(j).getName() + " (" + phaseExecutionTime[j] / 1_000_000 + " ms)");
+				System.out.println(platform.phases().get(j).getName() + " (" + phaseExecutionTime[j] / 1_000_000 + " ms)");
 			}
 		}
 		return success;

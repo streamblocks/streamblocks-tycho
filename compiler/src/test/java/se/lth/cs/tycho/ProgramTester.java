@@ -2,6 +2,8 @@ package se.lth.cs.tycho;
 
 import org.apache.commons.io.IOUtils;
 import se.lth.cs.tycho.compiler.Compiler;
+import se.lth.cs.tycho.compiler.platform.C;
+import se.lth.cs.tycho.compiler.platform.Platform;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.SettingsManager;
@@ -25,14 +27,15 @@ public class ProgramTester {
 	}
 
 	public static ProgramTester compile(TestDescription test, Path target) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
-		SettingsManager settings = Compiler.defaultSettingsManager();
+		Platform platform = new C();
+		SettingsManager settings = platform.settingsManager();
 		Configuration config = Configuration.builder(settings)
 				.set(Compiler.sourcePaths, test.getSourcePaths())
 				.set(Compiler.orccSourcePaths, test.getOrccSourcePaths())
 				.set(Compiler.xdfSourcePaths, test.getXDFSourcePaths())
 				.set(Compiler.targetPath, target)
 				.build();
-		Compiler comp = new Compiler(config);
+		Compiler comp = new Compiler(platform, config);
 		QID name = test.getEntity();
 		if (comp.compile(name)) {
 			List<Path> cfiles = Files.list(target)
