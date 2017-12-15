@@ -24,9 +24,6 @@ import java.util.stream.Collectors;
 public class Compiler {
 	private final Context compilationContext;
 	public static final List<Phase> phases = Arrays.asList(
-			// Hack: pause to hook up profiler.
-//			new WaitForInputPhase(),
-
 			// Parse
 			new LoadEntityPhase(),
 			new LoadPreludePhase(),
@@ -49,14 +46,15 @@ public class Compiler {
 			new TypeAnalysisPhase(),
 			new AddTypeAnnotationsPhase(),
 
+			// Orcc lists
+			new OrccListParameters(),
+
+			// Create network
 			new CreateNetworkPhase(),
 			new ResolveGlobalEntityNamesPhase(),
 			new ResolveGlobalVariableNamesPhase(),
 			new ElaborateNetworkPhase(),
 			new RemoveUnusedGlobalDeclarations(),
-
-			// Orcc lists
-			new OrccListParameters(),
 
 			// Actor transformations
 			new RenameActorVariablesPhase(),
@@ -65,7 +63,6 @@ public class Compiler {
 			new AddSchedulePhase(),
 			new ScheduleUntaggedPhase(),
 			new ScheduleInitializersPhase(),
-			new CloneTreePhase(),
 			new MergeManyGuardsPhase(),
 			new CalToAmPhase(),
 			new RemoveEmptyTransitionsPhase(),
@@ -145,16 +142,23 @@ public class Compiler {
 				.build();
 	}
 
+	private boolean assertsEnabled() {
+		boolean enabled = false;
+		assert enabled = true; // intended side-effect
+		return enabled;
+	}
+
 	public boolean compile(QID entity) {
 		CompilationTask compilationTask = new CompilationTask(Collections.emptyList(), entity, null);
 		long[] phaseExecutionTime = new long[phases.size()];
 		int currentPhaseNumber = 0;
+		boolean checkTree = assertsEnabled();
 		boolean success = true;
 		try {
 			for (Phase phase : phases) {
 				long startTime = System.nanoTime();
 				compilationTask = phase.execute(compilationTask, compilationContext);
-				checkTree(compilationTask);
+				if (checkTree) checkTree(compilationTask);
 				phaseExecutionTime[currentPhaseNumber] = System.nanoTime() - startTime;
 				currentPhaseNumber += 1;
 				if (compilationContext.getReporter().getMessageCount(Diagnostic.Kind.ERROR) > 0) {
