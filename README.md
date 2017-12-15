@@ -38,7 +38,7 @@ To make it easier to invoke the Tycho compiler, you can symlink `tychoc` to a fi
 # Running the compiler
 To compile an actor called `Add` in a file called `source/arith.cal` and generate the output to the folder `target` you invoke:
 ```
-tychoc --source-paths source --target-path target Add
+tychoc --source-path source --target-path target Add
 ```
 You can then compile the generated code.
 ```
