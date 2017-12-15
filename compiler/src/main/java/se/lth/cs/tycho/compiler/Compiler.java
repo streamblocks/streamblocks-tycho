@@ -14,13 +14,19 @@ import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.PathListSetting;
 import se.lth.cs.tycho.settings.PathSetting;
 import se.lth.cs.tycho.settings.Setting;
-import se.lth.cs.tycho.settings.SettingsManager;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
 
 public class Compiler {
 	private final Context compilationContext;
@@ -101,19 +107,19 @@ public class Compiler {
 	}
 
 	public static final Setting<List<Path>> sourcePaths = new PathListSetting() {
-		@Override public String getKey() { return "source-paths"; }
+		@Override public String getKey() { return "source-path"; }
 		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for source files."; }
 		@Override public List<Path> defaultValue(Configuration configuration) { return configuration.isDefined(orccSourcePaths) ? Collections.emptyList() : Collections.singletonList(Paths.get("")); }
 	};
 
 	public static final Setting<List<Path>> orccSourcePaths = new PathListSetting() {
-		@Override public String getKey() { return "orcc-source-paths"; }
+		@Override public String getKey() { return "orcc-source-path"; }
 		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for Orcc-compatible source files."; }
 		@Override public List<Path> defaultValue(Configuration configuration) { return Collections.emptyList(); }
 	};
 
 	public static final Setting<List<Path>> xdfSourcePaths = new PathListSetting() {
-		@Override public String getKey() { return "xdf-source-paths"; }
+		@Override public String getKey() { return "xdf-source-path"; }
 		@Override public String getDescription() { return "A " + File.pathSeparator + "-separated list of search paths for XDF networks."; }
 		@Override public List<Path> defaultValue(Configuration configuration) { return configuration.get(orccSourcePaths); }
 	};

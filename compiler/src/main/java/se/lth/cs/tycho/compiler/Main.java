@@ -36,7 +36,7 @@ public class Main {
 		if (platform.isPresent()) {
 			return platform.get();
 		} else {
-			System.out.println("Unknown platform \'" + name + "\'");
+			System.out.println("Unknown platform \"" + name + "\"");
 			printPlatforms();
 			System.exit(1);
 			return null;
@@ -79,12 +79,20 @@ public class Main {
 						System.exit(0);
 					}
 					case "--set": {
-						if (i+3 >= args.length) {
+						if (i+2 >= args.length) {
 							printMissingArguments("--set");
 							System.exit(1);
 						}
-						builder.set(args[i + 1], args[i + 2]);
-						i += 3;
+						String keyVal = args[i+1];
+						int eqIndex = keyVal.indexOf('=');
+						if (eqIndex < 0) {
+							printWrongSettingsFormat(keyVal);
+							System.exit(1);
+						}
+						String key = keyVal.substring(0, eqIndex);
+						String val = keyVal.substring(eqIndex+1);
+						builder.set(key, val);
+						i += 2;
 						break;
 					}
 					default: {
@@ -158,6 +166,11 @@ public class Main {
 		}
 	}
 
+	private void printWrongSettingsFormat(String keyVal) {
+		System.out.println("Illegal setting \"" + keyVal + "\". Expected key=value.");
+		printUsage();
+	}
+
 	private void printMissingArguments(String option) {
 		System.out.println("Missing argument to " + option);
 		printUsage();
@@ -177,7 +190,9 @@ public class Main {
 		System.out.println("\tPrints this help message and exits.");
 		System.out.println("--version");
 		System.out.println("\tPrints the version and exits.");
-		System.out.println("--set <key> <value>");
+		System.out.println("--platforms");
+		System.out.println("\tPrints the available target platforms and exits.");
+		System.out.println("--set <key>=<value>");
 		System.out.println("\tSets the compiler setting <key> to <value>.");
 		System.out.println("--settings");
 		System.out.println("\tPrints all available settings and exits.");
@@ -188,8 +203,8 @@ public class Main {
 		}
 		System.out.println();
 		System.out.println("Examples:");
-		System.out.println("tychoc --source-paths src"+ File.pathSeparator+"lib --target-path target com.example.Example");
-		System.out.println("tychoc --set some-option a-value com.example.Example");
+		System.out.println("tychoc --source-path src"+ File.pathSeparator+"lib --target-path target com.example.Example");
+		System.out.println("tychoc --set some-option=a-value com.example.Example");
 	}
 
 	private List<String> promotedSettings() {
@@ -207,7 +222,7 @@ public class Main {
 	}
 
 	private void printUsage() {
-		System.out.println("Usage: " + toolName + " [options] [entity]");
+		System.out.println("Usage: " + toolName + " [platform] [options] [entity]");
 		System.out.println("For more information: " + toolName + " --help");
 	}
 
