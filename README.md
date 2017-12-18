@@ -21,8 +21,7 @@ Tycho is installed using the following commands:
 ```
 git clone https://bitbucket.org/dataflow/dataflow.git tycho
 cd tycho
-mvn install
-cd ..
+mvn -DskipTests install
 ```
 
 To make it easier to invoke the Tycho compiler, you can symlink `tychoc` to a file in your PATH.
