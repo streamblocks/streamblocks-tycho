@@ -12,23 +12,15 @@ end
 # Installation
 To build Tycho, you need the following:
 
-* Java SE Development Kit 8
+* Java SE Development Kit 8 (or later)
 * Apache Maven
 * Git
 * C compiler (for example Clang or GCC)
 
-Tycho also depends on a library called MultiJ that needs to be installed manually. Set your working directory to where you want to install the dependency and execute the following:
+Tycho is installed using the following commands:
 ```
-git clone https://github.com/gustavcedersjo/multij.git
-cd multij
-mvn install
-cd ..
-```
-
-Now, Tycho can be installed using the following commands:
-```
-git clone https://bitbucket.org/dataflow/dataflow.git
-cd dataflow
+git clone https://bitbucket.org/dataflow/dataflow.git tycho
+cd tycho
 mvn install
 cd ..
 ```

@@ -27,12 +27,12 @@
 		<dependency>
 			<groupId>org.multij</groupId>
 			<artifactId>multij-core</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<version>0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multij</groupId>
 			<artifactId>multij-processor</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<version>0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
