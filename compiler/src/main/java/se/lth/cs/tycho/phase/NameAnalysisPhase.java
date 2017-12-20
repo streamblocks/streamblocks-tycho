@@ -5,6 +5,7 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.EntityDeclarations;
+import se.lth.cs.tycho.attribute.ParameterDeclarations;
 import se.lth.cs.tycho.attribute.Ports;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.compiler.CompilationTask;
@@ -12,9 +13,14 @@ import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.TypeParameter;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
+import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
+import se.lth.cs.tycho.ir.expr.ExprRef;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -26,24 +32,23 @@ public class NameAnalysisPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-        Ports ports = task.getModule(Ports.key);
-        VariableDeclarations varDecls = task.getModule(VariableDeclarations.key);
-        EntityDeclarations entityDecls = task.getModule(EntityDeclarations.key);
-		task.getSourceUnits().stream().forEach(unit -> {
-			CheckNames analysis = MultiJ.from(CheckNames.class)
-					.bind("ports").to(ports)
-					.bind("variableDeclarations").to(varDecls)
-					.bind("entityDeclarations").to(entityDecls)
-					.bind("reporter").to(context.getReporter())
-					.bind("sourceUnit").to(unit)
-					.instance();
-			analysis.check(unit);
-		});
+		CheckNames analysis = MultiJ.from(CheckNames.class)
+				.bind("tree").to(task.getModule(TreeShadow.key))
+				.bind("ports").to(task.getModule(Ports.key))
+				.bind("variableDeclarations").to(task.getModule(VariableDeclarations.key))
+				.bind("entityDeclarations").to(task.getModule(EntityDeclarations.key))
+				.bind("parameterDeclarations").to(task.getModule(ParameterDeclarations.key))
+				.bind("reporter").to(context.getReporter())
+				.instance();
+		analysis.check(task);
 		return task;
 	}
 
 	@Module
 	public interface CheckNames {
+		@Binding(BindingKind.INJECTED)
+		TreeShadow tree();
+
 		@Binding(BindingKind.INJECTED)
 		Ports ports();
 
@@ -53,11 +58,19 @@ public class NameAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		EntityDeclarations entityDeclarations();
 
+		@Binding(BindingKind.INJECTED)
+		ParameterDeclarations parameterDeclarations();
+
 		@Binding
 		Reporter reporter();
 
-		@Binding
-		SourceUnit sourceUnit();
+		default SourceUnit sourceUnit(IRNode node) {
+			return sourceUnit(tree().parent(node));
+		}
+
+		default SourceUnit sourceUnit(SourceUnit unit) {
+			return unit;
+		}
 
 		default void check(IRNode node) {
 			checkNames(node);
@@ -68,25 +81,55 @@ public class NameAnalysisPhase implements Phase {
 
 		default void checkNames(Variable var) {
 			if (variableDeclarations().declaration(var) == null) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variable " + var.getName() + " is not declared.", sourceUnit(), var));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variable " + var.getName() + " is not declared.", sourceUnit(var), var));
+			}
+		}
+
+		default void checkNames(ExprGlobalVariable var) {
+			if (variableDeclarations().declaration(var) == null) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variable " + var.getGlobalName() + " is not declared.", sourceUnit(var), var));
 			}
 		}
 
 		default void checkNames(Port port) {
 			if (ports().declaration(port) == null) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Port " + port.getName() + " is not declared.", sourceUnit(), port));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Port " + port.getName() + " is not declared.", sourceUnit(port), port));
 			}
 		}
 
 		default void checkNames(EntityReferenceGlobal reference) {
 			if (entityDeclarations().declaration(reference) == null) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getGlobalName() + " is not declared.", sourceUnit(), reference));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getGlobalName() + " is not declared.", sourceUnit(reference), reference));
 			}
 		}
 
 		default void checkNames(EntityReferenceLocal reference) {
 			if (entityDeclarations().declaration(reference) == null) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", sourceUnit(), reference));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", sourceUnit(reference), reference));
+			}
+		}
+
+		default boolean isTypeExpr(IRNode node) {
+			return false;
+		}
+
+		default boolean isTypeExpr(TypeExpr expr) {
+			return true;
+		}
+
+		default void checkNames(ValueParameter parameter) {
+			if (!isTypeExpr(tree().parent(parameter))) {
+				if (parameterDeclarations().valueParameterDeclaration(parameter) == null) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Parameter " + parameter.getName() + " is not declared.", sourceUnit(parameter), parameter));
+				}
+			}
+		}
+
+		default void checkNames(TypeParameter parameter) {
+			if (!isTypeExpr(tree().parent(parameter))) {
+				if (parameterDeclarations().typeParameterDeclaration(parameter) == null) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Parameter " + parameter.getName() + " is not declared.", sourceUnit(parameter), parameter));
+				}
 			}
 		}
 	}

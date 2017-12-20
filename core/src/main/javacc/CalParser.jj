@@ -728,41 +728,29 @@ ImmutableList<InstanceDecl> EntityInstanceDecls() :
 	Token parameterName;
 	Expression parameter;
 	ImmutableList.Builder<InstanceDecl> entities = ImmutableList.builder();
-	ImmutableList.Builder<ValueParameter> parameters;
+	ImmutableList.Builder<ValueParameter> valueParameters;
+	ImmutableList.Builder<TypeParameter> typeParameters;
 	ImmutableList<ToolAttribute> toolAttrs;
 }
 {
 	(
 		{
-			parameters = ImmutableList.builder();
+			valueParameters = ImmutableList.builder();
+			typeParameters = ImmutableList.builder();
 		}
 		instanceName = <ID>
 		"="
 		entityName = <ID>
 		"("
 		(
-
-			parameterName = <ID>
-			"="
-			parameter = Expression()
-			{
-				parameters.add(new ValueParameter(parameterName.image, parameter));
-			}
-			(
-				","
-				parameterName = <ID>
-				"="
-				parameter = Expression()
-				{
-					parameters.add(new ValueParameter(parameterName.image, parameter));
-				}
-			)*
+            AddParameterAssignments(typeParameters, valueParameters)
+            ( "," AddParameterAssignments(typeParameters, valueParameters) )*
 		)?
 		")"
 		toolAttrs = OptToolAttributes()
 		";"
 		{
-			entities.add(new InstanceDecl(instanceName.image, new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), parameters.build()).withAttributes(toolAttrs)));
+			entities.add(new InstanceDecl(instanceName.image, new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), valueParameters.build()).withAttributes(toolAttrs)));
 		}
 	)*
 	{
