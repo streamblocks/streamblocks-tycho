@@ -101,3 +101,14 @@ structure
   ...
 end
 ```
+
+## Syntax
+
+```
+module instance = id, '(', parameter assignments, ')' ;
+module member = module instance , '::', id ;
+module declaration = 'module', id, '(', parameter declarations, ')',
+    [ 'implements', module instance, {',' module instance} ], ':',
+    declarations,
+    'end' ;
+```
