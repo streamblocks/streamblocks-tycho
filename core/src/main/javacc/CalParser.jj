@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.type.*;
+import se.lth.cs.tycho.ir.module.*;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
@@ -172,6 +173,7 @@ TOKEN :
 |	< LET: "let" >
 |	< MAP: "map" >
 |	< MOD: "mod" >
+|	< MODULE: "module" >
 |	< MULTI: "multi" >
 |	< MUTABLE: "mutable" >
 |	< NAMESPACE: "namespace" >
@@ -408,6 +410,20 @@ Availability Availability() :
 	"private" { return Availability.PRIVATE; }
 |
 	"local" { return Availability.LOCAL; }
+}
+
+ModuleDecl ModuleDecl() :
+{
+    Token first;
+    Token name;
+    Token last;
+}
+{
+    first = "module" name = <ID> "(" ")" ":"
+    last = "end"
+    {
+        return new ModuleDecl(name.image, null, null, null, null, null, null);
+    }
 }
 
 GlobalVarDecl GlobalVarDecl() :
@@ -742,10 +758,7 @@ ImmutableList<InstanceDecl> EntityInstanceDecls() :
 		"="
 		entityName = <ID>
 		"("
-		(
-            AddParameterAssignments(typeParameters, valueParameters)
-            ( "," AddParameterAssignments(typeParameters, valueParameters) )*
-		)?
+        ParameterAssignments(typeParameters, valueParameters)
 		")"
 		toolAttrs = OptToolAttributes()
 		";"
@@ -1602,34 +1615,12 @@ TypeExpr Type() :
 	{ last = name; }
 	(
 		"("
-		AddParameterAssignments(types, vals)
-		("," AddParameterAssignments(types, vals))*
+		ParameterAssignments(types, vals)
 		last = ")"
 	)?
 	{
 		return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
 	}
-}
-
-void AddParameterAssignments(
-	ImmutableList.Builder<TypeParameter> types,
-	ImmutableList.Builder<ValueParameter> vals) :
-{
-	Token name;
-	TypeExpr type;
-	Expression expr;
-}
-{
-	(
-		LOOKAHEAD(2)
-		(name = <ID> | name = <TYPE>)
-		":" type = Type()
-		{ types.add(setPosition(new TypeParameter(name.image, type), name, type)); }
-	|
-		name = <ID>
-		"=" expr = Expression()
-		{ vals.add(setPosition(new ValueParameter(name.image, expr), name, expr)); }
-	)
 }
 
 TypeAndName VarDeclTypeName() :
@@ -2009,4 +2000,34 @@ ImmutableList<Statement> ForeachStmtBody() :
 	}
 }
 
+/* Parameters */
+
+void ParameterAssignments(ImmutableList.Builder<TypeParameter> typeParameters, ImmutableList.Builder<ValueParameter> valueParameters) :
+{
+}
+{
+    (
+        ParameterAssignment(typeParameters, valueParameters)
+        ( "," ParameterAssignment(typeParameters, valueParameters) )*
+    )?
+}
+
+void ParameterAssignment(ImmutableList.Builder<TypeParameter> types, ImmutableList.Builder<ValueParameter> vals) :
+{
+	Token name;
+	TypeExpr type;
+	Expression expr;
+}
+{
+	(
+		LOOKAHEAD(2)
+		(name = <ID> | name = <TYPE>)
+		":" type = Type()
+		{ types.add(setPosition(new TypeParameter(name.image, type), name, type)); }
+	|
+		name = <ID>
+		"=" expr = Expression()
+		{ vals.add(setPosition(new ValueParameter(name.image, expr), name, expr)); }
+	)
+}
 

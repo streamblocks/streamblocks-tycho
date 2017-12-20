@@ -67,6 +67,9 @@ public class ModuleExpr extends AbstractIRNode {
 
 	@Override
 	public IRNode transformChildren(Transformation transformation) {
-		return copy(name, (List) typeParameters.map(transformation), (List) valueParameters.map(transformation));
+		return copy(
+				name,
+				transformation.mapChecked(TypeParameter.class, typeParameters),
+				transformation.mapChecked(ValueParameter.class, valueParameters));
 	}
 }
