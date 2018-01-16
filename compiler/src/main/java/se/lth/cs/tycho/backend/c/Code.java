@@ -148,6 +148,10 @@ public interface Code {
 		return variables().globalName(variable);
 	}
 
+	default String evaluate(ExprMember member) {
+		return variables().memberName(member);
+	}
+
 	default String evaluate(ExprLiteral literal) {
 		switch (literal.getKind()) {
 			case Integer:

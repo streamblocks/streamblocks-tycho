@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
+import se.lth.cs.tycho.ir.expr.ExprMember;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -464,6 +465,17 @@ public interface Callables {
 		}
 	}
 
+	default Optional<String> directlyCallableLambdaName(ExprMember member) {
+		VarDecl declaration = backend().moduleMembers().valueMember(member);
+		if (declaration.isConstant() && declaration.getValue() != null) {
+			return directlyCallableLambdaName(declaration.getValue());
+		} else if (declaration.isExternal()) {
+			return Optional.of(externalWrapperFunctionName(declaration));
+		} else {
+			return Optional.empty();
+		}
+	}
+
 	default Optional<String> directlyCallableProcName(Expression proc) {
 		return Optional.empty();
 	}
@@ -479,6 +491,17 @@ public interface Callables {
 
 	default Optional<String> directlyCallableProcName(ExprVariable var) {
 		VarDecl declaration = backend().varDecls().declaration(var.getVariable());
+		if (declaration.isConstant() && declaration.getValue() != null) {
+			return directlyCallableProcName(declaration.getValue());
+		} else if (declaration.isExternal()) {
+			return Optional.of(externalWrapperFunctionName(declaration));
+		} else {
+			return Optional.empty();
+		}
+	}
+
+	default Optional<String> directlyCallableProcName(ExprMember member) {
+		VarDecl declaration = backend().moduleMembers().valueMember(member);
 		if (declaration.isConstant() && declaration.getValue() != null) {
 			return directlyCallableProcName(declaration.getValue());
 		} else if (declaration.isExternal()) {

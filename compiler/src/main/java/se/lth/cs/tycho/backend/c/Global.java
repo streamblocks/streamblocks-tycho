@@ -3,6 +3,7 @@ package se.lth.cs.tycho.backend.c;
 import org.multij.Binding;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.CallableType;
@@ -10,6 +11,7 @@ import se.lth.cs.tycho.type.Type;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Module
 public interface Global {
@@ -34,7 +36,7 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
-		globalVariableInitializer(getGlobalVarDecls());
+		globalVariableInitializer(Stream.concat(getGlobalVarDecls(), getModuleVarDecls()));
 	}
 
 	default void generateGlobalHeader() {
@@ -53,30 +55,35 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().declareEnvironmentForCallablesInScope(backend().task());
 		emitter().emit("");
-		globalVariableDeclarations(getGlobalVarDecls());
+		globalVariableDeclarations(Stream.concat(getGlobalVarDecls(), getModuleVarDecls()));
 		emitter().emit("");
 		emitter().emit("#endif");
 	}
 
-	default List<GlobalVarDecl> getGlobalVarDecls() {
+	default Stream<GlobalVarDecl> getGlobalVarDecls() {
 		return backend().task()
 					.getSourceUnits().stream()
-					.flatMap(unit -> unit.getTree().getVarDecls().stream())
-					.collect(Collectors.toList());
+					.flatMap(unit -> unit.getTree().getVarDecls().stream());
 	}
 
-	default void globalVariableDeclarations(List<GlobalVarDecl> varDecls) {
-		for (VarDecl decl : varDecls) {
+	default Stream<LocalVarDecl> getModuleVarDecls() {
+		return backend().task().getSourceUnits().stream()
+				.flatMap(unit -> unit.getTree().getModuleDecls().stream())
+				.flatMap(module -> module.getValueComponents().stream());
+	}
+
+	default void globalVariableDeclarations(Stream<VarDecl> varDecls) {
+		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			String d = code().declaration(type, backend().variables().declarationName(decl));
 			emitter().emit("%s;", d);
-		}
+		});
 	}
 
-	default void globalVariableInitializer(List<GlobalVarDecl> varDecls) {
+	default void globalVariableInitializer(Stream<VarDecl> varDecls) {
 		emitter().emit("void init_global_variables() {");
 		emitter().increaseIndentation();
-		for (VarDecl decl : varDecls) {
+		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			if (decl.isExternal() && type instanceof CallableType) {
 				String wrapperName = backend().callables().externalWrapperFunctionName(decl);
@@ -86,7 +93,7 @@ public interface Global {
 			} else {
 				code().copy(type, backend().variables().declarationName(decl), types().type(decl.getValue()), code().evaluate(decl.getValue()));
 			}
-		}
+		});
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}

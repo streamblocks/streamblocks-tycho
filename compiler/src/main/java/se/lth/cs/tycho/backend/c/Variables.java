@@ -10,6 +10,8 @@ import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
+import se.lth.cs.tycho.ir.expr.ExprMember;
+import se.lth.cs.tycho.ir.module.ModuleDecl;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,23 +27,31 @@ public interface Variables {
 		return "t_" + backend().uniqueNumbers().next();
 	}
 
+	default String escape(String name) {
+		return name.replace("_", "__");
+	}
+
 	default String declarationName(VarDecl decl) {
 		IRNode parent = backend().tree().parent(decl);
 		if (parent instanceof Scope) {
-			return "a_" + decl.getName();
+			return "a_" + escape(decl.getName());
 		} else if (parent instanceof ActorMachine) {
-			return "a_" + decl.getName();
+			return "a_" + escape(decl.getName());
 		} else if (parent instanceof NamespaceDecl) {
 			QID ns = ((NamespaceDecl) parent).getQID();
 			return Stream.concat(ns.parts().stream(), Stream.of(decl.getName()))
+					.map(this::escape)
 					.collect(Collectors.joining("_", "g_", ""));
+		} else if (parent instanceof ModuleDecl) {
+			return "m_" + escape(((ModuleDecl) parent).getName()) + "_" + escape(decl.getName());
 		} else {
-			return "l_" + decl.getName();
+			return "l_" + escape(decl.getName());
 		}
 	}
 
 	default String globalName(ExprGlobalVariable var) {
 		return var.getGlobalName().parts().stream()
+				.map(this::escape)
 				.collect(Collectors.joining("_", "g_", ""));
 	}
 
@@ -64,5 +74,9 @@ public interface Variables {
 		} else {
 			return declarationName(decl);
 		}
+	}
+
+	default String memberName(ExprMember member) {
+		return declarationName(backend().moduleMembers().valueMember(member));
 	}
 }
