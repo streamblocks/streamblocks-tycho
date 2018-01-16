@@ -410,6 +410,23 @@ ModuleDecl ModuleDecl() :
     }
 }
 
+ModuleExpr ModuleExpr() :
+{
+    Token name;
+    Token lastToken;
+    ImmutableList.Builder<TypeParameter> typeParameters = ImmutableList.builder();
+    ImmutableList.Builder<ValueParameter> valueParameters = ImmutableList.builder();
+}
+{
+    name = <ID>
+    "("
+    ParameterAssignments(typeParameters, valueParameters)
+    lastToken = ")"
+    {
+        return setPosition(new ModuleExpr(name.image, typeParameters.build(), valueParameters.build()), name, lastToken);
+    }
+}
+
 void VariableVarDecl(GenericVarDecl varDecl) :
 {
     Token id;
@@ -1209,25 +1226,9 @@ Expression PrimaryExpression() :
 	{ exprIsVar = expr instanceof ExprVariable; }
 	(
 		"("
-		(
-		    LOOKAHEAD(ParameterAssignments(typeParameters, valuePrameters) ")" "::", {exprIsVar})
-		    {
-		        typeParameters = ImmutableList.builder();
-		        valueParameters = ImmutableList.builder();
-            }
-		    ParameterAssignments(typeParameters, valueParameters)
-		    ")"
-		    "::"
-		    member = <ID>
-		    {
-		        ModuleExpr module = new ModuleExpr(((ExprVariable) expr).getVariable().getName(), typeParameters.build(), valueParameters.build());
-		        expr = new ExprMember(module, member.image);
-		    }
-		|
-            args = ExpressionList()
-            lastToken = ")"
-            { expr = setPosition(new ExprApplication(expr, args), expr, lastToken); }
-		)
+        args = ExpressionList()
+        lastToken = ")"
+        { expr = setPosition(new ExprApplication(expr, args), expr, lastToken); }
 	|
 		"["
 		index = Expression()
@@ -1253,6 +1254,9 @@ Expression SingleExpression() :
 }
 {
 	(
+	    LOOKAHEAD(MemberExpression())
+	    expr = MemberExpression()
+	|
 		expr = VariableExpression()
 	|
 		expr = ExpressionLiteral()
@@ -1274,6 +1278,20 @@ Expression SingleExpression() :
 		expr = MapExpression()
 	)
 	{ return expr; }
+}
+
+ExprMember MemberExpression() :
+{
+    ModuleExpr module;
+    Token member;
+}
+{
+    module = ModuleExpr()
+    "::"
+    member = <ID>
+    {
+        return setPosition(new ExprMember(module, member.image), module, member);
+    }
 }
 
 ExprVariable VariableExpression() :
