@@ -338,11 +338,13 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 	ImmutableList.Builder<GlobalVarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<GlobalEntityDecl> entityDecls = ImmutableList.builder();
 	ImmutableList.Builder<GlobalTypeDecl> typeDecls = ImmutableList.builder();
+	ImmutableList.Builder<ModuleDecl> moduleDecls = ImmutableList.builder();
 
 	Import i;
 	GlobalVarDecl v;
 	GlobalEntityDecl e;
 	GlobalTypeDecl t;
+	ModuleDecl m;
 }
 {
 	(Annotation())*
@@ -356,10 +358,10 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 	|
 		e = NetworkDecl() { entityDecls.add(e); }
 	|
-	    ModuleDecl()
+	    m = ModuleDecl() { moduleDecls.add(m); }
 	)*
 	{
-		return new NamespaceDecl(name, imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
+		return new NamespaceDecl(name, imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build(), moduleDecls.build());
 	}
 }
 

@@ -27,7 +27,7 @@ public class ExprMember extends Expression {
 		return new ExprMember(this, module, member);
 	}
 
-	public ModuleExpr getStructure() {
+	public ModuleExpr getModule() {
 		return module;
 	}
 

@@ -333,7 +333,7 @@ NamespaceDecl CompilationUnit() :
 	)
 	<EOF>
 	{
-		NamespaceDecl pkg = new NamespaceDecl(qid, imports.build(), varDecls.build(), entityDecls.build(), ImmutableList.empty());
+		NamespaceDecl pkg = new NamespaceDecl(qid, imports.build(), varDecls.build(), entityDecls.build(), ImmutableList.empty(), ImmutableList.empty());
 		return pkg;
 	}
 }
@@ -358,6 +358,7 @@ NamespaceDecl OrccUnit() :
 				QID.of(id.image),
 				ImmutableList.empty(),
 				decls.build(),
+				ImmutableList.empty(),
 				ImmutableList.empty(),
 				ImmutableList.empty());
 	}

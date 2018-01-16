@@ -87,7 +87,7 @@ public class CompositionPhase implements Phase {
 		for (String compositionId : compositions.keySet()) {
 			task = task.withNetwork(compose(task, compositions.get(compositionId), composedEntities, compositionId, context));
 		}
-		SourceUnit compUnit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), null, null, composedEntities.build(), null));
+		SourceUnit compUnit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), null, null, composedEntities.build(), null, null));
 		return task.withSourceUnits(ImmutableList.<SourceUnit> builder().addAll(task.getSourceUnits()).add(compUnit).build());
 	}
 

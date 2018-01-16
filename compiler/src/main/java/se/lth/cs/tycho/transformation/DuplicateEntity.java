@@ -77,7 +77,7 @@ public final class DuplicateEntity {
 		Network net = task.getNetwork()
 				.withConnections(connections)
 				.withInstances(instances);
-		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(namespace, null, null, ImmutableList.of(entity.deepClone()), null));
+		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(namespace, null, null, ImmutableList.of(entity.deepClone()), null, null));
 
 		return task.withNetwork(net).withSourceUnits(ImmutableList.concat(task.getSourceUnits(), ImmutableList.of(unit)));
 

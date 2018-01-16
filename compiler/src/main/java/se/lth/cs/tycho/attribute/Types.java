@@ -6,6 +6,7 @@ import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.SourceUnit;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
 import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
 import se.lth.cs.tycho.ir.Generator;
@@ -53,6 +54,7 @@ public interface Types {
             return MultiJ.from(Implementation.class)
 					.bind("ports").to(unit.getModule(Ports.key))
 					.bind("variables").to(unit.getModule(VariableDeclarations.key))
+					.bind("members").to(unit.getModule(ModuleMembers.key))
 					.bind("constants").to(unit.getModule(ConstantEvaluator.key))
 					.bind("tree").to(unit.getModule(TreeShadow.key))
 					.bind("globalNames").to(unit.getModule(GlobalNames.key))
@@ -73,6 +75,9 @@ public interface Types {
 
 		@Binding(BindingKind.INJECTED)
 		VariableDeclarations variables();
+
+		@Binding(BindingKind.INJECTED)
+		ModuleMembers members();
 
 		@Binding(BindingKind.INJECTED)
 		Ports ports();
@@ -352,6 +357,10 @@ public interface Types {
 		}
 
 		Type computeType(Expression e);
+
+		default Type computeType(ExprMember e) {
+			return declaredType(members().valueMember(e));
+		}
 
 		default Type computeType(ExprDeref e) {
 			Type referenceType = type(e.getReference());
