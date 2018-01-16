@@ -4,7 +4,7 @@ namespace numtext :
 	uint(size=8) zero = 48;
 	uint(size=8) nine = 57;
 	uint(size=8) newline = 10;
-	external function to_uint_8(int(size=64) v) --> uint(size=8);
+	external function to_uint_8(int(size=64) v) --> uint(size=8) end
 
 	actor Write() int(size=64) Numbers ==> uint(size=8) Chars :
 		int(size=64) n;

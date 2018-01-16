@@ -2,11 +2,11 @@ package se.lth.cs.tycho.ir.module;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterModuleInstanceDecl;
 import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -20,10 +20,10 @@ public class ModuleDecl extends AbstractIRNode {
 	private final ImmutableList<ParameterTypeDecl> typeParameters;
 	private final ImmutableList<ParameterModuleInstanceDecl> moduleParameters;
 	private final ImmutableList<ModuleExpr> superModules;
-	private final ImmutableList<VarDecl> valueComponents;
+	private final ImmutableList<LocalVarDecl> valueComponents;
 	private final ImmutableList<TypeDecl> typeComponents;
 
-	private ModuleDecl(IRNode original, String name, List<ParameterVarDecl> valueParameters, List<ParameterTypeDecl> typeParameters, List<ParameterModuleInstanceDecl> moduleParameters, List<ModuleExpr> superModules, List<VarDecl> valueComponents, List<TypeDecl> typeComponents) {
+	private ModuleDecl(IRNode original, String name, List<ParameterVarDecl> valueParameters, List<ParameterTypeDecl> typeParameters, List<ParameterModuleInstanceDecl> moduleParameters, List<ModuleExpr> superModules, List<LocalVarDecl> valueComponents, List<TypeDecl> typeComponents) {
 		super(original);
 		this.name = name;
 		this.valueParameters = ImmutableList.from(valueParameters);
@@ -34,11 +34,11 @@ public class ModuleDecl extends AbstractIRNode {
 		this.typeComponents = ImmutableList.from(typeComponents);
 	}
 
-	public ModuleDecl(String name, List<ParameterVarDecl> valueParameters, List<ParameterTypeDecl> typeParameters, List<ParameterModuleInstanceDecl> moduleParameters, List<ModuleExpr> superModules, List<VarDecl> valueComponents, List<TypeDecl> typeComponents) {
+	public ModuleDecl(String name, List<ParameterVarDecl> valueParameters, List<ParameterTypeDecl> typeParameters, List<ParameterModuleInstanceDecl> moduleParameters, List<ModuleExpr> superModules, List<LocalVarDecl> valueComponents, List<TypeDecl> typeComponents) {
 		this(null, name, valueParameters, typeParameters, moduleParameters, superModules, valueComponents, typeComponents);
 	}
 
-	public ModuleDecl copy(String name, List<ParameterVarDecl> valueParameters, List<ParameterTypeDecl> typeParameters, List<ParameterModuleInstanceDecl> moduleParameters, List<ModuleExpr> superModules, List<VarDecl> valueComponents, List<TypeDecl> typeComponents) {
+	public ModuleDecl copy(String name, List<ParameterVarDecl> valueParameters, List<ParameterTypeDecl> typeParameters, List<ParameterModuleInstanceDecl> moduleParameters, List<ModuleExpr> superModules, List<LocalVarDecl> valueComponents, List<TypeDecl> typeComponents) {
 		if (Objects.equals(this.name, name) &&
 				Lists.sameElements(this.valueParameters, valueParameters) &&
 				Lists.sameElements(this.typeParameters, typeParameters) &&
@@ -92,11 +92,11 @@ public class ModuleDecl extends AbstractIRNode {
 		return copy(name, valueParameters, typeParameters, moduleParameters, superModules, valueComponents, typeComponents);
 	}
 
-	public ImmutableList<VarDecl> getValueComponents() {
+	public ImmutableList<LocalVarDecl> getValueComponents() {
 		return valueComponents;
 	}
 
-	public ModuleDecl withValueComponents(List<VarDecl> valueComponents) {
+	public ModuleDecl withValueComponents(List<LocalVarDecl> valueComponents) {
 		return copy(name, valueParameters, typeParameters, moduleParameters, superModules, valueComponents, typeComponents);
 	}
 
@@ -125,7 +125,7 @@ public class ModuleDecl extends AbstractIRNode {
 				transformation.mapChecked(ParameterTypeDecl.class ,typeParameters),
 				transformation.mapChecked(ParameterModuleInstanceDecl.class , moduleParameters),
 				transformation.mapChecked(ModuleExpr.class ,superModules),
-				transformation.mapChecked(VarDecl.class ,valueComponents),
+				transformation.mapChecked(LocalVarDecl.class ,valueComponents),
 				transformation.mapChecked(TypeDecl.class ,typeComponents));
 	}
 }

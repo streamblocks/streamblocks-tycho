@@ -37,24 +37,17 @@ import se.lth.cs.tycho.ir.util.ImmutableEntry;
 public class CalParser {
 
 	private boolean processDescription = false;
+    private boolean exprIsVar;
 
-	public static class TypeAndName {
-		public final TypeExpr type;
-		public final String name;
-		public TypeAndName(TypeExpr type, String name) {
-			this.type = type;
-			this.name = name;
-		}
-	}
-
-	public static class NameAndDef<T> {
-		public final String name;
-		public final T def;
-		public NameAndDef(String name, T def) {
-			this.name = name;
-			this.def = def;
-		}
-	}
+	private static class GenericVarDecl {
+	    public int fromLine, fromCol, toLine, toCol;
+	    public Availability availability = null;
+	    public boolean external = false;
+	    public TypeExpr type = null;
+	    public String name = null;
+	    public boolean constant = true;
+	    public Expression value = null;
+    }
 
 	public static FunctionTypeExpr lambdaToType(ExprLambda lambda) {
 		ImmutableList.Builder<TypeExpr> parameterTypes = ImmutableList.builder();
@@ -279,23 +272,6 @@ TOKEN: {
 }
 
 
-QID NamespaceScan() :
-{
-	QID qid = QID.empty();
-	Token unitId;
-}
-{
-	(
-		"namespace"
-		qid = QID()
-		":"
-	)?
-	{
-		return qid;
-	}
-}
-
-
 NamespaceDecl CompilationUnit() :
 {
 	NamespaceDecl ns;
@@ -379,6 +355,8 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 		e = ActorDecl() { entityDecls.add(e); }
 	|
 		e = NetworkDecl() { entityDecls.add(e); }
+	|
+	    ModuleDecl()
 	)*
 	{
 		return new NamespaceDecl(name, imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
@@ -416,101 +394,211 @@ ModuleDecl ModuleDecl() :
 {
     Token first;
     Token name;
+    ImmutableList.Builder<ParameterVarDecl> valPars = ImmutableList.builder();
+    LocalVarDecl varDecl;
+    ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
     Token last;
 }
 {
     first = "module" name = <ID> "(" ")" ":"
+    (
+        varDecl = LocalVarDecl() { varDecls.add(varDecl); }
+    )*
     last = "end"
     {
-        return new ModuleDecl(name.image, null, null, null, null, null, null);
+        return setPosition(new ModuleDecl(name.image, valPars.build(), null, null, null, varDecls.build(), null), first, last);
+    }
+}
+
+void VariableVarDecl(GenericVarDecl varDecl) :
+{
+    Token id;
+}
+{
+    (
+        LOOKAHEAD(2)
+        varDecl.type = Type()
+        id = <ID>
+        {
+            varDecl.name = id.image;
+            varDecl.fromLine = varDecl.type.getFromLineNumber();
+            varDecl.fromCol = varDecl.type.getFromColumnNumber();
+            varDecl.toLine = id.endLine;
+            varDecl.toCol = id.endColumn;
+
+        }
+    |
+        id = <ID>
+        {
+            varDecl.name = id.image;
+            varDecl.fromLine = id.beginLine;
+            varDecl.fromCol = id.beginColumn;
+            varDecl.toLine = id.endLine;
+            varDecl.toCol = id.endColumn;
+
+        }
+    )
+    (
+        (
+            "=" { varDecl.constant = true; }
+        |
+            ":=" { varDecl.constant = false; }
+        )
+        varDecl.value = Expression()
+        {
+            varDecl.toLine = varDecl.value.getToLineNumber();
+            varDecl.toCol = varDecl.value.getToColumnNumber();
+        }
+    )?
+}
+
+void FunctionVarDecl(GenericVarDecl varDecl) :
+{
+    Token id;
+	ImmutableList<ParameterVarDecl> valPars;
+	ImmutableList<LocalVarDecl> varDecls = null;
+	TypeExpr returnType = null;
+	Expression body = null;
+}
+{
+    "function"
+    id = <ID>
+    "("
+    valPars = FormalValuePars()
+    ")"
+    (
+        "-->" returnType = Type()
+    )?
+    (
+        (
+            "var" varDecls = BlockVarDecls()
+        )?
+        ":" body = Expression()
+    )?
+    "end"
+    {
+        ExprLambda lambda;
+		if (varDecls == null) {
+		    lambda = new ExprLambda(valPars, body, returnType);
+        } else {
+            ExprLet let = new ExprLet(ImmutableList.empty(), varDecls, body);
+		    lambda = new ExprLambda(valPars, let, returnType);
+		}
+		if (body == null) {
+		    varDecl.type = lambdaToType(lambda);
+		    lambda = null;
+        }
+		varDecl.name = id.image;
+		varDecl.value = lambda;
+    }
+}
+
+void ProcedureVarDecl(GenericVarDecl varDecl) :
+{
+	Token id;
+	ImmutableList<ParameterVarDecl> valPars;
+	ImmutableList<LocalVarDecl> varDecls = null;
+	ImmutableList<Statement> stmts = null;
+}
+{
+	"procedure"
+	id = <ID>
+	"("
+    valPars = FormalValuePars()
+	")"
+	(
+        (
+            "var"
+            varDecls = BlockVarDecls()
+        )?
+		("begin" | "do")
+		stmts = Statements()
+	)?
+	"end"
+	{
+		ExprProc proc;
+		if (varDecls == null) {
+			proc = new ExprProc(valPars, stmts);
+		} else {
+			StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
+			proc = new ExprProc(valPars, ImmutableList.of(block));
+		}
+		if (stmts == null) {
+		    varDecl.type = procToType(proc);
+		    proc = null;
+        }
+		varDecl.name = id.image;
+		varDecl.value = proc;
+	}
+}
+
+ImmutableList<LocalVarDecl> BlockVarDecls() :
+{
+    ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
+    LocalVarDecl varDecl;
+}
+{
+    (
+        varDecl = BlockVarDecl() { builder.add(varDecl); }
+        ( "," varDecl = BlockVarDecl() { builder.add(varDecl); })*
+    )?
+    { return builder.build(); }
+}
+
+LocalVarDecl BlockVarDecl() :
+{
+    GenericVarDecl varDecl = new GenericVarDecl();
+}
+{
+    (
+        VariableVarDecl(varDecl)
+    |
+        FunctionVarDecl(varDecl)
+    |
+        ProcedureVarDecl(varDecl)
+    )
+    {
+        return VarDecl.local(varDecl.type, varDecl.name, varDecl.value, varDecl.constant);
+    }
+}
+
+LocalVarDecl LocalVarDecl() :
+{
+    GenericVarDecl varDecl = new GenericVarDecl();
+    boolean external = false;
+}
+{
+    ("external" { varDecl.external = true; })?
+    (
+        VariableVarDecl(varDecl) ";"
+    |
+        FunctionVarDecl(varDecl)
+    |
+        ProcedureVarDecl(varDecl)
+    )
+    {
+        return VarDecl.local(varDecl.type, varDecl.name, varDecl.value, varDecl.constant).asExternal(varDecl.external);
     }
 }
 
 GlobalVarDecl GlobalVarDecl() :
 {
-	Availability availability = Availability.PUBLIC;
-	String name;
-	TypeExpr type = null;
-	Expression expr;
-	boolean external = false;
+    GenericVarDecl varDecl = new GenericVarDecl();
+    varDecl.availability = Availability.PUBLIC;
 }
 {
-	(availability = Availability())?
-	("external" { external = true; })?
-	(
-		{ TypeAndName typeName; }
-		typeName = VarDeclTypeName()
-		"="
-		expr = Expression()
-		";"
-		{ name = typeName.name; type = typeName.type; }
-	|
-		LOOKAHEAD(2)
-		{ NameAndDef<ExprLambda> fun; }
-		fun = FunDecl()
-		{
-			name = fun.name;
-			if (external && fun.def != null) {
-				type = lambdaToType(fun.def);
-				expr = null;
-			} else {
-				expr = fun.def;
-			}
-		}
-	|
-		{ NameAndDef<ExprProc> proc; }
-		proc = ProcDecl()
-		{
-			name = proc.name;
-			if (external && proc.def != null) {
-				type = procToType(proc.def);
-				expr = null;
-			} else {
-				expr = proc.def;
-			}
-		}
-	)
-	{
-		return VarDecl.global(availability, type, name, expr).asExternal(external);
-	}
-}
-
-
-LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
-{
-	TypeExpr type = null;
-	String name;
-	Expression expr = null;
-	boolean assignable = false;
-	boolean external = false;
-}
-{
-	("external" {external = true;})?
-	(
-		{ TypeAndName typeName; }
-		typeName = VarDeclTypeName()
-		(
-			( "=" { assignable = false; } | ":=" { assignable = true; } )
-			expr = Expression()
-		)?
-		(
-			LOOKAHEAD({endWithSemicolon})
-			";"
-		)?
-		{ name = typeName.name; type = typeName.type; }
-	|
-		LOOKAHEAD(2)
-		{ NameAndDef<ExprLambda> fun; }
-		fun = FunDecl()
-		{ name = fun.name; expr = fun.def; }
-	|
-		{ NameAndDef<ExprProc> proc; }
-		proc = ProcDecl()
-		{ name = proc.name; expr = proc.def; }
-	)
-	{
-		return VarDecl.local(type, name, expr, !assignable).asExternal(external);
-	}
+    (varDecl.availability = Availability())?
+    ("external" { varDecl.external = true; })?
+    (
+        VariableVarDecl(varDecl) ";"
+    |
+        FunctionVarDecl(varDecl)
+    |
+        ProcedureVarDecl(varDecl)
+    )
+    {
+		return VarDecl.global(varDecl.availability, varDecl.type, varDecl.name, varDecl.value).asExternal(varDecl.external);
+    }
 }
 
 Import Import() :
@@ -574,95 +662,6 @@ Import.Kind ImportKind() :
 	"entity" { return Import.Kind.ENTITY; }
 }
 
-NameAndDef<ExprLambda> FunDecl() :
-{
-	Token id;
-	ImmutableList<ParameterVarDecl> valPars;
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
-	Expression expr = null;
-	TypeExpr type = null;
-}
-{
-	"function"
-	id = <ID>
-	"("
-	valPars = FormalValuePars()
-	")"
-	(
-		"-->"
-		type = Type()
-	)?
-	(
-		"var"
-		varDecls = VarDecls()
-	)?
-	(
-		":"
-		expr = Expression()
-		"end"
-	|
-		";"
-	)
-	{
-		if (!varDecls.isEmpty()) {
-			expr = new ExprLet(ImmutableList.empty(), varDecls, expr);
-		}
-		ExprLambda lambda = new ExprLambda(valPars, expr, type);
-		return new NameAndDef<ExprLambda>(id.image, lambda);
-	}
-}
-
-NameAndDef<ExprProc> ProcDecl() :
-{
-	Token id;
-	ImmutableList<ParameterVarDecl> valPars;
-	ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
-	ImmutableList<Statement> stmts = ImmutableList.empty();
-	boolean isAbstract = false;
-}
-{
-	"procedure"
-	id = <ID>
-	"("
-	valPars = FormalValuePars()
-	")"
-	(
-		"var"
-		varDecls = VarDecls()
-	)?
-	(
-		";" { isAbstract = true; }
-	|
-		("begin" | "do")
-		stmts = Statements()
-		"end"
-	)
-	{
-		ExprProc proc;
-		if (varDecls.isEmpty()) {
-			proc = new ExprProc(valPars, stmts);
-		} else {
-			StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
-			proc = new ExprProc(valPars, ImmutableList.of(block));
-		}
-		return new NameAndDef<ExprProc>(id.image, proc);
-	}
-}
-
-ImmutableList<LocalVarDecl> VarDecls() :
-{
-	ImmutableList.Builder<LocalVarDecl> builder = ImmutableList.builder();
-	LocalVarDecl decl;
-}
-{
-	(
-		decl = LocalVarDecl(false) { builder.add(decl); }
-		( "," decl = LocalVarDecl(false) { builder.add(decl); })*
-	)?
-	{
-		return builder.build();
-	}
-}
 
 GlobalEntityDecl NetworkDecl() :
 {
@@ -690,7 +689,7 @@ GlobalEntityDecl NetworkDecl() :
 	(
 		"var"
 		(
-			varDecl = LocalVarDecl(true)
+			varDecl = LocalVarDecl()
 			{ varDecls.add(varDecl); }
 		)*
 	)?
@@ -850,7 +849,7 @@ GlobalEntityDecl ActorDecl() :
 				action = InitializationAction()
 				{ initializers.add(action); }
 			|
-				varDecl = LocalVarDecl(true)
+				varDecl = LocalVarDecl()
 				{ varDecls.add(varDecl); }
 			|
 				PriorityOrder(priorities)
@@ -963,7 +962,7 @@ Action Action() :
 	outputExpressions = OutputExpressions()
 	("guard" guards = ExpressionList())?
 //	("delay" delay = Expression())?
-	("var" varDecls = VarDecls())?
+	("var" varDecls = BlockVarDecls())?
 	("do" body = Statements())?
 	("end" | "endaction")
 	{
@@ -990,7 +989,7 @@ Action InitializationAction() :
 	"==>"
 	outputExpressions = OutputExpressions()
 	("guard" guards = ExpressionList())?
-	("var" varDecls = VarDecls())?
+	("var" varDecls = BlockVarDecls())?
 //	("delay" delay = Expression())?
 	("do" body = Statements())?
 	("end" | "endinitialize")
@@ -1201,12 +1200,34 @@ Expression PrimaryExpression() :
 	Expression index;
 	Field field;
 	Token lastToken;
+	Token member;
+    ImmutableList.Builder<TypeParameter> typeParameters;
+    ImmutableList.Builder<ValueParameter> valueParameters;
 }
 {
 	expr = SingleExpression()
+	{ exprIsVar = expr instanceof ExprVariable; }
 	(
-		"(" args = ExpressionList() lastToken = ")"
-		{ expr = setPosition(new ExprApplication(expr, args), expr, lastToken); }
+		"("
+		(
+		    LOOKAHEAD(ParameterAssignments(typeParameters, valuePrameters) ")" "::", {exprIsVar})
+		    {
+		        typeParameters = ImmutableList.builder();
+		        valueParameters = ImmutableList.builder();
+            }
+		    ParameterAssignments(typeParameters, valueParameters)
+		    ")"
+		    "::"
+		    member = <ID>
+		    {
+		        ModuleExpr module = new ModuleExpr(((ExprVariable) expr).getVariable().getName(), typeParameters.build(), valueParameters.build());
+		        expr = new ExprMember(module, member.image);
+		    }
+		|
+            args = ExpressionList()
+            lastToken = ")"
+            { expr = setPosition(new ExprApplication(expr, args), expr, lastToken); }
+		)
 	|
 		"["
 		index = Expression()
@@ -1398,7 +1419,7 @@ ExprLet LetExpression() :
 }
 {
 	<LET>
-	varDecls = VarDecls()
+	varDecls = BlockVarDecls()
 	":"
 	expr = Expression()
 	("end" | "endlet")
@@ -1420,7 +1441,7 @@ ExprLambda LambdaExpression() :
 			ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
 			ImmutableList<LocalVarDecl> varDecls;
 		}
-		"var" varDecls = VarDecls() ":" expr = Expression()
+		"var" varDecls = BlockVarDecls() ":" expr = Expression()
 		{
 			expr = new ExprLet(typeDecls, varDecls, expr);
 		}
@@ -1451,14 +1472,12 @@ ImmutableList<ParameterVarDecl> FormalValuePars() :
 
 ParameterVarDecl FormalValueParameter() :
 {
-	TypeAndName typeName;
-	Expression defaultValue = null;
+    GenericVarDecl varDecl = new GenericVarDecl();
 }
 {
-	typeName = VarDeclTypeName()
-	("=" defaultValue = Expression())?
+    VariableVarDecl(varDecl)
 	{
-		return VarDecl.parameter(typeName.type, typeName.name, defaultValue);
+		return VarDecl.parameter(varDecl.type, varDecl.name, varDecl.value);
 	}
 }
 
@@ -1472,7 +1491,7 @@ ExprProc ProcExpression() :
 }
 {
 	"proc" "(" valuePars = FormalValuePars() ")"
-	( "var" varDecls = VarDecls() )?
+	( "var" varDecls = BlockVarDecls() )?
 	( "do" | "begin" )
 	stmts = Statements()
 	( "end" | "endproc" )
@@ -1621,22 +1640,6 @@ TypeExpr Type() :
 	{
 		return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
 	}
-}
-
-TypeAndName VarDeclTypeName() :
-{
-	Token id;
-	TypeExpr type;
-	Expression size;
-}
-{
-	LOOKAHEAD(2)
-	type = Type()
-	id = <ID>
-	{ return new TypeAndName(type, id.image); }
-|
-	id = <ID>
-	{ return new TypeAndName(null, id.image); }
 }
 
 
@@ -1842,7 +1845,7 @@ StmtBlock BlockStmt() :
 	"begin"
 	(
 		"var"
-		varDecls = VarDecls()
+		varDecls = BlockVarDecls()
 		"do"
 	)?
 	stmts = Statements()
@@ -1910,7 +1913,7 @@ StmtWhile WhileStmt() :
 	cond = Expression()
 	(
 		"var"
-		varDecls = VarDecls()
+		varDecls = BlockVarDecls()
 	)?
 	"do"
 	statements = Statements()
@@ -1987,7 +1990,7 @@ ImmutableList<Statement> ForeachStmtBody() :
 |
 	(
 		"var"
-		varDecls = VarDecls()
+		varDecls = BlockVarDecls()
 	)?
 	"do"
 	stmts = Statements()

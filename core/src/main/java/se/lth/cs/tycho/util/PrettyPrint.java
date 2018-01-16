@@ -540,6 +540,12 @@ public class PrettyPrint implements ExpressionVisitor<Void,Void>, StatementVisit
 		out.append("}");
 		return null;
 	}
+
+	public Void visitExprMember(ExprMember e, Void p) {
+		out.append("/* module expression */");
+		return null;
+	}
+
 	public Void visitExprProc(ExprProc e, Void p) {
 		out.append("proc(");
 		String sep = "";
