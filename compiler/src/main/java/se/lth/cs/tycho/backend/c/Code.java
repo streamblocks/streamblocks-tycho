@@ -387,7 +387,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprApplication apply) {
-		Optional<String> directlyCallable = backend().callables().directlyCallableLambdaName(apply.getFunction());
+		Optional<String> directlyCallable = backend().callables().directlyCallableName(apply.getFunction());
 		String fn;
 		List<String> parameters = new ArrayList<>();
 		if (directlyCallable.isPresent()) {
@@ -536,7 +536,7 @@ public interface Code {
 	}
 
 	default void execute(StmtCall call) {
-		Optional<String> directlyCallable = backend().callables().directlyCallableProcName(call.getProcedure());
+		Optional<String> directlyCallable = backend().callables().directlyCallableName(call.getProcedure());
 		String proc;
 		List<String> parameters = new ArrayList<>();
 		if (directlyCallable.isPresent()) {

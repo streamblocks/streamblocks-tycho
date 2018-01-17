@@ -441,11 +441,11 @@ public interface Callables {
 		return backend().code().declaration(type, name);
 	}
 
-	default Optional<String> directlyCallableLambdaName(Expression lambda) {
+	default Optional<String> directlyCallableName(Expression expression) {
 		return Optional.empty();
 	}
 
-	default Optional<String> directlyCallableLambdaName(ExprLambda lambda) {
+	default Optional<String> directlyCallableName(ExprLambda lambda) {
 		Set<Variable> closure = backend().freeVariables().freeVariables(lambda);
 		if (closure.isEmpty()) {
 			return Optional.of(functionName(lambda));
@@ -454,10 +454,14 @@ public interface Callables {
 		}
 	}
 
-	default Optional<String> directlyCallableLambdaName(ExprVariable var) {
+	default Optional<String> directlyCallableName(ExprVariable var) {
 		VarDecl declaration = backend().varDecls().declaration(var.getVariable());
+		return directlyCallableName(declaration);
+	}
+
+	default Optional<String> directlyCallableName(VarDecl declaration) {
 		if (declaration.isConstant() && declaration.getValue() != null) {
-			return directlyCallableLambdaName(declaration.getValue());
+			return directlyCallableName(declaration.getValue());
 		} else if (declaration.isExternal()) {
 			return Optional.of(externalWrapperFunctionName(declaration));
 		} else {
@@ -465,49 +469,9 @@ public interface Callables {
 		}
 	}
 
-	default Optional<String> directlyCallableLambdaName(ExprMember member) {
+	default Optional<String> directlyCallableName(ExprMember member) {
 		VarDecl declaration = backend().moduleMembers().valueMember(member);
-		if (declaration.isConstant() && declaration.getValue() != null) {
-			return directlyCallableLambdaName(declaration.getValue());
-		} else if (declaration.isExternal()) {
-			return Optional.of(externalWrapperFunctionName(declaration));
-		} else {
-			return Optional.empty();
-		}
+		return directlyCallableName(declaration);
 	}
 
-	default Optional<String> directlyCallableProcName(Expression proc) {
-		return Optional.empty();
-	}
-
-	default Optional<String> directlyCallableProcName(ExprProc proc) {
-		Set<Variable> closure = backend().freeVariables().freeVariables(proc);
-		if (closure.isEmpty()) {
-			return Optional.of(functionName(proc));
-		} else {
-			return Optional.empty();
-		}
-	}
-
-	default Optional<String> directlyCallableProcName(ExprVariable var) {
-		VarDecl declaration = backend().varDecls().declaration(var.getVariable());
-		if (declaration.isConstant() && declaration.getValue() != null) {
-			return directlyCallableProcName(declaration.getValue());
-		} else if (declaration.isExternal()) {
-			return Optional.of(externalWrapperFunctionName(declaration));
-		} else {
-			return Optional.empty();
-		}
-	}
-
-	default Optional<String> directlyCallableProcName(ExprMember member) {
-		VarDecl declaration = backend().moduleMembers().valueMember(member);
-		if (declaration.isConstant() && declaration.getValue() != null) {
-			return directlyCallableProcName(declaration.getValue());
-		} else if (declaration.isExternal()) {
-			return Optional.of(externalWrapperFunctionName(declaration));
-		} else {
-			return Optional.empty();
-		}
-	}
 }
