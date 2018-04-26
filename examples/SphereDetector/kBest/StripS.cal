@@ -1,5 +1,0 @@
-
-actor StripS () V ==> S:
-
-	action [v] ==> [v["choices"]] end
-end

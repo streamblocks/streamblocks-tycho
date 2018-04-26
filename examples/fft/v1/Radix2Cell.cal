@@ -1,7 +1,0 @@
-
-actor Radix2Cell () X0, X1, W ==> Y0, Y1 :
-
-	action X0: [x0], X1: [x1], W: [w] ==> 
-	       Y0: [x0 + x1], Y1: [(x0 - x1)*w] end
-
-end 

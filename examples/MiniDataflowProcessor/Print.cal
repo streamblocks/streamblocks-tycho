@@ -1,9 +1,0 @@
-actor Print(msg) In ==> :
-
-	action [x] ==>
-	do
-		println(msg + x);
-	end
-end
-
-

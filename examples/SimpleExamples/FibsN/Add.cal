@@ -1,3 +1,0 @@
-actor Add () A, B ==> Out:
-  action [a], [b] ==> [a + b] end
-end
