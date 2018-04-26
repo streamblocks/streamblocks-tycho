@@ -21,7 +21,6 @@ public abstract class ToolAttribute extends AbstractIRNode {
 	public String getName(){
 		return name;
 	}
-	abstract public void print(java.io.PrintStream out);
 
 	String name;
 

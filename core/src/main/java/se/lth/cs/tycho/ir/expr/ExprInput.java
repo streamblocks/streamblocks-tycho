@@ -7,11 +7,6 @@ import se.lth.cs.tycho.ir.Port;
 
 public class ExprInput extends Expression {
 
-	@Override
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprInput(this, p);
-	}
-
 	public Port getPort() {
 		return port;
 	}

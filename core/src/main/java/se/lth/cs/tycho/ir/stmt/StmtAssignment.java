@@ -58,11 +58,6 @@ public class StmtAssignment extends Statement {
 	}
 
 	@Override
-	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
-		return v.visitStmtAssignment(this, p);
-	}
-
-	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(lvalue);
 		action.accept(expression);

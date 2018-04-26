@@ -48,11 +48,6 @@ public class StmtRead extends Statement {
 	}
 
 	@Override
-	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
-		throw new Error();
-	}
-
-	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(port);
 		lvalues.forEach(action);

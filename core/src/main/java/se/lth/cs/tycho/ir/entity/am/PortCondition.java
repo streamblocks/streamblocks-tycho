@@ -26,14 +26,6 @@ public class PortCondition extends Condition {
 		return isInputCondition ? ConditionKind.input : ConditionKind.output;
 	}
 
-	@Override
-	public <R, P> R accept(ConditionVisitor<R, P> v, P p) {
-		if (isInputCondition)
-			return v.visitInputCondition(this, p);
-		else
-			return v.visitOutputCondition(this, p);
-	}
-
 	public Port getPortName() {
 		return port;
 	}

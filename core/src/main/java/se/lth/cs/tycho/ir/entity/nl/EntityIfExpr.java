@@ -49,11 +49,6 @@ public class EntityIfExpr extends AbstractIRNode implements EntityExpr {
 		return falseEntity;
 	}
 
-	@Override
-	public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
-		return v.visitEntityIfExpr(this, p);
-	}
-
 	private EntityExpr trueEntity, falseEntity;
 	private Expression condition;
 

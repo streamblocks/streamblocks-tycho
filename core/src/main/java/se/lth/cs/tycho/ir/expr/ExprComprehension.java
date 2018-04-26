@@ -67,11 +67,6 @@ public class ExprComprehension extends Expression {
 	}
 
 	@Override
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(generator);
 		filters.forEach(action);

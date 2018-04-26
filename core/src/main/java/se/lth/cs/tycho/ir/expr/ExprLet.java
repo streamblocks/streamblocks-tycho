@@ -52,10 +52,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class ExprLet extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprLet(this, p);
-	}
-
 	public ExprLet(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls, Expression body) {
 		this(null, typeDecls, varDecls, body);
 	}

@@ -25,8 +25,6 @@ public abstract class Entity extends AbstractIRNode {
 		this.typeParameters = ImmutableList.from(typeParameters);
 	}
 
-	public abstract <R, P> R accept(EntityVisitor<R, P> visitor, P param);
-
 	public ImmutableList<PortDecl> getInputPorts() {
 		return inputPorts;
 	}

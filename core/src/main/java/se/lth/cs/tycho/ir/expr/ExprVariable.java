@@ -65,10 +65,6 @@ public class ExprVariable extends Expression {
 		return new ExprVariable(this, var);
 	}
 
-	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
-		return visitor.visitExprVariable(this, p);
-	}
-
 	public Variable getVariable() {
 		return var;
 	}

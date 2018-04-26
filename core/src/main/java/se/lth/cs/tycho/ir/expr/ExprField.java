@@ -36,11 +36,6 @@ public class ExprField extends Expression {
 	}
 
 	@Override
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprField(this, p);
-	}
-
-	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(structure);
 		action.accept(field);

@@ -50,10 +50,6 @@ import java.util.function.Consumer;
 
 public class ExprLambda extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprLambda(this, p);
-	}
-
 	public ExprLambda(List<ParameterVarDecl> valueParams, Expression body, TypeExpr returnTypeExpr) {
 		this(null, valueParams, body, returnTypeExpr);
 	}

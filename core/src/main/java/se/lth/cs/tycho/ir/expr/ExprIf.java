@@ -46,10 +46,6 @@ import java.util.function.Consumer;
 
 public class ExprIf extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprIf(this, p);
-	}
-
 	public ExprIf(Expression condition, Expression thenExpr, Expression elseExpr) {
 		this(null, condition, thenExpr, elseExpr);
 	}

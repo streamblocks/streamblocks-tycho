@@ -50,11 +50,6 @@ public class StructureConnectionStmt extends AttributableIRNode implements Struc
 		return src.toString() + " --> " + dst.toString();
 	}
 
-	@Override
-	public <R, P> R accept(StructureStmtVisitor<R, P> v, P p) {
-		return v.visitStructureConnectionStmt(this, p);
-	}
-
 	private final PortReference src, dst;
 
 	@Override

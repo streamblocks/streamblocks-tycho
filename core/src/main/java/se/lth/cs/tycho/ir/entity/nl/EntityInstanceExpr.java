@@ -46,11 +46,6 @@ public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr
 		return parameterAssignments;
 	}
 
-	@Override
-	public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
-		return v.visitEntityInstanceExpr(this, p);
-	}
-
 	private final EntityReference entity;
 	private final ImmutableList<ValueParameter> parameterAssignments;
 

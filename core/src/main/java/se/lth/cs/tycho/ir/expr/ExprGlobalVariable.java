@@ -38,9 +38,4 @@ public class ExprGlobalVariable extends Expression {
 	public ExprGlobalVariable transformChildren(Transformation transformation) {
 		return this;
 	}
-
-	@Override
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		throw new UnsupportedOperationException();
-	}
 }

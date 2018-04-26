@@ -11,10 +11,6 @@ import java.util.function.Consumer;
 
 public class ExprUnaryOp extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprUnaryOp(this, p);
-	}
-
 	public ExprUnaryOp(String operation, Expression operand) {
 		this(null, operation, operand);
 	}

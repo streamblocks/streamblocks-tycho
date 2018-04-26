@@ -31,11 +31,6 @@ public class EntityListExpr extends AbstractIRNode implements EntityExpr {
 		return entityList;
 	}
 
-	@Override
-	public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
-		return v.visitEntityListExpr(this, p);
-	}
-	
 	public String toString(){
 		StringBuffer sb = new StringBuffer("[");
 		String sep = "";

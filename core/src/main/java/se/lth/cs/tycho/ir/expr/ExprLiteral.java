@@ -48,10 +48,6 @@ import se.lth.cs.tycho.ir.IRNode;
 
 public class ExprLiteral extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
-		return visitor.visitExprLiteral(this, p);
-	}
-
 	public Kind getKind() {
 		return kind;
 	}

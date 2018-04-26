@@ -3,7 +3,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.util.PrettyPrint;
+
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
  *
@@ -30,12 +30,7 @@ public class ToolValueAttribute extends ToolAttribute {
 	public Expression getValue(){
 		return value;
 	}
-	public void print(java.io.PrintStream out){
-		out.append(name);
-		out.append(" = ");
-		new PrettyPrint().print(value);
-	}
-	
+
 	@Override
 	Kind getKind() {
 		return Kind.type;

@@ -44,12 +44,6 @@ import se.lth.cs.tycho.ir.IRNode;
 
 public abstract class Expression extends AbstractIRNode {
 
-	public abstract <R, P> R accept(ExpressionVisitor<R, P> v, P p);
-
-	public <R> R accept(ExpressionVisitor<R, Void> v) {
-		return accept(v, null);
-	}
-	
 	public Expression(IRNode original) {
 		super(original);
 	}

@@ -48,10 +48,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class ExprApplication extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
-		return visitor.visitExprApplication(this, p);
-	}
-
 	public ExprApplication(Expression function, ImmutableList<Expression> args) {
 		this(null, function, args);
 	}

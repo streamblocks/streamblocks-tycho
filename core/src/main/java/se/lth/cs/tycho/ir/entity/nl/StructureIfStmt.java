@@ -50,11 +50,6 @@ public class StructureIfStmt extends AbstractIRNode implements StructureStatemen
 		return falseStmt;
 	}
 
-	@Override
-	public <R, P> R accept(StructureStmtVisitor<R, P> v, P p) {
-		return v.visitStructureIfStmt(this, p);
-	}
-
 	private ImmutableList<StructureStatement> trueStmt, falseStmt;
 	private Expression condition;
 

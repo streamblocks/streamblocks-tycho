@@ -25,11 +25,6 @@ public class LValueDeref extends LValue {
 	}
 
 	@Override
-	public <R, P> R accept(LValueVisitor<R, P> visitor, P parameter) {
-		return visitor.visitLValueDeref(this, parameter);
-	}
-
-	@Override
 	public LValue transformChildren(Transformation transformation) {
 		return withVariable(transformation.applyChecked(LValueVariable.class, variable));
 	}

@@ -55,10 +55,6 @@ import java.util.function.Consumer;
 
 public class StmtBlock extends Statement {
 
-	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
-		return v.visitStmtBlock(this, p);
-	}
-
 	public StmtBlock(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<Statement> statements) {
 		this(null, typeDecls, varDecls, statements);

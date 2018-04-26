@@ -53,10 +53,6 @@ import java.util.function.Consumer;
 
 public class StmtWhile extends Statement {
 
-	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
-		return v.visitStmtWhile(this, p);
-	}
-
 	public StmtWhile(Expression condition, List<Statement> body) {
 		this(null, condition, body);
 	}

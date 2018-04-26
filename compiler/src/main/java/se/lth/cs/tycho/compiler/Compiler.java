@@ -57,7 +57,6 @@ public class Compiler {
 				// For debugging
 				new PrintLoadedSourceUnits(),
 				new PrintTreesPhase(),
-				new PrettyPrintPhase(),
 
 				// Post parse
 				new RemoveExternStubPhase(),

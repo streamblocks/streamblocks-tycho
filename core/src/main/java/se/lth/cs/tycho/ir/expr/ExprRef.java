@@ -42,8 +42,4 @@ public class ExprRef extends Expression {
 		return copy(transformation.applyChecked(Variable.class, variable));
 	}
 
-	@Override
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		throw new UnsupportedOperationException();
-	}
 }

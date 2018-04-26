@@ -10,10 +10,6 @@ import java.util.function.Consumer;
 public class ExprList extends Expression {
 	private ImmutableList<Expression> elements;
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprList(this, p);
-	}
-
 	public ExprList(List<Expression> elements) {
 		this(null, elements);
 	}

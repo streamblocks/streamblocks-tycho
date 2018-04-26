@@ -49,10 +49,6 @@ import java.util.function.Consumer;
 public class ExprSet extends Expression {
 	private ImmutableList<Expression> elements;
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprSet(this, p);
-	}
-
 	public ExprSet(List<Expression> elements) {
 		this(null, elements);
 	}

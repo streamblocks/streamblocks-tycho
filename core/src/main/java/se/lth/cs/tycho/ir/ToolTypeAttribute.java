@@ -2,7 +2,6 @@ package se.lth.cs.tycho.ir;
 import java.util.Objects;
 
 import se.lth.cs.tycho.ir.type.TypeExpr;
-import se.lth.cs.tycho.util.PrettyPrint;
 
 /**
  * @author Per Andersson <Per.Andersson@cs.lth.se>
@@ -27,11 +26,6 @@ public class ToolTypeAttribute extends ToolAttribute {
 	
 	public TypeExpr getType(){
 		return type;
-	}
-	public void print(java.io.PrintStream out){
-		out.append(name);
-		out.append(" : ");
-		new PrettyPrint().print(type);
 	}
 
 	private TypeExpr type;

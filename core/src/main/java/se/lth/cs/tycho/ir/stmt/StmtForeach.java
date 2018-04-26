@@ -15,10 +15,6 @@ public class StmtForeach extends Statement {
 	private final ImmutableList<Expression> filters;
 	private final ImmutableList<Statement> body;
 
-	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
-		return v.visitStmtForeach(this, p);
-	}
-
 	public StmtForeach(Generator generators, List<Expression> filters, List<Statement> body) {
 		this(null, generators, filters, body);
 	}

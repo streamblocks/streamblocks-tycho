@@ -3,9 +3,7 @@ package se.lth.cs.tycho.ir.entity.am;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Controller;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -57,11 +55,6 @@ public class ActorMachine extends Entity {
 		return copy(inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
 	}
 
-
-	@Override
-	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
-		return visitor.visitActorMachine(this, param);
-	}
 
 	public ActorMachine(List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 						List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes, Controller controller,

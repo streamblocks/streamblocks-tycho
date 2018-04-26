@@ -16,10 +16,6 @@ import java.util.function.Consumer;
 
 public class ExprBinaryOp extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprBinaryOp(this, p);
-	}
-
 	public ExprBinaryOp(ImmutableList<String> operations, ImmutableList<Expression> operands) {
 		this(null, operations, operands);
 	}

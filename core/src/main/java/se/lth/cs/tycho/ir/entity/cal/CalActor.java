@@ -45,7 +45,6 @@ import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.EntityVisitor;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -105,11 +104,6 @@ public class CalActor extends Entity {
 		}
 		return new CalActor(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
 				initializers, actions, scheduleFSM, process, priorities, invariants);
-	}
-
-	@Override
-	public <R, P> R accept(EntityVisitor<R, P> visitor, P param) {
-		return visitor.visitCalActor(this, param);
 	}
 
 	public ImmutableList<TypeDecl> getTypeDecls() {

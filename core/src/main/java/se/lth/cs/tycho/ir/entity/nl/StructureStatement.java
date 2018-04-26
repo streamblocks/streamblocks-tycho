@@ -9,8 +9,4 @@ import se.lth.cs.tycho.ir.IRNode;
  */
 
 public interface StructureStatement extends IRNode {
-	<R, P> R accept(StructureStmtVisitor<R, P> v, P p);
-	default <R> R accept(StructureStmtVisitor<R, Void> v) {
-		return accept(v, null);
-	}
 }

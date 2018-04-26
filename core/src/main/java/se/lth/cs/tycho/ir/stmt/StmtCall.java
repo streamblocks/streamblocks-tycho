@@ -50,10 +50,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class StmtCall extends Statement {
 
-	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
-		return v.visitStmtCall(this, p);
-	}
-
 	public StmtCall(Expression procedure, List<Expression> args) {
 		this(null, procedure, args);
 	}

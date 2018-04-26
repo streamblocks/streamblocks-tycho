@@ -54,10 +54,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class StmtIf extends Statement {
 
-	public <R, P> R accept(StatementVisitor<R, P> v, P p) {
-		return v.visitStmtIf(this, p);
-	}
-
 	public StmtIf(Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
 		this(null, condition, thenBranch, elseBranch);
 	}

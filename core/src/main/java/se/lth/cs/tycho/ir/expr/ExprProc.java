@@ -50,10 +50,6 @@ import java.util.function.Consumer;
 
 public class ExprProc extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprProc(this, p);
-	}
-
 	public ExprProc(List<ParameterVarDecl> valueParams, List<Statement> body) {
 		this(null, valueParams, body);
 	}

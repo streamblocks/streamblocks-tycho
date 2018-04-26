@@ -22,19 +22,10 @@ public class PredicateCondition extends Condition {
 		return ConditionKind.predicate;
 	}
 
-	@Override
-	public <R, P> R accept(ConditionVisitor<R, P> v, P p) {
-		return v.visitPredicateCondition(this, p);
-	}
-
 	public Expression getExpression() {
 		return expression;
 	}
 	
-	public NamespaceDecl getLocation() {
-		return null; // TODO remove this method
-	}
-
 	public PredicateCondition(Expression expression) {
 		this(null, expression);
 	}

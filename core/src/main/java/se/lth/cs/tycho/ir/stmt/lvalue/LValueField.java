@@ -57,11 +57,6 @@ public class LValueField extends LValue {
 	}
 
 	@Override
-	public <R, P> R accept(LValueVisitor<R, P> visitor, P parameter) {
-		return visitor.visitLValueField(this, parameter);
-	}
-
-	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(structure);
 		action.accept(field);

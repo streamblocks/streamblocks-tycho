@@ -50,10 +50,6 @@ import java.util.function.Consumer;
 
 public class ExprIndexer extends Expression {
 
-	public <R, P> R accept(ExpressionVisitor<R, P> visitor, P p) {
-		return visitor.visitExprIndexer(this, p);
-	}
-
 	public ExprIndexer(Expression structure, Expression index) {
 		this(null, structure, index);
 	}

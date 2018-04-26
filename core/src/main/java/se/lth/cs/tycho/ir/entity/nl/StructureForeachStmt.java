@@ -47,11 +47,6 @@ public class StructureForeachStmt extends AbstractIRNode implements StructureSta
 	private final ImmutableList<StructureStatement> statements;
 
 	@Override
-	public <R, P> R accept(StructureStmtVisitor<R, P> v, P p) {
-		return v.visitStructureForeachStmt(this, p);
-	}
-
-	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(generator);
 		filters.forEach(action);

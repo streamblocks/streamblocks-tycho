@@ -72,10 +72,6 @@ public class ExprMap extends Expression {
 		}
 	}
 
-	public <R, P> R accept(ExpressionVisitor<R, P> v, P p) {
-		return v.visitExprMap(this, p);
-	}
-
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		mappings.forEach(entry -> {

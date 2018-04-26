@@ -44,11 +44,6 @@ public class LValueVariable extends LValue {
 	}
 
 	@Override
-	public <R, P> R accept(LValueVisitor<R, P> visitor, P parameter) {
-		return visitor.visitLValueVariable(this, parameter);
-	}
-
-	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(variable);
 	}
