@@ -36,7 +36,7 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
-		globalVariableInitializer(Stream.concat(getGlobalVarDecls(), getModuleVarDecls()));
+		globalVariableInitializer(getGlobalVarDecls());
 	}
 
 	default void generateGlobalHeader() {
@@ -55,21 +55,15 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().declareEnvironmentForCallablesInScope(backend().task());
 		emitter().emit("");
-		globalVariableDeclarations(Stream.concat(getGlobalVarDecls(), getModuleVarDecls()));
+		globalVariableDeclarations(getGlobalVarDecls());
 		emitter().emit("");
 		emitter().emit("#endif");
 	}
 
-	default Stream<GlobalVarDecl> getGlobalVarDecls() {
+	default Stream<VarDecl> getGlobalVarDecls() {
 		return backend().task()
 					.getSourceUnits().stream()
 					.flatMap(unit -> unit.getTree().getVarDecls().stream());
-	}
-
-	default Stream<LocalVarDecl> getModuleVarDecls() {
-		return backend().task().getSourceUnits().stream()
-				.flatMap(unit -> unit.getTree().getModuleDecls().stream())
-				.flatMap(module -> module.getValueComponents().stream());
 	}
 
 	default void globalVariableDeclarations(Stream<VarDecl> varDecls) {

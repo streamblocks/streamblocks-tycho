@@ -6,6 +6,10 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ParameterTypeDecl extends TypeDecl {
+	public ParameterTypeDecl(String name) {
+		this(null, name);
+	}
+
 	private ParameterTypeDecl(ParameterTypeDecl original, String name) {
 		super(original, name);
 	}

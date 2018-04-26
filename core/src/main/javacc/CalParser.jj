@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.type.*;
-import se.lth.cs.tycho.ir.module.*;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
@@ -166,7 +165,6 @@ TOKEN :
 |	< LET: "let" >
 |	< MAP: "map" >
 |	< MOD: "mod" >
-|	< MODULE: "module" >
 |	< MULTI: "multi" >
 |	< MUTABLE: "mutable" >
 |	< NAMESPACE: "namespace" >
@@ -338,13 +336,11 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 	ImmutableList.Builder<GlobalVarDecl> varDecls = ImmutableList.builder();
 	ImmutableList.Builder<GlobalEntityDecl> entityDecls = ImmutableList.builder();
 	ImmutableList.Builder<GlobalTypeDecl> typeDecls = ImmutableList.builder();
-	ImmutableList.Builder<ModuleDecl> moduleDecls = ImmutableList.builder();
 
 	Import i;
 	GlobalVarDecl v;
 	GlobalEntityDecl e;
 	GlobalTypeDecl t;
-	ModuleDecl m;
 }
 {
 	(Annotation())*
@@ -357,11 +353,9 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 		e = ActorDecl() { entityDecls.add(e); }
 	|
 		e = NetworkDecl() { entityDecls.add(e); }
-	|
-	    m = ModuleDecl() { moduleDecls.add(m); }
 	)*
 	{
-		return new NamespaceDecl(name, imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build(), moduleDecls.build());
+		return new NamespaceDecl(name, imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
 	}
 }
 
@@ -390,43 +384,6 @@ Availability Availability() :
 	"private" { return Availability.PRIVATE; }
 |
 	"local" { return Availability.LOCAL; }
-}
-
-ModuleDecl ModuleDecl() :
-{
-    Token first;
-    Token name;
-    ImmutableList.Builder<ParameterVarDecl> valPars = ImmutableList.builder();
-    LocalVarDecl varDecl;
-    ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
-    Token last;
-}
-{
-    first = "module" name = <ID> "(" ")" ":"
-    (
-        varDecl = LocalVarDecl() { varDecls.add(varDecl); }
-    )*
-    last = "end"
-    {
-        return setPosition(new ModuleDecl(name.image, valPars.build(), null, null, null, varDecls.build(), null), first, last);
-    }
-}
-
-ModuleExpr ModuleExpr() :
-{
-    Token name;
-    Token lastToken;
-    ImmutableList.Builder<TypeParameter> typeParameters = ImmutableList.builder();
-    ImmutableList.Builder<ValueParameter> valueParameters = ImmutableList.builder();
-}
-{
-    name = <ID>
-    "("
-    ParameterAssignments(typeParameters, valueParameters)
-    lastToken = ")"
-    {
-        return setPosition(new ModuleExpr(name.image, typeParameters.build(), valueParameters.build()), name, lastToken);
-    }
 }
 
 void VariableVarDecl(GenericVarDecl varDecl) :
@@ -1219,7 +1176,6 @@ Expression PrimaryExpression() :
 	Expression index;
 	Field field;
 	Token lastToken;
-	Token member;
     ImmutableList.Builder<TypeParameter> typeParameters;
     ImmutableList.Builder<ValueParameter> valueParameters;
 }
@@ -1256,9 +1212,6 @@ Expression SingleExpression() :
 }
 {
 	(
-	    LOOKAHEAD(MemberExpression())
-	    expr = MemberExpression()
-	|
 		expr = VariableExpression()
 	|
 		expr = ExpressionLiteral()
@@ -1280,20 +1233,6 @@ Expression SingleExpression() :
 		expr = MapExpression()
 	)
 	{ return expr; }
-}
-
-ExprMember MemberExpression() :
-{
-    ModuleExpr module;
-    Token member;
-}
-{
-    module = ModuleExpr()
-    "::"
-    member = <ID>
-    {
-        return setPosition(new ExprMember(module, member.image), module, member);
-    }
 }
 
 ExprVariable VariableExpression() :
@@ -1474,6 +1413,30 @@ ExprLambda LambdaExpression() :
 	}
 }
 
+void FormalParameters(ImmutableList.Builder<ParameterTypeDecl> typeDecls, ImmutableList.Builder<ParameterVarDecl> varDecls) :
+{
+    ParameterTypeDecl typeDecl;
+    ParameterVarDecl varDecl;
+}
+{
+    (
+        FormalParameter(typeDecls, varDecls)
+        (
+            "," FormalParameter(typeDecls, varDecls)
+        )*
+    )?
+}
+
+void FormalParameter(ImmutableList.Builder<ParameterTypeDecl> typeDecls, ImmutableList.Builder<ParameterVarDecl> varDecls) :
+{
+    ParameterTypeDecl typeDecl;
+    ParameterVarDecl varDecl;
+}
+{
+    typeDecl = FormalTypeParameter() { typeDecls.add(typeDecl); }
+|
+    varDecl = FormalValueParameter() { varDecls.add(varDecl); }
+}
 
 ImmutableList<ParameterVarDecl> FormalValuePars() :
 {
@@ -1499,6 +1462,17 @@ ParameterVarDecl FormalValueParameter() :
 	{
 		return VarDecl.parameter(varDecl.type, varDecl.name, varDecl.value);
 	}
+}
+
+ParameterTypeDecl FormalTypeParameter() :
+{
+    Token id;
+}
+{
+    "type" id=<ID>
+    {
+        return setPosition(new ParameterTypeDecl(id.image), id, id);
+    }
 }
 
 

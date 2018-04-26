@@ -8,38 +8,39 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.ir.module.ModuleDecl;
+import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
 
 import java.util.stream.Stream;
 
-public interface ModuleScopes {
-    ModuleKey<ModuleScopes> key = task -> MultiJ.from(Implementation.class)
+public interface TypeScopes {
+    ModuleKey<TypeScopes> key = task -> MultiJ.from(Implementation.class)
             .bind("tree").to(task.getModule(TreeShadow.key))
             .instance();
 
-    ImmutableList<ModuleDecl> declarations(IRNode node);
+    ImmutableList<TypeDecl> declarations(IRNode node);
 
     @Module
-    interface Implementation extends ModuleScopes {
+    interface Implementation extends TypeScopes {
 
         @Binding(BindingKind.INJECTED)
         TreeShadow tree();
 
         @Override
-        default ImmutableList<ModuleDecl> declarations(IRNode node) {
+        default ImmutableList<TypeDecl> declarations(IRNode node) {
             return ImmutableList.empty();
         }
 
-        default ImmutableList<ModuleDecl> declarations(NamespaceDecl ns) {
-            Stream<ModuleDecl> local = ns.getModuleDecls().stream();
+        default ImmutableList<TypeDecl> declarations(NamespaceDecl ns) {
+            Stream<GlobalTypeDecl> local = ns.getTypeDecls().stream();
 
             CompilationTask task = (CompilationTask) tree().root();
-            Stream<ModuleDecl> global = task.getSourceUnits().stream()
+            Stream<GlobalTypeDecl> global = task.getSourceUnits().stream()
                     .map(SourceUnit::getTree)
                     .filter(decl -> decl.getQID().equals(ns.getQID()))
-                    .map(NamespaceDecl::getModuleDecls)
+                    .map(NamespaceDecl::getTypeDecls)
                     .flatMap(ImmutableList::stream);
 
             return Stream.concat(local, global)

@@ -58,7 +58,6 @@ public interface ExpressionVisitor<R,P> {
     R visitExprList(ExprList e, P p);
     R visitExprLiteral(ExprLiteral e, P p);
     R visitExprMap(ExprMap e, P p);
-    R visitExprMember(ExprMember e, P p);
     R visitExprProc(ExprProc e, P p);
     R visitExprSet(ExprSet e, P p);
     R visitExprUnaryOp(ExprUnaryOp e, P p);

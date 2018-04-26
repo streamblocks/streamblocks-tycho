@@ -17,6 +17,7 @@ import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.ProcType;
 import se.lth.cs.tycho.type.RealType;
 import se.lth.cs.tycho.type.Type;
+import se.lth.cs.tycho.type.TypeVariable;
 
 import java.util.List;
 import java.util.OptionalInt;

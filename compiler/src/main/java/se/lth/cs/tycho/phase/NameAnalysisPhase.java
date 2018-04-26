@@ -5,8 +5,6 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.EntityDeclarations;
-import se.lth.cs.tycho.attribute.ModuleDeclarations;
-import se.lth.cs.tycho.attribute.ModuleMembers;
 import se.lth.cs.tycho.attribute.ParameterDeclarations;
 import se.lth.cs.tycho.attribute.Ports;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
@@ -21,10 +19,6 @@ import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
-import se.lth.cs.tycho.ir.expr.ExprMember;
-import se.lth.cs.tycho.ir.expr.ExprRef;
-import se.lth.cs.tycho.ir.module.ModuleDecl;
-import se.lth.cs.tycho.ir.module.ModuleExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
@@ -42,8 +36,6 @@ public class NameAnalysisPhase implements Phase {
 				.bind("ports").to(task.getModule(Ports.key))
 				.bind("variableDeclarations").to(task.getModule(VariableDeclarations.key))
 				.bind("entityDeclarations").to(task.getModule(EntityDeclarations.key))
-				.bind("moduleDeclarations").to(task.getModule(ModuleDeclarations.key))
-				.bind("moduleMembers").to(task.getModule(ModuleMembers.key))
 				.bind("parameterDeclarations").to(task.getModule(ParameterDeclarations.key))
 				.bind("reporter").to(context.getReporter())
 				.instance();
@@ -65,11 +57,11 @@ public class NameAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		EntityDeclarations entityDeclarations();
 
-		@Binding(BindingKind.INJECTED)
-		ModuleDeclarations moduleDeclarations();
+		//@Binding(BindingKind.INJECTED)
+		//ModuleDeclarations moduleDeclarations();
 
-		@Binding(BindingKind.INJECTED)
-		ModuleMembers moduleMembers();
+		//@Binding(BindingKind.INJECTED)
+		//ModuleMembers moduleMembers();
 
 		@Binding(BindingKind.INJECTED)
 		ParameterDeclarations parameterDeclarations();
@@ -119,21 +111,6 @@ public class NameAnalysisPhase implements Phase {
 		default void checkNames(EntityReferenceLocal reference) {
 			if (entityDeclarations().declaration(reference) == null) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", sourceUnit(reference), reference));
-			}
-		}
-
-		default void checkNames(ModuleExpr moduleExpr) {
-			if (moduleDeclarations().declaration(moduleExpr) == null) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Module " + moduleExpr.getName() + " is not declared.", sourceUnit(moduleExpr), moduleExpr));
-			}
-		}
-
-		default void checkNames(ExprMember member) {
-			ModuleDecl module = moduleDeclarations().declaration(member.getModule());
-			if (module != null) {
-				if (moduleMembers().valueMember(member) == null) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Module " + member.getModule().getName() + " does not contain value " + member.getMember() + ".", sourceUnit(member), member));
-				}
 			}
 		}
 

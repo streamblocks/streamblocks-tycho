@@ -7,7 +7,6 @@ import se.lth.cs.tycho.attribute.Closures;
 import se.lth.cs.tycho.attribute.ConstantEvaluator;
 import se.lth.cs.tycho.attribute.FreeVariables;
 import se.lth.cs.tycho.attribute.GlobalNames;
-import se.lth.cs.tycho.attribute.ModuleMembers;
 import se.lth.cs.tycho.attribute.ScopeDependencies;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
@@ -58,9 +57,9 @@ public interface Backend {
 	@Binding(LAZY) default ScopeDependencies scopeDependencies() {
 		return task().getModule(ScopeDependencies.key);
 	}
-	@Binding(LAZY) default ModuleMembers moduleMembers() {
-		return task().getModule(ModuleMembers.key);
-	}
+	// @Binding(LAZY) default ModuleMembers moduleMembers() {
+		// return task().getModule(ModuleMembers.key);
+	// }
 
 	// Code generator
 	@Binding(MODULE) Lists lists();

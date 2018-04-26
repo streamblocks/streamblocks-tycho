@@ -6,17 +6,10 @@ import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.SourceUnit;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
-import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
 import se.lth.cs.tycho.ir.Generator;
-import se.lth.cs.tycho.ir.type.NominalTypeExpr;
-import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
-import se.lth.cs.tycho.ir.type.TupleTypeExpr;
-import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.InputVarDecl;
@@ -28,8 +21,14 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
+import se.lth.cs.tycho.ir.type.NominalTypeExpr;
+import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
+import se.lth.cs.tycho.ir.type.TupleTypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.phase.TreeShadow;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.type.*;
@@ -54,7 +53,7 @@ public interface Types {
             return MultiJ.from(Implementation.class)
 					.bind("ports").to(unit.getModule(Ports.key))
 					.bind("variables").to(unit.getModule(VariableDeclarations.key))
-					.bind("members").to(unit.getModule(ModuleMembers.key))
+					.bind("parameters").to(unit.getModule(ParameterDeclarations.key))
 					.bind("constants").to(unit.getModule(ConstantEvaluator.key))
 					.bind("tree").to(unit.getModule(TreeShadow.key))
 					.bind("globalNames").to(unit.getModule(GlobalNames.key))
@@ -77,7 +76,7 @@ public interface Types {
 		VariableDeclarations variables();
 
 		@Binding(BindingKind.INJECTED)
-		ModuleMembers members();
+		ParameterDeclarations parameters();
 
 		@Binding(BindingKind.INJECTED)
 		Ports ports();
@@ -358,10 +357,6 @@ public interface Types {
 
 		Type computeType(Expression e);
 
-		default Type computeType(ExprMember e) {
-			return declaredType(members().valueMember(e));
-		}
-
 		default Type computeType(ExprDeref e) {
 			Type referenceType = type(e.getReference());
 			if (referenceType instanceof RefType) {
@@ -574,7 +569,7 @@ public interface Types {
 			return TopType.INSTANCE;
 		}
 
-		default Type leastUpperBound(BottomType a, BottomType b) { return BoolType.INSTANCE; }
+		default Type leastUpperBound(BottomType a, BottomType b) { return BottomType.INSTANCE; }
 		default Type leastUpperBound(BottomType a, Type b) { return b; }
 		default Type leastUpperBound(Type a, BottomType b) { return a; }
 
@@ -667,5 +662,6 @@ public interface Types {
 				return BottomType.INSTANCE;
 			}
 		}
+
 	}
 }

@@ -10,8 +10,6 @@ import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
-import se.lth.cs.tycho.ir.expr.ExprMember;
-import se.lth.cs.tycho.ir.module.ModuleDecl;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,8 +40,6 @@ public interface Variables {
 			return Stream.concat(ns.parts().stream(), Stream.of(decl.getName()))
 					.map(this::escape)
 					.collect(Collectors.joining("_", "g_", ""));
-		} else if (parent instanceof ModuleDecl) {
-			return "m_" + escape(((ModuleDecl) parent).getName()) + "_" + escape(decl.getName());
 		} else {
 			return "l_" + escape(decl.getName());
 		}
@@ -74,9 +70,5 @@ public interface Variables {
 		} else {
 			return declarationName(decl);
 		}
-	}
-
-	default String memberName(ExprMember member) {
-		return declarationName(backend().moduleMembers().valueMember(member));
 	}
 }

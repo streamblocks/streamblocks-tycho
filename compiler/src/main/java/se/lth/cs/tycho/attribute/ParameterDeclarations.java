@@ -8,10 +8,9 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityReference;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.phase.TreeShadow;
 
@@ -22,7 +21,7 @@ public interface ParameterDeclarations {
             .instance();
 
     ParameterVarDecl valueParameterDeclaration(ValueParameter parameter);
-    TypeDecl typeParameterDeclaration(TypeParameter parameter);
+    ParameterTypeDecl typeParameterDeclaration(TypeParameter parameter);
 
     @Module
     interface Implementation extends ParameterDeclarations {
@@ -55,11 +54,11 @@ public interface ParameterDeclarations {
         }
 
         @Override
-        default TypeDecl typeParameterDeclaration(TypeParameter parameter) {
+        default ParameterTypeDecl typeParameterDeclaration(TypeParameter parameter) {
             return typeParameterLookup(tree().parent(parameter), parameter.getName());
         }
 
-        default TypeDecl typeParameterLookup(IRNode node, String name) {
+        default ParameterTypeDecl typeParameterLookup(IRNode node, String name) {
             return null;
         }
     }

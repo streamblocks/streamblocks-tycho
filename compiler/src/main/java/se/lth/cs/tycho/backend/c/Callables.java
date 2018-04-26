@@ -11,7 +11,6 @@ import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
-import se.lth.cs.tycho.ir.expr.ExprMember;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -467,11 +466,6 @@ public interface Callables {
 		} else {
 			return Optional.empty();
 		}
-	}
-
-	default Optional<String> directlyCallableName(ExprMember member) {
-		VarDecl declaration = backend().moduleMembers().valueMember(member);
-		return directlyCallableName(declaration);
 	}
 
 }

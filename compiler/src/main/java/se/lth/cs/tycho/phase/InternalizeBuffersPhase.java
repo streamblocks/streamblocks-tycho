@@ -100,7 +100,7 @@ public class InternalizeBuffersPhase implements Phase {
 		Network result = task.getNetwork()
 				.withConnections(connections)
 				.withInstances(resultInstances.build());
-		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), null, null, entities.build(), null, null));
+		SourceUnit unit = new SyntheticSourceUnit(new NamespaceDecl(QID.empty(), null, null, entities.build(), null));
 		return task.withNetwork(result)
 				.withSourceUnits(ImmutableList.<SourceUnit> builder().addAll(task.getSourceUnits()).add(unit).build());
 	}
