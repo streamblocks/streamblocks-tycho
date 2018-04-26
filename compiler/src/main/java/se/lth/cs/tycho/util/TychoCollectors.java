@@ -41,7 +41,7 @@ public final class TychoCollectors {
 		private final ArrayList<E> elements;
 		MinColl(Comparator<E> comparator) {
 			this.comparator = comparator;
-			this.elements = new ArrayList<E>();
+			this.elements = new ArrayList<>();
 		}
 
 		Stream<E> stream() {

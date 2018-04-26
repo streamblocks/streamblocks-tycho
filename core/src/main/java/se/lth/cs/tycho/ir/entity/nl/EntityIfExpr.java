@@ -4,7 +4,6 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 

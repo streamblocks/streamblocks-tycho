@@ -142,7 +142,7 @@ public class BitSets {
 	
 	public static void main(String[] args) {
 		BitSet bs = new BitSet();
-		Set<Integer> is = new TreeSet<Integer>();
+		Set<Integer> is = new TreeSet<>();
 		Random rng = new Random();
 		final int generated = 10000;
 		final int range = 10000;

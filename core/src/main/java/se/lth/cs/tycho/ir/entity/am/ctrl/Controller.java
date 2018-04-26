@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.entity.am.ctrl;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
@@ -21,6 +22,6 @@ public interface Controller {
 				s.getInstructions().forEach(enqueueTargets);
 			}
 		}
-		return result.stream().collect(Collectors.toList());
+		return new ArrayList<>(result);
 	}
 }

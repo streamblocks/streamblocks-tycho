@@ -14,15 +14,15 @@ public class ImmutableEntry<K, V> extends SimpleImmutableEntry<K, V> {
 	}
 	
 	public static <K, V> ImmutableEntry<K, V> of(K key, V value) {
-		return new ImmutableEntry<K, V>(key, value);
+		return new ImmutableEntry<>(key, value);
 	}
 	
 	public static <K, V> ImmutableEntry<K, V> copyOf(Entry<? extends K, ? extends V> entry) {
-		return new ImmutableEntry<K, V>(entry.getKey(), entry.getValue());
+		return new ImmutableEntry<>(entry.getKey(), entry.getValue());
 	}
 	
 	public ImmutableEntry<K, V> copy(K key, V value) {
 		if (key == getKey() && value == getValue()) return this;
-		return new ImmutableEntry<K, V>(key, value);
+		return new ImmutableEntry<>(key, value);
 	}
 }

@@ -2,10 +2,8 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
-import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 

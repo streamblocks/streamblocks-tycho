@@ -2,8 +2,8 @@ package se.lth.cs.tycho.compiler;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.parsing.orcc.ParseException;
 import se.lth.cs.tycho.parsing.orcc.OrccParser;
+import se.lth.cs.tycho.parsing.orcc.ParseException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 

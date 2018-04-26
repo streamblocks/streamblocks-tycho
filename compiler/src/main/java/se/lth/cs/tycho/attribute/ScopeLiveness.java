@@ -48,9 +48,7 @@ public class ScopeLiveness {
 			if (!current.equals(computed)) {
 				alive.put(s, computed);
 				for (Instruction i : outgoing(s)) {
-					for (State t : targetStates(i)) {
-						states.add(t);
-					}
+					states.addAll(targetStates(i));
 				}
 			}
 		}
@@ -71,14 +69,7 @@ public class ScopeLiveness {
 	}
 
 	private BitSet kill(Instruction i) {
-		if (true) {
-			return invalidation.killed(i);
-		} else {
-			return i.accept(
-					exec -> transientScopes(),
-					test -> new BitSet(),
-					wait -> new BitSet());
-		}
+		return invalidation.killed(i);
 	}
 
 	private BitSet aliveOut(Instruction i) {

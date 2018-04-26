@@ -25,7 +25,7 @@ public interface AlternativeChannels extends Channels {
 				.mapToObj(this::sizeToString)
 				.collect(Collectors.toList());
 		List<String> bufferSizes = Arrays.stream(size)
-				.mapToObj(s -> sizeToBufferSize(s))
+				.mapToObj(this::sizeToBufferSize)
 				.collect(Collectors.toList());
 
 		emitter().emit("typedef struct {");

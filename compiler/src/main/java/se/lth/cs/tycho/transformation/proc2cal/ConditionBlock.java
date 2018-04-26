@@ -42,14 +42,14 @@ public class ConditionBlock extends Block {
 		if (isReplaced()) {
 			throw new IllegalStateException("The node is replaced by another node.");
 		}
-		this.successorIfTrue = successorIfTrue == null ? null : successorIfTrue;
+		this.successorIfTrue = successorIfTrue;
 	}
 
 	public void setSuccessorIfFalse(Block successorIfFalse) {
 		if (isReplaced()) {
 			throw new IllegalStateException("The node is replaced by another node.");
 		}
-		this.successorIfFalse = successorIfFalse == null ? null : successorIfFalse;
+		this.successorIfFalse = successorIfFalse;
 	}
 
 	@Override

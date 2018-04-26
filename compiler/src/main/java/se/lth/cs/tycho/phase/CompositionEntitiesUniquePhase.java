@@ -28,7 +28,7 @@ public class CompositionEntitiesUniquePhase implements Phase {
 			for (String instance : instances) {
 				task = DuplicateEntity.duplicateEntity(task, instance, context.getUniqueNumbers());
 			}
-			return (CompilationTask) task.deepClone();
+			return task.deepClone();
 		} else {
 			return task;
 		}

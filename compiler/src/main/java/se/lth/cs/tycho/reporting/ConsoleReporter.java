@@ -9,7 +9,7 @@ public class ConsoleReporter implements Reporter {
 
 	public ConsoleReporter(Set<Diagnostic.Kind> kinds) {
 		this.kinds = kinds;
-		counts = new EnumMap<Diagnostic.Kind, Integer>(Diagnostic.Kind.class);
+		counts = new EnumMap<>(Diagnostic.Kind.class);
 		for (Diagnostic.Kind kind : Diagnostic.Kind.values()) {
 			counts.put(kind, 0);
 		}

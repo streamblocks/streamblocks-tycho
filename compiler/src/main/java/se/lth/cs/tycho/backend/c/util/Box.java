@@ -33,7 +33,7 @@ public final class Box<T> {
 	 * @return a new Box with the given content
 	 */
 	public static <T> Box<T> ofNullable(T content) {
-		return new Box<T>(content);
+		return new Box<>(content);
 	}
 
 	/**
@@ -42,7 +42,7 @@ public final class Box<T> {
 	 * @return an empty Box
 	 */
 	public static <T> Box<T> empty() {
-		return new Box<T>(null);
+		return new Box<>(null);
 	}
 
 	/**

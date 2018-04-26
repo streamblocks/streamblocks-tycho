@@ -3,7 +3,6 @@ package se.lth.cs.tycho.compiler;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.parsing.cal.CalParser;
-import se.lth.cs.tycho.parsing.cal.CalParserTokenManager;
 import se.lth.cs.tycho.parsing.cal.ParseException;
 import se.lth.cs.tycho.parsing.cal.Token;
 import se.lth.cs.tycho.reporting.Diagnostic;

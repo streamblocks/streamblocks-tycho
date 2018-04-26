@@ -49,7 +49,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 				newList[i] = function.apply(list[i]);
 				i += 1;
 			}
-			return new ImmutableList<F>(newList, size);
+			return new ImmutableList<>(newList, size);
 		}
 	}
 
@@ -83,7 +83,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	 * @return a Builder
 	 */
 	public static <E> Builder<E> builder() {
-		return new Builder<E>();
+		return new Builder<>();
 	}
 
 	private static final ImmutableList EMPTY_LIST = new ImmutableList(null, 0);
@@ -106,7 +106,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	 * @return a list
 	 */
 	public static <E> ImmutableList<E> of(E v) {
-		return new ImmutableList<E>(new Object[] { v }, 1);
+		return new ImmutableList<>(new Object[]{v}, 1);
 	}
 
 	/**
@@ -240,7 +240,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		 * @return a list
 		 */
 		public ImmutableList<E> build() {
-			return new ImmutableList<E>(list, size);
+			return new ImmutableList<>(list, size);
 		}
 	}
 	

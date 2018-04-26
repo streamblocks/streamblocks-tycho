@@ -29,7 +29,7 @@ public class TestLegalCalFiles {
 	@Parameters(name = "{index}: Parsing {0}")
 	public static List<Path[]> files() {
 		return roots().stream()
-				.flatMap(f -> getCalPaths(f))
+				.flatMap(TestLegalCalFiles::getCalPaths)
 				.map(f -> new Path[] { f })
 				.collect(Collectors.toList());
 	}

@@ -2,7 +2,6 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -32,7 +31,7 @@ public class EntityListExpr extends AbstractIRNode implements EntityExpr {
 	}
 
 	public String toString(){
-		StringBuffer sb = new StringBuffer("[");
+		StringBuilder sb = new StringBuilder("[");
 		String sep = "";
 		for(EntityExpr e : entityList){
 			sb.append(sep);

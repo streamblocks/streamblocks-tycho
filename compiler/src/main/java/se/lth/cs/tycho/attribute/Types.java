@@ -47,19 +47,14 @@ import static se.lth.cs.tycho.util.CheckedCasts.toOptInt;
 
 public interface Types {
 
-	ModuleKey<Types> key = new ModuleKey<Types>() {
-		@Override
-		public Types createInstance(CompilationTask unit) {
-            return MultiJ.from(Implementation.class)
-					.bind("ports").to(unit.getModule(Ports.key))
-					.bind("variables").to(unit.getModule(VariableDeclarations.key))
-					.bind("parameters").to(unit.getModule(ParameterDeclarations.key))
-					.bind("constants").to(unit.getModule(ConstantEvaluator.key))
-					.bind("tree").to(unit.getModule(TreeShadow.key))
-					.bind("globalNames").to(unit.getModule(GlobalNames.key))
-					.instance();
-		}
-	};
+	ModuleKey<Types> key = unit -> MultiJ.from(Implementation.class)
+			.bind("ports").to(unit.getModule(Ports.key))
+			.bind("variables").to(unit.getModule(VariableDeclarations.key))
+			.bind("parameters").to(unit.getModule(ParameterDeclarations.key))
+			.bind("constants").to(unit.getModule(ConstantEvaluator.key))
+			.bind("tree").to(unit.getModule(TreeShadow.key))
+			.bind("globalNames").to(unit.getModule(GlobalNames.key))
+			.instance();
 
 	Type declaredType(VarDecl decl);
 	Type type(Expression expr);
@@ -611,8 +606,7 @@ public interface Types {
 					int bits = Math.max(posBits, negBits) + 1;
 					return new IntType(OptionalInt.of(bits), true);
 				} else {
-					int bits = posBits;
-					return new IntType(OptionalInt.of(bits), false);
+					return new IntType(OptionalInt.of(posBits), false);
 				}
 			} else {
 				return new IntType(OptionalInt.empty(), a.isSigned() || b.isSigned());

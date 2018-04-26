@@ -31,7 +31,7 @@ public class ShortestPath implements Function<State, State> {
 				return new MultiInstructionState(wait);
 			}
 		}
-		if (!state.getInstructions().stream().anyMatch(distances::containsKey)) {
+		if (state.getInstructions().stream().noneMatch(distances::containsKey)) {
 			distances.putAll(computeDistances(state));
 		}
 		List<Instruction> closest = state.getInstructions().stream().collect(

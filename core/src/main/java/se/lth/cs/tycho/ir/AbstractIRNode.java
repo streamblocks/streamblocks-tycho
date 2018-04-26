@@ -39,10 +39,6 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir;
 
-import se.lth.cs.tycho.ir.util.ImmutableList;
-
-import java.util.function.Function;
-
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
  * @author Jorn W. Janneck <jwj@acm.org>

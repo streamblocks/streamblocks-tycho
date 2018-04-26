@@ -32,11 +32,7 @@ public class Transition extends AbstractIRNode {
 	}
 
 	public int getInputRate(Port p) {
-		if (inputRates.containsKey(p)) {
-			return inputRates.get(p);
-		} else {
-			return 0;
-		}
+		return inputRates.getOrDefault(p, 0);
 	}
 
 	public Map<Port, Integer> getOutputRates() {
@@ -44,11 +40,7 @@ public class Transition extends AbstractIRNode {
 	}
 
 	public int getOutputRate(Port p) {
-		if (outputRates.containsKey(p)) {
-			return outputRates.get(p);
-		} else {
-			return 0;
-		}
+		return outputRates.getOrDefault(p, 0);
 	}
 
 	public ImmutableList<Integer> getScopesToKill() {

@@ -2,15 +2,11 @@ package se.lth.cs.tycho.backend.c;
 
 import org.multij.Binding;
 import org.multij.Module;
-import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.Type;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Module
