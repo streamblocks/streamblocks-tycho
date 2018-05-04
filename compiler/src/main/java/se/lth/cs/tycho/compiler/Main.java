@@ -70,7 +70,7 @@ public class Main {
 						printPhases(platform);
 						System.exit(0);
 					}
-					case "--print-platforms": {
+					case "--platforms": {
 						printPlatforms();
 						System.exit(0);
 					}
