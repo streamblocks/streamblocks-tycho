@@ -10,6 +10,14 @@ When the network is elaborated, is is known exactly which actors and processes a
 
 At this point, the main program is represented as a graph where all nodes are actor machines. The actor machines, in turn, refers to types and values that are defined in the namespaces. This collection of namespaces together with the main program graph is given to the backend to generate code from.
 
+### Source Code Pointers
+Most of the source code described in this section is in `compiler/src/main/java`. Here follows pointers to some of the key classes described above. Some of the other classes are described in more detail later in this document.
+
+- The class with the main-method invoked by `tychoc` is `se.lth.cs.tycho.compiler.Main`.
+- The compiler class is `se.lth.cs.tycho.compiler.Compiler`.
+- Parts of the compiler is specific to the target platform, and the default platform description class is `se.lth.cs.tycho.compiler.platform.C`.
+- The class that loads Cal declarations from source files is `se.lth.cs.tycho.compiler.CalLoader`.
+
 ## Program Representation
 ### Section Description
 This section should describe how stream programs are represented in Tÿcho. The following concepts should be discussed:
