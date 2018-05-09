@@ -19,13 +19,83 @@ Most of the source code described in this section is in `compiler/src/main/java`
 - The class that loads Cal declarations from source files is `se.lth.cs.tycho.compiler.CalLoader`.
 
 ## Program Representation
-### Section Description
-This section should describe how stream programs are represented in Tÿcho. The following concepts should be discussed:
+Cal programs are represented in the compiler by their abstract syntax trees. The package `se.lth.cs.tycho.ir`, in the source tree `core/src/main/java`, and its subpackages contains classes and interfaces for representing the different syntactical elements of a Cal program. The subpackages `stmt` and `expr` contain classes for representing statements and expressions, respectively. For example `se.lth.cs.tycho.ir.stmt.StmtWhile` represents a while-statement and `se.lth.cs.tycho.ir.expr.ExprApplication` represents a function application. The subpackage `decl` contains classes for representing declarations of variables, types and entites. (Note that the type declarations are not currently used, but serve as a placeholder for future addition.) Other subpackages include `types` for type annotations, `entity` for actors, actor machines and network descriptions, and `network` for the flat graph representation of a network.
 
-- tree structure and attribution,
-- immutabilily and structural sharing,
-- declarations, statements and expressions and their respective classes, and
-- compilation tasks.
+The abstract syntax trees in Tÿcho are immutable data structures. As a consequence, all program transformations need to build new versions of the tree. However, if a subtree is not affected by a transformation, it can be reused in the new tree. To simplify structural sharing, all node classes should implement a method `copy` with the same parameters as its constructor has, that returns a node with the given children. The `copy` method on a node is allowed to return the node itself if the children given as parameters are the children of the node.
+
+### TODO Write about MultiJ as an alternative to visitors.
+
+### TODO Write about the compilation task
+
+## Computed Attributes
+Some information about the program is not directly represented in the abstract syntax tree, but rather computed from it. A reference from a variable to its declaration is one example, and the value of a constant expression is another. These pieces of information are called *attributes*.
+
+An attribute is defined as an instance method in a class. A class that defines attributes is called a *module*. A module key is an object that describes how to instantiate a module. The `CompilationTask` has a method `getModule` for instantiating modules for a given key, that creates at most one instance per key and compilation task. Successive invocations of `getMethod` on the same compilation task and with the same key returns the first instantiation on all invocations. The following class defines a module `Foo` with an attribute `bar`. The value of `bar` is the same for all nodes, and is a randomly chosen integer.
+
+```java
+public class Foo {
+    // The key should be a singleton object.
+    public static final ModuleKey<Foo> key = t -> new Foo();
+
+    private final int number;
+
+    public Foo() {
+        number = new java.util.Random().nextInt();
+    }
+
+    // Attribute definition
+    public int bar(IRNode node) {
+        // Always returns the same, randomly chosen, value.
+        return number;
+    }
+}
+```
+
+The following code creates an instance of the module `Foo` for a compilation task and computes the attribut `bar` on a node.
+
+```java
+CompilationTask task = ...;
+Foo foo = task.getModule(Foo.key);
+IRNode node = ...;
+int nodeBar = foo.bar(node);
+```
+
+If another module depends on `Foo`, its initializer needs to get `Foo` using `CompilationTask.getModule` to make sure only one instance of `Foo` is used for each compilation task. Here follows a module `Baz` with an attribute `quux` that is equal to `bar` in `Foo`.
+
+```java
+public class Baz {
+    public static final ModuleKey<Baz> key = Baz::new;
+
+    private final Foo foo;
+
+    public Baz(CompilationTask task) {
+        // The dependency on Foo is injected here
+        foo = task.getModule(Foo.key);
+    }
+
+    public int quux(IRNode node) {
+        // Returns the value of bar.
+        return foo.bar(node);
+    }
+}
+```
+
+The instantiation of `Baz` triggers the instantiation of `Foo` iff `Foo` is not already instantiated. The following code asserts that `Baz.quux` and `Foo.bar` of a node are the same.
+
+```java
+CompilationTask task = ...;
+Baz baz = task.getModule(Baz.key); // Foo is indirectly instantiated.
+Foo foo = task.getModule(Foo.key); // That Foo is retrieved here.
+IRNode node = ...;
+int nodeQuux = baz.quux(node); // Indirectly evaluates Foo.bar.
+int nodeBar = foo.bar(node); // This should therefore be the same.
+assert(nodeQuux == nodeBar);
+```
+
+Some of the more interesting attributes that can be computed, for example the declaration of a variable, requires information from parents in the abstract syntax tree. For this purpose, a module `TreeShadow` exists, that collects the parent links of the tree. The `TreeShadow` module has an attribute `parent` that returns the parent of a node.
+
+### TODO Write about how to store computed attribute values.
+### TODO Write about some of the common attribute modules.
 
 ## Compiler Phases
 ### Section Description
