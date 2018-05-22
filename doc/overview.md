@@ -23,9 +23,60 @@ Cal programs are represented in the compiler by their abstract syntax trees. The
 
 The abstract syntax trees in Tÿcho are immutable data structures. As a consequence, all program transformations need to build new versions of the tree. However, if a subtree is not affected by a transformation, it can be reused in the new tree. To simplify structural sharing, all node classes should implement a method `copy` with the same parameters as its constructor has, that returns a node with the given children. The `copy` method on a node is allowed to return the node itself if the children given as parameters are the children of the node.
 
-### TODO Write about MultiJ as an alternative to visitors.
+The root node of a tree is called a *compilation task* and is described by `se.lth.cs.tycho.compiler.CompilationTask`. A compilation task contains the qualified identifier of the entity that is compiled (e.g. com.example.Network), a list of loaded source files and the resulting flat network. Each phase of the compilation takes a compilation task as input and returns a (possibly transformed) compilation task as output.
 
-### TODO Write about the compilation task
+A common way of keeping a class hierarchy open for adding methods is to use the visitor pattern. However, Tÿcho does *not* implement the visitor pattern, but uses a library called MultiJ to allow the same kind of extensibility. A MultiJ module is a Java interface with default methods that is annotated with the `@org.multij.Module` annotation. Methods that have the same name but different parameter types constitutes a multi-method. When a module is compiled, a new class is generated that implements dynamic dispatch on the parameter types of all multi-methods in a module. The following example is a module with one multi-method `foo` consisting of three methods.
+
+```java
+@Module
+public interface Example {
+    default int foo(Object o) {
+        return -1;
+    }
+    default int foo(String s) {
+        return s.length();
+    }
+    default int foo(BitSet s) {
+        return s.cardinality();
+    }
+}
+```
+
+When the multi-method is called with some parameters, the actual types of the parameters are compared to the parameter types of the definitions to find the most specific definition for the given parameters. Here follows a small example that creates an instance of the module `Example` and calls the multi-method `foo` with some parameters.
+
+```java
+Example example = MultiJ.instance(Example.class);
+Object a = "hello";
+example.foo(a); // returns 5, the length of "hello".
+Object b = new BitSet();
+example.foo(b); // return 0, the cardinality of the empty bitset.
+Object c = Integer.of(42);
+example.foo(c); // returns -1, because foo(Object) is selected.
+```
+
+Note that the static type of `a`, `b` and `c` is `Object`, but the method selection of MultiJ depends on the object types instead. This library can, for example, be used to write a pretty printer for abstract syntax trees.
+
+```java
+@Module
+public interface Pretty {
+    String pretty(Expression expr);
+    default String pretty(ExprVariable var) {
+        return var.getVariable().getName();
+    }
+    default String pretty(ExprUnaryOp op) {
+        return "(" + op.getOperand() + " " + pretty(op.getOperand()) + ")";
+    }
+    // One method for each expression type.
+}
+```
+
+Here follows an example use of the module `Pretty`.
+
+```java
+Expression e = new ExprUnaryOp("-", new ExprVariable(Variable.variable("x")));
+Pretty p = MultiJ.instance(Pretty.class);
+p.pretty(e); // returns "(- x)"
+```
 
 ## Computed Attributes
 Some information about the program is not directly represented in the abstract syntax tree, but rather computed from it. A reference from a variable to its declaration is one example, and the value of a constant expression is another. These pieces of information are called *attributes*.
@@ -84,18 +135,17 @@ The instantiation of `Baz` triggers the instantiation of `Foo` iff `Foo` is not 
 
 ```java
 CompilationTask task = ...;
-Baz baz = task.getModule(Baz.key); // Foo is indirectly instantiated.
-Foo foo = task.getModule(Foo.key); // That Foo is retrieved here.
+Baz baz = task.getModule(Baz.key); // Foo is indirectly instantiated
+Foo foo = task.getModule(Foo.key); // That Foo is retrieved here
 IRNode node = ...;
-int nodeQuux = baz.quux(node); // Indirectly evaluates Foo.bar.
-int nodeBar = foo.bar(node); // This should therefore be the same.
+int nodeQuux = baz.quux(node); // Indirectly evaluates Foo.bar
+int nodeBar = foo.bar(node); // This should therefore be the same
 assert(nodeQuux == nodeBar);
 ```
 
 Some of the more interesting attributes that can be computed, for example the declaration of a variable, requires information from parents in the abstract syntax tree. For this purpose, a module `TreeShadow` exists, that collects the parent links of the tree. The `TreeShadow` module has an attribute `parent` that returns the parent of a node.
 
-### TODO Write about how to store computed attribute values.
-### TODO Write about some of the common attribute modules.
+Most attribute modules are defined as MultiJ modules because they typically require different definitions for different node types.
 
 ## Compiler Phases
 ### Section Description
