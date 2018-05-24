@@ -19,13 +19,13 @@ Most of the source code described in this section is in `compiler/src/main/java`
 - The class that loads Cal declarations from source files is `se.lth.cs.tycho.compiler.CalLoader`.
 
 ## Program Representation
-Cal programs are represented in the compiler by their abstract syntax trees. The package `se.lth.cs.tycho.ir`, in the source tree `core/src/main/java`, and its subpackages contains classes and interfaces for representing the different syntactical elements of a Cal program. The subpackages `stmt` and `expr` contain classes for representing statements and expressions, respectively. For example `se.lth.cs.tycho.ir.stmt.StmtWhile` represents a while-statement and `se.lth.cs.tycho.ir.expr.ExprApplication` represents a function application. The subpackage `decl` contains classes for representing declarations of variables, types and entites. (Note that the type declarations are not currently used, but serve as a placeholder for future addition.) Other subpackages include `types` for type annotations, `entity` for actors, actor machines and network descriptions, and `network` for the flat graph representation of a network.
+Cal programs are represented in the compiler by abstract syntax trees. The package `se.lth.cs.tycho.ir`, in the source tree `core/src/main/java`, and its subpackages contains classes and interfaces for representing the different syntactical elements of Cal programs. The subpackages `stmt` and `expr` contain classes for representing statements and expressions, respectively. For example `se.lth.cs.tycho.ir.stmt.StmtWhile` represents a while-statement and `se.lth.cs.tycho.ir.expr.ExprApplication` represents a function application. The subpackage `decl` contains classes for representing declarations of variables, types and entites. (Note that the type declarations are not currently used, but serve as a placeholder for a future addition.) Other subpackages include `types` for type annotations, `entity` for actors, actor machines and network descriptions, and `network` for the flat graph representation of a network.
 
 The abstract syntax trees in Tÿcho are immutable data structures. As a consequence, all program transformations need to build new versions of the tree. However, if a subtree is not affected by a transformation, it can be reused in the new tree. To simplify structural sharing, all node classes should implement a method `copy` with the same parameters as its constructor has, that returns a node with the given children. The `copy` method on a node is allowed to return the node itself if the children given as parameters are the children of the node.
 
-The root node of a tree is called a *compilation task* and is described by `se.lth.cs.tycho.compiler.CompilationTask`. A compilation task contains the qualified identifier of the entity that is compiled (e.g. com.example.Network), a list of loaded source files and the resulting flat network. Each phase of the compilation takes a compilation task as input and returns a (possibly transformed) compilation task as output.
+The root node of a tree is called a *compilation task* and is described by `se.lth.cs.tycho.compiler.CompilationTask`. A compilation task contains the qualified identifier of the entity that is compiled (e.g. `com.example.Network`), a list of loaded source files with their abstract syntax trees, and the resulting flat network. Each phase of the compilation takes a compilation task as input and returns a (possibly transformed) compilation task as output.
 
-A common way of keeping a class hierarchy open for adding methods is to use the visitor pattern. However, Tÿcho does *not* implement the visitor pattern, but uses a library called MultiJ to allow the same kind of extensibility. A MultiJ module is a Java interface with default methods that is annotated with the `@org.multij.Module` annotation. Methods that have the same name but different parameter types constitutes a multi-method. When a module is compiled, a new class is generated that implements dynamic dispatch on the parameter types of all multi-methods in a module. The following example is a module with one multi-method `foo` consisting of three methods.
+A common way of keeping a class hierarchy open for adding methods is to use the visitor pattern. However, Tÿcho does not implement the visitor pattern, but uses a library called MultiJ to allow similar extensibility. MultiJ is structured around modules that contain multi-methods (i.e. methods with dispatch on the runtime types of the parameters). A module is defined as a Java interface that is annotated with the `@org.multij.Module` annotation. All methods in a module that have the same name constitute a multi-method. When a multi-method is invoked, MultiJ compares the runtime types types of the given arguments to the parameter types of the definitions and selects the most specific implementation. The following example is a module `Example` with one multi-method `foo` consisting of three methods.
 
 ```java
 @Module
@@ -42,7 +42,7 @@ public interface Example {
 }
 ```
 
-When the multi-method is called with some parameters, the actual types of the parameters are compared to the parameter types of the definitions to find the most specific definition for the given parameters. Here follows a small example that creates an instance of the module `Example` and calls the multi-method `foo` with some parameters.
+The following code shows how to create an instance of the module `Example` and call the multi-method `foo` with different parameters.
 
 ```java
 Example example = MultiJ.instance(Example.class);
@@ -54,7 +54,7 @@ Object c = Integer.of(42);
 example.foo(c); // returns -1, because foo(Object) is selected.
 ```
 
-Note that the static type of `a`, `b` and `c` is `Object`, but the method selection of MultiJ depends on the object types instead. This library can, for example, be used to write a pretty printer for abstract syntax trees.
+Note that the compiletime type of `a`, `b` and `c` is `Object`, but the method selection of MultiJ depends on the runtime types instead. This library can, for example, be used to write a pretty printer for abstract syntax trees.
 
 ```java
 @Module
@@ -64,7 +64,8 @@ public interface Pretty {
         return var.getVariable().getName();
     }
     default String pretty(ExprUnaryOp op) {
-        return "(" + op.getOperand() + " " + pretty(op.getOperand()) + ")";
+        String operand = pretty(op.getOperand());
+        return "(" + op.getOperation() + " " + operand + ")";
     }
     // One method for each expression type.
 }
@@ -73,9 +74,10 @@ public interface Pretty {
 Here follows an example use of the module `Pretty`.
 
 ```java
-Expression e = new ExprUnaryOp("-", new ExprVariable(Variable.variable("x")));
+Expression var = new ExprVariable(Variable.variable("x"));
+Expression neg = new ExprUnaryOp("-", var);
 Pretty p = MultiJ.instance(Pretty.class);
-p.pretty(e); // returns "(- x)"
+p.pretty(neg); // returns "(- x)"
 ```
 
 ## Computed Attributes
