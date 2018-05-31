@@ -1,5 +1,5 @@
 # Overview of the Tÿcho Code Base
-This is a draft document that will provide an overview of the Tÿcho code base.
+This document provides an overview of the Tÿcho code base.
 
 ## Compilation Flow
 This section gives an overview of what happens when the Tÿcho compiler, `tychoc`, is invoked. To compile an entity (i.e. an actor, a network or a process) with the name `Network` in the namespace `com.example`, the Tÿcho compiler can be invoked from the command-line with `tychoc com.example.Network`. Command-line arguments for configuring the compilation can be given to `tychoc`, for example `--source-path src`, to set the path for the source files to `src` instead of the current working directory. When the compiler is invoked, it scans all Cal files in the source path and loads all declarations in the namespace (`com.example`) of the given entity and checks that the given entity (`Network`) is declared in that namespace. The next step in the compilation is to load all depencencies. The namespaces of all imported names are loaded and, in turn, everything they may depend on. When everything has been loaded, the program is analyzed for name and type errors and other problems that can be detected at compiletime. That is the end of what is called the front-end of the compiler, and the intention is that all programs that reach this stage of the compilation should be able to finish successfully.
@@ -164,14 +164,14 @@ interface MemoizedFunction {
 Here, `memoizedFunction` is the attribute that and `definition` is the multi-method that computes its value.
 
 ## Compiler Phases
-### Section Description
-This section shoud describe how compiler phases are represented. The following parts should be discussed:
+The compilation of a program is divided into a series of phases. The interface `se.lth.cs.tycho.phase.Phase` describes a phase. It has one method `execute` that takes a compilation task and a *context* as parameters and returns a new compilation task. The context mainly contains a configuration of the compilation, including command-line arguments, source code loaders for the specified path, and error reporting. It also contains a unique number generator that for example can be used to generate unique names.
 
-- how a phase analyzes transforms a compilation task,
-- command-line options for a phase,
-- compilation context, and
-- the interface `Phase`.
+An analysis phase typically returns the same compilation task as it gets a input, and reports possible errors to the error reporter specified in the context. The error reporter accepts three kinds of messages: errors, warnings and information messages. If an error is reported by a phase, the compiler aborts before the next phase to not overwhelm the user with errors.
+
+Other phases transform the program in some way and return a new compilation task, different from the given input. There is, for example, a phase for elaborating the network (`se.lth.cs.tycho.phase.ElaborateNetworkPhase`), and a phase for translating Cal actors to actor machines (`se.lth.cs.tycho.phase.CalToAmPhase`).
+
+## Configuration
+It was mentioned earlier that the context includes configuration specified by the command-line parameters. Each phase may have its own set of command-line options by implementing the method `Phase.getPhaseSettings()` that returns a list of `Settings` objects. The compiler collects all settings from all phases and parses the command-line options using them. When the value of a setting is needed by a phase, it can get the value from the configuration in the context object.
 
 ## Platforms
-### Section Description
-This section should describe how different target platforms can be handled. It should describe what constitutes a platform and how a add another platform to Tÿcho.
+The target platforms for stream program may have very different characteristics, ranging from the massive parallelism of an FPGAs to a single-threaded program on a CPU. Different platforms may therefore need different program transformations to generate code of good quality. Because of this diversity, a platform is supported in Tÿcho by defining a sequence of compilation phases together with a name for the platform (`se.lth.cs.tycho.compiler.platform.Platform`). When the name of a platform is given as a command-line argument, its sequence of phases (and the settings they describe) are then used for compilation. There is one platform in the Tÿcho code base that compiles networks of Cal programs to sequential C code (`se.lth.cs.tycho.compiler.platform.C`). Its name is "sequential-c" and that platform is selected using `tychoc sequential-c com.example.Network`.
