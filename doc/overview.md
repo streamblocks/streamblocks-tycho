@@ -81,9 +81,9 @@ p.pretty(neg); // returns "(- x)"
 ```
 
 ## Computed Attributes
-Some information about the program is not directly represented in the abstract syntax tree, but rather computed from it. A reference from a variable to its declaration is one example, and the value of a constant expression is another. These pieces of information are called *attributes*.
+Some information about the program is not directly represented in the abstract syntax tree, but rather computed from it. A reference from a variable to its declaration is one example, and the value of a constant expression is another. These pieces of information are called *attributes*. Most attributes are defined using MultiJ, but to avoid using a newly introduced concept to describe attributes, the following description uses normal classes and methods instead.
 
-An attribute is defined as an instance method in a class. A class that defines attributes is called a *module*. A module key is an object that describes how to instantiate a module. The `CompilationTask` has a method `getModule` for instantiating modules for a given key, that creates at most one instance per key and compilation task. Successive invocations of `getMethod` on the same compilation task and with the same key returns the first instantiation on all invocations. The following class defines a module `Foo` with an attribute `bar`. The value of `bar` is the same for all nodes, and is a randomly chosen integer.
+An attribute is defined as a method in a class. A class that defines attributes is called a *module*. A *module key* is an identifier of a module with a method for creating a new instance. The method `CompilationTask.getModule(...)` is responsible for instantiating the modules, and it uses the module key to make sure the same module is instantiated at most once per compilation task. Successive invocations of `getMethod` with the same key returns the same module instance. The following class defines a module `Foo` with an attribute `bar`. The value of `bar` is the same for all nodes, and is a randomly chosen integer.
 
 ```java
 public class Foo {
@@ -113,51 +113,40 @@ IRNode node = ...;
 int nodeBar = foo.bar(node);
 ```
 
-If another module depends on `Foo`, its initializer needs to get `Foo` using `CompilationTask.getModule` to make sure only one instance of `Foo` is used for each compilation task. Here follows a module `Baz` with an attribute `quux` that is equal to `bar` in `Foo`.
+Some of the more interesting attributes that can be computed, for example the declaration of a variable, require information from parents in the abstract syntax tree. For this purpose, a module `TreeShadow` exists, that collects the parent links of the tree. The `TreeShadow` module has an attribute `parent` that returns the parent of a node. The following code shows a module that depends on the TreeShadow module.
 
 ```java
-public class Baz {
-    public static final ModuleKey<Baz> key = Baz::new;
+public class Environment {
+    private final TreeShadow tree;
 
-    private final Foo foo;
-
-    public Baz(CompilationTask task) {
-        // The dependency on Foo is injected here
-        foo = task.getModule(Foo.key);
+    public Environment(ComputationTask task) {
+        tree = task.getModule(TreeShadow.key);
     }
-
-    public int quux(IRNode node) {
-        // Returns the value of bar.
-        return foo.bar(node);
+    
+    public CalActor enclosingCalActor(IRNode node) {
+        IRNode parent = tree.parent(node);
+        while(parent != null) {
+            if (parent instanceof CalActor) {
+                return (CalActor) parent;
+            }
+            parent = tree.parent(parent);
+        }
+        return null;
     }
 }
 ```
 
-The instantiation of `Baz` triggers the instantiation of `Foo` iff `Foo` is not already instantiated. The following code asserts that `Baz.quux` and `Foo.bar` of a node are the same.
-
-```java
-CompilationTask task = ...;
-Baz baz = task.getModule(Baz.key); // Foo is indirectly instantiated
-Foo foo = task.getModule(Foo.key); // That Foo is retrieved here
-IRNode node = ...;
-int nodeQuux = baz.quux(node); // Indirectly evaluates Foo.bar
-int nodeBar = foo.bar(node); // This should therefore be the same
-assert(nodeQuux == nodeBar);
-```
-
-Some of the more interesting attributes that can be computed, for example the declaration of a variable, requires information from parents in the abstract syntax tree. For this purpose, a module `TreeShadow` exists, that collects the parent links of the tree. The `TreeShadow` module has an attribute `parent` that returns the parent of a node.
-
-Most attribute modules are defined as MultiJ modules because they typically require different definitions for different node types.
+If modules have circular dependencies, the dependencies cannot be instantiated in the constructor like in the example above. One solution is to keep a reference to the computation task and instantiate the dependencies on demand.
 
 ### Memoized attributes
-Attributes that are referentially transparent can be memoized in the moduels. Since the modules are instantiated for a specific tree, computed attribute values can be stored directly in the module for later reuse. If a tree is transformed, it will get new root, and modules that are instantiated for this new tree will not have any stored attribute values. Even attributes that depend on their parents may be memoized because the value is stored in relation to the root of the tree.
+Attributes that are referentially transparent can be memoized in the moduels. Since the modules are instantiated for a specific tree, computed attribute values can be stored directly in the module instance for later reuse. If a tree is transformed, it will get new root, and modules that are instantiated for this new tree will not have any stored attribute values. Even attributes that depend on their parents may be memoized because the value is stored in relation to the root of the tree.
 
 Using MultiJ, attributes can be manually stored in a map by introducing a `@Binding`. In the following example, the method `cache` is evaluated once on its first invocation and on successive invocations returns the same object.
 
 ```java
 @Module
 interface MemoizedFunction {
-    @Binding(LAZY)
+    @Binding
     default Map<IRNode, String> cache() {
         return new ConcurrentHashMap<>();
     }
