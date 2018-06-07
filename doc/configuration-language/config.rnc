@@ -1,0 +1,110 @@
+# This document describes the grammar of the configuration file format XCF, proposed by the MODELS-project.
+# It is written using RELAX NG Compact Syntax
+grammar {
+
+   # The root element of a configuration.
+   start = element Configuration {
+
+      # The name of the configuration.
+      attribute name { text }?,
+
+      # The version of the configuration.
+      attribute version { text }?,
+
+      # ??? This should maybe not be here.
+      xdf,
+
+      # The partitioning of the dataflow program.
+      partitioning,
+
+      # Description on which medium actor connections and actor variables should be allocated.
+      connection*
+   }
+
+   xdf = empty
+
+   # The partitioning of the dataflow program.
+   partitioning = element Partitioning { partition* }
+
+   # Description of each partition.
+   partition = element Partition {
+
+      # The identifier of a partition.
+      attribute id { text },
+
+      # The identifier of the processing element on which this partition should execute.
+      # This should be one of the processing elements in the architecture description.
+      attribute pe { text }?,
+
+      # Compiler/backend that should generate the code for this partition.
+      attribute backend { text }?,
+
+      # A boolean indicating whether this partition should generate an executable.
+      attribute host { boolean }?,
+
+      # Instances that are members of the partition
+      instance*,
+
+      # Memory that the partition may use.
+      memory*
+
+   }
+
+   # A partition member
+   instance = element Instance {
+      # The id of an instance in the XDF file.
+      attribute id { text },
+
+      # A boolean indicating whether an accelerated instance should be used in the implementation
+      attribute external { boolean }?
+   }
+
+   # Memory for a partition
+   memory = element Memory {
+
+      # The id of a medium in the architecture description.
+      attribute id { text },
+
+      # The size of the medium in bytes.
+      attribute size { text },
+
+      # The start address of the memory region.
+      attribute start-address { text }?,
+
+      # A boolean indicating whether the memory is shared.
+      attribute shared { boolean }?,
+
+      # A boolean indicating whether the size will be reserved for this partition.
+      attribute reserve { boolean }?
+   }
+
+   connection = element Connection {
+      ( connection-attributes | variable-attributes ),
+      attribute medium { text }
+   }
+
+   connection-attributes = 
+      (
+	 # The source actor of the queue.
+	 attribute src { text },
+	 # The source port of the queue.
+	 attribute src-port { text },
+	 # The target actor of the queue.
+	 attribute dst { text },
+	 # The target port of the queue.
+	 attribute dst-port { text },
+	 # The size of the FIFO queue.
+	 attribute size { text }
+      )
+
+   variable-attributes =
+      (
+	 # The actor instance that contains a variable.
+	 attribute instance { text },
+	 # The variable.
+	 attribute var { text }
+      )
+
+   boolean = "true" | "false"
+}
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="One_Core_x86" version="1.1">
+  <Partitioning>
+    <Partition id="1" pe="X86" host="true">
+      <Instance id="display"/>
+      <Instance id="src"/>
+      <Instance id="parser"/>
+      <Instance id="huffman"/>
+      <Instance id="dequant"/>
+      <Instance id="idct2d"/>
+      <Memory id="DDR3" size="8589934592"/>
+   </Partition>
+ </Partitioning>
+</Configuration>	

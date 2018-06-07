@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+ <Partitioning>
+   <Partition id="1">
+     <Instance id="display"/>
+     <Instance id="src"/>
+     <Instance id="parser"/>
+     <Instance id="huffman"/>
+     <Instance id="dequant"/>
+     <Instance id="idct2d"/>
+     </Partition>
+  </Partitioning>
+</Configuration>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+  <Partitioning>
+    <Partition id="1" pe="Zynq_7020_PS_ARM_0" backend="Zynq_PS_Baremetal" host="true">
+      <Instance id="source"/>
+      <Instance id="display"/>
+      <Memory id=”DDR3_Zynq_PS” size="1072693247" start-address=”0x00100000” shared="true" />
+    </Partition>
+    <Partition id="2" pe="Zynq_7020_PL" backend="Zynq_PL">
+      <Instance id="ddr"/>
+      <Instance id="Merger"/>
+      <Instance id="decoder_parser_parseheaders"/>
+      <Instance id="decoder_parser_mvseq"/>
+      <Instance id="decoder_parser_blkexp"/>
+      <Instance id="decoder_parser_mvrecon"/>
+      <Instance id="decoder_parser_serialize"/>
+      <Instance id="decoder_acdc_seq"/>
+      <Instance id="decoder_acdc_dcsplit"/>
+      <Instance id="decoder_acdc_dcpred"/>
+      <Instance id="decoder_acdc_zzaddr"/>
+      <Instance id="decoder_acdc_zigzag"/>
+      <Instance id="decoder_acdc_acpred"/>
+      <Instance id="decoder_acdc_dequant"/>
+      <Instance id="decoder_idct2d_rowsort"/>
+      <Instance id="decoder_idct2d_fairmerge"/>
+      <Instance id="decoder_idct2d_downsample"/>
+      <Instance id="decoder_idct2d_sep"/>
+      <Instance id="decoder_idct2d_trans"/>
+      <Instance id="decoder_idct2d_retrans"/>
+      <Instance id="decoder_idct2d_clip"/>
+      <Instance id="decoder_idct2d_idct1d_scale"/>
+      <Instance id="decoder_idct2d_idct1d_combine"/>
+      <Instance id="decoder_idct2d_idct1d_shufflefly"/>
+      <Instance id="decoder_idct2d_idct1d_shuffle"/>
+      <Instance id="decoder_idct2d_idct1d_final"/>
+      <Instance id="decoder_motion_memorymanager"/>
+      <Instance id="decoder_motion_mbpack"/>
+      <Instance id="decoder_motion_searchwin"/>
+      <Instance id="decoder_motion_unpack"/>
+      <Instance id="decoder_motion_interpolate"/>
+      <Instance id="decoder_motion_add"/>
+      <Memory id=”DDR3_Zynq_PS” size="1048576" start-address=”0x03FEFFFFF” shared="true" reserved="true"/>
+    </Partition>
+  </Partitioning>
+  <Connection src=”source” src-port=”O” dst=”decoder_parser_serialize” dst-port=”in8” size=”4096” medium=”ZYNQ_PSPL_AXIDMA”/>
+  <Connection src=”Merger” src-port=”YUV” dst=”display” dst-port=”B” size=”4096” medium=”ZYNQ_PSPL_AXIDMA”/>
+  <Connection src=”decoder_parser_parseheaders” src-port=”WIDTH” dst=”display” dst-port=”WIDTH” size=”4096” medium=”ZYNQ_PSPL_AXIDMA”/>
+  <Connection src=”decoder_parser_parseheaders” src-port=”HEIGHT” dst=”display” dst-port=”HEIGHT” size=”4096” medium=”ZYNQ_PSPL_AXIDMA”/>
+  <Connection instance=”ddr” var=”buf” medium=”DDR3_Zynq_PS”/>
+</Configuration>

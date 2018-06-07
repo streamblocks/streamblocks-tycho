@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="4_core_x86" version="1.0">
+  <Partitioning>
+    <Partition id="1" pe="x86_1" backend="C++">
+      <Instance id="src"/>
+      <Memory id="DDR3" size="8589934592" shared="true"/>
+    </Partition>
+    <Partition id="2" pe="x86_2" backend="C++">
+      <Instance id="parser"/>
+      <Instance id="huffman"/>
+      <Memory id="DDR3" size="8589934592" shared="true"/>
+    </Partition>
+    <Partition id="3" pe="x86_3" backend="C++">
+      <Instance id="dequant"/>
+      <Instance id="idct2d"/>
+      <Memory id="DDR3" size="8589934592" shared="true"/>
+    </Partition>
+    <Partition id="4" pe="x86_4" backend="C++">
+      <Instance id="display"/>
+      <Memory id="DDR3" size="8589934592" shared="true"/>
+    </Partition>
+  </Partitioning>
+</Configuration>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="one_core_two_backends">
+ <Partitioning>
+   <Partition id="1" pe="X86" backend="C++" host="true">
+     <Instance id="display"/>
+     <Instance id="src"/>
+    </Partition>
+    <Partition id="2" pe="X86" backend="TychoC">
+     <Instance id="parser"/>
+     <Instance id="huffman"/>
+     <Instance id="dequant"/>
+     <Instance id="idct2d"/>
+    </Partition>
+  </Partitioning>
+</Configuration>
