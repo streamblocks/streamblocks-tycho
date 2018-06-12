@@ -11,9 +11,9 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 /**
- * Immutable lists.
+ * Immutable list.
  * 
- * @param <E>
+ * @param <E> the element type
  */
 public final class ImmutableList<E> extends AbstractList<E> {
 
@@ -80,6 +80,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	/**
 	 * Constructs a Builder for building ImmutableLists
 	 * 
+	 * @param <E> the element type
 	 * @return a Builder
 	 */
 	public static <E> Builder<E> builder() {
@@ -91,6 +92,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	/**
 	 * Returns an empty list.
 	 * 
+	 * @param <E> the element type
 	 * @return an empty list.
 	 */
 	@SuppressWarnings("unchecked")
@@ -101,8 +103,8 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	/**
 	 * Returns a list with value v.
 	 * 
-	 * @param v
-	 *            the list element
+	 * @param <E> the element type
+	 * @param v the list element
 	 * @return a list
 	 */
 	public static <E> ImmutableList<E> of(E v) {
@@ -112,6 +114,8 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	/**
 	 * Returns a list with the specified values.
 	 *
+	 * @param <E> the element type
+	 * @param values the list elements
 	 * @return a list
 	 */
 	public static <E> ImmutableList<E> of(E... values) {
@@ -126,8 +130,8 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	 * list if elements is null. If elements is an ImmutableList, this method
 	 * will return elements.
 	 * 
-	 * @param collection
-	 *            the content of the list
+	 * @param <E> the element type
+	 * @param collection the content of the list
 	 * @return a list containing the elements of the argument
 	 */
 	public static <E> ImmutableList<E> from(Collection<E> collection) {
@@ -169,7 +173,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 	/**
 	 * A class for constructing ImmutableLists.
 	 * 
-	 * @param <E>
+	 * @param <E> the element type
 	 */
 	public static final class Builder<E> implements Consumer<E> {
 		private Object[] list;
@@ -199,7 +203,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		/**
 		 * Adds element to the end of the list.
 		 * 
-		 * @param element
+		 * @param element the list element
 		 * @return the builder
 		 */
 		public Builder<E> add(E element) {
@@ -213,7 +217,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		/**
 		 * Adds the elements of elements to the list.
 		 * 
-		 * @param elements
+		 * @param elements the list elements
 		 * @return the builder
 		 */
 		public Builder<E> addAll(Iterable<? extends E> elements) {
@@ -226,7 +230,7 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		/**
 		 * Adds the elements of elements to the list.
 		 * 
-		 * @param elements
+		 * @param elements the list elements
 		 * @return the builder
 		 */
 		public Builder<E> addAll(E... elements) {

@@ -27,12 +27,11 @@ public class ExprInput extends Expression {
 		return patternLength;
 	}
 
-	//
-	// Ctor
-	//
-
 	/**
 	 * Create a port with hasRepeat==false
+	 *
+	 * @param port the input port
+	 * @param offset the element index into the buffer
 	 */
 	public ExprInput(Port port, int offset) {
 		this(null, port, offset, false, -1, -1);
@@ -40,6 +39,11 @@ public class ExprInput extends Expression {
 
 	/**
 	 * Create a port with hasRepeat==true
+	 *
+	 * @param port the input port
+	 * @param offset the element index into the buffer
+	 * @param repeat the number of tokens in this repeat
+	 * @param patternLength the number of variables in the input pattern
 	 */
 	public ExprInput(Port port, int offset, int repeat, int patternLength) {
 		this(null, port, offset, true, repeat, patternLength);
@@ -56,6 +60,10 @@ public class ExprInput extends Expression {
 
 	/**
 	 * Create a port with hasRepeat==false
+	 *
+	 * @param port the input port
+	 * @param offset the element index into the buffer
+	 * @return a node with the given children/attributes.
 	 */
 	public ExprInput copy(Port port, int offset) {
 		if (!hasRepeat() && this.port == port && this.offset == offset) {
@@ -66,6 +74,12 @@ public class ExprInput extends Expression {
 
 	/**
 	 * Create a port with hasRepeat==true
+	 *
+	 * @param port the input port
+	 * @param offset the element index into the buffer
+	 * @param repeat the number of tokens in this repeat
+	 * @param patternLength the number of variables in the input pattern
+	 * @return a node with the given children/attributes.
 	 */
 	public ExprInput copy(Port port, int offset, int repeat, int patternLength) {
 		if (hasRepeat() && this.port == port && this.offset == offset && this.repeat == repeat

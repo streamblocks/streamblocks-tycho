@@ -164,7 +164,7 @@ public final class QID {
 	 * of '.'. The empty string yields the empty QID, but in all other cases are
 	 * empty names illegal.
 	 * 
-	 * @param name
+	 * @param name a dot-separated qualified name
 	 * @return a QID from the given name
 	 * @throws IllegalArgumentException
 	 *             if any of the names separated by dots are empty
@@ -182,7 +182,7 @@ public final class QID {
 	 * Returns a QID from the given names. Empty names and names containing the
 	 * character '.' are illegal.
 	 * 
-	 * @param names
+	 * @param names the sequence of names
 	 * @return a QID consisting of the given names
 	 * @throws IllegalArgumentException
 	 *             if any of the names are empty or contains the '.' character.

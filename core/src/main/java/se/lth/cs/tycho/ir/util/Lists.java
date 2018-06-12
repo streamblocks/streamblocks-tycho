@@ -9,8 +9,9 @@ public class Lists {
 	 * Checks whether the two iterables creates iterators with the same elements
 	 * in the same order. Nulls are treated as empty iterables.
 	 * 
-	 * @param a
-	 * @param b
+	 * @param <E> a common supertype for the elements
+	 * @param a a list
+	 * @param b a list
 	 * @return true iff both a and b is empty, or both a and have the same length and the elements with the same index are equal.
 	 */
 	public static <E> boolean equals(List<? extends E> a, List<? extends E> b) {

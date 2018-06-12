@@ -12,6 +12,7 @@ public class Variable extends AbstractIRNode {
 	 * Constructs a variable.
 	 * 
 	 * @param name the variable name
+	 * @return a variable node
 	 */
 	public static Variable variable(String name) {
 		return new Variable(null, name);
