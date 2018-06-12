@@ -88,8 +88,8 @@ public class ExprApplication extends Expression {
 	 * children, the current instance is returned.
 	 * 
 	 * @param function The function to apply
-	 * @param The arguments to apply the function on
-	 * @returns a function application node with the given arguments as children.
+	 * @param args The arguments to apply the function on
+	 * @return a function application node with the given arguments as children.
 	 */
 	public ExprApplication copy(Expression function, List<Expression> args) {
 		if (Objects.equals(this.function, function) && Lists.equals(this.args, args)) {
@@ -100,7 +100,7 @@ public class ExprApplication extends Expression {
 
 	/**
 	 * Returns the function to apply.
-	 * @returns the function to apply
+	 * @return the function to apply
 	 */
 	public Expression getFunction() {
 		return function;
@@ -108,6 +108,7 @@ public class ExprApplication extends Expression {
 
 	/**
 	 * Returns a list with the arguments to apply the function on.
+	 * @return the arguments to the function
 	 */
 	public ImmutableList<Expression> getArgs() {
 		return args;
