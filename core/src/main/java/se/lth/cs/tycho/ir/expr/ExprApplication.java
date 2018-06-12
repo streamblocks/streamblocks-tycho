@@ -39,6 +39,7 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.expr;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -46,36 +47,71 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
+/**
+ * An abstract syntax tree node that represents a function application expression.
+ */
 public class ExprApplication extends Expression {
+	private Expression function;
+	private ImmutableList<Expression> args;
 
-	public ExprApplication(Expression function, ImmutableList<Expression> args) {
+	/**
+	 * Constructs an instance with the given function node {@code function}
+	 * and list of argument nodes {@code args}.
+	 *
+	 * @param function The function to apply 
+	 * @param args The arguments to apply the function on
+	 */
+	public ExprApplication(Expression function, List<Expression> args) {
 		this(null, function, args);
 	}
 	
-	public ExprApplication(IRNode original, Expression function, ImmutableList<Expression> args) {
+	/**
+	 * Constructs an instance as a new version of another node {@code
+	 * original} with the given function node {@code function} and list of
+	 * argument nodes {@code args}.  The parameter {@code original} should
+	 * be null if the node does not have a precursor.
+	 *
+	 * @param original The precursor to the new node
+	 * @param function The function to apply 
+	 * @param args The arguments to apply the function on
+	 */
+	private ExprApplication(IRNode original, Expression function, List<Expression> args) {
 		super(original);
 		this.function = function;
 		this.args = ImmutableList.from(args);
 	}
 	
-	public ExprApplication copy(Expression function, ImmutableList<Expression> args) {
+	/**
+	 * Returns a new version of the current node unless the given children
+	 * (i.e. the function and the argument nodes) are the same as the
+	 * current ones.  If the given children are the same as the current
+	 * children, the current instance is returned.
+	 * 
+	 * @param function The function to apply
+	 * @param The arguments to apply the function on
+	 * @returns a function application node with the given arguments as children.
+	 */
+	public ExprApplication copy(Expression function, List<Expression> args) {
 		if (Objects.equals(this.function, function) && Lists.equals(this.args, args)) {
 			return this;
 		}
 		return new ExprApplication(this, function, args);
 	}
 
-
+	/**
+	 * Returns the function to apply.
+	 * @returns the function to apply
+	 */
 	public Expression getFunction() {
 		return function;
 	}
 
+	/**
+	 * Returns a list with the arguments to apply the function on.
+	 */
 	public ImmutableList<Expression> getArgs() {
 		return args;
 	}
-
-	private Expression function;
-	private ImmutableList<Expression> args;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
@@ -88,7 +124,7 @@ public class ExprApplication extends Expression {
 	public ExprApplication transformChildren(Transformation transformation) {
 		return copy(
 				(Expression) transformation.apply(function),
-				(ImmutableList) args.map(transformation)
+				(List) args.map(transformation)
 		);
 	}
 }
