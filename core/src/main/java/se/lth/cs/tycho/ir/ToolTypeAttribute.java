@@ -4,7 +4,7 @@ import java.util.Objects;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 
 /**
- * @author Per Andersson <Per.Andersson@cs.lth.se>
+ * @author Per Andersson
  *
  */
 

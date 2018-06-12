@@ -10,7 +10,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 /**
- * @author Per Andersson <Per.Andersson@cs.lth.se>
+ * @author Per Andersson
  */
 public class PortReference extends AbstractIRNode {
 

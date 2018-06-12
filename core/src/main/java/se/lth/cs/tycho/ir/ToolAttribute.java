@@ -3,7 +3,7 @@ package se.lth.cs.tycho.ir;
 import java.util.function.Consumer;
 
 /**
- * @author Per Andersson <Per.Andersson@cs.lth.se>
+ * @author Per Andersson
  *
  */
 

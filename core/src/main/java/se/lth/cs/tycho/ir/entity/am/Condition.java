@@ -10,7 +10,7 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
  * @see PortCondition
  * @see PredicateCondition
  * 
- * @author Jorn W. Janneck <jwj@acm.org>
+ * @author Jorn W. Janneck
  *
  */
 

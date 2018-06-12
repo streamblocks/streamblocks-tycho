@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * produced at each port during the transition, the code to be executed and a
  * set of scopes that should be killed after the transition.
  * 
- * @author Jorn W. Janneck <jwj@acm.org>
+ * @author Jorn W. Janneck
  * 
  */
 

@@ -4,7 +4,7 @@ import se.lth.cs.tycho.ir.IRNode;
 
 /**
  * 
- * @author Per Andersson <Per.Andersson@cs.lth.se>
+ * @author Per Andersson
  * 
  */
 

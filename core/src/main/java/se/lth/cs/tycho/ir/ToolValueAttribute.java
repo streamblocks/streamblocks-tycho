@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 /**
- * @author Per Andersson <Per.Andersson@cs.lth.se>
+ * @author Per Andersson
  *
  */
 

@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * @author Per Andersson <Per.Andersson@cs.lth.se>
+ * @author Per Andersson
  * 
  */
 

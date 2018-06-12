@@ -15,7 +15,7 @@ import se.lth.cs.tycho.ir.Port;
  * default) or an output condition, a port condition has two components, a
  * {@link Port port} and an integer.
  * 
- * @author Jorn W. Janneck <jwj@acm.org>
+ * @author Jorn W. Janneck
  * 
  */
 

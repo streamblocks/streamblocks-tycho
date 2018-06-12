@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck
  */
 
 public class StmtBlock extends Statement {

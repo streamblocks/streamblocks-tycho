@@ -10,7 +10,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
  * A predicate condition represents the {@link Condition condition} that a
  * boolean expression evaluates to <tt>true</tt>.
  * 
- * @author Jorn W. Janneck <jwj@acm.org>
+ * @author Jorn W. Janneck
  * 
  */
 

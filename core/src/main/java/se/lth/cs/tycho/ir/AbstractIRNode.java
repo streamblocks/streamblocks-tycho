@@ -40,8 +40,8 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir;
 
 /**
- * @author Christopher Chang <cbc@eecs.berkeley.edu>
- * @author Jorn W. Janneck <jwj@acm.org>
+ * @author Christopher Chang
+ * @author Jorn W. Janneck
  */
 public abstract class AbstractIRNode implements IRNode {
 	private int fromLineNumber = 0;

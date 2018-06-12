@@ -49,7 +49,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 /**
- * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck
  */
 
 public class StmtIf extends Statement {

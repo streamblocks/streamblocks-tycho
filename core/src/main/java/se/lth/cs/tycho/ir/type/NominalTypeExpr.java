@@ -50,8 +50,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * @author Christopher Chang <cbc@eecs.berkeley.edu>
- * @author Jorn W. Janneck <jorn.janneck@xilinx.com>
+ * @author Christopher Chang
+ * @author Jorn W. Janneck
  */
 
 public class NominalTypeExpr extends AbstractIRNode implements Cloneable, TypeExpr<NominalTypeExpr> {
