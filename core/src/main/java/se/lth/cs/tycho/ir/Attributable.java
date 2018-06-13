@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * An interface for managing {@link se.lth.cs.tycho.ir.ToolAttribute attributes} on abstract syntax tree nodes.
+ */
 public interface Attributable {
 
 	/**
