@@ -40,6 +40,8 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir;
 
 /**
+ * Abstract implementation of IRNode that handles line and column numbers.
+ *
  * @author Christopher Chang
  * @author Jorn W. Janneck
  */
@@ -49,6 +51,11 @@ public abstract class AbstractIRNode implements IRNode {
 	private int toLineNumber = 0;
 	private int toColumnNumber = 0;
 
+	/**
+	 * Constructs a node with the same line and column numbers as {@code original}.
+	 *
+	 * @param original the original node
+	 */
 	public AbstractIRNode(IRNode original) {
 		if (original != null)
 			setPosition(
@@ -58,26 +65,46 @@ public abstract class AbstractIRNode implements IRNode {
 					original.getToColumnNumber());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int getFromLineNumber() {
 		return fromLineNumber;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int getFromColumnNumber() {
 		return fromColumnNumber;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int getToLineNumber() {
 		return toLineNumber;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int getToColumnNumber() {
 		return toColumnNumber;
 	}
 
+	/**
+	 * Updates the position information.
+	 *
+	 * @param fromLineNumber start line number
+	 * @param fromColumnNumber start column number
+	 * @param toLineNumber end line number
+	 * @param toColumnNumber end column number
+	 */
 	public void setPosition(int fromLineNumber, int fromColumnNumber, int toLineNumber, int toColumnNumber) {
 		this.fromLineNumber = fromLineNumber;
 		this.fromColumnNumber = fromColumnNumber;
@@ -85,12 +112,21 @@ public abstract class AbstractIRNode implements IRNode {
 		this.toColumnNumber = toColumnNumber;
 	}
 
+	/**
+	 * Updates the position information to begin at the beginning of {@code from} and end at the end of {@code to}.
+	 *
+	 * @param from start position
+	 * @param to end position
+	 */
 	public void setPosition(IRNode from, IRNode to) {
 		if (from.hasPosition() && to.hasPosition()) {
 			setPosition(from.getFromLineNumber(), from.getFromColumnNumber(), to.getToLineNumber(), to.getToColumnNumber());
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public IRNode clone() {
 		try {
