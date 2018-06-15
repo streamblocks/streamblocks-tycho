@@ -14,7 +14,7 @@ function readlink_rec {
 root=`dirname "$(readlink_rec $0)"`
 lib="$root/compiler/target/lib"
 comp="$root/compiler/target/compiler-1.0-SNAPSHOT.jar"
-test="$root/compiler/target/test-classes"
+test="$root/app-test/target/test-classes"
 
 if [ -f "$comp" ]
 then

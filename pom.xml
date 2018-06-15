@@ -9,6 +9,8 @@
 	<modules>
 		<module>core</module>
 		<module>compiler</module>
+		<module>platform-c</module>
+		<module>app-test</module>
 	</modules>
 
 	<properties>

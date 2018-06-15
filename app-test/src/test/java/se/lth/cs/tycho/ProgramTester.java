@@ -2,8 +2,7 @@ package se.lth.cs.tycho;
 
 import org.apache.commons.io.IOUtils;
 import se.lth.cs.tycho.compiler.Compiler;
-import se.lth.cs.tycho.compiler.platform.C;
-import se.lth.cs.tycho.compiler.platform.Platform;
+import se.lth.cs.tycho.platform.Platform;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.SettingsManager;
@@ -27,7 +26,7 @@ public class ProgramTester {
 	}
 
 	public static ProgramTester compile(TestDescription test, Path target) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
-		Platform platform = new C();
+		Platform platform = Compiler.defaultPlatform();
 		SettingsManager settings = platform.settingsManager();
 		Configuration config = Configuration.builder(settings)
 				.set(Compiler.sourcePaths, test.getSourcePaths())

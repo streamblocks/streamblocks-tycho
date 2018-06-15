@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.compiler.platform;
+package se.lth.cs.tycho.platform;
 
 import se.lth.cs.tycho.compiler.Loader;
 import se.lth.cs.tycho.phase.Phase;

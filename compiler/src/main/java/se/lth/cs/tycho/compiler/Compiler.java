@@ -1,7 +1,6 @@
 package se.lth.cs.tycho.compiler;
 
-import se.lth.cs.tycho.compiler.platform.C;
-import se.lth.cs.tycho.compiler.platform.Platform;
+import se.lth.cs.tycho.platform.Platform;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -19,6 +18,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 public class Compiler {
@@ -33,9 +34,15 @@ public class Compiler {
 
 	private final Platform platform;
 
-	private static final List<Platform> platforms = ImmutableList.of(new C());
+	private static List<Platform> platforms = null;
 
 	public static List<Platform> getPlatforms() {
+		if (platforms == null) {
+			ImmutableList.Builder<Platform> platformListBuilder = ImmutableList.builder();
+			ServiceLoader<Platform> platformLoader = ServiceLoader.load(Platform.class);
+			platformLoader.forEach(platformListBuilder::add);
+			platforms = platformListBuilder.build();
+		}
 		return platforms;
 	}
 
@@ -44,7 +51,10 @@ public class Compiler {
 	}
 
 	public static Platform defaultPlatform() {
-		return new C();
+		return getPlatforms().stream()
+			.filter(platform -> platform.name().equals("sequential-c"))
+			.findFirst()
+			.orElseThrow(() -> new RuntimeException("Could not find the default platform."));
 	}
 
 	public static ImmutableList<Phase> frontendPhases() {

@@ -9,13 +9,18 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 	<groupId>se.lth.cs.tycho</groupId>
-	<artifactId>compiler</artifactId>
+	<artifactId>platform-c</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<name>Tycho Dataflow Compiler</name>
+	<name>Tycho Compiler Target Platform C</name>
 	<dependencies>
 		<dependency>
 			<groupId>se.lth.cs.tycho</groupId>
 			<artifactId>core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>se.lth.cs.tycho</groupId>
+			<artifactId>compiler</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

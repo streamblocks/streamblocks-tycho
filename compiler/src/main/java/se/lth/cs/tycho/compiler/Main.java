@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.compiler;
 
-import se.lth.cs.tycho.compiler.platform.Platform;
+import se.lth.cs.tycho.platform.Platform;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.Setting;

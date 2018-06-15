@@ -9,14 +9,27 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 	<groupId>se.lth.cs.tycho</groupId>
-	<artifactId>compiler</artifactId>
+	<artifactId>app-test</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<name>Tycho Dataflow Compiler</name>
+	<name>Tycho Compiler Application Tests</name>
 	<dependencies>
 		<dependency>
 			<groupId>se.lth.cs.tycho</groupId>
 			<artifactId>core</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.lth.cs.tycho</groupId>
+			<artifactId>compiler</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.lth.cs.tycho</groupId>
+			<artifactId>platform-c</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -25,14 +38,16 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.multij</groupId>
-			<artifactId>multij-core</artifactId>
-			<version>0.1</version>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.multij</groupId>
-			<artifactId>multij-processor</artifactId>
-			<version>0.1</version>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.3.1</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
