@@ -26,7 +26,7 @@ public class ApplicationTest {
 		Path orcApps = testdata.resolve("orc-apps");
 		if (!Files.isDirectory(orcApps)) {
 			List<String> command = new ArrayList<>();
-			command.addAll(Arrays.asList("git clone --depth 1 https://github.com/orcc/orc-apps.git".split(" ")));
+			command.addAll(Arrays.asList("git submodule init".split(" ")));
 			command.add(orcApps.toAbsolutePath().toString());
 			Process process = new ProcessBuilder(command).start();
 			int result = process.waitFor();

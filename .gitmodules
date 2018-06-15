@@ -1,0 +1,3 @@
+[submodule "app-test/testdata/orc-apps"]
+	path = app-test/testdata/orc-apps
+	url = https://github.com/orcc/orc-apps.git
