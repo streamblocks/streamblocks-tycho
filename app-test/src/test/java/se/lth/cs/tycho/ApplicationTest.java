@@ -24,11 +24,14 @@ public class ApplicationTest {
 	public static void setUp() throws Exception {
 		Path testdata = Paths.get("testdata");
 		Path orcApps = testdata.resolve("orc-apps");
-		if (!Files.isDirectory(orcApps)) {
+		System.out.println("Path of orc-apps: " + orcApps);
+		if (!Files.list(orcApps).findAny().isPresent()) {
+			System.out.println("Directory orc-apps is empty.");
 			List<String> command = new ArrayList<>();
-			command.addAll(Arrays.asList("git submodule init".split(" ")));
+			command.addAll(Arrays.asList("git submodule update --init".split(" ")));
 			command.add(orcApps.toAbsolutePath().toString());
-			Process process = new ProcessBuilder(command).start();
+			Process process = new ProcessBuilder(command).inheritIO().start();
+			System.out.println("Running command: " + command);
 			int result = process.waitFor();
 			if (result != 0) {
 				Files.delete(orcApps);
