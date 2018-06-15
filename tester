@@ -12,13 +12,14 @@ function readlink_rec {
 }
 
 root=`dirname "$(readlink_rec $0)"`
-lib="$root/compiler/target/lib"
+lib="$root/app-test/target/lib"
 comp="$root/compiler/target/compiler-1.0-SNAPSHOT.jar"
+platform="$root/platform-generic-c/target/platform-generic-c-1.0-SNAPSHOT.jar"
 test="$root/app-test/target/test-classes"
 
 if [ -f "$comp" ]
 then
-	java -cp "$comp:$test:$lib/core-1.0-SNAPSHOT.jar:$lib/multij-core-0.1.jar:$lib/gson-2.3.1.jar:$lib/commons-io-2.4.jar:$lib/junit-4.11.jar" se.lth.cs.tycho.Tester "$@"
+	java -cp "$comp:$test:$platform:$lib/core-1.0-SNAPSHOT.jar:$lib/multij-core-0.1.jar:$lib/gson-2.3.1.jar:$lib/commons-io-2.4.jar:$lib/junit-4.11.jar" se.lth.cs.tycho.Tester "$@"
 else
 	echo "Tycho is not compiled. Please, run \"mvn install\" to compile Tycho."
 	exit 1

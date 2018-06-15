@@ -12,7 +12,7 @@ import java.util.List;
 public class C implements Platform {
 	@Override
 	public String name() {
-		return "sequential-c";
+		return "generic-c";
 	}
 
 	@Override

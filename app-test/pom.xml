@@ -27,7 +27,7 @@
 		</dependency>
 		<dependency>
 			<groupId>se.lth.cs.tycho</groupId>
-			<artifactId>platform-c</artifactId>
+			<artifactId>platform-generic-c</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>

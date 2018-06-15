@@ -9,7 +9,7 @@
 	<modules>
 		<module>core</module>
 		<module>compiler</module>
-		<module>platform-c</module>
+		<module>platform-generic-c</module>
 		<module>app-test</module>
 	</modules>
 

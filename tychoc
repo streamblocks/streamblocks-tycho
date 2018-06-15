@@ -15,7 +15,7 @@ root=`dirname "$(readlink_rec $0)"`
 lib="$root/compiler/target/lib"
 libs="$lib/core-1.0-SNAPSHOT.jar:$lib/multij-core-0.1.jar"
 comp="$root/compiler/target/compiler-1.0-SNAPSHOT.jar"
-platforms="$root/platform-c/target/platform-c-1.0-SNAPSHOT.jar"
+platforms="$root/platform-generic-c/target/platform-generic-c-1.0-SNAPSHOT.jar"
 
 if [ -f "$comp" ]
 then

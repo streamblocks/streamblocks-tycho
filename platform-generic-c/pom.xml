@@ -9,7 +9,7 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 	<groupId>se.lth.cs.tycho</groupId>
-	<artifactId>platform-c</artifactId>
+	<artifactId>platform-generic-c</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<name>Tycho Compiler Target Platform C</name>
 	<dependencies>

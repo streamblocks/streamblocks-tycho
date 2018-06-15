@@ -52,7 +52,7 @@ public class Compiler {
 
 	public static Platform defaultPlatform() {
 		return getPlatforms().stream()
-			.filter(platform -> platform.name().equals("sequential-c"))
+			.filter(platform -> platform.name().equals("generic-c"))
 			.findFirst()
 			.orElseThrow(() -> new RuntimeException("Could not find the default platform."));
 	}
