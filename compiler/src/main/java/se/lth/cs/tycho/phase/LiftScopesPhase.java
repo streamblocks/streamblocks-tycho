@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class LiftScopesPhase implements Phase {
-	public final OnOffSetting liftScopes = new OnOffSetting() {
+	public static final OnOffSetting liftScopes = new OnOffSetting() {
 		@Override public String getKey() { return "lift-scopes"; }
 		@Override public String getDescription() { return "Lift actor machine scopes to conditions or transitions when only used from one place."; }
 		@Override public Boolean defaultValue(Configuration configuration) { return true; }
