@@ -24,30 +24,30 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
 public class Compiler {
 	private final Context compilationContext;
 
 	private final Platform platform;
 
-	private static List<Platform> platforms = null;
+	private static class PlatformListHolder {
+		private static final List<Platform> platforms =
+			StreamSupport.stream(ServiceLoader.load(Platform.class).spliterator(), false)
+			.collect(ImmutableList.collector());
+	}
 
 	public static List<Platform> getPlatforms() {
-		if (platforms == null) {
-			ImmutableList.Builder<Platform> platformListBuilder = ImmutableList.builder();
-			ServiceLoader<Platform> platformLoader = ServiceLoader.load(Platform.class);
-			platformLoader.forEach(platformListBuilder::add);
-			platforms = platformListBuilder.build();
-		}
-		return platforms;
+		return PlatformListHolder.platforms;
 	}
 
 	public static Optional<Platform> selectPlatform(String name) {
-		return platforms.stream().filter(p -> p.name().equals(name)).findFirst();
+		return getPlatforms().stream().filter(p -> Objects.equals(p.name(), name)).findFirst();
 	}
 
 	public static Platform defaultPlatform() {
