@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 @Module
 public interface MainNetwork {
-	@Binding(BindingKind.MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default Emitter emitter() {

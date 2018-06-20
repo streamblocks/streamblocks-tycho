@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 @Module
 public interface Lists {
-    @Binding(BindingKind.MODULE)
+    @Binding(BindingKind.INJECTED)
     Backend backend();
 
     default Emitter emitter() {

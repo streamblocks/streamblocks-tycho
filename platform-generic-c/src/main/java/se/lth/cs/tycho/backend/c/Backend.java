@@ -2,6 +2,7 @@ package se.lth.cs.tycho.backend.c;
 
 import org.multij.Binding;
 import org.multij.Module;
+import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.ActorMachineScopes;
 import se.lth.cs.tycho.attribute.Closures;
 import se.lth.cs.tycho.attribute.ConstantEvaluator;
@@ -62,15 +63,37 @@ public interface Backend {
 	// }
 
 	// Code generator
-	@Binding(MODULE) Lists lists();
-	@Binding(MODULE) Variables variables();
-	@Binding(MODULE) Structure structure();
-	@Binding(MODULE) Code code();
-	@Binding(MODULE) Controllers controllers();
-	@Binding(MODULE) Main main();
-	@Binding(MODULE) MainNetwork mainNetwork();
-	@Binding(MODULE) Global global();
-	@Binding(MODULE) DefaultValues defaultValues();
-	@Binding(MODULE) Callables callables();
-	@Binding(MODULE) AlternativeChannels channels();
+	@Binding(LAZY) default Lists lists() {
+		return MultiJ.from(Lists.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default Variables variables() {
+		return MultiJ.from(Variables.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default Structure structure() {
+		return MultiJ.from(Structure.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default Code code() {
+		return MultiJ.from(Code.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default Controllers controllers() {
+		return MultiJ.from(Controllers.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default Main main() {
+		return MultiJ.from(Main.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default MainNetwork mainNetwork() {
+		return MultiJ.from(MainNetwork.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default Global global() {
+		return MultiJ.from(Global.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default DefaultValues defaultValues() {
+		return MultiJ.instance(DefaultValues.class);
+	}
+	@Binding(LAZY) default Callables callables() {
+		return MultiJ.from(Callables.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default AlternativeChannels channels() {
+		return MultiJ.from(AlternativeChannels.class).bind("backend").to(this).instance();
+	}
 }

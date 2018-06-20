@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.backend.c;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -14,11 +15,9 @@ import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.multij.BindingKind.MODULE;
-
 @Module
 public interface Variables {
-	@Binding(MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default String generateTemp() {

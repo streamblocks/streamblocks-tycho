@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.backend.c;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
@@ -22,11 +23,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.multij.BindingKind.MODULE;
-
 @Module
 public interface Code {
-	@Binding(MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default Emitter emitter() {

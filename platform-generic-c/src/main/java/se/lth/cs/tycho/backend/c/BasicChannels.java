@@ -7,7 +7,7 @@ import se.lth.cs.tycho.type.Type;
 
 @Module
 public interface BasicChannels extends Channels {
-	@Binding(BindingKind.MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default Emitter emitter() {

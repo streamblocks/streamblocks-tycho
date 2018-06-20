@@ -37,7 +37,7 @@ import static se.lth.cs.tycho.backend.c.util.NameExpression.seq;
 
 @Module
 public interface Callables {
-	@Binding(BindingKind.MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 	/*
 	Global scope:

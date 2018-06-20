@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Module
 public interface Structure {
-	@Binding(BindingKind.MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default Emitter emitter() {

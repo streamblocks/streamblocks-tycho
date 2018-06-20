@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Module
 public interface AlternativeChannels extends Channels {
-	@Binding(BindingKind.MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default Emitter emitter() {

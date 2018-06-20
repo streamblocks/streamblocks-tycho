@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 @Module
 public interface Global {
-	@Binding(BindingKind.MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default Emitter emitter() {

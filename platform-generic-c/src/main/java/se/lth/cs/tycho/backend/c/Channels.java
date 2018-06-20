@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Module
 public interface Channels {
-	@Binding(BindingKind.MODULE) Backend backend();
+	@Binding(BindingKind.INJECTED) Backend backend();
 	default Emitter emitter() { return backend().emitter(); }
 
 	void channelCodeForType(Type type, int size);

@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 @Module
 public interface Controllers {
-	@Binding(BindingKind.MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default Emitter emitter() {

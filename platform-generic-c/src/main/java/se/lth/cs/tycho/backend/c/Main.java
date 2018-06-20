@@ -22,7 +22,7 @@ import static org.multij.BindingKind.LAZY;
 
 @Module
 public interface Main {
-	@Binding(BindingKind.MODULE)
+	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
 	default Emitter emitter() {
