@@ -85,7 +85,7 @@ public interface Types {
 		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default Map<Expression, Type> typeMap() {
 			return new ConcurrentHashMap<>();
 		}
@@ -100,12 +100,12 @@ public interface Types {
 			}
 		}
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default ThreadLocal<Set<VarDecl>> currentlyComputing() {
 			return ThreadLocal.withInitial(HashSet::new);
 		}
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default Map<VarDecl, Type> declaredTypeMap() {
 			return new ConcurrentHashMap<>();
 		}
@@ -178,7 +178,7 @@ public interface Types {
 			return Optional.of(type.getElementType());
 		}
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default Map<LValue, Type> lvalueTypeMap() {
 			return new ConcurrentHashMap<>();
 		}

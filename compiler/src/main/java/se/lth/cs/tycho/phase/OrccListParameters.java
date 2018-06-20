@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.phase;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
@@ -46,13 +47,13 @@ public class OrccListParameters implements Phase {
 
     @Module
     interface Transformation extends IRNode.Transformation {
-        @Binding
+        @Binding(BindingKind.INJECTED)
         TreeShadow tree();
 
-        @Binding
+        @Binding(BindingKind.INJECTED)
         Types types();
 
-        @Binding
+        @Binding(BindingKind.INJECTED)
         VariableDeclarations variables();
 
         @Override

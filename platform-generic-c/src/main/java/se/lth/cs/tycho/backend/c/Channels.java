@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.backend.c;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.ToolValueAttribute;
 import se.lth.cs.tycho.ir.network.Connection;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Module
 public interface Channels {
-	@Binding Backend backend();
+	@Binding(BindingKind.MODULE) Backend backend();
 	default Emitter emitter() { return backend().emitter(); }
 
 	void channelCodeForType(Type type, int size);

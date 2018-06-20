@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.phase;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.*;
@@ -231,7 +232,7 @@ public class InternalizeBuffersPhase implements Phase {
 
 	@Module
 	interface RemoveStmtConsume extends IRNode.Transformation {
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		Set inputPorts();
 
 		@Override

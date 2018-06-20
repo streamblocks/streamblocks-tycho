@@ -37,7 +37,7 @@ public interface Closures {
         @Binding(BindingKind.INJECTED)
         TreeShadow tree();
 
-        @Binding
+        @Binding(BindingKind.INJECTED)
         FreeVariables freeVariables();
 
         @Override

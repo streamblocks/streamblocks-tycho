@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.backend.c;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Network;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Module
 public interface AlternativeChannels extends Channels {
-	@Binding
+	@Binding(BindingKind.MODULE)
 	Backend backend();
 
 	default Emitter emitter() {

@@ -223,10 +223,10 @@ public class TypeAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		Types types();
 
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		Reporter reporter();
 
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		SourceUnit sourceUnit();
 
 		default void check(IRNode node) {

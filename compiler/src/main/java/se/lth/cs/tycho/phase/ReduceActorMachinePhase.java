@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.phase;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
@@ -154,7 +155,7 @@ public class ReduceActorMachinePhase implements Phase {
 
 	@Module
 	interface ReduceActorMachine extends IRNode.Transformation {
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		Configuration config();
 
 		default List<Function<State, State>> transformations() {

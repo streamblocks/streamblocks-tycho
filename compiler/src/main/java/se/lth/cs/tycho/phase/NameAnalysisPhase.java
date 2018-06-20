@@ -66,7 +66,7 @@ public class NameAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		ParameterDeclarations parameterDeclarations();
 
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		Reporter reporter();
 
 		default SourceUnit sourceUnit(IRNode node) {

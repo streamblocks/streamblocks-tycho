@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.attribute;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
@@ -40,10 +41,10 @@ public interface GlobalNames {
 
 	@Module
 	interface Implementation extends GlobalNames {
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		CompilationTask root();
 
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();
 
 		default Optional<QID> globalName(IRNode node) {

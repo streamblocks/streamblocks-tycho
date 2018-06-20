@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.backend.c;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Compiler;
@@ -21,7 +22,7 @@ import static org.multij.BindingKind.LAZY;
 
 @Module
 public interface Main {
-	@Binding
+	@Binding(BindingKind.MODULE)
 	Backend backend();
 
 	default Emitter emitter() {

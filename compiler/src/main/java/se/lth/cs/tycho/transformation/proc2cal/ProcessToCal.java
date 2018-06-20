@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.transformation.proc2cal;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.UniqueNumbers;
@@ -127,30 +128,30 @@ public final class ProcessToCal {
 
 	@Module
 	interface BlockToCal {
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		UniqueNumbers uniqueNumbers();
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default ImmutableList.Builder<Action> actions() {
 			return ImmutableList.builder();
 		}
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default ImmutableList.Builder<Transition> transitions() {
 			return ImmutableList.builder();
 		}
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default AtomicReference<String> initialState() {
 			return new AtomicReference<>();
 		}
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default ImmutableList.Builder<ImmutableList<QID>> priorities() {
 			return ImmutableList.builder();
 		}
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default Map<Block, String> blockNames() {
 			return new HashMap<>();
 		}
@@ -165,7 +166,7 @@ public final class ProcessToCal {
 			}
 		}
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default Set<Block> processed() {
 			return new HashSet<>();
 		}

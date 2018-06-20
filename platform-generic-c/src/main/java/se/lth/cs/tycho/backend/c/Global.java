@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.backend.c;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.attribute.Types;
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
 
 @Module
 public interface Global {
-	@Binding
+	@Binding(BindingKind.MODULE)
 	Backend backend();
 
 	default Emitter emitter() {

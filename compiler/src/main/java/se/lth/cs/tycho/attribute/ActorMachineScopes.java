@@ -43,7 +43,7 @@ public interface ActorMachineScopes {
 		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();
 
-		@Binding
+		@Binding(BindingKind.LAZY)
 		default Map<ActorMachine, Map<String, Integer>> variableScopes() {
 			ScopeVarCollector collector = MultiJ.instance(ScopeVarCollector.class);
 			collector.accept(tree().root());
@@ -58,7 +58,7 @@ public interface ActorMachineScopes {
 
 		@Module
 		interface VariableUseCollector extends Consumer<IRNode> {
-			@Binding
+			@Binding(BindingKind.LAZY)
 			default Set<Variable> variables() {
 				return new HashSet<>();
 			}
@@ -75,7 +75,7 @@ public interface ActorMachineScopes {
 
 		@Module
 		interface ScopeVarCollector extends Consumer<IRNode> {
-			@Binding
+			@Binding(BindingKind.LAZY)
 			default Map<ActorMachine, Map<String, Integer>> variableScopes() {
 				return new HashMap<>();
 			}

@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.phase;
 
 import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
@@ -56,7 +57,7 @@ public class MergeManyGuardsPhase implements Phase {
 
 	@Module
 	interface GuardMergeTransformation {
-		@Binding
+		@Binding(BindingKind.INJECTED)
 		Integer threshold();
 
 		default CompilationTask transform(CompilationTask task) {
