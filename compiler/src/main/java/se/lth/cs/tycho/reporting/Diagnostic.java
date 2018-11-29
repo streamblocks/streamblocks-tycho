@@ -84,7 +84,7 @@ public class Diagnostic {
 				builder.append(fromLine);
 			}
 		}
-		builder.append(":\n");
+		builder.append(": ");
 		if (hasPosition() && inputStream != null) {
 			try (InputStream stream = inputStream.get()) {
 				List<String> lines = new BufferedReader(new InputStreamReader(stream)).lines()
@@ -108,7 +108,7 @@ public class Diagnostic {
 			}
 		}
 		builder.append(message);
-		builder.append("\n");
+		//builder.append("\n");
 		return builder.toString();
 	}
 
