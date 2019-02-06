@@ -784,6 +784,7 @@ GlobalEntityDecl ActorDecl() :
 {
 	Token id;
 	String name;
+	boolean external = false;
 	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
@@ -800,7 +801,7 @@ GlobalEntityDecl ActorDecl() :
 	ImmutableList.Builder<Expression> invariants = ImmutableList.builder();
 }
 {
-	("external")?
+	("external" {external = true;})?
 	"actor"
 	id = <ID> { name = id.image; }
 	"("
@@ -851,7 +852,7 @@ GlobalEntityDecl ActorDecl() :
 	)
 	{
 		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, process, priorities.build(), invariants.build());
-		return GlobalEntityDecl.global(Availability.PUBLIC, name, a);
+		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
 }
 

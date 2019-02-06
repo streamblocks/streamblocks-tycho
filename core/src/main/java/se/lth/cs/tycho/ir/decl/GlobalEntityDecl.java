@@ -7,68 +7,85 @@ import java.util.function.Consumer;
 
 public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
 
-	private final Entity entity;
-	private final Availability availability;
+    private final Entity entity;
+    private final Availability availability;
+    private final boolean external;
 
-	public Entity getEntity() {
-		return entity;
-	}
+    public Entity getEntity() {
+        return entity;
+    }
 
-	public GlobalEntityDecl withEntity(Entity entity) {
-		return entity == this.entity ? this : new GlobalEntityDecl(this, getAvailability(), getName(), entity);
-	}
+    public GlobalEntityDecl withEntity(Entity entity) {
+        return entity == this.entity ? this : new GlobalEntityDecl(this, getAvailability(), getName(), entity, getExternal());
+    }
 
-	private GlobalEntityDecl(GlobalEntityDecl original, Availability availability, String name, Entity entity) {
-		super(original, name);
-		this.entity = entity;
-		this.availability = availability;
-	}
+    private GlobalEntityDecl(GlobalEntityDecl original, Availability availability, String name, Entity entity, boolean external) {
+        super(original, name);
+        this.entity = entity;
+        this.availability = availability;
+        this.external = external;
+    }
 
-	public static GlobalEntityDecl global(Availability availability, String name, Entity entity) {
-		return new GlobalEntityDecl(null, availability, name, entity);
-	}
+    private GlobalEntityDecl(GlobalEntityDecl original, Availability availability, String name, Entity entity) {
+        super(original, name);
+        this.entity = entity;
+        this.availability = availability;
+        this.external = false;
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		if (entity != null) action.accept(entity);
-	}
+    public static GlobalEntityDecl global(Availability availability, String name, Entity entity, boolean external) {
+        return new GlobalEntityDecl(null, availability, name, entity, external);
+    }
 
-	@Override
-	public GlobalEntityDecl transformChildren(Transformation transformation) {
-		if (entity == null) {
-			return this;
-		} else {
-			return withEntity((Entity) transformation.apply(entity));
-		}
-	}
+    public static GlobalEntityDecl global(Availability availability, String name, Entity entity) {
+        return new GlobalEntityDecl(null, availability, name, entity, false);
+    }
 
-	public GlobalEntityDecl withName(String name) {
-		if (getName().equals(name)) {
-			return this;
-		} else {
-			return new GlobalEntityDecl(this, getAvailability(), name, entity);
-		}
-	}
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        if (entity != null) action.accept(entity);
+    }
 
-	public GlobalEntityDecl withAvailability(Availability availability) {
-		if (getAvailability() == availability) {
-			return this;
-		} else {
-			return new GlobalEntityDecl(this, availability, getName(), entity);
-		}
-	}
+    @Override
+    public GlobalEntityDecl transformChildren(Transformation transformation) {
+        if (entity == null) {
+            return this;
+        } else {
+            return withEntity((Entity) transformation.apply(entity));
+        }
+    }
 
-	public Availability getAvailability() {
-		return availability;
-	}
+    public GlobalEntityDecl withName(String name) {
+        if (getName().equals(name)) {
+            return this;
+        } else {
+            return new GlobalEntityDecl(this, getAvailability(), name, entity);
+        }
+    }
 
-	@Override
-	public GlobalEntityDecl clone() {
-		return (GlobalEntityDecl) super.clone();
-	}
+    public GlobalEntityDecl withAvailability(Availability availability) {
+        if (getAvailability() == availability) {
+            return this;
+        } else {
+            return new GlobalEntityDecl(this, availability, getName(), entity);
+        }
+    }
 
-	@Override
-	public GlobalEntityDecl deepClone() {
-		return (GlobalEntityDecl) super.deepClone();
-	}
+    public Availability getAvailability() {
+        return availability;
+    }
+
+    public boolean getExternal() {
+        return external;
+    }
+
+    @Override
+    public GlobalEntityDecl clone() {
+        return (GlobalEntityDecl) super.clone();
+    }
+
+    @Override
+    public GlobalEntityDecl deepClone() {
+        return (GlobalEntityDecl) super.deepClone();
+    }
 }
