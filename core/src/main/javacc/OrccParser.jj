@@ -328,7 +328,6 @@ NamespaceDecl CompilationUnit() :
 			varDecls.addAll(unit.getVarDecls());
 		}
 	|
-		(Annotation())*
 		e = ActorDecl()  { entityDecls.add(e); }
 	)
 	<EOF>
@@ -633,8 +632,18 @@ GlobalEntityDecl ActorDecl() :
 	ScheduleFSM scheduleFSM = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
 	ImmutableList.Builder<Expression> invariants = ImmutableList.builder();
+	boolean external = false;
+	Annotation ann;
 }
 {
+	(
+        ann = Annotation()
+        {
+            if (ann.getName().equals("native")) {
+                external = true;
+            }
+        }
+    )*
 	"actor"
 	id = <ID> { name = id.image; }
 	"("
@@ -672,7 +681,7 @@ GlobalEntityDecl ActorDecl() :
 	)
 	{
 		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, null, priorities.build(), invariants.build());
-		return GlobalEntityDecl.global(Availability.PUBLIC, name, a);
+		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
 }
 
