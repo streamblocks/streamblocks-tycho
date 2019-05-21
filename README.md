@@ -1,3 +1,5 @@
+![Logo](doc/streamblocks-logo.png)
+
 StreamBlocks Tycho Compiler  Repository
 =======================================
 
