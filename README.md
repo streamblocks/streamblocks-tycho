@@ -1,45 +1,59 @@
-# Tycho Compiler
-Tycho is a compiler for dataflow programs that supports most of Cal, RVC-CAL and a language for Kahn processes.
+![Logo](doc/streamblocks-logo.png)
 
-# Example
-The following actor reads two streams of numbers and produces a stream that is the pairwise sum of two incoming streams.
+StreamBlocks Tycho Compiler  Repository
+=======================================
+
+Welcome to the StreamBlocks-Tycho compiler repository. This repository contains the frontend of the StreamBlocks dataflow compiler.
+
+This README file is organized as follows:
+1. Getting started
+2. How to download this repository
+3. Dependencies
+4. Installation
+5. StreamBlocks Platforms
+6. Original Tycho repository
+7. Support
+
+
+### 1. Getting Started
+
+StreamBlocks-Tycho is a compiler for dataflow programs that supports most of Cal, RVC-CAL and a language for Kahn processes.
+This repository contains the frontend and the compiler infrastructure of the StreamBlocks-Tycho dataflow compiler and an example 
+backend for C code generation.
+
+
+### 2. How to download this repository
+
+To get a local copy of the StreamBlocks-Tycho repository, clone this repository to the local system with the following commmand:
 ```
-actor Add () uint(size=8) X, uint(size=8) Y ==> uint(size=8) Z :
-    action X:[x], Y:[y] ==> Z:[x + y] end
-end
+git clone https://github.com/streamblocks/streamblocks-tycho streamblocks-tycho
 ```
 
-# Installation
+### 3. Dependencies
+
 To build Tycho, you need the following:
 
 * Java SE Development Kit 8 (or later)
 * Apache Maven
 * Git
-* C compiler (for example Clang or GCC)
 
-Tycho is installed using the following commands:
+### 4. Installation
+
+StreamBlocks Tycho is installed using the following commands:
 ```
-git clone https://bitbucket.org/dataflow/dataflow.git tycho
-cd tycho
+git clone https://github.com/streamblocks/streamblocks-tycho streamblocks-tycho
+cd streamblocks-tycho
 mvn -DskipTests install
 ```
 
-To make it easier to invoke the Tycho compiler, you can symlink `tychoc` to a file in your PATH.
+### 5. StreamBlocks Platforms
+The StreamBlocks dataflow compiler has a code generator for multicore platforms and another one for reconfigurable computing using High-Level synthesis.
+The repository for those code-generators are located at the following link : [streamblocks-platforms](https://github.com/streamblocks/streamblocks-platforms/blob/master/README.md).
 
-# Running the compiler
-To compile an actor called `Add` in a file called `source/arith.cal` and generate the output to the folder `target` you invoke:
-```
-tychoc --source-path source --target-path target Add
-```
-You can then compile the generated code.
-```
-cc target/*.c -o Add
-```
-Given two input files `in-1` and `in-2` you can ge the pairwise sum of their byte streams in a file `out` by running the program.
-```
-./Add in-1 in-2 out
-```
-Use the `--help` flag to see more available options.
-```
-tychoc --help
-```
+### 6. Original Tycho dataflow compiler repository
+
+Tycho dataflow compiler compiler was developed by Lund University and the original repository is located [here](https://bitbucket.org/dataflow/dataflow/).
+
+### 7. Support
+
+If you have an issue with StreamBlocks-Tycho dataflow compiler please create a new issue in this repository.
