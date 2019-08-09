@@ -58,6 +58,24 @@ public class PortDecl extends AbstractIRNode {
 		return name;
 	}
 
+	/**
+	 * Returns a safe name of the port
+	 *
+	 * @return a safe name
+	 */
+	public String getSafeName() {
+		if(name.equalsIgnoreCase("IN")){
+			return name + "_r";
+		}else if(name.equalsIgnoreCase("OUT")){
+			return name + "_r";
+		}else if(name.equalsIgnoreCase("BYTE")){
+			return name + "_r";
+		}else{
+			return name;
+		}
+
+	}
+
 	public PortDecl withName(String name) {
 		return copy(name, type);
 	}
