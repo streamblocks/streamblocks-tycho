@@ -11,6 +11,7 @@
 		<module>compiler</module>
 		<module>platform-generic-c</module>
 		<module>app-test</module>
+		<module>language-server</module>
 	</modules>
 
 	<properties>

@@ -1,0 +1,1 @@
+Main-Class: ch.epfl.vlsc.tycho.lsp4j.Main
