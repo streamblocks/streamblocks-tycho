@@ -32,20 +32,20 @@ public class CalLanguageServer implements LanguageServer, LanguageClientAware {
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 
         final InitializeResult res = new InitializeResult(new ServerCapabilities());
-        res.getCapabilities().setCodeActionProvider(Boolean.TRUE);
-        res.getCapabilities().setCompletionProvider(new CompletionOptions());
-        res.getCapabilities().setDefinitionProvider(Boolean.TRUE);
-        res.getCapabilities().setHoverProvider(Boolean.TRUE);
-        res.getCapabilities().setReferencesProvider(Boolean.TRUE);
+        //res.getCapabilities().setCodeActionProvider(Boolean.TRUE);
+        //res.getCapabilities().setCompletionProvider(new CompletionOptions());
+        //res.getCapabilities().setDefinitionProvider(Boolean.TRUE);
+        //res.getCapabilities().setHoverProvider(Boolean.TRUE);
+        //res.getCapabilities().setReferencesProvider(Boolean.TRUE);
         res.getCapabilities().setTextDocumentSync(TextDocumentSyncKind.Full);
-        res.getCapabilities().setDocumentSymbolProvider(Boolean.TRUE);
+        //res.getCapabilities().setDocumentSymbolProvider(Boolean.TRUE);
 
         return CompletableFuture.supplyAsync(() -> res);
     }
 
     @Override
     public CompletableFuture<Object> shutdown() {
-        return CompletableFuture.supplyAsync(() -> Boolean.TRUE);
+        return CompletableFuture.supplyAsync(Object::new);
     }
 
     @Override

@@ -3,16 +3,14 @@ package ch.epfl.vlsc.tycho.lsp4j;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.parsing.cal.CalParser;
 import se.lth.cs.tycho.parsing.cal.ParseException;
 import se.lth.cs.tycho.parsing.cal.Token;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -53,6 +51,9 @@ public class CalTextDocumentService implements TextDocumentService {
 
     @Override
     public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
+
+
+
         return null;
     }
 
@@ -112,7 +113,7 @@ public class CalTextDocumentService implements TextDocumentService {
 
         CompletableFuture.runAsync(() ->
                 calLanguageServer.client.publishDiagnostics(
-                        new PublishDiagnosticsParams(params.getTextDocument().getUri(), validate(params.getTextDocument().getUri()))
+                        new PublishDiagnosticsParams(params.getTextDocument().getUri(), validate(params.getTextDocument().getText()))
                 )
         );
 
@@ -135,7 +136,7 @@ public class CalTextDocumentService implements TextDocumentService {
 
             CompletableFuture.runAsync(() ->
                     calLanguageServer.client.publishDiagnostics(
-                            new PublishDiagnosticsParams(params.getTextDocument().getUri(), validate(params.getTextDocument().getUri()))
+                            new PublishDiagnosticsParams(params.getTextDocument().getUri(), validate(changeEvent.getText()))
                     )
             );
         }
@@ -143,26 +144,33 @@ public class CalTextDocumentService implements TextDocumentService {
     }
 
 
-    private List<Diagnostic> validate(String uri) {
+    private List<Diagnostic> validate(String text) {
         List<Diagnostic> res = new ArrayList<>();
-        Path p = null;
+
         try {
-            p = Paths.get(new URI(uri));
-            CalParser parser = new CalParser(Files.newBufferedReader(p));
-            parser.CompilationUnit();
-        } catch (URISyntaxException e){
+            StringReader sr = new StringReader(text);
+            Reader r = new BufferedReader(sr);
 
-        } catch (IOException e) {
+            CalParser parser = new CalParser(r);
+            NamespaceDecl ns = parser.CompilationUnit();
+            System.out.println(ns.getQID());
+
         } catch (ParseException e) {
-           Diagnostic d = new Diagnostic(); // = reporter.report(toDiagnostic(p, e));d.setSeverity(DiagnosticSeverity.Error);
-           d.setMessage(e.getMessage());
+            Diagnostic d = new Diagnostic(); // = reporter.report(toDiagnostic(p, e));d.setSeverity(DiagnosticSeverity.Error);
+            d.setMessage(e.getMessage());
 
-           Token t = e.currentToken;
+            Token t = e.currentToken;
 
-            d.setRange(new Range(
-                    new Position(t.beginLine,t.beginColumn),
-                    new Position(t.endLine,t.endColumn)
-            ));
+            // -- If kind is a Cal constant get next
+            CalTokenId token = CalTokenId.getById(t.kind);
+            if (token != CalTokenId.ID) {
+                t = t.next;
+            }
+
+            final Range range = new Range();
+            range.setStart(new Position(t.beginLine - 1, t.beginColumn - 1));
+            range.setEnd(new Position(t.endLine - 1, t.beginColumn - 1 + t.image.length()));
+            d.setRange(range);
 
             res.add(d);
 
@@ -170,7 +178,6 @@ public class CalTextDocumentService implements TextDocumentService {
 
         return res;
     }
-
 
 
     @Override

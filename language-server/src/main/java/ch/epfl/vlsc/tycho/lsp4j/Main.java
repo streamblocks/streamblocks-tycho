@@ -14,6 +14,12 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException {
 
+        if(args.length == 0){
+            System.out.println("Proper Usage is: TychoLS <port>");
+            System.exit(0);
+        }
+
+
         String port = args[0];
         try {
             Socket socket = new Socket("localhost", Integer.parseInt(port));
