@@ -15,6 +15,8 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.nl.*;
+import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
+import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Instance;
@@ -37,23 +39,9 @@ public class NetworkVariablePropagation implements Phase {
 
         if (entityDecl.getEntity() instanceof NlNetwork) {
             NlNetwork nlNetwork = (NlNetwork) entityDecl.getEntity();
-            List<LocalVarDecl> varDecls = new ArrayList<>();
-            varDecls.addAll(nlNetwork.getVarDecls());
+            List<VarDecl> varDecls = new ArrayList<>();
 
-            // -- FIXME : recursive
-            for(InstanceDecl entity : nlNetwork.getEntities()){
-                assert entity.getEntityExpr() instanceof EntityInstanceExpr;
-                EntityInstanceExpr expr = (EntityInstanceExpr) entity.getEntityExpr();
-                assert expr.getEntityName() instanceof EntityReferenceGlobal;
-                EntityReferenceLocal ref = ((EntityReferenceLocal) expr.getEntityName());
-                GlobalEntityDecl e = entities.declaration(ref);
-                if(e.getEntity() instanceof NlNetwork){
-                    varDecls.addAll(nlNetwork.getVarDecls());
-                }
-            }
-
-
-
+            varDecls.addAll(getAllVarDecl(nlNetwork, entities));
 
             Transformation t = MultiJ.from(Transformation.class)
                     .bind("varDecls").to(varDecls)
@@ -63,6 +51,24 @@ public class NetworkVariablePropagation implements Phase {
         }
 
         return task;
+    }
+
+    private List<VarDecl> getAllVarDecl(NlNetwork nlNetwork, EntityDeclarations entities) {
+        List<VarDecl> vars = new ArrayList<>();
+        vars.addAll(nlNetwork.getVarDecls());
+        for (InstanceDecl entity : nlNetwork.getEntities()) {
+            assert entity.getEntityExpr() instanceof EntityInstanceExpr;
+            EntityInstanceExpr expr = (EntityInstanceExpr) entity.getEntityExpr();
+            assert expr.getEntityName() instanceof EntityReferenceGlobal;
+            EntityReferenceLocal ref = ((EntityReferenceLocal) expr.getEntityName());
+            GlobalEntityDecl e = entities.declaration(ref);
+            if (e.getEntity() instanceof NlNetwork) {
+                NlNetwork nl = (NlNetwork) e.getEntity();
+                vars.addAll(getAllVarDecl(nl, entities));
+            }
+        }
+
+        return vars;
     }
 
     @Module
@@ -76,38 +82,57 @@ public class NetworkVariablePropagation implements Phase {
             return node.transformChildren(this);
         }
 
-        default NlNetwork apply(NlNetwork nlNetwork) {
-                List<VarDecl> decls = varDecls();
-            for(VarDecl decl : nlNetwork.getVarDecls()){
-                VarDecl d = decls.stream().filter(v -> v.getName().equals(decl.getName())).findAny().orElse(null);
-                if(d == null){
-                    varDecls().add(decl);
-                }
-            }
-
-            return nlNetwork.transformChildren(this);
-        }
-
         default ValueParameter apply(ValueParameter valueParameter) {
 
             List<VarDecl> vars = varDecls();
 
             if (!vars.isEmpty()) {
-                if (valueParameter.getValue() instanceof ExprVariable) {
-                    ExprVariable exprVariable = (ExprVariable) valueParameter.getValue();
-                    Expression expr = vars.stream()
-                            .filter(v -> v.getName().equals(exprVariable.getVariable().getName()))
-                            .map(VarDecl::getValue)
-                            .findFirst()
-                            .orElse(null);
-                    if (expr != null) {
-                        return new ValueParameter(valueParameter.getName(), expr.deepClone());
-                    }
-                }
+                Expression expr = visit(valueParameter.getValue());
+                return new ValueParameter(valueParameter.getName(), expr.deepClone());
             }
 
             return valueParameter;
         }
+
+        default Expression visit(Expression expr) {
+            return expr;
+        }
+
+        default Expression visit(ExprBinaryOp exprOp) {
+            if (!varDecls().isEmpty()) {
+                Expression op0 = visit(exprOp.getOperands().get(0));
+                Expression op1 = visit(exprOp.getOperands().get(1));
+                ImmutableList.Builder<Expression> operands = ImmutableList.builder();
+                operands.add(op0);
+                operands.add(op1);
+                return new ExprBinaryOp(exprOp.getOperations(), operands.build());
+            }
+            return exprOp;
+        }
+
+        default Expression visit(ExprVariable exprVariable) {
+            List<VarDecl> params = varDecls();
+            Expression expr = params.stream()
+                    .filter(p -> p.getName().equals(exprVariable.getVariable().getName()))
+                    .map(VarDecl::getValue)
+                    .findFirst()
+                    .orElse(null);
+            if (expr != null) {
+                return expr;
+            }
+
+            return exprVariable;
+        }
+
+        default ExprUnaryOp visit(ExprUnaryOp exprUnaryOp){
+            if(!varDecls().isEmpty()){
+                Expression expr = visit(exprUnaryOp.getOperand());
+                return new ExprUnaryOp(exprUnaryOp.getOperation(), expr);
+            }
+
+            return exprUnaryOp;
+        }
+
     }
 
 }
