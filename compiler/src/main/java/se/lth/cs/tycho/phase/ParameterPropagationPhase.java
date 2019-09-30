@@ -9,13 +9,18 @@ import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.ValueParameter;
+import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
+import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
 import java.util.*;
@@ -61,7 +66,7 @@ public class ParameterPropagationPhase implements Phase {
         Map instanceCalActorMap();
 
         @Binding(LAZY)
-        default List<ValueParameter> parameters(){
+        default List<ValueParameter> parameters() {
             return new ArrayList<>();
         }
 
@@ -79,21 +84,67 @@ public class ParameterPropagationPhase implements Phase {
                     .findFirst()
                     .orElse(null);
 
-            parameters().addAll(instance.getValueParameters());
+            if (instance != null) {
+                if (instance.getValueParameters() != null)
+                    parameters().addAll(instance.getValueParameters());
 
-
-            if(parameters().isEmpty()){
-                return actor;
+                if (parameters().isEmpty()) {
+                    return actor;
+                }
             }
 
-            return actor;
+            return actor.transformChildren(this);
         }
 
-        default  ExprVariable apply(ExprVariable exprVariable) {
-            // -- TODO: Apply transformation here
+        default ValueParameter apply(ValueParameter valueParameter) {
+            List<ValueParameter> params = parameters();
+
+            if (!params.isEmpty()) {
+                Expression expr = visit(valueParameter.getValue());
+                return new ValueParameter(valueParameter.getName(), expr.deepClone());
+            }
+
+            return valueParameter;
+        }
+
+        default Expression visit(Expression expr) {
+            return expr;
+        }
+
+        default Expression visit(ExprBinaryOp exprOp) {
+            if (!parameters().isEmpty()) {
+                Expression op0 = visit(exprOp.getOperands().get(0));
+                Expression op1 = visit(exprOp.getOperands().get(1));
+                ImmutableList.Builder<Expression> operands = ImmutableList.builder();
+                operands.add(op0);
+                operands.add(op1);
+                return new ExprBinaryOp(exprOp.getOperations(), operands.build());
+            }
+            return exprOp;
+        }
+
+        default Expression visit(ExprVariable exprVariable) {
+            List<ValueParameter> params = parameters();
+            Expression expr = params.stream()
+                    .filter(p -> p.getName().equals(exprVariable.getVariable().getName()))
+                    .map(ValueParameter::getValue)
+                    .findFirst()
+                    .orElse(null);
+            if (expr != null) {
+                return expr;
+            }
+
             return exprVariable;
         }
 
+        default ExprUnaryOp visit(ExprUnaryOp exprUnaryOp){
+            if(!parameters().isEmpty()){
+                Expression expr = visit(exprUnaryOp.getOperand());
+                return new ExprUnaryOp(exprUnaryOp.getOperation(), expr);
+            }
+
+            return exprUnaryOp;
+        }
 
     }
 }

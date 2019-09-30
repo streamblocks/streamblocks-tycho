@@ -80,6 +80,7 @@ public class Compiler {
 
     public static List<Phase> networkElaborationPhases() {
         return ImmutableList.of(
+                new NetworkVariablePropagation(),
                 new CreateNetworkPhase(),
                 new ResolveGlobalEntityNamesPhase(),
                 new ResolveGlobalVariableNamesPhase(),
