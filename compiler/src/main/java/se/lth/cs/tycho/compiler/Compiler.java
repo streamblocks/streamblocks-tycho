@@ -18,7 +18,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -72,7 +71,12 @@ public class Compiler {
                 new OperatorParsingPhase(),
                 new DeclarationAnalysisPhase(),
                 new ImportAnalysisPhase(),
-                new NameAnalysisPhase()
+                new NameAnalysisPhase(),
+
+                // -- Folding
+                new NetworkParameterAnalysisPhase(),
+                new NetworkDefaultValueParameterPropagationPhase(),
+                new NetworkValueParameterPropagationPhase()
         );
     }
 

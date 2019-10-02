@@ -100,8 +100,13 @@ public class TypeAnalysisPhase implements Phase {
 				} else {
 					return to.getSize().getAsInt() > from.getSize().getAsInt();
 				}
+			}else{
+				if(to.getSize().isPresent()){
+					return true;
+				}else{
+					return false;
+				}
 			}
-			return false;
 		}
 		default boolean isAssignable(BoolType to, BoolType from) {
 			return true;
@@ -243,7 +248,7 @@ public class TypeAnalysisPhase implements Phase {
 				if (isConvertible(to, from)) {
 					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + from + " to " + to + ".", sourceUnit(), node));
 				} else {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + to + " but was " + from + ".", sourceUnit(), node));
+					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Incompatible types; expected " + to + " but was " + from + ".", sourceUnit(), node));
 				}
 			}
 		}
