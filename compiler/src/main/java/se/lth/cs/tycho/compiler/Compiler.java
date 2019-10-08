@@ -71,12 +71,12 @@ public class Compiler {
                 new OperatorParsingPhase(),
                 new DeclarationAnalysisPhase(),
                 new ImportAnalysisPhase(),
-                new NameAnalysisPhase(),
+                new NameAnalysisPhase()
 
                 // -- Folding
-                new NetworkParameterAnalysisPhase(),
-                new NetworkDefaultValueParameterPropagationPhase(),
-                new NetworkValueParameterPropagationPhase()
+                //new NetworkParameterAnalysisPhase(),
+                //new NetworkDefaultValueParameterPropagationPhase(),
+                //new NetworkValueParameterPropagationPhase()
         );
     }
 
@@ -84,12 +84,12 @@ public class Compiler {
 
     public static List<Phase> networkElaborationPhases() {
         return ImmutableList.of(
-                new NetworkVariablePropagation(),
+                //new NetworkVariablePropagation(),
                 new CreateNetworkPhase(),
                 new ResolveGlobalEntityNamesPhase(),
                 new ResolveGlobalVariableNamesPhase(),
                 new ElaborateNetworkPhase(),
-                new ParameterPropagationPhase(),
+                //new ParameterPropagationPhase(),
                 new RemoveUnusedGlobalDeclarations()
         );
     }

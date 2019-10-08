@@ -24,7 +24,6 @@ public class Main {
             System.exit(0);
         }
 
-
         String port = args[0];
         try {
             CalLanguageServer languageServer = new CalLanguageServer();
@@ -39,8 +38,6 @@ public class Main {
             LanguageClient client = launcher.getRemoteProxy();
             languageServer.connect(client);
             launcher.startListening().get();
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }

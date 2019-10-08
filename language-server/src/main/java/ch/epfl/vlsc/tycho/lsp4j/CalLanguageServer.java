@@ -38,7 +38,7 @@ public class CalLanguageServer implements LanguageServer, LanguageClientAware {
         //res.getCapabilities().setHoverProvider(Boolean.TRUE);
         //res.getCapabilities().setReferencesProvider(Boolean.TRUE);
         res.getCapabilities().setTextDocumentSync(TextDocumentSyncKind.Full);
-        //res.getCapabilities().setDocumentSymbolProvider(Boolean.TRUE);
+        res.getCapabilities().setDocumentSymbolProvider(Boolean.TRUE);
 
         return CompletableFuture.supplyAsync(() -> res);
     }

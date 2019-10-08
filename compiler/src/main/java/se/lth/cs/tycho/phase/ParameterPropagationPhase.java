@@ -96,54 +96,17 @@ public class ParameterPropagationPhase implements Phase {
             return actor.transformChildren(this);
         }
 
-        default ValueParameter apply(ValueParameter valueParameter) {
+        default Expression apply(ExprVariable exprVariable){
             List<ValueParameter> params = parameters();
-
-            if (!params.isEmpty()) {
-                Expression expr = visit(valueParameter.getValue());
-                return new ValueParameter(valueParameter.getName(), expr.deepClone());
-            }
-
-            return valueParameter;
-        }
-
-        default Expression visit(Expression expr) {
-            return expr;
-        }
-
-        default Expression visit(ExprBinaryOp exprOp) {
-            if (!parameters().isEmpty()) {
-                Expression op0 = visit(exprOp.getOperands().get(0));
-                Expression op1 = visit(exprOp.getOperands().get(1));
-                ImmutableList.Builder<Expression> operands = ImmutableList.builder();
-                operands.add(op0);
-                operands.add(op1);
-                return new ExprBinaryOp(exprOp.getOperations(), operands.build());
-            }
-            return exprOp;
-        }
-
-        default Expression visit(ExprVariable exprVariable) {
-            List<ValueParameter> params = parameters();
-            Expression expr = params.stream()
+            Optional<Expression> expr = params.stream()
                     .filter(p -> p.getName().equals(exprVariable.getVariable().getName()))
                     .map(ValueParameter::getValue)
-                    .findFirst()
-                    .orElse(null);
-            if (expr != null) {
-                return expr;
+                    .findAny();
+            if(expr.isPresent()){
+                return expr.get().deepClone();
             }
 
             return exprVariable;
-        }
-
-        default ExprUnaryOp visit(ExprUnaryOp exprUnaryOp){
-            if(!parameters().isEmpty()){
-                Expression expr = visit(exprUnaryOp.getOperand());
-                return new ExprUnaryOp(exprUnaryOp.getOperation(), expr);
-            }
-
-            return exprUnaryOp;
         }
 
     }

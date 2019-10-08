@@ -1,6 +1,8 @@
 package ch.epfl.vlsc.tycho.lsp4j;
 
+import ch.epfl.vlsc.tycho.lsp4j.symbols.SymbolFinding;
 import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -9,8 +11,14 @@ import se.lth.cs.tycho.parsing.cal.ParseException;
 import se.lth.cs.tycho.parsing.cal.Token;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -30,81 +38,26 @@ public class CalTextDocumentService implements TextDocumentService {
     }
 
     @Override
-    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(TextDocumentPositionParams position) {
-        return null;
-    }
+    public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
+        return CompletableFutures.computeAsync((cc) -> {
+            List<Either<SymbolInformation, DocumentSymbol>> symbols = new ArrayList<>();
+            String uri = params.getTextDocument().getUri();
+            Path p = null;
+            try {
+                p = Paths.get(new URI(uri));
+                CalParser parser = new CalParser(Files.newBufferedReader(p));
+                NamespaceDecl ns = parser.CompilationUnit();
 
-    @Override
-    public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<Hover> hover(TextDocumentPositionParams position) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<SignatureHelp> signatureHelp(TextDocumentPositionParams position) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
-
-
-
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends DocumentHighlight>> documentHighlight(TextDocumentPositionParams position) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends SymbolInformation>> documentSymbol(DocumentSymbolParams params) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends Command>> codeAction(CodeActionParams params) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<CodeLens> resolveCodeLens(CodeLens unresolved) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends TextEdit>> formatting(DocumentFormattingParams params) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends TextEdit>> rangeFormatting(DocumentRangeFormattingParams params) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<List<? extends TextEdit>> onTypeFormatting(DocumentOnTypeFormattingParams params) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
-        return null;
+                SymbolFinding symbolFinding = new SymbolFinding(uri);
+                return symbolFinding.visit(ns);
+            } catch (URISyntaxException e) {
+                return symbols;
+            } catch (IOException e) {
+                return symbols;
+            } catch (ParseException e) {
+                return symbols;
+            }
+        });
     }
 
     @Override
@@ -156,7 +109,7 @@ public class CalTextDocumentService implements TextDocumentService {
             System.out.println(ns.getQID());
 
         } catch (ParseException e) {
-            Diagnostic d = new Diagnostic(); // = reporter.report(toDiagnostic(p, e));d.setSeverity(DiagnosticSeverity.Error);
+            Diagnostic d = new Diagnostic();
             d.setMessage(e.getMessage());
 
             Token t = e.currentToken;

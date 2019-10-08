@@ -320,14 +320,27 @@ NamespaceDecl NamespaceDecl() :
 {
 	QID qid;
 	NamespaceDecl ns;
+	int beginLine;
+	int beginColumn;
+	int endLine;
+	int endColumn;
 }
 {
 	"namespace"
+	{
+	    beginLine = token.beginLine;
+	    beginColumn = token.beginColumn;
+	    endLine = token.endLine;
+	    endColumn = token.endColumn;
+	}
 	qid = QID()
 	":"
 	ns = NamespaceDeclContents(qid)
 	"end"
-	{ return ns; }
+	{
+        ns.setPosition(beginLine, beginColumn, endLine, endColumn);
+        return ns;
+    }
 }
 
 NamespaceDecl NamespaceDeclContents(QID name) :
@@ -363,15 +376,24 @@ QID QID() :
 {
 	QID qid;
 	Token id;
+	int beginLine;
+    int beginColumn;
 }
 {
-	id = <ID> { qid = QID.of(id.image); }
+	id = <ID> {
+                 beginLine = id.beginLine;
+                 beginColumn = id.beginColumn;
+                 qid = QID.of(id.image);
+                }
 	(
 		LOOKAHEAD(2)
 		"."
 		id = <ID> { qid = qid.concat(QID.of(id.image)); }
 	)*
-	{ return qid; }
+	{
+        qid.setPosition(beginLine, beginColumn, id.endLine, id.endColumn);
+        return qid;
+    }
 }
 
 /* Declarations */
@@ -435,9 +457,15 @@ void FunctionVarDecl(GenericVarDecl varDecl) :
 	ImmutableList<LocalVarDecl> varDecls = null;
 	TypeExpr returnType = null;
 	Expression body = null;
+	int beginLine;
+	int beginColumn;
 }
 {
     "function"
+    {
+        beginLine = token.beginLine;
+        beginColumn = token.beginColumn;
+    }
     id = <ID>
     "("
     valPars = FormalValuePars()
@@ -456,9 +484,12 @@ void FunctionVarDecl(GenericVarDecl varDecl) :
         ExprLambda lambda;
 		if (varDecls == null) {
 		    lambda = new ExprLambda(valPars, body, returnType);
+		    lambda.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
         } else {
             ExprLet let = new ExprLet(ImmutableList.empty(), varDecls, body);
+            let.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		    lambda = new ExprLambda(valPars, let, returnType);
+		    lambda.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		}
 		if (body == null) {
 		    varDecl.type = lambdaToType(lambda);
@@ -475,9 +506,15 @@ void ProcedureVarDecl(GenericVarDecl varDecl) :
 	ImmutableList<ParameterVarDecl> valPars;
 	ImmutableList<LocalVarDecl> varDecls = null;
 	ImmutableList<Statement> stmts = null;
+	int beginLine;
+	int beginColumn;
 }
 {
 	"procedure"
+	{
+	    beginLine = token.beginLine;
+        beginColumn = token.beginColumn;
+	}
 	id = <ID>
 	"("
     valPars = FormalValuePars()
@@ -495,9 +532,11 @@ void ProcedureVarDecl(GenericVarDecl varDecl) :
 		ExprProc proc;
 		if (varDecls == null) {
 			proc = new ExprProc(valPars, stmts);
+			proc.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		} else {
 			StmtBlock block = new StmtBlock(ImmutableList.empty(), varDecls, stmts);
 			proc = new ExprProc(valPars, ImmutableList.of(block));
+			proc.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		}
 		if (stmts == null) {
 		    varDecl.type = procToType(proc);
@@ -799,10 +838,16 @@ GlobalEntityDecl ActorDecl() :
 	ProcessDescription process = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
 	ImmutableList.Builder<Expression> invariants = ImmutableList.builder();
+	int beginLine;
+    int beginColumn;
 }
 {
 	("external" {external = true;})?
 	"actor"
+	{
+	    beginLine = token.beginLine;
+	    beginColumn = token.endColumn;
+	}
 	id = <ID> { name = id.image; }
 	"("
 	valuePars = FormalValuePars()
@@ -852,6 +897,7 @@ GlobalEntityDecl ActorDecl() :
 	)
 	{
 		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, process, priorities.build(), invariants.build());
+		a.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
 }
@@ -930,10 +976,16 @@ Action Action() :
 	Expression delay = null;
 	ImmutableList<Expression> preconditions = ImmutableList.empty();
 	ImmutableList<Expression> postconditions = ImmutableList.empty();
+	int beginLine;
+    int beginColumn;
 }
 {
 	( tag = QID() ":" )?
 	"action"
+	{
+	    beginLine = token.beginLine;
+	    beginColumn = token.beginColumn;
+	}
 	inputPatterns = InputPatterns()
 	"==>"
 	outputExpressions = OutputExpressions()
@@ -943,7 +995,9 @@ Action Action() :
 	("do" body = Statements())?
 	("end" | "endaction")
 	{
-		return new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		Action action = new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		action.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+		return action;
 	}
 }
 
@@ -959,10 +1013,16 @@ Action InitializationAction() :
 	Expression delay = null;
 	ImmutableList<Expression> preconditions = ImmutableList.empty();
 	ImmutableList<Expression> postconditions = ImmutableList.empty();
+	int beginLine;
+    int beginColumn;
 }
 {
 	( tag = QID() ":" )?
 	"initialize"
+	{
+        beginLine = token.beginLine;
+        beginColumn = token.beginColumn;
+    }
 	"==>"
 	outputExpressions = OutputExpressions()
 	("guard" guards = ExpressionList())?
@@ -971,7 +1031,9 @@ Action InitializationAction() :
 	("do" body = Statements())?
 	("end" | "endinitialize")
 	{
-		return new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		Action action = new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		action.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+		return action;
 	}
 }
 
@@ -990,13 +1052,27 @@ ImmutableList<InputPattern> InputPatterns() :
 
 InputPattern InputPattern() :
 {
-	Token id;
+	Token id = null;
 	Port port = null;
 	ImmutableList.Builder<InputVarDecl> varDecls = ImmutableList.builder();
 	Expression repeat = null;
+	int beginLine = 0;
+    int beginColumn = 0;
 }
 {
-	( id = <ID> ":" { port = new Port(id.image); })?
+	( id = <ID> ":"
+        {
+            if(id != null){
+                beginLine = id.beginLine;
+                beginColumn = id.beginColumn;
+            } else{
+                beginLine = token.beginLine;
+                beginColumn = token.beginColumn;
+            }
+            port = new Port(id.image);
+        }
+    )?
+
 	"["
 	(
 		id = <ID> { varDecls.add(VarDecl.input(id.image)); }
@@ -1004,7 +1080,11 @@ InputPattern InputPattern() :
 	)?
 	"]"
 	("repeat" repeat = Expression())?
-	{ return new InputPattern(port, varDecls.build(), repeat); }
+	{
+        InputPattern inputPattern = new InputPattern(port, varDecls.build(), repeat);
+        inputPattern.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+        return inputPattern;
+    }
 }
 
 ImmutableList<OutputExpression> OutputExpressions() :
@@ -1051,15 +1131,25 @@ ScheduleFSM ActionSchedule() :
 {
 	Token init;
 	ImmutableList<Transition> trans;
+	int beginLine = 0;
+    int beginColumn = 0;
 }
 {
 	"schedule"
+	{
+	    beginLine = token.beginLine;
+	    beginColumn = token.endColumn;
+	}
 	("fsm")?
 	init = <ID>
 	":"
 	trans = StateTransitions()
 	("end" | "endschedule")
-	{ return new ScheduleFSM(trans, init.image); }
+	{
+        ScheduleFSM fsm = new ScheduleFSM(trans, init.image);
+        fsm.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+        return fsm;
+    }
 }
 
 ImmutableList<Transition> StateTransitions() :

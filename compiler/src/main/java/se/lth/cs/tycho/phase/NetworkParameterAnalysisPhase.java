@@ -75,6 +75,7 @@ public class NetworkParameterAnalysisPhase implements Phase {
         }
 
 
+
         default void checkParameters(NlNetwork nlNetwork) {
             if (nlNetwork == parent()) {
                 // -- Check top network Parameters if they have default values

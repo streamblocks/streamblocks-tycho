@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * A qualified identifier is a sequence of names separated with the dot
@@ -15,10 +16,16 @@ import java.util.List;
  * @author gustav
  *
  */
-public final class QID {
+public final class QID extends AbstractIRNode{
 	private final List<String> parts;
 
-	private QID(List<String> parts) {
+
+	public QID(List<String> parts) {
+		this(null, parts);
+	}
+
+	private QID(QID original, List<String> parts) {
+		super(original);
 		this.parts = parts;
 	}
 
@@ -241,5 +248,15 @@ public final class QID {
 		} else {
 			return false;
 		}
+	}
+
+	@Override
+	public void forEachChild(Consumer<? super IRNode> action) {
+
+	}
+
+	@Override
+	public IRNode transformChildren(Transformation transformation) {
+		return null;
 	}
 }
