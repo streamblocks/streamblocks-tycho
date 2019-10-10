@@ -754,30 +754,18 @@ ImmutableList<ToolAttribute> OptToolAttributes() :
 ImmutableList<InstanceDecl> EntityInstanceDecls() :
 {
 	Token instanceName;
-	Token entityName;
-	Token parameterName;
-	Expression parameter;
+	EntityExpr expr;
 	ImmutableList.Builder<InstanceDecl> entities = ImmutableList.builder();
-	ImmutableList.Builder<ValueParameter> valueParameters;
-	ImmutableList.Builder<TypeParameter> typeParameters;
-	ImmutableList<ToolAttribute> toolAttrs;
 }
 {
 	(
-		{
-			valueParameters = ImmutableList.builder();
-			typeParameters = ImmutableList.builder();
-		}
+
 		instanceName = <ID>
 		"="
-		entityName = <ID>
-		"("
-        ParameterAssignments(typeParameters, valueParameters)
-		")"
-		toolAttrs = OptToolAttributes()
+		expr = ExprEntity()
 		";"
 		{
-			entities.add(new InstanceDecl(instanceName.image, new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), valueParameters.build()).withAttributes(toolAttrs)));
+			entities.add(new InstanceDecl(instanceName.image, expr));
 		}
 	)*
 	{
@@ -785,36 +773,352 @@ ImmutableList<InstanceDecl> EntityInstanceDecls() :
 	}
 }
 
-ImmutableList<StructureStatement> StructureStmts() :
+EntityExpr ExprEntity() :
 {
-	ImmutableList.Builder<StructureStatement> builder = ImmutableList.builder();
-	Token src, srcPort, tgt, tgtPort;
-	ImmutableList toolAttrs;
+    EntityExpr expr;
+}
+{
+    (
+        expr = InstanceExprEntity()
+    |
+        expr = IfExprEntity()
+    |
+        expr = ListExprEntity()
+    )
+    {
+        return expr;
+    }
+
+}
+
+EntityInstanceExpr InstanceExprEntity() :
+{
+    EntityInstanceExpr expr;
+    Token entityName;
+    Token parameterName;
+    Expression parameter;
+    ImmutableList.Builder<ValueParameter> valueParameters;
+    ImmutableList.Builder<TypeParameter> typeParameters;
+    ImmutableList<ToolAttribute> toolAttrs;
+}
+{
+        {
+            valueParameters = ImmutableList.builder();
+            typeParameters = ImmutableList.builder();
+        }
+
+        entityName = <ID>
+        "("
+        ParameterAssignments(typeParameters, valueParameters)
+        ")"
+        toolAttrs = OptToolAttributes()
+    {
+        return new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), valueParameters.build()).withAttributes(toolAttrs);
+    }
+}
+
+EntityIfExpr IfExprEntity() :
+{
+    Expression condition;
+    EntityExpr trueEntity;
+    EntityExpr falseEntity;
+}
+{
+    "if"
+    condition = Expression()
+    "then"
+    trueEntity = ExprEntity()
+    "else"
+    falseEntity = ExprEntity()
+    "end"
+    {
+        return new EntityIfExpr(condition, trueEntity, falseEntity);
+    }
+}
+
+
+ImmutableList<EntityExpr> EntityExprList():
+{
+	ImmutableList.Builder<EntityExpr> list = ImmutableList.builder();
+	EntityExpr expr;
 }
 {
 	(
-		{ src = null; tgt = null; }
-		(LOOKAHEAD(2) src = <ID> ".")?
-		srcPort = <ID>
-		"-->"
-		(LOOKAHEAD(2) tgt = <ID> ".")?
-		tgtPort = <ID>
-		toolAttrs = OptToolAttributes()
-		";"
+		expr = ExprEntity()
+		{ list.add(expr); }
+		(
+			","
+			expr = ExprEntity()
+			{ list.add(expr); }
+		)*
+	)?
+	{
+		return list.build();
+	}
+}
+
+EntityComprehensionExpr EntityComprehensionFor(EntityExpr contents) :
+{
+	TypeExpr type = null;
+	Token id;
+	ImmutableList.Builder<GeneratorVarDecl> varDecls = ImmutableList.builder();
+	Expression collection;
+	Expression filter;
+	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
+}
+{
+	"for"
+	(
+		LOOKAHEAD(Type() <ID>)
+		type = Type()
+	)?
+	id = <ID>
+	{
+		varDecls.add(VarDecl.generator(id.image));
+	}
+	(
+		","
+		id = <ID>
 		{
-			PortReference sourcePort = new PortReference(src == null ? null : src.image, ImmutableList.empty(), srcPort.image);
-			sourcePort = setPosition(sourcePort, src == null ? srcPort : src, srcPort);
-			PortReference targetPort = new PortReference(tgt == null ? null : tgt.image, ImmutableList.empty(), tgtPort.image);
-			targetPort = setPosition(targetPort, tgt == null ? tgtPort : tgt, tgtPort);
-
-			StructureConnectionStmt conn = new StructureConnectionStmt(sourcePort, targetPort).withAttributes(toolAttrs);
-			conn = setPosition(conn, sourcePort, targetPort);
-
-			builder.add(conn);
+			varDecls.add(VarDecl.generator(id.image));
 		}
 	)*
+	"in"
+	collection = Expression()
+	(
+		LOOKAHEAD(2)
+		","
+		filter = Expression()
+		{ filters.add(filter); }
+	)*
+	(
+		","
+		contents = EntityComprehensionFor(contents)
+	)?
 	{
-		return builder.build();
+		return new EntityComprehensionExpr(new Generator(type, varDecls.build(), collection), filters.build(), contents);
+	}
+}
+
+EntityExpr ListExprEntity() :
+{
+    EntityExpr result;
+	ImmutableList<EntityExpr> exprs;
+}
+
+{
+	"["
+	exprs = EntityExprList()
+	{ result = new EntityListExpr(exprs); }
+	(
+		":"
+		result = EntityComprehensionFor(result)
+	)?
+	"]"
+	{
+		return result;
+	}
+
+}
+
+
+ImmutableList<StructureStatement> StructureStmts() :
+{
+    ImmutableList.Builder<StructureStatement> stmts = ImmutableList.builder();
+    StructureStatement stmt;
+}
+{
+    ( stmt = StructureStatement() { stmts.add(stmt); } )*
+    { return stmts.build(); }
+}
+
+
+StructureStatement StructureStatement() :
+{
+	StructureStatement stmt;
+}
+{
+    ( Annotation() )*
+    (
+        stmt = StructureConnectionStmt()
+        |
+        stmt = StructureIfStmt()
+        |
+        stmt = StructureForeachStmt()
+    )
+	{
+		return stmt;
+	}
+}
+
+StructureConnectionStmt StructureConnectionStmt():
+{
+    Token src, srcPort, tgt, tgtPort;
+    PortReference sourcePort;
+    PortReference targetPort;
+	ImmutableList toolAttrs;
+}
+{
+    sourcePort = EntityPort()
+    "-->"
+    targetPort = EntityPort()
+    toolAttrs = OptToolAttributes()
+    ";"
+    {
+        StructureConnectionStmt conn = new StructureConnectionStmt(sourcePort, targetPort).withAttributes(toolAttrs);
+        conn = setPosition(conn, sourcePort, targetPort);
+        return conn;
+    }
+}
+
+PortReference EntityPort() :
+{
+    Token id;
+    Token idPort;
+    ImmutableList<Expression> index;
+}
+{
+    {id = null; index = ImmutableList.empty();}
+    (LOOKAHEAD(2) id = <ID> index = EntityIndexing()  ".")?
+    idPort = <ID>
+    {
+        PortReference portRef = new PortReference(id == null ? null : id.image, id == null ? ImmutableList.empty() : index, idPort.image);
+        portRef = setPosition(portRef, id == null ? idPort : id, idPort);
+        return portRef;
+    }
+}
+
+ImmutableList<Expression> EntityIndexing() :
+{
+    ImmutableList.Builder<Expression> entityIndex = ImmutableList.builder();
+    Expression expr;
+}
+{
+    (
+        "["
+        expr = Expression()
+        "]"
+        {
+            entityIndex.add(expr);
+        }
+    )*
+    {
+        return entityIndex.build();
+    }
+}
+
+StructureIfStmt StructureIfStmt():
+{
+	Expression cond;
+	ImmutableList<StructureStatement> thenStmts;
+	ImmutableList<StructureStatement> elseStmts = null;
+}
+{
+	"if"
+	cond = Expression()
+	"then"
+	thenStmts = StructureStmts()
+	(
+		elseStmts = StructureElseIfStmt()
+	|
+		"else"
+		elseStmts = StructureStmts()
+	)?
+	"end"
+	{
+		return new StructureIfStmt(cond, thenStmts, elseStmts);
+	}
+}
+
+
+ImmutableList<StructureStatement> StructureElseIfStmt() :
+{
+	Expression cond;
+	StructureStatement thenStmt;
+	ImmutableList<StructureStatement> thenStmts;
+	StructureStatement elseStmt;
+	ImmutableList<StructureStatement> elseStmts = null;
+}
+{
+	"elsif"
+	cond = Expression()
+	"then"
+	thenStmts = StructureStmts()
+	(
+		elseStmts = StructureElseIfStmt()
+	|
+		"else"
+		elseStmts = StructureStmts()
+	)?
+	{
+		return ImmutableList.of(new StructureIfStmt(cond, thenStmts, elseStmts));
+	}
+}
+
+StructureForeachStmt StructureForeachStmt() :
+{
+	StructureForeachStmt stmt;
+}
+{
+	stmt = StructureForeachStmtHeader()
+	"end"
+	{
+		return stmt;
+	}
+}
+
+StructureForeachStmt StructureForeachStmtHeader() :
+{
+	TypeExpr type = null;
+	Token id;
+	ImmutableList.Builder<GeneratorVarDecl> varDecls = ImmutableList.builder();
+	Expression collection;
+	Expression filter;
+	ImmutableList.Builder<Expression> filters = ImmutableList.builder();
+	ImmutableList<StructureStatement> body;
+}
+{
+	"foreach"
+	(
+		LOOKAHEAD(2)
+		type = Type()
+	)?
+	id = <ID>
+	{ varDecls.add(VarDecl.generator(id.image)); }
+	(
+		","
+		id = <ID>
+		{ varDecls.add(VarDecl.generator(id.image)); }
+	)*
+	"in"
+	 collection = Expression()
+	(
+		LOOKAHEAD(2)
+		","
+		filter = Expression()
+		{ filters.add(filter); }
+	)*
+	body = StructureForeachStmtBody()
+	{
+		return new StructureForeachStmt(new Generator(type, varDecls.build(), collection), filters.build(), body);
+	}
+}
+
+ImmutableList<StructureStatement> StructureForeachStmtBody() :
+{
+	StructureStatement result;
+	ImmutableList<StructureStatement> stmts;
+}
+{
+	"," result = StructureForeachStmtHeader()
+	{
+		return ImmutableList.of(result);
+	}
+|
+	"do"
+	stmts = StructureStmts()
+	{
+        return stmts;
 	}
 }
 
