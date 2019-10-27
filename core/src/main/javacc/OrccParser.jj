@@ -656,7 +656,10 @@ GlobalEntityDecl ActorDecl() :
 		":"
 		(
 			(
-				LOOKAHEAD((QID() ":")? "action")
+			    LOOKAHEAD(4)
+			    Annotation()
+			|
+				LOOKAHEAD(("@" | (QID() ":"))? "action")
 				action = Action()
 				{ actions.add(action); }
 			|
@@ -730,6 +733,7 @@ Action Action() :
 	ImmutableList<Expression> postconditions = ImmutableList.empty();
 }
 {
+    (Annotation())*
 	( tag = QID() ":" )?
 	"action"
 	inputPatterns = InputPatterns()
@@ -758,6 +762,7 @@ Action InitializationAction() :
 	ImmutableList<Expression> postconditions = ImmutableList.empty();
 }
 {
+	(Annotation())*
 	( tag = QID() ":" )?
 	"initialize"
 	"==>"

@@ -4,7 +4,10 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.compiler.CompilationTask;
+import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.GroupImport;
@@ -15,18 +18,24 @@ import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.phase.TreeShadow;
 
+import java.util.Optional;
+
 public interface VariableDeclarations {
 
     ModuleKey<VariableDeclarations> key = task -> MultiJ.from(Implementation.class)
             .bind("tree").to(task.getModule(TreeShadow.key))
+            .bind("root").to(task)
             .bind("varScopes").to(task.getModule(VariableScopes.key))
             .bind("imports").to(task.getModule(ImportDeclarations.key))
             .bind("globalNames").to(task.getModule(GlobalNames.key))
             .instance();
 
     VarDecl declaration(Variable var);
+
     VarDecl declaration(ExprVariable var);
+
     VarDecl declaration(LValueVariable var);
+
     VarDecl declaration(ExprGlobalVariable var);
 
     @Module
@@ -39,6 +48,9 @@ public interface VariableDeclarations {
 
         @Binding(BindingKind.INJECTED)
         GlobalNames globalNames();
+
+        @Binding(BindingKind.INJECTED)
+        CompilationTask root();
 
         @Binding(BindingKind.INJECTED)
         TreeShadow tree();
@@ -70,6 +82,17 @@ public interface VariableDeclarations {
                     VarDecl imported = globalDeclaration(imp.getGlobalName().concat(QID.of(var.getName())));
                     if (imported != null) {
                         return imported;
+                    }
+                }
+
+                // -- FIXME: Temporary hack to support println
+                Optional<SourceUnit> s = root().getSourceUnits().stream().filter(sourceUnit -> sourceUnit.getTree().getQID().isPrefixOf(QID.of("prelude"))).findAny();
+                if(s.isPresent()){
+                    NamespaceDecl ns = s.get().getTree();
+                    for(VarDecl decl : ns.getVarDecls()){
+                        if (decl.getName().equals(var.getName())) {
+                            return decl;
+                        }
                     }
                 }
                 node = tree().parent(node);
