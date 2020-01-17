@@ -229,7 +229,31 @@ TOKEN: {
 
 /* String literals */
 TOKEN: {
-	< STRING : "\"" ((~["\""])* ("\\" "\"")*)* "\"" >
+	< CHARACTER_LITERAL:
+          "'"
+          (   (~["'","\\","\n","\r"])
+            | ("\\"
+                ( ["n","t","b","r","f","\\","'","\""]
+                | ["0"-"7"] ( ["0"-"7"] )?
+                | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+                )
+              )
+          )
+          "'"
+      >
+    |
+      < STRING_LITERAL:
+          "\""
+          (   (~["\"","\\","\n","\r"])
+            | ("\\"
+                ( ["n","t","b","r","f","\\","'","\""]
+                | ["0"-"7"] ( ["0"-"7"] )?
+                | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+                )
+              )
+          )*
+          "\""
+      >
 }
 
 
@@ -1669,7 +1693,9 @@ ExprLiteral ExpressionLiteral() :
 	|
 		lit = <NULL> { result = new ExprLiteral(ExprLiteral.Kind.Null); }
 	|
-		lit = <STRING> { result = new ExprLiteral(ExprLiteral.Kind.String, lit.image); }
+	    lit = <CHARACTER_LITERAL> { result = new ExprLiteral(ExprLiteral.Kind.Char, lit.image); }
+	|
+		lit = <STRING_LITERAL> { result = new ExprLiteral(ExprLiteral.Kind.String, lit.image); }
 	)
 	{
 		result.setPosition(lit.beginLine, lit.beginColumn, lit.endLine, lit.endColumn);

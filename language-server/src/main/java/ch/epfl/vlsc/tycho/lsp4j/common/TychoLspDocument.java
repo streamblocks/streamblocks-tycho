@@ -88,8 +88,8 @@ public class TychoLspDocument {
      * Get the URI of the given string URI.
      *
      * @return {@link URI} get the URI
-     * @throws MalformedURLException can throw malformed url exception
-     * @throws URISyntaxException    can throw URI syntax exception
+     * @throws MalformedURLException can throw malformed url se.lth.cs.tycho.interp.exception
+     * @throws URISyntaxException    can throw URI syntax se.lth.cs.tycho.interp.exception
      */
     public URI getURI() throws MalformedURLException, URISyntaxException {
         return new URL(uri).toURI();

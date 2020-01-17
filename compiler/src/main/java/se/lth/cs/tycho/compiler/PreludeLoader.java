@@ -27,7 +27,7 @@ public class PreludeLoader implements Loader {
 			if (preludeUnits == null) {
 				InputStream stream = getPreludeInputStream();
 				try {
-					PreludeUnit preludeUnit = new PreludeUnit(new CalParser(stream).CompilationUnit());
+					PreludeUnit preludeUnit = new PreludeUnit(new CalParser(stream,"UTF-8").CompilationUnit());
 					preludeUnits = Collections.singletonList(preludeUnit);
 				} catch (ParseException e) {
 					reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not parse the Cal prelude, " + e.getMessage()));
