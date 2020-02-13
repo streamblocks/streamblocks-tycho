@@ -73,7 +73,15 @@ public interface ExpressionEvaluator {
     default RefView evaluate(ExprGlobalVariable expression, Environment environment) {
         VarDecl decl = declarations().declaration(expression);
 
-        return evaluate(decl.getValue(), environment);
+        if (decl.isExternal()) {
+            throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "External ExprGlobalVariable is not supported."));
+        }
+
+        if (decl.isConstant()) {
+            return evaluate(decl.getValue(), environment);
+        }else{
+            return null;
+        }
     }
 
     default RefView evaluate(ExprIf expression, Environment environment) {
@@ -148,8 +156,17 @@ public interface ExpressionEvaluator {
 
     default RefView evaluate(ExprVariable expression, Environment environment) {
         VarDecl decl = declarations().declaration(expression);
+        if (decl.isExternal()) {
+            throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "External ExprVariable is not supported."));
+        }
 
-        return evaluate(decl.getValue(), environment);
+        if (decl.isConstant()) {
+            return evaluate(decl.getValue(), environment);
+        }else{
+            return null;
+        }
+
+
     }
 
 
