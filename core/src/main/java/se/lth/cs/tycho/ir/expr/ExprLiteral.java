@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
 
@@ -142,6 +143,14 @@ public class ExprLiteral extends Expression {
 			return Optional.empty();
 		} else {
 			return Optional.of(text.substring(1, text.length() - 1));
+		}
+	}
+
+	public OptionalDouble asDouble() {
+		if (kind != Kind.Real) {
+			return OptionalDouble.empty();
+		} else {
+			return OptionalDouble.of(Double.parseDouble(text));
 		}
 	}
 
