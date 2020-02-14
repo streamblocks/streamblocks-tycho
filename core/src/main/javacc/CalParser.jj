@@ -390,6 +390,8 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 		e = ActorDecl() { entityDecls.add(e); }
 	|
 		e = NetworkDecl() { entityDecls.add(e); }
+	|
+		t = GlobalTypeDecl() { typeDecls.add(t); }
 	)*
 	{
 		return new NamespaceDecl(name, imports.build(), varDecls.build(), entityDecls.build(), typeDecls.build());
@@ -2057,6 +2059,76 @@ TypeExpr Type() :
 	}
 }
 
+
+/* Type definitions */
+GlobalTypeDecl GlobalTypeDecl() :
+{
+    Availability availability = Availability.PUBLIC;
+    Token name;
+    TaggedTupleDecl tuple;
+    ImmutableList.Builder<TaggedTupleDecl> tuples = ImmutableList.builder();
+}
+{
+    (availability = Availability())?
+    "type"
+    name = <ID>
+    ":"
+    (
+        LOOKAHEAD("(")
+        tuple = Tuple() { tuples.add(tuple); }
+    |
+        LOOKAHEAD(<ID>)
+        tuple  = TaggedTuple() { tuples.add(tuple); }
+        ( "|" tuple = TaggedTuple() { tuples.add(tuple); } )*
+    )
+    "end"
+    { return new GlobalTypeDecl(availability, name.image, tuples.build()); }
+}
+
+TaggedTupleDecl TaggedTuple() :
+{
+    Token name;
+    FieldVarDecl field;
+    ImmutableList.Builder<FieldVarDecl> fields = ImmutableList.builder();
+}
+{
+    name = <ID>
+    (
+        "("
+        (
+            field = FieldDecl() { fields.add(field); }
+            ( "," field = FieldDecl() { fields.add(field); } )*
+        )?
+        ")"
+    )?
+    { return new TaggedTupleDecl(name.image, fields.build()); }
+}
+
+TaggedTupleDecl Tuple() :
+{
+    FieldVarDecl field;
+    ImmutableList.Builder<FieldVarDecl> fields = ImmutableList.builder();
+}
+{
+    "("
+    (
+        field = FieldDecl() { fields.add(field); }
+        ( "," field = FieldDecl() { fields.add(field); } )*
+    )?
+    ")"
+    { return new TupleDecl(fields.build()); }
+}
+
+FieldVarDecl FieldDecl() :
+{
+    Token name;
+    TypeExpr type;
+}
+{
+    type = Type()
+    name = <ID>
+    { return new FieldVarDecl(type, name.image); }
+}
 
 /* Statements */
 Statement Statement() :

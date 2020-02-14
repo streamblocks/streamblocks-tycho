@@ -1,10 +1,6 @@
 package se.lth.cs.tycho.ir;
 
-import se.lth.cs.tycho.ir.decl.Decl;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
-import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
-import se.lth.cs.tycho.ir.decl.Import;
+import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
