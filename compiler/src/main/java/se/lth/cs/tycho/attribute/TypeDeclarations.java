@@ -15,15 +15,15 @@ import se.lth.cs.tycho.phase.TreeShadow;
 
 import java.util.stream.Stream;
 
-public interface TypeScopes {
-    ModuleKey<TypeScopes> key = task -> MultiJ.from(Implementation.class)
+public interface TypeDeclarations {
+    ModuleKey<TypeDeclarations> key = task -> MultiJ.from(Implementation.class)
             .bind("tree").to(task.getModule(TreeShadow.key))
             .instance();
 
     ImmutableList<TypeDecl> declarations(IRNode node);
 
     @Module
-    interface Implementation extends TypeScopes {
+    interface Implementation extends TypeDeclarations {
 
         @Binding(BindingKind.INJECTED)
         TreeShadow tree();
