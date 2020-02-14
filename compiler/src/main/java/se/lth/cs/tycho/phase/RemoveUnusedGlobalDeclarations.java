@@ -4,6 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.attribute.TypeNamespaces;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
@@ -14,6 +15,7 @@ import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.network.Instance;
+import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
@@ -31,6 +33,7 @@ public class RemoveUnusedGlobalDeclarations implements Phase {
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
         Collector collector = MultiJ.from(Collector.class)
                 .bind("task").to(task)
+                .bind("namespace").to(task.getModule(TypeNamespaces.key))
                 .instance();
         collector.collect();
         return task.withSourceUnits(task.getSourceUnits().map(unit -> transformUnit(unit, collector.usedDecls())));
@@ -129,6 +132,9 @@ public class RemoveUnusedGlobalDeclarations implements Phase {
         @Binding(BindingKind.INJECTED)
         CompilationTask task();
 
+        @Binding(BindingKind.INJECTED)
+        TypeNamespaces namespace();
+
         @Binding(BindingKind.LAZY)
         default Set<Name> visitedNames() {
             return new HashSet<>();
@@ -219,6 +225,8 @@ public class RemoveUnusedGlobalDeclarations implements Phase {
             addName(instance.getEntityName(), NameKind.ENTITY);
         }
 
-
+        default void add(NominalTypeExpr type) {
+            namespace().declaration(type).ifPresent(decl -> addName(QID.parse(String.format("%s.%s", decl.getQID().toString(), type.getName())), NameKind.TYPE));
+        }
     }
 }
