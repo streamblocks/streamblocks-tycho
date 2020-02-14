@@ -4,13 +4,16 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -29,6 +32,7 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 		TypeExprChecker checker = MultiJ.from(TypeExprChecker.class)
 				.bind("reporter").to(context.getReporter())
 				.bind("tree").to(task.getModule(TreeShadow.key))
+				.bind("typeScopes").to(task.getModule(TypeScopes.key))
 				.instance();
 		checker.checkTree(task);
 		return task;
@@ -41,6 +45,9 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 
 		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();
+
+		@Binding(BindingKind.INJECTED)
+		TypeScopes typeScopes();
 
 		default void checkTree(IRNode node) {
 			checkNode(node);
@@ -58,9 +65,9 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 				case "uint":
 				case "int":
 					checkTypeParams(type);
-				    checkValueParams(type, "size");
+					checkValueParams(type, "size");
 					break;
-                case "float":
+				case "float":
 				case "double":
 				case "bool":
 				case "String":
@@ -68,7 +75,11 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 					checkValueParams(type);
 					break;
 				default:
-				    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, String.format("Unknown type %s", type.getName()), sourceUnit(type), type));
+					ImmutableList<TypeDecl> typeDecls = typeScopes().declarations(sourceUnit(type).getTree());
+					if (typeDecls.stream().anyMatch(decl -> decl.getName().equals(type.getName()))) {
+						return;
+					}
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, String.format("Unknown type %s", type.getName()), sourceUnit(type), type));
 			}
 		}
 
