@@ -1687,7 +1687,7 @@ ExprConstruction ConstructionExpression() :
     type = <ID>
     "::"
     constructor = <ID>
-    { return setPosition(new ExprConstruction(type.image, constructor.image, ImmutableList.empty()), parent, child); }
+    { return setPosition(new ExprConstruction(type.image, constructor.image, ImmutableList.empty()), type, constructor); }
 }
 
 ExprVariable VariableExpression() :
@@ -2101,10 +2101,14 @@ GlobalTypeDecl GlobalTypeDecl() :
     Token name;
     StructureDecl structure;
     ImmutableList.Builder<StructureDecl> structures = ImmutableList.builder();
+    Token firstToken;
+    Token lastToken;
 }
 {
-    (availability = Availability())?
-    "type"
+    (
+        availability = Availability()
+    )?
+    firstToken = "type"
     name = <ID>
     ":"
     (
@@ -2115,8 +2119,8 @@ GlobalTypeDecl GlobalTypeDecl() :
         structure  = StructureDecl() { structures.add(structure); }
         ( "|" structure = StructureDecl() { structures.add(structure); } )*
     )
-    "end"
-    { return new GlobalTypeDecl(availability, name.image, structures.build()); }
+    lastToken = "end"
+    { return setPosition(new GlobalTypeDecl(availability, name.image, structures.build()), firstToken, lastToken); }
 }
 
 StructureDecl StructureDecl() :
@@ -2124,33 +2128,37 @@ StructureDecl StructureDecl() :
     Token name;
     FieldVarDecl field;
     ImmutableList.Builder<FieldVarDecl> fields = ImmutableList.builder();
+    Token lastToken;
 }
 {
     name = <ID>
+    { lastToken = name; }
     (
         "("
         (
             field = FieldDecl() { fields.add(field); }
             ( "," field = FieldDecl() { fields.add(field); } )*
         )?
-        ")"
+        lastToken = ")"
     )?
-    { return new StructureDecl(name.image, fields.build()); }
+    { return setPosition(new StructureDecl(name.image, fields.build()), name, lastToken); }
 }
 
 StructureDecl UnnamedStructureDecl() :
 {
     FieldVarDecl field;
     ImmutableList.Builder<FieldVarDecl> fields = ImmutableList.builder();
+    Token firstToken;
+    Token lastToken;
 }
 {
-    "("
+    firstToken = "("
     (
         field = FieldDecl() { fields.add(field); }
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
-    ")"
-    { return new StructureDecl(null, fields.build()); }
+    lastToken = ")"
+    { return setPosition(new StructureDecl(null, fields.build()), firstToken, lastToken); }
 }
 
 FieldVarDecl FieldDecl() :
@@ -2161,7 +2169,7 @@ FieldVarDecl FieldDecl() :
 {
     type = Type()
     name = <ID>
-    { return new FieldVarDecl(type, name.image); }
+    { return setPosition(new FieldVarDecl(type, name.image), type, name); }
 }
 
 /* Statements */
