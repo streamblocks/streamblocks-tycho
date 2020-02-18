@@ -2065,8 +2065,8 @@ GlobalTypeDecl GlobalTypeDecl() :
 {
     Availability availability = Availability.PUBLIC;
     Token name;
-    TaggedTupleDecl tuple;
-    ImmutableList.Builder<TaggedTupleDecl> tuples = ImmutableList.builder();
+    StructureDecl structure;
+    ImmutableList.Builder<StructureDecl> structures = ImmutableList.builder();
 }
 {
     (availability = Availability())?
@@ -2075,17 +2075,17 @@ GlobalTypeDecl GlobalTypeDecl() :
     ":"
     (
         LOOKAHEAD("(")
-        tuple = Tuple() { tuples.add(tuple); }
+        structure = UnnamedStructureDecl() { structures.add(structure); }
     |
         LOOKAHEAD(<ID>)
-        tuple  = TaggedTuple() { tuples.add(tuple); }
-        ( "|" tuple = TaggedTuple() { tuples.add(tuple); } )*
+        structure  = StructureDecl() { structures.add(structure); }
+        ( "|" structure = StructureDecl() { structures.add(structure); } )*
     )
     "end"
-    { return new GlobalTypeDecl(availability, name.image, tuples.build()); }
+    { return new GlobalTypeDecl(availability, name.image, structures.build()); }
 }
 
-TaggedTupleDecl TaggedTuple() :
+StructureDecl StructureDecl() :
 {
     Token name;
     FieldVarDecl field;
@@ -2101,10 +2101,10 @@ TaggedTupleDecl TaggedTuple() :
         )?
         ")"
     )?
-    { return new TaggedTupleDecl(name.image, fields.build()); }
+    { return new StructureDecl(name.image, fields.build()); }
 }
 
-TaggedTupleDecl Tuple() :
+StructureDecl UnnamedStructureDecl() :
 {
     FieldVarDecl field;
     ImmutableList.Builder<FieldVarDecl> fields = ImmutableList.builder();
@@ -2116,7 +2116,7 @@ TaggedTupleDecl Tuple() :
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
     ")"
-    { return new TupleDecl(fields.build()); }
+    { return new StructureDecl(null, fields.build()); }
 }
 
 FieldVarDecl FieldDecl() :
