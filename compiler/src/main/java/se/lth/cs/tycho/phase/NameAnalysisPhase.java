@@ -4,10 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
-import se.lth.cs.tycho.attribute.EntityDeclarations;
-import se.lth.cs.tycho.attribute.ParameterDeclarations;
-import se.lth.cs.tycho.attribute.Ports;
-import se.lth.cs.tycho.attribute.VariableDeclarations;
+import se.lth.cs.tycho.attribute.*;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
@@ -16,12 +13,16 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
+import se.lth.cs.tycho.ir.expr.ExprConstruction;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
+
+import java.util.Objects;
 
 public class NameAnalysisPhase implements Phase {
 	@Override
@@ -37,6 +38,7 @@ public class NameAnalysisPhase implements Phase {
 				.bind("variableDeclarations").to(task.getModule(VariableDeclarations.key))
 				.bind("entityDeclarations").to(task.getModule(EntityDeclarations.key))
 				.bind("parameterDeclarations").to(task.getModule(ParameterDeclarations.key))
+				.bind("typeScopes").to(task.getModule(TypeScopes.key))
 				.bind("reporter").to(context.getReporter())
 				.instance();
 		analysis.check(task);
@@ -65,6 +67,9 @@ public class NameAnalysisPhase implements Phase {
 
 		@Binding(BindingKind.INJECTED)
 		ParameterDeclarations parameterDeclarations();
+
+		@Binding(BindingKind.INJECTED)
+		TypeScopes typeScopes();
 
 		@Binding(BindingKind.INJECTED)
 		Reporter reporter();
@@ -111,6 +116,16 @@ public class NameAnalysisPhase implements Phase {
 		default void checkNames(EntityReferenceLocal reference) {
 			if (entityDeclarations().declaration(reference) == null) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", sourceUnit(reference), reference));
+			}
+		}
+
+		default void checkNames(ExprConstruction construction) {
+			if (!typeScopes()
+					.declaration(construction)
+					.map(GlobalTypeDecl.class::cast)
+					.filter(decl -> decl.getStructures().stream().anyMatch(structure -> Objects.equals(structure.getName(), construction.getConstructor())))
+					.isPresent()) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Structure " + (construction.getConstructor() == null ? "<default>" : construction.getConstructor()) + " for type " + construction.getType() + " is not declared.", sourceUnit(construction), construction));
 			}
 		}
 
