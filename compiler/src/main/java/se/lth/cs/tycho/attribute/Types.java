@@ -236,6 +236,25 @@ public interface Types {
 			}
 		}
 
+		default Type computeLValueType(LValueField field) {
+			Type structureType = computeLValueType(field.getStructure());
+			if (structureType instanceof UserType) {
+				UserType userType = (UserType) structureType;
+				if (userType.getRecords().size() != 1) {
+					return BottomType.INSTANCE;
+				} else {
+					return userType.getRecords().get(0).getFields()
+							.stream()
+							.filter(f -> Objects.equals(f.getName(), field.getField().getName()))
+							.findAny()
+							.map(f -> f.getType())
+							.orElse(BottomType.INSTANCE);
+				}
+			} else {
+				return BottomType.INSTANCE;
+			}
+		}
+
 
 		Type convert(TypeExpr t);
 
@@ -573,6 +592,26 @@ public interface Types {
 					.collect(ImmutableList.collector());
 			return new UserType(construction.getType(), records);
 		}
+
+		default Type computeType(ExprField field) {
+			Type structureType = type(field.getStructure());
+			if (structureType instanceof UserType) {
+				UserType userType = (UserType) structureType;
+				if (userType.getRecords().size() != 1) {
+					return BottomType.INSTANCE;
+				} else {
+					return userType.getRecords().get(0).getFields()
+							.stream()
+							.filter(f -> Objects.equals(f.getName(), field.getField().getName()))
+							.findAny()
+							.map(f -> f.getType())
+							.orElse(BottomType.INSTANCE);
+				}
+			} else {
+				return BottomType.INSTANCE;
+			}
+		}
+
 
 		default Type leastUpperBound(Type a, Type b) {
 			return TopType.INSTANCE;
