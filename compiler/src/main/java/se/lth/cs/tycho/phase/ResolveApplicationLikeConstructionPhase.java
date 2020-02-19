@@ -48,7 +48,7 @@ public class ResolveApplicationLikeConstructionPhase implements Phase {
 			return typeScopes()
 					.declaration((ExprVariable) function)
 					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> decl.getStructures().size() == 1)
+					.filter(decl -> decl.getRecords().size() == 1)
 					.map(decl -> {
 						ExprConstruction construction = new ExprConstruction(decl.getName(), null, application.getArgs());
 						construction.setPosition(

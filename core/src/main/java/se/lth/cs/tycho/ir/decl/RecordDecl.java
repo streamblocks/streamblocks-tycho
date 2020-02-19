@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class StructureDecl extends AbstractDecl {
+public class RecordDecl extends AbstractDecl {
 
 	private List<FieldVarDecl> fields;
 
-	public StructureDecl(String name, List<FieldVarDecl> fields) {
+	public RecordDecl(String name, List<FieldVarDecl> fields) {
 		this(null, name, fields);
 	}
 
-	public StructureDecl(AbstractDecl original, String name, List<FieldVarDecl> fields) {
+	public RecordDecl(AbstractDecl original, String name, List<FieldVarDecl> fields) {
 		super(original, name);
 		this.fields = ImmutableList.from(fields);
 	}
@@ -24,7 +24,7 @@ public class StructureDecl extends AbstractDecl {
 		return fields;
 	}
 
-	public StructureDecl withFields(List<FieldVarDecl> fields) {
+	public RecordDecl withFields(List<FieldVarDecl> fields) {
 		return copy(getName(), fields);
 	}
 
@@ -33,11 +33,11 @@ public class StructureDecl extends AbstractDecl {
 		return copy(name, getFields());
 	}
 
-	private StructureDecl copy(String name, List<FieldVarDecl> fields) {
+	private RecordDecl copy(String name, List<FieldVarDecl> fields) {
 		if (Objects.equals(getName(), name) && Objects.equals(getFields(), fields)) {
 			return this;
 		} else {
-			return new StructureDecl(this, name, fields);
+			return new RecordDecl(this, name, fields);
 		}
 	}
 

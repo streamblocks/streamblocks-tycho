@@ -10,7 +10,7 @@ import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.FieldVarDecl;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
-import se.lth.cs.tycho.ir.decl.StructureDecl;
+import se.lth.cs.tycho.ir.decl.RecordDecl;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -49,18 +49,18 @@ public class TypeDeclarationAnalysisPhase implements Phase {
 		default void checkDeclaration(IRNode node) {}
 
 		default void checkDeclaration(GlobalTypeDecl decl) {
-			decl.getStructures()
+			decl.getRecords()
 					.stream()
-					.filter(structure -> structure.getName() != null)
-					.collect(Collectors.groupingBy(StructureDecl::getName))
-					.forEach((name, structures) -> {
-						if (structures.size() > 1) {
-							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Structure " + name + " is already declared.", sourceUnit(structures.get(1)), structures.get(1)));
+					.filter(record -> record.getName() != null)
+					.collect(Collectors.groupingBy(RecordDecl::getName))
+					.forEach((name, records) -> {
+						if (records.size() > 1) {
+							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Record " + name + " is already declared.", sourceUnit(records.get(1)), records.get(1)));
 						}
 					});
 		}
 
-		default void checkDeclaration(StructureDecl decl) {
+		default void checkDeclaration(RecordDecl decl) {
 			decl.getFields()
 					.stream()
 					.collect(Collectors.groupingBy(FieldVarDecl::getName))

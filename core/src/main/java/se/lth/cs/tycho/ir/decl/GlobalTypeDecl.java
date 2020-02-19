@@ -11,29 +11,29 @@ import java.util.function.Consumer;
 public class GlobalTypeDecl extends TypeDecl implements GlobalDecl {
 
 	private Availability availability;
-	private List<StructureDecl> structures;
+	private List<RecordDecl> records;
 
-	public GlobalTypeDecl(Availability availability, String name, List<StructureDecl> structures) {
-		this(null, availability, name, structures);
+	public GlobalTypeDecl(Availability availability, String name, List<RecordDecl> records) {
+		this(null, availability, name, records);
 	}
 
-	protected GlobalTypeDecl(TypeDecl original, Availability availability, String name, List<StructureDecl> structures) {
+	protected GlobalTypeDecl(TypeDecl original, Availability availability, String name, List<RecordDecl> records) {
 		super(original, name);
 		this.availability = availability;
-		this.structures = ImmutableList.from(structures);
+		this.records = ImmutableList.from(records);
 	}
 
-	public List<StructureDecl> getStructures() {
-		return structures;
+	public List<RecordDecl> getRecords() {
+		return records;
 	}
 
-	public GlobalTypeDecl withStructures(List<StructureDecl> structures) {
+	public GlobalTypeDecl withStructures(List<RecordDecl> structures) {
 		return copy(getAvailability(), getName(), structures);
 	}
 
 	@Override
 	public GlobalTypeDecl withName(String name) {
-		return copy(getAvailability(), name, getStructures());
+		return copy(getAvailability(), name, getRecords());
 	}
 
 	public Availability getAvailability() {
@@ -42,11 +42,11 @@ public class GlobalTypeDecl extends TypeDecl implements GlobalDecl {
 
 	@Override
 	public GlobalTypeDecl withAvailability(Availability availability) {
-		return copy(availability, getName(), getStructures());
+		return copy(availability, getName(), getRecords());
 	}
 
-	private GlobalTypeDecl copy(Availability availability, String name, List<StructureDecl> structures) {
-		if (availability == getAvailability() && Objects.equals(name, getName()) && Lists.sameElements(structures, getStructures())) {
+	private GlobalTypeDecl copy(Availability availability, String name, List<RecordDecl> structures) {
+		if (availability == getAvailability() && Objects.equals(name, getName()) && Lists.sameElements(structures, getRecords())) {
 			return this;
 		} else {
 			return new GlobalTypeDecl(this, availability, name, structures);
@@ -55,7 +55,7 @@ public class GlobalTypeDecl extends TypeDecl implements GlobalDecl {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		structures.forEach(action);
+		records.forEach(action);
 	}
 
 	@Override
@@ -63,6 +63,6 @@ public class GlobalTypeDecl extends TypeDecl implements GlobalDecl {
 		return copy(
 				getAvailability(),
 				getName(),
-				getStructures() == null ? null : transformation.mapChecked(StructureDecl.class, getStructures()));
+				getRecords() == null ? null : transformation.mapChecked(RecordDecl.class, getRecords()));
 	}
 }

@@ -7,19 +7,19 @@ import java.util.Objects;
 public class UserType implements Type {
 
 	private final String name;
-	private final ImmutableList<StructureType> structures;
+	private final ImmutableList<RecordType> records;
 
-	public UserType(String name, ImmutableList<StructureType> structures) {
+	public UserType(String name, ImmutableList<RecordType> records) {
 		this.name = name;
-		this.structures = structures;
+		this.records = records;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public ImmutableList<StructureType> getStructures() {
-		return structures;
+	public ImmutableList<RecordType> getRecords() {
+		return records;
 	}
 
 	@Override
@@ -28,11 +28,11 @@ public class UserType implements Type {
 		if (o == null || getClass() != o.getClass()) return false;
 		UserType userType = (UserType) o;
 		return getName().equals(userType.getName()) &&
-				getStructures().equals(userType.getStructures());
+				getRecords().equals(userType.getRecords());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getName(), getStructures());
+		return Objects.hash(getName(), getRecords());
 	}
 }

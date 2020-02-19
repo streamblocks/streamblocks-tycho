@@ -2099,8 +2099,8 @@ GlobalTypeDecl GlobalTypeDecl() :
 {
     Availability availability = Availability.PUBLIC;
     Token name;
-    StructureDecl structure;
-    ImmutableList.Builder<StructureDecl> structures = ImmutableList.builder();
+    RecordDecl record;
+    ImmutableList.Builder<RecordDecl> records = ImmutableList.builder();
     Token firstToken;
     Token lastToken;
 }
@@ -2113,17 +2113,17 @@ GlobalTypeDecl GlobalTypeDecl() :
     ":"
     (
         LOOKAHEAD("(")
-        structure = UnnamedStructureDecl() { structures.add(structure); }
+        record = UnnamedRecordDecl() { records.add(record); }
     |
         LOOKAHEAD(<ID>)
-        structure  = StructureDecl() { structures.add(structure); }
-        ( "|" structure = StructureDecl() { structures.add(structure); } )*
+        record  = RecordDecl() { records.add(record); }
+        ( "|" record = RecordDecl() { records.add(record); } )*
     )
     lastToken = "end"
-    { return setPosition(new GlobalTypeDecl(availability, name.image, structures.build()), firstToken, lastToken); }
+    { return setPosition(new GlobalTypeDecl(availability, name.image, records.build()), firstToken, lastToken); }
 }
 
-StructureDecl StructureDecl() :
+RecordDecl RecordDecl() :
 {
     Token name;
     FieldVarDecl field;
@@ -2141,10 +2141,10 @@ StructureDecl StructureDecl() :
         )?
         lastToken = ")"
     )?
-    { return setPosition(new StructureDecl(name.image, fields.build()), name, lastToken); }
+    { return setPosition(new RecordDecl(name.image, fields.build()), name, lastToken); }
 }
 
-StructureDecl UnnamedStructureDecl() :
+RecordDecl UnnamedRecordDecl() :
 {
     FieldVarDecl field;
     ImmutableList.Builder<FieldVarDecl> fields = ImmutableList.builder();
@@ -2158,7 +2158,7 @@ StructureDecl UnnamedStructureDecl() :
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
     lastToken = ")"
-    { return setPosition(new StructureDecl(null, fields.build()), firstToken, lastToken); }
+    { return setPosition(new RecordDecl(null, fields.build()), firstToken, lastToken); }
 }
 
 FieldVarDecl FieldDecl() :

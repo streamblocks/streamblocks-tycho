@@ -4,7 +4,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.Objects;
 
-public class StructureType {
+public class RecordType {
 
 	private final String name;
 	private final ImmutableList<FieldType> fields;
@@ -42,7 +42,7 @@ public class StructureType {
 		}
 	}
 
-	public StructureType(String name, ImmutableList<FieldType> fields) {
+	public RecordType(String name, ImmutableList<FieldType> fields) {
 		this.name = name;
 		this.fields = fields;
 	}
@@ -59,7 +59,7 @@ public class StructureType {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		StructureType that = (StructureType) o;
+		RecordType that = (RecordType) o;
 		return Objects.equals(getName(), that.getName()) &&
 				getFields().equals(that.getFields());
 	}

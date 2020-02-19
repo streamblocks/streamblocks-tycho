@@ -123,7 +123,7 @@ public class NameAnalysisPhase implements Phase {
 			if (!typeScopes()
 					.declaration(construction)
 					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> decl.getStructures().stream().anyMatch(structure -> Objects.equals(structure.getName(), construction.getConstructor())))
+					.filter(decl -> decl.getRecords().stream().anyMatch(record -> Objects.equals(record.getName(), construction.getConstructor())))
 					.isPresent()) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Structure " + (construction.getConstructor() == null ? "<default>" : construction.getConstructor()) + " for type " + construction.getType() + " is not declared.", sourceUnit(construction), construction));
 			}
