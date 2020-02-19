@@ -153,6 +153,10 @@ public class TypeAnalysisPhase implements Phase {
 			}
 			return !toParIter.hasNext() && !fromParIter.hasNext();
 		}
+
+		default boolean isAssignable(UserType to, UserType from) {
+			return to.equals(from);
+		}
 	}
 
 	@Module
