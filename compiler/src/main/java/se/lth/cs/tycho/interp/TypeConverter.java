@@ -10,8 +10,8 @@ public enum TypeConverter {
         return instance;
     }
 
-    public boolean getBoolean(RefView r) throws CompilationException { return r.getLong() != 0; }
-    public void setBoolean(Ref r, boolean v) { r.setLong(v ? 1 : 0); }
+    public boolean getBoolean(RefView r) throws CompilationException { return r.getBoolean();  }
+    public void setBoolean(Ref r, boolean v) { r.setBoolean(v); }
 
     public Function getFunction(RefView r) throws CompilationException { return (Function) r.getValue(); }
     public void setFunction(Ref r, Function v) { r.setValue(v); }

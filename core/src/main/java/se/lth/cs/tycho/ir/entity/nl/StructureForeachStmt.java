@@ -61,4 +61,9 @@ public class StructureForeachStmt extends AbstractIRNode implements StructureSta
 				transformation.mapChecked(StructureStatement.class, statements)
 		);
 	}
+
+	@Override
+	public <R, P> R accept(StructureStmtVisitor<R, P> v, P p) {
+		return v.visitStructureForeachStmt(this, p);
+	}
 }

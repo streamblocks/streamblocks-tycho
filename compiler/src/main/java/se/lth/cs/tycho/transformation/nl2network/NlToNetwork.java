@@ -1,18 +1,19 @@
 package se.lth.cs.tycho.transformation.nl2network;
 
 import se.lth.cs.tycho.attribute.EntityDeclarations;
-import se.lth.cs.tycho.interp.BasicEnvironment;
-import se.lth.cs.tycho.interp.Environment;
-import se.lth.cs.tycho.interp.Interpreter;
-import se.lth.cs.tycho.interp.Memory;
+import se.lth.cs.tycho.interp.*;
+import se.lth.cs.tycho.interp.values.ExprValue;
+import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.entity.nl.*;
+import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
+import se.lth.cs.tycho.reporting.Diagnostic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,8 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     private HashMap<String, EntityExpr> entities;
     private ArrayList<StructureStatement> structure;
     private boolean evaluated;
+    TypeConverter converter = TypeConverter.getInstance();
+
     private Memory mem;
 
     private EntityDeclarations entityDeclarations;
@@ -41,7 +44,43 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         entities = new HashMap<String, EntityExpr>();
         structure = new ArrayList<StructureStatement>();
         Environment env = new BasicEnvironment(mem);    // no expressions will read from the ports while instantiating/flattening this network
+
         ImmutableList<LocalVarDecl> declList = srcNetwork.getVarDecls();
+        for (LocalVarDecl decl : declList) {
+            mem.declareGlobal(decl);
+            RefView value = interpreter.evaluate(decl.getValue(), env);
+            value.assignTo(mem.getGlobal(decl));
+        }
+
+        ImmutableList<ParameterVarDecl> parList = srcNetwork.getValueParameters();
+        for (Map.Entry<String, Expression> assignment : parameterAssignments) {
+            String name = assignment.getKey();
+            ParameterVarDecl decl = null;
+            boolean found = false;
+            for (int i = 0; i < parList.size(); i++) {
+                if (name.equals(parList.get(i).getName())) {
+                    decl = parList.get(i);
+                    found = true;
+                }
+            }
+            if (!found) {
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR,
+                        "unknown parameter name: " + name + " found in parameter assignments while evaluating network "));
+            }
+            RefView value = interpreter.evaluate(assignment.getValue(), env);
+            mem.declareLocal(decl);
+            value.assignTo(mem.getLocal(decl));
+        }
+
+        for (InstanceDecl decl : srcNetwork.getEntities()) {
+            EntityExpr unrolled = decl.getEntityExpr().accept(this, env);
+            entities.put(decl.getInstanceName(), unrolled);
+        }
+
+        for (StructureStatement stmt : srcNetwork.getStructure()) {
+            structure.add(stmt.accept(this, env));
+        }
+        evaluated = true;
 
     }
 
@@ -52,7 +91,13 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     @Override
     public EntityExpr visitEntityIfExpr(EntityIfExpr e, Environment environment) {
-        return null;
+        RefView condRef = interpreter.evaluate(e.getCondition(), environment);
+        boolean cond = converter.getBoolean(condRef);
+        if (cond) {
+            return e.getTrueEntity().accept(this, environment);
+        } else {
+            return e.getFalseEntity().accept(this, environment);
+        }
     }
 
     @Override
@@ -62,12 +107,40 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     @Override
     public StructureStatement visitStructureConnectionStmt(StructureConnectionStmt stmt, Environment environment) {
-        return null;
+        PortReference src = stmt.getSrc();
+        // -- src
+        ImmutableList.Builder<Expression> srcBuilder = new ImmutableList.Builder<Expression>();
+        for (Expression expr : src.getEntityIndex()) {
+            RefView value = interpreter.evaluate(expr, environment);
+            srcBuilder.add(new ExprValue(expr, ExprLiteral.Kind.Integer, value.toString(), value));
+        }
+        PortReference newSrc = src.copy(src.getEntityName(), srcBuilder.build(), src.getPortName());
+        // -- dst
+        PortReference dst = stmt.getDst();
+        ImmutableList.Builder<Expression> dstBuilder = new ImmutableList.Builder<Expression>();
+        for (Expression expr : dst.getEntityIndex()) {
+            RefView value = interpreter.evaluate(expr, environment);
+            dstBuilder.add(new ExprValue(expr, ExprLiteral.Kind.Integer, value.toString(), value));
+        }
+        PortReference newDst = dst.copy(dst.getEntityName(), dstBuilder.build(), dst.getPortName());
+        return stmt.copy(newSrc, newDst);
     }
 
     @Override
     public StructureStatement visitStructureIfStmt(StructureIfStmt stmt, Environment environment) {
-        return null;
+        ImmutableList.Builder<StructureStatement> builder = new ImmutableList.Builder<StructureStatement>();
+        RefView condRef = interpreter.evaluate(stmt.getCondition(), environment);
+        boolean cond = converter.getBoolean(condRef);
+        if (cond) {
+            for (StructureStatement s : stmt.getTrueStmt()) {
+                builder.add(s.accept(this, environment));
+            }
+        } else {
+            for (StructureStatement s : stmt.getFalseStmt()) {
+                builder.add(s.accept(this, environment));
+            }
+        }
+        return new StructureForeachStmt(null, ImmutableList.<Expression>empty(), builder.build());
     }
 
     @Override
