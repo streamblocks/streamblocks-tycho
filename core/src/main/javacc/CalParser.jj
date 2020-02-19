@@ -2346,7 +2346,7 @@ Field Field() :
 }
 {
 	id = <ID>
-	{ return new Field(id.image); }
+	{ return setPosition(new Field(id.image), id, id); }
 }
 
 StmtCall CallStmt() :
