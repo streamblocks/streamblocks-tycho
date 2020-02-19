@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.interp.values;
 
+import se.lth.cs.tycho.reporting.CompilationException;
+
 public class Range implements Collection {
     private final long from;
     private final long to;
@@ -46,6 +48,11 @@ public class Range implements Collection {
 
         @Override
         public double getDouble() {
+            throw new IllegalStateException("Wrong type");
+        }
+
+        @Override
+        public boolean getBoolean() throws CompilationException {
             throw new IllegalStateException("Wrong type");
         }
 

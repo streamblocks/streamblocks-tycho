@@ -21,8 +21,10 @@ import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -131,7 +133,6 @@ public class NetworkValueParameterPropagationPhase implements Phase {
         Optional<ValueParameter> visitExpr(Expression expression);
 
         default Optional<ValueParameter> visitExpr(ExprVariable exprVariable) {
-
             Optional<ValueParameter> optional = valueParamMap().keySet().stream().filter(vp -> vp.getName().equals(exprVariable.getVariable().getName())).findAny();
             return optional;
         }
@@ -153,9 +154,9 @@ public class NetworkValueParameterPropagationPhase implements Phase {
             return node.transformChildren(this);
         }
 
-        default Expression apply(ExprVariable exprVariable){
+        default Expression apply(ExprVariable exprVariable) {
             Expression expr = visit(exprVariable);
-            if(expr != exprVariable){
+            if (expr != exprVariable) {
                 return expr.deepClone();
             }
             return exprVariable;
@@ -163,6 +164,15 @@ public class NetworkValueParameterPropagationPhase implements Phase {
 
         default Expression visit(Expression expression) {
             return expression;
+        }
+
+        default Expression visit(ExprBinaryOp exprOp) {
+            Expression op0 = visit(exprOp.getOperands().get(0));
+            Expression op1 = visit(exprOp.getOperands().get(1));
+            ImmutableList.Builder<Expression> operands = ImmutableList.builder();
+            operands.add(op0);
+            operands.add(op1);
+            return new ExprBinaryOp(exprOp.getOperations(), operands.build());
         }
 
         default Expression visit(ExprVariable exprVariable) {

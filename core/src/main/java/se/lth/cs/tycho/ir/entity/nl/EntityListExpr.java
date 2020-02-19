@@ -55,4 +55,9 @@ public class EntityListExpr extends AbstractIRNode implements EntityExpr {
 				transformation.mapChecked(EntityExpr.class, entityList)
 		);
 	}
+
+	@Override
+	public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
+		return v.visitEntityListExpr(this, p);
+	}
 }

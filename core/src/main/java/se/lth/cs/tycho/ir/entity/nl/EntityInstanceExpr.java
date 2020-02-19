@@ -66,4 +66,9 @@ public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr
 				(ImmutableList) parameterAssignments.map(transformation)
 		).withAttributes((List) getAttributes().map(transformation));
 	}
+
+	@Override
+	public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
+		return v.visitEntityInstanceExpr(this, p);
+	}
 }

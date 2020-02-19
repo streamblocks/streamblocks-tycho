@@ -86,4 +86,9 @@ public class EntityComprehensionExpr extends AbstractIRNode implements EntityExp
                 transformation.applyChecked(EntityExpr.class, collection)
         );
     }
+
+    @Override
+    public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
+        return null;
+    }
 }

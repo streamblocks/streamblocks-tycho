@@ -5,7 +5,7 @@ import se.lth.cs.tycho.reporting.Diagnostic;
 
 public class BasicRef implements Ref {
     private static enum Type {
-        VALUE, LONG, DOUBLE, STRING
+        VALUE, LONG, DOUBLE, STRING, BOOLEAN
     }
 
     private Type type;
@@ -13,6 +13,7 @@ public class BasicRef implements Ref {
     private long long_;
     private double double_;
     private String string_;
+    private boolean bool_;
 
     private void assertType(Type t) throws CompilationException {
         if (type != t) {
@@ -41,6 +42,12 @@ public class BasicRef implements Ref {
         return double_;
     }
 
+    @Override
+    public boolean getBoolean() throws CompilationException {
+        assertType(Type.BOOLEAN);
+        return bool_;
+    }
+
 
     @Override
     public String getString() throws CompilationException {
@@ -64,6 +71,12 @@ public class BasicRef implements Ref {
     public void setDouble(double v) {
         type = Type.DOUBLE;
         double_ = v;
+    }
+
+    @Override
+    public void setBoolean(boolean v) {
+        type = Type.BOOLEAN;
+        bool_ = v;
     }
 
     @Override

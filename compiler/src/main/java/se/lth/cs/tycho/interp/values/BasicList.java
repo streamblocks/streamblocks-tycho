@@ -85,6 +85,11 @@ public class BasicList implements List {
         }
 
         @Override
+        public boolean getBoolean() throws CompilationException {
+            return list.get(index).getBoolean();
+        }
+
+        @Override
         public String getString() throws CompilationException {
             return list.get(index).getString();
         }

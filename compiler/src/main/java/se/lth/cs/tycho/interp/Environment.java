@@ -1,7 +1,6 @@
 package se.lth.cs.tycho.interp;
 
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.Set;
 
