@@ -7,7 +7,7 @@ public abstract class CallableType implements Type {
 	private final List<Type> parameterTypes;
 	private final Type returnType;
 
-	CallableType(List<Type> parameterTypes, Type returnType) {
+	public CallableType(List<Type> parameterTypes, Type returnType) {
 		this.parameterTypes = parameterTypes;
 		this.returnType = returnType;
 	}

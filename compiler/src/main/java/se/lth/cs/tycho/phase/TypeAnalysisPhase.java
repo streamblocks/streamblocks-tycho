@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
+import se.lth.cs.tycho.ir.expr.ExprConstruction;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtCall;
@@ -24,6 +25,8 @@ import se.lth.cs.tycho.type.*;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class TypeAnalysisPhase implements Phase {
 	@Override
@@ -40,7 +43,7 @@ public class TypeAnalysisPhase implements Phase {
 				case ORCC: module = OrccTypeChecker.class; break;
 				default: module = CalTypeChecker.class; break;
 			}
-            TypeChecker checker = MultiJ.from(module)
+			TypeChecker checker = MultiJ.from(module)
 					.bind("types").to(task.getModule(Types.key))
 					.bind("reporter").to(context.getReporter())
 					.bind("sourceUnit").to(sourceUnit)
@@ -287,6 +290,18 @@ public class TypeAnalysisPhase implements Phase {
 			} else {
 				CallableType callableType = (LambdaType) type;
 				checkArguments(apply, callableType, apply.getArgs());
+			}
+		}
+
+		default void checkTypes(ExprConstruction construction) {
+			Type type = types().type(construction);
+			if (!(type instanceof UserType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a user type.", sourceUnit(), construction));
+			} else {
+				UserType userType = (UserType) type;
+				RecordType recordType = userType.getRecords().stream().filter(record -> Objects.equals(record.getName(), construction.getConstructor())).findAny().get();
+				CallableType callableType = new CallableType(recordType.getFields().stream().map(RecordType.FieldType::getType).collect(Collectors.toList()), type) {};
+				checkArguments(construction, callableType, construction.getArgs());
 			}
 		}
 

@@ -4,43 +4,30 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
-import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Parameter;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.decl.GeneratorVarDecl;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.InputVarDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
-import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
-import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
-import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
-import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.stmt.lvalue.*;
 import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
 import se.lth.cs.tycho.ir.type.TupleTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.type.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static se.lth.cs.tycho.util.CheckedCasts.toOptInt;
@@ -54,6 +41,7 @@ public interface Types {
 			.bind("constants").to(unit.getModule(ConstantEvaluator.key))
 			.bind("tree").to(unit.getModule(TreeShadow.key))
 			.bind("globalNames").to(unit.getModule(GlobalNames.key))
+			.bind("typeScopes").to(unit.getModule(TypeScopes.key))
 			.instance();
 
 	Type declaredType(VarDecl decl);
@@ -84,6 +72,9 @@ public interface Types {
 
 		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();
+
+		@Binding(BindingKind.INJECTED)
+		TypeScopes typeScopes();
 
 		@Binding(BindingKind.LAZY)
 		default Map<Expression, Type> typeMap() {
@@ -339,6 +330,18 @@ public interface Types {
 					return StringType.INSTANCE;
 				}
 				default:
+					Optional<TypeDecl> optionalDecl = typeScopes().declaration(t);
+					if (optionalDecl.isPresent()) {
+						GlobalTypeDecl decl = (GlobalTypeDecl) optionalDecl.get();
+						ImmutableList<RecordType> records = decl.getRecords()
+								.stream()
+								.map(record -> new RecordType(record.getName(), record.getFields()
+										.stream()
+										.map(field -> new RecordType.FieldType(field.getName(), convert(field.getType())))
+										.collect(ImmutableList.collector())))
+								.collect(ImmutableList.collector());
+						return new UserType(t.getName(), records);
+					}
 					return BottomType.INSTANCE;
 			}
 		}
@@ -559,6 +562,17 @@ public interface Types {
 			}
 		}
 
+		default Type computeType(ExprConstruction construction) {
+			GlobalTypeDecl decl = (GlobalTypeDecl) typeScopes().declaration(construction).get();
+			ImmutableList<RecordType> records = decl.getRecords()
+					.stream()
+					.map(record -> new RecordType(record.getName(), record.getFields()
+							.stream()
+							.map(field -> new RecordType.FieldType(field.getName(), convert(field.getType())))
+							.collect(ImmutableList.collector())))
+					.collect(ImmutableList.collector());
+			return new UserType(construction.getType(), records);
+		}
 
 		default Type leastUpperBound(Type a, Type b) {
 			return TopType.INSTANCE;
