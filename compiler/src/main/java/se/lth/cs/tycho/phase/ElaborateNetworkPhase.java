@@ -50,10 +50,12 @@ public class ElaborateNetworkPhase implements Phase {
 		for (Instance instance : result.getInstances()) {
 			GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
 			if (entity.getEntity() instanceof NlNetwork) {
+				// ----------
 				BasicInterpreter interpreter = new BasicInterpreter(task, 100);
 				NlToNetwork nlToNetwork = new NlToNetwork(task, (NlNetwork) entity.getEntity(), interpreter);
 				nlToNetwork.evaluate(ImmutableList.<Map.Entry<String, Expression>>empty());
-
+				Network test = nlToNetwork.getNetwork();
+				// ----------
 				Network elaborated = elaborate((NlNetwork) entity.getEntity());
 				elaborated = fullyElaborate(task, elaborated, names);
 				result = connectElaboratedInstance(result, instance.getInstanceName(), elaborated);
