@@ -1,9 +1,11 @@
 package se.lth.cs.tycho.transformation.nl2network;
 
 import se.lth.cs.tycho.attribute.EntityDeclarations;
+import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.interp.*;
 import se.lth.cs.tycho.interp.values.ExprValue;
 import se.lth.cs.tycho.interp.values.RefView;
+import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.entity.nl.*;
@@ -11,6 +13,7 @@ import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
+import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -29,15 +32,18 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     private boolean evaluated;
     TypeConverter converter = TypeConverter.getInstance();
 
+    private CompilationTask task;
+
     private Memory mem;
 
     private EntityDeclarations entityDeclarations;
 
-    public NlToNetwork(NlNetwork network, Interpreter interpreter, EntityDeclarations entityDeclarations) {
+    public NlToNetwork(CompilationTask task, NlNetwork network, Interpreter interpreter) {
         this.srcNetwork = network;
         this.interpreter = interpreter;
         this.evaluated = false;
-        this.entityDeclarations = entityDeclarations;
+        this.task = task;
+        this.entityDeclarations = task.getModule(EntityDeclarations.key);
     }
 
     public void evaluate(ImmutableList<Map.Entry<String, Expression>> parameterAssignments) throws CompilationException {
@@ -84,9 +90,20 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     }
 
+    public Network getNetwork() {
+        assert evaluated;
+        return null;
+    }
+
     @Override
     public EntityExpr visitEntityInstanceExpr(EntityInstanceExpr e, Environment environment) {
-        return null;
+        ImmutableList.Builder<ValueParameter> builder = new ImmutableList.Builder<>();
+        for (ValueParameter valueParameter : e.getParameterAssignments()) {
+            Expression expr = valueParameter.getValue();
+            RefView value = interpreter.evaluate(expr, environment);
+            builder.add(new ValueParameter(valueParameter.getName(), new ExprValue(new ExprLiteral(ExprLiteral.Kind.Integer, value.toString()))));
+        }
+        return e.copy(e.getEntityName(), builder.build());
     }
 
     @Override
@@ -111,7 +128,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
                 }
             }
         };
-       
+
         return null;
     }
 

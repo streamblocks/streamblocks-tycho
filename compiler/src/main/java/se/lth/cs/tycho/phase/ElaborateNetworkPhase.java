@@ -3,6 +3,7 @@ package se.lth.cs.tycho.phase;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
+import se.lth.cs.tycho.interp.BasicInterpreter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
@@ -15,10 +16,12 @@ import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.PortReference;
 import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
 import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.transformation.nl2network.NlToNetwork;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,9 +46,14 @@ public class ElaborateNetworkPhase implements Phase {
 
 	public Network fullyElaborate(CompilationTask task, Network network, Set<String> names) {
 		Network result = uniqueNames(network, names);
+
 		for (Instance instance : result.getInstances()) {
 			GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
 			if (entity.getEntity() instanceof NlNetwork) {
+				BasicInterpreter interpreter = new BasicInterpreter(task, 100);
+				NlToNetwork nlToNetwork = new NlToNetwork(task, (NlNetwork) entity.getEntity(), interpreter);
+				nlToNetwork.evaluate(ImmutableList.<Map.Entry<String, Expression>>empty());
+
 				Network elaborated = elaborate((NlNetwork) entity.getEntity());
 				elaborated = fullyElaborate(task, elaborated, names);
 				result = connectElaboratedInstance(result, instance.getInstanceName(), elaborated);

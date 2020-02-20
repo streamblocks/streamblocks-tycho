@@ -24,7 +24,7 @@ public class BasicEnvironment implements Environment {
 
     @Override
     public Environment closure(Set<Variable> variables, Stack stack) {
-        Memory mem = memory.closure(variables, stack);
-        return new BasicEnvironment(mem);
+
+        return null;
     }
 }

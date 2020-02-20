@@ -5,21 +5,21 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.attribute.FreeVariables;
-import se.lth.cs.tycho.attribute.GlobalNames;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.interp.Environment;
 import se.lth.cs.tycho.interp.Interpreter;
 import se.lth.cs.tycho.interp.Stack;
 import se.lth.cs.tycho.interp.TypeConverter;
-import se.lth.cs.tycho.interp.values.*;
-import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.interp.values.ConstRef;
+import se.lth.cs.tycho.interp.values.Function;
+import se.lth.cs.tycho.interp.values.LambdaFunction;
+import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
-import se.lth.cs.tycho.type.Type;
 
 @Module
 public interface ExpressionEvaluator {
@@ -120,7 +120,7 @@ public interface ExpressionEvaluator {
         if (kind == ExprLiteral.Kind.False) {
             value = ConstRef.of(false);
         } else if (kind == ExprLiteral.Kind.True) {
-            value = ConstRef.of(false);
+            value = ConstRef.of(true);
         } else if (kind == ExprLiteral.Kind.Integer) {
             value = ConstRef.of(expression.asInt().getAsInt());
         } else if (kind == ExprLiteral.Kind.Real) {
