@@ -45,6 +45,7 @@ public interface Types {
 			.instance();
 
 	Type declaredType(VarDecl decl);
+	Type declaredGlobalType(GlobalTypeDecl decl);
 	Type type(Expression expr);
 	Type lvalueType(LValue lvalue);
 	Type declaredPortType(PortDecl port);
@@ -101,6 +102,11 @@ public interface Types {
 			return new ConcurrentHashMap<>();
 		}
 
+		@Binding(BindingKind.LAZY)
+		default Map<GlobalTypeDecl, Type> declaredGlobalTypeMap() {
+			return new ConcurrentHashMap<>();
+		}
+
 		default SourceUnit getSourceUnit(IRNode node) {
 			do {
 				if (node instanceof SourceUnit) {
@@ -123,6 +129,20 @@ public interface Types {
 				Type old = declaredTypeMap().putIfAbsent(varDecl, t);
 				return old != null ? old : t;
 			}
+		}
+
+		default Type declaredGlobalType(GlobalTypeDecl decl) {
+			if (!declaredGlobalTypeMap().containsKey(decl)) {
+				ImmutableList<RecordType> records = decl.getRecords()
+						.stream()
+						.map(record -> new RecordType(record.getName(), record.getFields()
+								.stream()
+								.map(field -> new RecordType.FieldType(field.getName(), convert(field.getType())))
+								.collect(ImmutableList.collector())))
+						.collect(ImmutableList.collector());
+				declaredGlobalTypeMap().put(decl, new UserType(decl.getName(), records));
+			}
+			return declaredGlobalTypeMap().get(decl);
 		}
 
 		default Type computeDeclaredType(VarDecl varDecl) {
@@ -349,17 +369,9 @@ public interface Types {
 					return StringType.INSTANCE;
 				}
 				default:
-					Optional<TypeDecl> optionalDecl = typeScopes().declaration(t);
-					if (optionalDecl.isPresent()) {
-						GlobalTypeDecl decl = (GlobalTypeDecl) optionalDecl.get();
-						ImmutableList<RecordType> records = decl.getRecords()
-								.stream()
-								.map(record -> new RecordType(record.getName(), record.getFields()
-										.stream()
-										.map(field -> new RecordType.FieldType(field.getName(), convert(field.getType())))
-										.collect(ImmutableList.collector())))
-								.collect(ImmutableList.collector());
-						return new UserType(t.getName(), records);
+					Optional<TypeDecl> decl = typeScopes().declaration(t);
+					if (decl.isPresent()) {
+						return declaredGlobalType((GlobalTypeDecl) decl.get());
 					}
 					return BottomType.INSTANCE;
 			}
@@ -582,15 +594,7 @@ public interface Types {
 		}
 
 		default Type computeType(ExprConstruction construction) {
-			GlobalTypeDecl decl = (GlobalTypeDecl) typeScopes().declaration(construction).get();
-			ImmutableList<RecordType> records = decl.getRecords()
-					.stream()
-					.map(record -> new RecordType(record.getName(), record.getFields()
-							.stream()
-							.map(field -> new RecordType.FieldType(field.getName(), convert(field.getType())))
-							.collect(ImmutableList.collector())))
-					.collect(ImmutableList.collector());
-			return new UserType(construction.getType(), records);
+			return declaredGlobalType((GlobalTypeDecl) typeScopes().declaration(construction).get());
 		}
 
 		default Type computeType(ExprField field) {
