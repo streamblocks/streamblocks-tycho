@@ -102,6 +102,16 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     @Override
     public EntityExpr visitEntityListExpr(EntityListExpr e, Environment environment) {
+        final ImmutableList.Builder<EntityExpr> builder = new ImmutableList.Builder<EntityExpr>();
+        final NlToNetwork exprEvaluateor = this;
+        Runnable execStmt = new Runnable() {
+            public void run() {
+                for (EntityExpr element : e.getEntityList()) {
+                    builder.add(element.accept(exprEvaluateor, environment));
+                }
+            }
+        };
+       
         return null;
     }
 
