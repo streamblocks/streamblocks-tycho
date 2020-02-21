@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -90,6 +91,10 @@ public interface Code {
 
 	default String declaration(StringType type, String name) { return "char *" + name; }
 
+	default String declaration(UserType type, String name) {
+		return type(type) + " " + name;
+	}
+
 	String type(Type type);
 
 	default String type(IntType type) {
@@ -128,6 +133,10 @@ public interface Code {
 	default String type(BoolType type) { return "_Bool"; }
 
 	default String type(RefType type) { return type(type.getType()) + "*"; }
+
+	default String type(UserType type) {
+		return backend().userTypes().type(type);
+	}
 
 	String evaluate(Expression expr);
 
@@ -447,6 +456,23 @@ public interface Code {
 		return evaluate(let.getBody());
 	}
 
+	default String evaluate(ExprConstruction construction) {
+		String fn = backend().userTypes().constructor(construction.getType(), construction.getConstructor());
+		List<String> parameters = new ArrayList<>();
+		for (Expression parameter : construction.getArgs()) {
+			parameters.add(evaluate(parameter));
+		}
+		String result = variables().generateTemp();
+		String decl = declaration(types().type(construction), result);
+		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
+		return result;
+	}
+
+	default String evaluate(ExprField field) {
+		UserType type = (UserType) types().type(field.getStructure());
+		return String.format("%s.self.%s.%s", evaluate(field.getStructure()), Optional.ofNullable(type.getRecords().get(0).getName()).orElse(type.getName()), field.getField().getName());
+	}
+
 	void execute(Statement stmt);
 
 	default void execute(StmtConsume consume) {
@@ -569,5 +595,10 @@ public interface Code {
 
 	default String lvalue(LValueIndexer indexer) {
 		return String.format("%s.data[%s]", lvalue(indexer.getStructure()), evaluate(indexer.getIndex()));
+	}
+
+	default String lvalue(LValueField field) {
+		UserType type = (UserType) types().lvalueType(field.getStructure());
+		return String.format("%s.self.%s.%s", lvalue(field.getStructure()), Optional.ofNullable(type.getRecords().get(0).getName()).orElse(type.getName()), field.getField().getName());
 	}
 }

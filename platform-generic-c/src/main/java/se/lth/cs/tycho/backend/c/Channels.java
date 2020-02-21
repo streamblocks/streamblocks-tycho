@@ -42,6 +42,7 @@ public interface Channels {
 
 	default void fifo_h() {
 		emitter().emit("#include <stdint.h>");
+		backend().main().includeUser("global.h");
 		emitter().emit("");
 		emitter().emitRawLine("#ifndef BUFFER_SIZE\n" +
 				"#define BUFFER_SIZE 256\n" +

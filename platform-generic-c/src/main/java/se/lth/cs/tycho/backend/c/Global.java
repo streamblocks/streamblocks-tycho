@@ -31,6 +31,8 @@ public interface Global {
 		backend().main().emitDefaultHeaders();
 		emitter().emit("#include \"global.h\"");
 		emitter().emit("");
+		backend().userTypes().defineUserTypes();
+		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
 		globalVariableInitializer(getGlobalVarDecls());
@@ -47,6 +49,8 @@ public interface Global {
 		emitter().emit("void init_global_variables(void);");
 		emitter().emit("");
 		backend().lists().declareListTypes();
+		emitter().emit("");
+		backend().userTypes().declareUserTypes();
 		emitter().emit("");
 		backend().callables().declareCallables();
 		emitter().emit("");

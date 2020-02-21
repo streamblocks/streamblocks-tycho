@@ -96,4 +96,7 @@ public interface Backend {
 	@Binding(LAZY) default AlternativeChannels channels() {
 		return MultiJ.from(AlternativeChannels.class).bind("backend").to(this).instance();
 	}
+	@Binding(LAZY) default UserTypes userTypes() {
+		return MultiJ.from(UserTypes.class).bind("backend").to(this).instance();
+	}
 }
