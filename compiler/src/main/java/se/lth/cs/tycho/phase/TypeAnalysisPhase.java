@@ -255,7 +255,7 @@ public class TypeAnalysisPhase implements Phase {
 				if (isConvertible(to, from)) {
 					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + from + " to " + to + ".", sourceUnit(), node));
 				} else {
-					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Incompatible types; expected " + to + " but was " + from + ".", sourceUnit(), node));
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + to + " but was " + from + ".", sourceUnit(), node));
 				}
 			}
 		}
