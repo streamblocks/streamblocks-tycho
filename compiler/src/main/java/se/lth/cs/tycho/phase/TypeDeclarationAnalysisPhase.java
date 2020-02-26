@@ -8,9 +8,7 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.decl.FieldVarDecl;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
-import se.lth.cs.tycho.ir.decl.RecordDecl;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 

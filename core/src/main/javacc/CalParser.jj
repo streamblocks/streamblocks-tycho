@@ -2097,79 +2097,91 @@ TypeExpr Type() :
 /* Type definitions */
 GlobalTypeDecl GlobalTypeDecl() :
 {
-    Availability availability = Availability.PUBLIC;
+    Token first;
+    Token last;
     Token name;
-    RecordDecl record;
-    ImmutableList.Builder<RecordDecl> records = ImmutableList.builder();
-    Token firstToken;
-    Token lastToken;
+    Availability availability = Availability.PUBLIC;
+    AlgebraicTypeDecl declaration;
 }
 {
     (
         availability = Availability()
     )?
-    firstToken = "type"
+    first = "type"
     name = <ID>
     ":"
     (
-        LOOKAHEAD("(")
-        record = UnnamedRecordDecl() { records.add(record); }
+       declaration = ProductTypeDecl(name)
     |
-        LOOKAHEAD(<ID>)
-        record  = RecordDecl() { records.add(record); }
-        ( "|" record = RecordDecl() { records.add(record); } )*
+       declaration = SumTypeDecl(name)
     )
-    lastToken = "end"
-    { return setPosition(new GlobalTypeDecl(availability, name.image, records.build()), firstToken, lastToken); }
+    last = "end"
+    { return setPosition(new GlobalTypeDecl(name.image, availability, declaration), first, last); }
 }
 
-RecordDecl RecordDecl() :
+ProductTypeDecl ProductTypeDecl(Token name) :
 {
-    Token name;
-    FieldVarDecl field;
-    ImmutableList.Builder<FieldVarDecl> fields = ImmutableList.builder();
-    Token lastToken;
+    Token first;
+    Token last;
+    FieldDecl field;
+    ImmutableList.Builder<FieldDecl> fields = ImmutableList.builder();
 }
 {
-    name = <ID>
-    { lastToken = name; }
-    (
-        "("
-        (
-            field = FieldDecl() { fields.add(field); }
-            ( "," field = FieldDecl() { fields.add(field); } )*
-        )?
-        lastToken = ")"
-    )?
-    { return setPosition(new RecordDecl(name.image, fields.build()), name, lastToken); }
-}
-
-RecordDecl UnnamedRecordDecl() :
-{
-    FieldVarDecl field;
-    ImmutableList.Builder<FieldVarDecl> fields = ImmutableList.builder();
-    Token firstToken;
-    Token lastToken;
-}
-{
-    firstToken = "("
+    first = "("
     (
         field = FieldDecl() { fields.add(field); }
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
-    lastToken = ")"
-    { return setPosition(new RecordDecl(null, fields.build()), firstToken, lastToken); }
+    last = ")"
+    { return setPosition(new ProductTypeDecl(name.image, fields.build()), first, last); }
 }
 
-FieldVarDecl FieldDecl() :
+FieldDecl FieldDecl() :
 {
-    Token name;
     TypeExpr type;
+	Token name;
 }
 {
     type = Type()
     name = <ID>
-    { return setPosition(new FieldVarDecl(type, name.image), type, name); }
+    { return setPosition(new FieldDecl(type, name.image), type, name); }
+}
+
+SumTypeDecl SumTypeDecl(Token name) :
+{
+    SumTypeDecl.VariantDecl first;
+    SumTypeDecl.VariantDecl last;
+    SumTypeDecl.VariantDecl variant;
+    ImmutableList.Builder<SumTypeDecl.VariantDecl> variants = ImmutableList.builder();
+}
+{
+    variant = VariantDecl() { variants.add(variant); }
+    { first = variant; }
+    (
+        "|"
+        variant = VariantDecl() { variants.add(variant); }
+        { last = variant; }
+    )+
+    { return setPosition(new SumTypeDecl(name.image, variants.build()), first, last); }
+}
+
+SumTypeDecl.VariantDecl VariantDecl() :
+{
+	Token name;
+	Token last;
+	FieldDecl field;
+	ImmutableList.Builder<FieldDecl> fields = ImmutableList.builder();
+}
+{
+    name = <ID>
+    { last = name; }
+    (
+        "("
+        field = FieldDecl() { fields.add(field); }
+        ( "," field = FieldDecl() { fields.add(field); } )*
+        last = ")"
+    )?
+    { return setPosition(new SumTypeDecl.VariantDecl(name.image, fields.build()), name, last); }
 }
 
 /* Statements */
