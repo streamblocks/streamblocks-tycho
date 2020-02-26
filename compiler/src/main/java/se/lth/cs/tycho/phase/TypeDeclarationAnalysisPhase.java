@@ -8,7 +8,9 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
+import se.lth.cs.tycho.ir.decl.FieldDecl;
+import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
+import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
@@ -30,6 +32,7 @@ public class TypeDeclarationAnalysisPhase implements Phase {
 		checker.check(task);
 		return task;
 	}
+
 	@Module
 	interface TypeDeclarationChecker {
 
@@ -46,22 +49,32 @@ public class TypeDeclarationAnalysisPhase implements Phase {
 
 		default void checkDeclaration(IRNode node) {}
 
-		default void checkDeclaration(GlobalTypeDecl decl) {
-			decl.getRecords()
+		default void checkDeclaration(ProductTypeDecl decl) {
+			decl.getFields()
 					.stream()
-					.filter(record -> record.getName() != null)
-					.collect(Collectors.groupingBy(RecordDecl::getName))
-					.forEach((name, records) -> {
-						if (records.size() > 1) {
-							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Record " + name + " is already declared.", sourceUnit(records.get(1)), records.get(1)));
+					.collect(Collectors.groupingBy(FieldDecl::getName))
+					.forEach((name, fields) -> {
+						if (fields.size() > 1) {
+							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Field " + name + " is already declared.", sourceUnit(fields.get(1)), fields.get(1)));
 						}
 					});
 		}
 
-		default void checkDeclaration(RecordDecl decl) {
+		default void checkDeclaration(SumTypeDecl decl) {
+			decl.getVariants()
+					.stream()
+					.collect(Collectors.groupingBy(SumTypeDecl.VariantDecl::getName))
+					.forEach((name, fields) -> {
+						if (fields.size() > 1) {
+							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variant " + name + " is already declared.", sourceUnit(fields.get(1)), fields.get(1)));
+						}
+					});
+		}
+
+		default void checkDeclaration(SumTypeDecl.VariantDecl decl) {
 			decl.getFields()
 					.stream()
-					.collect(Collectors.groupingBy(FieldVarDecl::getName))
+					.collect(Collectors.groupingBy(FieldDecl::getName))
 					.forEach((name, fields) -> {
 						if (fields.size() > 1) {
 							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Field " + name + " is already declared.", sourceUnit(fields.get(1)), fields.get(1)));
