@@ -9,6 +9,8 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
+import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
+import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
@@ -31,6 +33,8 @@ public interface TypeScopes {
 	ImmutableList<TypeDecl> declarations(IRNode node);
 
 	Optional<TypeDecl> declaration(IRNode node);
+
+	Optional<TypeDecl> construction(IRNode node);
 
 	@Module
 	interface Implementation extends TypeScopes {
@@ -91,7 +95,6 @@ public interface TypeScopes {
 					.stream()
 					.map(GlobalTypeDecl.class::cast)
 					.filter(decl -> Objects.equals(decl.getName(), var.getVariable().getName()))
-					// name analysis ??? .filter(decl -> decl.getTuples().stream().anyMatch(tuple -> Objects.equals(tuple.getName(), reference.getChild())))
 					.map(TypeDecl.class::cast)
 					.findAny();
 		}
@@ -102,7 +105,65 @@ public interface TypeScopes {
 					.stream()
 					.map(GlobalTypeDecl.class::cast)
 					.filter(decl -> Objects.equals(decl.getName(), type.getName()))
-					// name analysis ??? .filter(decl -> decl.getTuples().stream().anyMatch(tuple -> Objects.equals(tuple.getName(), reference.getChild())))
+					.map(TypeDecl.class::cast)
+					.findAny();
+		}
+
+		@Override
+		default Optional<TypeDecl> construction(IRNode node) {
+			return Optional.empty();
+		}
+
+		default Optional<TypeDecl> construction(ExprTypeConstruction construction) {
+			return typeDeclarations()
+					.declarations(sourceUnit(construction).getTree())
+					.stream()
+					.map(GlobalTypeDecl.class::cast)
+					.filter(decl -> {
+						if (decl.getDeclaration() instanceof ProductTypeDecl) {
+							return Objects.equals(construction.getConstructor(), decl.getDeclaration().getName());
+						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
+							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(construction.getConstructor(), variant.getName()));
+						} else {
+							return false;
+						}
+					})
+					.map(TypeDecl.class::cast)
+					.findAny();
+		}
+
+		default Optional<TypeDecl> construction(ExprVariable var) {
+			return typeDeclarations()
+					.declarations(sourceUnit(var).getTree())
+					.stream()
+					.map(GlobalTypeDecl.class::cast)
+					.filter(decl -> {
+						if (decl.getDeclaration() instanceof ProductTypeDecl) {
+							return Objects.equals(var.getVariable().getName(), decl.getDeclaration().getName());
+						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
+							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(var.getVariable().getName(), variant.getName()));
+						} else {
+							return false;
+						}
+					})
+					.map(TypeDecl.class::cast)
+					.findAny();
+		}
+
+		default Optional<TypeDecl> construction(NominalTypeExpr type) {
+			return typeDeclarations()
+					.declarations(sourceUnit(type).getTree())
+					.stream()
+					.map(GlobalTypeDecl.class::cast)
+					.filter(decl -> {
+						if (decl.getDeclaration() instanceof ProductTypeDecl) {
+							return Objects.equals(type.getName(), decl.getDeclaration().getName());
+						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
+							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(type.getName(), variant.getName()));
+						} else {
+							return false;
+						}
+					})
 					.map(TypeDecl.class::cast)
 					.findAny();
 		}
