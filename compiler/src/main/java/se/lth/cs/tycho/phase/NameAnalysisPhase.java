@@ -13,10 +13,8 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
-import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -90,13 +88,13 @@ public class NameAnalysisPhase implements Phase {
 		default void checkNames(IRNode node) {}
 
 		default void checkNames(Variable var) {
-			if (variableDeclarations().declaration(var) == null) {
+			if (variableDeclarations().declaration(var) == null && !typeScopes().construction(var).isPresent()) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variable " + var.getName() + " is not declared.", sourceUnit(var), var));
 			}
 		}
 
 		default void checkNames(ExprGlobalVariable var) {
-			if (variableDeclarations().declaration(var) == null) {
+			if (variableDeclarations().declaration(var) == null && !typeScopes().construction(var).isPresent()) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variable " + var.getGlobalName() + " is not declared.", sourceUnit(var), var));
 			}
 		}
@@ -116,16 +114,6 @@ public class NameAnalysisPhase implements Phase {
 		default void checkNames(EntityReferenceLocal reference) {
 			if (entityDeclarations().declaration(reference) == null) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", sourceUnit(reference), reference));
-			}
-		}
-
-		default void checkNames(ExprTypeConstruction construction) {
-			if (!typeScopes()
-					.declaration(construction)
-					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> decl.getRecords().stream().anyMatch(record -> Objects.equals(record.getName(), construction.getConstructor())))
-					.isPresent()) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Structure " + (construction.getConstructor() == null ? "<default>" : construction.getConstructor()) + " for type " + construction.getType() + " is not declared.", sourceUnit(construction), construction));
 			}
 		}
 
