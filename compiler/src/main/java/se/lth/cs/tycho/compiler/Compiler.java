@@ -71,7 +71,7 @@ public class Compiler {
                 new OperatorParsingPhase(),
                 new DeclarationAnalysisPhase(),
                 new ImportAnalysisPhase(),
-                new ResolveApplicationLikeConstructionPhase(),
+                new ResolveTypeConstructionPhase(),
                 new NameAnalysisPhase()
 
                 // -- Folding

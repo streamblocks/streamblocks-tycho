@@ -16,7 +16,7 @@ import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
-import se.lth.cs.tycho.ir.expr.ExprConstruction;
+import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -119,7 +119,7 @@ public class NameAnalysisPhase implements Phase {
 			}
 		}
 
-		default void checkNames(ExprConstruction construction) {
+		default void checkNames(ExprTypeConstruction construction) {
 			if (!typeScopes()
 					.declaration(construction)
 					.map(GlobalTypeDecl.class::cast)

@@ -10,7 +10,7 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.expr.ExprConstruction;
+import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -74,7 +74,7 @@ public interface TypeScopes {
 			return Optional.empty();
 		}
 
-		default Optional<TypeDecl> declaration(ExprConstruction construction) {
+		default Optional<TypeDecl> declaration(ExprTypeConstruction construction) {
 			return typeDeclarations()
 					.declarations(sourceUnit(construction).getTree())
 					.stream()

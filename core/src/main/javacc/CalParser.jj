@@ -1604,18 +1604,18 @@ Expression PrimaryExpression() :
 {
 	expr = SingleExpression()
 	{ exprIsVar = expr instanceof ExprVariable; }
-	{ exprIsConstruction = expr instanceof ExprConstruction; }
+	{ exprIsConstruction = expr instanceof ExprTypeConstruction; }
 	(
 		"("
         args = ExpressionList()
         lastToken = ")"
         {
-            if (exprIsConstruction) {
-                expr = new ExprConstruction(((ExprConstruction) expr).getType(), ((ExprConstruction) expr).getConstructor(), args);
-            } else {
-                expr = setPosition(new ExprApplication(expr, args), expr, lastToken);
-            }
-        }
+    if (exprIsConstruction) {
+        expr = new ExprTypeConstruction(((ExprTypeConstruction) expr).getType(), ((ExprTypeConstruction) expr).getConstructor(), args);
+    } else {
+        expr = setPosition(new ExprApplication(expr, args), expr, lastToken);
+    }
+}
 	|
 		lastToken = "["
 		index = Expression()
@@ -1653,7 +1653,7 @@ Expression SingleExpression() :
 {
 	(
 		LOOKAHEAD(2)
-		expr = ConstructionExpression()
+		expr = TypeConstructionExpression()
 	|
 		expr = VariableExpression()
 	|
@@ -1678,7 +1678,7 @@ Expression SingleExpression() :
 	{ return expr; }
 }
 
-ExprConstruction ConstructionExpression() :
+ExprTypeConstruction TypeConstructionExpression() :
 {
     Token type;
     Token constructor;
@@ -1687,7 +1687,7 @@ ExprConstruction ConstructionExpression() :
     type = <ID>
     "::"
     constructor = <ID>
-    { return setPosition(new ExprConstruction(type.image, constructor.image, ImmutableList.empty()), type, constructor); }
+    { return setPosition(new ExprTypeConstruction(type.image, constructor.image, ImmutableList.empty()), type, constructor); }
 }
 
 ExprVariable VariableExpression() :

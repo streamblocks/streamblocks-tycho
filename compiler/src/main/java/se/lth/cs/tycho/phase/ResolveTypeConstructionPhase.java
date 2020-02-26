@@ -10,15 +10,15 @@ import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
-import se.lth.cs.tycho.ir.expr.ExprConstruction;
+import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 
-public class ResolveApplicationLikeConstructionPhase implements Phase {
+public class ResolveTypeConstructionPhase implements Phase {
 
 	@Override
 	public String getDescription() {
-		return "Resolve expression application-like constructions";
+		return "Resolve type constructions";
 	}
 
 	@Override
@@ -50,7 +50,7 @@ public class ResolveApplicationLikeConstructionPhase implements Phase {
 					.map(GlobalTypeDecl.class::cast)
 					.filter(decl -> decl.getRecords().size() == 1)
 					.map(decl -> {
-						ExprConstruction construction = new ExprConstruction(decl.getName(), null, application.getArgs());
+						ExprTypeConstruction construction = new ExprTypeConstruction(decl.getName(), null, application.getArgs());
 						construction.setPosition(
 								application.getFromLineNumber(),
 								application.getFromColumnNumber(),

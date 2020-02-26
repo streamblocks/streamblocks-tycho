@@ -8,17 +8,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class ExprConstruction extends Expression {
+public class ExprTypeConstruction extends Expression {
 
 	private String type;
 	private String constructor;
 	private ImmutableList<Expression> args;
 
-	public ExprConstruction(String parent, String name, List<Expression> args) {
+	public ExprTypeConstruction(String parent, String name, List<Expression> args) {
 		this(null, parent, name, args);
 	}
 
-	private ExprConstruction(IRNode original, String parent, String name, List<Expression> args) {
+	private ExprTypeConstruction(IRNode original, String parent, String name, List<Expression> args) {
 		super(original);
 		this.type = parent;
 		this.constructor = name;
@@ -37,11 +37,11 @@ public class ExprConstruction extends Expression {
 		return args;
 	}
 
-	public ExprConstruction copy(String parent, String child, List<Expression> args) {
+	public ExprTypeConstruction copy(String parent, String child, List<Expression> args) {
 		if (Objects.equals(parent, getType()) && Objects.equals(child, getConstructor()) && Lists.sameElements(args, getArgs())) {
 			return this;
 		} else {
-			return new ExprConstruction(this, parent, child, args);
+			return new ExprTypeConstruction(this, parent, child, args);
 		}
 	}
 

@@ -593,7 +593,7 @@ public interface Types {
 			}
 		}
 
-		default Type computeType(ExprConstruction construction) {
+		default Type computeType(ExprTypeConstruction construction) {
 			return declaredGlobalType((GlobalTypeDecl) typeScopes().declaration(construction).get());
 		}
 

@@ -456,7 +456,7 @@ public interface Code {
 		return evaluate(let.getBody());
 	}
 
-	default String evaluate(ExprConstruction construction) {
+	default String evaluate(ExprTypeConstruction construction) {
 		String fn = backend().userTypes().constructor(construction.getType(), construction.getConstructor());
 		List<String> parameters = new ArrayList<>();
 		for (Expression parameter : construction.getArgs()) {

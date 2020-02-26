@@ -11,7 +11,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
-import se.lth.cs.tycho.ir.expr.ExprConstruction;
+import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtCall;
@@ -293,7 +293,7 @@ public class TypeAnalysisPhase implements Phase {
 			}
 		}
 
-		default void checkTypes(ExprConstruction construction) {
+		default void checkTypes(ExprTypeConstruction construction) {
 			Type type = types().type(construction);
 			if (!(type instanceof UserType)) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a user type.", sourceUnit(), construction));
