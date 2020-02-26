@@ -3,7 +3,6 @@ package se.lth.cs.tycho.backend.c;
 import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
-import se.lth.cs.tycho.type.UserType;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
