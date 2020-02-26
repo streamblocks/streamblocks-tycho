@@ -1599,26 +1599,18 @@ Expression PrimaryExpression() :
 	Token lastToken;
     ImmutableList.Builder<TypeParameter> typeParameters;
     ImmutableList.Builder<ValueParameter> valueParameters;
-    boolean exprIsConstruction;
 }
 {
 	expr = SingleExpression()
 	{ exprIsVar = expr instanceof ExprVariable; }
-	{ exprIsConstruction = expr instanceof ExprTypeConstruction; }
 	(
 		"("
         args = ExpressionList()
         lastToken = ")"
-        {
-    if (exprIsConstruction) {
-        expr = new ExprTypeConstruction(((ExprTypeConstruction) expr).getType(), ((ExprTypeConstruction) expr).getConstructor(), args);
-    } else {
-        expr = setPosition(new ExprApplication(expr, args), expr, lastToken);
-    }
-}
+        { expr = setPosition(new ExprApplication(expr, args), expr, lastToken); }
 	|
-		lastToken = "["
-		index = Expression()
+		"["
+	    index = Expression()
 		{ expr = new ExprIndexer(expr, index); }
 		(
 			","
@@ -1626,20 +1618,9 @@ Expression PrimaryExpression() :
 			{ expr = new ExprIndexer(expr, index); }
 		)*
 		"]"
-        {
-            if (exprIsConstruction) {
-                throw new ParseException(lastToken, new int[][]{}, new String[]{}); // FIXME
-            }
-        }
 	|
-		lastToken = "."
-		field = Field()
+		"." field = Field()
 		{ expr = new ExprField(expr, field); }
-		{
-		    if (exprIsConstruction) {
-		        throw new ParseException(lastToken, new int[][]{}, new String[]{}); // FIXME
-		    }
-		}
 	)*
 	{
 		return expr;
@@ -1652,9 +1633,6 @@ Expression SingleExpression() :
 }
 {
 	(
-		LOOKAHEAD(2)
-		expr = TypeConstructionExpression()
-	|
 		expr = VariableExpression()
 	|
 		expr = ExpressionLiteral()
@@ -1676,18 +1654,6 @@ Expression SingleExpression() :
 		expr = MapExpression()
 	)
 	{ return expr; }
-}
-
-ExprTypeConstruction TypeConstructionExpression() :
-{
-    Token type;
-    Token constructor;
-}
-{
-    type = <ID>
-    "::"
-    constructor = <ID>
-    { return setPosition(new ExprTypeConstruction(type.image, constructor.image, ImmutableList.empty()), type, constructor); }
 }
 
 ExprVariable VariableExpression() :
