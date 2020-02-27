@@ -17,7 +17,7 @@ public class ExprTypeConstruction extends Expression {
 		this(null, constructor, args);
 	}
 
-	private ExprTypeConstruction(IRNode original, String constructor, List<Expression> args) {
+	public ExprTypeConstruction(IRNode original, String constructor, List<Expression> args) {
 		super(original);
 		this.constructor = constructor;
 		this.args = ImmutableList.from(args);

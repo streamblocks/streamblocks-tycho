@@ -53,13 +53,7 @@ public class ResolveTypeConstructionPhase implements Phase {
 						if (algebraicTypeDecl instanceof SumTypeDecl) {
 							constructor = ((SumTypeDecl) algebraicTypeDecl).getVariants().stream().filter(variant -> Objects.equals(variant.getName(), ((ExprVariable) application.getFunction()).getVariable().getName())).findAny().get().getName();
 						}
-						ExprTypeConstruction construction = new ExprTypeConstruction(constructor, application.getArgs());
-						construction.setPosition(
-								application.getFromLineNumber(),
-								application.getFromColumnNumber(),
-								application.getToLineNumber(),
-								application.getToColumnNumber());
-						return (IRNode) construction;
+						return (IRNode) new ExprTypeConstruction(application, constructor, application.getArgs());
 					})
 					.orElse(application);
 		}
@@ -70,13 +64,7 @@ public class ResolveTypeConstructionPhase implements Phase {
 					.filter(decl -> ((GlobalTypeDecl) decl).getDeclaration() instanceof SumTypeDecl)
 					.map(decl -> {
 						SumTypeDecl sum = (SumTypeDecl) ((GlobalTypeDecl) decl).getDeclaration();
-						ExprTypeConstruction construction = new ExprTypeConstruction(sum.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), variable.getVariable().getName())).findAny().get().getName(), Collections.emptyList());
-						construction.setPosition(
-								variable.getFromLineNumber(),
-								variable.getFromColumnNumber(),
-								variable.getToLineNumber(),
-								variable.getToColumnNumber());
-						return (IRNode) construction;
+						return (IRNode) new ExprTypeConstruction(variable, sum.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), variable.getVariable().getName())).findAny().get().getName(), Collections.emptyList());
 					})
 					.orElse(variable);
 		}
