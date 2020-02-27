@@ -1637,6 +1637,9 @@ Expression SingleExpression() :
 	|
 		expr = ExpressionLiteral()
 	|
+		LOOKAHEAD(TypeAssertionExpression())
+		expr = TypeAssertionExpression()
+	|
 		"(" expr = Expression() ")"
 	|
 		expr = IfExpression()
@@ -1705,6 +1708,21 @@ ExprLiteral ExpressionLiteral() :
 	}
 }
 
+ExprTypeAssertion TypeAssertionExpression() :
+{
+    Token first;
+    Token last;
+    Expression expression;
+	TypeExpr type;
+}
+{
+    first = "("
+	expression = Expression()
+    "::"
+    type = Type()
+    last = ")"
+    { return setPosition(new ExprTypeAssertion(expression, type), first, last); }
+}
 
 ImmutableList<Expression> ExpressionList() :
 {
