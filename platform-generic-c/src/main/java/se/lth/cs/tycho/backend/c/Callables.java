@@ -191,8 +191,8 @@ public interface Callables {
 		return seq(name("real"), name(Integer.toString(type.getSize())));
 	}
 
-	default NameExpression mangle(UserType type) {
-		return name(backend().userTypes().type(type));
+	default NameExpression mangle(AlgebraicType type) {
+		return name(backend().algebraicTypes().type(type));
 	}
 
 	// function prototype

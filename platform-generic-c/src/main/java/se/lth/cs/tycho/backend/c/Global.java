@@ -31,7 +31,7 @@ public interface Global {
 		backend().main().emitDefaultHeaders();
 		emitter().emit("#include \"global.h\"");
 		emitter().emit("");
-		backend().userTypes().defineUserTypes();
+		backend().algebraicTypes().defineAlgebraicTypes();
 		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
@@ -50,7 +50,7 @@ public interface Global {
 		emitter().emit("");
 		backend().lists().declareListTypes();
 		emitter().emit("");
-		backend().userTypes().declareUserTypes();
+		backend().algebraicTypes().declareAlgebraicTypes();
 		emitter().emit("");
 		backend().callables().declareCallables();
 		emitter().emit("");

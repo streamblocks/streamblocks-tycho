@@ -20,7 +20,6 @@ import se.lth.cs.tycho.backend.c.util.Box;
 
 import static org.multij.BindingKind.INJECTED;
 import static org.multij.BindingKind.LAZY;
-import static org.multij.BindingKind.MODULE;
 
 @Module
 public interface Backend {
@@ -96,7 +95,7 @@ public interface Backend {
 	@Binding(LAZY) default AlternativeChannels channels() {
 		return MultiJ.from(AlternativeChannels.class).bind("backend").to(this).instance();
 	}
-	@Binding(LAZY) default UserTypes userTypes() {
-		return MultiJ.from(UserTypes.class).bind("backend").to(this).instance();
+	@Binding(LAZY) default AlgebraicTypes algebraicTypes() {
+		return MultiJ.from(AlgebraicTypes.class).bind("backend").to(this).instance();
 	}
 }

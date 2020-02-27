@@ -91,7 +91,7 @@ public interface Code {
 
 	default String declaration(StringType type, String name) { return "char *" + name; }
 
-	default String declaration(UserType type, String name) {
+	default String declaration(AlgebraicType type, String name) {
 		return type(type) + " " + name;
 	}
 
@@ -134,8 +134,8 @@ public interface Code {
 
 	default String type(RefType type) { return type(type.getType()) + "*"; }
 
-	default String type(UserType type) {
-		return backend().userTypes().type(type);
+	default String type(AlgebraicType type) {
+		return backend().algebraicTypes().type(type);
 	}
 
 	String evaluate(Expression expr);
@@ -457,7 +457,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprTypeConstruction construction) {
-		String fn = backend().userTypes().constructor(construction.getConstructor(), construction.getConstructor());
+		String fn = backend().algebraicTypes().constructor(construction.getConstructor());
 		List<String> parameters = new ArrayList<>();
 		for (Expression parameter : construction.getArgs()) {
 			parameters.add(evaluate(parameter));
@@ -469,8 +469,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprField field) {
-		UserType type = (UserType) types().type(field.getStructure());
-		return String.format("%s.self.%s.%s", evaluate(field.getStructure()), Optional.ofNullable(type.getRecords().get(0).getName()).orElse(type.getName()), field.getField().getName());
+		return String.format("%s.%s", evaluate(field.getStructure()), field.getField().getName());
 	}
 
 	void execute(Statement stmt);
@@ -598,7 +597,6 @@ public interface Code {
 	}
 
 	default String lvalue(LValueField field) {
-		UserType type = (UserType) types().lvalueType(field.getStructure());
-		return String.format("%s.self.%s.%s", lvalue(field.getStructure()), Optional.ofNullable(type.getRecords().get(0).getName()).orElse(type.getName()), field.getField().getName());
+		return String.format("%s.%s", lvalue(field.getStructure()), field.getField().getName());
 	}
 }
