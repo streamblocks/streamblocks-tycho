@@ -256,20 +256,16 @@ public interface Types {
 			}
 		}
 
-		default Type computeLValueType(LValueField field) {
-			Type structureType = computeLValueType(field.getStructure());
-			if (structureType instanceof UserType) {
-				UserType userType = (UserType) structureType;
-				if (userType.getRecords().size() != 1) {
-					return BottomType.INSTANCE;
-				} else {
-					return userType.getRecords().get(0).getFields()
-							.stream()
-							.filter(f -> Objects.equals(f.getName(), field.getField().getName()))
-							.findAny()
-							.map(f -> f.getType())
-							.orElse(BottomType.INSTANCE);
-				}
+		default Type computeLValueType(LValueField fieldLValue) {
+			Type structureType = computeLValueType(fieldLValue.getStructure());
+			if (structureType instanceof ProductType) {
+				ProductType productType = (ProductType) structureType;
+				return productType.getFields()
+						.stream()
+						.filter(field -> Objects.equals(field.getName(), fieldLValue.getField().getName()))
+						.map(FieldType::getType)
+						.findAny()
+						.orElse(BottomType.INSTANCE);
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -597,20 +593,16 @@ public interface Types {
 			return declaredGlobalType((GlobalTypeDecl) typeScopes().declaration(construction).get());
 		}
 
-		default Type computeType(ExprField field) {
-			Type structureType = type(field.getStructure());
-			if (structureType instanceof UserType) {
-				UserType userType = (UserType) structureType;
-				if (userType.getRecords().size() != 1) {
-					return BottomType.INSTANCE;
-				} else {
-					return userType.getRecords().get(0).getFields()
-							.stream()
-							.filter(f -> Objects.equals(f.getName(), field.getField().getName()))
-							.findAny()
-							.map(f -> f.getType())
-							.orElse(BottomType.INSTANCE);
-				}
+		default Type computeType(ExprField fieldExpr) {
+			Type structureType = type(fieldExpr.getStructure());
+			if (structureType instanceof ProductType) {
+				ProductType productType = (ProductType) structureType;
+				return productType.getFields()
+						.stream()
+						.filter(field -> Objects.equals(field.getName(), fieldExpr.getField().getName()))
+						.map(FieldType::getType)
+						.findAny()
+						.orElse(BottomType.INSTANCE);
 			} else {
 				return BottomType.INSTANCE;
 			}
