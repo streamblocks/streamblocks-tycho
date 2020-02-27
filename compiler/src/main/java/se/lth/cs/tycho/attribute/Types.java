@@ -608,6 +608,10 @@ public interface Types {
 			}
 		}
 
+		default Type computeType(ExprTypeAssertion assertion) {
+			return convert(assertion.getType());
+		}
+
 
 		default Type leastUpperBound(Type a, Type b) {
 			return TopType.INSTANCE;
