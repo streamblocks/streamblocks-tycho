@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
+import se.lth.cs.tycho.ir.expr.ExprTypeAssertion;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
@@ -54,13 +55,20 @@ public class TypeAnalysisPhase implements Phase {
 	}
 
 	@Module
-	interface CalTypeChecker  extends TypeChecker {
+	interface CalTypeChecker extends TypeChecker {
 
 		default boolean isConvertible(Type to, Type from) {
 			return isAssignable(to, from);
 		}
 
 		default boolean isConvertible(IntType to, IntType from) {
+			return true;
+		}
+
+		default boolean isAssertable(Type to, Type from) {
+			return to.equals(from);
+		}
+		default boolean isAssertable(IntType to, IntType from) {
 			return true;
 		}
 
@@ -163,10 +171,15 @@ public class TypeAnalysisPhase implements Phase {
 	}
 
 	@Module
-	interface OrccTypeChecker  extends TypeChecker {
+	interface OrccTypeChecker extends TypeChecker {
 
 		default boolean isConvertible(Type to, Type from) {
 			return isAssignable(to, from);
+		}
+
+		@Override
+		default boolean isAssertable(Type to, Type from) {
+			return false;
 		}
 
 		default boolean isAssignable(Type to, Type from) {
@@ -245,6 +258,8 @@ public class TypeAnalysisPhase implements Phase {
 			checkTypes(node);
 			node.forEachChild(this::check);
 		}
+
+		boolean isAssertable(Type a, Type b);
 
 		boolean isAssignable(Type a, Type b);
 
