@@ -468,6 +468,14 @@ public interface Code {
 		return result;
 	}
 
+	default String evaluate(ExprTypeAssertion assertion) {
+		Type type = types().type(assertion.getType());
+		String result = variables().generateTemp();
+		String decl = declaration(type, result);
+		emitter().emit("%s = (%s)(%s);", decl, type(type), evaluate(assertion.getExpression()));
+		return result;
+	}
+
 	default String evaluate(ExprField field) {
 		return String.format("%s.%s", evaluate(field.getStructure()), field.getField().getName());
 	}
