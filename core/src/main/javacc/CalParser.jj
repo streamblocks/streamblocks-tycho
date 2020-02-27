@@ -21,6 +21,7 @@ import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.type.*;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.expr.*;
+import se.lth.cs.tycho.ir.expr.pattern.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.*;
 import se.lth.cs.tycho.ir.entity.cal.*;
@@ -128,6 +129,7 @@ TOKEN :
 //|	< AT_STAR: "at*" >
 |	< BEGIN: "begin" >
 //|	< CHOOSE: "choose" >
+|	< CASE: "case" >
 |	< CONST: "const" >
 //|	< DELAY: "delay" >
 |	< DIV: "div" >
@@ -171,6 +173,7 @@ TOKEN :
 |	< NOT: "not" >
 |	< NULL: "null" >
 |	< OLD: "old" >
+|	< OF: "of" >
 |	< OR: "or" >
 |	< PRIORITY: "priority" >
 |	< PROC: "proc" >
@@ -1642,6 +1645,8 @@ Expression SingleExpression() :
 	|
 		"(" expr = Expression() ")"
 	|
+		expr = CaseExpression()
+	|
 		expr = IfExpression()
 	|
 		expr = LambdaExpression()
@@ -1768,6 +1773,85 @@ String UnaryOperator() :
 	{ return op.image; }
 }
 
+ExprCase CaseExpression() :
+{
+    Token first;
+    Token last;
+    Expression expression;
+    Expression default_;
+    Alternative alternative;
+    ImmutableList.Builder<Alternative> alternatives = ImmutableList.builder();
+}
+{
+    first = "case"
+    expression = Expression()
+    "of"
+    (
+        alternative = Alternative() { alternatives.add(alternative); }
+        (
+            alternative = Alternative() { alternatives.add(alternative); }
+        )*
+    )?
+    "else"
+    default_ = Expression()
+    last = "end"
+    { return setPosition(new ExprCase(expression, alternatives.build(), default_), first, last); }
+}
+
+Alternative Alternative() :
+{
+    Pattern pattern;
+    Expression guard;
+    ImmutableList.Builder<Expression> guards = ImmutableList.builder();
+    Expression expression;
+    Token last;
+}
+{
+    pattern = Pattern()
+    (
+        "guard"
+        guard = Expression() { guards.add(guard); }
+        (
+            "," guard = Expression() { guards.add(guard); }
+        )*
+    )?
+    ":"
+    expression = Expression()
+    last = "end"
+    { return setPosition(new Alternative(pattern, guards.build(), expression), pattern, last); }
+}
+
+Pattern Pattern() :
+{
+    Token name;
+    Token last;
+    Pattern pattern;
+    ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+    name = <ID>
+    { last = name; }
+    (
+        "("
+        (
+            pattern = SubPattern() { patterns.add(pattern); }
+            (
+                "," pattern = SubPattern() { patterns.add(pattern); }
+            )*
+        )
+        last = ")"
+    )?
+    { return setPosition(new PatternDeconstructor(name.image, patterns.build()), name, last); }
+}
+
+Pattern SubPattern():
+{
+    Expression expression;
+}
+{
+    expression = Expression()
+    { return new PatternExpression(expression); }
+}
 
 ExprIf IfExpression() :
 {
