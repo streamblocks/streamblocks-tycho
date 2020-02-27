@@ -133,14 +133,14 @@ public interface Types {
 
 		default Type declaredGlobalType(GlobalTypeDecl decl) {
 			if (!declaredGlobalTypeMap().containsKey(decl)) {
-				ImmutableList<RecordType> records = decl.getRecords()
-						.stream()
-						.map(record -> new RecordType(record.getName(), record.getFields()
-								.stream()
-								.map(field -> new RecordType.FieldType(field.getName(), convert(field.getType())))
-								.collect(ImmutableList.collector())))
-						.collect(ImmutableList.collector());
-				declaredGlobalTypeMap().put(decl, new UserType(decl.getName(), records));
+				AlgebraicTypeDecl algebraicTypeDecl = decl.getDeclaration();
+				if (algebraicTypeDecl instanceof ProductTypeDecl) {
+					ProductTypeDecl productTypeDecl = (ProductTypeDecl) algebraicTypeDecl;
+					declaredGlobalTypeMap().put(decl, new ProductType(productTypeDecl.getName(), productTypeDecl.getFields().stream().map(field -> new FieldType(field.getName(), convert(field.getType()))).collect(ImmutableList.collector())));
+				} else if (algebraicTypeDecl instanceof SumTypeDecl) {
+					SumTypeDecl sumTypeDecl = (SumTypeDecl) algebraicTypeDecl;
+					declaredGlobalTypeMap().put(decl, new SumType(sumTypeDecl.getName(), sumTypeDecl.getVariants().stream().map(variant -> new SumType.VariantType(variant.getName(), variant.getFields().stream().map(field -> new FieldType(field.getName(), convert(field.getType()))).collect(ImmutableList.collector()))).collect(ImmutableList.collector())));
+				}
 			}
 			return declaredGlobalTypeMap().get(decl);
 		}
