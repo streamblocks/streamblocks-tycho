@@ -10,21 +10,21 @@ import java.util.function.Consumer;
 
 public class ExprTypeConstruction extends Expression {
 
-	private String type;
+	private String constructor;
 	private ImmutableList<Expression> args;
 
-	public ExprTypeConstruction(String type, List<Expression> args) {
-		this(null, type, args);
+	public ExprTypeConstruction(String constructor, List<Expression> args) {
+		this(null, constructor, args);
 	}
 
-	private ExprTypeConstruction(IRNode original, String type, List<Expression> args) {
+	private ExprTypeConstruction(IRNode original, String constructor, List<Expression> args) {
 		super(original);
-		this.type = type;
+		this.constructor = constructor;
 		this.args = ImmutableList.from(args);
 	}
 
-	public String getType() {
-		return type;
+	public String getConstructor() {
+		return constructor;
 	}
 
 	public ImmutableList<Expression> getArgs() {
@@ -32,7 +32,7 @@ public class ExprTypeConstruction extends Expression {
 	}
 
 	public ExprTypeConstruction copy(String type, List<Expression> args) {
-		if (Objects.equals(type, getType()) && Lists.sameElements(args, getArgs())) {
+		if (Objects.equals(type, getConstructor()) && Lists.sameElements(args, getArgs())) {
 			return this;
 		} else {
 			return new ExprTypeConstruction(this, type, args);
@@ -46,6 +46,6 @@ public class ExprTypeConstruction extends Expression {
 
 	@Override
 	public Expression transformChildren(Transformation transformation) {
-		return copy(getType(), (List) getArgs().map(transformation));
+		return copy(getConstructor(), (List) getArgs().map(transformation));
 	}
 }

@@ -83,7 +83,7 @@ public interface TypeScopes {
 					.declarations(sourceUnit(construction).getTree())
 					.stream()
 					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> Objects.equals(decl.getName(), construction.getType()))
+					.filter(decl -> Objects.equals(decl.getName(), construction.getConstructor()))
 					// name analysis ??? .filter(decl -> decl.getTuples().stream().anyMatch(tuple -> Objects.equals(tuple.getName(), reference.getChild())))
 					.map(TypeDecl.class::cast)
 					.findAny();

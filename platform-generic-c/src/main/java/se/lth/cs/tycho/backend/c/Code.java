@@ -457,7 +457,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprTypeConstruction construction) {
-		String fn = backend().userTypes().constructor(construction.getType(), construction.getConstructor());
+		String fn = backend().userTypes().constructor(construction.getConstructor(), construction.getConstructor());
 		List<String> parameters = new ArrayList<>();
 		for (Expression parameter : construction.getArgs()) {
 			parameters.add(evaluate(parameter));

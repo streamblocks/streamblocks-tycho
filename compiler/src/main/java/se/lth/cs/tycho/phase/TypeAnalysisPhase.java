@@ -295,12 +295,16 @@ public class TypeAnalysisPhase implements Phase {
 
 		default void checkTypes(ExprTypeConstruction construction) {
 			Type type = types().type(construction);
-			if (!(type instanceof UserType)) {
+			if (!(type instanceof AlgebraicType)) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a user type.", sourceUnit(), construction));
-			} else {
-				UserType userType = (UserType) type;
-				RecordType recordType = userType.getRecords().stream().filter(record -> Objects.equals(record.getName(), construction.getConstructor())).findAny().get();
-				CallableType callableType = new CallableType(recordType.getFields().stream().map(RecordType.FieldType::getType).collect(Collectors.toList()), type) {};
+			} else if (type instanceof ProductType) {
+				ProductType productType = (ProductType) type;
+				CallableType callableType = new CallableType(productType.getFields().stream().map(FieldType::getType).collect(Collectors.toList()), type) {};
+				checkArguments(construction, callableType, construction.getArgs());
+			} else if (type instanceof SumType) {
+				SumType sumType = (SumType) type;
+				SumType.VariantType variantType = sumType.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), construction.getConstructor())).findAny().get();
+				CallableType callableType = new CallableType(variantType.getFields().stream().map(FieldType::getType).collect(Collectors.toList()), type) {};
 				checkArguments(construction, callableType, construction.getArgs());
 			}
 		}
