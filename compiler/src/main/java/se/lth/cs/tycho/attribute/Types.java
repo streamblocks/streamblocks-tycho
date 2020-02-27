@@ -47,6 +47,7 @@ public interface Types {
 	Type declaredType(VarDecl decl);
 	Type declaredGlobalType(GlobalTypeDecl decl);
 	Type type(Expression expr);
+	Type type(TypeExpr expr);
 	Type lvalueType(LValue lvalue);
 	Type declaredPortType(PortDecl port);
 	Type portType(Port port);
@@ -90,6 +91,10 @@ public interface Types {
 				Type old = typeMap().putIfAbsent(e, t);
 				return old != null ? old : t;
 			}
+		}
+
+		default Type type(TypeExpr e) {
+			return convert(e);
 		}
 
 		@Binding(BindingKind.LAZY)
@@ -609,7 +614,7 @@ public interface Types {
 		}
 
 		default Type computeType(ExprTypeAssertion assertion) {
-			return convert(assertion.getType());
+			return type(assertion.getType());
 		}
 
 

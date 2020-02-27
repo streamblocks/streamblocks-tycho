@@ -373,6 +373,14 @@ public class TypeAnalysisPhase implements Phase {
 			}
 		}
 
+		default void checkTypes(ExprTypeAssertion assertion) {
+			Type to = types().type(assertion.getType());
+			Type from = types().type(assertion.getExpression());
+			if (!isAssertable(to, from)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert to " + to + ".", sourceUnit(), assertion));
+			}
+		}
+
 		default void checkArguments(IRNode node, CallableType callableType, List<Expression> args) {
 			Iterator<Type> typeIter = callableType.getParameterTypes().iterator();
 			Iterator<Expression> exprIter = args.iterator();
