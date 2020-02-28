@@ -650,6 +650,10 @@ public interface Types {
 					.reduce(type(caseExpr.getDefault()), (a, b) -> leastUpperBound(a, b));
 		}
 
+		default Type computeType(ExprPatternVariable pattern) {
+			return type(variables().declaration(pattern.getVariable()).getType());
+		}
+
 
 		default Type leastUpperBound(Type a, Type b) {
 			return TopType.INSTANCE;
