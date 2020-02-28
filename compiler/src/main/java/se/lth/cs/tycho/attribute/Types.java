@@ -13,6 +13,11 @@ import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.*;
+import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
+import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
+import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
@@ -48,6 +53,7 @@ public interface Types {
 	Type declaredGlobalType(GlobalTypeDecl decl);
 	Type type(Expression expr);
 	Type type(TypeExpr expr);
+	Type type(Pattern pattern);
 	Type lvalueType(LValue lvalue);
 	Type declaredPortType(PortDecl port);
 	Type portType(Port port);
@@ -95,6 +101,26 @@ public interface Types {
 
 		default Type type(TypeExpr e) {
 			return convert(e);
+		}
+
+		default Type type(Pattern pattern) {
+			return BottomType.INSTANCE;
+		}
+
+		default Type type(PatternDeconstructor deconstructor) {
+			return declaredGlobalType((GlobalTypeDecl) typeScopes().construction(deconstructor).get());
+		}
+
+		default Type type(PatternExpression expression) {
+			return type(expression.getExpression());
+		}
+
+		default Type type(PatternVariable variable) {
+			return convert(variable.getDeclaration().getType());
+		}
+
+		default Type type(PatternWildcard wildcard) {
+			return convert(wildcard.getType());
 		}
 
 		@Binding(BindingKind.LAZY)

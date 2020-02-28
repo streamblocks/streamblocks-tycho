@@ -14,6 +14,7 @@ import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
@@ -160,6 +161,24 @@ public interface TypeScopes {
 							return Objects.equals(type.getName(), decl.getDeclaration().getName());
 						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
 							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(type.getName(), variant.getName()));
+						} else {
+							return false;
+						}
+					})
+					.map(TypeDecl.class::cast)
+					.findAny();
+		}
+
+		default Optional<TypeDecl> construction(PatternDeconstructor deconstructor) {
+			return typeDeclarations()
+					.declarations(sourceUnit(deconstructor).getTree())
+					.stream()
+					.map(GlobalTypeDecl.class::cast)
+					.filter(decl -> {
+						if (decl.getDeclaration() instanceof ProductTypeDecl) {
+							return Objects.equals(deconstructor.getName(), decl.getDeclaration().getName());
+						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
+							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(deconstructor.getName(), variant.getName()));
 						} else {
 							return false;
 						}

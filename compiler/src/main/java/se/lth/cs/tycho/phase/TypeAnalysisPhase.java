@@ -4,16 +4,23 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
+import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
+import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
+import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprTypeAssertion;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtCall;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
@@ -48,6 +55,7 @@ public class TypeAnalysisPhase implements Phase {
 					.bind("types").to(task.getModule(Types.key))
 					.bind("reporter").to(context.getReporter())
 					.bind("sourceUnit").to(sourceUnit)
+					.bind("typeScopes").to(task.getModule(TypeScopes.key))
 					.instance();
 			checker.check(sourceUnit);
 		});
@@ -254,6 +262,9 @@ public class TypeAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		SourceUnit sourceUnit();
 
+		@Binding(BindingKind.INJECTED)
+		TypeScopes typeScopes();
+
 		default void check(IRNode node) {
 			checkTypes(node);
 			node.forEachChild(this::check);
@@ -379,6 +390,66 @@ public class TypeAnalysisPhase implements Phase {
 			if (!isAssertable(to, from)) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert to " + to + ".", sourceUnit(), assertion));
 			}
+		}
+
+		default void checkTypes(ExprCase caseExpr) {
+			Type type = types().type(caseExpr.getExpression());
+
+			if (!(type instanceof AlgebraicType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not pattern matched a non algebraic data type.", sourceUnit(), caseExpr.getExpression()));
+			}
+
+			caseExpr.getAlternatives().forEach(alternative -> {
+				alternative.getGuards().forEach(guard -> {
+					if (types().type(guard) instanceof AlgebraicType) {
+						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Guard cannot be an algebraic data type.", sourceUnit(), guard));
+					}
+				});
+			});
+
+			caseExpr.getAlternatives().forEach(alternative -> {
+				if (!types().type(alternative.getPattern()).equals(type)) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Deconstructor " + ((PatternDeconstructor) alternative.getPattern()).getName() + " does not exist for type " + type, sourceUnit(), alternative.getPattern()));
+				}
+			});
+		}
+
+		default void checkTypes(PatternDeconstructor deconstructor) {
+			typeScopes().construction(deconstructor).ifPresent(decl -> {
+				GlobalTypeDecl type = (GlobalTypeDecl) decl;
+				if (type.getDeclaration() instanceof ProductTypeDecl) {
+					ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
+					Iterator<Type> types = product.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
+					Iterator<Pattern> patterns = deconstructor.getPatterns().iterator();
+					while (types.hasNext() && patterns.hasNext()) {
+						Pattern pattern = patterns.next();
+						Type patType = types().type(pattern);
+						Type parType = types.next();
+						checkAssignment(parType, patType, pattern);
+					}
+					if (types.hasNext() || patterns.hasNext()) {
+						final int expected = product.getFields().size();
+						final int actual = deconstructor.getPatterns().size();
+						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstructor));
+					}
+				} else if (type.getDeclaration() instanceof SumTypeDecl) {
+					SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
+					SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstructor.getName())).findAny().get();
+					Iterator<Type> types = variant.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
+					Iterator<Pattern> patterns = deconstructor.getPatterns().iterator();
+					while (types.hasNext() && patterns.hasNext()) {
+						Pattern pattern = patterns.next();
+						Type patType = types().type(pattern);
+						Type parType = types.next();
+						checkAssignment(parType, patType, pattern);
+					}
+					if (types.hasNext() || patterns.hasNext()) {
+						final int expected = variant.getFields().size();
+						final int actual = deconstructor.getPatterns().size();
+						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstructor));
+					}
+				}
+			});
 		}
 
 		default void checkArguments(IRNode node, CallableType callableType, List<Expression> args) {
