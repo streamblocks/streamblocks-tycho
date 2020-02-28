@@ -23,11 +23,11 @@ public class PatternVariable extends Pattern {
 		return declaration;
 	}
 
-	public PatternVariable copy(PatternVarDecl binding) {
-		if (Objects.equals(getDeclaration(), binding)) {
+	public PatternVariable copy(PatternVarDecl declaration) {
+		if (Objects.equals(getDeclaration(), declaration)) {
 			return this;
 		} else {
-			return new PatternVariable(this, binding);
+			return new PatternVariable(this, declaration);
 		}
 	}
 

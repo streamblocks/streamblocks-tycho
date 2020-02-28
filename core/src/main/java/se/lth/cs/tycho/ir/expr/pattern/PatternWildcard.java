@@ -1,13 +1,39 @@
 package se.lth.cs.tycho.ir.expr.pattern;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.type.NominalTypeExpr;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class PatternWildcard extends Pattern {
 
+	private TypeExpr type;
+
 	public PatternWildcard(IRNode original) {
+		this(original, new NominalTypeExpr(""));
+	}
+
+	public PatternWildcard(IRNode original, TypeExpr type) {
 		super(original);
+		this.type = type;
+	}
+
+	public TypeExpr getType() {
+		return type;
+	}
+
+	public PatternWildcard copy(TypeExpr type) {
+		if (Objects.equals(getType(), type)) {
+			return this;
+		} else {
+			return new PatternWildcard(this, type);
+		}
+	}
+
+	public PatternWildcard withType(TypeExpr type) {
+		return copy(type);
 	}
 
 	@Override

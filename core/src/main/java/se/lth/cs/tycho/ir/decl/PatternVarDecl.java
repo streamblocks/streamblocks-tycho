@@ -1,6 +1,8 @@
 package se.lth.cs.tycho.ir.decl;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 
 import java.util.Objects;
@@ -9,24 +11,28 @@ import java.util.function.Consumer;
 public class PatternVarDecl extends VarDecl {
 
 	public PatternVarDecl(String name) {
-		this(null, null, name);
+		this(null, new NominalTypeExpr(""), name);
 	}
 
 	private PatternVarDecl(VarDecl original, TypeExpr type, String name) {
 		super(original, type, name, null, true, false);
 	}
 
-	public PatternVarDecl copy(String name) {
-		if (Objects.equals(getName(), name)) {
+	public PatternVarDecl copy(TypeExpr type, String name) {
+		if (Objects.equals(getName(), name) && Objects.equals(getType(), type)) {
 			return this;
 		} else {
-			return new PatternVarDecl(name);
+			return new PatternVarDecl(this, type, name);
 		}
 	}
 
 	@Override
 	public VarDecl withName(String name) {
-		return copy(name);
+		return copy(getType(), name);
+	}
+
+	public VarDecl withType(TypeExpr type) {
+		return copy(type, getName());
 	}
 
 	@Override
@@ -36,6 +42,6 @@ public class PatternVarDecl extends VarDecl {
 
 	@Override
 	public VarDecl transformChildren(Transformation transformation) {
-		return this;
+		return copy(getType() == null ? null : transformation.applyChecked(TypeExpr.class, getType()), getName());
 	}
 }
