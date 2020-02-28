@@ -617,6 +617,13 @@ public interface Types {
 			return type(assertion.getType());
 		}
 
+		default Type computeType(ExprCase caseExpr) {
+			return caseExpr.getAlternatives()
+					.stream()
+					.map(alternative -> type(alternative.getExpression()))
+					.reduce(type(caseExpr.getDefault()), (a, b) -> leastUpperBound(a, b));
+		}
+
 
 		default Type leastUpperBound(Type a, Type b) {
 			return TopType.INSTANCE;
