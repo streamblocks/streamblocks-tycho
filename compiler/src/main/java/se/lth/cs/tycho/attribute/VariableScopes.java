@@ -20,6 +20,10 @@ import se.lth.cs.tycho.ir.expr.ExprComprehension;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
+import se.lth.cs.tycho.ir.expr.pattern.Alternative;
+import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -131,5 +135,22 @@ public interface VariableScopes {
                     .collect(ImmutableList.collector());
         }
 
+        // Case
+
+        default ImmutableList<VarDecl> declarations(Alternative alternative) {
+            return declarations(alternative.getPattern());
+        }
+
+        default ImmutableList<VarDecl> declarations(Pattern pattern) {
+            return ImmutableList.empty();
+        }
+
+        default ImmutableList<VarDecl> declarations(PatternVariable variable) {
+            return ImmutableList.of(variable.getDeclaration());
+        }
+
+        default ImmutableList<VarDecl> declarations(PatternDeconstructor deconstructor) {
+            return deconstructor.getPatterns().stream().flatMap(pattern -> declarations(pattern).stream()).collect(ImmutableList.collector());
+        }
     }
 }

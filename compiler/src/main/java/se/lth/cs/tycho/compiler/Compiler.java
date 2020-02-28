@@ -73,6 +73,7 @@ public class Compiler {
                 new ImportAnalysisPhase(),
                 new ResolveCaseAlternativePatternsPhase(),
                 new ResolveTypeConstructionPhase(),
+                new ResolvePatternVariableExpressionsPhase(),
                 new NameAnalysisPhase()
 
                 // -- Folding
