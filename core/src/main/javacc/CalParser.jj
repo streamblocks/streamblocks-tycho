@@ -1850,7 +1850,7 @@ Pattern SubPattern():
 }
 {
     expression = Expression()
-    { return new PatternExpression(expression); }
+    { return setPosition(new PatternExpression(expression), expression, expression); }
 }
 
 ExprIf IfExpression() :
