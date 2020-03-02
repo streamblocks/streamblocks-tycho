@@ -38,7 +38,7 @@ public class PatternWildcard extends Pattern {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-
+		action.accept(type);
 	}
 
 	@Override

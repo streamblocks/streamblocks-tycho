@@ -1,7 +1,6 @@
 package se.lth.cs.tycho.ir.decl;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 
@@ -37,7 +36,7 @@ public class PatternVarDecl extends VarDecl {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-
+		action.accept(getType());
 	}
 
 	@Override

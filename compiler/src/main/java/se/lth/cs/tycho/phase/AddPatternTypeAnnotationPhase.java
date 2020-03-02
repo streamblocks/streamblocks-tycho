@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.reporting.CompilationException;
 
 import java.util.Objects;
@@ -61,12 +62,12 @@ public class AddPatternTypeAnnotationPhase implements Phase {
 					if (type.getDeclaration() instanceof ProductTypeDecl) {
 						ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
 						int index = deconstructor.getPatterns().indexOf(pattern);
-						return index < product.getFields().size() ? pattern.copy((PatternVarDecl) pattern.getDeclaration().withType(product.getFields().get(index).getType())) : pattern;
+						return index < product.getFields().size() ? pattern.copy((PatternVarDecl) pattern.getDeclaration().withType((TypeExpr) product.getFields().get(index).getType().clone())) : pattern;
 					} else if (type.getDeclaration() instanceof SumTypeDecl) {
 						SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
 						SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstructor.getName())).findAny().get();
 						int index = deconstructor.getPatterns().indexOf(pattern);
-						return index < variant.getFields().size() ? pattern.copy((PatternVarDecl) pattern.getDeclaration().withType(variant.getFields().get(index).getType())) : pattern;
+						return index < variant.getFields().size() ? pattern.copy((PatternVarDecl) pattern.getDeclaration().withType((TypeExpr) variant.getFields().get(index).getType().clone())) : pattern;
 					} else {
 						return pattern;
 					}
@@ -84,12 +85,12 @@ public class AddPatternTypeAnnotationPhase implements Phase {
 					if (type.getDeclaration() instanceof ProductTypeDecl) {
 						ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
 						int index = deconstructor.getPatterns().indexOf(pattern);
-						return index < product.getFields().size() ? pattern.withType(product.getFields().get(index).getType()) : pattern;
+						return index < product.getFields().size() ? pattern.withType((TypeExpr) product.getFields().get(index).getType().clone()) : pattern;
 					} else if (type.getDeclaration() instanceof SumTypeDecl) {
 						SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
 						SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstructor.getName())).findAny().get();
 						int index = deconstructor.getPatterns().indexOf(pattern);
-						return index < variant.getFields().size() ? pattern.withType(variant.getFields().get(index).getType()) : pattern;
+						return index < variant.getFields().size() ? pattern.withType((TypeExpr) variant.getFields().get(index).getType().clone()) : pattern;
 					} else {
 						return pattern;
 					}
