@@ -712,6 +712,14 @@ public interface Types {
 			return RealType.of(Math.max(a.getSize(), b.getSize()));
 		}
 
+		default Type leastUpperBound(AlgebraicType a, AlgebraicType b) {
+			if (Objects.equals(a, b)) {
+				return a;
+			} else {
+				return TopType.INSTANCE;
+			}
+		}
+
 		default int positiveBits(IntType t) {
 			if (t.isSigned()) {
 				return t.getSize().getAsInt() - 1;
