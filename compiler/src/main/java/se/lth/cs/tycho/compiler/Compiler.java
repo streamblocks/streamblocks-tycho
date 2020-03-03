@@ -69,9 +69,9 @@ public class Compiler {
                 // Post parse
                 new RemoveExternStubPhase(),
                 new OperatorParsingPhase(),
-                new DeclarationAnalysisPhase(),
                 new ImportAnalysisPhase(),
                 new ResolveCaseAlternativePatternsPhase(),
+                new DeclarationAnalysisPhase(),
                 new ResolveTypeConstructionPhase(),
                 new ResolvePatternVariableExpressionsPhase(),
                 new AddPatternTypeAnnotationPhase(),

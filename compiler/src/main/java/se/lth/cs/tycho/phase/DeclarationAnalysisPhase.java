@@ -1,5 +1,10 @@
 package se.lth.cs.tycho.phase;
 
+import org.multij.Binding;
+import org.multij.BindingKind;
+import org.multij.Module;
+import org.multij.MultiJ;
+import se.lth.cs.tycho.attribute.VariableScopes;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
@@ -12,11 +17,13 @@ import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalDecl;
 import se.lth.cs.tycho.ir.decl.InputVarDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
+import se.lth.cs.tycho.ir.expr.pattern.Alternative;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -64,6 +71,13 @@ public class DeclarationAnalysisPhase implements Phase {
 
 		CheckLocalNames check = new CheckLocalNames(context.getReporter());
 		check.accept(task);
+
+		PatternNameChecker checker = MultiJ.from(PatternNameChecker.class)
+				.bind("tree").to(task.getModule(TreeShadow.key))
+				.bind("variableScopes").to(task.getModule(VariableScopes.key))
+				.bind("reporter").to(context.getReporter())
+				.instance();
+		checker.check(task);
 
 		return task;
 	}
@@ -154,6 +168,44 @@ public class DeclarationAnalysisPhase implements Phase {
 							decl.getName() + " is already declared in this scope."));
 				}
 			});
+		}
+	}
+
+	@Module
+	public interface PatternNameChecker {
+		@Binding(BindingKind.INJECTED)
+		TreeShadow tree();
+
+		@Binding(BindingKind.INJECTED)
+		VariableScopes variableScopes();
+
+		@Binding(BindingKind.INJECTED)
+		Reporter reporter();
+
+		default void check(IRNode node) {
+			checkNames(node);
+			node.forEachChild(this::check);
+		}
+
+		default void checkNames(IRNode node) {
+
+		}
+
+		default void checkNames(Alternative alternative) {
+			variableScopes().declarations(alternative).stream().collect(Collectors.groupingBy(VarDecl::getName)).forEach((name, declarations) -> {
+				if (declarations.size() > 1) {
+					VarDecl decl = declarations.get(1);
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, decl.getName() + " is already declared in this scope.", sourceUnit(decl), decl));
+				}
+			});
+		}
+
+		default SourceUnit sourceUnit(IRNode node) {
+			return sourceUnit(tree().parent(node));
+		}
+
+		default SourceUnit sourceUnit(SourceUnit unit) {
+			return unit;
 		}
 	}
 }
