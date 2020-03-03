@@ -14,9 +14,11 @@ import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
+import se.lth.cs.tycho.ir.expr.Expression;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ResolveTypeConstructionPhase implements Phase {
 
@@ -53,7 +55,7 @@ public class ResolveTypeConstructionPhase implements Phase {
 						if (algebraicTypeDecl instanceof SumTypeDecl) {
 							constructor = ((SumTypeDecl) algebraicTypeDecl).getVariants().stream().filter(variant -> Objects.equals(variant.getName(), ((ExprVariable) application.getFunction()).getVariable().getName())).findAny().get().getName();
 						}
-						return (IRNode) new ExprTypeConstruction(application, constructor, application.getArgs());
+						return (IRNode) new ExprTypeConstruction(application, constructor, application.getArgs().stream().map(arg -> (Expression) apply(arg)).collect(Collectors.toList()));
 					})
 					.orElse(application);
 		}
