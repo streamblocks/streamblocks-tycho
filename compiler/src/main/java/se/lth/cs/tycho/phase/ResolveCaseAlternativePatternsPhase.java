@@ -57,7 +57,9 @@ public class ResolveCaseAlternativePatternsPhase implements Phase {
 				} else if (typeScopes().construction(exprVariable).isPresent()) {
 					return new PatternDeconstructor(exprVariable, exprVariable.getVariable().getName(), Collections.emptyList());
 				} else {
-					return new PatternVariable(exprVariable, new PatternVarDecl(exprVariable.getVariable().getName()));
+					PatternVarDecl decl = new PatternVarDecl(exprVariable.getVariable().getName());
+					decl.setPosition(exprVariable.getFromLineNumber(), exprVariable.getFromColumnNumber(), exprVariable.getToLineNumber(), exprVariable.getToColumnNumber());
+					return new PatternVariable(exprVariable, decl);
 				}
 			}
 			if (expr instanceof ExprApplication && ((ExprApplication) expr).getFunction() instanceof ExprVariable) {
