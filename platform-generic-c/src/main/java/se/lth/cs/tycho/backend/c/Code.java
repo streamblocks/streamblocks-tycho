@@ -156,6 +156,10 @@ public interface Code {
 		return variables().globalName(variable);
 	}
 
+	default String evaluate(ExprPatternVariable variable) {
+		return variable.getVariable().getName();
+	}
+
 	default String evaluate(ExprLiteral literal) {
 		switch (literal.getKind()) {
 			case Integer:
@@ -478,6 +482,10 @@ public interface Code {
 
 	default String evaluate(ExprField field) {
 		return String.format("%s.%s", evaluate(field.getStructure()), field.getField().getName());
+	}
+
+	default String evaluate(ExprCase caseExpr) {
+		return backend().patternMatching().evaluate(caseExpr);
 	}
 
 	void execute(Statement stmt);
