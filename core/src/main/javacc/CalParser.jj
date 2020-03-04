@@ -1779,17 +1779,17 @@ ExprCase CaseExpression() :
     Token last;
     Expression expression;
     Expression default_;
-    Alternative alternative;
-    ImmutableList.Builder<Alternative> alternatives = ImmutableList.builder();
+    ExprCase.Alternative alternative;
+    ImmutableList.Builder<ExprCase.Alternative> alternatives = ImmutableList.builder();
 }
 {
     first = "case"
     expression = Expression()
     "of"
     (
-        alternative = Alternative() { alternatives.add(alternative); }
+        alternative = CaseExprAlternative() { alternatives.add(alternative); }
         (
-            alternative = Alternative() { alternatives.add(alternative); }
+            alternative = CaseExprAlternative() { alternatives.add(alternative); }
         )*
     )?
     "else"
@@ -1798,7 +1798,7 @@ ExprCase CaseExpression() :
     { return setPosition(new ExprCase(expression, alternatives.build(), default_), first, last); }
 }
 
-Alternative Alternative() :
+ExprCase.Alternative CaseExprAlternative() :
 {
     Pattern pattern;
     Expression guard;
@@ -1818,7 +1818,7 @@ Alternative Alternative() :
     ":"
     expression = Expression()
     last = "end"
-    { return setPosition(new Alternative(pattern, guards.build(), expression), pattern, last); }
+    { return setPosition(new ExprCase.Alternative(pattern, guards.build(), expression), pattern, last); }
 }
 
 Pattern Pattern() :

@@ -16,11 +16,11 @@ import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
+import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprComprehension;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
-import se.lth.cs.tycho.ir.expr.pattern.Alternative;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
@@ -137,7 +137,7 @@ public interface VariableScopes {
 
         // Case
 
-        default ImmutableList<VarDecl> declarations(Alternative alternative) {
+        default ImmutableList<VarDecl> declarations(ExprCase.Alternative alternative) {
             return declarations(alternative.getPattern());
         }
 

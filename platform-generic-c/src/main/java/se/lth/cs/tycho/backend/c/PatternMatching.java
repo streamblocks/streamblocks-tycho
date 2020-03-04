@@ -4,7 +4,6 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.expr.ExprCase;
-import se.lth.cs.tycho.ir.expr.pattern.Alternative;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
@@ -52,7 +51,7 @@ public interface PatternMatching {
 		return result;
 	}
 
-	default void alternative(Alternative alternative, String expr, String result, String match) {
+	default void alternative(ExprCase.Alternative alternative, String expr, String result, String match) {
 		openPattern(alternative.getPattern(), expr, "");
 		alternative.getGuards().forEach(guard -> {
 			emitter().emit("if (%s) {", code().evaluate(guard));

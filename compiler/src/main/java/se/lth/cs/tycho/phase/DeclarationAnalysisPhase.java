@@ -20,10 +20,10 @@ import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
-import se.lth.cs.tycho.ir.expr.pattern.Alternative;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -191,7 +191,7 @@ public class DeclarationAnalysisPhase implements Phase {
 
 		}
 
-		default void checkNames(Alternative alternative) {
+		default void checkNames(ExprCase.Alternative alternative) {
 			variableScopes().declarations(alternative).stream().collect(Collectors.groupingBy(VarDecl::getName)).forEach((name, declarations) -> {
 				if (declarations.size() > 1) {
 					VarDecl decl = declarations.get(1);
