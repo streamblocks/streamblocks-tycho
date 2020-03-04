@@ -598,6 +598,10 @@ public interface Code {
 		emitter().emit("}");
 	}
 
+	default void execute(StmtCase caseStmt) {
+		backend().patternMatching().execute(caseStmt);
+	}
+
 	String lvalue(LValue lvalue);
 
 	default String lvalue(LValueVariable var) {

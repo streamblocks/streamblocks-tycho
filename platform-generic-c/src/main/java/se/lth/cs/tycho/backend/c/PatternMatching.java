@@ -9,6 +9,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
+import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.ProductType;
 import se.lth.cs.tycho.type.SumType;
@@ -39,7 +40,7 @@ public interface PatternMatching {
 		caseExpr.getAlternatives().forEach(alternative -> {
 			emitter().emit("if (!%s) {", match);
 			emitter().increaseIndentation();
-			alternative(alternative, expr, result, match);
+			evaluateAlternative(alternative, expr, result, match);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		});
@@ -51,13 +52,49 @@ public interface PatternMatching {
 		return result;
 	}
 
-	default void alternative(ExprCase.Alternative alternative, String expr, String result, String match) {
+	default void execute(StmtCase caseStmt) {
+		String expr = code().variables().generateTemp();
+		emitter().emit("%s = %s;", code().declaration(code().types().type(caseStmt.getExpression()), expr), code().evaluate(caseStmt.getExpression()));
+		String match = code().variables().generateTemp();
+		emitter().emit("%s = false;", code().declaration(BoolType.INSTANCE, match));
+		caseStmt.getAlternatives().forEach(alternative -> {
+			emitter().emit("if (!%s) {", match);
+			emitter().increaseIndentation();
+			executeAlternative(alternative, expr, match);
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		});
+		emitter().emit("if (!%s) {", match);
+		emitter().increaseIndentation();
+		code().execute(caseStmt.getDefault());
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+	}
+
+	default void evaluateAlternative(ExprCase.Alternative alternative, String expr, String result, String match) {
 		openPattern(alternative.getPattern(), expr, "");
 		alternative.getGuards().forEach(guard -> {
 			emitter().emit("if (%s) {", code().evaluate(guard));
 			emitter().increaseIndentation();
 		});
 		emitter().emit("%s = %s;", result, code().evaluate(alternative.getExpression()));
+		emitter().emit("%s = true;", match);
+		alternative.getGuards().forEach(guard -> {
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		});
+		closePattern(alternative.getPattern());
+	}
+
+	default void executeAlternative(StmtCase.Alternative alternative, String expr, String match) {
+		openPattern(alternative.getPattern(), expr, "");
+		alternative.getGuards().forEach(guard -> {
+			emitter().emit("if (%s) {", code().evaluate(guard));
+			emitter().increaseIndentation();
+		});
+		alternative.getStatements().forEach(statement -> {
+			code().execute(statement);
+		});
 		emitter().emit("%s = true;", match);
 		alternative.getGuards().forEach(guard -> {
 			emitter().decreaseIndentation();
