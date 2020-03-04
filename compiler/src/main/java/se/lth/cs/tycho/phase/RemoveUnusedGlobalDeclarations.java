@@ -5,6 +5,7 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.TypeNamespaces;
+import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
@@ -14,6 +15,8 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
+import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -32,8 +35,10 @@ public class RemoveUnusedGlobalDeclarations implements Phase {
     @Override
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
         Collector collector = MultiJ.from(Collector.class)
+                .bind("tree").to(task.getModule(TreeShadow.key))
                 .bind("task").to(task)
                 .bind("namespace").to(task.getModule(TypeNamespaces.key))
+                .bind("typeScopes").to(task.getModule(TypeScopes.key))
                 .instance();
         collector.collect();
         return task.withSourceUnits(task.getSourceUnits().map(unit -> transformUnit(unit, collector.usedDecls())));
@@ -130,10 +135,16 @@ public class RemoveUnusedGlobalDeclarations implements Phase {
     @Module
     interface Collector {
         @Binding(BindingKind.INJECTED)
+        TreeShadow tree();
+
+        @Binding(BindingKind.INJECTED)
         CompilationTask task();
 
         @Binding(BindingKind.INJECTED)
         TypeNamespaces namespace();
+
+        @Binding(BindingKind.INJECTED)
+        TypeScopes typeScopes();
 
         @Binding(BindingKind.LAZY)
         default Set<Name> visitedNames() {
@@ -227,6 +238,24 @@ public class RemoveUnusedGlobalDeclarations implements Phase {
 
         default void add(NominalTypeExpr type) {
             namespace().declaration(type).ifPresent(decl -> addName(QID.parse(String.format("%s.%s", decl.getQID().toString(), type.getName())), NameKind.TYPE));
+        }
+
+        default void add(ExprTypeConstruction construction) {
+            typeScopes().construction(construction)
+                    .ifPresent(type -> addName(QID.parse(String.format("%s.%s", sourceUnit(type).getTree().getQID().toString(), type.getName())), NameKind.TYPE));
+        }
+
+        default void add(PatternDeconstructor deconstructor) {
+            typeScopes().construction(deconstructor)
+                    .ifPresent(type -> addName(QID.parse(String.format("%s.%s", sourceUnit(type).getTree().getQID().toString(), type.getName())), NameKind.TYPE));
+        }
+
+        default SourceUnit sourceUnit(IRNode node) {
+            return sourceUnit(tree().parent(node));
+        }
+
+        default SourceUnit sourceUnit(SourceUnit unit) {
+            return unit;
         }
     }
 }
