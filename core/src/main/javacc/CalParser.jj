@@ -2278,6 +2278,8 @@ Statement Statement() :
 	|
 		stmt = CallStmt()
 	|
+		stmt = CaseStmt()
+	|
 		stmt = BlockStmt()
 	|
 		stmt = WhileStmt()
@@ -2443,6 +2445,54 @@ StmtCall CallStmt() :
 	{
 		return new StmtCall(proc, args);
 	}
+}
+
+StmtCase CaseStmt() :
+{
+    Token first;
+    Token last;
+    Expression expression;
+    Statement default_;
+    StmtCase.Alternative alternative;
+    ImmutableList.Builder<StmtCase.Alternative> alternatives = ImmutableList.builder();
+}
+{
+    first = "case"
+    expression = Expression()
+    "of"
+    (
+        alternative = CaseStmtAlternative() { alternatives.add(alternative); }
+        (
+            alternative = CaseStmtAlternative() { alternatives.add(alternative); }
+        )*
+    )?
+    "else"
+    default_ = Statement()
+    last = "end"
+    { return setPosition(new StmtCase(expression, alternatives.build(), default_), first, last); }
+}
+
+StmtCase.Alternative CaseStmtAlternative() :
+{
+    Pattern pattern;
+    Expression guard;
+    ImmutableList.Builder<Expression> guards = ImmutableList.builder();
+    ImmutableList<Statement> statements;
+    Token last;
+}
+{
+    pattern = Pattern()
+    (
+        "guard"
+        guard = Expression() { guards.add(guard); }
+        (
+            "," guard = Expression() { guards.add(guard); }
+        )*
+    )?
+    "do"
+    statements = Statements()
+    last = "end"
+    { return setPosition(new StmtCase.Alternative(pattern, guards.build(), statements), pattern, last); }
 }
 
 StmtBlock BlockStmt() :
