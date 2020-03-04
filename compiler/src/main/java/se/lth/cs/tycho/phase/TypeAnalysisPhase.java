@@ -23,6 +23,7 @@ import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtCall;
+import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
@@ -408,6 +409,28 @@ public class TypeAnalysisPhase implements Phase {
 			});
 
 			caseExpr.getAlternatives().forEach(alternative -> {
+				if (!types().type(alternative.getPattern()).equals(type)) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Deconstructor " + ((PatternDeconstructor) alternative.getPattern()).getName() + " does not exist for type " + type, sourceUnit(), alternative.getPattern()));
+				}
+			});
+		}
+
+		default void checkTypes(StmtCase caseStmt) {
+			Type type = types().type(caseStmt.getExpression());
+
+			if (!(type instanceof AlgebraicType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not pattern matched a non algebraic data type.", sourceUnit(), caseStmt.getExpression()));
+			}
+
+			caseStmt.getAlternatives().forEach(alternative -> {
+				alternative.getGuards().forEach(guard -> {
+					if (types().type(guard) instanceof AlgebraicType) {
+						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Guard cannot be an algebraic data type.", sourceUnit(), guard));
+					}
+				});
+			});
+
+			caseStmt.getAlternatives().forEach(alternative -> {
 				if (!types().type(alternative.getPattern()).equals(type)) {
 					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Deconstructor " + ((PatternDeconstructor) alternative.getPattern()).getName() + " does not exist for type " + type, sourceUnit(), alternative.getPattern()));
 				}
