@@ -25,6 +25,7 @@ import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
+import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
@@ -136,6 +137,10 @@ public interface VariableScopes {
         }
 
         // Case
+
+        default ImmutableList<VarDecl> declarations(StmtCase.Alternative alternative) {
+            return declarations(alternative.getPattern());
+        }
 
         default ImmutableList<VarDecl> declarations(ExprCase.Alternative alternative) {
             return declarations(alternative.getPattern());
