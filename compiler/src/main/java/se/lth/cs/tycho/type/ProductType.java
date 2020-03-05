@@ -1,19 +1,18 @@
 package se.lth.cs.tycho.type;
 
-import se.lth.cs.tycho.ir.util.ImmutableList;
-
+import java.util.List;
 import java.util.Objects;
 
 public class ProductType extends AlgebraicType {
 
-	private final ImmutableList<FieldType> fields;
+	private final List<FieldType> fields;
 
-	public ProductType(String name, ImmutableList<FieldType> fields) {
+	public ProductType(String name, List<FieldType> fields) {
 		super(name);
 		this.fields = fields;
 	}
 
-	public ImmutableList<FieldType> getFields() {
+	public List<FieldType> getFields() {
 		return fields;
 	}
 
@@ -28,6 +27,6 @@ public class ProductType extends AlgebraicType {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), getFields());
+		return super.hashCode();
 	}
 }

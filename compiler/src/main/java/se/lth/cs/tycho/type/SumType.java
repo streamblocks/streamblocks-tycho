@@ -1,7 +1,6 @@
 package se.lth.cs.tycho.type;
 
-import se.lth.cs.tycho.ir.util.ImmutableList;
-
+import java.util.List;
 import java.util.Objects;
 
 public class SumType extends AlgebraicType {
@@ -9,9 +8,9 @@ public class SumType extends AlgebraicType {
 	public static class VariantType {
 
 		private final String name;
-		private final ImmutableList<FieldType> fields;
+		private final List<FieldType> fields;
 
-		public VariantType(String name, ImmutableList<FieldType> fields) {
+		public VariantType(String name, List<FieldType> fields) {
 			this.name = name;
 			this.fields = fields;
 		}
@@ -20,7 +19,7 @@ public class SumType extends AlgebraicType {
 			return name;
 		}
 
-		public ImmutableList<FieldType> getFields() {
+		public List<FieldType> getFields() {
 			return fields;
 		}
 
@@ -39,14 +38,14 @@ public class SumType extends AlgebraicType {
 		}
 	}
 
-	private final ImmutableList<VariantType> variants;
+	private final List<VariantType> variants;
 
-	public SumType(String name, ImmutableList<VariantType> variants) {
+	public SumType(String name, List<VariantType> variants) {
 		super(name);
 		this.variants = variants;
 	}
 
-	public ImmutableList<VariantType> getVariants() {
+	public List<VariantType> getVariants() {
 		return variants;
 	}
 
@@ -61,6 +60,6 @@ public class SumType extends AlgebraicType {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), getVariants());
+		return super.hashCode();
 	}
 }

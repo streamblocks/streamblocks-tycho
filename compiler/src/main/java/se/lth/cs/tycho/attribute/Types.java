@@ -34,6 +34,7 @@ import se.lth.cs.tycho.type.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static se.lth.cs.tycho.util.CheckedCasts.toOptInt;
 
@@ -163,16 +164,48 @@ public interface Types {
 		}
 
 		default Type declaredGlobalType(GlobalTypeDecl decl) {
-			if (!declaredGlobalTypeMap().containsKey(decl)) {
-				AlgebraicTypeDecl algebraicTypeDecl = decl.getDeclaration();
-				if (algebraicTypeDecl instanceof ProductTypeDecl) {
-					ProductTypeDecl productTypeDecl = (ProductTypeDecl) algebraicTypeDecl;
-					declaredGlobalTypeMap().put(decl, new ProductType(productTypeDecl.getName(), productTypeDecl.getFields().stream().map(field -> new FieldType(field.getName(), convert(field.getType()))).collect(ImmutableList.collector())));
-				} else if (algebraicTypeDecl instanceof SumTypeDecl) {
-					SumTypeDecl sumTypeDecl = (SumTypeDecl) algebraicTypeDecl;
-					declaredGlobalTypeMap().put(decl, new SumType(sumTypeDecl.getName(), sumTypeDecl.getVariants().stream().map(variant -> new SumType.VariantType(variant.getName(), variant.getFields().stream().map(field -> new FieldType(field.getName(), convert(field.getType()))).collect(ImmutableList.collector()))).collect(ImmutableList.collector())));
-				}
+			if (declaredGlobalTypeMap().isEmpty()) {
+				ImmutableList<TypeDecl> declarations = typeScopes().declarations(getSourceUnit(decl).getTree());
+
+				// First pass
+				declarations.forEach(declaration -> {
+					AlgebraicType algebraicType = null;
+					GlobalTypeDecl globalTypeDecl = (GlobalTypeDecl) declaration;
+					AlgebraicTypeDecl algebraicTypeDecl = globalTypeDecl.getDeclaration();
+					if (algebraicTypeDecl instanceof ProductTypeDecl) {
+						ProductTypeDecl productTypeDecl = (ProductTypeDecl) algebraicTypeDecl;
+						algebraicType = new ProductType(productTypeDecl.getName(), new ArrayList<>(productTypeDecl.getFields().size()));
+					} else if (algebraicTypeDecl instanceof SumTypeDecl) {
+						SumTypeDecl sumTypeDecl = (SumTypeDecl) algebraicTypeDecl;
+						algebraicType = new SumType(sumTypeDecl.getName(), sumTypeDecl.getVariants().stream().map(variant -> new SumType.VariantType(variant.getName(), new ArrayList<>(variant.getFields().size()))).collect(Collectors.toList()));
+					}
+					declaredGlobalTypeMap().put(globalTypeDecl, algebraicType);
+				});
+
+				// Second pass
+				declarations.forEach(declaration -> {
+					GlobalTypeDecl globalTypeDecl = (GlobalTypeDecl) declaration;
+					Type type = declaredGlobalTypeMap().get(globalTypeDecl);
+					if (type instanceof ProductType) {
+						ProductTypeDecl productTypeDecl = (ProductTypeDecl) globalTypeDecl.getDeclaration();
+						ProductType productType = (ProductType) type;
+						for (int i = 0; i < productTypeDecl.getFields().size(); ++i) {
+							productType.getFields().add(new FieldType(productTypeDecl.getFields().get(i).getName(), convert(productTypeDecl.getFields().get(i).getType())));
+						}
+					} else if (type instanceof SumType) {
+						SumTypeDecl sumTypeDecl = (SumTypeDecl) globalTypeDecl.getDeclaration();
+						SumType sumType = (SumType) type;
+						for (int i = 0; i < sumTypeDecl.getVariants().size(); ++i) {
+							SumTypeDecl.VariantDecl variantDecl = sumTypeDecl.getVariants().get(i);
+							SumType.VariantType variantType = sumType.getVariants().get(i);
+							for (int j = 0; j < variantDecl.getFields().size(); ++j) {
+								variantType.getFields().add(new FieldType(variantDecl.getFields().get(j).getName(), convert(variantDecl.getFields().get(j).getType())));
+							}
+						}
+					}
+				});
 			}
+
 			return declaredGlobalTypeMap().get(decl);
 		}
 
