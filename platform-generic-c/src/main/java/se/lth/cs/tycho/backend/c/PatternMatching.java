@@ -72,7 +72,7 @@ public interface PatternMatching {
 	}
 
 	default void evaluateAlternative(ExprCase.Alternative alternative, String expr, String result, String match) {
-		openPattern(alternative.getPattern(), expr, "");
+		openPattern(alternative.getPattern(), expr, "", "");
 		alternative.getGuards().forEach(guard -> {
 			emitter().emit("if (%s) {", code().evaluate(guard));
 			emitter().increaseIndentation();
@@ -87,7 +87,7 @@ public interface PatternMatching {
 	}
 
 	default void executeAlternative(StmtCase.Alternative alternative, String expr, String match) {
-		openPattern(alternative.getPattern(), expr, "");
+		openPattern(alternative.getPattern(), expr, "", "");
 		alternative.getGuards().forEach(guard -> {
 			emitter().emit("if (%s) {", code().evaluate(guard));
 			emitter().increaseIndentation();
@@ -103,36 +103,36 @@ public interface PatternMatching {
 		closePattern(alternative.getPattern());
 	}
 
-	void openPattern(Pattern pattern, String target, String member);
+	void openPattern(Pattern pattern, String target, String deref, String member);
 
-	default void openPattern(PatternDeconstructor pattern, String target, String member) {
+	default void openPattern(PatternDeconstructor pattern, String target, String deref, String member) {
 		Type type = code().types().type(pattern);
 		if (type instanceof SumType) {
 			SumType sum = (SumType) type;
 			SumType.VariantType variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), pattern.getName())).findAny().get();
-			emitter().emit("if (%s.tag == tag_%s_%s) {", member == "" ? target : target + "." + member, sum.getName(), variant.getName());
+			emitter().emit("if (%s->tag == tag_%s_%s) {", member == "" ? target : target + deref + member, sum.getName(), variant.getName());
 			emitter().increaseIndentation();
 			for (int i = 0; i < variant.getFields().size(); ++i) {
-				openPattern(pattern.getPatterns().get(i), (member == "" ? target : target + "." + member) + ".value." + pattern.getName(), variant.getFields().get(i).getName());
+				openPattern(pattern.getPatterns().get(i), (member == "" ? target : target + deref + member) + "->data." + pattern.getName(), ".", variant.getFields().get(i).getName());
 			}
 		} else if (type instanceof ProductType) {
 			ProductType product = (ProductType) type;
 			for (int i = 0; i < product.getFields().size(); ++i) {
-				openPattern(pattern.getPatterns().get(i), member == "" ? target : target + "." + member, product.getFields().get(i).getName());
+				openPattern(pattern.getPatterns().get(i), member == "" ? target : target + deref + member, "->", product.getFields().get(i).getName());
 			}
 		}
 	}
 
-	default void openPattern(PatternExpression pattern, String target, String member) {
-		emitter().emit("if (%s.%s == (%s)) {", target, member, code().evaluate(pattern.getExpression()));
+	default void openPattern(PatternExpression pattern, String target, String deref, String member) {
+		emitter().emit("if (%s%s%s == %s) {", target, deref, member, code().evaluate(pattern.getExpression()));
 		emitter().increaseIndentation();
 	}
 
-	default void openPattern(PatternVariable pattern, String target, String member) {
-		emitter().emit("%s = %s.%s;", code().declaration(code().types().type(pattern), pattern.getDeclaration().getName()), target, member);
+	default void openPattern(PatternVariable pattern, String target, String deref, String member) {
+		emitter().emit("%s = %s%s%s;", code().declaration(code().types().type(pattern), pattern.getDeclaration().getName()), target, deref, member);
 	}
 
-	default void openPattern(PatternWildcard pattern, String target, String member) {
+	default void openPattern(PatternWildcard pattern, String target, String deref, String member) {
 
 	}
 

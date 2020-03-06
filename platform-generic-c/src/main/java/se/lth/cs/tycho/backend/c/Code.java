@@ -92,7 +92,7 @@ public interface Code {
 	default String declaration(StringType type, String name) { return "char *" + name; }
 
 	default String declaration(AlgebraicType type, String name) {
-		return type(type) + " " + name;
+		return type(type) + " *" + name;
 	}
 
 	String type(Type type);
@@ -481,7 +481,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprField field) {
-		return String.format("%s.%s", evaluate(field.getStructure()), field.getField().getName());
+		return String.format("%s->%s", evaluate(field.getStructure()), field.getField().getName());
 	}
 
 	default String evaluate(ExprCase caseExpr) {
@@ -617,6 +617,6 @@ public interface Code {
 	}
 
 	default String lvalue(LValueField field) {
-		return String.format("%s.%s", lvalue(field.getStructure()), field.getField().getName());
+		return String.format("%s->%s", lvalue(field.getStructure()), field.getField().getName());
 	}
 }

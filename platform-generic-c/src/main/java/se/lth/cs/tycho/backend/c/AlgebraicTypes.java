@@ -37,12 +37,18 @@ public interface AlgebraicTypes {
 		emitter().emit("struct %s_s {", product.getName());
 		emitter().increaseIndentation();
 		product.getFields().forEach(field -> {
-			emitter().emit("%s %s;", code().type(field.getType()), field.getName());
+			emitter().emit("%s;",  code().declaration(field.getType(), field.getName()));
 		});
 		emitter().decreaseIndentation();
 		emitter().emit("};");
 		emitter().emit("");
-		emitter().emit("%s_t init_%s_t(%s);", product.getName(), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+		emitter().emit("%s* init_%s(%s);", code().type(product), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+		emitter().emit("");
+		emitter().emit("void write_%s(%s, char *buffer);", product.getName(), code().declaration(product, "self"));
+		emitter().emit("");
+		emitter().emit("%s* read_%s(char *buffer);", code().type(product), product.getName());
+		emitter().emit("");
+		emitter().emit("size_t size_%s(%s);", product.getName(), code().declaration(product, "self"));
 		emitter().emit("");
 	}
 
@@ -55,7 +61,7 @@ public interface AlgebraicTypes {
 			emitter().emit("tag_%s_%s%s", sum.getName(), variant.getName(), sum.getVariants().indexOf(variant) == sum.getVariants().size() - 1 ? "" : ",");
 		});
 		emitter().decreaseIndentation();
-		emitter().emit("};", sum.getName());
+		emitter().emit("};");
 		emitter().emit("");
 		emitter().emit("struct %s_s {", sum.getName());
 		emitter().increaseIndentation();
@@ -72,13 +78,19 @@ public interface AlgebraicTypes {
 			emitter().emit("} %s;", variant.getName());
 		});
 		emitter().decreaseIndentation();
-		emitter().emit("} value;");
+		emitter().emit("} data;");
 		emitter().decreaseIndentation();
 		emitter().emit("};");
 		sum.getVariants().forEach(variant -> {
 			emitter().emit("");
-			emitter().emit("%s_t init_%s_t_%s(%s);", sum.getName(), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+			emitter().emit("%s* init_%s_%s(%s);", code().type(sum), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 		});
+		emitter().emit("");
+		emitter().emit("void write_%s(%s, char *buffer);", sum.getName(), code().declaration(sum, "self"));
+		emitter().emit("");
+		emitter().emit("%s* read_%s(char *buffer);", code().type(sum), sum.getName());
+		emitter().emit("");
+		emitter().emit("size_t size_%s(%s);", sum.getName(), code().declaration(sum, "self"));
 		emitter().emit("");
 	}
 
@@ -90,11 +102,15 @@ public interface AlgebraicTypes {
 	default void defineType(AlgebraicType type) {}
 
 	default void defineType(ProductType product) {
+		defineInit(product);
+	}
+
+	default void defineInit(ProductType product) {
 		String variable = "self";
-		emitter().emit("%s_t init_%s_t(%s) {", product.getName(), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+		emitter().emit("%s* init_%s(%s) {", code().type(product), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 		emitter().increaseIndentation();
-		emitter().emit("%s;", code().declaration(product, variable));
-		product.getFields().forEach(field -> emitter().emit("%s.%s = %s;", variable, field.getName(), field.getName()));
+		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, variable), product.getName());
+		product.getFields().forEach(field -> emitter().emit("%s->%s = %s;", variable, field.getName(), field.getName()));
 		emitter().emit("return %s;", variable);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
@@ -102,16 +118,20 @@ public interface AlgebraicTypes {
 	}
 
 	default void defineType(SumType sum) {
+		defineInit(sum);
+	}
+
+	default void defineInit(SumType sum) {
 		sum.getVariants().forEach(variant -> {
-			String variable = "self";
-			emitter().emit("%s_t init_%s_t_%s(%s) {", sum.getName(), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+			String self = "self";
+			emitter().emit("%s* init_%s_%s(%s) {", code().type(sum), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 			emitter().increaseIndentation();
-			emitter().emit("%s;", code().declaration(sum, variable));
-			emitter().emit("%s.tag = tag_%s_%s;", variable, sum.getName(), variant.getName());
+			emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(sum, self), sum.getName());
+			emitter().emit("%s->tag = tag_%s_%s;", self, sum.getName(), variant.getName());
 			variant.getFields().forEach(field -> {
-				emitter().emit("%s.value.%s.%s = %s;", variable, variant.getName(), field.getName(), field.getName());
+				emitter().emit("%s->data.%s.%s = %s;", self, variant.getName(), field.getName(), field.getName());
 			});
-			emitter().emit("return %s;", variable);
+			emitter().emit("return %s;", self);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -133,9 +153,9 @@ public interface AlgebraicTypes {
 				})
 				.map(type -> {
 					if (type instanceof ProductType) {
-						return "init_" + type.getName() + "_t";
+						return "init_" + type.getName();
 					} else {
-						return ((SumType) type).getVariants().stream().filter(variant -> Objects.equals(variant.getName(), constructor)).map(variant -> "init_" + type.getName() + "_t_" + variant.getName()).findAny().get();
+						return ((SumType) type).getVariants().stream().filter(variant -> Objects.equals(variant.getName(), constructor)).map(variant -> "init_" + type.getName() + "_" + variant.getName()).findAny().get();
 					}
 				})
 				.findAny()
