@@ -5,6 +5,7 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Network;
+import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.Arrays;
@@ -95,6 +96,80 @@ public interface AlternativeChannels extends Channels {
 
 	}
 
+	default void channelListCodeForType(AlgebraicType type, int[] size) {
+		String tokenType = backend().code().type(type);
+		List<String> sizeStrings = Arrays.stream(size)
+				.mapToObj(this::sizeToString)
+				.collect(Collectors.toList());
+		List<String> bufferSizes = Arrays.stream(size)
+				.mapToObj(this::sizeToBufferSize)
+				.collect(Collectors.toList());
+
+		emitter().emit("typedef struct {");
+		int index = 0;
+		for (String sizeString : sizeStrings) {
+			emitter().emit("	channel_%s_%s *channel_%d;", tokenType, sizeString, index);
+			index += 1;
+		}
+		emitter().emit("");
+		emitter().emit("} channel_list_%s_%s;", tokenType, String.join("_", sizeStrings));
+		emitter().emit("");
+
+		emitter().emit("static inline size_t channel_space_%s_%s(channel_list_%1$s_%2$s channel_list) {", tokenType, String.join("_", sizeStrings));
+		index = 0;
+		emitter().emit("	size_t min = SIZE_MAX;");
+		for (String bufferSize : bufferSizes) {
+			emitter().emit("	{");
+			emitter().emit("		size_t s = %s - (channel_list.channel_%d->write - channel_list.channel_%2$d->read);", bufferSize, index);
+			emitter().emit("		if (s < min) { min = s; }");
+			emitter().emit("	}");
+			index += 1;
+		}
+		emitter().emit("	return min;");
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static inline _Bool channel_has_space_%s_%s(channel_list_%1$s_%2$s channel_list, size_t tokens) {", tokenType, String.join("_", sizeStrings));
+		index = 0;
+		for (String bufferSize : bufferSizes) {
+			emitter().emit("	if (%s - (channel_list.channel_%d->write - channel_list.channel_%2$d->read) < tokens) {", bufferSize, index);
+			emitter().emit("		return false;");
+			emitter().emit("	}");
+			index += 1;
+		}
+		emitter().emit("	return true;");
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static inline void channel_write_one_%s_%s(channel_list_%1$s_%2$s channel_list, %1$s *data) {", tokenType, String.join("_", sizeStrings));
+		index = 0;
+		for (int s : size) {
+			emitter().emit("	{");
+			emitter().emit("		channel_%s_%s *chan = channel_list.channel_%d;", tokenType, sizeToString(s), index);
+			emitter().emit("		write_%s(data, chan->buffer + (chan->write * size_%1$s()) %% %s);", tokenType, sizeToBufferSize(s));
+			emitter().emit("		chan->write++;");
+			emitter().emit("	}");
+			index += 1;
+		}
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static inline void channel_write_%s_%s(channel_list_%1$s_%2$s channel_list, %1$s **data, size_t tokens) {", tokenType, String.join("_", sizeStrings));
+		index = 0;
+		for (int s : size) {
+			emitter().emit("	{");
+			emitter().emit("		channel_%s_%s *chan = channel_list.channel_%d;", tokenType, sizeToString(s), index);
+			emitter().emit("		for (size_t i = 0; i < tokens; i++) {");
+			emitter().emit("			write_%s(data[i], chan->buffer + (chan->write * size_%1$s()) %% %s);", tokenType, sizeToBufferSize(s));
+			emitter().emit("			chan->write++;");
+			emitter().emit("		}");
+			emitter().emit("	}");
+			index += 1;
+		}
+		emitter().emit("}");
+		emitter().emit("");
+	}
+
 	default String sizeToBufferSize(int size) {
 		return size == 0 ? "BUFFER_SIZE" : Integer.toString(size);
 	}
@@ -176,6 +251,55 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("}");
 		emitter().emit("");
 
+		emitter().emit("static void channel_destroy_%s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
+		emitter().emit("	free(channel->buffer);");
+		emitter().emit("}");
+		emitter().emit("");
+	}
+
+	default void channelCodeForType(AlgebraicType type, int size) {
+		String tokenType = backend().code().type(type);
+		String sizeString = sizeToString(size);
+		String bufferSize = sizeToBufferSize(size);
+
+		emitter().emit("// CHANNEL %s", type);
+		emitter().emit("typedef struct {");
+		emitter().emit("	size_t read;");
+		emitter().emit("	size_t write;");
+		emitter().emit("	char *buffer;", tokenType);
+		emitter().emit("} channel_%s_%s;", tokenType, sizeString);
+		emitter().emit("");
+
+		emitter().emit("static inline _Bool channel_has_data_%s_%s(channel_%1$s_%2$s *channel, size_t tokens) {", tokenType, sizeString);
+		emitter().emit("	return channel->write - channel->read >= tokens;");
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static inline %s* channel_peek_first_%1$s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
+		emitter().emit("	return read_%s(channel->buffer + ((channel->read * size_%1$s()) %% %s));", tokenType, bufferSize);
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static inline void channel_peek_%s_%s(channel_%1$s_%2$s *channel, size_t offset, size_t tokens, %1$s **result) {", tokenType, sizeString);
+		emitter().emit("	%s **res = result;", tokenType);
+		emitter().emit("	for (size_t i = 0; i < tokens; i++) {");
+		emitter().emit("		res[i] = read_%s(channel->buffer + (channel->read+(i+offset)*size_%1$s()) %% %s);", tokenType, bufferSize);
+		emitter().emit("	}");
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static inline void channel_consume_%s_%s(channel_%1$s_%2$s *channel, size_t tokens) {", tokenType, sizeString);
+		emitter().emit("	channel->read += tokens;");
+		emitter().emit("}");
+		emitter().emit("");
+
+		emitter().emit("static void channel_create_%s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
+		emitter().emit("	char *buffer = malloc(size_%s()*%s);", tokenType, bufferSize);
+		emitter().emit("	channel->read = 0;");
+		emitter().emit("	channel->write = 0;");
+		emitter().emit("	channel->buffer = buffer;");
+		emitter().emit("}");
+		emitter().emit("");
 
 		emitter().emit("static void channel_destroy_%s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
 		emitter().emit("	free(channel->buffer);");

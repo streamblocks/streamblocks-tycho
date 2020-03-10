@@ -37,18 +37,18 @@ public interface AlgebraicTypes {
 		emitter().emit("struct %s_s {", product.getName());
 		emitter().increaseIndentation();
 		product.getFields().forEach(field -> {
-			emitter().emit("%s;",  code().declaration(field.getType(), field.getName()));
+			emitter().emit("%s;", code().declaration(field.getType(), field.getName()));
 		});
 		emitter().decreaseIndentation();
 		emitter().emit("};");
 		emitter().emit("");
-		emitter().emit("%s* init_%s(%s);", code().type(product), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+		emitter().emit("%s* init_%s_t(%s);", code().type(product), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 		emitter().emit("");
-		emitter().emit("void write_%s(%s, char *buffer);", product.getName(), code().declaration(product, "self"));
+		emitter().emit("void write_%s_t(%s, char *buffer);", product.getName(), code().declaration(product, "self"));
 		emitter().emit("");
-		emitter().emit("%s* read_%s(char *buffer);", code().type(product), product.getName());
+		emitter().emit("%s* read_%s_t(char *buffer);", code().type(product), product.getName());
 		emitter().emit("");
-		emitter().emit("size_t size_%s();", product.getName());
+		emitter().emit("size_t size_%s_t();", product.getName());
 		emitter().emit("");
 	}
 
@@ -83,14 +83,14 @@ public interface AlgebraicTypes {
 		emitter().emit("};");
 		sum.getVariants().forEach(variant -> {
 			emitter().emit("");
-			emitter().emit("%s* init_%s_%s(%s);", code().type(sum), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+			emitter().emit("%s* init_%s_t_%s(%s);", code().type(sum), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 		});
 		emitter().emit("");
-		emitter().emit("void write_%s(%s, char *buffer);", sum.getName(), code().declaration(sum, "self"));
+		emitter().emit("void write_%s_t(%s, char *buffer);", sum.getName(), code().declaration(sum, "self"));
 		emitter().emit("");
-		emitter().emit("%s* read_%s(char *buffer);", code().type(sum), sum.getName());
+		emitter().emit("%s* read_%s_t(char *buffer);", code().type(sum), sum.getName());
 		emitter().emit("");
-		emitter().emit("size_t size_%s();", sum.getName(), code().declaration(sum, "self"));
+		emitter().emit("size_t size_%s_t();", sum.getName(), code().declaration(sum, "self"));
 		emitter().emit("");
 	}
 
@@ -110,7 +110,7 @@ public interface AlgebraicTypes {
 
 	default void defineInit(ProductType product) {
 		String variable = "self";
-		emitter().emit("%s* init_%s(%s) {", code().type(product), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+		emitter().emit("%s* init_%s_t(%s) {", code().type(product), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 		emitter().increaseIndentation();
 		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, variable), product.getName());
 		product.getFields().forEach(field -> emitter().emit("%s->%s = %s;", variable, field.getName(), field.getName()));
@@ -123,13 +123,13 @@ public interface AlgebraicTypes {
 	default void defineWrite(ProductType product) {
 		String self = "self";
 		String ptr = "ptr";
-		emitter().emit("void write_%s(%s, char *buffer) {", product.getName(), code().declaration(product, self));
+		emitter().emit("void write_%s_t(%s, char *buffer) {", product.getName(), code().declaration(product, self));
 		emitter().increaseIndentation();
 		emitter().emit("char *ptr = buffer;");
 		product.getFields().forEach(field -> {
 			if (field.getType() instanceof AlgebraicType) {
-				emitter().emit("write_%s(%s->%s, %s);", ((AlgebraicType) field.getType()).getName(), self, field.getName(), ptr);
-				emitter().emit("%s += size_%s();", ptr, ((AlgebraicType) field.getType()).getName());
+				emitter().emit("write_%s_t(%s->%s, %s);", ((AlgebraicType) field.getType()).getName(), self, field.getName(), ptr);
+				emitter().emit("%s += size_%s_t();", ptr, ((AlgebraicType) field.getType()).getName());
 			} else {
 				emitter().emit("*(%s*) %s = %s->%s;", code().type(field.getType()), ptr, self, field.getName());
 				emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
@@ -143,14 +143,14 @@ public interface AlgebraicTypes {
 	default void defineRead(ProductType product) {
 		String self = "self";
 		String ptr = "ptr";
-		emitter().emit("%s* read_%s(char *buffer) {", code().type(product), product.getName());
+		emitter().emit("%s* read_%s_t(char *buffer) {", code().type(product), product.getName());
 		emitter().increaseIndentation();
 		emitter().emit("char *%s = buffer;", ptr);
 		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, self), product.getName());
 		product.getFields().forEach(field -> {
 			if (field.getType() instanceof AlgebraicType) {
-				emitter().emit("%s->%s = read_%s(%s);", self, field.getName(), ((AlgebraicType) field.getType()).getName(), ptr);
-				emitter().emit("%s += size_%s();", ptr, ((AlgebraicType) field.getType()).getName());
+				emitter().emit("%s->%s = read_%s_t(%s);", self, field.getName(), ((AlgebraicType) field.getType()).getName(), ptr);
+				emitter().emit("%s += size_%s_t();", ptr, ((AlgebraicType) field.getType()).getName());
 			} else {
 				emitter().emit("%s->%s = *(%s*) %s;", self, field.getName(), code().type(field.getType()), ptr);
 				emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
@@ -164,12 +164,12 @@ public interface AlgebraicTypes {
 
 	default void defineSize(ProductType product) {
 		String size = "size";
-		emitter().emit("size_t size_%s() {", product.getName());
+		emitter().emit("size_t size_%s_t() {", product.getName());
 		emitter().increaseIndentation();
 		emitter().emit("size_t %s = 0;", size);
 		product.getFields().forEach(field -> {
 			if (field.getType() instanceof AlgebraicType) {
-				emitter().emit("%s += size_%s();", size, ((AlgebraicType) field.getType()).getName());
+				emitter().emit("%s += size_%s_t();", size, ((AlgebraicType) field.getType()).getName());
 			} else {
 				emitter().emit("%s += sizeof(%s);", size, code().type(field.getType()));
 			}
@@ -190,7 +190,7 @@ public interface AlgebraicTypes {
 	default void defineInit(SumType sum) {
 		sum.getVariants().forEach(variant -> {
 			String self = "self";
-			emitter().emit("%s* init_%s_%s(%s) {", code().type(sum), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+			emitter().emit("%s* init_%s_t_%s(%s) {", code().type(sum), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 			emitter().increaseIndentation();
 			emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(sum, self), sum.getName());
 			emitter().emit("%s->tag = tag_%s_%s;", self, sum.getName(), variant.getName());
@@ -207,7 +207,7 @@ public interface AlgebraicTypes {
 	default void defineWrite(SumType sum) {
 		String self = "self";
 		String ptr = "ptr";
-		emitter().emit("void write_%s(%s, char *buffer) {", sum.getName(), code().declaration(sum, self));
+		emitter().emit("void write_%s_t(%s, char *buffer) {", sum.getName(), code().declaration(sum, self));
 		emitter().increaseIndentation();
 		emitter().emit("char *%s = buffer;", ptr);
 		emitter().emit("*(enum %s_tag_t*) %s = %s->tag;", sum.getName(), ptr, self);
@@ -219,8 +219,8 @@ public interface AlgebraicTypes {
 			emitter().increaseIndentation();
 			variant.getFields().forEach(field -> {
 				if (field.getType() instanceof AlgebraicType) {
-					emitter().emit("write_%s(%s->data.%s.%s, %s);", ((AlgebraicType) field.getType()).getName(), self, variant.getName(), field.getName(), ptr);
-					emitter().emit("%s += size_%s();", ptr, ((AlgebraicType) field.getType()).getName());
+					emitter().emit("write_%s_t(%s->data.%s.%s, %s);", ((AlgebraicType) field.getType()).getName(), self, variant.getName(), field.getName(), ptr);
+					emitter().emit("%s += size_%s_t();", ptr, ((AlgebraicType) field.getType()).getName());
 				} else {
 					emitter().emit("*(%s*) %s = %s->data.%s.%s;", code().type(field.getType()), ptr, self, variant.getName(), field.getName());
 					emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
@@ -239,7 +239,7 @@ public interface AlgebraicTypes {
 	default void defineRead(SumType sum) {
 		String self = "self";
 		String ptr = "ptr";
-		emitter().emit("%s* read_%s(char *buffer) {", code().type(sum), sum.getName());
+		emitter().emit("%s* read_%s_t(char *buffer) {", code().type(sum), sum.getName());
 		emitter().increaseIndentation();
 		emitter().emit("char *%s = buffer;", ptr);
 		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(sum, self), sum.getName());
@@ -252,8 +252,8 @@ public interface AlgebraicTypes {
 			emitter().increaseIndentation();
 			variant.getFields().forEach(field -> {
 				if (field.getType() instanceof AlgebraicType) {
-					emitter().emit("%s->data.%s.%s = read_%s(%s);", self, variant.getName(), field.getName(), ((AlgebraicType) field.getType()).getName(), ptr);
-					emitter().emit("%s += size_%s();", ptr, ((AlgebraicType) field.getType()).getName());
+					emitter().emit("%s->data.%s.%s = read_%s_t(%s);", self, variant.getName(), field.getName(), ((AlgebraicType) field.getType()).getName(), ptr);
+					emitter().emit("%s += size_%s_t();", ptr, ((AlgebraicType) field.getType()).getName());
 				} else {
 					emitter().emit("%s->data.%s.%s = *(%s*) %s;", self, variant.getName(), field.getName(), code().type(field.getType()), ptr);
 					emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
@@ -274,7 +274,7 @@ public interface AlgebraicTypes {
 		String size = "size";
 		String max = "max";
 		String tag = "tag";
-		emitter().emit("size_t size_%s() {", sum.getName());
+		emitter().emit("size_t size_%s_t() {", sum.getName());
 		emitter().increaseIndentation();
 		emitter().emit("size_t %s = 0;", max);
 		emitter().emit("for (int %s = 0; %s < %s; ++%s) {", tag, tag, sum.getVariants().size(), tag);
@@ -287,7 +287,7 @@ public interface AlgebraicTypes {
 			emitter().increaseIndentation();
 			variant.getFields().forEach(field -> {
 				if (field.getType() instanceof AlgebraicType) {
-					emitter().emit("%s += size_%s();", size, ((AlgebraicType) field.getType()).getName());
+					emitter().emit("%s += size_%s_t();", size, ((AlgebraicType) field.getType()).getName());
 				} else {
 					emitter().emit("%s += sizeof(%s);", size, code().type(field.getType()));
 				}
@@ -297,7 +297,7 @@ public interface AlgebraicTypes {
 		});
 		emitter().decreaseIndentation();
 		emitter().emit("}");
-		emitter().emit("%s = %s < %s ? %s : %s;", max, max, size, size, max);
+		emitter().emit("if (%s < %s) { %s = %s; }", max, size, max, size);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("%s += sizeof(enum %s_tag_t);", max, sum.getName());
@@ -322,9 +322,9 @@ public interface AlgebraicTypes {
 				})
 				.map(type -> {
 					if (type instanceof ProductType) {
-						return "init_" + type.getName();
+						return "init_" + type(type);
 					} else {
-						return ((SumType) type).getVariants().stream().filter(variant -> Objects.equals(variant.getName(), constructor)).map(variant -> "init_" + type.getName() + "_" + variant.getName()).findAny().get();
+						return ((SumType) type).getVariants().stream().filter(variant -> Objects.equals(variant.getName(), constructor)).map(variant -> "init_" + type(type) + "_" + variant.getName()).findAny().get();
 					}
 				})
 				.findAny()
