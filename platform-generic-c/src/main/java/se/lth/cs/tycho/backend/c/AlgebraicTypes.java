@@ -50,6 +50,8 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 		emitter().emit("size_t size_%s_t();", product.getName());
 		emitter().emit("");
+		emitter().emit("%s* copy_%s_t(%s);", code().type(product), product.getName(), code().declaration(product, "self"));
+		emitter().emit("");
 	}
 
 	default void declareType(SumType sum) {
@@ -92,6 +94,8 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 		emitter().emit("size_t size_%s_t();", sum.getName(), code().declaration(sum, "self"));
 		emitter().emit("");
+		emitter().emit("%s* copy_%s_t(%s);", code().type(sum), sum.getName(), code().declaration(sum, "self"));
+		emitter().emit("");
 	}
 
 	default void defineAlgebraicTypes() {
@@ -106,6 +110,7 @@ public interface AlgebraicTypes {
 		defineWrite(product);
 		defineRead(product);
 		defineSize(product);
+		defineCopy(product);
 	}
 
 	default void defineInit(ProductType product) {
@@ -180,11 +185,27 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 	}
 
+	default void defineCopy(ProductType product) {
+		String self = "self";
+		String copy = "copy";
+		emitter().emit("%s* copy_%s_t(%s) {", code().type(product), product.getName(), code().declaration(product, "self"));
+		emitter().increaseIndentation();
+		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, copy), product.getName());
+		product.getFields().forEach(field -> {
+			code().copy(field.getType(), copy + "->" + field.getName(), field.getType(), self + "->" + field.getName());
+		});
+		emitter().emit("return %s;", copy);
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("");
+	}
+
 	default void defineType(SumType sum) {
 		defineInit(sum);
 		defineWrite(sum);
 		defineRead(sum);
 		defineSize(sum);
+		defineCopy(sum);
 	}
 
 	default void defineInit(SumType sum) {
@@ -302,6 +323,33 @@ public interface AlgebraicTypes {
 		emitter().emit("}");
 		emitter().emit("%s += sizeof(enum %s_tag_t);", max, sum.getName());
 		emitter().emit("return %s;", max);
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("");
+	}
+
+	default void defineCopy(SumType sum) {
+		String self = "self";
+		String copy = "copy";
+		emitter().emit("%s* copy_%s_t(%s) {", code().type(sum), sum.getName(), code().declaration(sum, "self"));
+		emitter().increaseIndentation();
+		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(sum, copy), sum.getName());
+		emitter().emit("%s->tag = %s->tag;", copy, self);
+		emitter().emit("switch (%s->tag) {", self);
+		emitter().increaseIndentation();
+		sum.getVariants().forEach(variant -> {
+			emitter().emit("case tag_%s_%s:", sum.getName(), variant.getName());
+			emitter().increaseIndentation();
+			variant.getFields().forEach(field -> {
+				String field1 = String.format("->data.%s.%s", variant.getName(), field.getName());
+				code().copy(field.getType(), copy + field1, field.getType(), self + field1);
+			});
+			emitter().emit("break;");
+			emitter().decreaseIndentation();
+		});
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("return %s;", copy);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("");

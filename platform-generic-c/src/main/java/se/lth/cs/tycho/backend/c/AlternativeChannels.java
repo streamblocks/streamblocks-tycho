@@ -266,7 +266,7 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("typedef struct {");
 		emitter().emit("	size_t read;");
 		emitter().emit("	size_t write;");
-		emitter().emit("	char *buffer;", tokenType);
+		emitter().emit("	char *buffer;");
 		emitter().emit("} channel_%s_%s;", tokenType, sizeString);
 		emitter().emit("");
 
