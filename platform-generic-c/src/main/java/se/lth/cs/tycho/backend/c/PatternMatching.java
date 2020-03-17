@@ -64,11 +64,13 @@ public interface PatternMatching {
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		});
-		emitter().emit("if (!%s) {", match);
-		emitter().increaseIndentation();
-		code().execute(caseStmt.getDefault());
-		emitter().decreaseIndentation();
-		emitter().emit("}");
+		caseStmt.getDefault().ifPresent(default_ -> {
+			emitter().emit("if (!%s) {", match);
+			emitter().increaseIndentation();
+			code().execute(default_);
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		});
 	}
 
 	default void evaluateAlternative(ExprCase.Alternative alternative, String expr, String result, String match) {

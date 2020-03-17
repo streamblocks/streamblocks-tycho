@@ -17,6 +17,7 @@ import java.lang.SuppressWarnings;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.type.*;
 import se.lth.cs.tycho.ir.decl.*;
@@ -2452,7 +2453,7 @@ StmtCase CaseStmt() :
     Token first;
     Token last;
     Expression expression;
-    Statement default_;
+    Statement default_ = null;
     StmtCase.Alternative alternative;
     ImmutableList.Builder<StmtCase.Alternative> alternatives = ImmutableList.builder();
 }
@@ -2466,10 +2467,12 @@ StmtCase CaseStmt() :
             alternative = CaseStmtAlternative() { alternatives.add(alternative); }
         )*
     )?
-    "else"
-    default_ = Statement()
+    (
+        "else"
+        default_ = Statement()
+    )?
     last = "end"
-    { return setPosition(new StmtCase(expression, alternatives.build(), default_), first, last); }
+    { return setPosition(new StmtCase(expression, alternatives.build(), Optional.ofNullable(default_)), first, last); }
 }
 
 StmtCase.Alternative CaseStmtAlternative() :
