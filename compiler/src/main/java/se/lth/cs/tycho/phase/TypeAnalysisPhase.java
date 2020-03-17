@@ -135,6 +135,9 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssignable(RealType to, RealType from) {
 			return to.getSize() >= from.getSize();
 		}
+		default boolean isAssignable(RealType to, IntType from) {
+			return true;
+		}
 		default boolean isAssignable(BoolType to, BoolType from) {
 			return true;
 		}
