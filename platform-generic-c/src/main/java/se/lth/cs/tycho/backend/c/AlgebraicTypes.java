@@ -4,6 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.ProductType;
 import se.lth.cs.tycho.type.SumType;
 
@@ -52,6 +53,8 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 		emitter().emit("%s* copy_%s_t(%s);", code().type(product), product.getName(), code().declaration(product, "self"));
 		emitter().emit("");
+		emitter().emit("%s compare_%s_t(%s, %s);", code().type(BoolType.INSTANCE), product.getName(), code().declaration(product, "lhs"), code().declaration(product, "rhs"));
+		emitter().emit("");
 	}
 
 	default void declareType(SumType sum) {
@@ -96,6 +99,8 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 		emitter().emit("%s* copy_%s_t(%s);", code().type(sum), sum.getName(), code().declaration(sum, "self"));
 		emitter().emit("");
+		emitter().emit("%s compare_%s_t(%s, %s);", BoolType.INSTANCE, sum.getName(), code().declaration(sum, "lhs"), code().declaration(sum, "rhs"));
+		emitter().emit("");
 	}
 
 	default void defineAlgebraicTypes() {
@@ -111,6 +116,7 @@ public interface AlgebraicTypes {
 		defineRead(product);
 		defineSize(product);
 		defineCopy(product);
+		defineCompare(product);
 	}
 
 	default void defineInit(ProductType product) {
@@ -200,12 +206,27 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 	}
 
+	default void defineCompare(ProductType product) {
+		String lhs = "lhs";
+		String rhs = "rhs";
+		emitter().emit("%s compare_%s_t(%s, %s) {", code().type(BoolType.INSTANCE), product.getName(), code().declaration(product, lhs), code().declaration(product, rhs));
+		emitter().increaseIndentation();
+		product.getFields().forEach(field -> {
+			emitter().emit("if (!(%s)) return false;", code().compare(field.getType(), String.format("%s->%s", lhs, field.getName()), field.getType(), String.format("%s->%s", rhs, field.getName())));
+		});
+		emitter().emit("return true;");
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("");
+	}
+
 	default void defineType(SumType sum) {
 		defineInit(sum);
 		defineWrite(sum);
 		defineRead(sum);
 		defineSize(sum);
 		defineCopy(sum);
+		defineCompare(sum);
 	}
 
 	default void defineInit(SumType sum) {
@@ -350,6 +371,32 @@ public interface AlgebraicTypes {
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("return %s;", copy);
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("");
+	}
+
+	default void defineCompare(SumType sum) {
+		String lhs = "lhs";
+		String rhs = "rhs";
+		emitter().emit("%s compare_%s_t(%s, %s) {", code().type(BoolType.INSTANCE), sum.getName(), code().declaration(sum, "lhs"), code().declaration(sum, "rhs"));
+		emitter().increaseIndentation();
+		emitter().emit("if (%s->tag != %s->tag) return false;", lhs, rhs);
+		emitter().emit("switch (%s->tag) {", lhs);
+		emitter().increaseIndentation();
+		sum.getVariants().forEach(variant -> {
+			emitter().emit("case tag_%s_%s: {", sum.getName(), variant.getName());
+			emitter().increaseIndentation();
+			variant.getFields().forEach(field -> {
+				emitter().emit("if (!(%s)) return false;", code().compare(field.getType(), String.format("%s->data.%s.%s", lhs, variant.getName(), field.getName()), field.getType(), String.format("%s->data.%s.%s", rhs, variant.getName(), field.getName())));
+			});
+			emitter().emit("break;");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+		});
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("return true;");
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("");

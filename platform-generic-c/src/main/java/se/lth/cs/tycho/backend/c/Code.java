@@ -19,6 +19,7 @@ import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -50,8 +51,8 @@ public interface Code {
 		return backend().channels().targetEndTypeSize(new Connection.End(Optional.of(backend().instance().get().getInstanceName()), port.getName()));
 	}
 
-    default void copy(Type lvalueType, String lvalue, Type rvalueType, String rvalue) {
-        emitter().emit("%s = %s;", lvalue, rvalue);
+	default void copy(Type lvalueType, String lvalue, Type rvalueType, String rvalue) {
+		emitter().emit("%s = %s;", lvalue, rvalue);
 	}
 
 	default void copy(ListType lvalueType, String lvalue, ListType rvalueType, String rvalue) {
@@ -69,6 +70,16 @@ public interface Code {
 
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		emitter().emit("%s = copy_%s(%s);", lvalue, backend().algebraicTypes().type(lvalueType), rvalue);
+	}
+
+	default String compare(Type lvalueType, String lvalue, Type rvalueType, String rvalue) {
+		return String.format("(%s == %s)", lvalue, rvalue);
+	}
+
+	default String compare(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = compare_%s_t(%s, %s);", declaration(BoolType.INSTANCE, tmp), lvalueType.getName(), lvalue, rvalue);
+		return tmp;
 	}
 
 	default String declaration(Type type, String name) {
@@ -207,6 +218,11 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		switch (operation) {
+			case "==":
+			case "=":
+				return compare(types().type(left), evaluate(left), types().type(right), evaluate(right));
+			case "!=":
+				return "!" + compare(types().type(left), evaluate(left), types().type(right), evaluate(right));
 			case "+":
 			case "-":
 			case "*":
@@ -215,16 +231,12 @@ public interface Code {
 			case "<=":
 			case ">":
 			case ">=":
-			case "==":
-			case "!=":
 			case "<<":
 			case ">>":
 			case "&":
 			case "|":
 			case "^":
 				return String.format("(%s %s %s)", evaluate(left), operation, evaluate(right));
-			case "=":
-				return String.format("(%s == %s)", evaluate(left), evaluate(right));
 			case "mod":
 				return String.format("(%s %% %s)", evaluate(left), evaluate(right));
 			case "and":

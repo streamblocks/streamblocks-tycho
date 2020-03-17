@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
+import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprTypeAssertion;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
@@ -32,6 +33,7 @@ import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.type.*;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -83,6 +85,20 @@ public class TypeAnalysisPhase implements Phase {
 		}
 		default boolean isAssertable(IntType to, IntType from) {
 			return true;
+		}
+
+
+		default boolean isComparable(Type a, Type b, String operand) {
+			return true;
+		}
+		default boolean isComparable(AlgebraicType a, AlgebraicType b, String operand) {
+			return Arrays.asList("=", "==", "!=").contains(operand) && a.equals(b);
+		}
+		default boolean isComparable(AlgebraicType a, Type b, String operand) {
+			return false;
+		}
+		default boolean isComparable(Type a, AlgebraicType b, String operand) {
+			return false;
 		}
 
 		default boolean isAssignable(Type to, Type from) {
@@ -201,6 +217,11 @@ public class TypeAnalysisPhase implements Phase {
 			return false;
 		}
 
+		@Override
+		default boolean isComparable(Type a, Type b, String operand) {
+			return true;
+		}
+
 		default boolean isAssignable(Type to, Type from) {
 			return to.equals(from);
 		}
@@ -287,6 +308,8 @@ public class TypeAnalysisPhase implements Phase {
 
 		boolean isConvertible(Type a, Type b);
 
+		boolean isComparable(Type a, Type b, String operand);
+
 		default void checkAssignment(Type to, Type from, IRNode node) {
 			if (!isAssignable(to, from)) {
 				if (isConvertible(to, from)) {
@@ -294,6 +317,12 @@ public class TypeAnalysisPhase implements Phase {
 				} else {
 					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + to + " but was " + from + ".", sourceUnit(), node));
 				}
+			}
+		}
+
+		default void checkComparison(Type to, Type from, String operand, IRNode node) {
+			if (!isComparable(to, from, operand)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incomparable types; " + to + " cannot be compared with " + from + ".", sourceUnit(), node));
 			}
 		}
 
@@ -343,6 +372,12 @@ public class TypeAnalysisPhase implements Phase {
 				SumType.VariantType variantType = sumType.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), construction.getConstructor())).findAny().get();
 				CallableType callableType = new CallableType(variantType.getFields().stream().map(FieldType::getType).collect(Collectors.toList()), type) {};
 				checkArguments(construction, callableType, construction.getArgs());
+			}
+		}
+
+		default void checkTypes(ExprBinaryOp binaryOp) {
+			if (Arrays.asList(">=", ">", "<=", "<", "==", "=", "!=").contains(binaryOp.getOperands().get(0))) {
+				checkComparison(types().type(binaryOp.getOperands().get(0)), types().type(binaryOp.getOperands().get(1)), binaryOp.getOperations().get(0), binaryOp);
 			}
 		}
 
