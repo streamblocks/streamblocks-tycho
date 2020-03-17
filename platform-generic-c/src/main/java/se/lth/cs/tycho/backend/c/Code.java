@@ -76,6 +76,18 @@ public interface Code {
 		return String.format("(%s == %s)", lvalue, rvalue);
 	}
 
+	default String compare(ListType lvalueType, String lvalue, ListType rvalueType, String rvalue) {
+		String tmp = variables().generateTemp();
+		String index = variables().generateTemp();
+		emitter().emit("%s = true;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("for (size_t %1$s = 0; (%1$s < %2$s) && %3$s; %1$s++) {", index, lvalueType.getSize().getAsInt(), tmp);
+		emitter().increaseIndentation();
+		emitter().emit("%s &= %s;", tmp, compare(lvalueType.getElementType(), String.format("%s.data[%s]", lvalue, index), rvalueType.getElementType(), String.format("%s.data[%s]", rvalue, index)));
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return tmp;
+	}
+
 	default String compare(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = compare_%s_t(%s, %s);", declaration(BoolType.INSTANCE, tmp), lvalueType.getName(), lvalue, rvalue);
