@@ -4,10 +4,13 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.compiler.CompilationTask;
+import se.lth.cs.tycho.compiler.GlobalDeclarations;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
@@ -189,6 +192,11 @@ public interface TypeScopes {
 
 		default SourceUnit sourceUnit(IRNode node) {
 			return sourceUnit(tree().parent(node));
+		}
+
+		default SourceUnit sourceUnit(CompilationTask task) {
+			GlobalEntityDecl entityDecl = GlobalDeclarations.getEntity(task, task.getIdentifier());
+			return sourceUnit(tree().parent(entityDecl));
 		}
 
 		default SourceUnit sourceUnit(SourceUnit unit) {
