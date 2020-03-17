@@ -74,6 +74,10 @@ public class TypeAnalysisPhase implements Phase {
 			return true;
 		}
 
+		default boolean isConvertible(RealType to, RealType from) {
+			return true;
+		}
+
 		default boolean isAssertable(Type to, Type from) {
 			return to.equals(from);
 		}
@@ -127,6 +131,9 @@ public class TypeAnalysisPhase implements Phase {
 					return false;
 				}
 			}
+		}
+		default boolean isAssignable(RealType to, RealType from) {
+			return to.getSize() >= from.getSize();
 		}
 		default boolean isAssignable(BoolType to, BoolType from) {
 			return true;
