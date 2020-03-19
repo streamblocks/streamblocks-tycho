@@ -45,6 +45,8 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 		emitter().emit("%s* init_%s_t(%s);", code().type(product), product.getName(), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 		emitter().emit("");
+		emitter().emit("void free_%s_t(%s);", product.getName(), code().declaration(product, "self"));
+		emitter().emit("");
 		emitter().emit("void write_%s_t(%s, char *buffer);", product.getName(), code().declaration(product, "self"));
 		emitter().emit("");
 		emitter().emit("%s* read_%s_t(char *buffer);", code().type(product), product.getName());
@@ -91,6 +93,8 @@ public interface AlgebraicTypes {
 			emitter().emit("%s* init_%s_t_%s(%s);", code().type(sum), sum.getName(), variant.getName(), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 		});
 		emitter().emit("");
+		emitter().emit("void free_%s_t(%s);", sum.getName(), code().declaration(sum, "self"));
+		emitter().emit("");
 		emitter().emit("void write_%s_t(%s, char *buffer);", sum.getName(), code().declaration(sum, "self"));
 		emitter().emit("");
 		emitter().emit("%s* read_%s_t(char *buffer);", code().type(sum), sum.getName());
@@ -112,6 +116,7 @@ public interface AlgebraicTypes {
 
 	default void defineType(ProductType product) {
 		defineInit(product);
+		defineFree(product);
 		defineWrite(product);
 		defineRead(product);
 		defineSize(product);
@@ -127,6 +132,22 @@ public interface AlgebraicTypes {
 		emitter().emit("if (!%s) return NULL;", self);
 		product.getFields().forEach(field -> emitter().emit("%s->%s = %s;", self, field.getName(), field.getName()));
 		emitter().emit("return %s;", self);
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("");
+	}
+
+	default void defineFree(ProductType product) {
+		String self = "self";
+		emitter().emit("void free_%s_t(%s) {", product.getName(), code().declaration(product, self));
+		emitter().increaseIndentation();
+		emitter().emit("if (!%s) return;", self);
+		product.getFields().forEach(field -> {
+			if (field.getType() instanceof AlgebraicType) {
+				emitter().emit("%s(%s->%s);", destructor((AlgebraicType) field.getType()), self, field.getName());
+			}
+		});
+		emitter().emit("free(%s);", self);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("");
@@ -230,6 +251,7 @@ public interface AlgebraicTypes {
 
 	default void defineType(SumType sum) {
 		defineInit(sum);
+		defineFree(sum);
 		defineWrite(sum);
 		defineRead(sum);
 		defineSize(sum);
@@ -253,6 +275,32 @@ public interface AlgebraicTypes {
 			emitter().emit("}");
 			emitter().emit("");
 		});
+	}
+
+	default void defineFree(SumType sum) {
+		String self = "self";
+		emitter().emit("void free_%s_t(%s) {", sum.getName(), code().declaration(sum, self));
+		emitter().increaseIndentation();
+		emitter().emit("if (!%s) return;", self);
+		emitter().emit("switch (%s->tag) {", self);
+		emitter().increaseIndentation();
+		sum.getVariants().forEach(variant -> {
+			emitter().emit("case tag_%s_%s:", sum.getName(), variant.getName());
+			emitter().increaseIndentation();
+			variant.getFields().forEach(field -> {
+				if (field.getType() instanceof AlgebraicType) {
+					emitter().emit("%s(%s->data.%s.%s);", destructor((AlgebraicType) field.getType()), self, variant.getName(), field.getName());
+				}
+			});
+			emitter().emit("break;");
+			emitter().decreaseIndentation();
+		});
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("free(%s);", self);
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("");
 	}
 
 	default void defineWrite(SumType sum) {
@@ -432,6 +480,10 @@ public interface AlgebraicTypes {
 				})
 				.findAny()
 				.get();
+	}
+
+	default String destructor(AlgebraicType type) {
+		return String.format("free_%s_t", type.getName());
 	}
 
 	default Stream<AlgebraicType> types() {
