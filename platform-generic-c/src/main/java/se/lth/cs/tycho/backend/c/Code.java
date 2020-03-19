@@ -41,6 +41,8 @@ public interface Code {
 		return backend().variables();
 	}
 
+	default MemoryStack memoryStack() { return backend().memoryStack(); }
+
 	default String outputPortTypeSize(Port port) {
 		Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), port.getName());
 		return backend().channels().sourceEndTypeSize(source);
@@ -257,11 +259,15 @@ public interface Code {
 				emitter().emit("_Bool %s;", andResult);
 				emitter().emit("if (%s) {", evaluate(left));
 				emitter().increaseIndentation();
+				memoryStack().enterScope();
 				emitter().emit("%s = %s;", andResult, evaluate(right));
+				memoryStack().exitScope();
 				emitter().decreaseIndentation();
 				emitter().emit("} else {");
 				emitter().increaseIndentation();
+				memoryStack().enterScope();
 				emitter().emit("%s = false;", andResult);
+				memoryStack().exitScope();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 				return andResult;
@@ -275,7 +281,9 @@ public interface Code {
 				emitter().decreaseIndentation();
 				emitter().emit("} else {");
 				emitter().increaseIndentation();
+				memoryStack().enterScope();
 				emitter().emit("%s = %s;", orResult, evaluate(right));
+				memoryStack().exitScope();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 				return orResult;
@@ -340,12 +348,14 @@ public interface Code {
 				emitter().emit("%s = %s;", declaration(type, name), from);
 				emitter().emit("while (%s <= %s) {", name, to);
 				emitter().increaseIndentation();
+				memoryStack().enterScope();
 			}
 			action.run();
 			List<VarDecl> reversed = new ArrayList<>(varDecls);
 			Collections.reverse(reversed);
 			for (VarDecl d : reversed) {
 				emitter().emit("%s++;", variables().declarationName(d));
+				memoryStack().exitScope();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 			}
@@ -375,6 +385,7 @@ public interface Code {
 	default void forEach(ExprBinaryOp binOp, List<GeneratorVarDecl> varDecls, Runnable action) {
 		emitter().emit("{");
 		emitter().increaseIndentation();
+		memoryStack().enterScope();
 		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
 			Type type = types().declaredType(varDecls.get(0));
 			for (VarDecl d : varDecls) {
@@ -384,15 +395,18 @@ public interface Code {
 			emitter().emit("%s = %s;", declaration(type, temp), evaluate(binOp.getOperands().get(0)));
 			emitter().emit("while (%s <= %s) {", temp, evaluate(binOp.getOperands().get(1)));
 			emitter().increaseIndentation();
+			memoryStack().enterScope();
 			for (VarDecl d : varDecls) {
 				emitter().emit("%s = %s++;", variables().declarationName(d), temp);
 			}
 			action.run();
+			memoryStack().exitScope();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		} else {
 			throw new UnsupportedOperationException(binOp.getOperations().get(0));
 		}
+		memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
@@ -404,19 +418,26 @@ public interface Code {
 	default String evaluate(ExprIf expr) {
 		Type type = types().type(expr);
 		String temp = variables().generateTemp();
+		if (type instanceof AlgebraicType) {
+			memoryStack().trackPointer(temp, type);
+		}
 		String decl = declaration(type, temp);
 		emitter().emit("%s = %s;", decl, backend().defaultValues().defaultValue(type));
 		emitter().emit("if (%s) {", evaluate(expr.getCondition()));
 		emitter().increaseIndentation();
+		memoryStack().enterScope();
 		Type thenType = types().type(expr.getThenExpr());
 		String thenValue = evaluate(expr.getThenExpr());
 		copy(type, temp, thenType, thenValue);
+		memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("} else {");
 		emitter().increaseIndentation();
+		memoryStack().enterScope();
 		Type elseType = types().type(expr.getElseExpr());
 		String elseValue = evaluate(expr.getElseExpr());
 		copy(type, temp, elseType, elseValue);
+		memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		return temp;
@@ -497,6 +518,7 @@ public interface Code {
 		String result = variables().generateTemp();
 		String decl = declaration(types().type(construction), result);
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
+		memoryStack().trackPointer(result, types().type(construction));
 		return result;
 	}
 
@@ -556,6 +578,7 @@ public interface Code {
 	default void execute(StmtBlock block) {
 		emitter().emit("{");
 		emitter().increaseIndentation();
+		memoryStack().enterScope();
 		backend().callables().declareEnvironmentForCallablesInScope(block);
 		for (VarDecl decl : block.getVarDecls()) {
 			Type t = types().declaredType(decl);
@@ -567,6 +590,7 @@ public interface Code {
 			}
 		}
 		block.getStatements().forEach(this::execute);
+		memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
@@ -574,12 +598,16 @@ public interface Code {
 	default void execute(StmtIf stmt) {
 		emitter().emit("if (%s) {", evaluate(stmt.getCondition()));
 		emitter().increaseIndentation();
+		memoryStack().enterScope();
 		stmt.getThenBranch().forEach(this::execute);
+		memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		if (stmt.getElseBranch() != null) {
 			emitter().emit("} else {");
 			emitter().increaseIndentation();
+			memoryStack().enterScope();
 			stmt.getElseBranch().forEach(this::execute);
+			memoryStack().exitScope();
 			emitter().decreaseIndentation();
 		}
 		emitter().emit("}");
@@ -590,9 +618,11 @@ public interface Code {
 			for (Expression filter : foreach.getFilters()) {
 				emitter().emit("if (%s) {", evaluate(filter));
 				emitter().increaseIndentation();
+				memoryStack().enterScope();
 			}
 			foreach.getBody().forEach(this::execute);
 			for (Expression filter : foreach.getFilters()) {
+				memoryStack().exitScope();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 			}
@@ -620,8 +650,10 @@ public interface Code {
 	default void execute(StmtWhile stmt) {
 		emitter().emit("while (true) {");
 		emitter().increaseIndentation();
+		memoryStack().enterScope();
 		emitter().emit("if (!%s) break;", evaluate(stmt.getCondition()));
 		stmt.getBody().forEach(this::execute);
+		memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}

@@ -144,7 +144,9 @@ public interface Structure {
 		for (Transition transition : actorMachine.getTransitions()) {
 			emitter().emit("static void %s_transition_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
+			backend().memoryStack().enterScope();
 			transition.getBody().forEach(code()::execute);
+			backend().memoryStack().exitScope();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -158,7 +160,10 @@ public interface Structure {
 		for (Condition condition : actorMachine.getConditions()) {
 			emitter().emit("static _Bool %s_condition_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
-			emitter().emit("return %s;", evaluateCondition(condition));
+			backend().memoryStack().enterScope();
+			String result = evaluateCondition(condition);
+			backend().memoryStack().exitScope();
+			emitter().emit("return %s;", result);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");

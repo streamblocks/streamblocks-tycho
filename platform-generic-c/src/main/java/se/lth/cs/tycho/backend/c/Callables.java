@@ -49,7 +49,7 @@ public interface Callables {
 
 	Where declared:
 	- create fat function pointer with null environment for all external declaration.
-	- create fat function pointer with envorinment for all ExprLambda and ExprProc.
+	- create fat function pointer with environment for all ExprLambda and ExprProc.
 	 */
 
 	default void declareCallables() {
@@ -240,7 +240,10 @@ public interface Callables {
 		backend().emitter().increaseIndentation();
 		lambda.forEachChild(this::declareEnvironmentForCallablesInScope);
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
-		backend().emitter().emit("return %s;", backend().code().evaluate(lambda.getBody()));
+		backend().memoryStack().enterScope();
+		String result = backend().code().evaluate(lambda.getBody());
+		backend().memoryStack().exitScope();
+		backend().emitter().emit("return %s;", result);
 		backend().emitter().decreaseIndentation();
 		backend().emitter().emit("}");
 	}
@@ -251,7 +254,9 @@ public interface Callables {
 		backend().emitter().increaseIndentation();
 		proc.forEachChild(this::declareEnvironmentForCallablesInScope);
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
+		backend().memoryStack().enterScope();
 		proc.getBody().forEach(backend().code()::execute);
+		backend().memoryStack().exitScope();
 		backend().emitter().decreaseIndentation();
 		backend().emitter().emit("}");
 	}
