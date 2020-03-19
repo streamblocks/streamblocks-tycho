@@ -173,6 +173,11 @@ public interface MainNetwork {
 		emitter().emit("} while (progress && !interrupted);");
 		emitter().emit("");
 
+		for (Instance instance : instances) {
+			emitter().emit("%s_free_actor(&%1$s);", instance.getInstanceName());
+			emitter().emit("");
+		}
+
 
 		for (Map.Entry<Connection.End, String> nameEntry : connectionNames.entrySet()) {
 			String name = nameEntry.getValue();

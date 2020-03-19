@@ -10,6 +10,7 @@ import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.*;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.attribute.Types;
+import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.Type;
 
@@ -51,6 +52,7 @@ public interface Structure {
 	default void actorHeader(String name, ActorMachine actorMachine) {
 		actorMachineState(name, actorMachine);
 		actorMachineInitHeader(name, actorMachine);
+		actorMachineFreeHeader(name, actorMachine);
 		actorMachineControllerHeader(name, actorMachine);
 	}
 
@@ -58,7 +60,9 @@ public interface Structure {
 
 	default void actor(String name, ActorMachine actorMachine) {
 		actorMachineStateInit(name, actorMachine);
+		actorMachineStateFree(name, actorMachine);
 		actorMachineInit(name, actorMachine);
+		actorMachineFree(name, actorMachine);
 		actorMachineTransitions(name, actorMachine);
 		actorMachineConditions(name, actorMachine);
 		actorMachineController(name, actorMachine);
@@ -78,6 +82,12 @@ public interface Structure {
 		String selfParameter = name + "_state *self";
 		List<String> parameters = getEntityInitParameters(selfParameter, actorMachine);
 		emitter().emit("void %s_init_actor(%s);", name, String.join(", ", parameters));
+		emitter().emit("");
+	}
+
+	default void actorMachineFreeHeader(String name, ActorMachine actorMachine) {
+		String selfParameter = name + "_state *self";
+		emitter().emit("void %s_free_actor(%s);", name, selfParameter);
 		emitter().emit("");
 	}
 
@@ -112,6 +122,24 @@ public interface Structure {
 		for (Scope s : actorMachine.getScopes()) {
 			if (s.isPersistent()) {
 				emitter().emit("%s_init_scope_%d(self);", name, i);
+			}
+			i = i + 1;
+		}
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		emitter().emit("");
+		emitter().emit("");
+	}
+
+	default void actorMachineFree(String name, ActorMachine actorMachine) {
+		String selfParameter = name + "_state *self";
+		emitter().emit("void %s_free_actor(%s) {", name, selfParameter);
+		emitter().increaseIndentation();
+		emitter().emit("// free persistent scopes");
+		int i = 0;
+		for (Scope s : actorMachine.getScopes()) {
+			if (s.isPersistent()) {
+				emitter().emit("%s_free_scope_%d(self);", name, i);
 			}
 			i = i + 1;
 		}
@@ -203,6 +231,37 @@ public interface Structure {
 					emitter().emit("{");
 					emitter().increaseIndentation();
 					code().copy(types().declaredType(var), "self->" + backend().variables().declarationName(var), types().type(var.getValue()), code().evaluate(var.getValue()));
+					emitter().decreaseIndentation();
+					emitter().emit("}");
+				} else {
+					emitter().emit("{");
+					emitter().increaseIndentation();
+					String tmp = backend().variables().generateTemp();
+					emitter().emit("%s = %s;", code().declaration(type, tmp), backend().defaultValues().defaultValue(type));
+					emitter().emit("self->%s = %s;", backend().variables().declarationName(var), tmp);
+					emitter().decreaseIndentation();
+					emitter().emit("}");
+				}
+			}
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("");
+			emitter().emit("");
+			i++;
+		}
+	}
+
+	default void actorMachineStateFree(String name, ActorMachine actorMachine) {
+		int i = 0;
+		for (Scope scope : actorMachine.getScopes()) {
+			emitter().emit("static void %s_free_scope_%d(%s_state *self) {", name, i, name);
+			emitter().increaseIndentation();
+			for (VarDecl var : scope.getDeclarations()) {
+				Type type = types().declaredType(var);
+				if (type instanceof AlgebraicType) {
+					emitter().emit("{");
+					emitter().increaseIndentation();
+					emitter().emit("%s(self->%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				}
