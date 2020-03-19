@@ -19,7 +19,6 @@ import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -206,7 +205,8 @@ public interface Code {
 
 	default String evaluate(ExprInput input) {
 		String tmp = variables().generateTemp();
-		emitter().emit("%s;", declaration(types().type(input), tmp));
+		Type type = types().type(input);
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
 		if (input.hasRepeat()) {
 		    if (input.getOffset() == 0) {
 				emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, %s.data);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getRepeat(), tmp);
@@ -405,7 +405,7 @@ public interface Code {
 		Type type = types().type(expr);
 		String temp = variables().generateTemp();
 		String decl = declaration(type, temp);
-		emitter().emit("%s;", decl);
+		emitter().emit("%s = %s;", decl, backend().defaultValues().defaultValue(type));
 		emitter().emit("if (%s) {", evaluate(expr.getCondition()));
 		emitter().increaseIndentation();
 		Type thenType = types().type(expr.getThenExpr());
@@ -482,7 +482,7 @@ public interface Code {
 		for (VarDecl decl : let.getVarDecls()) {
 			Type type = types().declaredType(decl);
 			String name = variables().declarationName(decl);
-			emitter().emit("%s;", declaration(type, name));
+			emitter().emit("%s = %s;", declaration(type, name), backend().defaultValues().defaultValue(type));
 			copy(type, name, types().type(decl.getValue()), evaluate(decl.getValue()));
 		}
 		return evaluate(let.getBody());
@@ -561,7 +561,7 @@ public interface Code {
 			Type t = types().declaredType(decl);
 			String declarationName = variables().declarationName(decl);
 			String d = declaration(t, declarationName);
-			emitter().emit("%s;", d);
+			emitter().emit("%s = %s;", d, backend().defaultValues().defaultValue(t));
 			if (decl.getValue() != null) {
 				copy(t, declarationName, types().type(decl.getValue()), evaluate(decl.getValue()));
 			}

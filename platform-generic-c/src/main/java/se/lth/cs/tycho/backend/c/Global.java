@@ -85,8 +85,12 @@ public interface Global {
 				String variableName = backend().variables().declarationName(decl);
 				String t = backend().callables().mangle(type).encode();
 				emitter().emit("%s = (%s) { *%s, NULL };", variableName, t, wrapperName);
-			} else {
+			} else if (decl.getValue() != null) {
 				code().copy(type, backend().variables().declarationName(decl), types().type(decl.getValue()), code().evaluate(decl.getValue()));
+			} else {
+				String tmp = backend().variables().generateTemp();
+				emitter().emit("%s = %s;", code().declaration(type, tmp), backend().defaultValues().defaultValue(type));
+				emitter().emit("%s = %s;", backend().variables().declarationName(decl), tmp);
 			}
 		});
 		emitter().decreaseIndentation();
