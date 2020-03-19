@@ -53,7 +53,7 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 		emitter().emit("size_t size_%s_t(%s);", product.getName(), code().declaration(product, "self"));
 		emitter().emit("");
-		emitter().emit("%s* copy_%s_t(%s);", code().type(product), product.getName(), code().declaration(product, "self"));
+		emitter().emit("void copy_%s_t(%s, %s);", product.getName(), code().declaration(product, "*to"), code().declaration(product, "from"));
 		emitter().emit("");
 		emitter().emit("%s compare_%s_t(%s, %s);", code().type(BoolType.INSTANCE), product.getName(), code().declaration(product, "lhs"), code().declaration(product, "rhs"));
 		emitter().emit("");
@@ -101,7 +101,7 @@ public interface AlgebraicTypes {
 		emitter().emit("");
 		emitter().emit("size_t size_%s_t(%s);", sum.getName(), code().declaration(sum, "self"));
 		emitter().emit("");
-		emitter().emit("%s* copy_%s_t(%s);", code().type(sum), sum.getName(), code().declaration(sum, "self"));
+		emitter().emit("void copy_%s_t(%s, %s);", sum.getName(), code().declaration(sum, "*to"), code().declaration(sum, "from"));
 		emitter().emit("");
 		emitter().emit("%s compare_%s_t(%s, %s);", BoolType.INSTANCE, sum.getName(), code().declaration(sum, "lhs"), code().declaration(sum, "rhs"));
 		emitter().emit("");
@@ -219,16 +219,17 @@ public interface AlgebraicTypes {
 	}
 
 	default void defineCopy(ProductType product) {
-		String self = "self";
-		String copy = "copy";
-		emitter().emit("%s* copy_%s_t(%s) {", code().type(product), product.getName(), code().declaration(product, "self"));
+		String from = "from";
+		String to = "to";
+		emitter().emit("void copy_%s_t(%s, %s) {", product.getName(), code().declaration(product, "*" + to), code().declaration(product, from));
 		emitter().increaseIndentation();
-		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, copy), product.getName());
-		emitter().emit("if (!%s) return NULL;", copy);
+		emitter().emit("if (!%s || !%s) return;", to, from);
+		emitter().emit("if (*%s) { %s(*%s); *%s = NULL; }", to, destructor(product), to, to);
+		emitter().emit("if (!(*%s)) *%s = calloc(1, sizeof(%s_t));", to, to, product.getName());
+		emitter().emit("if (!(*%s)) return;", to);
 		product.getFields().forEach(field -> {
-			code().copy(field.getType(), copy + "->" + field.getName(), field.getType(), self + "->" + field.getName());
+			code().copy(field.getType(), "(*" + to + ")->" + field.getName(), field.getType(), from + "->" + field.getName());
 		});
-		emitter().emit("return %s;", copy);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("");
@@ -404,28 +405,29 @@ public interface AlgebraicTypes {
 	}
 
 	default void defineCopy(SumType sum) {
-		String self = "self";
-		String copy = "copy";
-		emitter().emit("%s* copy_%s_t(%s) {", code().type(sum), sum.getName(), code().declaration(sum, "self"));
+		String from = "from";
+		String to = "to";
+		emitter().emit("void copy_%s_t(%s, %s) {", sum.getName(), code().declaration(sum, "*" + to), code().declaration(sum, from));
 		emitter().increaseIndentation();
-		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(sum, copy), sum.getName());
-		emitter().emit("if (!%s) return NULL;", copy);
-		emitter().emit("%s->tag = %s->tag;", copy, self);
-		emitter().emit("switch (%s->tag) {", self);
+		emitter().emit("if (!%s || !%s) return;", to, from);
+		emitter().emit("if (*%s) { %s(*%s); *%s = NULL; }", to, destructor(sum), to, to);
+		emitter().emit("if (!(*%s)) *%s = calloc(1, sizeof(%s_t));", to, to, sum.getName());
+		emitter().emit("if (!(*%s)) return;", to);
+		emitter().emit("(*%s)->tag = %s->tag;", to, from);
+		emitter().emit("switch (%s->tag) {", from);
 		emitter().increaseIndentation();
 		sum.getVariants().forEach(variant -> {
 			emitter().emit("case tag_%s_%s:", sum.getName(), variant.getName());
 			emitter().increaseIndentation();
 			variant.getFields().forEach(field -> {
 				String field1 = String.format("->data.%s.%s", variant.getName(), field.getName());
-				code().copy(field.getType(), copy + field1, field.getType(), self + field1);
+				code().copy(field.getType(), "(*" + to + ")" + field1, field.getType(), from + field1);
 			});
 			emitter().emit("break;");
 			emitter().decreaseIndentation();
 		});
 		emitter().decreaseIndentation();
 		emitter().emit("}");
-		emitter().emit("return %s;", copy);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("");

@@ -70,7 +70,7 @@ public interface Code {
 	}
 
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
-		emitter().emit("%s = copy_%s(%s);", lvalue, backend().algebraicTypes().type(lvalueType), rvalue);
+		emitter().emit("copy_%s(&(%s), %s);", backend().algebraicTypes().type(lvalueType), lvalue, rvalue);
 	}
 
 	default String compare(Type lvalueType, String lvalue, Type rvalueType, String rvalue) {
