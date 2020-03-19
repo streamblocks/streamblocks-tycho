@@ -459,7 +459,16 @@ public interface Code {
 			parameters.add(name+".env");
 		}
 		for (Expression parameter : apply.getArgs()) {
-			parameters.add(evaluate(parameter));
+			String param = evaluate(parameter);
+			Type type = types().type(parameter);
+			if (type instanceof AlgebraicType) {
+				String tmp = variables().generateTemp();
+				emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+				copy(type, tmp, type, param);
+				memoryStack().trackPointer(tmp, type);
+				param = tmp;
+			}
+			parameters.add(param);
 		}
 		Type type = types().type(apply);
 		String result = variables().generateTemp();
