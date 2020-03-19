@@ -242,6 +242,13 @@ public interface Callables {
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
 		backend().memoryStack().enterScope();
 		String result = backend().code().evaluate(lambda.getBody());
+		Type retType = backend().types().type(lambda.getReturnType());
+		if (retType instanceof AlgebraicType) {
+			String tmp = backend().variables().generateTemp();
+			backend().emitter().emit("%s = %s;", backend().code().declaration(retType, tmp), backend().defaultValues().defaultValue(retType));
+			backend().code().copy(retType, tmp, retType, result);
+			result = tmp;
+		}
 		backend().memoryStack().exitScope();
 		backend().emitter().emit("return %s;", result);
 		backend().emitter().decreaseIndentation();

@@ -461,8 +461,12 @@ public interface Code {
 		for (Expression parameter : apply.getArgs()) {
 			parameters.add(evaluate(parameter));
 		}
+		Type type = types().type(apply);
 		String result = variables().generateTemp();
-		String decl = declaration(types().type(apply), result);
+		String decl = declaration(type, result);
+		if (type instanceof AlgebraicType) {
+			memoryStack().trackPointer(result, type);
+		}
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
 		return result;
 	}
