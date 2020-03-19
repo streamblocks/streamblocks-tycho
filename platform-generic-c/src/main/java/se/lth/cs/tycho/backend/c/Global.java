@@ -5,6 +5,7 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.attribute.Types;
+import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.Type;
 
@@ -36,6 +37,8 @@ public interface Global {
 		backend().callables().defineCallables();
 		emitter().emit("");
 		globalVariableInitializer(getGlobalVarDecls());
+		emitter().emit("");
+		globalVariableDestructor(getGlobalVarDecls());
 	}
 
 	default void generateGlobalHeader() {
@@ -47,6 +50,8 @@ public interface Global {
 		emitter().emit("#include <stdbool.h>");
 		emitter().emit("");
 		emitter().emit("void init_global_variables(void);");
+		emitter().emit("");
+		emitter().emit("void free_global_variables(void);");
 		emitter().emit("");
 		backend().lists().declareListTypes();
 		emitter().emit("");
@@ -78,6 +83,7 @@ public interface Global {
 	default void globalVariableInitializer(Stream<VarDecl> varDecls) {
 		emitter().emit("void init_global_variables() {");
 		emitter().increaseIndentation();
+		backend().memoryStack().enterScope();
 		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			if (decl.isExternal() && type instanceof CallableType) {
@@ -91,6 +97,20 @@ public interface Global {
 				String tmp = backend().variables().generateTemp();
 				emitter().emit("%s = %s;", code().declaration(type, tmp), backend().defaultValues().defaultValue(type));
 				emitter().emit("%s = %s;", backend().variables().declarationName(decl), tmp);
+			}
+		});
+		backend().memoryStack().exitScope();
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+	}
+
+	default void globalVariableDestructor(Stream<VarDecl> varDecls) {
+		emitter().emit("void free_global_variables() {");
+		emitter().increaseIndentation();
+		varDecls.forEach(decl -> {
+			Type type = types().declaredType(decl);
+			if (type instanceof AlgebraicType) {
+				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
 			}
 		});
 		emitter().decreaseIndentation();

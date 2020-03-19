@@ -197,6 +197,9 @@ public interface MainNetwork {
 			emitter().emit("output_actor_destroy_%s(%s_output_actor);", backend().channels().targetEndTypeSize(new Connection.End(Optional.empty(), port.getName())), port.getName());
 		}
 
+		emitter().emit("");
+		emitter().emit("free_global_variables();");
+
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		emitter().emit("");
