@@ -508,7 +508,7 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 	TypeExpr type = null;
 	String name;
 	Expression expr = null;
-	boolean assignable = false;
+	boolean assignable = true;
 }
 {
 	(

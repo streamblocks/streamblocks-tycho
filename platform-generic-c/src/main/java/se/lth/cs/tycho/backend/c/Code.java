@@ -209,6 +209,9 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		Type type = types().type(input);
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		if (type instanceof AlgebraicType) {
+			memoryStack().trackPointer(tmp, type);
+		}
 		if (input.hasRepeat()) {
 		    if (input.getOffset() == 0) {
 				emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, %s.data);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getRepeat(), tmp);

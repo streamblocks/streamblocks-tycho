@@ -14,7 +14,7 @@ public class ParameterVarDecl extends VarDecl {
 		this(null, type, name, defaultValue);
 	}
 	private ParameterVarDecl(VarDecl original, TypeExpr type, String name, Expression defaultValue) {
-		super(original, type, name, null, true, false);
+		super(original, type, name, null, false, false);
 		this.defaultValue = defaultValue;
 	}
 
