@@ -443,6 +443,7 @@ void VariableVarDecl(GenericVarDecl varDecl) :
     Token id;
 }
 {
+    { varDecl.constant = false; }
     (
         LOOKAHEAD(2)
         varDecl.type = Type()

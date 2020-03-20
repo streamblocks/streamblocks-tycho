@@ -75,6 +75,7 @@ public class Compiler {
                 new ResolveTypeConstructionPhase(),
                 new ResolvePatternVariableExpressionsPhase(),
                 new AddPatternTypeAnnotationPhase(),
+                new ConstantVariableImmutabilityPhase(),
                 new NameAnalysisPhase()
 
                 // -- Folding
