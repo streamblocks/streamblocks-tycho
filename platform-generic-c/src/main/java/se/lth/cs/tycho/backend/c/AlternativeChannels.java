@@ -146,7 +146,8 @@ public interface AlternativeChannels extends Channels {
 		for (int s : size) {
 			emitter().emit("	{");
 			emitter().emit("		channel_%s_%s *chan = channel_list.channel_%d;", tokenType, sizeToString(s), index);
-			emitter().emit("		write_%s(data, chan->buffer + (chan->write * size_%1$s()) %% %s);", tokenType, sizeToBufferSize(s));
+			emitter().emit("		chan->buffer[chan->write %% %s] = calloc(1, size_%s(data));", sizeToBufferSize(s), tokenType);
+			emitter().emit("		write_%s(data, chan->buffer[chan->write %% %s]);", tokenType, sizeToBufferSize(s));
 			emitter().emit("		chan->write++;");
 			emitter().emit("	}");
 			index += 1;
@@ -160,7 +161,8 @@ public interface AlternativeChannels extends Channels {
 			emitter().emit("	{");
 			emitter().emit("		channel_%s_%s *chan = channel_list.channel_%d;", tokenType, sizeToString(s), index);
 			emitter().emit("		for (size_t i = 0; i < tokens; i++) {");
-			emitter().emit("			write_%s(data[i], chan->buffer + (chan->write * size_%1$s()) %% %s);", tokenType, sizeToBufferSize(s));
+			emitter().emit("			chan->buffer[chan->write %% %s] = calloc(1, size_%s(data[i]));", sizeToBufferSize(s), tokenType);
+			emitter().emit("			write_%s(data[i], chan->buffer[chan->write %% %s]);", tokenType, sizeToBufferSize(s));
 			emitter().emit("			chan->write++;");
 			emitter().emit("		}");
 			emitter().emit("	}");
@@ -266,7 +268,7 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("typedef struct {");
 		emitter().emit("	size_t read;");
 		emitter().emit("	size_t write;");
-		emitter().emit("	char *buffer;");
+		emitter().emit("	char *buffer[%s];", bufferSize);
 		emitter().emit("} channel_%s_%s;", tokenType, sizeString);
 		emitter().emit("");
 
@@ -276,14 +278,19 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("");
 
 		emitter().emit("static inline %s* channel_peek_first_%1$s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
-		emitter().emit("	return read_%s(channel->buffer + ((channel->read * size_%1$s()) %% %s));", tokenType, bufferSize);
+		emitter().emit("	%s *res = read_%1$s(channel->buffer[channel->read %% %2$s]);", tokenType, bufferSize);
+		emitter().emit("	free(channel->buffer[channel->read %% %s]);", bufferSize);
+		emitter().emit("	channel->buffer[channel->read %% %s] = NULL;", bufferSize);
+		emitter().emit("	return res;");
 		emitter().emit("}");
 		emitter().emit("");
 
 		emitter().emit("static inline void channel_peek_%s_%s(channel_%1$s_%2$s *channel, size_t offset, size_t tokens, %1$s **result) {", tokenType, sizeString);
 		emitter().emit("	%s **res = result;", tokenType);
 		emitter().emit("	for (size_t i = 0; i < tokens; i++) {");
-		emitter().emit("		res[i] = read_%s(channel->buffer + (channel->read+(i+offset)*size_%1$s()) %% %s);", tokenType, bufferSize);
+		emitter().emit("		res[i] = read_%s(channel->buffer[(channel->read+i+offset) %% %s]);", tokenType, bufferSize);
+		emitter().emit("		free(channel->buffer[(channel->read+i+offset) %% %s]);", bufferSize);
+		emitter().emit("		channel->buffer[(channel->read+i+offset) %% %s] = NULL;", bufferSize);
 		emitter().emit("	}");
 		emitter().emit("}");
 		emitter().emit("");
@@ -294,15 +301,19 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("");
 
 		emitter().emit("static void channel_create_%s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
-		emitter().emit("	char *buffer = malloc(size_%s()*%s);", tokenType, bufferSize);
 		emitter().emit("	channel->read = 0;");
 		emitter().emit("	channel->write = 0;");
-		emitter().emit("	channel->buffer = buffer;");
+		emitter().emit("	for (size_t i = 0; i < %s; ++i) {", bufferSize);
+		emitter().emit("		channel->buffer[i] = NULL;");
+		emitter().emit("	}");
 		emitter().emit("}");
 		emitter().emit("");
 
 		emitter().emit("static void channel_destroy_%s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
-		emitter().emit("	free(channel->buffer);");
+		emitter().emit("	for (size_t i = 0; i < %s; ++i) {", bufferSize);
+		emitter().emit("		free(channel->buffer[i]);");
+		emitter().emit("		channel->buffer[i] = NULL;");
+		emitter().emit("	}");
 		emitter().emit("}");
 		emitter().emit("");
 	}
