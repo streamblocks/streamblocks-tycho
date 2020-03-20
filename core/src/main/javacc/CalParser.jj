@@ -2225,12 +2225,12 @@ SumTypeDecl SumTypeDecl(Token name) :
 }
 {
     variant = VariantDecl() { variants.add(variant); }
-    { first = variant; }
+    { last = first = variant; }
     (
         "|"
         variant = VariantDecl() { variants.add(variant); }
         { last = variant; }
-    )+
+    )*
     { return setPosition(new SumTypeDecl(name.image, variants.build()), first, last); }
 }
 
