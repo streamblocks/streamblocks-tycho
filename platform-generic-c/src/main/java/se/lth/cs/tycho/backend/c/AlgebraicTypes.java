@@ -130,7 +130,7 @@ public interface AlgebraicTypes {
 		emitter().increaseIndentation();
 		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, self), product.getName());
 		emitter().emit("if (!%s) return NULL;", self);
-		product.getFields().forEach(field -> emitter().emit("%s->%s = %s;", self, field.getName(), field.getName()));
+		product.getFields().forEach(field ->  code().copy(field.getType(), String.format("%s->%s", self, field.getName()), field.getType(), field.getName()));
 		emitter().emit("return %s;", self);
 		emitter().decreaseIndentation();
 		emitter().emit("}");
@@ -269,7 +269,7 @@ public interface AlgebraicTypes {
 			emitter().emit("if (!%s) return NULL;", self);
 			emitter().emit("%s->tag = tag_%s_%s;", self, sum.getName(), variant.getName());
 			variant.getFields().forEach(field -> {
-				emitter().emit("%s->data.%s.%s = %s;", self, variant.getName(), field.getName(), field.getName());
+				code().copy(field.getType(), String.format("%s->data.%s.%s", self, variant.getName(), field.getName()), field.getType(), field.getName());
 			});
 			emitter().emit("return %s;", self);
 			emitter().decreaseIndentation();
@@ -342,10 +342,10 @@ public interface AlgebraicTypes {
 		String ptr = "ptr";
 		emitter().emit("%s* read_%s_t(char *buffer) {", code().type(sum), sum.getName());
 		emitter().increaseIndentation();
-		emitter().emit("if (!buffer) return;");
+		emitter().emit("if (!buffer) return NULL;");
 		emitter().emit("char *%s = buffer;", ptr);
 		emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(sum, self), sum.getName());
-		emitter().emit("if (!%s) return;", self);
+		emitter().emit("if (!%s) return NULL;", self);
 		emitter().emit("%s->tag = *(enum %s_tag_t*) %s;", self,  sum.getName(), ptr);
 		emitter().emit("%s = (char*)((enum %s_tag_t*) ptr + 1);", ptr, sum.getName(), ptr);
 		emitter().emit("switch (%s->tag) {", self);
