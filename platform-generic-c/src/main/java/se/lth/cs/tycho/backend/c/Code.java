@@ -542,7 +542,7 @@ public interface Code {
 		Type type = types().type(assertion.getType());
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		emitter().emit("%s = (%s)(%s);", decl, type(type), evaluate(assertion.getExpression()));
+		emitter().emit("%s = (%s)(%s);", decl, type(type) + (type instanceof AlgebraicType ? "*" : ""), evaluate(assertion.getExpression()));
 		return result;
 	}
 
