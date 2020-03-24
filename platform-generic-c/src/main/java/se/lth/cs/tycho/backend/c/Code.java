@@ -57,7 +57,7 @@ public interface Code {
 	}
 
 	default void copy(ListType lvalueType, String lvalue, ListType rvalueType, String rvalue) {
-		if (lvalueType.equals(rvalueType)) {
+		if (lvalueType.equals(rvalueType) && !isAlgebraicTypeList(lvalueType)) {
 			emitter().emit("%s = %s;", lvalue, rvalue);
 		} else {
 			String index = variables().generateTemp();
@@ -71,6 +71,16 @@ public interface Code {
 
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		emitter().emit("copy_%s(&(%s), %s);", backend().algebraicTypes().type(lvalueType), lvalue, rvalue);
+	}
+
+	default boolean isAlgebraicTypeList(ListType type) {
+		if (type.getElementType() instanceof AlgebraicType) {
+			return true;
+		} else if (!(type.getElementType() instanceof ListType)) {
+			return false;
+		} else {
+			return isAlgebraicTypeList((ListType) type.getElementType());
+		}
 	}
 
 	default String compare(Type lvalueType, String lvalue, Type rvalueType, String rvalue) {
@@ -372,9 +382,21 @@ public interface Code {
 		ListType t = (ListType) types().type(list);
 		if (t.getSize().isPresent()) {
 			String name = variables().generateTemp();
+			Type elementType = t.getElementType();
+			if (elementType instanceof AlgebraicType) {
+				memoryStack().trackPointer(name, t);
+			}
 			String decl = declaration(t, name);
 			String value = list.getElements().stream().sequential()
-					.map(this::evaluate)
+					.map(element -> {
+						if (elementType instanceof AlgebraicType) {
+							String tmp = variables().generateTemp();
+							emitter().emit("%s = %s;", declaration(elementType, tmp), backend().defaultValues().defaultValue(elementType));
+							copy(elementType, tmp, elementType , evaluate(element));
+							return tmp;
+						}
+						return evaluate(element);
+					})
 					.collect(Collectors.joining(", ", "{ .data = {", "}}"));
 			emitter().emit("%s = %s;", decl, value);
 			return name;
@@ -461,19 +483,12 @@ public interface Code {
 		for (Expression parameter : apply.getArgs()) {
 			String param = evaluate(parameter);
 			Type type = types().type(parameter);
-			if (type instanceof AlgebraicType) {
-				String tmp = variables().generateTemp();
-				emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
-				copy(type, tmp, type, param);
-				memoryStack().trackPointer(tmp, type);
-				param = tmp;
-			}
-			parameters.add(param);
+			parameters.add(passByValue(param, type));
 		}
 		Type type = types().type(apply);
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		if (type instanceof AlgebraicType) {
+		if ((type instanceof AlgebraicType) || (type instanceof ListType && isAlgebraicTypeList((ListType) type))) {
 			memoryStack().trackPointer(result, type);
 		}
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
@@ -668,14 +683,7 @@ public interface Code {
 		for (Expression parameter : call.getArgs()) {
 			String param = evaluate(parameter);
 			Type type = types().type(parameter);
-			if (type instanceof AlgebraicType) {
-				String tmp = variables().generateTemp();
-				emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
-				copy(type, tmp, type, param);
-				memoryStack().trackPointer(tmp, type);
-				param = tmp;
-			}
-			parameters.add(param);
+			parameters.add(passByValue(param, type));
 		}
 		emitter().emit("%s(%s);", proc, String.join(", ", parameters));
 		memoryStack().exitScope();
@@ -712,5 +720,49 @@ public interface Code {
 
 	default String lvalue(LValueField field) {
 		return String.format("%s->%s", lvalue(field.getStructure()), field.getField().getName());
+	}
+
+	default String passByValue(String param, Type type) {
+		return param;
+	}
+
+	default String passByValue(String param, AlgebraicType type) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, param);
+		memoryStack().trackPointer(tmp, type);
+		return tmp;
+	}
+
+	default String passByValue(String param, ListType type) {
+		if (!isAlgebraicTypeList(type)) {
+			return param;
+		}
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, param);
+		memoryStack().trackPointer(tmp, type);
+		return tmp;
+	}
+
+	default String returnValue(String result, Type type) {
+		return result;
+	}
+
+	default String returnValue(String result, AlgebraicType type) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, result);
+		return tmp;
+	}
+
+	default String returnValue(String result, ListType type) {
+		if (!isAlgebraicTypeList(type)) {
+			return result;
+		}
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, result);
+		return tmp;
 	}
 }

@@ -13,6 +13,7 @@ import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
+import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.ArrayList;
@@ -267,6 +268,17 @@ public interface Structure {
 					emitter().emit("{");
 					emitter().increaseIndentation();
 					emitter().emit("%s(self->%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(var));
+					emitter().decreaseIndentation();
+					emitter().emit("}");
+				} else if (type instanceof ListType && code().isAlgebraicTypeList((ListType) type)) {
+					emitter().emit("{");
+					emitter().increaseIndentation();
+					ListType listType = (ListType) type;
+					emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
+					emitter().increaseIndentation();
+					emitter().emit("%s(self->%s.data[i]);", backend().algebraicTypes().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(var));
+					emitter().decreaseIndentation();
+					emitter().emit("}");
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				}

@@ -25,6 +25,23 @@ public interface AlgebraicTypes {
 		return backend().code();
 	}
 
+	default void forwardDeclareAlgebraicTypes() {
+		emitter().emit("// FORWARD TYPE DECLARATIONS");
+		types().forEachOrdered(this::forwardDeclareType);
+	}
+
+	default void forwardDeclareType(AlgebraicType type) {}
+
+	default void forwardDeclareType(ProductType product) {
+		emitter().emit("typedef struct %s_s %s_t;", product.getName(), product.getName());
+		emitter().emit("");
+	}
+
+	default void forwardDeclareType(SumType sum) {
+		emitter().emit("typedef struct %s_s %s_t;", sum.getName(), sum.getName());
+		emitter().emit("");
+	}
+
 	default void declareAlgebraicTypes() {
 		emitter().emit("// TYPE DECLARATIONS");
 		types().forEachOrdered(this::declareType);
@@ -33,8 +50,6 @@ public interface AlgebraicTypes {
 	default void declareType(AlgebraicType type) {}
 
 	default void declareType(ProductType product) {
-		emitter().emit("typedef struct %s_s %s_t;", product.getName(), product.getName());
-		emitter().emit("");
 		emitter().emit("struct %s_s {", product.getName());
 		emitter().increaseIndentation();
 		product.getFields().forEach(field -> {
@@ -60,8 +75,6 @@ public interface AlgebraicTypes {
 	}
 
 	default void declareType(SumType sum) {
-		emitter().emit("typedef struct %s_s %s_t;", sum.getName(), sum.getName());
-		emitter().emit("");
 		emitter().emit("enum %s_tag_t {", sum.getName());
 		emitter().increaseIndentation();
 		sum.getVariants().forEach(variant -> {

@@ -7,6 +7,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.CallableType;
+import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.stream.Stream;
@@ -52,6 +53,8 @@ public interface Global {
 		emitter().emit("void init_global_variables(void);");
 		emitter().emit("");
 		emitter().emit("void free_global_variables(void);");
+		emitter().emit("");
+		backend().algebraicTypes().forwardDeclareAlgebraicTypes();
 		emitter().emit("");
 		backend().lists().declareListTypes();
 		emitter().emit("");
@@ -111,6 +114,17 @@ public interface Global {
 			Type type = types().declaredType(decl);
 			if (type instanceof AlgebraicType) {
 				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
+			} else if (type instanceof ListType && code().isAlgebraicTypeList((ListType) type)) {
+				emitter().emit("{");
+				emitter().increaseIndentation();
+				ListType listType = (ListType) type;
+				emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
+				emitter().increaseIndentation();
+				emitter().emit("%s(%s.data[i]);", backend().algebraicTypes().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(decl));
+				emitter().decreaseIndentation();
+				emitter().emit("}");
+				emitter().decreaseIndentation();
+				emitter().emit("}");
 			}
 		});
 		emitter().decreaseIndentation();

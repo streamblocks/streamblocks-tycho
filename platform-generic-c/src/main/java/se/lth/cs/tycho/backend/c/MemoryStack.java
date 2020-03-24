@@ -4,9 +4,11 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -29,11 +31,19 @@ public interface MemoryStack {
 
 	default void exitScope() {
 		pointers().pop().forEach((ptr, type) -> {
-			emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), ptr);
+			if (type instanceof AlgebraicType) {
+				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), ptr);
+			} else if (type instanceof ListType) {
+				ListType listType = (ListType) type;
+				emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
+				emitter().increaseIndentation();
+				emitter().emit("%s(%s.data[i]);", backend().algebraicTypes().destructor((AlgebraicType) listType.getElementType()), ptr);
+				emitter().decreaseIndentation();
+				emitter().emit("}");
+			}
 		});
 	}
-
-
+	
 	default void trackPointer(String ptr, Type type) {
 		if (!pointers().empty()) {
 			pointers().peek().put(ptr, type);

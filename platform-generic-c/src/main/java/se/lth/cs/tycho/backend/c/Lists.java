@@ -6,6 +6,7 @@ import org.multij.Module;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.Type;
 
@@ -21,12 +22,14 @@ public interface Lists {
     }
 
     default void declareListTypes() {
+        emitter().emit("// LIST DECLARATIONS");
         listTypes().forEachOrdered(this::declareType);
     }
 
     default void declareType(ListType type) {
         String typeName = backend().code().type(type);
         String elementType = backend().code().type(type.getElementType());
+        if (type.getElementType() instanceof AlgebraicType) elementType += "*";
         int size = type.getSize().getAsInt();
 
         emitter().emit("typedef struct {");
