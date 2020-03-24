@@ -57,7 +57,7 @@ public interface Code {
 	}
 
 	default void copy(ListType lvalueType, String lvalue, ListType rvalueType, String rvalue) {
-		if (lvalueType.equals(rvalueType)) {
+		if (lvalueType.equals(rvalueType) && !isAlgebraicTypeList(lvalueType)) {
 			emitter().emit("%s = %s;", lvalue, rvalue);
 		} else {
 			String index = variables().generateTemp();
@@ -71,6 +71,16 @@ public interface Code {
 
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		emitter().emit("copy_%s(&(%s), %s);", backend().algebraicTypes().type(lvalueType), lvalue, rvalue);
+	}
+
+	default boolean isAlgebraicTypeList(ListType type) {
+		if (type.getElementType() instanceof AlgebraicType) {
+			return true;
+		} else if (!(type.getElementType() instanceof ListType)) {
+			return false;
+		} else {
+			return isAlgebraicTypeList((ListType) type.getElementType());
+		}
 	}
 
 	default String compare(Type lvalueType, String lvalue, Type rvalueType, String rvalue) {
