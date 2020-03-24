@@ -488,7 +488,7 @@ public interface Code {
 		Type type = types().type(apply);
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		if (type instanceof AlgebraicType) {
+		if ((type instanceof AlgebraicType) || (type instanceof ListType && isAlgebraicTypeList((ListType) type))) {
 			memoryStack().trackPointer(result, type);
 		}
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
