@@ -83,32 +83,23 @@ public interface TypeScopes {
 		}
 
 		default Optional<TypeDecl> declaration(ExprTypeConstruction construction) {
-			return typeDeclarations()
-					.declarations(sourceUnit(construction).getTree())
-					.stream()
-					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> Objects.equals(decl.getName(), construction.getConstructor()))
-					// name analysis ??? .filter(decl -> decl.getTuples().stream().anyMatch(tuple -> Objects.equals(tuple.getName(), reference.getChild())))
-					.map(TypeDecl.class::cast)
-					.findAny();
+			return declarationOf(construction, construction.getConstructor());
 		}
 
 		default Optional<TypeDecl> declaration(ExprVariable var) {
-			return typeDeclarations()
-					.declarations(sourceUnit(var).getTree())
-					.stream()
-					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> Objects.equals(decl.getName(), var.getVariable().getName()))
-					.map(TypeDecl.class::cast)
-					.findAny();
+			return declarationOf(var, var.getVariable().getName());
 		}
 
 		default Optional<TypeDecl> declaration(NominalTypeExpr type) {
+			return declarationOf(type, type.getName());
+		}
+
+		default Optional<TypeDecl> declarationOf(IRNode node, String name) {
 			return typeDeclarations()
-					.declarations(sourceUnit(type).getTree())
+					.declarations(sourceUnit(node).getTree())
 					.stream()
 					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> Objects.equals(decl.getName(), type.getName()))
+					.filter(decl -> Objects.equals(decl.getName(), name))
 					.map(TypeDecl.class::cast)
 					.findAny();
 		}
