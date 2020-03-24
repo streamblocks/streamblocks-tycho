@@ -21,6 +21,7 @@ public interface Lists {
     }
 
     default void declareListTypes() {
+        emitter().emit("// LIST DECLARATIONS");
         listTypes().forEachOrdered(this::declareType);
     }
 

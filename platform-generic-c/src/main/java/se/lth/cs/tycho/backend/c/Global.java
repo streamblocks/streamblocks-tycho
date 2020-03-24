@@ -53,6 +53,8 @@ public interface Global {
 		emitter().emit("");
 		emitter().emit("void free_global_variables(void);");
 		emitter().emit("");
+		backend().algebraicTypes().forwardDeclareAlgebraicTypes();
+		emitter().emit("");
 		backend().lists().declareListTypes();
 		emitter().emit("");
 		backend().algebraicTypes().declareAlgebraicTypes();
