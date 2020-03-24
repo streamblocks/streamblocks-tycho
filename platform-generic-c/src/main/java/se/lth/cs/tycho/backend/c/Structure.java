@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.entity.am.*;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.Type;
 
@@ -190,8 +191,10 @@ public interface Structure {
 			emitter().increaseIndentation();
 			backend().memoryStack().enterScope();
 			String result = evaluateCondition(condition);
+			String tmp = backend().variables().generateTemp();
+			emitter().emit("%s = %s;", backend().code().declaration(BoolType.INSTANCE, tmp), result);
 			backend().memoryStack().exitScope();
-			emitter().emit("return %s;", result);
+			emitter().emit("return %s;", tmp);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -230,7 +233,9 @@ public interface Structure {
 				} else if (var.getValue() != null) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
+					backend().memoryStack().enterScope();
 					code().copy(types().declaredType(var), "self->" + backend().variables().declarationName(var), types().type(var.getValue()), code().evaluate(var.getValue()));
+					backend().memoryStack().exitScope();
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				} else {

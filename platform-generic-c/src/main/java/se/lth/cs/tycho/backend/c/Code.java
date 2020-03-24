@@ -542,7 +542,7 @@ public interface Code {
 		Type type = types().type(assertion.getType());
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		emitter().emit("%s = (%s)(%s);", decl, type(type), evaluate(assertion.getExpression()));
+		emitter().emit("%s = (%s)(%s);", decl, type(type) + (type instanceof AlgebraicType ? "*" : ""), evaluate(assertion.getExpression()));
 		return result;
 	}
 
@@ -586,9 +586,11 @@ public interface Code {
 	}
 
 	default void execute(StmtAssignment assign) {
+		memoryStack().enterScope();
 		Type type = types().lvalueType(assign.getLValue());
 		String lvalue = lvalue(assign.getLValue());
 		copy(type, lvalue, types().type(assign.getExpression()), evaluate(assign.getExpression()));
+		memoryStack().exitScope();
 	}
 
 	default void execute(StmtBlock block) {
@@ -600,6 +602,9 @@ public interface Code {
 			Type t = types().declaredType(decl);
 			String declarationName = variables().declarationName(decl);
 			String d = declaration(t, declarationName);
+			if (t instanceof AlgebraicType) {
+				memoryStack().trackPointer(declarationName, t);
+			}
 			emitter().emit("%s = %s;", d, backend().defaultValues().defaultValue(t));
 			if (decl.getValue() != null) {
 				copy(t, declarationName, types().type(decl.getValue()), evaluate(decl.getValue()));
@@ -612,6 +617,7 @@ public interface Code {
 	}
 
 	default void execute(StmtIf stmt) {
+		memoryStack().enterScope();
 		emitter().emit("if (%s) {", evaluate(stmt.getCondition()));
 		emitter().increaseIndentation();
 		memoryStack().enterScope();
@@ -627,6 +633,7 @@ public interface Code {
 			emitter().decreaseIndentation();
 		}
 		emitter().emit("}");
+		memoryStack().exitScope();
 	}
 
 	default void execute(StmtForeach foreach) {
@@ -646,6 +653,7 @@ public interface Code {
 	}
 
 	default void execute(StmtCall call) {
+		memoryStack().enterScope();
 		Optional<String> directlyCallable = backend().callables().directlyCallableName(call.getProcedure());
 		String proc;
 		List<String> parameters = new ArrayList<>();
@@ -658,9 +666,19 @@ public interface Code {
 			parameters.add(name + ".env");
 		}
 		for (Expression parameter : call.getArgs()) {
-			parameters.add(evaluate(parameter));
+			String param = evaluate(parameter);
+			Type type = types().type(parameter);
+			if (type instanceof AlgebraicType) {
+				String tmp = variables().generateTemp();
+				emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+				copy(type, tmp, type, param);
+				memoryStack().trackPointer(tmp, type);
+				param = tmp;
+			}
+			parameters.add(param);
 		}
 		emitter().emit("%s(%s);", proc, String.join(", ", parameters));
+		memoryStack().exitScope();
 	}
 
 	default void execute(StmtWhile stmt) {
