@@ -744,4 +744,25 @@ public interface Code {
 		memoryStack().trackPointer(tmp, type);
 		return tmp;
 	}
+
+	default String returnValue(String result, Type type) {
+		return result;
+	}
+
+	default String returnValue(String result, AlgebraicType type) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, result);
+		return tmp;
+	}
+
+	default String returnValue(String result, ListType type) {
+		if (!isAlgebraicTypeList(type)) {
+			return result;
+		}
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, result);
+		return tmp;
+	}
 }
