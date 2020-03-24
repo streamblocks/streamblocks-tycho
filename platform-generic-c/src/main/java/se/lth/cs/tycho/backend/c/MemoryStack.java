@@ -32,8 +32,7 @@ public interface MemoryStack {
 			emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), ptr);
 		});
 	}
-
-
+	
 	default void trackPointer(String ptr, Type type) {
 		if (!pointers().empty()) {
 			pointers().peek().put(ptr, type);

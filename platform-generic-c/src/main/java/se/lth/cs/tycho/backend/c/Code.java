@@ -461,14 +461,7 @@ public interface Code {
 		for (Expression parameter : apply.getArgs()) {
 			String param = evaluate(parameter);
 			Type type = types().type(parameter);
-			if (type instanceof AlgebraicType) {
-				String tmp = variables().generateTemp();
-				emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
-				copy(type, tmp, type, param);
-				memoryStack().trackPointer(tmp, type);
-				param = tmp;
-			}
-			parameters.add(param);
+			parameters.add(passByValue(param, type));
 		}
 		Type type = types().type(apply);
 		String result = variables().generateTemp();
@@ -668,14 +661,7 @@ public interface Code {
 		for (Expression parameter : call.getArgs()) {
 			String param = evaluate(parameter);
 			Type type = types().type(parameter);
-			if (type instanceof AlgebraicType) {
-				String tmp = variables().generateTemp();
-				emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
-				copy(type, tmp, type, param);
-				memoryStack().trackPointer(tmp, type);
-				param = tmp;
-			}
-			parameters.add(param);
+			parameters.add(passByValue(param, type));
 		}
 		emitter().emit("%s(%s);", proc, String.join(", ", parameters));
 		memoryStack().exitScope();
@@ -712,5 +698,17 @@ public interface Code {
 
 	default String lvalue(LValueField field) {
 		return String.format("%s->%s", lvalue(field.getStructure()), field.getField().getName());
+	}
+
+	default String passByValue(String param, Type type) {
+		return param;
+	}
+
+	default String passByValue(String param, AlgebraicType type) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, param);
+		memoryStack().trackPointer(tmp, type);
+		return tmp;
 	}
 }
