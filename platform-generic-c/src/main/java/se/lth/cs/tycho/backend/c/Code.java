@@ -733,4 +733,15 @@ public interface Code {
 		memoryStack().trackPointer(tmp, type);
 		return tmp;
 	}
+
+	default String passByValue(String param, ListType type) {
+		if (!isAlgebraicTypeList(type)) {
+			return param;
+		}
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, param);
+		memoryStack().trackPointer(tmp, type);
+		return tmp;
+	}
 }
