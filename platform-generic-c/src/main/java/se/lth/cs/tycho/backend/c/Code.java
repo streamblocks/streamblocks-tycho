@@ -372,9 +372,21 @@ public interface Code {
 		ListType t = (ListType) types().type(list);
 		if (t.getSize().isPresent()) {
 			String name = variables().generateTemp();
+			Type elementType = t.getElementType();
+			if (elementType instanceof AlgebraicType) {
+				memoryStack().trackPointer(name, t);
+			}
 			String decl = declaration(t, name);
 			String value = list.getElements().stream().sequential()
-					.map(this::evaluate)
+					.map(element -> {
+						if (elementType instanceof AlgebraicType) {
+							String tmp = variables().generateTemp();
+							emitter().emit("%s = %s;", declaration(elementType, tmp), backend().defaultValues().defaultValue(elementType));
+							copy(elementType, tmp, elementType , evaluate(element));
+							return tmp;
+						}
+						return evaluate(element);
+					})
 					.collect(Collectors.joining(", ", "{ .data = {", "}}"));
 			emitter().emit("%s = %s;", decl, value);
 			return name;
