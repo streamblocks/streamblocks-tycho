@@ -74,6 +74,8 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 					checkTypeParams(type);
 					checkValueParams(type);
 					break;
+				case "<transient>":
+					break;
 				default:
 					ImmutableList<TypeDecl> typeDecls = typeScopes().declarations(sourceUnit(type).getTree());
 					if (typeDecls.stream().anyMatch(decl -> decl.getName().equals(type.getName()))) {

@@ -107,6 +107,7 @@ public class Compiler {
                 new TypeAnnotationAnalysisPhase(),
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),
+                new AddTransientPatternTypeAnnotationPhase(),
 
                 // Orcc list parameters
                 new OrccListParameters());

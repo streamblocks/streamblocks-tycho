@@ -21,6 +21,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
+import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.stmt.lvalue.*;
 import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
@@ -117,11 +118,28 @@ public interface Types {
 		}
 
 		default Type type(PatternVariable variable) {
+			NominalTypeExpr typeExpr = (NominalTypeExpr) variable.getDeclaration().getType();
+			if (Objects.equals(typeExpr.getName(), "<transient>")) {
+				return typeOfTransientPattern(variable);
+			}
 			return convert(variable.getDeclaration().getType());
 		}
 
 		default Type type(PatternWildcard wildcard) {
+			NominalTypeExpr typeExpr = (NominalTypeExpr) wildcard.getType();
+			if (Objects.equals(typeExpr.getName(), "<transient>")) {
+				return typeOfTransientPattern(wildcard);
+			}
 			return convert(wildcard.getType());
+		}
+
+		default Type typeOfTransientPattern(Pattern pattern) {
+			IRNode parent = tree().parent(tree().parent(pattern));
+			if (parent instanceof ExprCase) {
+				return type(((ExprCase) parent).getExpression());
+			} else {
+				return type(((StmtCase) parent).getExpression());
+			}
 		}
 
 		@Binding(BindingKind.LAZY)
