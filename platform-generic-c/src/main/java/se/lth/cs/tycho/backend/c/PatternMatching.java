@@ -146,7 +146,8 @@ public interface PatternMatching {
 	}
 
 	default void openPattern(PatternExpression pattern, String target, String deref, String member) {
-		emitter().emit("if (%s%s%s == %s) {", target, deref, member, code().evaluate(pattern.getExpression()));
+		Type type = backend().types().type(pattern.getExpression());
+		emitter().emit("if (%s) {", code().compare(type, String.format("%s%s%s", target, deref, member), type, code().evaluate(pattern.getExpression())));
 		emitter().increaseIndentation();
 		backend().memoryStack().enterScope();
 	}
