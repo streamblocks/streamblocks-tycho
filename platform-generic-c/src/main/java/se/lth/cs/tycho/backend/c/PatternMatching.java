@@ -39,7 +39,7 @@ public interface PatternMatching {
 		emitter().emit("%s = false;", code().declaration(BoolType.INSTANCE, match));
 		Type type = code().types().type(caseExpr);
 		String result = code().variables().generateTemp();
-		if (type instanceof AlgebraicType) {
+		if ((type instanceof AlgebraicType) || (code().isAlgebraicTypeList(type))) {
 			backend().memoryStack().trackPointer(result, type);
 		}
 		emitter().emit("%s;", code().declaration(type, result));

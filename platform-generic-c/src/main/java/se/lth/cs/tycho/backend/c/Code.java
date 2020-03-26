@@ -73,13 +73,15 @@ public interface Code {
 		emitter().emit("copy_%s(&(%s), %s);", backend().algebraicTypes().type(lvalueType), lvalue, rvalue);
 	}
 
-	default boolean isAlgebraicTypeList(ListType type) {
-		if (type.getElementType() instanceof AlgebraicType) {
-			return true;
-		} else if (!(type.getElementType() instanceof ListType)) {
+	default boolean isAlgebraicTypeList(Type type) {
+		if (!(type instanceof ListType)) {
 			return false;
+		}
+		ListType listType = (ListType) type;
+		if (listType.getElementType() instanceof AlgebraicType) {
+			return true;
 		} else {
-			return isAlgebraicTypeList((ListType) type.getElementType());
+			return isAlgebraicTypeList(listType.getElementType());
 		}
 	}
 
@@ -488,7 +490,7 @@ public interface Code {
 		Type type = types().type(apply);
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		if ((type instanceof AlgebraicType) || (type instanceof ListType && isAlgebraicTypeList((ListType) type))) {
+		if ((type instanceof AlgebraicType) || (isAlgebraicTypeList(type))) {
 			memoryStack().trackPointer(result, type);
 		}
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
