@@ -451,11 +451,7 @@ public class TypeAnalysisPhase implements Phase {
 			Type type = types().type(caseExpr.getExpression());
 
 			caseExpr.getAlternatives().forEach(alternative -> {
-				alternative.getGuards().forEach(guard -> {
-					if (types().type(guard) instanceof AlgebraicType) {
-						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Guard cannot be an algebraic data type.", sourceUnit(), guard));
-					}
-				});
+				alternative.getGuards().forEach(guard -> checkAssignment(BoolType.INSTANCE, types().type(guard), guard));
 			});
 
 			caseExpr.getAlternatives().forEach(alternative -> {
@@ -469,11 +465,7 @@ public class TypeAnalysisPhase implements Phase {
 			Type type = types().type(caseStmt.getExpression());
 
 			caseStmt.getAlternatives().forEach(alternative -> {
-				alternative.getGuards().forEach(guard -> {
-					if (types().type(guard) instanceof AlgebraicType) {
-						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Guard cannot be an algebraic data type.", sourceUnit(), guard));
-					}
-				});
+				alternative.getGuards().forEach(guard -> checkAssignment(BoolType.INSTANCE, types().type(guard), guard));
 			});
 
 			caseStmt.getAlternatives().forEach(alternative -> {
