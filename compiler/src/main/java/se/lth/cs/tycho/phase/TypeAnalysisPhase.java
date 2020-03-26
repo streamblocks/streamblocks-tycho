@@ -450,10 +450,6 @@ public class TypeAnalysisPhase implements Phase {
 		default void checkTypes(ExprCase caseExpr) {
 			Type type = types().type(caseExpr.getExpression());
 
-			if (!(type instanceof AlgebraicType)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not pattern matched a non algebraic data type.", sourceUnit(), caseExpr.getExpression()));
-			}
-
 			caseExpr.getAlternatives().forEach(alternative -> {
 				alternative.getGuards().forEach(guard -> {
 					if (types().type(guard) instanceof AlgebraicType) {
@@ -471,10 +467,6 @@ public class TypeAnalysisPhase implements Phase {
 
 		default void checkTypes(StmtCase caseStmt) {
 			Type type = types().type(caseStmt.getExpression());
-
-			if (!(type instanceof AlgebraicType)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not pattern matched a non algebraic data type.", sourceUnit(), caseStmt.getExpression()));
-			}
 
 			caseStmt.getAlternatives().forEach(alternative -> {
 				alternative.getGuards().forEach(guard -> {
