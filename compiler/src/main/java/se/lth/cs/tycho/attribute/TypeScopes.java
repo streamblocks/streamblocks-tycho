@@ -83,32 +83,23 @@ public interface TypeScopes {
 		}
 
 		default Optional<TypeDecl> declaration(ExprTypeConstruction construction) {
-			return typeDeclarations()
-					.declarations(sourceUnit(construction).getTree())
-					.stream()
-					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> Objects.equals(decl.getName(), construction.getConstructor()))
-					// name analysis ??? .filter(decl -> decl.getTuples().stream().anyMatch(tuple -> Objects.equals(tuple.getName(), reference.getChild())))
-					.map(TypeDecl.class::cast)
-					.findAny();
+			return declarationOf(construction, construction.getConstructor());
 		}
 
 		default Optional<TypeDecl> declaration(ExprVariable var) {
-			return typeDeclarations()
-					.declarations(sourceUnit(var).getTree())
-					.stream()
-					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> Objects.equals(decl.getName(), var.getVariable().getName()))
-					.map(TypeDecl.class::cast)
-					.findAny();
+			return declarationOf(var, var.getVariable().getName());
 		}
 
 		default Optional<TypeDecl> declaration(NominalTypeExpr type) {
+			return declarationOf(type, type.getName());
+		}
+
+		default Optional<TypeDecl> declarationOf(IRNode node, String name) {
 			return typeDeclarations()
-					.declarations(sourceUnit(type).getTree())
+					.declarations(sourceUnit(node).getTree())
 					.stream()
 					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> Objects.equals(decl.getName(), type.getName()))
+					.filter(decl -> Objects.equals(decl.getName(), name))
 					.map(TypeDecl.class::cast)
 					.findAny();
 		}
@@ -119,69 +110,31 @@ public interface TypeScopes {
 		}
 
 		default Optional<TypeDecl> construction(ExprTypeConstruction construction) {
-			return typeDeclarations()
-					.declarations(sourceUnit(construction).getTree())
-					.stream()
-					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> {
-						if (decl.getDeclaration() instanceof ProductTypeDecl) {
-							return Objects.equals(construction.getConstructor(), decl.getDeclaration().getName());
-						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
-							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(construction.getConstructor(), variant.getName()));
-						} else {
-							return false;
-						}
-					})
-					.map(TypeDecl.class::cast)
-					.findAny();
+			return constructionOf(construction, construction.getConstructor());
 		}
 
 		default Optional<TypeDecl> construction(ExprVariable var) {
-			return typeDeclarations()
-					.declarations(sourceUnit(var).getTree())
-					.stream()
-					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> {
-						if (decl.getDeclaration() instanceof ProductTypeDecl) {
-							return Objects.equals(var.getVariable().getName(), decl.getDeclaration().getName());
-						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
-							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(var.getVariable().getName(), variant.getName()));
-						} else {
-							return false;
-						}
-					})
-					.map(TypeDecl.class::cast)
-					.findAny();
+			return constructionOf(var, var.getVariable().getName());
 		}
 
 		default Optional<TypeDecl> construction(NominalTypeExpr type) {
-			return typeDeclarations()
-					.declarations(sourceUnit(type).getTree())
-					.stream()
-					.map(GlobalTypeDecl.class::cast)
-					.filter(decl -> {
-						if (decl.getDeclaration() instanceof ProductTypeDecl) {
-							return Objects.equals(type.getName(), decl.getDeclaration().getName());
-						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
-							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(type.getName(), variant.getName()));
-						} else {
-							return false;
-						}
-					})
-					.map(TypeDecl.class::cast)
-					.findAny();
+			return constructionOf(type, type.getName());
 		}
 
 		default Optional<TypeDecl> construction(PatternDeconstructor deconstructor) {
+			return constructionOf(deconstructor, deconstructor.getName());
+		}
+
+		default Optional<TypeDecl> constructionOf(IRNode node, String name) {
 			return typeDeclarations()
-					.declarations(sourceUnit(deconstructor).getTree())
+					.declarations(sourceUnit(node).getTree())
 					.stream()
 					.map(GlobalTypeDecl.class::cast)
 					.filter(decl -> {
 						if (decl.getDeclaration() instanceof ProductTypeDecl) {
-							return Objects.equals(deconstructor.getName(), decl.getDeclaration().getName());
+							return Objects.equals(name, decl.getDeclaration().getName());
 						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
-							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(deconstructor.getName(), variant.getName()));
+							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(name, variant.getName()));
 						} else {
 							return false;
 						}
