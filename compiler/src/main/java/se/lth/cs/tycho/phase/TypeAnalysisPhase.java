@@ -449,29 +449,21 @@ public class TypeAnalysisPhase implements Phase {
 
 		default void checkTypes(ExprCase caseExpr) {
 			Type type = types().type(caseExpr.getExpression());
-
+			caseExpr.getAlternatives().forEach(alternative -> {
+				checkAssignment(type, types().type(alternative.getPattern()), alternative.getPattern());
+			});
 			caseExpr.getAlternatives().forEach(alternative -> {
 				alternative.getGuards().forEach(guard -> checkAssignment(BoolType.INSTANCE, types().type(guard), guard));
-			});
-
-			caseExpr.getAlternatives().forEach(alternative -> {
-				if (!types().type(alternative.getPattern()).equals(type)) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Deconstructor " + ((PatternDeconstructor) alternative.getPattern()).getName() + " does not exist for type " + type, sourceUnit(), alternative.getPattern()));
-				}
 			});
 		}
 
 		default void checkTypes(StmtCase caseStmt) {
 			Type type = types().type(caseStmt.getExpression());
-
+			caseStmt.getAlternatives().forEach(alternative -> {
+				checkAssignment(type, types().type(alternative.getPattern()), alternative.getPattern());
+			});
 			caseStmt.getAlternatives().forEach(alternative -> {
 				alternative.getGuards().forEach(guard -> checkAssignment(BoolType.INSTANCE, types().type(guard), guard));
-			});
-
-			caseStmt.getAlternatives().forEach(alternative -> {
-				if (!types().type(alternative.getPattern()).equals(type)) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Deconstructor " + ((PatternDeconstructor) alternative.getPattern()).getName() + " does not exist for type " + type, sourceUnit(), alternative.getPattern()));
-				}
 			});
 		}
 
