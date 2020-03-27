@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,7 +26,7 @@ public class ProgramTester {
 		this.executable = executable;
 	}
 
-	public static ProgramTester compile(TestDescription test, Path target) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
+	public static Optional<ProgramTester> compile(TestDescription test, Path target) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
 		Platform platform = Compiler.defaultPlatform();
 		SettingsManager settings = platform.settingsManager();
 		Configuration config = Configuration.builder(settings)
@@ -34,6 +35,9 @@ public class ProgramTester {
 				.set(Compiler.xdfSourcePaths, test.getXDFSourcePaths())
 				.set(Compiler.targetPath, target)
 				.build();
+		OutputCapturer capturer = new OutputCapturer();
+		capturer.start();
+		ProgramTester tester = null;
 		Compiler comp = new Compiler(platform, config);
 		QID name = test.getEntity();
 		if (comp.compile(name)) {
@@ -56,16 +60,16 @@ public class ProgramTester {
 					if (!Files.exists(aout)) {
 						throw new RuntimeException("a.out does not exist");
 					}
-					return new ProgramTester(aout);
+					tester = new ProgramTester(aout);
 				} else {
 					throw new RuntimeException(String.format("Compilation error in %s:\n%s", cfiles, error));
 				}
 			} else {
 				throw new RuntimeException("Compilation error." + Files.list(target).map(Path::getFileName).map(Path::toString).collect(Collectors.joining(", ", "[", "]")));
 			}
-		} else {
-			throw new RuntimeException("Compilation error.");
 		}
+		check(test.getCheckPaths(), capturer.stop());
+		return Optional.ofNullable(tester);
 	}
 
 	public void run(List<Path> input, List<Path> reference, Path temp) throws IOException, InterruptedException {
@@ -105,5 +109,15 @@ public class ProgramTester {
 	private void diff(Path expected, Path actual) throws IOException {
 		assertEquals(String.format("Wrong size of output, comparing \"%s\" with \"%s\".", expected, actual), Files.size(expected), Files.size(actual));
 		assertArrayEquals(String.format("Wrong content of output, comparing \"%s\" with \"%s\".", expected, actual), Files.readAllBytes(expected), Files.readAllBytes(actual));
+	}
+
+	private static void check(List<Path> paths, String output) throws IOException {
+		for (Path path : paths) {
+			List<Path> files = Files.walk(path).filter(Files::isRegularFile).collect(Collectors.toList());
+			for (Path file : files) {
+				String check = new String(Files.readAllBytes(file)).replaceAll("\\s+", " ");
+				assertTrue(String.format("Check %s failed.", file.toAbsolutePath()), output.contains(check));
+			}
+		}
 	}
 }

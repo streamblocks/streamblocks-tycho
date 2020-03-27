@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
@@ -62,9 +63,12 @@ public class ApplicationTest {
 	public void test() throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
 		Path target = Files.createTempDirectory(test.getEntity().toString());
 		Path temp = Files.createTempDirectory("temp");
-		ProgramTester tester = ProgramTester.compile(test, target);
-		for (TestDescription.TestData data : test.getTestData()) {
-			tester.run(data.getInput(), data.getReference(), temp);
+		Optional<ProgramTester> optionalTester = ProgramTester.compile(test, target);
+		if (optionalTester.isPresent()) {
+			ProgramTester tester = optionalTester.get();
+			for (TestDescription.TestData data : test.getTestData()) {
+				tester.run(data.getInput(), data.getReference(), temp);
+			}
 		}
 	}
 }
