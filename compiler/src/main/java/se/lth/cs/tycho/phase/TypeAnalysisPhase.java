@@ -89,7 +89,7 @@ public class TypeAnalysisPhase implements Phase {
 
 
 		default boolean isComparable(Type a, Type b, String operand) {
-			return true;
+			return a.equals(b);
 		}
 		default boolean isComparable(ListType a, ListType b, String operand) {
 			return Arrays.asList("=", "==", "!=").contains(operand) && a.equals(b);
@@ -228,7 +228,7 @@ public class TypeAnalysisPhase implements Phase {
 
 		@Override
 		default boolean isComparable(Type a, Type b, String operand) {
-			return true;
+			return a.equals(b);
 		}
 
 		default boolean isAssignable(Type to, Type from) {
@@ -385,7 +385,7 @@ public class TypeAnalysisPhase implements Phase {
 		}
 
 		default void checkTypes(ExprBinaryOp binaryOp) {
-			if (Arrays.asList(">=", ">", "<=", "<", "==", "=", "!=").contains(binaryOp.getOperands().get(0))) {
+			if (Arrays.asList(">=", ">", "<=", "<", "==", "=", "!=").contains(binaryOp.getOperations().get(0))) {
 				checkComparison(types().type(binaryOp.getOperands().get(0)), types().type(binaryOp.getOperands().get(1)), binaryOp.getOperations().get(0), binaryOp);
 			}
 		}
