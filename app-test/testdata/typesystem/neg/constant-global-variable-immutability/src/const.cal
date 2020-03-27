@@ -1,0 +1,8 @@
+namespace constant:
+    int a = 0;
+    actor GlobalVariableImmutability() ==> :
+        do
+            a := a + 1; // error
+        end
+    end
+end

@@ -1,0 +1,4 @@
+Error in "testdata/typesystem/neg/algebraic-type-duplicate-variant/src/adt.cal" on line 2:
+    type T : A | A(int a, bool b) end // error
+                 ^^^^^^^^^^^^^^^^
+Variant A is already declared.

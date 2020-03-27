@@ -1,0 +1,6 @@
+{
+    "description": "Test wrong argument number on type construction",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "cons.WrongArgumentNumber"
+}

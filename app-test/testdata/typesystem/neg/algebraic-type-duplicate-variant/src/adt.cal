@@ -1,0 +1,8 @@
+namespace adt:
+    type T : A | A(int a, bool b) end // error
+    actor DuplicateVariant() ==> T OUT:
+        do
+            OUT <-- A;
+        end
+    end
+end

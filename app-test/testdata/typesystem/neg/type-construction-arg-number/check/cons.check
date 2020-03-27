@@ -1,0 +1,4 @@
+Error in "testdata/typesystem/neg/type-construction-arg-number/src/cons.cal" on line 5:
+           OUT <-- T(1, true, 2.5); // error
+                   ^^^^^^^^^^^^^^^
+Wrong number of arguments; expected 2, but was 3.

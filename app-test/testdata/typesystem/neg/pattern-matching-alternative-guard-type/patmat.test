@@ -1,0 +1,6 @@
+{
+    "description": "Test wrong guard type of case alternative",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "patmat.WrongGuardType"
+}

@@ -1,0 +1,9 @@
+namespace adt:
+    type T : (int a, bool b) end
+    type T : (int a) end // error
+    actor DuplicateDeclaration() ==> T OUT:
+        do
+            OUT <-- T(1, false);
+        end
+    end
+end

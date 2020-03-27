@@ -1,0 +1,13 @@
+namespace patmat:
+    int a = 5;
+    actor WrongGuardType() ==> int OUT:
+        do
+            OUT <--
+                case a of
+                        n guard n + 1 : n end // error
+                    else
+                        0
+                end;
+        end
+    end
+end

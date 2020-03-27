@@ -1,0 +1,13 @@
+namespace patmat:
+    int a;
+    actor AlternativeExpressionType() ==> int OUT:
+        do
+            OUT <--
+                case a of
+                    1 : true end // error
+                else
+                    0
+                end;
+        end
+    end
+end

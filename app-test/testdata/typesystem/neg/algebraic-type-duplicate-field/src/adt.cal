@@ -1,0 +1,8 @@
+namespace adt:
+    type T : (int a, bool a) end // error
+    actor DuplicateField() ==> T OUT:
+        do
+            OUT <-- T(1, false);
+        end
+    end
+end

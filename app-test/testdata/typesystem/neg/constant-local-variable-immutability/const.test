@@ -1,0 +1,6 @@
+{
+    "description": "Test immutability of constant local variables",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "constant.LocalVariableImmutability"
+}

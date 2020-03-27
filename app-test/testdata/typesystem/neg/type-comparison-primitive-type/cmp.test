@@ -1,0 +1,6 @@
+{
+    "description": "Test invalid comparison of primivite types",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "cmp.IncomparablePrimitiveType"
+}

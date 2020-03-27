@@ -1,0 +1,14 @@
+namespace patmat:
+    type T : (int a, bool b) end
+    T t;
+    actor DeconstructorWrongArgumentType() ==> int OUT:
+        do
+            OUT <--
+                case t of
+                    T(1, 2.5) : 1 end // error
+                else
+                    0
+                end;
+        end
+    end
+end

@@ -1,0 +1,10 @@
+namespace cmp:
+    type T : (int a, bool b) end
+    type U : A | B(float f) end
+    actor IncomparableAlgebraicType() ==> :
+        do
+            if T(1, false) != B(2.5) then // error
+            end
+        end
+    end
+end

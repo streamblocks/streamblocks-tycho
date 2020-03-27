@@ -1,0 +1,6 @@
+{
+    "description": "Test duplicate field definition",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "adt.DuplicateField"
+}

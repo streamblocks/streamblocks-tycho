@@ -1,0 +1,6 @@
+{
+    "description": "Test wrong argument type of deconstructor",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "patmat.DeconstructorWrongArgumentType"
+}

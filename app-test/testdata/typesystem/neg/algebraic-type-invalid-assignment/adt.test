@@ -1,0 +1,6 @@
+{
+    "description": "Test invalid assignment of algebraic data types",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "adt.InvalidAssignment"
+}

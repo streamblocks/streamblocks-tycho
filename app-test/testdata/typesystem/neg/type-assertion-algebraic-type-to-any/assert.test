@@ -1,0 +1,6 @@
+{
+    "description": "Test wrong argument type on type construction",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "assert.AlgebraicTypeToInt"
+}

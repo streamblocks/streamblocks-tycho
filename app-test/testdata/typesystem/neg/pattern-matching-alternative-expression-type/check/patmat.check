@@ -1,0 +1,12 @@
+Error in "testdata/typesystem/neg/pattern-matching-alternative-expression-type/src/patmat.cal" on line 6:
+                case a of
+                ^^^^^^^^^
+                    1 : true end // error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                else
+^^^^^^^^^^^^^^^^^^^^
+                    0
+^^^^^^^^^^^^^^^^^^^^^
+                end;
+^^^^^^^^^^^^^^^^^^^
+Incompatible types; expected int but was <top>.
