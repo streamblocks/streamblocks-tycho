@@ -7,10 +7,12 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
+import se.lth.cs.tycho.compiler.GlobalDeclarations;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -105,6 +107,11 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 
 		default SourceUnit sourceUnit(IRNode node) {
 			return sourceUnit(tree().parent(node));
+		}
+
+		default SourceUnit sourceUnit(CompilationTask task) {
+			GlobalEntityDecl entityDecl = GlobalDeclarations.getEntity(task, task.getIdentifier());
+			return sourceUnit(tree().parent(entityDecl));
 		}
 
 		default SourceUnit sourceUnit(SourceUnit unit) {
