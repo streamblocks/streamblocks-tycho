@@ -1823,30 +1823,7 @@ ExprCase.Alternative CaseExprAlternative() :
     { return setPosition(new ExprCase.Alternative(pattern, guards.build(), expression), pattern, last); }
 }
 
-Pattern Pattern() :
-{
-    Token name;
-    Token last;
-    Pattern pattern;
-    ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
-}
-{
-    name = <ID>
-    { last = name; }
-    (
-        "("
-        (
-            pattern = SubPattern() { patterns.add(pattern); }
-            (
-                "," pattern = SubPattern() { patterns.add(pattern); }
-            )*
-        )
-        last = ")"
-    )?
-    { return setPosition(new PatternDeconstructor(name.image, patterns.build()), name, last); }
-}
-
-Pattern SubPattern():
+Pattern Pattern():
 {
     Expression expression;
 }

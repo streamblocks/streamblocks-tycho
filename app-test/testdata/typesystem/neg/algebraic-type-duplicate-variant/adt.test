@@ -1,0 +1,6 @@
+{
+    "description": "Test duplicate variant definition",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "adt.DuplicateVariant"
+}

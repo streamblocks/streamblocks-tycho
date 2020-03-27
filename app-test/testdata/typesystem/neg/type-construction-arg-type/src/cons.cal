@@ -1,0 +1,8 @@
+namespace cons:
+    type T : (int a, bool b) end
+    actor WrongArgumentType() ==> T OUT:
+        do
+           OUT <-- T(1, 2.5); // error
+        end
+    end
+end

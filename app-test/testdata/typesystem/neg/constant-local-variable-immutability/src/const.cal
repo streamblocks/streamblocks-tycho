@@ -1,0 +1,12 @@
+namespace constant:
+    actor LocalVariableImmutability() ==> :
+        do
+            begin
+            var
+                int a = 0
+            do
+                a := a + 1; // error
+            end
+        end
+    end
+end

@@ -114,7 +114,7 @@ public interface Global {
 			Type type = types().declaredType(decl);
 			if (type instanceof AlgebraicType) {
 				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
-			} else if (type instanceof ListType && code().isAlgebraicTypeList((ListType) type)) {
+			} else if (code().isAlgebraicTypeList(type)) {
 				emitter().emit("{");
 				emitter().increaseIndentation();
 				ListType listType = (ListType) type;

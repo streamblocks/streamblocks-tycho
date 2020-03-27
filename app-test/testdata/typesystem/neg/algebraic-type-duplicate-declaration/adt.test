@@ -1,0 +1,6 @@
+{
+    "description": "Test duplicate declaration of algebraic data types",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "adt.DuplicateDeclaration"
+}

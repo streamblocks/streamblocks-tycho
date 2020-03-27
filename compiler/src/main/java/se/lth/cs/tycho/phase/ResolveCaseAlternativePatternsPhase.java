@@ -66,7 +66,7 @@ public class ResolveCaseAlternativePatternsPhase implements Phase {
 				ExprApplication application = (ExprApplication) expr;
 				ExprVariable exprVariable = (ExprVariable) application.getFunction();
 				if (typeScopes().construction(exprVariable).isPresent()) {
-					return new PatternDeconstructor(exprVariable, exprVariable.getVariable().getName(), application.getArgs().stream().map(arg -> apply(new PatternExpression(arg, arg))).map(Pattern.class::cast).collect(ImmutableList.collector()));
+					return new PatternDeconstructor(application, exprVariable.getVariable().getName(), application.getArgs().stream().map(arg -> apply(new PatternExpression(arg, arg))).map(Pattern.class::cast).collect(ImmutableList.collector()));
 				}
 			}
 			return pattern;

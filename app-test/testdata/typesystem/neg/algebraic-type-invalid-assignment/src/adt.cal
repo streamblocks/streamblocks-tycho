@@ -1,0 +1,15 @@
+namespace adt:
+    type T : (int a, bool b) end
+    type U : A | B(double d) end
+    actor InvalidAssignment() ==> :
+        do
+            begin
+            var
+                T t,
+                U u
+            do
+                u := t; // error
+            end
+        end
+    end
+end

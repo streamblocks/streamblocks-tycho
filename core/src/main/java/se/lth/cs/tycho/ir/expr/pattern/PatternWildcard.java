@@ -12,7 +12,7 @@ public class PatternWildcard extends Pattern {
 	private TypeExpr type;
 
 	public PatternWildcard(IRNode original) {
-		this(original, new NominalTypeExpr(""));
+		this(original, new NominalTypeExpr("<transient>"));
 	}
 
 	public PatternWildcard(IRNode original, TypeExpr type) {

@@ -1,0 +1,13 @@
+namespace patmat:
+    int a;
+    actor AlternativePatternType() ==> int OUT:
+        do
+            OUT <--
+                case a of
+                    true : 1 end // error
+                else
+                    0
+                end;
+        end
+    end
+end

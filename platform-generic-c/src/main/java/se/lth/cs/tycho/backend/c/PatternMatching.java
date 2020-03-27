@@ -39,7 +39,7 @@ public interface PatternMatching {
 		emitter().emit("%s = false;", code().declaration(BoolType.INSTANCE, match));
 		Type type = code().types().type(caseExpr);
 		String result = code().variables().generateTemp();
-		if (type instanceof AlgebraicType) {
+		if ((type instanceof AlgebraicType) || (code().isAlgebraicTypeList(type))) {
 			backend().memoryStack().trackPointer(result, type);
 		}
 		emitter().emit("%s;", code().declaration(type, result));
@@ -146,7 +146,8 @@ public interface PatternMatching {
 	}
 
 	default void openPattern(PatternExpression pattern, String target, String deref, String member) {
-		emitter().emit("if (%s%s%s == %s) {", target, deref, member, code().evaluate(pattern.getExpression()));
+		Type type = backend().types().type(pattern.getExpression());
+		emitter().emit("if (%s) {", code().compare(type, String.format("%s%s%s", target, deref, member), type, code().evaluate(pattern.getExpression())));
 		emitter().increaseIndentation();
 		backend().memoryStack().enterScope();
 	}

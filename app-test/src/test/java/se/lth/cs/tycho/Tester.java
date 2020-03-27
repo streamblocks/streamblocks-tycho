@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 
 public class Tester {
 	private final List<TestDescription> descriptions;
@@ -23,9 +24,12 @@ public class Tester {
 
 	public void run() throws InterruptedException, IOException, Configuration.Builder.UnknownKeyException {
 		for (TestDescription test : descriptions) {
-			ProgramTester tester = ProgramTester.compile(test, targetPath);
-			for (TestDescription.TestData data : test.getTestData()) {
-				tester.run(data.getInput(), data.getReference(), targetPath);
+			Optional<ProgramTester> optionalTester = ProgramTester.compile(test, targetPath);
+			if (optionalTester.isPresent()) {
+				ProgramTester tester = optionalTester.get();
+				for (TestDescription.TestData data : test.getTestData()) {
+					tester.run(data.getInput(), data.getReference(), targetPath);
+				}
 			}
 		}
 	}

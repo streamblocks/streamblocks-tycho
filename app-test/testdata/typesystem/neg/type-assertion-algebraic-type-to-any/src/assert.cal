@@ -1,0 +1,8 @@
+namespace assert:
+    type T : (int a, bool b) end
+    actor AlgebraicTypeToInt() ==> int OUT:
+        do
+            OUT <-- (T(1, false) :: int); // error
+        end
+    end
+end

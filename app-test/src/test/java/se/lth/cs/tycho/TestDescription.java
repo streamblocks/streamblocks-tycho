@@ -21,6 +21,8 @@ public class TestDescription {
 	private String description;
 	@SerializedName("source-paths")
 	private List<Path> sourcePaths;
+	@SerializedName("check-paths")
+	private List<Path> checkPaths;
 	@SerializedName("orcc-source-paths")
 	private List<Path> orccSourcePaths;
 	@SerializedName("xdf-source-paths")
@@ -42,6 +44,10 @@ public class TestDescription {
 		return sourcePaths == null ? Collections.emptyList() : sourcePaths;
 	}
 
+	public List<Path> getCheckPaths() {
+		return checkPaths == null ? Collections.emptyList() : checkPaths;
+	}
+
 	public List<Path> getOrccSourcePaths() {
 		return orccSourcePaths == null ? Collections.emptyList() : orccSourcePaths;
 	}
@@ -59,7 +65,7 @@ public class TestDescription {
 	}
 
 	public List<TestData> getTestData() {
-		return testData;
+		return testData == null ? Collections.emptyList() : testData;
 	}
 
 	public TestDescription resolvePaths(Path testFile) {
@@ -67,11 +73,12 @@ public class TestDescription {
 		TestDescription result = new TestDescription();
 		result.description = description;
 		result.sourcePaths = getSourcePaths().stream().map(directory::resolve).collect(Collectors.toList());
+		result.checkPaths = getCheckPaths().stream().map(directory::resolve).collect(Collectors.toList());
 		result.xdfSourcePaths = getXDFSourcePaths().stream().map(directory::resolve).collect(Collectors.toList());
 		result.orccSourcePaths = getOrccSourcePaths().stream().map(directory::resolve).collect(Collectors.toList());
 		result.externalSources = getExternalSources().stream().map(directory::resolve).collect(Collectors.toList());
 		result.entity = entity;
-		result.testData = testData.stream().map(d -> d.resolvePaths(testFile)).collect(Collectors.toList());
+		result.testData = getTestData().stream().map(d -> d.resolvePaths(testFile)).collect(Collectors.toList());
 		return result;
 	}
 

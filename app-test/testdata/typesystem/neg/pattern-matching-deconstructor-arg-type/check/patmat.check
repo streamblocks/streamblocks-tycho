@@ -1,0 +1,4 @@
+Error in "testdata/typesystem/neg/pattern-matching-deconstructor-arg-type/src/patmat.cal" on line 8:
+                    T(1, 2.5) : 1 end // error
+                         ^^^
+Incompatible types; expected bool but was real(32).

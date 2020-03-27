@@ -270,7 +270,7 @@ public interface Structure {
 					emitter().emit("%s(self->%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
-				} else if (type instanceof ListType && code().isAlgebraicTypeList((ListType) type)) {
+				} else if (code().isAlgebraicTypeList(type)) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
 					ListType listType = (ListType) type;

@@ -1,0 +1,8 @@
+namespace cmp:
+    actor IncomparablePrimitiveType() ==> :
+        do
+            if true = 1 then // error
+            end
+        end
+    end
+end
