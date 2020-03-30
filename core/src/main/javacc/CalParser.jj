@@ -2058,20 +2058,22 @@ Expression SetExpression() :
 
 Expression ListExpression() :
 {
-	Expression result;
+	Token first;
+	Token last;
+    Expression result;
 	ImmutableList<Expression> exprs;
 }
 {
-	"["
+	first = "["
 	exprs = ExpressionList()
 	{ result = new ExprList(exprs); }
 	(
 		":"
 		result = ComprehensionFor(result)
 	)?
-	"]"
+	last = "]"
 	{
-		return result;
+		return setPosition(result, first, last);
 	}
 }
 
