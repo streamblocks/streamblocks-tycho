@@ -1,0 +1,7 @@
+namespace cmp:
+    actor IntTypeWithRealType() ==> bool OUT:
+        do
+            OUT <-- 1 = 1.5;
+        end
+    end
+end

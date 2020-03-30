@@ -1,0 +1,6 @@
+{
+    "description": "Test comparison of algebraic type with any type",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "cmp.AlgebraicTypeWithAnyType"
+}

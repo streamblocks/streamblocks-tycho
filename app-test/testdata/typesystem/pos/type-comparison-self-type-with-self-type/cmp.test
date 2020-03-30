@@ -1,0 +1,5 @@
+{
+    "description": "Test comparison with self type",
+    "source-paths": ["src"],
+    "entity": "cmp.SelfTypeWithSelfType"
+}

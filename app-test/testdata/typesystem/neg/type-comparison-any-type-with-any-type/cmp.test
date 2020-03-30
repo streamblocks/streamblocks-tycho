@@ -1,0 +1,6 @@
+{
+    "description": "Test comparison of any type with any type",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "cmp.AnyTypeWithAnyType"
+}

@@ -1,10 +1,9 @@
 namespace cmp:
     type T : (int a, bool b) end
     type U : A | B(float f) end
-    actor IncomparableAlgebraicType() ==> :
+    actor AnyTypeWithAnyType() ==> bool OUT:
         do
-            if T(1, false) != B(2.5) then // error
-            end
+            OUT <-- 1 = false; // error
         end
     end
 end

@@ -102,6 +102,12 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isComparable(RealType a, RealType b, String operand) {
 			return true;
 		}
+		default boolean isComparable(IntType a, RealType b, String operand) {
+			return true;
+		}
+		default boolean isComparable(RealType a, IntType b, String operand) {
+			return true;
+		}
 		default boolean isComparable(ListType a, ListType b, String operand) {
 			return Arrays.asList("=", "==", "!=").contains(operand) && a.equals(b);
 		}

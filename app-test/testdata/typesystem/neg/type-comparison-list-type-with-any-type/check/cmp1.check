@@ -1,0 +1,4 @@
+Error in "testdata/typesystem/neg/type-comparison-list-type-with-any-type/src/cmp.cal" on line 4:
+           OUT <-- [1, 2, 3] = false; // error
+                   ^^^^^^^^^^^^^^^^^
+Incomparable types; List(type:uint(size=2), size=3) cannot be compared with bool.
