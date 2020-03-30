@@ -86,7 +86,12 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssertable(IntType to, IntType from) {
 			return true;
 		}
-
+		default boolean isAssertable(IntType to, RealType from) {
+			return true;
+		}
+		default boolean isAssertable(RealType to, IntType from) {
+			return true;
+		}
 
 		default boolean isComparable(Type a, Type b, String operand) {
 			return a.equals(b);
@@ -449,7 +454,7 @@ public class TypeAnalysisPhase implements Phase {
 			Type to = types().type(assertion.getType());
 			Type from = types().type(assertion.getExpression());
 			if (!isAssertable(to, from)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert to " + to + ".", sourceUnit(), assertion));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert " + from + " to " + to + ".", sourceUnit(), assertion));
 			}
 		}
 

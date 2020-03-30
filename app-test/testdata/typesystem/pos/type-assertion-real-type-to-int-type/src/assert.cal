@@ -1,0 +1,7 @@
+namespace assert:
+    actor RealTypeToIntType() ==> int OUT:
+        do
+            OUT <-- (2.5 :: int);
+        end
+    end
+end
