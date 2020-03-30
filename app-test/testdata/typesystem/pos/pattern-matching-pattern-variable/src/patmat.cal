@@ -1,0 +1,15 @@
+namespace patmat:
+    type T : (int a, bool b) end
+    T t;
+    actor PatternVariable() ==> int OUT:
+        do
+            OUT <--
+                case t of
+                    x : 1 end
+                    T(x, y) : 1 end
+                else
+                    0
+                end;
+        end
+    end
+end

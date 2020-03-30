@@ -1,0 +1,5 @@
+{
+    "description": "Test type construction of sum type",
+    "source-paths": ["src"],
+    "entity": "cons.SumType"
+}

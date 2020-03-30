@@ -1,0 +1,16 @@
+namespace patmat:
+    type T : (int a, bool b) end
+    type U : A | B(T t) end
+    U u;
+    actor PatternDeconstructor() ==> int OUT:
+        do
+            OUT <--
+                case u of
+                    A : 1 end
+                    B(T(1, false)) : 1 end
+                else
+                    0
+                end;
+        end
+    end
+end

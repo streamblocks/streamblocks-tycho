@@ -1,0 +1,5 @@
+{
+    "description": "Test type definition of sum type",
+    "source-paths": ["src"],
+    "entity": "typedef.SumType"
+}

@@ -1,0 +1,5 @@
+{
+    "description": "Test type definition of product type",
+    "source-paths": ["src"],
+    "entity": "typedef.ProductType"
+}

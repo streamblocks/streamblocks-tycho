@@ -1,0 +1,10 @@
+namespace typedef:
+    type T : (int a, bool b) end
+    actor ProductType() ==> :
+        do
+            begin
+            var T t
+            do end
+        end
+    end
+end
