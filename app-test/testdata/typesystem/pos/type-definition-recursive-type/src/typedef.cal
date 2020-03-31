@@ -1,0 +1,10 @@
+namespace typedef:
+    type T : A | B(int a, T t) end
+    actor RecursiveType() ==> :
+        do
+            begin
+            var T t
+            do end
+        end
+    end
+end

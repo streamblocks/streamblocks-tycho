@@ -1,0 +1,23 @@
+namespace assert:
+    type T : (int a, bool b) end
+    type U : A | B(float f) end
+    actor SelfType() ==> :
+        do
+            begin
+            var
+                T t,
+                U u,
+                int n,
+                bool b,
+                float f
+            do
+                t := (T(1, false) :: T);
+                u := (A :: U);
+                u := (B(2.5) :: U);
+                n := (1 :: int);
+                b := (false :: bool);
+                f := (2.5 :: float);
+            end
+        end
+    end
+end

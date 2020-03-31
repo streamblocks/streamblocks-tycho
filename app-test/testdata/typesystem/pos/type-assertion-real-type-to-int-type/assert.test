@@ -1,0 +1,5 @@
+{
+    "description": "Test type assertion from real type to int type",
+    "source-paths": ["src"],
+    "entity": "assert.RealTypeToIntType"
+}

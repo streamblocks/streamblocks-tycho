@@ -1,0 +1,6 @@
+{
+    "description": "Test type assertion from algebraic type to any",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "assert.AlgebraicTypeToInt"
+}

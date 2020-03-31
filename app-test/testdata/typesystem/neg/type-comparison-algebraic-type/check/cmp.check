@@ -1,4 +1,0 @@
-Error in "testdata/typesystem/neg/type-comparison-algebraic-type/src/cmp.cal" on line 6:
-            if T(1, false) != B(2.5) then // error
-               ^^^^^^^^^^^^^^^^^^^^^
-Incomparable types; T cannot be compared with U.

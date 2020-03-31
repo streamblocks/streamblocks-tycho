@@ -1,0 +1,9 @@
+namespace cmp:
+    type T : (int a, bool b) end
+    type U : A | B(float f) end
+    actor AnyTypeWithAnyType() ==> bool OUT:
+        do
+            OUT <-- 1 = false; // error
+        end
+    end
+end

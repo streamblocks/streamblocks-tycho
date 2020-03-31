@@ -1,6 +1,0 @@
-{
-    "description": "Test invalid comparison of algebraic data types",
-    "source-paths": ["src"],
-    "check-paths": ["check"],
-    "entity": "cmp.IncomparableAlgebraicType"
-}

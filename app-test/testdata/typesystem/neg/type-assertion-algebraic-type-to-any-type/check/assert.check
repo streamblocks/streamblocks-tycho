@@ -1,0 +1,4 @@
+Error in "testdata/typesystem/neg/type-assertion-algebraic-type-to-any-type/src/assert.cal" on line 5:
+            OUT <-- (T(1, false) :: int); // error
+                    ^^^^^^^^^^^^^^^^^^^^
+Cannot type assert T to int.

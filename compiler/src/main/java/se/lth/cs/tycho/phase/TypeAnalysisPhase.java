@@ -86,13 +86,30 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssertable(IntType to, IntType from) {
 			return true;
 		}
-
+		default boolean isAssertable(IntType to, RealType from) {
+			return true;
+		}
+		default boolean isAssertable(RealType to, IntType from) {
+			return true;
+		}
 
 		default boolean isComparable(Type a, Type b, String operand) {
 			return a.equals(b);
 		}
+		default boolean isComparable(IntType a, IntType b, String operand) {
+			return true;
+		}
+		default boolean isComparable(RealType a, RealType b, String operand) {
+			return true;
+		}
+		default boolean isComparable(IntType a, RealType b, String operand) {
+			return true;
+		}
+		default boolean isComparable(RealType a, IntType b, String operand) {
+			return true;
+		}
 		default boolean isComparable(ListType a, ListType b, String operand) {
-			return Arrays.asList("=", "==", "!=").contains(operand) && a.equals(b);
+			return Arrays.asList("=", "==", "!=").contains(operand) && a.getSize().equals(b.getSize()) && isComparable(a.getElementType(), b.getElementType(), operand);
 		}
 		default boolean isComparable(ListType a, Type b, String operand) {
 			return false;
@@ -443,7 +460,7 @@ public class TypeAnalysisPhase implements Phase {
 			Type to = types().type(assertion.getType());
 			Type from = types().type(assertion.getExpression());
 			if (!isAssertable(to, from)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert to " + to + ".", sourceUnit(), assertion));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert " + from + " to " + to + ".", sourceUnit(), assertion));
 			}
 		}
 

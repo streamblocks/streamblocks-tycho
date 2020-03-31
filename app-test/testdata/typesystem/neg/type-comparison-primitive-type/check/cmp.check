@@ -1,4 +1,0 @@
-Error in "testdata/typesystem/neg/type-comparison-primitive-type/src/cmp.cal" on line 4:
-            if true = 1 then // error
-               ^^^^^^^^
-Incomparable types; bool cannot be compared with uint(size=1).

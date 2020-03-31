@@ -1,0 +1,8 @@
+namespace cmp:
+    actor ListTypeWithAnyType() ==> bool OUT:
+        do
+            OUT <-- [1, 2, 3] = false; // error
+            OUT <-- [1, 2, 3] = [1, 2, 3, 4]; // error
+        end
+    end
+end

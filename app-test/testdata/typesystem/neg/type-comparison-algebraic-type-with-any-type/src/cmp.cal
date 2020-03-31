@@ -1,0 +1,10 @@
+namespace cmp:
+    type T : (int a, bool b) end
+    type U : A | B(float f) end
+    actor AlgebraicTypeWithAnyType() ==> bool OUT:
+        do
+            OUT <-- T(1, false) = A; // error
+            OUT <-- T(1, false) = 1; // error
+        end
+    end
+end

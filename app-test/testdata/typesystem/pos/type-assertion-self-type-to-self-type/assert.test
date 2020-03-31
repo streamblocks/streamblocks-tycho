@@ -1,0 +1,5 @@
+{
+    "description": "Test type assertion to self type",
+    "source-paths": ["src"],
+    "entity": "assert.SelfType"
+}

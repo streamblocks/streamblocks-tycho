@@ -1,0 +1,14 @@
+namespace cmp:
+    type T : (int a, bool b) end
+    type U : A | B(float f) end
+    actor SelfTypeWithSelfType() ==> bool OUT:
+        do
+            OUT <-- 1 = 2;
+            OUT <-- 1.5 = 2.5;
+            OUT <-- true = false;
+            OUT <-- [1, 2, 3] = [4, 5, 6];
+            OUT <-- T(1, false) = T(2, true);
+            OUT <-- A = B(2.5);
+        end
+    end
+end

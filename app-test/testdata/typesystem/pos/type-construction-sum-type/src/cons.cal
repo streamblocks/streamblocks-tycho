@@ -1,0 +1,9 @@
+namespace cons:
+    type T : A | B(int a, bool b) end
+    actor SumType() ==> T OUT:
+        do
+            OUT <-- A;
+            OUT <-- B(1, false);
+        end
+    end
+end

@@ -1,0 +1,17 @@
+namespace patmat:
+    type T : (int a, bool b) end
+    type U : A | B(int a, T t) end
+    U u;
+    actor PatternWildcard() ==> int OUT:
+        do
+            OUT <--
+                case u of
+                   B(_, _) : 1 end
+                   B(_, T(_, _)) : 1 end
+                   _ : 1 end
+                else
+                    0
+                end;
+        end
+    end
+end

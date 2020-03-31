@@ -1,0 +1,5 @@
+{
+    "description": "Test comparison of int type with real type",
+    "source-paths": ["src"],
+    "entity": "cmp.IntTypeWithRealType"
+}

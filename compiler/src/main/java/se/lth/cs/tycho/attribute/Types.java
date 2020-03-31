@@ -702,7 +702,7 @@ public interface Types {
 		}
 
 		default Type computeType(ExprPatternVariable pattern) {
-			return type(variables().declaration(pattern.getVariable()).getType());
+			return type((PatternVariable) tree().parent(variables().declaration(pattern.getVariable())));
 		}
 
 

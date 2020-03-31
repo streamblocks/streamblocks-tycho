@@ -1,0 +1,4 @@
+Error in "testdata/typesystem/neg/type-comparison-algebraic-type-with-any-type/src/cmp.cal" on line 6:
+            OUT <-- T(1, false) = A; // error
+                    ^^^^^^^^^^^^^^^
+Incomparable types; T cannot be compared with U.

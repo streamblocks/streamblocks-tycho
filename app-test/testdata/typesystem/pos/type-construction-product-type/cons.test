@@ -1,0 +1,5 @@
+{
+    "description": "Test type construction of product type",
+    "source-paths": ["src"],
+    "entity": "cons.ProductType"
+}
