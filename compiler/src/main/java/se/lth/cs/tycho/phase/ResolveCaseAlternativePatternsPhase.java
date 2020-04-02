@@ -15,7 +15,7 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
-import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
+import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
@@ -59,7 +59,7 @@ public class ResolveCaseAlternativePatternsPhase implements Phase {
 				} else {
 					PatternVarDecl decl = new PatternVarDecl(exprVariable.getVariable().getName());
 					decl.setPosition(exprVariable.getFromLineNumber(), exprVariable.getFromColumnNumber(), exprVariable.getToLineNumber(), exprVariable.getToColumnNumber());
-					return new PatternVariable(exprVariable, decl);
+					return new PatternBinding(exprVariable, decl);
 				}
 			}
 			if (expr instanceof ExprApplication && ((ExprApplication) expr).getFunction() instanceof ExprVariable) {

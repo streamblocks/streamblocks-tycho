@@ -74,7 +74,6 @@ public class Compiler {
                 new DeclarationAnalysisPhase(),
                 new ResolveTypeConstructionPhase(),
                 new ResolvePatternVariableExpressionsPhase(),
-                new AddPatternTypeAnnotationPhase(),
                 new ConstantVariableImmutabilityPhase(),
                 new NameAnalysisPhase()
 
@@ -107,7 +106,6 @@ public class Compiler {
                 new TypeAnnotationAnalysisPhase(),
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),
-                new AddTransientPatternTypeAnnotationPhase(),
 
                 // Orcc list parameters
                 new OrccListParameters());

@@ -7,7 +7,7 @@ import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
-import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
+import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.type.AlgebraicType;
@@ -152,8 +152,8 @@ public interface PatternMatching {
 		backend().memoryStack().enterScope();
 	}
 
-	default void openPattern(PatternVariable pattern, String target, String deref, String member) {
-		emitter().emit("%s = %s%s%s;", code().declaration(code().types().type(pattern), pattern.getDeclaration().getName()), target, deref, member);
+	default void openPattern(PatternBinding pattern, String target, String deref, String member) {
+		emitter().emit("%s = %s%s%s;", code().declaration(code().types().type(pattern), backend().variables().declarationName(pattern.getDeclaration())), target, deref, member);
 	}
 
 	default void openPattern(PatternWildcard pattern, String target, String deref, String member) {
@@ -178,7 +178,7 @@ public interface PatternMatching {
 		emitter().emit("}");
 	}
 
-	default void closePattern(PatternVariable pattern) {
+	default void closePattern(PatternBinding pattern) {
 
 	}
 

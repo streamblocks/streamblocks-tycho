@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public class PatternVarDecl extends VarDecl {
 
 	public PatternVarDecl(String name) {
-		this(null, new NominalTypeExpr("<transient>"), name);
+		this(null, null, name);
 	}
 
 	private PatternVarDecl(VarDecl original, TypeExpr type, String name) {
@@ -36,7 +36,7 @@ public class PatternVarDecl extends VarDecl {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(getType());
+		if (getType() != null) action.accept(getType());
 	}
 
 	@Override
