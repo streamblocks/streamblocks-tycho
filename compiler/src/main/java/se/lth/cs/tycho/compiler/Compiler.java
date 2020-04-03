@@ -73,7 +73,6 @@ public class Compiler {
                 new ResolveCaseAlternativePatternsPhase(),
                 new DeclarationAnalysisPhase(),
                 new ResolveTypeConstructionPhase(),
-                new ResolvePatternVariableExpressionsPhase(),
                 new ConstantVariableImmutabilityPhase(),
                 new NameAnalysisPhase()
 

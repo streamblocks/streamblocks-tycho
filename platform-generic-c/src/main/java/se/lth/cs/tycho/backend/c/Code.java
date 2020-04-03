@@ -196,10 +196,6 @@ public interface Code {
 		return variables().globalName(variable);
 	}
 
-	default String evaluate(ExprPatternVariable variable) {
-		return variable.getVariable().getName();
-	}
-
 	default String evaluate(ExprLiteral literal) {
 		switch (literal.getKind()) {
 			case Integer:
