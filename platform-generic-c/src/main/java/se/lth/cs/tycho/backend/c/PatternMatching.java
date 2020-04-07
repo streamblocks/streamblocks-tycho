@@ -42,7 +42,7 @@ public interface PatternMatching {
 		if ((type instanceof AlgebraicType) || (code().isAlgebraicTypeList(type))) {
 			backend().memoryStack().trackPointer(result, type);
 		}
-		emitter().emit("%s;", code().declaration(type, result));
+		emitter().emit("%s = %s;", code().declaration(type, result), backend().defaultValues().defaultValue(type));
 		caseExpr.getAlternatives().forEach(alternative -> {
 			emitter().emit("if (!%s) {", match);
 			backend().memoryStack().enterScope();
