@@ -48,112 +48,134 @@ import se.lth.cs.tycho.ir.IRNode;
 
 public class ExprLiteral extends Expression {
 
-	public Kind getKind() {
-		return kind;
-	}
+    public Kind getKind() {
+        return kind;
+    }
 
-	public String getText() {
-		return text;
-	}
+    public String getText() {
+        return text;
+    }
 
-	public ExprLiteral(Kind kind) {
-		this(null, kind, kind.getFixedText());
-		assert kind.hasFixedText();
-	}
+    public ExprLiteral(Kind kind) {
+        this(null, kind, kind.getFixedText());
+        assert kind.hasFixedText();
+    }
 
-	public ExprLiteral(Kind kind, String text) {
-		this(null, kind, text);
-	}
+    public ExprLiteral(Kind kind, String text) {
+        this(null, kind, text);
+    }
 
-	/* FIXME: add some error checking here? */
-	public ExprLiteral(IRNode original, Kind kind, String text) {
-		super(original);
-		this.kind = kind;
-		this.text = text.intern();
-	}
+    /* FIXME: add some error checking here? */
+    public ExprLiteral(IRNode original, Kind kind, String text) {
+        super(original);
+        this.kind = kind;
+        this.text = text.intern();
+    }
 
-	public ExprLiteral copy(Kind kind, String text) {
-		assert !kind.hasFixedText();
-		if (this.kind == kind && Objects.equals(this.text, text)) {
-			return this;
-		}
-		return new ExprLiteral(this, kind, text);
-	}
+    public ExprLiteral copy(Kind kind, String text) {
+        assert !kind.hasFixedText();
+        if (this.kind == kind && Objects.equals(this.text, text)) {
+            return this;
+        }
+        return new ExprLiteral(this, kind, text);
+    }
 
-	public ExprLiteral copy(Kind kind) {
-		assert kind.hasFixedText();
-		if (this.kind == kind) {
-			return this;
-		}
-		return new ExprLiteral(this, kind, kind.getFixedText());
-	}
+    public ExprLiteral copy(Kind kind) {
+        assert kind.hasFixedText();
+        if (this.kind == kind) {
+            return this;
+        }
+        return new ExprLiteral(this, kind, kind.getFixedText());
+    }
 
-	/**
-	 * Literal type.
-	 * 
-	 * This will be any of the litXYZ constants defined below.
-	 */
-	private Kind kind;
+    /**
+     * Literal type.
+     * <p>
+     * This will be any of the litXYZ constants defined below.
+     */
+    private Kind kind;
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
 
-	}
+    }
 
-	@Override
-	public ExprLiteral transformChildren(Transformation transformation) {
-		return this;
-	}
+    @Override
+    public ExprLiteral transformChildren(Transformation transformation) {
+        return this;
+    }
 
-	public enum Kind {
-		Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), String(null), Function(null);
+    public enum Kind {
+        Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), String(null), Function(null);
 
-		private final String fixedText;
-		
-		private String getFixedText() {
-			return fixedText;
-		}
-		
-		private boolean hasFixedText() {
-			return fixedText != null;
-		}
+        private final String fixedText;
 
-		Kind(String fixedText) {
-			this.fixedText = fixedText;
-		}
-	}
+        private String getFixedText() {
+            return fixedText;
+        }
 
-	public OptionalInt asInt() {
-		if (kind != Kind.Integer) {
-			return OptionalInt.empty();
-		} else {
-			String text = this.text;
-			int radix = 10;
-			if (text.startsWith("0x") || text.startsWith("0X")) {
-				text = text.substring(2);
-				radix = 16;
-			}
-			return OptionalInt.of(Integer.parseInt(text, radix));
-		}
-	}
+        private boolean hasFixedText() {
+            return fixedText != null;
+        }
 
-	public Optional<String> asString() {
-		if (kind != Kind.String) {
-			return Optional.empty();
-		} else {
-			return Optional.of(text.substring(1, text.length() - 1));
-		}
-	}
+        Kind(String fixedText) {
+            this.fixedText = fixedText;
+        }
+    }
 
-	/**
-	 * Literal text (includes delimiters).
-	 * 
-	 * This will be non-null only for litChar, litInteger, litFloat, and
-	 * litString literals.
-	 */
-	private String text;
+    public OptionalInt asInt() {
+        if (kind != Kind.Integer) {
+            return OptionalInt.empty();
+        } else {
+            String text = this.text;
+            int radix = 10;
+            if (text.startsWith("0x") || text.startsWith("0X")) {
+                text = text.substring(2);
+                radix = 16;
+            } else if (text.startsWith("0b") || text.startsWith("0B")) {
+                text = text.substring(2);
+                radix = 2;
+            } else if (text.startsWith("0") && text.length() > 1) {
+                text = text.substring(1);
+                radix = 8;
+            }
+            return OptionalInt.of(Integer.parseInt(text, radix));
+        }
+    }
 
-	public String toString() {
-		return "Literal: " + text;
-	}
+    public OptionalInt intRadix() {
+        if (kind != Kind.Integer) {
+            return OptionalInt.empty();
+        } else {
+            int radix = 10;
+            if (text.startsWith("0x") || text.startsWith("0X")) {
+                radix = 16;
+            } else if (text.startsWith("0b") || text.startsWith("0B")) {
+                radix = 2;
+            } else if (text.startsWith("0") && text.length() > 1) {
+                radix = 8;
+            }
+            return OptionalInt.of(radix);
+        }
+    }
+
+    public Optional<String> asString() {
+        if (kind != Kind.String) {
+            return Optional.empty();
+        } else {
+            return Optional.of(text.substring(1, text.length() - 1));
+        }
+    }
+
+    /**
+     * Literal text (includes delimiters).
+     * <p>
+     * This will be non-null only for litChar, litInteger, litFloat, and
+     * litString literals.
+     */
+    private String text;
+
+    public String toString() {
+        return "Literal: " + text;
+    }
 }
