@@ -263,7 +263,7 @@ TOKEN: {
 
 /* Numeric literals */
 TOKEN: {
-	< INTEGER: <DECIMAL_LITERAL> | <HEXADECIMAL_LITERAL> | <OCTAL_LITERAL> >
+	< INTEGER: <DECIMAL_LITERAL> | <HEXADECIMAL_LITERAL> | <OCTAL_LITERAL> | <BINARY_LITERAL> >
 |
 	<REAL:
 			(<DECIMAL_DIGIT>)+ "." (<DECIMAL_DIGIT>)+ (<EXPONENT>)?
@@ -280,6 +280,8 @@ TOKEN: {
 |
 	< #OCTAL_LITERAL: "0" (<OCTAL_DIGIT>)* >
 |
+	< #BINARY_LITERAL: "0" ["b", "B"] (<BINARY_DIGIT>)+ >
+|
 	< #EXPONENT: ["e", "E"] (["+", "-"])? (<DECIMAL_DIGIT>)+ >
 |
 	< #NON_ZERO_DECIMAL_DIGIT: ["1"-"9"] >
@@ -287,6 +289,8 @@ TOKEN: {
 	< #DECIMAL_DIGIT: ["0"-"9"] >
 |
 	< #OCTAL_DIGIT: ["0"-"7"] >
+|
+    < #BINARY_DIGIT: ["0"-"1"] >
 |
 	< #HEXADECIMAL_DIGIT: ["0"-"9", "a"-"f", "A"-"F"] >
 }

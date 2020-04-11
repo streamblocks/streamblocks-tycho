@@ -1,48 +1,36 @@
 package se.lth.cs.tycho.ir.expr.pattern;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.type.NominalTypeExpr;
-import se.lth.cs.tycho.ir.type.TypeExpr;
+import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class PatternWildcard extends Pattern {
-
-	private TypeExpr type;
+public class PatternWildcard extends PatternDeclaration {
 
 	public PatternWildcard(IRNode original) {
-		this(original, new NominalTypeExpr("<transient>"));
+		this(original, new PatternVarDecl(""));
 	}
 
-	public PatternWildcard(IRNode original, TypeExpr type) {
-		super(original);
-		this.type = type;
+	public PatternWildcard(IRNode original, PatternVarDecl declaration) {
+		super(original, declaration);
 	}
 
-	public TypeExpr getType() {
-		return type;
-	}
-
-	public PatternWildcard copy(TypeExpr type) {
-		if (Objects.equals(getType(), type)) {
+	public PatternWildcard copy(PatternVarDecl declaration) {
+		if (Objects.equals(getDeclaration(), declaration)) {
 			return this;
 		} else {
-			return new PatternWildcard(this, type);
+			return new PatternWildcard(this, declaration);
 		}
-	}
-
-	public PatternWildcard withType(TypeExpr type) {
-		return copy(type);
 	}
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(type);
+		action.accept(getDeclaration());
 	}
 
 	@Override
 	public IRNode transformChildren(Transformation transformation) {
-		return this;
+		return copy((PatternVarDecl) transformation.apply(getDeclaration()));
 	}
 }

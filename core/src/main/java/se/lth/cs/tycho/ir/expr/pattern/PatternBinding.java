@@ -6,28 +6,21 @@ import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class PatternVariable extends Pattern {
+public class PatternBinding extends PatternDeclaration {
 
-	private PatternVarDecl declaration;
-
-	public PatternVariable(PatternVarDecl declaration) {
+	public PatternBinding(PatternVarDecl declaration) {
 		this(null, declaration);
 	}
 
-	public PatternVariable(IRNode original, PatternVarDecl declaration) {
-		super(original);
-		this.declaration = declaration;
+	public PatternBinding(IRNode original, PatternVarDecl declaration) {
+		super(original, declaration);
 	}
 
-	public PatternVarDecl getDeclaration() {
-		return declaration;
-	}
-
-	public PatternVariable copy(PatternVarDecl declaration) {
+	public PatternBinding copy(PatternVarDecl declaration) {
 		if (Objects.equals(getDeclaration(), declaration)) {
 			return this;
 		} else {
-			return new PatternVariable(this, declaration);
+			return new PatternBinding(this, declaration);
 		}
 	}
 

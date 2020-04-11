@@ -9,6 +9,7 @@ import se.lth.cs.tycho.decoration.TypeToTypeExpr;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.attribute.Types;
@@ -48,6 +49,10 @@ public class AddTypeAnnotationsPhase implements Phase {
 
 		default GlobalVarDecl apply(GlobalVarDecl decl) {
 			return transformGeneric(decl.transformChildren(this), GlobalVarDecl::withType);
+		}
+
+		default PatternVarDecl apply(PatternVarDecl decl) {
+			return (PatternVarDecl) decl.withType(TypeToTypeExpr.convert(types().declaredType(decl)));
 		}
 
 		default <T extends VarDecl> T transformGeneric(T node, BiFunction<T, TypeExpr, T> withType) {

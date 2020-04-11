@@ -14,10 +14,9 @@ import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
-import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
-import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
@@ -109,37 +108,16 @@ public interface Types {
 			return BottomType.INSTANCE;
 		}
 
-		default Type type(PatternDeconstructor deconstructor) {
-			return declaredGlobalType((GlobalTypeDecl) typeScopes().construction(deconstructor).get());
+		default Type type(PatternDeconstructor pattern) {
+			return declaredGlobalType((GlobalTypeDecl) typeScopes().construction(pattern).get());
 		}
 
-		default Type type(PatternExpression expression) {
-			return type(expression.getExpression());
+		default Type type(PatternExpression pattern) {
+			return type(pattern.getExpression());
 		}
 
-		default Type type(PatternVariable variable) {
-			NominalTypeExpr typeExpr = (NominalTypeExpr) variable.getDeclaration().getType();
-			if (Objects.equals(typeExpr.getName(), "<transient>")) {
-				return typeOfTransientPattern(variable);
-			}
-			return convert(variable.getDeclaration().getType());
-		}
-
-		default Type type(PatternWildcard wildcard) {
-			NominalTypeExpr typeExpr = (NominalTypeExpr) wildcard.getType();
-			if (Objects.equals(typeExpr.getName(), "<transient>")) {
-				return typeOfTransientPattern(wildcard);
-			}
-			return convert(wildcard.getType());
-		}
-
-		default Type typeOfTransientPattern(Pattern pattern) {
-			IRNode parent = tree().parent(tree().parent(pattern));
-			if (parent instanceof ExprCase) {
-				return type(((ExprCase) parent).getExpression());
-			} else {
-				return type(((StmtCase) parent).getExpression());
-			}
+		default Type type(PatternDeclaration pattern) {
+			return computeDeclaredType(pattern.getDeclaration());
 		}
 
 		@Binding(BindingKind.LAZY)
@@ -256,6 +234,38 @@ public interface Types {
 			} else {
 				return elementType(type(generator.getCollection()))
 						.orElse(BottomType.INSTANCE);
+			}
+		}
+
+		default Type computeDeclaredType(PatternVarDecl varDecl) {
+			if (varDecl.getType() != null) {
+				return convert(varDecl.getType());
+			} else {
+				PatternDeclaration pattern = (PatternDeclaration) tree().parent(varDecl);
+				IRNode node = varDecl;
+				while ((node = tree().parent(node)) != null) {
+					if (node instanceof PatternDeconstructor) {
+						PatternDeconstructor deconstructor = (PatternDeconstructor) node;
+						return typeScopes().construction(deconstructor).map(decl -> {
+							GlobalTypeDecl type = (GlobalTypeDecl) decl;
+							if (type.getDeclaration() instanceof ProductTypeDecl) {
+								ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
+								int index = deconstructor.getPatterns().indexOf(pattern);
+								return convert(product.getFields().get(index).getType());
+							} else {
+								SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
+								SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstructor.getName())).findAny().get();
+								int index = deconstructor.getPatterns().indexOf(pattern);
+								return convert(variant.getFields().get(index).getType());
+							}
+						}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstructor.getName() + "."));
+					} else if (node instanceof ExprCase) {
+						return type(((ExprCase) node).getExpression());
+					} else if (node instanceof StmtCase) {
+						return type(((StmtCase) node).getExpression());
+					}
+				}
+				throw new RuntimeException("Could not compute declaration type for " + varDecl.getName() + ".");
 			}
 		}
 
@@ -699,10 +709,6 @@ public interface Types {
 					.stream()
 					.map(alternative -> type(alternative.getExpression()))
 					.reduce(type(caseExpr.getDefault()), (a, b) -> leastUpperBound(a, b));
-		}
-
-		default Type computeType(ExprPatternVariable pattern) {
-			return type((PatternVariable) tree().parent(variables().declaration(pattern.getVariable())));
 		}
 
 

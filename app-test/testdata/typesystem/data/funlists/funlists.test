@@ -1,0 +1,11 @@
+{
+    "description": "Functional lists with algebraic data types and pattern matching",
+    "source-paths": ["src"],
+    "entity": "funlists.Size",
+    "test-data": [
+        {
+            "input": [],
+            "reference": ["ref/funlists.data"]
+        }
+    ]
+}

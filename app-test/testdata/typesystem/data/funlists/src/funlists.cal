@@ -1,0 +1,54 @@
+namespace funlists:
+
+    type Tuple : (int first, int second) end
+    type FunList : Nil | Cons(Tuple head, FunList tail) end
+
+    function size(FunList xs) --> int:
+        case xs of
+            Cons(_, tail) : 1 + size(tail) end
+        else
+            0
+        end
+    end
+
+    actor FunList() ==> FunList OUT:
+
+        int Counter := 0;
+        FunList list := Nil;
+
+        do
+            while Counter < 16 do
+                OUT <-- list;
+                list := Cons(Tuple(Counter, Counter + 1), list);
+                Counter := Counter + 1;
+            end
+        end
+
+    end
+
+    actor FunSize() FunList IN ==> int OUT:
+
+        repeat
+            begin
+            var
+                FunList token
+            do
+                IN --> token;
+                OUT <-- size(token);
+            end
+
+        end
+
+    end
+
+    network Size() ==> int SIZE:
+
+        entities
+            funlist = FunList();
+            funsize = FunSize();
+        structure
+            funlist.OUT --> funsize.IN;
+            funsize.OUT --> SIZE;
+    end
+
+end

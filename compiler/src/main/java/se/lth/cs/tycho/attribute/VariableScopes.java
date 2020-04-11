@@ -23,7 +23,7 @@ import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
-import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
+import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
@@ -150,8 +150,8 @@ public interface VariableScopes {
             return ImmutableList.empty();
         }
 
-        default ImmutableList<VarDecl> declarations(PatternVariable variable) {
-            return ImmutableList.of(variable.getDeclaration());
+        default ImmutableList<VarDecl> declarations(PatternBinding binding) {
+            return ImmutableList.of(binding.getDeclaration());
         }
 
         default ImmutableList<VarDecl> declarations(PatternDeconstructor deconstructor) {
