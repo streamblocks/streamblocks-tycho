@@ -70,7 +70,7 @@ public class Compiler {
                 new RemoveExternStubPhase(),
                 new OperatorParsingPhase(),
                 new ImportAnalysisPhase(),
-                new ResolveCaseAlternativePatternsPhase(),
+                new ResolvePatternsPhase(),
                 new DeclarationAnalysisPhase(),
                 new ResolveTypeConstructionPhase(),
                 new ConstantVariableImmutabilityPhase(),

@@ -22,7 +22,7 @@ import se.lth.cs.tycho.reporting.CompilationException;
 
 import java.util.Collections;
 
-public class ResolveCaseAlternativePatternsPhase implements Phase {
+public class ResolvePatternsPhase implements Phase {
 
 	@Override
 	public String getDescription() {
