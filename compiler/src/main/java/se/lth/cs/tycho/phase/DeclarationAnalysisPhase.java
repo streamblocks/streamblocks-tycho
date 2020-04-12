@@ -15,8 +15,6 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalDecl;
-import se.lth.cs.tycho.ir.decl.InputVarDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -69,7 +67,7 @@ public class DeclarationAnalysisPhase implements Phase {
 		checkGlobalNames(typeDecls, "Type", context.getReporter());
 		checkGlobalNames(entityDecls, "Entity", context.getReporter());
 
-		CheckLocalNames check = new CheckLocalNames(context.getReporter());
+		CheckLocalNames check = new CheckLocalNames(context.getReporter(), task.getModule(VariableScopes.key));
 		check.accept(task);
 
 		PatternNameChecker checker = MultiJ.from(PatternNameChecker.class)
@@ -119,9 +117,11 @@ public class DeclarationAnalysisPhase implements Phase {
 
 	private static class CheckLocalNames implements Consumer<IRNode> {
 		private final Reporter reporter;
+		private final VariableScopes variableScopes;
 
-		public CheckLocalNames(Reporter reporter) {
+		public CheckLocalNames(Reporter reporter, VariableScopes variableScopes) {
 			this.reporter = reporter;
+			this.variableScopes = variableScopes;
 		}
 
 		@Override
@@ -145,9 +145,7 @@ public class DeclarationAnalysisPhase implements Phase {
 			} else if (node instanceof Action) {
 				Action action = (Action) node;
 				check(action.getTypeDecls());
-				Stream<LocalVarDecl> actionVars = action.getVarDecls().stream();
-				Stream<InputVarDecl> inputVars = action.getInputPatterns().stream().flatMap(inputPattern -> inputPattern.getVariables().stream());
-				check(Stream.concat(inputVars, actionVars));
+				check(variableScopes.declarations(action));
 			} else if (node instanceof CalActor) {
 				check(((CalActor) node).getTypeDecls());
 				check(((CalActor) node).getVarDecls());

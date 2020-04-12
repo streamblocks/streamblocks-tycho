@@ -14,6 +14,7 @@ import se.lth.cs.tycho.ir.entity.am.Scope;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
+import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
 import se.lth.cs.tycho.ir.expr.ExprCase;
@@ -90,11 +91,22 @@ public interface VariableScopes {
         }
 
         default ImmutableList<VarDecl> declarations(Action action) {
-            Stream<InputVarDecl> inputVariables = action.getInputPatterns().stream()
-                    .map(InputPattern::getVariables)
-                    .flatMap(ImmutableList::stream);
+            Stream<VarDecl> inputVariables = action.getInputPatterns().stream()
+                    .flatMap(input -> declarations(input).stream());
             Stream<LocalVarDecl> actionVariables = action.getVarDecls().stream();
             return Stream.concat(inputVariables, actionVariables)
+                    .collect(ImmutableList.collector());
+        }
+
+        default ImmutableList<VarDecl> declarations(InputPattern input) {
+            return input.getMatches().stream()
+                    .flatMap(match -> declarations(match).stream())
+                    .collect(ImmutableList.collector());
+        }
+
+        default ImmutableList<VarDecl> declarations(Match match) {
+            return Stream
+                    .concat(Stream.of(match.getDeclaration()), match.getExpression().getAlternatives().stream().flatMap(alternative -> declarations(alternative).stream()))
                     .collect(ImmutableList.collector());
         }
 
