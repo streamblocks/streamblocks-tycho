@@ -1,0 +1,14 @@
+namespace field:
+    type T : (int a, bool b) end
+    type U : A | B(float f) end
+    actor Access() ==> int OUT:
+        T t;
+        U u;
+        int n;
+        do
+            OUT <-- t.foo; // error
+            OUT <-- u.foo; // error
+            OUT <-- n.foo; // error
+        end
+    end
+end
