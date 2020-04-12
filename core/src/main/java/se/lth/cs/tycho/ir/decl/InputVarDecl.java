@@ -7,9 +7,14 @@ import java.util.function.Consumer;
 
 public class InputVarDecl extends VarDecl {
 
+	public InputVarDecl() {
+		this("");
+	}
+
 	public InputVarDecl(String name) {
 		this(null, name);
 	}
+
 	private InputVarDecl(VarDecl original, String name) {
 		super(original, null, name, null, true, false);
 	}

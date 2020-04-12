@@ -1393,7 +1393,8 @@ InputPattern InputPattern() :
 {
 	Token id = null;
 	Port port = null;
-	ImmutableList.Builder<InputVarDecl> varDecls = ImmutableList.builder();
+	Match match;
+	ImmutableList.Builder<Match> matches = ImmutableList.builder();
 	Expression repeat = null;
 	int beginLine = 0;
     int beginColumn = 0;
@@ -1414,15 +1415,32 @@ InputPattern InputPattern() :
 
 	"["
 	(
-		id = <ID> { varDecls.add(VarDecl.input(id.image)); }
-		("," id = <ID> { varDecls.add(VarDecl.input(id.image)); } )*
+		match = Match() { matches.add(match); }
+		("," match = Match() { matches.add(match); } )*
 	)?
 	"]"
 	("repeat" repeat = Expression())?
 	{
-        InputPattern inputPattern = new InputPattern(port, varDecls.build(), repeat);
+        InputPattern inputPattern = new InputPattern(port, matches.build(), repeat);
         inputPattern.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
         return inputPattern;
+    }
+}
+
+Match Match() :
+{
+    Pattern pattern;
+}
+{
+
+    pattern = Pattern()
+    {
+        InputVarDecl declaration = new InputVarDecl();
+        Expression expression = setPosition(new ExprVariable(Variable.variable(declaration.getName())), pattern, pattern);
+        ExprCase.Alternative alternative = setPosition(new ExprCase.Alternative(pattern, Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True)), pattern, pattern);
+        Expression defaultt = new ExprLiteral(ExprLiteral.Kind.False);
+        ExprCase casee = setPosition(new ExprCase(expression, Collections.singletonList(alternative), defaultt), pattern, pattern);
+        return setPosition(new Match(declaration, casee), pattern, pattern);
     }
 }
 
