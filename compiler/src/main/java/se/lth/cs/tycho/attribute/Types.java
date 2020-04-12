@@ -12,6 +12,7 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
+import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
@@ -242,7 +243,7 @@ public interface Types {
 				return convert(varDecl.getType());
 			} else {
 				PatternDeclaration pattern = (PatternDeclaration) tree().parent(varDecl);
-				IRNode node = varDecl;
+				IRNode node = pattern;
 				while ((node = tree().parent(node)) != null) {
 					if (node instanceof PatternDeconstructor) {
 						PatternDeconstructor deconstructor = (PatternDeconstructor) node;
@@ -263,9 +264,11 @@ public interface Types {
 						return type(((ExprCase) node).getExpression());
 					} else if (node instanceof StmtCase) {
 						return type(((StmtCase) node).getExpression());
+					} else if (node instanceof Match) {
+						return computeDeclaredType(((Match) node).getDeclaration());
 					}
 				}
-				throw new RuntimeException("Could not compute declaration type for " + varDecl.getName() + ".");
+				throw new RuntimeException();
 			}
 		}
 
