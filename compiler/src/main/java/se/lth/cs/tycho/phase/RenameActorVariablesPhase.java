@@ -9,6 +9,7 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.decl.InputVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
+import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -22,12 +23,12 @@ public class RenameActorVariablesPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-        VariableKinds kinds = MultiJ.from(VariableKinds.class)
+		VariableKinds kinds = MultiJ.from(VariableKinds.class)
 				.bind("tree").to(task.getModule(TreeShadow.key))
 				.instance();
 		return (CompilationTask) RenameVariables.appendNumber(
 				task,
-				d -> kinds.isActorVariable(d) || kinds.isActionVariable(d) || kinds.isInputVariable(d),
+				d -> kinds.isActorVariable(d) || kinds.isActionVariable(d) || kinds.isInputVariable(d) || kinds.isPatternBinding(d),
 				context.getUniqueNumbers(),
 				task
 		);
@@ -39,7 +40,7 @@ public class RenameActorVariablesPhase implements Phase {
 		TreeShadow tree();
 
 		default boolean isActorVariable(VarDecl var) {
-		    return tree().parent(var) instanceof CalActor;
+			return tree().parent(var) instanceof CalActor;
 		}
 
 		default boolean isActorVariable(ParameterVarDecl var) {
@@ -55,6 +56,14 @@ public class RenameActorVariablesPhase implements Phase {
 		}
 
 		default boolean isInputVariable(InputVarDecl var) {
+			return true;
+		}
+
+		default boolean isPatternBinding(VarDecl var) {
+			return false;
+		}
+
+		default boolean isPatternBinding(PatternVarDecl var) {
 			return true;
 		}
 	}
