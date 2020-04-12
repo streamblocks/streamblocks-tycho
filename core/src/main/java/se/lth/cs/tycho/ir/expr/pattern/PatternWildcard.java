@@ -8,6 +8,10 @@ import java.util.function.Consumer;
 
 public class PatternWildcard extends PatternDeclaration {
 
+	public PatternWildcard() {
+		this(null);
+	}
+
 	public PatternWildcard(IRNode original) {
 		this(original, new PatternVarDecl(""));
 	}
