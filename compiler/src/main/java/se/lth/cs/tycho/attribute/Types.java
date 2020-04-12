@@ -216,7 +216,7 @@ public interface Types {
 		}
 
 		default Type computeDeclaredType(InputVarDecl varDecl) {
-			InputPattern input = (InputPattern) tree().parent(varDecl);
+			InputPattern input = (InputPattern) tree().parent(tree().parent(varDecl));
 			PortDecl port = ports().declaration(input.getPort());
 			Type result = convert(port.getType());
 			if (input.getRepeatExpr() != null) {
