@@ -5,9 +5,11 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
+import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.type.AlgebraicType;
@@ -156,6 +158,10 @@ public interface PatternMatching {
 		emitter().emit("%s = %s%s%s;", code().declaration(code().types().type(pattern), backend().variables().declarationName(pattern.getDeclaration())), target, deref, member);
 	}
 
+	default void openPattern(PatternVariable pattern, String target, String deref, String member) {
+		emitter().emit("%s = %s%s%s;", backend().variables().name(pattern.getVariable()), target, deref, member);
+	}
+
 	default void openPattern(PatternWildcard pattern, String target, String deref, String member) {
 
 	}
@@ -178,11 +184,11 @@ public interface PatternMatching {
 		emitter().emit("}");
 	}
 
-	default void closePattern(PatternBinding pattern) {
+	default void closePattern(PatternDeclaration pattern) {
 
 	}
 
-	default void closePattern(PatternWildcard pattern) {
+	default void closePattern(PatternVariable pattern) {
 
 	}
 }
