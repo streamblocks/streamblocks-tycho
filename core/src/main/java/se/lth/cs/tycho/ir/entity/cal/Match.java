@@ -39,6 +39,10 @@ public class Match extends AbstractIRNode {
 		return expression;
 	}
 
+	public Match withExpression(ExprCase expression) {
+		return copy(getDeclaration(), expression);
+	}
+
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(getDeclaration());
