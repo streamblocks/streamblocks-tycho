@@ -116,6 +116,7 @@ public class Compiler {
                 new RenameActorVariablesPhase(),
                 new LiftProcessVarDeclsPhase(),
                 new ProcessToCalPhase(),
+                new RemoveIdleMatchExpressionsPhase(),
                 new SubstitutePatternBindingsPhase(),
                 new AddMatchGuardsPhase(),
                 new AddSchedulePhase(),

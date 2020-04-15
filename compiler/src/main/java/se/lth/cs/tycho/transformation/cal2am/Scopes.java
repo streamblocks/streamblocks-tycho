@@ -70,7 +70,7 @@ public class Scopes {
 					varDecls.add(VarDecl.local(var.getType(), var.getName(), new ExprInput((Port) input.getPort().deepClone(), i), var.isConstant()));
 					i = i + 1;
 				}
-				for (PatternVariable var : input.getMatches().stream().flatMap(match -> variables(match.getExpression().getAlternatives().get(0).getPattern())).collect(Collectors.toList())) {
+				for (PatternVariable var : input.getMatches().stream().filter(match -> match.getExpression() != null).flatMap(match -> variables(match.getExpression().getAlternatives().get(0).getPattern())).collect(Collectors.toList())) {
 					varDecls.add(VarDecl.local(TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), null, false));
 					i = i + 1;
 				}
@@ -82,7 +82,7 @@ public class Scopes {
 					varDecls.add(VarDecl.local(var.getType(), var.getName(), new ExprInput((Port) input.getPort().deepClone(), i, repeat, patternLength), var.isConstant()));
 					i = i + 1;
 				}
-				for (PatternVariable var : input.getMatches().stream().flatMap(match -> variables(match.getExpression().getAlternatives().get(0).getPattern())).collect(Collectors.toList())) {
+				for (PatternVariable var : input.getMatches().stream().filter(match -> match.getExpression() != null).flatMap(match -> variables(match.getExpression().getAlternatives().get(0).getPattern())).collect(Collectors.toList())) {
 					varDecls.add(VarDecl.local(TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), null, false));
 					i = i + 1;
 				}

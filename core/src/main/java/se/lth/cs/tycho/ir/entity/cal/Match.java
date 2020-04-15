@@ -39,6 +39,10 @@ public class Match extends AbstractIRNode {
 		return expression;
 	}
 
+	public Match withDeclaration(InputVarDecl declaration) {
+		return copy(declaration, getExpression());
+	}
+
 	public Match withExpression(ExprCase expression) {
 		return copy(getDeclaration(), expression);
 	}
@@ -46,11 +50,12 @@ public class Match extends AbstractIRNode {
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(getDeclaration());
-		action.accept(getExpression());
+		if (getExpression() != null) action.accept(getExpression());
 	}
 
 	@Override
 	public IRNode transformChildren(Transformation transformation) {
-		return copy((InputVarDecl) transformation.apply(getDeclaration()), (ExprCase) transformation.apply(getExpression()));
+		return copy((InputVarDecl) transformation.apply(getDeclaration()),
+				getExpression() == null ? null : (ExprCase) transformation.apply(getExpression()));
 	}
 }

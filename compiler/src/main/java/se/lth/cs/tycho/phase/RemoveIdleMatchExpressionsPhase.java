@@ -5,18 +5,16 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.entity.cal.Match;
+import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.reporting.CompilationException;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-public class AddMatchGuardsPhase implements Phase {
+public class RemoveIdleMatchExpressionsPhase implements Phase {
 
 	@Override
 	public String getDescription() {
-		return "Add match expressions to action guards";
+		return "Removes idle expressions of matches";
 	}
 
 	@Override
@@ -30,17 +28,17 @@ public class AddMatchGuardsPhase implements Phase {
 
 		@Override
 		default IRNode apply(IRNode node) {
-			return node.transformChildren(this::apply);
+			return node.transformChildren(this);
 		}
 
-		default IRNode apply(Action action) {
-			List<Expression> guards = action.getInputPatterns().stream()
-					.flatMap(input -> input.getMatches().stream())
-					.filter(match -> match.getExpression() != null)
-					.map(match -> match.getExpression().deepClone())
-					.collect(Collectors.toList());
-			guards.addAll(action.getGuards());
-			return action.withGuards(guards);
+		default IRNode apply(Match match) {
+			Pattern pattern = match.getExpression().getAlternatives().get(0).getPattern();
+			if (pattern instanceof PatternDeclaration) {
+				return match
+						.withDeclaration(match.getDeclaration().withName(((PatternDeclaration) pattern).getDeclaration().getName()))
+						.withExpression(null);
+			}
+			return match;
 		}
 	}
 }

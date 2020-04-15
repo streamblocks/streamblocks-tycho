@@ -8,6 +8,7 @@ import se.lth.cs.tycho.compiler.UniqueNumbers;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.InputVarDecl;
+import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
@@ -21,7 +22,7 @@ import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
+import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
@@ -251,7 +252,7 @@ public final class ProcessToCal {
 
 		default Match match(InputVarDecl decl) {
 			Expression expression = new ExprVariable(Variable.variable(decl.getName()));
-			ExprCase.Alternative alternative = new ExprCase.Alternative(new PatternWildcard(), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True));
+			ExprCase.Alternative alternative = new ExprCase.Alternative(new PatternBinding(new PatternVarDecl(decl.getName())), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True));
 			Expression defaultt = new ExprLiteral(ExprLiteral.Kind.False);
 			ExprCase expr = new ExprCase(expression, Collections.singletonList(alternative), defaultt);
 			return new Match(decl, expr);

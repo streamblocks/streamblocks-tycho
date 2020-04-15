@@ -34,8 +34,11 @@ public class SubstitutePatternBindingsPhase implements Phase {
 		}
 
 		default IRNode apply(Match match) {
-			Substitution substitution = MultiJ.from(Substitution.class).instance();
-			return match.withExpression((ExprCase) substitution.apply(match.getExpression()));
+			if (match.getExpression() != null) {
+				Substitution substitution = MultiJ.from(Substitution.class).instance();
+				return match.withExpression((ExprCase) substitution.apply(match.getExpression()));
+			}
+			return match;
 		}
 	}
 

@@ -7,8 +7,10 @@ import java.util.function.Consumer;
 
 public class InputVarDecl extends VarDecl {
 
+	private static long count = 0;
+
 	public InputVarDecl() {
-		this("");
+		this(String.format("$input%d", count++));
 	}
 
 	public InputVarDecl(String name) {

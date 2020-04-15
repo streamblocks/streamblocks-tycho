@@ -106,7 +106,7 @@ public interface VariableScopes {
 
         default ImmutableList<VarDecl> declarations(Match match) {
             return Stream
-                    .concat(Stream.of(match.getDeclaration()), match.getExpression().getAlternatives().stream().flatMap(alternative -> declarations(alternative).stream()))
+                    .concat(Stream.of(match.getDeclaration()), match.getExpression() == null ? Stream.<VarDecl>empty() : match.getExpression().getAlternatives().stream().flatMap(alternative -> declarations(alternative).stream()))
                     .collect(ImmutableList.collector());
         }
 
