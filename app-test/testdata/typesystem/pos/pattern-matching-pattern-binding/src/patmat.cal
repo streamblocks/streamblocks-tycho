@@ -1,7 +1,7 @@
 namespace patmat:
     type T : (int a, bool b) end
     T t;
-    actor PatternVariable() ==> int OUT:
+    actor PatternBinding() ==> int OUT:
         do
             OUT <--
                 case t of

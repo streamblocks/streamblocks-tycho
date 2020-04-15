@@ -1,0 +1,5 @@
+{
+    "description": "Test pattern binding of pattern matching",
+    "source-paths": ["src"],
+    "entity": "patmat.PatternBinding"
+}
