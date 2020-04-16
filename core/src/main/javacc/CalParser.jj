@@ -1851,6 +1851,9 @@ Pattern Pattern() :
 }
 {
 	(
+		LOOKAHEAD(PatternDeclaration() "@")
+		pattern = PatternAlias()
+	|
 		LOOKAHEAD(<ID> "(")
 		pattern = PatternDeconstruction()
 	|
@@ -1876,6 +1879,21 @@ PatternDeclaration PatternDeclaration() :
 			return setPosition(new PatternBinding(new PatternVarDecl(id.image)), id, id);
 		}
 	}
+}
+
+PatternAlias PatternAlias() :
+{
+	Pattern alias;
+	Expression expression;
+	Token last;
+}
+{
+	alias = PatternDeclaration()
+	"@"
+	"("
+	expression = Expression()
+	last = ")"
+	{ return setPosition(new PatternAlias(alias, expression), alias, last); }
 }
 
 PatternLiteral PatternLiteral() :

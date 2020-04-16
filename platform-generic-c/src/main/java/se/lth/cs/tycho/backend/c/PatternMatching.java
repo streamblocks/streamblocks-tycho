@@ -5,6 +5,7 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
@@ -174,6 +175,28 @@ public interface PatternMatching {
 		backend().memoryStack().enterScope();
 	}
 
+	default void openPattern(PatternAlias pattern, String target, String deref, String member) {
+		Type type = backend().types().type(pattern.getExpression());
+		String expr = code().evaluate(pattern.getExpression());
+		String alias;
+		if (pattern.getAlias() instanceof PatternVariable) {
+			alias = backend().variables().name(((PatternVariable) pattern.getAlias()).getVariable());
+			code().copy(type, alias, type, expr);
+		} else if (pattern.getAlias() instanceof PatternBinding) {
+			alias = backend().variables().declarationName(((PatternBinding) pattern.getAlias()).getDeclaration());
+			if (type instanceof AlgebraicType) {
+				backend().memoryStack().trackPointer(alias, type);
+			}
+			emitter().emit("%s = %s;", code().declaration(type, alias), backend().defaultValues().defaultValue(type));
+			code().copy(type, alias, type, expr);
+		} else {
+			alias = expr;
+		}
+		emitter().emit("if (%s) {", code().compare(type, String.format("%s%s%s", target, deref, member), type, alias));
+		emitter().increaseIndentation();
+		backend().memoryStack().enterScope();
+	}
+
 	void closePattern(Pattern pattern);
 
 	default void closePattern(PatternDeconstruction pattern) {
@@ -201,6 +224,12 @@ public interface PatternMatching {
 	}
 
 	default void closePattern(PatternLiteral pattern) {
+		backend().memoryStack().exitScope();
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+	}
+
+	default void closePattern(PatternAlias pattern) {
 		backend().memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("}");

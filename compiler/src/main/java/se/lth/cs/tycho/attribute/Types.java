@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
@@ -129,6 +130,10 @@ public interface Types {
 
 		default Type type(PatternLiteral pattern) {
 			return type(pattern.getLiteral());
+		}
+
+		default Type type(PatternAlias pattern) {
+				return type(pattern.getExpression());
 		}
 
 		@Binding(BindingKind.LAZY)
@@ -258,7 +263,11 @@ public interface Types {
 		}
 
 		default Type computeVarOrDeclPatternType(Pattern pattern) {
-			IRNode node = pattern;
+			if (tree().parent(pattern) instanceof PatternAlias) {
+				pattern = (Pattern) tree().parent(pattern);
+			}
+			final Pattern p = pattern;
+			IRNode node = p;
 			while ((node = tree().parent(node)) != null) {
 				if (node instanceof PatternDeconstruction) {
 					PatternDeconstruction deconstruction = (PatternDeconstruction) node;
@@ -266,12 +275,12 @@ public interface Types {
 						GlobalTypeDecl type = (GlobalTypeDecl) decl;
 						if (type.getDeclaration() instanceof ProductTypeDecl) {
 							ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
-							int index = deconstruction.getPatterns().indexOf(pattern);
+							int index = deconstruction.getPatterns().indexOf(p);
 							return convert(product.getFields().get(index).getType());
 						} else {
 							SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
 							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
-							int index = deconstruction.getPatterns().indexOf(pattern);
+							int index = deconstruction.getPatterns().indexOf(p);
 							return convert(variant.getFields().get(index).getType());
 						}
 					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getName() + "."));

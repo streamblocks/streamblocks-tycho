@@ -23,6 +23,7 @@ import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
@@ -168,6 +169,10 @@ public interface VariableScopes {
 
         default ImmutableList<VarDecl> declarations(PatternDeconstruction deconstruction) {
             return deconstruction.getPatterns().stream().flatMap(pattern -> declarations(pattern).stream()).collect(ImmutableList.collector());
+        }
+
+        default ImmutableList<VarDecl> declarations(PatternAlias pattern) {
+            return declarations(pattern.getAlias());
         }
     }
 }
