@@ -1845,13 +1845,68 @@ ExprCase.Alternative CaseExprAlternative() :
     { return setPosition(new ExprCase.Alternative(pattern, guards.build(), expression), pattern, last); }
 }
 
-Pattern Pattern():
+Pattern Pattern() :
 {
-    Expression expression;
+	Pattern pattern;
 }
 {
-    expression = Expression()
-    { return setPosition(new PatternExpression(expression), expression, expression); }
+	(
+		LOOKAHEAD(<ID> "(")
+		pattern = PatternDeconstruction()
+	|
+		pattern = PatternExpression()
+	|
+		pattern = PatternDeclaration()
+	)
+	{ return pattern; }
+}
+
+PatternDeclaration PatternDeclaration() :
+{
+	Token id;
+}
+{
+	id = <ID>
+	{
+		if (token.image.equals("_")) {
+			return setPosition(new PatternWildcard(), id, id);
+		} else {
+			return setPosition(new PatternBinding(new PatternVarDecl(id.image)), id, id);
+		}
+	}
+}
+
+PatternExpression PatternExpression() :
+{
+	Token first;
+	Token last;
+	Expression expression;
+}
+{
+	first = "("
+	expression = Expression()
+	last = ")"
+	{ return setPosition(new PatternExpression(expression), first, last); }
+}
+
+PatternDeconstruction PatternDeconstruction() :
+{
+	Token id;
+	Token last;
+	Pattern pattern;
+	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+	id = <ID>
+	"("
+	(
+		pattern = Pattern() { patterns.add(pattern); }
+		(
+			"," pattern = Pattern() { patterns.add(pattern); }
+		)*
+	)?
+	last = ")"
+	{ return setPosition(new PatternDeconstruction(id.image, patterns.build()), id, last); }
 }
 
 ExprIf IfExpression() :
