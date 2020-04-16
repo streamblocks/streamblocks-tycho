@@ -1854,6 +1854,8 @@ Pattern Pattern() :
 		LOOKAHEAD(<ID> "(")
 		pattern = PatternDeconstruction()
 	|
+		pattern = PatternLiteral()
+	|
 		pattern = PatternExpression()
 	|
 		pattern = PatternDeclaration()
@@ -1874,6 +1876,15 @@ PatternDeclaration PatternDeclaration() :
 			return setPosition(new PatternBinding(new PatternVarDecl(id.image)), id, id);
 		}
 	}
+}
+
+PatternLiteral PatternLiteral() :
+{
+	ExprLiteral literal;
+}
+{
+	literal = ExpressionLiteral()
+	{ return setPosition(new PatternLiteral(literal), literal, literal); }
 }
 
 PatternExpression PatternExpression() :

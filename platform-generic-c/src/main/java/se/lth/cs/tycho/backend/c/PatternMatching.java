@@ -9,6 +9,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
+import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
@@ -166,6 +167,13 @@ public interface PatternMatching {
 
 	}
 
+	default void openPattern(PatternLiteral pattern, String target, String deref, String member) {
+		Type type = backend().types().type(pattern.getLiteral());
+		emitter().emit("if (%s) {", code().compare(type, String.format("%s%s%s", target, deref, member), type, code().evaluate(pattern.getLiteral())));
+		emitter().increaseIndentation();
+		backend().memoryStack().enterScope();
+	}
+
 	void closePattern(Pattern pattern);
 
 	default void closePattern(PatternDeconstruction pattern) {
@@ -190,5 +198,11 @@ public interface PatternMatching {
 
 	default void closePattern(PatternVariable pattern) {
 
+	}
+
+	default void closePattern(PatternLiteral pattern) {
+		backend().memoryStack().exitScope();
+		emitter().decreaseIndentation();
+		emitter().emit("}");
 	}
 }

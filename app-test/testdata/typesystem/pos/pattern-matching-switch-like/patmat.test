@@ -1,5 +1,0 @@
-{
-    "description": "Test switch-like pattern matching",
-    "source-paths": ["src"],
-    "entity": "patmat.SwitchLike"
-}

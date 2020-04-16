@@ -1,6 +1,6 @@
 namespace patmat:
     int n;
-    actor SwitchLike() ==> int OUT:
+    actor PatternLiteral() ==> int OUT:
         do
             OUT <--
                 case n of

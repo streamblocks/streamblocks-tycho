@@ -18,6 +18,7 @@ import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
+import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
@@ -124,6 +125,10 @@ public interface Types {
 
 		default Type type(PatternVariable pattern) {
 			return computeVarOrDeclPatternType(pattern);
+		}
+
+		default Type type(PatternLiteral pattern) {
+			return type(pattern.getLiteral());
 		}
 
 		@Binding(BindingKind.LAZY)
