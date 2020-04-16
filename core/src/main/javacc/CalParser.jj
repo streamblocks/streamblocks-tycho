@@ -1851,6 +1851,9 @@ Pattern Pattern() :
 }
 {
 	(
+		LOOKAHEAD((PatternLiteral() | PatternExpression()) "|")
+		pattern = PatternAlternative()
+	|
 		LOOKAHEAD(PatternDeclaration() "@")
 		pattern = PatternAlias()
 	|
@@ -1879,6 +1882,30 @@ PatternDeclaration PatternDeclaration() :
 			return setPosition(new PatternBinding(new PatternVarDecl(id.image)), id, id);
 		}
 	}
+}
+
+PatternAlternative PatternAlternative() :
+{
+  Pattern pattern;
+  Pattern first;
+  Pattern last;
+  ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+  (
+    pattern = PatternLiteral() { patterns.add(pattern); first = pattern; }
+  |
+    pattern = PatternExpression() { patterns.add(pattern); first = pattern; }
+  )
+  (
+    "|"
+    (
+      pattern = PatternLiteral() { patterns.add(pattern); last = pattern; }
+    |
+      pattern = PatternExpression() { patterns.add(pattern); last = pattern; }
+    )
+  )+
+  { return setPosition(new PatternAlternative(patterns.build()), first, last); }
 }
 
 PatternAlias PatternAlias() :

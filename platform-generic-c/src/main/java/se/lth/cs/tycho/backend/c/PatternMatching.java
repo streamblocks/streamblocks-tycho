@@ -4,8 +4,10 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.expr.ExprCase;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
+import se.lth.cs.tycho.ir.expr.pattern.PatternAlternative;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
@@ -21,6 +23,7 @@ import se.lth.cs.tycho.type.SumType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Module
 public interface PatternMatching {
@@ -197,6 +200,21 @@ public interface PatternMatching {
 		backend().memoryStack().enterScope();
 	}
 
+	default void openPattern(PatternAlternative pattern, String target, String deref, String member) {
+		emitter().emit("if (%s) {", pattern.getPatterns().stream().map(p -> {
+			Expression expr;
+			if (p instanceof PatternLiteral) {
+				expr = ((PatternLiteral) p).getLiteral();
+			} else {
+				expr = ((PatternExpression) p).getExpression();
+			}
+			Type type = backend().types().type(expr);
+			return code().compare(type, String.format("%s%s%s", target, deref, member), type, code().evaluate(expr));
+		}).collect(Collectors.joining(" || ")));
+		emitter().increaseIndentation();
+		backend().memoryStack().enterScope();
+	}
+
 	void closePattern(Pattern pattern);
 
 	default void closePattern(PatternDeconstruction pattern) {
@@ -230,6 +248,12 @@ public interface PatternMatching {
 	}
 
 	default void closePattern(PatternAlias pattern) {
+		backend().memoryStack().exitScope();
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+	}
+
+	default void closePattern(PatternAlternative pattern) {
 		backend().memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("}");

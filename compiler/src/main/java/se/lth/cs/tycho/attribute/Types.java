@@ -16,6 +16,7 @@ import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
+import se.lth.cs.tycho.ir.expr.pattern.PatternAlternative;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
@@ -133,7 +134,13 @@ public interface Types {
 		}
 
 		default Type type(PatternAlias pattern) {
-				return type(pattern.getExpression());
+			return type(pattern.getExpression());
+		}
+
+		default Type type(PatternAlternative pattern) {
+			return pattern.getPatterns().stream()
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 		}
 
 		@Binding(BindingKind.LAZY)
