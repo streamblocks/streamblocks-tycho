@@ -21,7 +21,7 @@ import se.lth.cs.tycho.ir.expr.ExprTypeAssertion;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
-import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtCall;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
@@ -484,13 +484,13 @@ public class TypeAnalysisPhase implements Phase {
 			});
 		}
 
-		default void checkTypes(PatternDeconstructor deconstructor) {
-			typeScopes().construction(deconstructor).ifPresent(decl -> {
+		default void checkTypes(PatternDeconstruction deconstruction) {
+			typeScopes().construction(deconstruction).ifPresent(decl -> {
 				GlobalTypeDecl type = (GlobalTypeDecl) decl;
 				if (type.getDeclaration() instanceof ProductTypeDecl) {
 					ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
 					Iterator<Type> types = product.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
-					Iterator<Pattern> patterns = deconstructor.getPatterns().iterator();
+					Iterator<Pattern> patterns = deconstruction.getPatterns().iterator();
 					while (types.hasNext() && patterns.hasNext()) {
 						Pattern pattern = patterns.next();
 						Type patType = types().type(pattern);
@@ -499,14 +499,14 @@ public class TypeAnalysisPhase implements Phase {
 					}
 					if (types.hasNext() || patterns.hasNext()) {
 						final int expected = product.getFields().size();
-						final int actual = deconstructor.getPatterns().size();
-						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstructor));
+						final int actual = deconstruction.getPatterns().size();
+						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstruction));
 					}
 				} else if (type.getDeclaration() instanceof SumTypeDecl) {
 					SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
-					SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstructor.getName())).findAny().get();
+					SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
 					Iterator<Type> types = variant.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
-					Iterator<Pattern> patterns = deconstructor.getPatterns().iterator();
+					Iterator<Pattern> patterns = deconstruction.getPatterns().iterator();
 					while (types.hasNext() && patterns.hasNext()) {
 						Pattern pattern = patterns.next();
 						Type patType = types().type(pattern);
@@ -515,8 +515,8 @@ public class TypeAnalysisPhase implements Phase {
 					}
 					if (types.hasNext() || patterns.hasNext()) {
 						final int expected = variant.getFields().size();
-						final int actual = deconstructor.getPatterns().size();
-						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstructor));
+						final int actual = deconstruction.getPatterns().size();
+						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstruction));
 					}
 				}
 			});

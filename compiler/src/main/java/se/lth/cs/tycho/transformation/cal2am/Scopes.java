@@ -13,7 +13,7 @@ import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.ExprInput;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
-import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.attribute.ConstantEvaluator;
@@ -95,8 +95,8 @@ public class Scopes {
 	private Stream<PatternVariable> variables(Pattern pattern) {
 		if (pattern instanceof PatternVariable) {
 			return Stream.of(((PatternVariable) pattern));
-		} else if (pattern instanceof PatternDeconstructor) {
-			return ((PatternDeconstructor) pattern).getPatterns().stream().flatMap(this::variables);
+		} else if (pattern instanceof PatternDeconstruction) {
+			return ((PatternDeconstruction) pattern).getPatterns().stream().flatMap(this::variables);
 		} else {
 			return Stream.empty();
 		}

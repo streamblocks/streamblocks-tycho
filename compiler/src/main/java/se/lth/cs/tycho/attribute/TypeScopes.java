@@ -17,7 +17,7 @@ import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
-import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
@@ -121,8 +121,8 @@ public interface TypeScopes {
 			return constructionOf(type, type.getName());
 		}
 
-		default Optional<TypeDecl> construction(PatternDeconstructor deconstructor) {
-			return constructionOf(deconstructor, deconstructor.getName());
+		default Optional<TypeDecl> construction(PatternDeconstruction deconstruction) {
+			return constructionOf(deconstruction, deconstruction.getName());
 		}
 
 		default Optional<TypeDecl> constructionOf(IRNode node, String name) {

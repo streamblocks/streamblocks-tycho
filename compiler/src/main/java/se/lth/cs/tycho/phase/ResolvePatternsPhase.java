@@ -13,7 +13,7 @@ import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
-import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
@@ -55,7 +55,7 @@ public class ResolvePatternsPhase implements Phase {
 				if (exprVariable.getVariable().getName().equals("_")) {
 					return new PatternWildcard(exprVariable);
 				} else if (typeScopes().construction(exprVariable).isPresent()) {
-					return new PatternDeconstructor(exprVariable, exprVariable.getVariable().getName(), Collections.emptyList());
+					return new PatternDeconstruction(exprVariable, exprVariable.getVariable().getName(), Collections.emptyList());
 				} else {
 					PatternVarDecl decl = new PatternVarDecl(exprVariable.getVariable().getName());
 					decl.setPosition(exprVariable.getFromLineNumber(), exprVariable.getFromColumnNumber(), exprVariable.getToLineNumber(), exprVariable.getToColumnNumber());
@@ -66,7 +66,7 @@ public class ResolvePatternsPhase implements Phase {
 				ExprApplication application = (ExprApplication) expr;
 				ExprVariable exprVariable = (ExprVariable) application.getFunction();
 				if (typeScopes().construction(exprVariable).isPresent()) {
-					return new PatternDeconstructor(application, exprVariable.getVariable().getName(), application.getArgs().stream().map(arg -> apply(new PatternExpression(arg, arg))).map(Pattern.class::cast).collect(ImmutableList.collector()));
+					return new PatternDeconstruction(application, exprVariable.getVariable().getName(), application.getArgs().stream().map(arg -> apply(new PatternExpression(arg, arg))).map(Pattern.class::cast).collect(ImmutableList.collector()));
 				}
 			}
 			return pattern;

@@ -16,7 +16,7 @@ import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
-import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.network.Connection;
@@ -110,7 +110,7 @@ public interface Types {
 			return BottomType.INSTANCE;
 		}
 
-		default Type type(PatternDeconstructor pattern) {
+		default Type type(PatternDeconstruction pattern) {
 			return declaredGlobalType((GlobalTypeDecl) typeScopes().construction(pattern).get());
 		}
 
@@ -255,21 +255,21 @@ public interface Types {
 		default Type computeVarOrDeclPatternType(Pattern pattern) {
 			IRNode node = pattern;
 			while ((node = tree().parent(node)) != null) {
-				if (node instanceof PatternDeconstructor) {
-					PatternDeconstructor deconstructor = (PatternDeconstructor) node;
-					return typeScopes().construction(deconstructor).map(decl -> {
+				if (node instanceof PatternDeconstruction) {
+					PatternDeconstruction deconstruction = (PatternDeconstruction) node;
+					return typeScopes().construction(deconstruction).map(decl -> {
 						GlobalTypeDecl type = (GlobalTypeDecl) decl;
 						if (type.getDeclaration() instanceof ProductTypeDecl) {
 							ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
-							int index = deconstructor.getPatterns().indexOf(pattern);
+							int index = deconstruction.getPatterns().indexOf(pattern);
 							return convert(product.getFields().get(index).getType());
 						} else {
 							SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
-							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstructor.getName())).findAny().get();
-							int index = deconstructor.getPatterns().indexOf(pattern);
+							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
+							int index = deconstruction.getPatterns().indexOf(pattern);
 							return convert(variant.getFields().get(index).getType());
 						}
-					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstructor.getName() + "."));
+					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getName() + "."));
 				} else if (node instanceof ExprCase) {
 					return type(((ExprCase) node).getExpression());
 				} else if (node instanceof StmtCase) {

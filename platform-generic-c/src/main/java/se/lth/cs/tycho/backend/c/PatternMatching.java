@@ -6,7 +6,7 @@ import org.multij.Module;
 import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
-import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
@@ -128,7 +128,7 @@ public interface PatternMatching {
 
 	void openPattern(Pattern pattern, String target, String deref, String member);
 
-	default void openPattern(PatternDeconstructor pattern, String target, String deref, String member) {
+	default void openPattern(PatternDeconstruction pattern, String target, String deref, String member) {
 		Type type = code().types().type(pattern);
 		if (type instanceof SumType) {
 			SumType sum = (SumType) type;
@@ -168,7 +168,7 @@ public interface PatternMatching {
 
 	void closePattern(Pattern pattern);
 
-	default void closePattern(PatternDeconstructor pattern) {
+	default void closePattern(PatternDeconstruction pattern) {
 		Type type = code().types().type(pattern);
 		if (type instanceof SumType) {
 			backend().memoryStack().exitScope();
