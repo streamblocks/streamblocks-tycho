@@ -1860,6 +1860,8 @@ Pattern Pattern() :
 		LOOKAHEAD(<ID> "(")
 		pattern = PatternDeconstruction()
 	|
+		pattern = PatternList()
+	|
 		pattern = PatternLiteral()
 	|
 		pattern = PatternExpression()
@@ -1879,7 +1881,7 @@ PatternDeclaration PatternDeclaration() :
 		if (token.image.equals("_")) {
 			return setPosition(new PatternWildcard(), id, id);
 		} else {
-			return setPosition(new PatternBinding(new PatternVarDecl(id.image)), id, id);
+			return setPosition(new PatternBinding(setPosition(new PatternVarDecl(id.image), id, id)), id, id);
 		}
 	}
 }
@@ -1921,6 +1923,25 @@ PatternAlias PatternAlias() :
 	expression = Expression()
 	last = ")"
 	{ return setPosition(new PatternAlias(alias, expression), alias, last); }
+}
+
+PatternList PatternList() :
+{
+	Token first;
+	Token last;
+	Pattern pattern;
+	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+	first = "["
+	(
+		pattern = Pattern() { patterns.add(pattern); }
+		(
+			"," pattern = Pattern() { patterns.add(pattern); }
+		)*
+	)?
+	last = "]"
+	{ return setPosition(new PatternList(patterns.build()), first, last); }
 }
 
 PatternLiteral PatternLiteral() :

@@ -20,8 +20,10 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternAlternative;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
+import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
+import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
@@ -126,7 +128,7 @@ public interface Types {
 		}
 
 		default Type type(PatternVariable pattern) {
-			return computeVarOrDeclPatternType(pattern);
+			return computeInferableType(pattern);
 		}
 
 		default Type type(PatternLiteral pattern) {
@@ -141,6 +143,56 @@ public interface Types {
 			return pattern.getPatterns().stream()
 					.map(this::type)
 					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+		}
+
+		default Type type(PatternList pattern) {
+			if (deducible(pattern)) {
+				return deduce(pattern);
+			}
+			return infer(pattern);
+		}
+
+		default boolean deducible(PatternList pattern) {
+			ImmutableList<Pattern> patterns = pattern.getPatterns();
+			boolean isTypeKnowable = patterns.stream().anyMatch(this::typable);
+			boolean isSizeKnowable = patterns.size() > 0 && !(patterns.get(patterns.size() - 1) instanceof PatternWildcard);
+			return isTypeKnowable && isSizeKnowable;
+		}
+
+		default boolean typable(Pattern pattern) {
+			return (pattern instanceof PatternAlias)
+					|| (pattern instanceof PatternLiteral)
+					|| (pattern instanceof PatternExpression)
+					|| (pattern instanceof PatternAlternative)
+					|| (pattern instanceof PatternDeconstruction);
+		}
+
+		default Type deduce(PatternList pattern) {
+			ImmutableList<Pattern> patterns = pattern.getPatterns();
+			Type type = patterns.stream()
+					.filter(this::typable)
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+			int size = patterns.size();
+			return new ListType(type, OptionalInt.of(size));
+		}
+
+		default Type infer(PatternList pattern) {
+			Type inferred = computeInferableType(pattern);
+			if (!(inferred instanceof ListType)) {
+				return new ListType(TopType.INSTANCE, OptionalInt.of(pattern.getPatterns().size()));
+			}
+			ListType listType = (ListType) inferred;
+			ImmutableList<Pattern> patterns = pattern.getPatterns();
+			Type type = patterns.stream().filter(this::typable).findFirst().map(this::type).orElse(listType.getElementType());
+			int size = patterns.size();
+			if (listType.getSize().isPresent()) {
+				int listSize = listType.getSize().getAsInt();
+				if (listSize > size && size > 0 && patterns.get(size - 1) instanceof PatternWildcard) {
+					size = listSize;
+				}
+			}
+			return new ListType(type, OptionalInt.of(size));
 		}
 
 		@Binding(BindingKind.LAZY)
@@ -265,11 +317,11 @@ public interface Types {
 				return convert(varDecl.getType());
 			} else {
 				PatternDeclaration pattern = (PatternDeclaration) tree().parent(varDecl);
-				return computeVarOrDeclPatternType(pattern);
+				return computeInferableType(pattern);
 			}
 		}
 
-		default Type computeVarOrDeclPatternType(Pattern pattern) {
+		default Type computeInferableType(Pattern pattern) {
 			if (tree().parent(pattern) instanceof PatternAlias) {
 				pattern = (Pattern) tree().parent(pattern);
 			}
@@ -291,6 +343,8 @@ public interface Types {
 							return convert(variant.getFields().get(index).getType());
 						}
 					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getName() + "."));
+				} else if (node instanceof PatternList) {
+					return ((ListType) type((PatternList) node)).getElementType();
 				} else if (node instanceof ExprCase) {
 					return type(((ExprCase) node).getExpression());
 				} else if (node instanceof StmtCase) {

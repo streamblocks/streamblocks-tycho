@@ -1,0 +1,5 @@
+{
+    "description": "Test pattern list of pattern matching",
+    "source-paths": ["src"],
+    "entity": "patmat.PatternList"
+}

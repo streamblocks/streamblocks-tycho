@@ -26,6 +26,7 @@ import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
+import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
@@ -163,12 +164,16 @@ public interface VariableScopes {
             return ImmutableList.empty();
         }
 
-        default ImmutableList<VarDecl> declarations(PatternBinding binding) {
-            return ImmutableList.of(binding.getDeclaration());
+        default ImmutableList<VarDecl> declarations(PatternBinding pattern) {
+            return ImmutableList.of(pattern.getDeclaration());
         }
 
-        default ImmutableList<VarDecl> declarations(PatternDeconstruction deconstruction) {
-            return deconstruction.getPatterns().stream().flatMap(pattern -> declarations(pattern).stream()).collect(ImmutableList.collector());
+        default ImmutableList<VarDecl> declarations(PatternDeconstruction pattern) {
+            return pattern.getPatterns().stream().flatMap(p -> declarations(p).stream()).collect(ImmutableList.collector());
+        }
+
+        default ImmutableList<VarDecl> declarations(PatternList pattern) {
+            return pattern.getPatterns().stream().flatMap(p -> declarations(p).stream()).collect(ImmutableList.collector());
         }
 
         default ImmutableList<VarDecl> declarations(PatternAlias pattern) {

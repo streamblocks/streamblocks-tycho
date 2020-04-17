@@ -12,6 +12,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
+import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
@@ -215,6 +216,12 @@ public interface PatternMatching {
 		backend().memoryStack().enterScope();
 	}
 
+	default void openPattern(PatternList pattern, String target, String deref, String member) {
+		for (int i = 0; i < pattern.getPatterns().size(); ++i) {
+			openPattern(pattern.getPatterns().get(i), target, deref, String.format("%s.data[%d]", member, i));
+		}
+	}
+
 	void closePattern(Pattern pattern);
 
 	default void closePattern(PatternDeconstruction pattern) {
@@ -257,5 +264,9 @@ public interface PatternMatching {
 		backend().memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
+	}
+
+	default void closePattern(PatternList pattern) {
+		pattern.getPatterns().forEach(this::closePattern);
 	}
 }
