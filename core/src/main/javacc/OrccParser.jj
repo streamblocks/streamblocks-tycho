@@ -14,6 +14,7 @@ package se.lth.cs.tycho.parsing.orcc;
 import java.lang.SuppressWarnings;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -862,8 +863,8 @@ Match Match() :
         expression.setPosition(pattern, pattern);
         ExprCase.Alternative alternative = new ExprCase.Alternative(pattern, Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True));
         alternative.setPosition(pattern, pattern);
-        Expression defaultt = new ExprLiteral(ExprLiteral.Kind.False);
-        ExprCase casee = new ExprCase(expression, Collections.singletonList(alternative), defaultt);
+        ExprCase.Alternative otherwise = new ExprCase.Alternative(new PatternWildcard(), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.False));
+        ExprCase casee = new ExprCase(expression, Arrays.asList(alternative, otherwise));
         casee.setPosition(pattern, pattern);
         return new Match(declaration, casee);
     }

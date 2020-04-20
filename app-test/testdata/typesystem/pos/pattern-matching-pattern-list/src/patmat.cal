@@ -4,8 +4,7 @@ namespace patmat:
         do
             OUT <-- case xs of
                 [1, n, (2 + 3), _, m @ (4 + 5), 6 | (7 + 8), _] : n + m + 1 end
-            else
-                -1
+                _ : -1 end
             end;
         end
     end

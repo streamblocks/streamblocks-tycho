@@ -23,6 +23,7 @@ import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
+import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
@@ -35,6 +36,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -253,8 +255,8 @@ public final class ProcessToCal {
 		default Match match(InputVarDecl decl) {
 			Expression expression = new ExprVariable(Variable.variable(decl.getName()));
 			ExprCase.Alternative alternative = new ExprCase.Alternative(new PatternBinding(new PatternVarDecl(decl.getName())), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True));
-			Expression defaultt = new ExprLiteral(ExprLiteral.Kind.False);
-			ExprCase expr = new ExprCase(expression, Collections.singletonList(alternative), defaultt);
+			ExprCase.Alternative otherwise = new ExprCase.Alternative(new PatternWildcard(), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.False));
+			ExprCase expr = new ExprCase(expression, Arrays.asList(alternative, otherwise));
 			return new Match(decl, expr);
 		}
 	}

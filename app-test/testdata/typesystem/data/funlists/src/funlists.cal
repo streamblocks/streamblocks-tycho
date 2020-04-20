@@ -6,8 +6,7 @@ namespace funlists:
     function size(FunList xs) --> int:
         case xs of
             Cons(_, tail) : 1 + size(tail) end
-        else
-            0
+            _ : 0 end
         end
     end
 

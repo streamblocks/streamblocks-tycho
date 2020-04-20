@@ -7,8 +7,7 @@ namespace patmat:
                 case t of
                     x : 1 end
                     T(x, y) : 1 end
-                else
-                    0
+                    _ : 0 end
                 end;
         end
     end

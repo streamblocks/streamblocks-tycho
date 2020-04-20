@@ -15,6 +15,7 @@ package se.lth.cs.tycho.parsing.cal;
 
 import java.lang.SuppressWarnings;
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
@@ -1438,8 +1439,8 @@ Match Match() :
         InputVarDecl declaration = new InputVarDecl();
         Expression expression = setPosition(new ExprVariable(Variable.variable(declaration.getName())), pattern, pattern);
         ExprCase.Alternative alternative = setPosition(new ExprCase.Alternative(pattern, Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True)), pattern, pattern);
-        Expression defaultt = new ExprLiteral(ExprLiteral.Kind.False);
-        ExprCase casee = setPosition(new ExprCase(expression, Collections.singletonList(alternative), defaultt), pattern, pattern);
+        ExprCase.Alternative otherwise = new ExprCase.Alternative(new PatternWildcard(), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.False));
+        ExprCase casee = setPosition(new ExprCase(expression, Arrays.asList(alternative, otherwise)), pattern, pattern);
         return setPosition(new Match(declaration, casee), pattern, pattern);
     }
 }
@@ -1802,7 +1803,6 @@ ExprCase CaseExpression() :
     Token first;
     Token last;
     Expression expression;
-    Expression default_;
     ExprCase.Alternative alternative;
     ImmutableList.Builder<ExprCase.Alternative> alternatives = ImmutableList.builder();
 }
@@ -1816,10 +1816,8 @@ ExprCase CaseExpression() :
             alternative = CaseExprAlternative() { alternatives.add(alternative); }
         )*
     )?
-    "else"
-    default_ = Expression()
     last = "end"
-    { return setPosition(new ExprCase(expression, alternatives.build(), default_), first, last); }
+    { return setPosition(new ExprCase(expression, alternatives.build()), first, last); }
 }
 
 ExprCase.Alternative CaseExprAlternative() :
@@ -2587,7 +2585,6 @@ StmtCase CaseStmt() :
     Token first;
     Token last;
     Expression expression;
-    Statement default_ = null;
     StmtCase.Alternative alternative;
     ImmutableList.Builder<StmtCase.Alternative> alternatives = ImmutableList.builder();
 }
@@ -2601,12 +2598,8 @@ StmtCase CaseStmt() :
             alternative = CaseStmtAlternative() { alternatives.add(alternative); }
         )*
     )?
-    (
-        "else"
-        default_ = Statement()
-    )?
     last = "end"
-    { return setPosition(new StmtCase(expression, alternatives.build(), Optional.ofNullable(default_)), first, last); }
+    { return setPosition(new StmtCase(expression, alternatives.build()), first, last); }
 }
 
 StmtCase.Alternative CaseStmtAlternative() :

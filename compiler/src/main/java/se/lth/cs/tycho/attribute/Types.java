@@ -795,7 +795,7 @@ public interface Types {
 			return caseExpr.getAlternatives()
 					.stream()
 					.map(alternative -> type(alternative.getExpression()))
-					.reduce(type(caseExpr.getDefault()), (a, b) -> leastUpperBound(a, b));
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 		}
 
 

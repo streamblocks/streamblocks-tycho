@@ -3,10 +3,8 @@ Error in "testdata/typesystem/neg/pattern-matching-alternative-expression-type/s
                 ^^^^^^^^^
                     1 : true end // error
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                else
-^^^^^^^^^^^^^^^^^^^^
-                    0
-^^^^^^^^^^^^^^^^^^^^^
+                    _ : 0 end
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
                 end;
 ^^^^^^^^^^^^^^^^^^^
 Incompatible types; expected int but was <top>.

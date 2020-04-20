@@ -8,8 +8,7 @@ namespace patmat:
             OUT <--
                 case t of
                    T((1 + n + fun()), (not(n < 2))) : 1 end
-                else
-                    0
+                   _ : 0 end
                 end;
         end
     end

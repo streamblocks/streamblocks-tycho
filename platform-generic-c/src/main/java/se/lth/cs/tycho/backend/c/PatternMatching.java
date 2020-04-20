@@ -60,13 +60,6 @@ public interface PatternMatching {
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		});
-		emitter().emit("if (!%s) {", match);
-		emitter().increaseIndentation();
-		backend().memoryStack().enterScope();
-		code().copy(code().types().type(caseExpr), result, code().types().type(caseExpr.getDefault()), code().evaluate(caseExpr.getDefault()));
-		backend().memoryStack().exitScope();
-		emitter().decreaseIndentation();
-		emitter().emit("}");
 		backend().memoryStack().exitScope();
 		return result;
 	}
@@ -81,15 +74,6 @@ public interface PatternMatching {
 			emitter().increaseIndentation();
 			backend().memoryStack().enterScope();
 			executeAlternative(alternative, expr, match);
-			backend().memoryStack().exitScope();
-			emitter().decreaseIndentation();
-			emitter().emit("}");
-		});
-		caseStmt.getDefault().ifPresent(default_ -> {
-			emitter().emit("if (!%s) {", match);
-			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
-			code().execute(default_);
 			backend().memoryStack().exitScope();
 			emitter().decreaseIndentation();
 			emitter().emit("}");

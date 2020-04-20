@@ -9,8 +9,6 @@ namespace patmat:
                    B(_, _) : 1 end
                    B(_, T(_, _)) : 1 end
                    _ : 1 end
-                else
-                    0
                 end;
         end
     end
