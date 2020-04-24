@@ -20,6 +20,7 @@ import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import javax.swing.text.html.Option;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,22 +39,26 @@ public class ElaborateNetworkPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		return task.withNetwork(fullyElaborate(task, task.getNetwork(), new HashSet<>()));
+		return task.withNetwork(fullyElaborate(task, task.getNetwork(), new HashSet<>(), Optional.empty()));
 	}
 
-	public Network fullyElaborate(CompilationTask task, Network network, Set<String> names) {
+	public Network fullyElaborate(CompilationTask task, Network network, Set<String> names, Optional<ToolAttribute> partition) {
 		Network result = uniqueNames(network, names);
 		for (Instance instance : result.getInstances()) {
 			GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
 			if (entity.getEntity() instanceof NlNetwork) {
-				Network elaborated = elaborate((NlNetwork) entity.getEntity());
-				elaborated = fullyElaborate(task, elaborated, names);
+				Optional<ToolAttribute> instPartition = partition.isPresent() ? partition : getPartitionAttribute(instance);
+				Network elaborated = elaborate((NlNetwork) entity.getEntity(), instPartition);
+				elaborated = fullyElaborate(task, elaborated, names, instPartition);
 				result = connectElaboratedInstance(result, instance.getInstanceName(), elaborated);
 			}
 		}
 		return result;
 	}
 
+	public Optional<ToolAttribute> getPartitionAttribute(Instance instance) {
+		return instance.getAttributes().stream().filter(a -> a.getName().equals("partition")).findAny();
+	}
 	private Network uniqueNames(Network network, Set<String> names) {
 		Map<String, String> dictionary = new HashMap<>();
 		for (Instance instance : network.getInstances()) {
@@ -149,7 +154,7 @@ public class ElaborateNetworkPhase implements Phase {
 		return attributes;
 	}
 
-	private Network elaborate(NlNetwork network) {
+	private Network elaborate(NlNetwork network, Optional<ToolAttribute> partition) {
 //		assert network.getValueParameters().isEmpty();
 //		assert network.getTypeParameters().isEmpty();
 //		assert network.getVarDecls().isEmpty();
@@ -163,12 +168,17 @@ public class ElaborateNetworkPhase implements Phase {
 			EntityInstanceExpr expr = (EntityInstanceExpr) entity.getEntityExpr();
 			assert expr.getEntityName() instanceof EntityReferenceGlobal;
 			QID entityName = ((EntityReferenceGlobal) expr.getEntityName()).getGlobalName();
+
+			ImmutableList.Builder<ToolAttribute> attrs = ImmutableList.builder();
+			if (partition.isPresent())
+				attrs.add(partition.get().deepClone());
+			attrs.addAll(expr.getAttributes().map(ToolAttribute::deepClone));
 			Instance instance = new Instance(
 					entity.getInstanceName(),
 					entityName,
 					expr.getParameterAssignments().map(ValueParameter::deepClone),
 					ImmutableList.empty())
-					.withAttributes(expr.getAttributes().map(ToolAttribute::deepClone));
+					.withAttributes(attrs.build());
 			instances.add(instance);
 		}
 
