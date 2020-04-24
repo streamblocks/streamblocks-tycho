@@ -1,0 +1,13 @@
+namespace patmat:
+    type T : A | B(int n) end
+    actor UnreachabilityAlgebraicType() ==> int OUT:
+        T t;
+        do
+            OUT <--
+                case t of
+                    _ : 0 end
+                    B(1) : 1 end
+                end;
+        end
+    end
+end

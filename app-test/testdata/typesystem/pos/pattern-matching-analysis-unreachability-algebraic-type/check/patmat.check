@@ -1,0 +1,4 @@
+Warning in "testdata/typesystem/pos/pattern-matching-analysis-unreachability-algebraic-type/src/patmat.cal" on line 9:
+                    B(1) : 1 end
+                    ^^^^
+Unreachable alternative.

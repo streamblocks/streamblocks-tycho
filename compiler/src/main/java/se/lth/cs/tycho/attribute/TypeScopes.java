@@ -12,11 +12,13 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
+import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
+import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -111,6 +113,10 @@ public interface TypeScopes {
 
 		default Optional<TypeDecl> construction(ExprTypeConstruction construction) {
 			return constructionOf(construction, construction.getConstructor());
+		}
+
+		default Optional<TypeDecl> construction(PatternVarDecl decl) {
+			return constructionOf(decl, decl.getName());
 		}
 
 		default Optional<TypeDecl> construction(ExprVariable var) {

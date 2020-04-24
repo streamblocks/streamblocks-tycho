@@ -1,0 +1,6 @@
+{
+    "description": "Test pattern matching unreachability on algebraic data types",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "patmat.UnreachabilityAlgebraicType"
+}

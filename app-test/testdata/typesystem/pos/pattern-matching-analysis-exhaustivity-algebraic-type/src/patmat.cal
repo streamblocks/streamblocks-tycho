@@ -1,0 +1,12 @@
+namespace patmat:
+    type T : A | B(int n) end
+    actor ExhaustivityAlgebraicType() ==> int OUT:
+        T t;
+        do
+            OUT <--
+                case t of
+                    B(1) : 1 end
+                end;
+        end
+    end
+end

@@ -1,0 +1,6 @@
+{
+    "description": "Test pattern matching exhaustivity on algebraic data types",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "patmat.ExhaustivityAlgebraicType"
+}

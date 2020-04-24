@@ -1,0 +1,11 @@
+namespace patmat:
+    actor ExhaustivityLiteral() ==> int OUT:
+        bool b;
+        do
+            OUT <--
+                case b of
+                    true : 1 end
+                end;
+        end
+    end
+end

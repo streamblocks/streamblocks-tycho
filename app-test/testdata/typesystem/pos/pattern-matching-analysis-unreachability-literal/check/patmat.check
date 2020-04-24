@@ -1,0 +1,4 @@
+Warning in "testdata/typesystem/pos/pattern-matching-analysis-unreachability-literal/src/patmat.cal" on line 8:
+                    true : 1 end
+                    ^^^^
+Unreachable alternative.
