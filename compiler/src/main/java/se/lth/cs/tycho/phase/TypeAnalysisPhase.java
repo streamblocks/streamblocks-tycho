@@ -237,6 +237,13 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isConvertible(Type to, Type from) {
 			return isAssignable(to, from);
 		}
+		default boolean isConvertible(IntType to, IntType from) {
+			return true;
+		}
+
+		default boolean isConvertible(RealType to, RealType from) {
+			return true;
+		}
 
 		@Override
 		default boolean isAssertable(Type to, Type from) {
@@ -246,6 +253,18 @@ public class TypeAnalysisPhase implements Phase {
 		@Override
 		default boolean isComparable(Type a, Type b, String operand) {
 			return a.equals(b);
+		}
+		default boolean isComparable(IntType a, IntType b, String operand) {
+			return true;
+		}
+		default boolean isComparable(RealType a, RealType b, String operand) {
+			return true;
+		}
+		default boolean isComparable(IntType a, RealType b, String operand) {
+			return true;
+		}
+		default boolean isComparable(RealType a, IntType b, String operand) {
+			return true;
 		}
 
 		default boolean isAssignable(Type to, Type from) {
