@@ -1,0 +1,6 @@
+{
+    "description": "Test field access on any type instance",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "field.Access"
+}

@@ -8,16 +8,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class PatternDeconstructor extends Pattern {
+public class PatternDeconstruction extends Pattern {
 
 	private String name;
 	private ImmutableList<Pattern> patterns;
 
-	public PatternDeconstructor(String name, List<Pattern> patterns) {
+	public PatternDeconstruction(String name, List<Pattern> patterns) {
 		this(null, name, patterns);
 	}
 
-	public PatternDeconstructor(IRNode original, String name, List<Pattern> patterns) {
+	public PatternDeconstruction(IRNode original, String name, List<Pattern> patterns) {
 		super(original);
 		this.name = name;
 		this.patterns = ImmutableList.from(patterns);
@@ -31,11 +31,11 @@ public class PatternDeconstructor extends Pattern {
 		return patterns;
 	}
 
-	public PatternDeconstructor copy(String name, List<Pattern> patterns) {
+	public PatternDeconstruction copy(String name, List<Pattern> patterns) {
 		if (Objects.equals(getName(), name) && Lists.sameElements(getPatterns(), patterns)) {
 			return this;
 		} else {
-			return new PatternDeconstructor(this, name, patterns);
+			return new PatternDeconstruction(this, name, patterns);
 		}
 	}
 

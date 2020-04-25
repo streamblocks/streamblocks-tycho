@@ -8,8 +8,7 @@ namespace patmat:
                 case u of
                     A : 1 end
                     B(T(1, false)) : 1 end
-                else
-                    0
+                    _ : 0 end
                 end;
         end
     end

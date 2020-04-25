@@ -1,5 +1,0 @@
-{
-    "description": "Test pattern variable of pattern matching",
-    "source-paths": ["src"],
-    "entity": "patmat.PatternVariable"
-}

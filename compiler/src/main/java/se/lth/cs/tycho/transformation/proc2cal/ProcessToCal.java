@@ -8,7 +8,9 @@ import se.lth.cs.tycho.compiler.UniqueNumbers;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.InputVarDecl;
+import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
@@ -16,7 +18,12 @@ import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.cal.ProcessDescription;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
+import se.lth.cs.tycho.ir.expr.ExprCase;
+import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
+import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
+import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
@@ -29,6 +36,8 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -196,12 +205,12 @@ public final class ProcessToCal {
 				Statement last = block.getStatements().get(block.getStatements().size() - 1);
 				if (first instanceof StmtRead) {
 					StmtRead read = (StmtRead) first;
-					ImmutableList<Map.Entry<LValue, InputVarDecl>> varDecls = read.getLValues()
-							.map(lvalue -> ImmutableEntry.of(lvalue, VarDecl.input("t_" + uniqueNumbers().next())));
+					ImmutableList<Map.Entry<LValue, Match>> varDecls = read.getLValues()
+							.map(lvalue -> ImmutableEntry.of(lvalue, match(VarDecl.input("t_" + uniqueNumbers().next()))));
 					InputPattern input = new InputPattern(read.getPort(), varDecls.map(Map.Entry::getValue), read.getRepeatExpression());
 					ImmutableList.Builder<Statement> bodyBuilder = ImmutableList.builder();
 					varDecls.forEach(entry -> bodyBuilder.add(new StmtAssignment(entry.getKey(),
-							new ExprVariable(Variable.variable(entry.getValue().getName())))));
+							new ExprVariable(Variable.variable(entry.getValue().getDeclaration().getName())))));
 					Iterator<Statement> iterator = block.getStatements().iterator();
 					iterator.next();
 					iterator.forEachRemaining(bodyBuilder);
@@ -241,6 +250,14 @@ public final class ProcessToCal {
 					ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
 					ImmutableList.empty(), null, ImmutableList.empty(), ImmutableList.empty()));
 			priorities().add(ImmutableList.of(QID.of(cond), QID.of(condNeg)));
+		}
+
+		default Match match(InputVarDecl decl) {
+			Expression expression = new ExprVariable(Variable.variable(decl.getName()));
+			ExprCase.Alternative alternative = new ExprCase.Alternative(new PatternBinding(new PatternVarDecl(decl.getName())), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True));
+			ExprCase.Alternative otherwise = new ExprCase.Alternative(new PatternWildcard(), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.False));
+			ExprCase expr = new ExprCase(expression, Arrays.asList(alternative, otherwise));
+			return new Match(decl, expr);
 		}
 	}
 }

@@ -1,0 +1,4 @@
+Warning in "testdata/typesystem/pos/pattern-matching-analysis-unreachability-nesting/src/patmat.cal" on line 9:
+                    B(_, B(false, A)) : 0 end
+                    ^^^^^^^^^^^^^^^^^
+Unreachable alternative.

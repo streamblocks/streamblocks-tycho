@@ -1,0 +1,6 @@
+Warning in "testdata/typesystem/pos/pattern-matching-analysis-exhaustivity-nesting/src/patmat.cal" on line 7:
+                case t of
+                     ^
+case may not be exhaustive.
+
+It would fail on patterns: A, B(_, A), B(_, B(true, _)), B(_, B(_, B(_, _)))

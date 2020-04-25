@@ -1,0 +1,5 @@
+{
+    "description": "Test pattern matching on input patterns",
+    "source-paths": ["src"],
+    "entity": "patmat.InputPattern"
+}

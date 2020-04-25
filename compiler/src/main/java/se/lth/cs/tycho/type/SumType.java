@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class SumType extends AlgebraicType {
 
-	public static class VariantType {
+	public static class VariantType implements Type {
 
 		private final String name;
 		private final List<FieldType> fields;

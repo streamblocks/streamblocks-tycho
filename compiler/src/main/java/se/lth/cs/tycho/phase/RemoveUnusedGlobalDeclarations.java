@@ -16,7 +16,7 @@ import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
-import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -245,8 +245,8 @@ public class RemoveUnusedGlobalDeclarations implements Phase {
                     .ifPresent(type -> addName(QID.parse(String.format("%s.%s", sourceUnit(type).getTree().getQID().toString(), type.getName())), NameKind.TYPE));
         }
 
-        default void add(PatternDeconstructor deconstructor) {
-            typeScopes().construction(deconstructor)
+        default void add(PatternDeconstruction deconstruction) {
+            typeScopes().construction(deconstruction)
                     .ifPresent(type -> addName(QID.parse(String.format("%s.%s", sourceUnit(type).getTree().getQID().toString(), type.getName())), NameKind.TYPE));
         }
 

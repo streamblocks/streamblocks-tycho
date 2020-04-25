@@ -6,8 +6,7 @@ namespace patmat:
             OUT <--
                 case t of
                     T(1, 2.5) : 1 end // error
-                else
-                    0
+                    _ : 0 end
                 end;
         end
     end

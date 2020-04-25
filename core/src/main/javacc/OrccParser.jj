@@ -14,11 +14,13 @@ package se.lth.cs.tycho.parsing.orcc;
 import java.lang.SuppressWarnings;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import se.lth.cs.tycho.ir.*;
+import se.lth.cs.tycho.ir.expr.pattern.*;
 import se.lth.cs.tycho.ir.type.*;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.expr.*;
@@ -832,19 +834,55 @@ InputPattern InputPattern() :
 {
 	Token id;
 	Port port = null;
-	ImmutableList.Builder<InputVarDecl> varDecls = ImmutableList.builder();
+	Match match;
+	ImmutableList.Builder<Match> matches = ImmutableList.builder();
 	Expression repeat = null;
 }
 {
 	( id = <ID> ":" { port = new Port(id.image); })?
 	"["
 	(
-		id = <ID> { varDecls.add(VarDecl.input(id.image)); }
-		("," id = <ID> { varDecls.add(VarDecl.input(id.image)); } )*
+		match = Match() { matches.add(match); }
+		("," match = Match() { matches.add(match); } )*
 	)?
 	"]"
 	("repeat" repeat = Expression())?
-	{ return new InputPattern(port, varDecls.build(), repeat); }
+	{ return new InputPattern(port, matches.build(), repeat); }
+}
+
+Match Match() :
+{
+    Pattern pattern;
+}
+{
+
+    pattern = Pattern()
+    {
+        InputVarDecl declaration = new InputVarDecl();
+        Expression expression = new ExprVariable(Variable.variable(declaration.getName()));
+        expression.setPosition(pattern, pattern);
+        ExprCase.Alternative alternative = new ExprCase.Alternative(pattern, Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True));
+        alternative.setPosition(pattern, pattern);
+        ExprCase.Alternative otherwise = new ExprCase.Alternative(new PatternWildcard(), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.False));
+        ExprCase casee = new ExprCase(expression, Arrays.asList(alternative, otherwise));
+        casee.setPosition(pattern, pattern);
+        return new Match(declaration, casee);
+    }
+}
+
+Pattern Pattern():
+{
+    Token id;
+}
+{
+    id = <ID>
+    {
+        PatternVarDecl decl = new PatternVarDecl(id.image);
+        decl.setPosition(id.beginLine, id.beginColumn, id.endLine, id.endColumn);
+        PatternBinding pattern = new PatternBinding(decl);
+        pattern.setPosition(decl, decl);
+        return pattern;
+    }
 }
 
 ImmutableList<OutputExpression> OutputExpressions() :

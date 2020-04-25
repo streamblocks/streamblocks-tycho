@@ -1,0 +1,12 @@
+namespace patmat:
+    actor UnreachabilityLiteral() ==> int OUT:
+        bool b;
+        do
+            OUT <--
+                case b of
+                    _ : 0 end
+                    true : 1 end
+                end;
+        end
+    end
+end

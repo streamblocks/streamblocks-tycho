@@ -1,13 +1,12 @@
 namespace patmat:
     type T : (int a, bool b) end
     T t;
-    actor PatternVariableExpression() ==> int OUT:
+    actor PatternBindingExpression() ==> int OUT:
         do
             OUT <--
                 case t of
                    T(x, y) guard x > 0, not y : x + 1 end
-                else
-                    0
+                   _ : 0 end
                 end;
         end
     end

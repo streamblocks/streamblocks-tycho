@@ -69,9 +69,9 @@ public class Conditions {
 	}
 
 	private static TokenRate tokenRate(ConstantEvaluator constants, InputPattern input) {
-		int vars = input.getVariables().size();
+		int matches = input.getMatches().size();
 		int repeat = evalRepeatMultiplier(constants, input.getRepeatExpr());
-		return new TokenRate(input.getPort(), vars * repeat);
+		return new TokenRate(input.getPort(), matches * repeat);
 	}
 	private static TokenRate tokenRate(ConstantEvaluator constants, OutputExpression output) {
 		int vars = output.getExpressions().size();

@@ -9,7 +9,6 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public class StmtCase extends Statement {
@@ -66,17 +65,15 @@ public class StmtCase extends Statement {
 
 	private Expression expression;
 	private ImmutableList<Alternative> alternatives;
-	private Optional<Statement> default_;
 
-	public StmtCase(Expression expression, List<Alternative> alternatives, Optional<Statement> default_) {
-		this(null, expression, alternatives, default_);
+	public StmtCase(Expression expression, List<Alternative> alternatives) {
+		this(null, expression, alternatives);
 	}
 
-	public StmtCase(Statement original, Expression expression, List<Alternative> alternatives, Optional<Statement> default_) {
+	public StmtCase(Statement original, Expression expression, List<Alternative> alternatives) {
 		super(original);
 		this.expression = expression;
 		this.alternatives = ImmutableList.from(alternatives);
-		this.default_ = default_;
 	}
 
 	public Expression getExpression() {
@@ -87,15 +84,11 @@ public class StmtCase extends Statement {
 		return alternatives;
 	}
 
-	public Optional<Statement> getDefault() {
-		return default_;
-	}
-
-	public StmtCase copy(Expression expression, List<Alternative> alternatives, Optional<Statement> default_) {
-		if (Objects.equals(getExpression(), expression) && Lists.sameElements(getAlternatives(), alternatives) && Objects.equals(getDefault(), default_)) {
+	public StmtCase copy(Expression expression, List<Alternative> alternatives) {
+		if (Objects.equals(getExpression(), expression) && Lists.sameElements(getAlternatives(), alternatives)) {
 			return this;
 		} else {
-			return new StmtCase(this, expression, alternatives, default_);
+			return new StmtCase(this, expression, alternatives);
 		}
 	}
 
@@ -103,11 +96,10 @@ public class StmtCase extends Statement {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(getExpression());
 		getAlternatives().forEach(action);
-		getDefault().ifPresent(action);
 	}
 
 	@Override
 	public Statement transformChildren(Transformation transformation) {
-		return copy((Expression) transformation.apply(getExpression()), transformation.mapChecked(Alternative.class, getAlternatives()), getDefault().map(default_ -> (Statement) transformation.apply(default_)));
+		return copy((Expression) transformation.apply(getExpression()), transformation.mapChecked(Alternative.class, getAlternatives()));
 	}
 }

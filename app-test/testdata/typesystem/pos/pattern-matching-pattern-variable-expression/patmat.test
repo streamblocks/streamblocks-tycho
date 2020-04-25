@@ -1,5 +1,5 @@
 {
-    "description": "Test pattern variable expression of pattern matching",
+    "description": "Test pattern binding expression of pattern matching",
     "source-paths": ["src"],
-    "entity": "patmat.PatternVariableExpression"
+    "entity": "patmat.PatternBindingExpression"
 }

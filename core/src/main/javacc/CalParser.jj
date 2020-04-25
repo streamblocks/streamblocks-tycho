@@ -15,6 +15,7 @@ package se.lth.cs.tycho.parsing.cal;
 
 import java.lang.SuppressWarnings;
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
@@ -1393,7 +1394,8 @@ InputPattern InputPattern() :
 {
 	Token id = null;
 	Port port = null;
-	ImmutableList.Builder<InputVarDecl> varDecls = ImmutableList.builder();
+	Match match;
+	ImmutableList.Builder<Match> matches = ImmutableList.builder();
 	Expression repeat = null;
 	int beginLine = 0;
     int beginColumn = 0;
@@ -1414,15 +1416,32 @@ InputPattern InputPattern() :
 
 	"["
 	(
-		id = <ID> { varDecls.add(VarDecl.input(id.image)); }
-		("," id = <ID> { varDecls.add(VarDecl.input(id.image)); } )*
+		match = Match() { matches.add(match); }
+		("," match = Match() { matches.add(match); } )*
 	)?
 	"]"
 	("repeat" repeat = Expression())?
 	{
-        InputPattern inputPattern = new InputPattern(port, varDecls.build(), repeat);
+        InputPattern inputPattern = new InputPattern(port, matches.build(), repeat);
         inputPattern.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
         return inputPattern;
+    }
+}
+
+Match Match() :
+{
+    Pattern pattern;
+}
+{
+
+    pattern = Pattern()
+    {
+        InputVarDecl declaration = new InputVarDecl();
+        Expression expression = setPosition(new ExprVariable(Variable.variable(declaration.getName())), pattern, pattern);
+        ExprCase.Alternative alternative = setPosition(new ExprCase.Alternative(pattern, Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True)), pattern, pattern);
+        ExprCase.Alternative otherwise = new ExprCase.Alternative(new PatternWildcard(), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.False));
+        ExprCase casee = setPosition(new ExprCase(expression, Arrays.asList(alternative, otherwise)), pattern, pattern);
+        return setPosition(new Match(declaration, casee), pattern, pattern);
     }
 }
 
@@ -1629,7 +1648,7 @@ Expression PrimaryExpression() :
 		"]"
 	|
 		"." field = Field()
-		{ expr = new ExprField(expr, field); }
+		{ expr = setPosition(new ExprField(expr, field), expr, field); }
 	)*
 	{
 		return expr;
@@ -1784,7 +1803,6 @@ ExprCase CaseExpression() :
     Token first;
     Token last;
     Expression expression;
-    Expression default_;
     ExprCase.Alternative alternative;
     ImmutableList.Builder<ExprCase.Alternative> alternatives = ImmutableList.builder();
 }
@@ -1798,10 +1816,8 @@ ExprCase CaseExpression() :
             alternative = CaseExprAlternative() { alternatives.add(alternative); }
         )*
     )?
-    "else"
-    default_ = Expression()
     last = "end"
-    { return setPosition(new ExprCase(expression, alternatives.build(), default_), first, last); }
+    { return setPosition(new ExprCase(expression, alternatives.build()), first, last); }
 }
 
 ExprCase.Alternative CaseExprAlternative() :
@@ -1827,13 +1843,145 @@ ExprCase.Alternative CaseExprAlternative() :
     { return setPosition(new ExprCase.Alternative(pattern, guards.build(), expression), pattern, last); }
 }
 
-Pattern Pattern():
+Pattern Pattern() :
 {
-    Expression expression;
+	Pattern pattern;
 }
 {
-    expression = Expression()
-    { return setPosition(new PatternExpression(expression), expression, expression); }
+	(
+		LOOKAHEAD((PatternLiteral() | PatternExpression()) "|")
+		pattern = PatternAlternative()
+	|
+		LOOKAHEAD(PatternDeclaration() "@")
+		pattern = PatternAlias()
+	|
+		LOOKAHEAD(<ID> "(")
+		pattern = PatternDeconstruction()
+	|
+		pattern = PatternList()
+	|
+		pattern = PatternLiteral()
+	|
+		pattern = PatternExpression()
+	|
+		pattern = PatternDeclaration()
+	)
+	{ return pattern; }
+}
+
+PatternDeclaration PatternDeclaration() :
+{
+	Token id;
+}
+{
+	id = <ID>
+	{
+		if (token.image.equals("_")) {
+			return setPosition(new PatternWildcard(), id, id);
+		} else {
+			return setPosition(new PatternBinding(setPosition(new PatternVarDecl(id.image), id, id)), id, id);
+		}
+	}
+}
+
+PatternAlternative PatternAlternative() :
+{
+  Pattern pattern;
+  Pattern first;
+  Pattern last;
+  ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+  (
+    pattern = PatternLiteral() { patterns.add(pattern); first = pattern; }
+  |
+    pattern = PatternExpression() { patterns.add(pattern); first = pattern; }
+  )
+  (
+    "|"
+    (
+      pattern = PatternLiteral() { patterns.add(pattern); last = pattern; }
+    |
+      pattern = PatternExpression() { patterns.add(pattern); last = pattern; }
+    )
+  )+
+  { return setPosition(new PatternAlternative(patterns.build()), first, last); }
+}
+
+PatternAlias PatternAlias() :
+{
+	Pattern alias;
+	Expression expression;
+	Token last;
+}
+{
+	alias = PatternDeclaration()
+	"@"
+	"("
+	expression = Expression()
+	last = ")"
+	{ return setPosition(new PatternAlias(alias, expression), alias, last); }
+}
+
+PatternList PatternList() :
+{
+	Token first;
+	Token last;
+	Pattern pattern;
+	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+	first = "["
+	(
+		pattern = Pattern() { patterns.add(pattern); }
+		(
+			"," pattern = Pattern() { patterns.add(pattern); }
+		)*
+	)?
+	last = "]"
+	{ return setPosition(new PatternList(patterns.build()), first, last); }
+}
+
+PatternLiteral PatternLiteral() :
+{
+	ExprLiteral literal;
+}
+{
+	literal = ExpressionLiteral()
+	{ return setPosition(new PatternLiteral(literal), literal, literal); }
+}
+
+PatternExpression PatternExpression() :
+{
+	Token first;
+	Token last;
+	Expression expression;
+}
+{
+	first = "("
+	expression = Expression()
+	last = ")"
+	{ return setPosition(new PatternExpression(expression), first, last); }
+}
+
+PatternDeconstruction PatternDeconstruction() :
+{
+	Token id;
+	Token last;
+	Pattern pattern;
+	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+	id = <ID>
+	"("
+	(
+		pattern = Pattern() { patterns.add(pattern); }
+		(
+			"," pattern = Pattern() { patterns.add(pattern); }
+		)*
+	)?
+	last = ")"
+	{ return setPosition(new PatternDeconstruction(id.image, patterns.build()), id, last); }
 }
 
 ExprIf IfExpression() :
@@ -2437,7 +2585,6 @@ StmtCase CaseStmt() :
     Token first;
     Token last;
     Expression expression;
-    Statement default_ = null;
     StmtCase.Alternative alternative;
     ImmutableList.Builder<StmtCase.Alternative> alternatives = ImmutableList.builder();
 }
@@ -2451,12 +2598,8 @@ StmtCase CaseStmt() :
             alternative = CaseStmtAlternative() { alternatives.add(alternative); }
         )*
     )?
-    (
-        "else"
-        default_ = Statement()
-    )?
     last = "end"
-    { return setPosition(new StmtCase(expression, alternatives.build(), Optional.ofNullable(default_)), first, last); }
+    { return setPosition(new StmtCase(expression, alternatives.build()), first, last); }
 }
 
 StmtCase.Alternative CaseStmtAlternative() :

@@ -45,52 +45,51 @@ import java.util.function.Consumer;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
-import se.lth.cs.tycho.ir.decl.InputVarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 public class InputPattern extends AbstractIRNode {
 
-	public InputPattern(Port port, ImmutableList<InputVarDecl> variables, Expression repeatExpr) {
-		this(null, port, variables, repeatExpr);
+	private Port port;
+	private ImmutableList<Match> matches;
+	private Expression repeatExpr;
+
+	public InputPattern(Port port, ImmutableList<Match> matches, Expression repeatExpr) {
+		this(null, port, matches, repeatExpr);
 	}
 
-	private InputPattern(InputPattern original, Port port, ImmutableList<InputVarDecl> variables, Expression repeatExpr) {
+	private InputPattern(InputPattern original, Port port, ImmutableList<Match> matches, Expression repeatExpr) {
 		super(original);
 		this.port = port;
-		this.variables = ImmutableList.from(variables);
+		this.matches = ImmutableList.from(matches);
 		this.repeatExpr = repeatExpr;
 	}
 
-	public InputPattern copy(Port port, ImmutableList<InputVarDecl> variables, Expression repeatExpr) {
-		if (Objects.equals(this.port, port) && Lists.equals(this.variables, variables)
+	public InputPattern copy(Port port, ImmutableList<Match> matches, Expression repeatExpr) {
+		if (Objects.equals(this.port, port) && Lists.equals(this.matches, matches)
 				&& Objects.equals(this.repeatExpr, repeatExpr)) {
 			return this;
 		}
-		return new InputPattern(this, port, variables, repeatExpr);
+		return new InputPattern(this, port, matches, repeatExpr);
 	}
 
 	public Port getPort() {
 		return port;
 	}
 
-	public ImmutableList<InputVarDecl> getVariables() {
-		return variables;
+	public ImmutableList<Match> getMatches() {
+		return matches;
 	}
 
 	public Expression getRepeatExpr() {
 		return repeatExpr;
 	}
 
-	private Port port;
-	private ImmutableList<InputVarDecl> variables;
-	private Expression repeatExpr;
-
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(port);
-		variables.forEach(action);
+		matches.forEach(action);
 		if (repeatExpr != null) action.accept(repeatExpr);
 	}
 
@@ -99,7 +98,7 @@ public class InputPattern extends AbstractIRNode {
 	public InputPattern transformChildren(Transformation transformation) {
 		return copy(
 				(Port) transformation.apply(port),
-				(ImmutableList) variables.map(transformation),
+				(ImmutableList) matches.map(transformation),
 				repeatExpr == null ? null : (Expression) transformation.apply(repeatExpr)
 		);
 	}

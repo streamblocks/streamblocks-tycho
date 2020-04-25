@@ -70,7 +70,7 @@ public class Compiler {
                 new RemoveExternStubPhase(),
                 new OperatorParsingPhase(),
                 new ImportAnalysisPhase(),
-                new ResolveCaseAlternativePatternsPhase(),
+                new ResolvePatternsPhase(),
                 new DeclarationAnalysisPhase(),
                 new ResolveTypeConstructionPhase(),
                 new ConstantVariableImmutabilityPhase(),
@@ -105,6 +105,8 @@ public class Compiler {
                 new TypeAnnotationAnalysisPhase(),
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),
+                new MemberAnalysisPhase(),
+                new CaseAnalysisPhase(),
 
                 // Orcc list parameters
                 new OrccListParameters());
@@ -115,6 +117,9 @@ public class Compiler {
                 new RenameActorVariablesPhase(),
                 new LiftProcessVarDeclsPhase(),
                 new ProcessToCalPhase(),
+                new RemoveIdleMatchExpressionsPhase(),
+                new SubstitutePatternBindingsPhase(),
+                new AddMatchGuardsPhase(),
                 new AddSchedulePhase(),
                 new ScheduleUntaggedPhase(),
                 new ScheduleInitializersPhase(),

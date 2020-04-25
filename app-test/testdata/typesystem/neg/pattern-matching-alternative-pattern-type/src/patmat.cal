@@ -5,8 +5,7 @@ namespace patmat:
             OUT <--
                 case a of
                     true : 1 end // error
-                else
-                    0
+                    _ : 0 end
                 end;
         end
     end

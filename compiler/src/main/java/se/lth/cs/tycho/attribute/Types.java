@@ -12,11 +12,18 @@ import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
+import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
+import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
+import se.lth.cs.tycho.ir.expr.pattern.PatternAlternative;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeclaration;
-import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstructor;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
+import se.lth.cs.tycho.ir.expr.pattern.PatternList;
+import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
+import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
+import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
@@ -108,7 +115,7 @@ public interface Types {
 			return BottomType.INSTANCE;
 		}
 
-		default Type type(PatternDeconstructor pattern) {
+		default Type type(PatternDeconstruction pattern) {
 			return declaredGlobalType((GlobalTypeDecl) typeScopes().construction(pattern).get());
 		}
 
@@ -118,6 +125,74 @@ public interface Types {
 
 		default Type type(PatternDeclaration pattern) {
 			return computeDeclaredType(pattern.getDeclaration());
+		}
+
+		default Type type(PatternVariable pattern) {
+			return computeInferableType(pattern);
+		}
+
+		default Type type(PatternLiteral pattern) {
+			return type(pattern.getLiteral());
+		}
+
+		default Type type(PatternAlias pattern) {
+			return type(pattern.getExpression());
+		}
+
+		default Type type(PatternAlternative pattern) {
+			return pattern.getPatterns().stream()
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+		}
+
+		default Type type(PatternList pattern) {
+			if (deducible(pattern)) {
+				return deduce(pattern);
+			}
+			return infer(pattern);
+		}
+
+		default boolean deducible(PatternList pattern) {
+			ImmutableList<Pattern> patterns = pattern.getPatterns();
+			boolean isTypeKnowable = patterns.stream().anyMatch(this::typable);
+			boolean isSizeKnowable = patterns.size() > 0 && !(patterns.get(patterns.size() - 1) instanceof PatternWildcard);
+			return isTypeKnowable && isSizeKnowable;
+		}
+
+		default boolean typable(Pattern pattern) {
+			return (pattern instanceof PatternAlias)
+					|| (pattern instanceof PatternLiteral)
+					|| (pattern instanceof PatternExpression)
+					|| (pattern instanceof PatternAlternative)
+					|| (pattern instanceof PatternDeconstruction);
+		}
+
+		default Type deduce(PatternList pattern) {
+			ImmutableList<Pattern> patterns = pattern.getPatterns();
+			Type type = patterns.stream()
+					.filter(this::typable)
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+			int size = patterns.size();
+			return new ListType(type, OptionalInt.of(size));
+		}
+
+		default Type infer(PatternList pattern) {
+			Type inferred = computeInferableType(pattern);
+			if (!(inferred instanceof ListType)) {
+				return new ListType(TopType.INSTANCE, OptionalInt.of(pattern.getPatterns().size()));
+			}
+			ListType listType = (ListType) inferred;
+			ImmutableList<Pattern> patterns = pattern.getPatterns();
+			Type type = patterns.stream().filter(this::typable).findFirst().map(this::type).orElse(listType.getElementType());
+			int size = patterns.size();
+			if (listType.getSize().isPresent()) {
+				int listSize = listType.getSize().getAsInt();
+				if (listSize > size && size > 0 && patterns.get(size - 1) instanceof PatternWildcard) {
+					size = listSize;
+				}
+			}
+			return new ListType(type, OptionalInt.of(size));
 		}
 
 		@Binding(BindingKind.LAZY)
@@ -216,7 +291,7 @@ public interface Types {
 		}
 
 		default Type computeDeclaredType(InputVarDecl varDecl) {
-			InputPattern input = (InputPattern) tree().parent(varDecl);
+			InputPattern input = (InputPattern) tree().parent(tree().parent(varDecl));
 			PortDecl port = ports().declaration(input.getPort());
 			Type result = convert(port.getType());
 			if (input.getRepeatExpr() != null) {
@@ -242,31 +317,43 @@ public interface Types {
 				return convert(varDecl.getType());
 			} else {
 				PatternDeclaration pattern = (PatternDeclaration) tree().parent(varDecl);
-				IRNode node = varDecl;
-				while ((node = tree().parent(node)) != null) {
-					if (node instanceof PatternDeconstructor) {
-						PatternDeconstructor deconstructor = (PatternDeconstructor) node;
-						return typeScopes().construction(deconstructor).map(decl -> {
-							GlobalTypeDecl type = (GlobalTypeDecl) decl;
-							if (type.getDeclaration() instanceof ProductTypeDecl) {
-								ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
-								int index = deconstructor.getPatterns().indexOf(pattern);
-								return convert(product.getFields().get(index).getType());
-							} else {
-								SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
-								SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstructor.getName())).findAny().get();
-								int index = deconstructor.getPatterns().indexOf(pattern);
-								return convert(variant.getFields().get(index).getType());
-							}
-						}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstructor.getName() + "."));
-					} else if (node instanceof ExprCase) {
-						return type(((ExprCase) node).getExpression());
-					} else if (node instanceof StmtCase) {
-						return type(((StmtCase) node).getExpression());
-					}
-				}
-				throw new RuntimeException("Could not compute declaration type for " + varDecl.getName() + ".");
+				return computeInferableType(pattern);
 			}
+		}
+
+		default Type computeInferableType(Pattern pattern) {
+			if (tree().parent(pattern) instanceof PatternAlias) {
+				pattern = (Pattern) tree().parent(pattern);
+			}
+			final Pattern p = pattern;
+			IRNode node = p;
+			while ((node = tree().parent(node)) != null) {
+				if (node instanceof PatternDeconstruction) {
+					PatternDeconstruction deconstruction = (PatternDeconstruction) node;
+					return typeScopes().construction(deconstruction).map(decl -> {
+						GlobalTypeDecl type = (GlobalTypeDecl) decl;
+						if (type.getDeclaration() instanceof ProductTypeDecl) {
+							ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
+							int index = deconstruction.getPatterns().indexOf(p);
+							return convert(product.getFields().get(index).getType());
+						} else {
+							SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
+							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
+							int index = deconstruction.getPatterns().indexOf(p);
+							return convert(variant.getFields().get(index).getType());
+						}
+					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getName() + "."));
+				} else if (node instanceof PatternList) {
+					return ((ListType) type((PatternList) node)).getElementType();
+				} else if (node instanceof ExprCase) {
+					return type(((ExprCase) node).getExpression());
+				} else if (node instanceof StmtCase) {
+					return type(((StmtCase) node).getExpression());
+				} else if (node instanceof Match) {
+					return computeDeclaredType(((Match) node).getDeclaration());
+				}
+			}
+			throw new RuntimeException();
 		}
 
 		default Optional<Type> elementType(Type type) {
@@ -708,7 +795,7 @@ public interface Types {
 			return caseExpr.getAlternatives()
 					.stream()
 					.map(alternative -> type(alternative.getExpression()))
-					.reduce(type(caseExpr.getDefault()), (a, b) -> leastUpperBound(a, b));
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 		}
 
 

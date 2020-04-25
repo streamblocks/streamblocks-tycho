@@ -1,0 +1,12 @@
+namespace patmat:
+    actor UnreachabilityList() ==> int OUT:
+        List(type: int, size=5) l;
+        do
+            OUT <--
+                case l of
+                    _ : 0 end
+                    [1, a, _] : 1 end
+                end;
+        end
+    end
+end

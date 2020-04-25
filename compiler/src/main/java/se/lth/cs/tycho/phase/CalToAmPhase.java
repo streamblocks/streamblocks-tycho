@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.phase;
 
+import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.Transformations;
@@ -22,7 +23,7 @@ public class CalToAmPhase implements Phase {
 	public CompilationTask execute(CompilationTask task, Context context) {
 		return Transformations.transformEntityDecls(task, decl -> {
 			if (decl.getEntity() instanceof CalActor) {
-                CalToAm translator = new CalToAm((CalActor) decl.getEntity(), context.getConfiguration(), task.getModule(ConstantEvaluator.key));
+                CalToAm translator = new CalToAm((CalActor) decl.getEntity(), context.getConfiguration(), task.getModule(ConstantEvaluator.key), task.getModule(Types.key));
 				return decl.withEntity(translator.buildActorMachine());
 			} else {
 				return decl;

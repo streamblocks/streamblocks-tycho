@@ -1,0 +1,12 @@
+namespace patmat:
+    type T : (int a, bool b) end
+    actor InputPattern() T IN ==> :
+        int Acc := 0;
+        action IN:[T(n, _)] ==>
+        guard
+            n > 0
+        do
+            Acc := n + 1;
+        end
+    end
+end

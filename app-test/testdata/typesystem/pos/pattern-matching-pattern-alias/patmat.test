@@ -1,0 +1,5 @@
+{
+    "description": "Test pattern alias of pattern matching",
+    "source-paths": ["src"],
+    "entity": "patmat.PatternAlias"
+}

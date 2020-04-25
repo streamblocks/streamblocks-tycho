@@ -1,0 +1,4 @@
+Error in "testdata/typesystem/neg/pattern-matching-input-pattern/src/patmat.cal" on line 4:
+        action IN:[T(n, _)] ==>
+                   ^^^^^^^
+Incompatible types; expected int but was T.

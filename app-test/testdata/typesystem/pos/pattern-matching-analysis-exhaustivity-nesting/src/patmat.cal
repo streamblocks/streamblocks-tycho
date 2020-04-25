@@ -1,0 +1,12 @@
+namespace patmat:
+    type T : A | B(bool b, T t) end
+    actor ExhaustivityNesting() ==> int OUT:
+        T t;
+        do
+            OUT <--
+                case t of
+                    B(_, B(false, A)) : 0 end
+                end;
+        end
+    end
+end

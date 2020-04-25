@@ -279,8 +279,6 @@ public interface AlternativeChannels extends Channels {
 
 		emitter().emit("static inline %s* channel_peek_first_%1$s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
 		emitter().emit("	%s *res = read_%1$s(channel->buffer[channel->read %% %2$s]);", tokenType, bufferSize);
-		emitter().emit("	free(channel->buffer[channel->read %% %s]);", bufferSize);
-		emitter().emit("	channel->buffer[channel->read %% %s] = NULL;", bufferSize);
 		emitter().emit("	return res;");
 		emitter().emit("}");
 		emitter().emit("");
@@ -289,13 +287,15 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("	%s **res = result;", tokenType);
 		emitter().emit("	for (size_t i = 0; i < tokens; i++) {");
 		emitter().emit("		res[i] = read_%s(channel->buffer[(channel->read+i+offset) %% %s]);", tokenType, bufferSize);
-		emitter().emit("		free(channel->buffer[(channel->read+i+offset) %% %s]);", bufferSize);
-		emitter().emit("		channel->buffer[(channel->read+i+offset) %% %s] = NULL;", bufferSize);
 		emitter().emit("	}");
 		emitter().emit("}");
 		emitter().emit("");
 
 		emitter().emit("static inline void channel_consume_%s_%s(channel_%1$s_%2$s *channel, size_t tokens) {", tokenType, sizeString);
+		emitter().emit("	for (size_t i = 0; i < tokens; i++) {");
+		emitter().emit("		free(channel->buffer[(channel->read+i) %% %s]);", bufferSize);
+		emitter().emit("		channel->buffer[(channel->read+i) %% %s] = NULL;", bufferSize);
+		emitter().emit("	}");
 		emitter().emit("	channel->read += tokens;");
 		emitter().emit("}");
 		emitter().emit("");

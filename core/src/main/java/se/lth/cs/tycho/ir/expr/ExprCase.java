@@ -64,17 +64,15 @@ public class ExprCase extends Expression {
 
 	private Expression expression;
 	private ImmutableList<Alternative> alternatives;
-	private Expression default_;
 
-	public ExprCase(Expression expression, List<Alternative> alternatives, Expression default_) {
-		this(null, expression, alternatives, default_);
+	public ExprCase(Expression expression, List<Alternative> alternatives) {
+		this(null, expression, alternatives);
 	}
 
-	private ExprCase(IRNode original, Expression expression, List<Alternative> alternatives, Expression default_) {
+	private ExprCase(IRNode original, Expression expression, List<Alternative> alternatives) {
 		super(original);
 		this.expression = expression;
 		this.alternatives = ImmutableList.from(alternatives);
-		this.default_ = default_;
 	}
 
 	public Expression getExpression() {
@@ -85,15 +83,11 @@ public class ExprCase extends Expression {
 		return alternatives;
 	}
 
-	public Expression getDefault() {
-		return default_;
-	}
-
-	public ExprCase copy(Expression expression, List<Alternative> alternatives, Expression default_) {
-		if (Objects.equals(getExpression(), expression) && Lists.sameElements(getAlternatives(), alternatives) && Objects.equals(getDefault(), default_)) {
+	public ExprCase copy(Expression expression, List<Alternative> alternatives) {
+		if (Objects.equals(getExpression(), expression) && Lists.sameElements(getAlternatives(), alternatives)) {
 			return this;
 		} else {
-			return new ExprCase(this, expression, alternatives, default_);
+			return new ExprCase(this, expression, alternatives);
 		}
 	}
 
@@ -101,11 +95,10 @@ public class ExprCase extends Expression {
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(getExpression());
 		getAlternatives().forEach(action);
-		action.accept(getDefault());
 	}
 
 	@Override
 	public Expression transformChildren(Transformation transformation) {
-		return copy((Expression) transformation.apply(getExpression()), transformation.mapChecked(Alternative.class, getAlternatives()), (Expression) transformation.apply(getDefault()));
+		return copy((Expression) transformation.apply(getExpression()), transformation.mapChecked(Alternative.class, getAlternatives()));
 	}
 }

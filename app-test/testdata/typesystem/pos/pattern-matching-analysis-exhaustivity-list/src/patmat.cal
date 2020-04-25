@@ -1,0 +1,11 @@
+namespace patmat:
+    actor ExhaustivityList() ==> int OUT:
+        List(type: int, size=5) l;
+        do
+            OUT <--
+                case l of
+                    [1, a, _] : 1 end
+                end;
+        end
+    end
+end
