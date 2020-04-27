@@ -2,6 +2,7 @@ package se.lth.cs.tycho.transformation.cal2am;
 
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.decoration.TypeToTypeExpr;
+import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.decl.InputVarDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
@@ -12,6 +13,7 @@ import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.ExprInput;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
@@ -19,6 +21,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.attribute.ConstantEvaluator;
+import se.lth.cs.tycho.phase.TreeShadow;
 import se.lth.cs.tycho.util.BitSets;
 
 import java.util.ArrayList;
@@ -35,12 +38,14 @@ public class Scopes {
 	private BitSet transientScopes;
 	private final ConstantEvaluator constants;
 	private final Types types;
+	private final TreeShadow tree;
 
-	public Scopes(CalActor actor, ConstantEvaluator constants, Types types) {
+	public Scopes(CalActor actor, ConstantEvaluator constants, Types types, TreeShadow tree) {
 		this.actor = actor;
 		initialized = false;
 		this.constants = constants;
 		this.types = types;
+		this.tree = tree;
 	}
 
 	private void init() {
@@ -73,7 +78,7 @@ public class Scopes {
 					i = i + 1;
 				}
 				for (PatternVariable var : input.getMatches().stream().filter(match -> match.getExpression() != null).flatMap(match -> variables(match.getExpression().getAlternatives().get(0).getPattern())).collect(Collectors.toList())) {
-					varDecls.add(VarDecl.local(TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), null, false));
+					varDecls.add(VarDecl.local(TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), value(var), false));
 					i = i + 1;
 				}
 			} else {
@@ -85,7 +90,7 @@ public class Scopes {
 					i = i + 1;
 				}
 				for (PatternVariable var : input.getMatches().stream().filter(match -> match.getExpression() != null).flatMap(match -> variables(match.getExpression().getAlternatives().get(0).getPattern())).collect(Collectors.toList())) {
-					varDecls.add(VarDecl.local(TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), null, false));
+					varDecls.add(VarDecl.local(TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), value(var), false));
 					i = i + 1;
 				}
 			}
@@ -106,6 +111,14 @@ public class Scopes {
 		} else {
 			return Stream.empty();
 		}
+	}
+
+	private Expression value(PatternVariable pattern) {
+		IRNode parent = tree.parent(pattern);
+		if (parent instanceof PatternAlias) {
+			return ((PatternAlias) parent).getExpression();
+		}
+		return null;
 	}
 
 	public List<Scope> getScopes() {

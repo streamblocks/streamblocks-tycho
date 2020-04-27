@@ -23,7 +23,7 @@ public class CalToAmPhase implements Phase {
 	public CompilationTask execute(CompilationTask task, Context context) {
 		return Transformations.transformEntityDecls(task, decl -> {
 			if (decl.getEntity() instanceof CalActor) {
-                CalToAm translator = new CalToAm((CalActor) decl.getEntity(), context.getConfiguration(), task.getModule(ConstantEvaluator.key), task.getModule(Types.key));
+                CalToAm translator = new CalToAm((CalActor) decl.getEntity(), context.getConfiguration(), task.getModule(ConstantEvaluator.key), task.getModule(Types.key), task.getModule(TreeShadow.key));
 				return decl.withEntity(translator.buildActorMachine());
 			} else {
 				return decl;
