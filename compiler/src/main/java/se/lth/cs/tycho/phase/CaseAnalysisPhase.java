@@ -9,6 +9,7 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
@@ -113,6 +114,7 @@ public class CaseAnalysisPhase implements Phase {
 
 		Analysis analysis = MultiJ.from(Analysis.class)
 				.bind("logic").to(logic)
+				.bind("tree").to(tree)
 				.instance();
 
 		analysis.analyse(task);
@@ -126,6 +128,9 @@ public class CaseAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		SpaceLogic logic();
 
+		@Binding(BindingKind.INJECTED)
+		TreeShadow tree();
+
 		default void analyse(IRNode node) {
 			check(node);
 			node.forEachChild(this::analyse);
@@ -136,8 +141,15 @@ public class CaseAnalysisPhase implements Phase {
 		}
 
 		default void check(ExprCase expr) {
+			if (fromMatch(expr)) {
+				return;
+			}
 			logic().checkExhaustivity(expr);
 			logic().checkRedundancy(expr);
+		}
+
+		default boolean fromMatch(ExprCase expr) {
+			return tree().parent(expr) instanceof Match;
 		}
 	}
 
