@@ -1,4 +1,4 @@
-Warning in "testdata/typesystem/pos/pattern-matching-analysis-exhaustivity-list/src/patmat.cal" on line 6:
+Error in "testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-list/src/patmat.cal" on line 6:
                 case l of
                      ^
 case may not be exhaustive.

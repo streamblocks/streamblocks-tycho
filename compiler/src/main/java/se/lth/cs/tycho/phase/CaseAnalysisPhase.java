@@ -285,7 +285,7 @@ public class CaseAnalysisPhase implements Phase {
 						.append(System.lineSeparator())
 						.append(String.format("It would fail on pattern%s: %s", uncovered.size() != 1 ? "s" : "" , printer().apply(Space.Union.of(uncovered))))
 						.toString();
-				reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, message, sourceUnit(expr), expr.getExpression()));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(expr), expr.getExpression()));
 			}
 		}
 
