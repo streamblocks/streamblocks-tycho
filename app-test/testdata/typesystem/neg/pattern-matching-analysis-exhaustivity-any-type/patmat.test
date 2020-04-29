@@ -1,0 +1,6 @@
+{
+    "description": "Test pattern matching exhaustivity on any types",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "patmat.ExhaustivityAny"
+}

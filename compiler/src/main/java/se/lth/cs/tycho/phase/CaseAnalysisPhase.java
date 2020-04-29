@@ -27,8 +27,10 @@ import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.FieldType;
+import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.ProductType;
+import se.lth.cs.tycho.type.RealType;
 import se.lth.cs.tycho.type.SumType;
 import se.lth.cs.tycho.type.Type;
 
@@ -68,12 +70,15 @@ public class CaseAnalysisPhase implements Phase {
 
 		EqualType equal = MultiJ.from(EqualType.class).instance();
 
+		Unit unit = MultiJ.from(Unit.class).instance();
+
 		Printer printer = MultiJ.from(Printer.class)
 				.bind("flatten").to(flatten)
 				.instance();
 
 		Project project = MultiJ.from(Project.class)
 				.bind("types").to(types)
+				.bind("unit").to(unit)
 				.instance();
 
 		Satisfiable satisfiable = MultiJ.from(Satisfiable.class)
@@ -167,6 +172,23 @@ public class CaseAnalysisPhase implements Phase {
 
 			public static Universe of(Type type) {
 				return new Universe(type);
+			}
+
+			public Type type() {
+				return type;
+			}
+		}
+
+		static class Singleton extends Space {
+
+			private final Type type;
+
+			private Singleton(Type type) {
+				this.type = type;
+			}
+
+			public static Singleton of(Type type) {
+				return new Singleton(type);
 			}
 
 			public Type type() {
@@ -274,11 +296,7 @@ public class CaseAnalysisPhase implements Phase {
 		TreeShadow tree();
 
 		default void check(ExprCase expr) {
-			if (!checkable(expr)) {
-				return;
-			}
-
-			Space targetSpace = project().apply(new PatternExpression(expr.getExpression()));
+			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
 
 			Space patternSpace = expr.getAlternatives().stream()
 					.map(a -> a.getGuards().isEmpty() ? project().apply(a.getPattern()) : Space.EMPTY)
@@ -299,11 +317,6 @@ public class CaseAnalysisPhase implements Phase {
 						.toString();
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(expr), expr.getExpression()));
 			}
-		}
-
-		default boolean checkable(ExprCase expr) {
-			Type type = types().type(expr.getExpression());
-			return (type instanceof BoolType) || (type instanceof ListType) || (type instanceof AlgebraicType);
 		}
 
 		default SourceUnit sourceUnit(IRNode node) {
@@ -334,11 +347,7 @@ public class CaseAnalysisPhase implements Phase {
 		TreeShadow tree();
 
 		default void check(ExprCase expr) {
-			if (!checkable(expr)) {
-				return;
-			}
-
-			Space targetSpace = project().apply(new PatternExpression(expr.getExpression()));
+			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
 
 			for (int i = 1; i < expr.getAlternatives().size(); ++i) {
 				Space previousSpace = expr.getAlternatives().stream()
@@ -358,11 +367,6 @@ public class CaseAnalysisPhase implements Phase {
 			}
 		}
 
-		default boolean checkable(ExprCase expr) {
-			Type type = types().type(expr.getExpression());
-			return (type instanceof BoolType) || (type instanceof ListType) || (type instanceof AlgebraicType);
-		}
-
 		default SourceUnit sourceUnit(IRNode node) {
 			return sourceUnit(tree().parent(node));
 		}
@@ -378,13 +382,16 @@ public class CaseAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		Types types();
 
+		@Binding(BindingKind.INJECTED)
+		Unit unit();
+
 		Space apply(Pattern pattern);
 
 		default Space apply(PatternLiteral pattern) {
 			if (types().type(pattern) instanceof BoolType) {
 				return Space.Universe.of(new ConstantType(Boolean.valueOf(pattern.getLiteral().getText())));
 			} else {
-				return Space.Universe.of(types().type(pattern));
+				return Space.Singleton.of(types().type(pattern));
 			}
 		}
 
@@ -407,8 +414,10 @@ public class CaseAnalysisPhase implements Phase {
 		default Space apply(PatternExpression pattern) {
 			if (pattern.getExpression() instanceof ExprLiteral) {
 				return apply(new PatternLiteral((ExprLiteral) pattern.getExpression()));
-			} else {
+			} else if (unit().test(types().type(pattern))) {
 				return Space.Universe.of(types().type(pattern));
+			} else {
+				return Space.Singleton.of(types().type(pattern));
 			}
 		}
 
@@ -486,56 +495,48 @@ public class CaseAnalysisPhase implements Phase {
 
 		/* INTERSECT */
 
-		Space intersect(Space a, Space b);
-
-		default Space intersect(Space.Empty a, Space b) {
-			return Space.EMPTY;
-		}
-
-		default Space intersect(Space a, Space.Empty b) {
-			return Space.EMPTY;
-		}
-
-		default Space intersect(Space a, Space.Union b) {
-			return Space.Union.of(b.spaces().stream().map(s -> intersect(a, s)).filter(s -> s != Space.EMPTY).collect(Collectors.toList()));
-		}
-
-		default Space intersect(Space.Union a, Space b) {
-			return Space.Union.of(a.spaces().stream().map(s -> intersect(s, b)).filter(s -> s != Space.EMPTY).collect(Collectors.toList()));
-		}
-
-		default Space intersect(Space.Universe a, Space.Universe b) {
-			Type tp1 = a.type();
-			Type tp2 = b.type();
-			if (subtype().test(tp1, tp2)) return a;
-			else if (subtype().test(tp2, tp1)) return b;
-			else if (decompose().test(tp1)) return intersectTryDecompose1(tp1, b);
-			else if (decompose().test(tp2)) return intersectTryDecompose2(tp2, a);
-			else return Space.EMPTY;
-		}
-
-		default Space intersect(Space.Universe a, Space.Product b) {
-			Type tp1 = a.type();
-			Type tp2 = b.apply();
-			if (subtype().test(tp2, tp1)) return b;
-			else if (subtype().test(tp1, tp2)) return b;
-			else if (decompose().test(tp1)) return intersectTryDecompose1(tp1, b);
-			else return Space.EMPTY;
-		}
-
-		default Space intersect(Space.Product a, Space.Universe b) {
-			Type tp1 = a.apply();
-			Type tp2 = b.type();
-			if (subtype().test(tp1, tp2)) return a;
-			else if (subtype().test(tp2, tp1)) return a;
-			else if (decompose().test(tp2)) return intersectTryDecompose2(tp2, a);
-			else return Space.EMPTY;
-		}
-
-		default Space intersect(Space.Product a, Space.Product b) {
-			if (!equal().test(a.apply(), b.apply())) return Space.EMPTY;
-			else if (IntStream.range(0, a.spaces.size()).anyMatch(i -> simplify(intersect(a.spaces().get(i), b.spaces().get(i)), false) == Space.EMPTY)) return Space.EMPTY;
-			else return Space.Product.of(a.type(), a.apply(), IntStream.range(0, a.spaces.size()).mapToObj(i -> intersect(a.spaces().get(i), b.spaces().get(i))).collect(Collectors.toList()));
+		default Space intersect(Space a, Space b) {
+			if (a instanceof Space.Empty) {
+				return Space.EMPTY;
+			} else if (b instanceof Space.Empty) {
+				return Space.EMPTY;
+			} else if (b instanceof Space.Union) {
+				return Space.Union.of(((Space.Union) b).spaces().stream().map(s -> intersect(a, s)).filter(s -> s != Space.EMPTY).collect(Collectors.toList()));
+			} else if (a instanceof Space.Union) {
+				return Space.Union.of(((Space.Union) a).spaces().stream().map(s -> intersect(s, b)).filter(s -> s != Space.EMPTY).collect(Collectors.toList()));
+			} else if (a instanceof Space.Universe && b instanceof Space.Universe) {
+				Type tp1 = ((Space.Universe) a).type();
+				Type tp2 = ((Space.Universe) b).type();
+				if (subtype().test(tp1, tp2)) return a;
+				else if (subtype().test(tp2, tp1)) return b;
+				else if (decompose().test(tp1)) return intersectTryDecompose1(tp1, b);
+				else if (decompose().test(tp2)) return intersectTryDecompose2(tp2, a);
+				else return Space.EMPTY;
+			} else if (a instanceof Space.Universe && b instanceof Space.Product) {
+				Type tp1 = ((Space.Universe) a).type();
+				Type tp2 = ((Space.Product) b).apply();
+				if (subtype().test(tp2, tp1)) return b;
+				else if (subtype().test(tp1, tp2)) return b;
+				else if (decompose().test(tp1)) return intersectTryDecompose1(tp1, b);
+				else return Space.EMPTY;
+			} else if (a instanceof Space.Product && b instanceof Space.Universe) {
+				Type tp1 = ((Space.Product) a).apply();
+				Type tp2 = ((Space.Universe) b).type();
+				if (subtype().test(tp1, tp2)) return a;
+				else if (subtype().test(tp2, tp1)) return a;
+				else if (decompose().test(tp2)) return intersectTryDecompose2(tp2, a);
+				else return Space.EMPTY;
+			} else if (a instanceof Space.Product && b instanceof Space.Product) {
+				if (!(equal().test(((Space.Product) a).apply(), ((Space.Product) b).apply()))) return Space.EMPTY;
+				else if (IntStream.range(0, ((Space.Product) a).spaces().size()).anyMatch(i -> simplify(intersect(((Space.Product) a).spaces().get(i), ((Space.Product) b).spaces().get(i)), false) == Space.EMPTY)) return Space.EMPTY;
+				else return Space.Product.of(((Space.Product) a).type(), ((Space.Product) a).apply(), IntStream.range(0, ((Space.Product) a).spaces().size()).mapToObj(i -> intersect(((Space.Product) a).spaces().get(i), ((Space.Product) b).spaces().get(i))).collect(Collectors.toList()));
+			} else if (a instanceof Space.Singleton) {
+				return a;
+			} else if (b instanceof Space.Singleton) {
+				return b;
+			} else {
+				throw new RuntimeException();
+			}
 		}
 
 		default Space intersectTryDecompose1(Type type, Space s) {
@@ -548,63 +549,57 @@ public class CaseAnalysisPhase implements Phase {
 
 		/* MINUS */
 
-		Space minus(Space a, Space b);
-
-		default Space minus(Space.Empty a, Space b) {
-			return Space.EMPTY;
-		}
-
-		default Space minus(Space a, Space.Empty b) {
-			return a;
-		}
-
-		default Space minus(Space.Universe a, Space.Universe b) {
-			Type tp1 = a.type();
-			Type tp2 = b.type();
-			if (subtype().test(tp1, tp2)) return Space.EMPTY;
-			else if (decompose().test(tp1)) return minusTryDecompose1(tp1, b);
-			else if (decompose().test(tp2)) return minusTryDecompose2(tp2, a);
-			else return a;
-		}
-
-		default Space minus(Space.Universe a, Space.Product b) {
-			Type tp1 = a.type();
-			Type tp2 = b.apply();
-			if (subtype().test(tp1, tp2)) return minus(Space.Product.of(b.type(), b.apply(), signature().apply(b.apply()).stream().map(type -> Space.Universe.of(type)).collect(Collectors.toList())), b);
-			else if (decompose().test(tp1)) return minusTryDecompose1(tp1, b);
-			else return a;
-		}
-
-		default Space minus(Space a, Space.Union b) {
-			return b.spaces().stream().reduce(a, this::minus);
-		}
-
-		default Space minus(Space.Union a, Space b) {
-			return Space.Union.of(a.spaces().stream().map(s -> minus(s, b)).collect(Collectors.toList()));
-		}
-
-		default Space minus(Space.Product a, Space.Universe b) {
-			Type tp1 = a.apply();
-			Type tp2 = b.type();
-			if (subtype().test(tp1, tp2)) return Space.EMPTY;
-			else if (simplify(a, false) == Space.EMPTY) return Space.EMPTY;
-			else if (decompose().test(tp2)) return minusTryDecompose2(tp2, a);
-			else return a;
-		}
-
-		default Space minus(Space.Product a, Space.Product b) {
-			if (!equal().test(a.apply(), b.apply())) return a;
-			else if (IntStream.range(0, a.spaces().size()).anyMatch(i -> simplify(intersect(a.spaces().get(i), b.spaces().get(i)), false) == Space.EMPTY)) return a;
-			else if (IntStream.range(0, a.spaces().size()).allMatch(i -> isSubSpace(a.spaces().get(i), b.spaces().get(i)))) return Space.EMPTY;
-			else {
-				List<Space> difference = IntStream.range(0, a.spaces().size()).mapToObj(i -> minus(a.spaces().get(i), b.spaces().get(i))).collect(Collectors.toList());
-				return Space.Union.of(
-						IntStream.range(0, difference.size()).mapToObj(i -> {
-							List<Space> updated = new ArrayList<>(a.spaces());
-							updated.set(i, difference.get(i));
-							return Space.Product.of(a.type(), a.apply(), updated);
-						}).collect(Collectors.toList())
-				);
+		default Space minus(Space a, Space b) {
+			if (a instanceof Space.Empty) {
+				return Space.EMPTY;
+			} else if (b instanceof Space.Empty) {
+				return Space.EMPTY;
+			} else if (a instanceof Space.Universe && b instanceof Space.Universe) {
+				Type tp1 = ((Space.Universe) a).type();
+				Type tp2 = ((Space.Universe) b).type();
+				if (subtype().test(tp1, tp2)) return Space.EMPTY;
+				else if (decompose().test(tp1)) return minusTryDecompose1(tp1, b);
+				else if (decompose().test(tp2)) return minusTryDecompose2(tp2, a);
+				else return a;
+			} else if (a instanceof Space.Universe && b instanceof Space.Product) {
+				Type tp1 = ((Space.Universe) a).type();
+				Type tp2 = ((Space.Product) b).apply();
+				if (subtype().test(tp1, tp2)) return minus(Space.Product.of(((Space.Product) b).type(), ((Space.Product) b).apply(), signature().apply(((Space.Product) b).apply()).stream().map(type -> Space.Universe.of(type)).collect(Collectors.toList())), b);
+				else if (decompose().test(tp1)) return minusTryDecompose1(tp1, b);
+				else return a;
+			} else if (b instanceof Space.Union) {
+				return ((Space.Union) b).spaces().stream().reduce(a, this::minus);
+			} else if (a instanceof Space.Union) {
+				return Space.Union.of(((Space.Union) a).spaces().stream().map(s -> minus(s, b)).collect(Collectors.toList()));
+			} else if (a instanceof Space.Product && b instanceof Space.Universe) {
+				Type tp1 = ((Space.Product) a).apply();
+				Type tp2 = ((Space.Universe) b).type();
+				if (subtype().test(tp1, tp2)) return Space.EMPTY;
+				else if (simplify(a, false) == Space.EMPTY) return Space.EMPTY;
+				else if (decompose().test(tp2)) return minusTryDecompose2(tp2, a);
+				else return a;
+			} else if (a instanceof Space.Product && b instanceof Space.Product) {
+				if (!equal().test(((Space.Product) a).apply(), ((Space.Product) b).apply())) return a;
+				else if (IntStream.range(0, ((Space.Product) a).spaces().size()).anyMatch(i -> simplify(intersect(((Space.Product) a).spaces().get(i), ((Space.Product) b).spaces().get(i)), false) == Space.EMPTY))
+					return a;
+				else if (IntStream.range(0, ((Space.Product) a).spaces().size()).allMatch(i -> isSubSpace(((Space.Product) a).spaces().get(i), ((Space.Product) b).spaces().get(i))))
+					return Space.EMPTY;
+				else {
+					List<Space> difference = IntStream.range(0, ((Space.Product) a).spaces().size()).mapToObj(i -> minus(((Space.Product) a).spaces().get(i), ((Space.Product) b).spaces().get(i))).collect(Collectors.toList());
+					return Space.Union.of(
+							IntStream.range(0, difference.size()).mapToObj(i -> {
+								List<Space> updated = new ArrayList<>(((Space.Product) a).spaces());
+								updated.set(i, difference.get(i));
+								return Space.Product.of(((Space.Product) a).type(), ((Space.Product) a).apply(), updated);
+							}).collect(Collectors.toList())
+					);
+				}
+			} else if (a instanceof Space.Singleton) {
+				return a;
+			} else if (b instanceof Space.Singleton) {
+				return a;
+			} else {
+				throw new RuntimeException();
 			}
 		}
 
@@ -674,8 +669,14 @@ public class CaseAnalysisPhase implements Phase {
 				return subtype().test(((Space.Product) _a).apply(), ((Space.Universe) b).type());
 			} else if (_a instanceof Space.Universe && b instanceof Space.Product) {
 				return subtype().test(((Space.Universe) _a).type(), ((Space.Product) b).apply()) && isSubSpace(Space.Product.of(((Space.Product) b).type(), ((Space.Product) b).apply(), signature().apply(((Space.Product) b).apply()).stream().map(type -> Space.Universe.of(type)).collect(Collectors.toList())), b);
-			} else {
+			} else if (_a instanceof Space.Product && b instanceof Space.Product) {
 				return equal().test(((Space.Product) _a).apply(), ((Space.Product) b).apply()) && IntStream.range(0, ((Space.Product) _a).spaces().size()).allMatch(i -> isSubSpace(((Space.Product) _a).spaces().get(i), ((Space.Product) b).spaces().get(i)));
+			} else if (_a instanceof Space.Singleton && b instanceof Space.Singleton) {
+				return subtype().test(((Space.Singleton) _a).type(), ((Space.Singleton) b).type());
+			} else if (_a instanceof Space.Singleton && b instanceof Space.Universe) {
+				return subtype().test(((Space.Singleton) _a).type(), ((Space.Universe) b).type());
+			} else {
+				return false;
 			}
 		}
 
@@ -689,6 +690,18 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean test(Type a, Type b) {
 			return a.equals(b);
+		}
+
+		default boolean test(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean test(RealType a, RealType b) {
+			return true;
+		}
+
+		default boolean test(ListType a, ListType b) {
+			return true;
 		}
 
 		default boolean test(SumType.VariantType a, SumType b) {
@@ -773,6 +786,22 @@ public class CaseAnalysisPhase implements Phase {
 	}
 
 	@Module
+	interface Unit {
+
+		default boolean test(Type type) {
+			return false;
+		}
+
+		default boolean test(ProductType type) {
+			return type.getFields().stream().allMatch(field -> test(field.getType()));
+		}
+
+		default boolean test(SumType type) {
+			return type.getVariants().size() == 1 && type.getVariants().get(0).getFields().stream().allMatch(field -> test(field.getType()));
+		}
+	}
+
+	@Module
 	interface Satisfiable {
 
 		@Binding(BindingKind.INJECTED)
@@ -792,6 +821,10 @@ public class CaseAnalysisPhase implements Phase {
 		}
 
 		default List<Tuple<Type, Type>> constraints(Space.Universe space) {
+			return Collections.emptyList();
+		}
+
+		default List<Tuple<Type, Type>> constraints(Space.Singleton space) {
 			return Collections.emptyList();
 		}
 
@@ -856,6 +889,10 @@ public class CaseAnalysisPhase implements Phase {
 			} else {
 				return "_";
 			}
+		}
+
+		default String doApply(Space.Singleton space, boolean flattenList) {
+			return "_";
 		}
 
 		default String doApply(Space.Product space, boolean flattenList) {

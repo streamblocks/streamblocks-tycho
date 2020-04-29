@@ -1,0 +1,11 @@
+namespace patmat:
+    actor ExhaustivityAny() ==> int OUT:
+        int n;
+        do
+            OUT <--
+                case n of
+                    (1 + 2) : 1 end
+                end;
+        end
+    end
+end
