@@ -37,9 +37,11 @@ import se.lth.cs.tycho.type.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -72,6 +74,8 @@ public class CaseAnalysisPhase implements Phase {
 
 		Unit unit = MultiJ.from(Unit.class).instance();
 
+		Recursive recursive = MultiJ.from(Recursive.class).instance();
+
 		Printer printer = MultiJ.from(Printer.class)
 				.bind("flatten").to(flatten)
 				.instance();
@@ -79,6 +83,7 @@ public class CaseAnalysisPhase implements Phase {
 		Project project = MultiJ.from(Project.class)
 				.bind("types").to(types)
 				.bind("unit").to(unit)
+				.bind("recursive").to(recursive)
 				.instance();
 
 		Satisfiable satisfiable = MultiJ.from(Satisfiable.class)
@@ -385,6 +390,9 @@ public class CaseAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		Unit unit();
 
+		@Binding(BindingKind.INJECTED)
+		Recursive recursive();
+
 		Space apply(Pattern pattern);
 
 		default Space apply(PatternLiteral pattern) {
@@ -414,7 +422,7 @@ public class CaseAnalysisPhase implements Phase {
 		default Space apply(PatternExpression pattern) {
 			if (pattern.getExpression() instanceof ExprLiteral) {
 				return apply(new PatternLiteral((ExprLiteral) pattern.getExpression()));
-			} else if (unit().test(types().type(pattern))) {
+			} else if (!(recursive().test(types().type(pattern))) && unit().test(types().type(pattern))) {
 				return Space.Universe.of(types().type(pattern));
 			} else {
 				return Space.Singleton.of(types().type(pattern));
@@ -798,6 +806,26 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean test(SumType type) {
 			return type.getVariants().size() == 1 && type.getVariants().get(0).getFields().stream().allMatch(field -> test(field.getType()));
+		}
+	}
+
+	@Module
+	interface Recursive {
+
+		default boolean test(Type type) {
+			return visit(type, new HashSet<>());
+		}
+
+		default boolean visit(Type type, Set<Type> visited) {
+			return false;
+		}
+
+		default boolean visit(ProductType type, Set<Type> visited) {
+			return visited.add(type) || type.getFields().stream().anyMatch(f -> visit(f.getType(), visited));
+		}
+
+		default boolean visit(SumType type, Set<Type> visited) {
+			return visited.add(type) || type.getVariants().stream().flatMap(v -> v.getFields().stream()).anyMatch(f -> visit(f.getType(), visited));
 		}
 	}
 
