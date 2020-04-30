@@ -1911,16 +1911,13 @@ PatternAlternative PatternAlternative() :
 PatternAlias PatternAlias() :
 {
 	Pattern alias;
-	Expression expression;
-	Token last;
+	PatternExpression expression;
 }
 {
 	alias = PatternDeclaration()
 	"@"
-	"("
-	expression = Expression()
-	last = ")"
-	{ return setPosition(new PatternAlias(alias, expression), alias, last); }
+	expression = PatternExpression()
+	{ return setPosition(new PatternAlias(alias, expression.getExpression()), alias, expression); }
 }
 
 PatternList PatternList() :
@@ -1958,10 +1955,16 @@ PatternExpression PatternExpression() :
 	Expression expression;
 }
 {
-	first = "("
-	expression = Expression()
-	last = ")"
-	{ return setPosition(new PatternExpression(expression), first, last); }
+  first = "'"
+  (
+    "("
+    expression = Expression()
+    last = ")"
+    { return setPosition(new PatternExpression(expression), first, last); }
+  |
+    expression = VariableExpression()
+    { return setPosition(new PatternExpression(expression), first, expression); }
+  )
 }
 
 PatternDeconstruction PatternDeconstruction() :
