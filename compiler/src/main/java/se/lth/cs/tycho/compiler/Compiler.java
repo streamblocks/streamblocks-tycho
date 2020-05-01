@@ -114,6 +114,7 @@ public class Compiler {
 
     public static List<Phase> actorMachinePhases() {
         return ImmutableList.of(
+                new ActionCaseToActionsPhase(),
                 new RenameActorVariablesPhase(),
                 new LiftProcessVarDeclsPhase(),
                 new ProcessToCalPhase(),

@@ -63,7 +63,7 @@ public final class ProcessToCal {
 			blockToCal.process(entryBlock);
 			return process.copy(process.getTypeParameters(), process.getValueParameters(), process.getTypeDecls(),
 					process.getVarDecls(), process.getInputPorts(), process.getOutputPorts(), ImmutableList.empty(),
-					blockToCal.actions().build(),
+					blockToCal.actions().build(), Collections.emptyList(),
 					new ScheduleFSM(blockToCal.transitions().build(), blockToCal.initialState().get()), null,
 					blockToCal.priorities().build(), process.getInvariants());
 		} else {

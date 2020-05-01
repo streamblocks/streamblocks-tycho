@@ -670,6 +670,7 @@ GlobalEntityDecl ActorDecl() :
 	ImmutableList.Builder<Action> initializers = ImmutableList.builder();
 	ImmutableList.Builder<Action> actions = ImmutableList.builder();
 	Action action;
+	ImmutableList<ActionCase> actionCases = ImmutableList.empty();
 	ScheduleFSM scheduleFSM = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
 	ImmutableList.Builder<Expression> invariants = ImmutableList.builder();
@@ -724,7 +725,7 @@ GlobalEntityDecl ActorDecl() :
 		"end"
 	)
 	{
-		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, null, priorities.build(), invariants.build());
+		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases, scheduleFSM, null, priorities.build(), invariants.build());
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
 }

@@ -1174,6 +1174,8 @@ GlobalEntityDecl ActorDecl() :
 	ImmutableList.Builder<Action> initializers = ImmutableList.builder();
 	ImmutableList.Builder<Action> actions = ImmutableList.builder();
 	Action action;
+	ImmutableList.Builder<ActionCase> actionCases = ImmutableList.builder();
+    ActionCase actionCase;
 	ScheduleFSM scheduleFSM = null;
 	ProcessDescription process = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
@@ -1203,6 +1205,10 @@ GlobalEntityDecl ActorDecl() :
 				Annotation()
 			)*
 			(
+				LOOKAHEAD((QID() ":")? "action" "case")
+				actionCase = ActionCase()
+				{ actionCases.add(actionCase); }
+			|
 				LOOKAHEAD((QID() ":")? "action")
 				action = Action()
 				{ actions.add(action); }
@@ -1236,7 +1242,7 @@ GlobalEntityDecl ActorDecl() :
 		";"
 	)
 	{
-		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), scheduleFSM, process, priorities.build(), invariants.build());
+		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants.build());
 		a.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
@@ -1339,6 +1345,71 @@ Action Action() :
 		action.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return action;
 	}
+}
+
+ActionCase ActionCase() :
+{
+  QID tag = null;
+  Action action;
+  ImmutableList.Builder<Action> actions = ImmutableList.builder();
+  int beginLine;
+  int beginColumn;
+}
+{
+  ( tag = QID() ":" )?
+  "action"
+  "case"
+  {
+    beginLine = token.beginLine;
+    beginColumn = token.beginColumn;
+  }
+  action = ActionLambda() { actions.add(action); }
+  (
+    "else"
+    action = ActionLambda() { actions.add(action); }
+  )+
+  ( "end" | "endcase")
+  ( "end" | "endaction")
+  {
+    ActionCase actionCase = new ActionCase(tag, actions.build());
+    actionCase.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+    return actionCase;
+  }
+}
+
+Action ActionLambda() :
+{
+  QID tag = null;
+  ImmutableList<InputPattern> inputPatterns;
+  ImmutableList<OutputExpression> outputExpressions;
+  ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
+  ImmutableList<LocalVarDecl> varDecls = ImmutableList.empty();
+  ImmutableList<Expression> guards = ImmutableList.empty();
+  ImmutableList<Statement> body = ImmutableList.empty();
+  Expression delay = null;
+  ImmutableList<Expression> preconditions = ImmutableList.empty();
+  ImmutableList<Expression> postconditions = ImmutableList.empty();
+  int beginLine;
+  int beginColumn;
+}
+{
+  {
+    beginLine = token.beginLine;
+    beginColumn = token.beginColumn;
+  }
+  inputPatterns = InputPatterns()
+  "==>"
+  outputExpressions = OutputExpressions()
+  ("guard" guards = ExpressionList())?
+//  ("delay" delay = Expression())?
+  ("var" varDecls = BlockVarDecls())?
+  ("do" body = Statements())?
+  ("end")
+  {
+    Action action = new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+    action.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+    return action;
+  }
 }
 
 Action InitializationAction() :
