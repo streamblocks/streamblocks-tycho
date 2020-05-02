@@ -1,9 +1,12 @@
 package se.lth.cs.tycho.phase;
 
+import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
+import se.lth.cs.tycho.compiler.UniqueNumbers;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Decl;
@@ -15,7 +18,9 @@ import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -28,7 +33,7 @@ public class ScheduleUntaggedPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
-		return task.transformChildren(MultiJ.instance(Transformation.class));
+		return task.transformChildren(MultiJ.from(Transformation.class).bind("numbers").to(context.getUniqueNumbers()).instance());
 	}
 
 	@Override
@@ -38,6 +43,10 @@ public class ScheduleUntaggedPhase implements Phase {
 
 	@Module
 	interface Transformation extends IRNode.Transformation {
+
+		@Binding(BindingKind.INJECTED)
+		UniqueNumbers numbers();
+
 		@Override
 		default IRNode apply(IRNode node) {
 			return transform(node);
@@ -58,11 +67,13 @@ public class ScheduleUntaggedPhase implements Phase {
 			if (actor.getActions().stream().noneMatch(action -> action.getTag() == null)) {
 				return actor;
 			}
-			QID untagged = QID.of("$untagged");
+			List<QID> untagged = new ArrayList<>();
 			ImmutableList<Action> actions = actor.getActions().stream()
 					.map(action -> {
 						if (action.getTag() == null) {
-							return action.withTag(untagged);
+							QID tag = QID.of(String.format("$untagged%d", numbers().next()));
+							untagged.add(tag);
+							return action.withTag(tag);
 						} else {
 							return action;
 						}
@@ -72,7 +83,7 @@ public class ScheduleUntaggedPhase implements Phase {
 					.flatMap(transition -> Stream.of(transition.getSourceState(), transition.getDestinationState()))
 					.sorted()
 					.distinct()
-					.map(state -> new Transition(state, state, ImmutableList.of(untagged)));
+					.map(state -> new Transition(state, state, ImmutableList.from(untagged)));
 
 			ImmutableList<Transition> transitions = Stream.concat(actor.getScheduleFSM().getTransitions().stream(), untaggedTransitions)
 					.collect(ImmutableList.collector());

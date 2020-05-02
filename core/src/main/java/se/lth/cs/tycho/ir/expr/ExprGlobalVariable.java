@@ -13,7 +13,7 @@ public class ExprGlobalVariable extends Expression {
 		this(null, globalName);
 	}
 
-	private ExprGlobalVariable(IRNode original, QID globalName) {
+	public ExprGlobalVariable(IRNode original, QID globalName) {
 		super(original);
 		this.globalName = globalName;
 	}

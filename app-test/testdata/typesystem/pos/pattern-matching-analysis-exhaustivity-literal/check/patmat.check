@@ -1,6 +1,0 @@
-Warning in "testdata/typesystem/pos/pattern-matching-analysis-exhaustivity-literal/src/patmat.cal" on line 6:
-                case b of
-                     ^
-case may not be exhaustive.
-
-It would fail on pattern: false

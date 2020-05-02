@@ -1,0 +1,6 @@
+Error in "testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-any-type/src/patmat.cal" on line 6:
+                case n of
+                     ^
+case may not be exhaustive.
+
+It would fail on pattern: _

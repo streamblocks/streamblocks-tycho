@@ -5,7 +5,7 @@ namespace patmat:
         int m := 0;
         do
             OUT <-- case m of
-                0 | (1 + 2 + 3) | (n) | (f()) : 0 end
+                0 | '(1 + 2 + 3) | 'n | '(f()) : 0 end
                 _ : -1 end
             end;
         end

@@ -62,7 +62,7 @@ public class ResolveGlobalVariableNamesPhase implements Phase {
 		default Expression transform(ExprVariable var) {
 			VarDecl decl = variables().declaration(var);
 			Optional<QID> globalName = globalNames().globalName(decl);
-			return globalName.<Expression>map(ExprGlobalVariable::new).orElse(var);
+			return globalName.<Expression>map(qid -> new ExprGlobalVariable(var, qid)).orElse(var);
 		}
 	}
 }

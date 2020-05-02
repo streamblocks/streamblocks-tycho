@@ -58,17 +58,17 @@ public class CalActor extends Entity {
 	public CalActor(List<TypeDecl> typePars,
 			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-			List<Action> initializers, List<Action> actions, ScheduleFSM scheduleFSM,
+			List<Action> initializers, List<Action> actions, List<ActionCase> actionCases, ScheduleFSM scheduleFSM,
 			ProcessDescription process, List<ImmutableList<QID>> priorities,
 			List<Expression> invariants) {
 		this(null, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
-				actions, scheduleFSM, process, priorities, invariants);
+				actions, actionCases, scheduleFSM, process, priorities, invariants);
 	}
 
 	private CalActor(CalActor original, List<TypeDecl> typePars,
 			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-			List<Action> initializers, List<Action> actions, ScheduleFSM scheduleFSM,
+			List<Action> initializers, List<Action> actions, List<ActionCase> actionCases, ScheduleFSM scheduleFSM,
 			ProcessDescription process,	List<ImmutableList<QID>> priorities,
 			List<Expression> invariants) {
 		super(original, inputPorts, outputPorts, typePars, valuePars);
@@ -77,6 +77,7 @@ public class CalActor extends Entity {
 		this.varDecls = ImmutableList.from(varDecls);
 		this.initializers = ImmutableList.from(initializers);
 		this.actions = ImmutableList.from(actions);
+		this.actionCases = ImmutableList.from(actionCases);
 		this.scheduleFSM = scheduleFSM;
 		this.process = process;
 		this.priorities = ImmutableList.from(priorities);
@@ -86,7 +87,7 @@ public class CalActor extends Entity {
 	public CalActor copy(List<TypeDecl> typePars,
 			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-			List<Action> initializers, List<Action> actions, ScheduleFSM scheduleFSM,
+			List<Action> initializers, List<Action> actions, List<ActionCase> actionCases, ScheduleFSM scheduleFSM,
 			ProcessDescription process, List<ImmutableList<QID>> priorities, List<Expression> invariants) {
 		if (Lists.sameElements(this.typeParameters, typePars)
 				&& Lists.sameElements(this.valueParameters, valuePars)
@@ -96,6 +97,7 @@ public class CalActor extends Entity {
 				&& Lists.sameElements(this.outputPorts, outputPorts)
 				&& Lists.sameElements(this.initializers, initializers)
 				&& Lists.sameElements(this.actions, actions)
+				&& Lists.sameElements(this.actionCases, actionCases)
 				&& this.scheduleFSM == scheduleFSM
 				&& this.process == process
 				&& Lists.sameElements(this.priorities, priorities)
@@ -103,7 +105,7 @@ public class CalActor extends Entity {
 			return this;
 		}
 		return new CalActor(this, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts,
-				initializers, actions, scheduleFSM, process, priorities, invariants);
+				initializers, actions, actionCases, scheduleFSM, process, priorities, invariants);
 	}
 
 	public ImmutableList<TypeDecl> getTypeDecls() {
@@ -116,6 +118,10 @@ public class CalActor extends Entity {
 
 	public ImmutableList<Action> getActions() {
 		return actions;
+	}
+
+	public ImmutableList<ActionCase> getActionCases() {
+		return actionCases;
 	}
 
 	public ImmutableList<Action> getInitializers() {
@@ -141,6 +147,7 @@ public class CalActor extends Entity {
 	private ImmutableList<LocalVarDecl> varDecls;
 	private ImmutableList<TypeDecl> typeDecls;
 	private ImmutableList<Action> actions;
+	private ImmutableList<ActionCase> actionCases;
 	private ScheduleFSM scheduleFSM;
 	private ProcessDescription process;
 	private ImmutableList<ImmutableList<QID>> priorities;
@@ -155,6 +162,7 @@ public class CalActor extends Entity {
 		typeDecls.forEach(action);
 		initializers.forEach(action);
 		actions.forEach(action);
+		actionCases.forEach(action);
 		if (scheduleFSM != null) action.accept(scheduleFSM);
 		if (process != null) action.accept(process);
 		invariants.forEach(action);
@@ -172,6 +180,7 @@ public class CalActor extends Entity {
 				(ImmutableList) outputPorts.map(transformation),
 				(ImmutableList) initializers.map(transformation),
 				(ImmutableList) actions.map(transformation),
+				(ImmutableList) actionCases.map(transformation),
 				scheduleFSM == null ? null : (ScheduleFSM) transformation.apply(scheduleFSM),
 				process == null ? null : (ProcessDescription) transformation.apply(process),
 				priorities,
@@ -183,7 +192,7 @@ public class CalActor extends Entity {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
 			return this;
 		} else {
-			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, scheduleFSM, process, priorities, invariants);
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, priorities, invariants);
 		}
 	}
 
@@ -191,7 +200,7 @@ public class CalActor extends Entity {
 		if (Lists.sameElements(this.valueParameters, valueParameters)) {
 			return this;
 		} else {
-			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, scheduleFSM, process, priorities, invariants);
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, priorities, invariants);
 		}
 	}
 
@@ -199,7 +208,7 @@ public class CalActor extends Entity {
 		if (process == this.process) {
 			return this;
 		} else {
-			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, scheduleFSM, process, priorities, invariants);
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, priorities, invariants);
 		}
 	}
 
@@ -207,7 +216,7 @@ public class CalActor extends Entity {
 		if (this.scheduleFSM == scheduleFSM) {
 			return this;
 		} else {
-			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, scheduleFSM, process, priorities, invariants);
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, priorities, invariants);
 		}
 	}
 
@@ -215,7 +224,15 @@ public class CalActor extends Entity {
 		if (Lists.sameElements(this.actions, actions)) {
 			return this;
 		} else {
-			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, ImmutableList.from(actions), scheduleFSM, process, priorities, invariants);
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, ImmutableList.from(actions), actionCases, scheduleFSM, process, priorities, invariants);
+		}
+	}
+
+	public CalActor withActionCases(List<ActionCase> actionCases) {
+		if (Lists.sameElements(this.actionCases, actionCases)) {
+			return this;
+		} else {
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, ImmutableList.from(actionCases), scheduleFSM, process, priorities, invariants);
 		}
 	}
 
@@ -223,7 +240,15 @@ public class CalActor extends Entity {
 		if (Lists.sameElements(this.initializers, initializers)) {
 			return this;
 		} else {
- 			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, ImmutableList.from(initializers), actions, scheduleFSM, process, priorities, invariants);
+ 			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, ImmutableList.from(initializers), actions, actionCases, scheduleFSM, process, priorities, invariants);
+		}
+	}
+
+	public CalActor withPriorities(List<ImmutableList<QID>> priorities) {
+		if (Lists.sameElements(this.priorities, priorities)) {
+			return this;
+		} else {
+			return new CalActor(this, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, ImmutableList.from(priorities), invariants);
 		}
 	}
 }

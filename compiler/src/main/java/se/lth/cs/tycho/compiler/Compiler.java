@@ -114,15 +114,17 @@ public class Compiler {
 
     public static List<Phase> actorMachinePhases() {
         return ImmutableList.of(
+                new ActionCaseToActionsPhase(),
                 new RenameActorVariablesPhase(),
                 new LiftProcessVarDeclsPhase(),
                 new ProcessToCalPhase(),
-                new RemoveIdleMatchExpressionsPhase(),
-                new SubstitutePatternBindingsPhase(),
-                new AddMatchGuardsPhase(),
                 new AddSchedulePhase(),
                 new ScheduleUntaggedPhase(),
                 new ScheduleInitializersPhase(),
+                new AddPrioritiesPhase(),
+                new RemoveIdleMatchExpressionsPhase(),
+                new SubstitutePatternBindingsPhase(),
+                new AddMatchGuardsPhase(),
                 new MergeManyGuardsPhase(),
                 new CalToAmPhase(),
                 new RemoveEmptyTransitionsPhase(),
