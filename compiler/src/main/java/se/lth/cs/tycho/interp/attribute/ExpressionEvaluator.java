@@ -11,15 +11,15 @@ import se.lth.cs.tycho.interp.Environment;
 import se.lth.cs.tycho.interp.Interpreter;
 import se.lth.cs.tycho.interp.Stack;
 import se.lth.cs.tycho.interp.TypeConverter;
-import se.lth.cs.tycho.interp.values.ConstRef;
-import se.lth.cs.tycho.interp.values.Function;
-import se.lth.cs.tycho.interp.values.LambdaFunction;
-import se.lth.cs.tycho.interp.values.RefView;
+import se.lth.cs.tycho.interp.values.*;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
+import se.lth.cs.tycho.type.IntType;
+import se.lth.cs.tycho.type.RealType;
+import se.lth.cs.tycho.type.Type;
 
 @Module
 public interface ExpressionEvaluator {
@@ -55,7 +55,29 @@ public interface ExpressionEvaluator {
     }
 
     default RefView evaluate(ExprBinaryOp expression, Environment environment) {
-        throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "ExprBinaryOp is not supported"));
+        assert expression.getOperations().size() == 1 && expression.getOperands().size() == 2;
+        String operation = expression.getOperations().get(0);
+        Expression l = expression.getOperands().get(0);
+        Expression r = expression.getOperands().get(1);
+
+        RefView left = evaluate(l, environment);
+        RefView right = evaluate(r, environment);
+        switch (operation) {
+            case "..": {
+                int from = converter().getInt(left);
+                int to = converter().getInt(right);
+                BasicRef br = new BasicRef();
+                br.setValue(new Range(from, to));
+                return br;
+            }
+            case "+": {
+                return ConstRef.of(converter().getInt(left) + converter().getInt(right));
+            }
+
+            default:
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "ExprBinaryOp is not supported"));
+        }
+
     }
 
     default RefView evaluate(ExprComprehension expression, Environment environment) {
@@ -79,7 +101,7 @@ public interface ExpressionEvaluator {
 
         if (decl.isConstant()) {
             return evaluate(decl.getValue(), environment);
-        }else{
+        } else {
             return null;
         }
     }
@@ -114,7 +136,7 @@ public interface ExpressionEvaluator {
     }
 
     default RefView evaluate(ExprLiteral expression, Environment environment) {
-        RefView value = null;
+        RefView value;
 
         ExprLiteral.Kind kind = expression.getKind();
         if (kind == ExprLiteral.Kind.False) {
@@ -151,7 +173,23 @@ public interface ExpressionEvaluator {
     }
 
     default RefView evaluate(ExprUnaryOp expression, Environment environment) {
-        throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "ExprUnaryOp is not supported"));
+        RefView operand = evaluate(expression.getOperand(), environment);
+        String operation = expression.getOperation();
+        switch (operation) {
+            case "-": {
+                Type type = types().type(expression.getOperand());
+                if (type instanceof IntType) {
+                    return ConstRef.of(operand.getLong() * (-1));
+                } else if (type instanceof RealType) {
+                    return ConstRef.of(operand.getDouble() * (-1));
+                } else {
+                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Expression type on operation unary \"-\" is not supported "));
+                }
+            }
+            default:
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "ExprUnaryOp is not supported"));
+
+        }
     }
 
     default RefView evaluate(ExprVariable expression, Environment environment) {
@@ -160,12 +198,15 @@ public interface ExpressionEvaluator {
             throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "External ExprVariable is not supported."));
         }
 
+        return stack().peek(0);
+
+        /*
         if (decl.isConstant()) {
             return evaluate(decl.getValue(), environment);
         }else{
             return null;
         }
-
+        */
 
     }
 

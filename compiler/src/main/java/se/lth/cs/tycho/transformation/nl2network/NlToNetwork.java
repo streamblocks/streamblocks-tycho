@@ -43,6 +43,8 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     private Memory mem;
 
+    private final ComprehensionHelper comprehensionHelper;
+
     private EntityDeclarations entityDeclarations;
 
     public NlToNetwork(CompilationTask task, NlNetwork network, Interpreter interpreter) {
@@ -50,12 +52,14 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         this.interpreter = interpreter;
         this.evaluated = false;
         this.task = task;
+        this.comprehensionHelper = new ComprehensionHelper(interpreter);
         this.entityDeclarations = task.getModule(EntityDeclarations.key);
     }
 
     public void evaluate(ImmutableList<Map.Entry<String, Expression>> parameterAssignments) throws CompilationException {
         entities = new HashMap<InstanceDecl, EntityExpr>();
         structure = new ArrayList<StructureStatement>();
+        mem = new BasicMemory();
         Environment env = new BasicEnvironment(mem);    // no expressions will read from the ports while instantiating/flattening this network
 
         ImmutableList<LocalVarDecl> declList = srcNetwork.getVarDecls();
@@ -103,7 +107,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         ImmutableList<PortDecl> outputPorts = srcNetwork.getOutputPorts().map(PortDecl::deepClone);
         NetworkInstanceBuilder nb = new NetworkInstanceBuilder();
         for (Map.Entry<InstanceDecl, EntityExpr> entry : entities.entrySet()) {
-            entry.getValue().accept(nb, entry.getKey());
+            entry.getValue().accept(nb, entry.getKey().getInstanceName());
         }
 
         for (StructureStatement stmt : structure) {
@@ -138,16 +142,29 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     @Override
     public EntityExpr visitEntityListExpr(EntityListExpr e, Environment environment) {
         final ImmutableList.Builder<EntityExpr> builder = new ImmutableList.Builder<EntityExpr>();
-        final NlToNetwork exprEvaluateor = this;
-        Runnable execStmt = new Runnable() {
+        final NlToNetwork exprEvaluator = this;
+
+        for (EntityExpr element : e.getEntityList()) {
+            builder.add(element.accept(exprEvaluator, environment));
+        }
+
+        return e.copy(builder.build());
+    }
+
+    @Override
+    public EntityExpr visitEntityComprehensionExpr(EntityComprehensionExpr e, Environment environment) {
+        final ImmutableList.Builder<EntityExpr> builder = new ImmutableList.Builder<EntityExpr>();
+        final NlToNetwork exprEvaluator = this;
+
+        Runnable exec = new Runnable() {
             public void run() {
-                for (EntityExpr element : e.getEntityList()) {
-                    builder.add(element.accept(exprEvaluateor, environment));
-                }
+                builder.add(e.getCollection().accept(exprEvaluator, environment));
             }
         };
 
-        return null;
+        comprehensionHelper.interpret(e.getGenerator(), e.getFilters(), exec, environment);
+
+        return new EntityListExpr(builder.build());
     }
 
     @Override
@@ -190,7 +207,20 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     @Override
     public StructureStatement visitStructureForeachStmt(StructureForeachStmt stmt, Environment environment) {
-        return null;
+        final ImmutableList.Builder<StructureStatement> builder = new ImmutableList.Builder<StructureStatement>();
+        final NlToNetwork stmtEvaluateor = this;
+
+        Runnable exec = new Runnable() {
+            public void run() {
+                for(StructureStatement element : stmt.getStatements()){
+                    builder.add(element.accept(stmtEvaluateor, environment));
+                }
+            }
+        };
+
+        comprehensionHelper.interpret(stmt.getGenerator(), stmt.getFilters(), exec, environment);
+
+        return stmt.copy(null, ImmutableList.<Expression>empty(), builder.build());
     }
 
     private int findPortIndex(String portName, ImmutableList<PortDecl> portList) {
@@ -203,7 +233,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     }
 
 
-    private class NetworkInstanceBuilder implements EntityExprVisitor<Void, InstanceDecl>, StructureStmtVisitor<Void, String> {
+    private class NetworkInstanceBuilder implements EntityExprVisitor<Void, String>, StructureStmtVisitor<Void, String> {
         HashMap<String, Instance> instances = new HashMap<>();
         ImmutableList.Builder<Connection> connections = new ImmutableList.Builder<Connection>();
 
@@ -216,37 +246,45 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         }
 
         @Override
-        public Void visitEntityInstanceExpr(EntityInstanceExpr e, InstanceDecl decl) {
-            assert decl.getEntityExpr() instanceof EntityInstanceExpr;
-            EntityInstanceExpr expr = (EntityInstanceExpr) decl.getEntityExpr();
-            assert expr.getEntityName() instanceof EntityReferenceGlobal;
-
-            EntityDeclarations declarations = task.getModule(EntityDeclarations.key);
-            GlobalEntityDecl entityDecl = declarations.declaration(e.getEntityName());
-
-            if(entityDecl.getEntity() instanceof NlNetwork){
-
-            }
-
-            QID entityName = ((EntityReferenceGlobal) expr.getEntityName()).getGlobalName();
+        public Void visitEntityInstanceExpr(EntityInstanceExpr e, String s) {
+            QID entityName = ((EntityReferenceGlobal) e.getEntityName()).getGlobalName();
             Instance instance = new Instance(
-                    decl.getInstanceName(),
+                    s,
                     entityName,
-                    expr.getParameterAssignments().map(ValueParameter::deepClone),
+                    e.getParameterAssignments().map(ValueParameter::deepClone),
                     ImmutableList.empty())
-                    .withAttributes(expr.getAttributes().map(ToolAttribute::deepClone));
+                    .withAttributes(e.getAttributes().map(ToolAttribute::deepClone));
             instances.put(instance.getInstanceName(), instance);
             return null;
         }
 
         @Override
-        public Void visitEntityIfExpr(EntityIfExpr e, InstanceDecl decl) {
+        public Void visitEntityIfExpr(EntityIfExpr e, String s) {
             return null;
         }
 
         @Override
-        public Void visitEntityListExpr(EntityListExpr e, InstanceDecl decl) {
+        public Void visitEntityListExpr(EntityListExpr e, String s) {
+            ImmutableList<EntityExpr> list = e.getEntityList();
+            for (int i = 0; i < list.size(); i++) {
+                list.get(i).accept(this, s + "_" + i);
+            }
             return null;
+        }
+
+        @Override
+        public Void visitEntityComprehensionExpr(EntityComprehensionExpr e, String s) {
+            return null;
+        }
+
+
+        private String makeEntityName(PortReference port){
+            StringBuffer name = new StringBuffer(port.getEntityName());
+            for(Expression index : port.getEntityIndex()){
+                name.append("_");
+                name.append(((ExprLiteral)index).getText());
+            }
+            return name.toString();
         }
 
         @Override
@@ -259,14 +297,16 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             Entity dstEntity;
             int srcPortIndex = -1;
             int dstPortIndex = -1;
+            String srcEntityName = null;
+            String dstEntityName = null;
             ImmutableList<PortDecl> srcPortList, dstPortList;
 
             if (src.getEntityName() != null) {
                 // -- internal instance
-                String entityName = src.getEntityName();
-                srcInstance = instances.get(entityName);
+                srcEntityName = makeEntityName(src);
+                srcInstance = instances.get(srcEntityName);
                 if (srcInstance == null) {
-                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "cannot find entity: " + entityName));
+                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "cannot find entity: " + srcEntityName));
                 }
                 GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, srcInstance.getEntityName());
                 srcEntity = entity.getEntity();
@@ -276,10 +316,10 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             }
 
             if (dst.getEntityName() != null) {
-                String entityName = dst.getEntityName();
-                dstInstance = instances.get(entityName);
+                dstEntityName = makeEntityName(dst);
+                dstInstance = instances.get(dstEntityName);
                 if (dstInstance == null) {
-                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "cannot find entity: " + entityName));
+                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "cannot find entity: " + dstEntityName));
                 }
                 GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, dstInstance.getEntityName());
                 dstEntity = entity.getEntity();
@@ -296,9 +336,9 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             if (dstPortIndex < 0) {
                 throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "no port with name : " + dst.getPortName() + " exists in : " + dst.getEntityName()));
             }
-            Connection.End srcConn = new Connection.End(Optional.ofNullable(src.getEntityName()), src.getPortName());
-            Connection.End dstConn = new Connection.End(Optional.ofNullable(src.getEntityName()), dst.getPortName());
-            Connection conn = new Connection(srcConn,dstConn);
+            Connection.End srcConn = new Connection.End(Optional.ofNullable(srcEntityName), src.getPortName());
+            Connection.End dstConn = new Connection.End(Optional.ofNullable(dstEntityName), dst.getPortName());
+            Connection conn = new Connection(srcConn, dstConn);
             connections.add(conn);
 
             return null;
@@ -312,6 +352,9 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         @Override
         public Void visitStructureForeachStmt(StructureForeachStmt stmt, String s) {
 
+            for (StructureStatement statement : stmt.getStatements()) {
+                statement.accept(this, "");
+            }
             return null;
         }
     }

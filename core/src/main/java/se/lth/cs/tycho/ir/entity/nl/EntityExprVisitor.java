@@ -8,4 +8,6 @@ public interface EntityExprVisitor<R, P> {
 
     public R visitEntityListExpr(EntityListExpr e, P p);
 
+    public R visitEntityComprehensionExpr(EntityComprehensionExpr e, P p);
+
 }

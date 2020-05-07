@@ -78,6 +78,11 @@ public abstract class ConstRef implements RefView {
         public void assignTo(Ref r) {
             r.setLong(l);
         }
+
+        @Override
+        public String toString() {
+            return String.valueOf(l);
+        }
     }
 
     private static class ConstBooleanRef extends ConstRef {

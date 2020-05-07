@@ -89,6 +89,6 @@ public class EntityComprehensionExpr extends AbstractIRNode implements EntityExp
 
     @Override
     public <R, P> R accept(EntityExprVisitor<R, P> v, P p) {
-        return null;
+        return v.visitEntityComprehensionExpr(this, p);
     }
 }
