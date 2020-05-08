@@ -1,0 +1,13 @@
+namespace patmat:
+    actor UnreachabilityStructural() ==> int OUT:
+        int n;
+        do
+            OUT <--
+            case n of
+                '(1 + 2) : 3 end
+                '(1 + 2) : 3 end
+                _ : 0 end
+            end;
+        end
+    end
+end
