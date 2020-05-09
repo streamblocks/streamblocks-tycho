@@ -27,6 +27,7 @@ import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.FieldType;
 import se.lth.cs.tycho.type.IntType;
@@ -727,6 +728,18 @@ public class CaseAnalysisPhase implements Phase {
 		default boolean test(ConstantType a, BoolType b) {
 			return true;
 		}
+
+		default boolean test(AliasType a, AliasType b) {
+			return test(a.getType(), b.getType());
+		}
+
+		default boolean test(AliasType a, Type b) {
+			return test(a.getType(), b);
+		}
+
+		default boolean test(Type a, AliasType b) {
+			return test(a, b.getType());
+		}
 	}
 
 	@Module
@@ -746,6 +759,18 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean test(SumType.VariantType a, SumType.VariantType b) {
 			return a.equals(b);
+		}
+
+		default boolean test(AliasType a, AliasType b) {
+			return test(a.getType(), b.getType());
+		}
+
+		default boolean test(AliasType a, Type b) {
+			return test(a.getType(), b);
+		}
+
+		default boolean test(Type a, AliasType b) {
+			return test(a, b.getType());
 		}
 	}
 
@@ -768,6 +793,10 @@ public class CaseAnalysisPhase implements Phase {
 			return true;
 		}
 
+		default boolean test(AliasType type) {
+			return test(type.getType());
+		}
+
 		List<Space> apply(Type type);
 
 		default List<Space> apply(BoolType type) {
@@ -780,6 +809,10 @@ public class CaseAnalysisPhase implements Phase {
 
 		default List<Space> apply(ProductType type) {
 			return Collections.singletonList(Space.Universe.of(type));
+		}
+
+		default List<Space> apply(AliasType type) {
+			return apply(type.getType());
 		}
 	}
 
@@ -799,6 +832,10 @@ public class CaseAnalysisPhase implements Phase {
 		default List<Type> apply(SumType.VariantType type) {
 			return type.getFields().stream().map(FieldType::getType).collect(Collectors.toList());
 		}
+
+		default List<Type> apply(AliasType type) {
+			return apply(type.getType());
+		}
 	}
 
 	@Module
@@ -814,6 +851,10 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean test(SumType type) {
 			return type.getVariants().size() == 1 && type.getVariants().get(0).getFields().stream().allMatch(field -> test(field.getType()));
+		}
+
+		default boolean test(AliasType type) {
+			return test(type.getType());
 		}
 	}
 
@@ -834,6 +875,10 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean visit(SumType type, Set<Type> visited) {
 			return visited.add(type) || type.getVariants().stream().flatMap(v -> v.getFields().stream()).anyMatch(f -> visit(f.getType(), visited));
+		}
+
+		default boolean visit(AliasType type, Set<Type> visited) {
+			return visit(type.getType(), visited);
 		}
 	}
 

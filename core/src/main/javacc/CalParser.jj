@@ -124,6 +124,7 @@ TOKEN :
 {
 	< ACTION: "action" >
 |	< ACTOR: "actor" >
+|	< ALIAS: "alias" >
 |	< ALL: "all" >
 |	< AND: "and" >
 //|	< ANY: "any" >
@@ -2373,29 +2374,58 @@ TypeExpr Type() :
 /* Type definitions */
 GlobalTypeDecl GlobalTypeDecl() :
 {
-    Token first;
-    Token last;
-    Token name;
-    Availability availability = Availability.PUBLIC;
-    AlgebraicTypeDecl declaration;
+  Availability availability = Availability.PUBLIC;
+  GlobalTypeDecl declaration;
 }
 {
-    (
-        availability = Availability()
-    )?
-    first = "type"
-    name = <ID>
-    ":"
-    (
-       declaration = ProductTypeDecl(name)
-    |
-       declaration = SumTypeDecl(name)
-    )
-    last = "end"
-    { return setPosition(new GlobalTypeDecl(name.image, availability, declaration), first, last); }
+  (
+    availability = Availability()
+  )?
+  (
+    declaration = AliasType(availability)
+  |
+    declaration = AlgebraicType(availability)
+  )
+  { return declaration; }
 }
 
-ProductTypeDecl ProductTypeDecl(Token name) :
+AliasTypeDecl AliasType(Availability availability) :
+{
+  Token first;
+  Token last;
+  Token name;
+  TypeExpr type;
+}
+{
+  first = "alias"
+  name = <ID>
+  ":"
+  type = Type()
+  last = "end"
+  { return setPosition(new AliasTypeDecl(name.image, availability, type), first, last); }
+}
+
+AlgebraicTypeDecl AlgebraicType(Availability availability) :
+{
+  Token first;
+  Token last;
+  Token name;
+  AlgebraicTypeDecl declaration;
+}
+{
+  first = "type"
+  name = <ID>
+  ":"
+  (
+      declaration = ProductTypeDecl(availability, name)
+  |
+      declaration = SumTypeDecl(availability, name)
+  )
+  last = "end"
+  { return setPosition(declaration, first, last); }
+}
+
+ProductTypeDecl ProductTypeDecl(Availability availability, Token name) :
 {
     Token first;
     Token last;
@@ -2409,7 +2439,7 @@ ProductTypeDecl ProductTypeDecl(Token name) :
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
     last = ")"
-    { return setPosition(new ProductTypeDecl(name.image, fields.build()), first, last); }
+    { return setPosition(new ProductTypeDecl(name.image, availability, fields.build()), first, last); }
 }
 
 FieldDecl FieldDecl() :
@@ -2423,7 +2453,7 @@ FieldDecl FieldDecl() :
     { return setPosition(new FieldDecl(type, name.image), type, name); }
 }
 
-SumTypeDecl SumTypeDecl(Token name) :
+SumTypeDecl SumTypeDecl(Availability availability, Token name) :
 {
     SumTypeDecl.VariantDecl first;
     SumTypeDecl.VariantDecl last;
@@ -2438,7 +2468,7 @@ SumTypeDecl SumTypeDecl(Token name) :
         variant = VariantDecl() { variants.add(variant); }
         { last = variant; }
     )*
-    { return setPosition(new SumTypeDecl(name.image, variants.build()), first, last); }
+    { return setPosition(new SumTypeDecl(name.image, availability, variants.build()), first, last); }
 }
 
 SumTypeDecl.VariantDecl VariantDecl() :

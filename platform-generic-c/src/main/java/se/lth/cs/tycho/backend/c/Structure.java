@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.entity.am.*;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.ListType;
@@ -268,6 +269,12 @@ public interface Structure {
 					emitter().emit("{");
 					emitter().increaseIndentation();
 					emitter().emit("%s(self->%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(var));
+					emitter().decreaseIndentation();
+					emitter().emit("}");
+				} else if (backend().alias().isAlgebraicType(type)) {
+					emitter().emit("{");
+					emitter().increaseIndentation();
+					emitter().emit("%s(self->%s);", backend().algebraicTypes().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				} else if (code().isAlgebraicTypeList(type)) {

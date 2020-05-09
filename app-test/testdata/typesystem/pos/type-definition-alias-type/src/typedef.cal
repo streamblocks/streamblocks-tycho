@@ -1,0 +1,9 @@
+namespace typedef:
+    alias bit : uint(size=1) end
+    actor AliasType() ==> bit OUT:
+        bit b;
+        do
+            OUT <-- b;
+        end
+    end
+end

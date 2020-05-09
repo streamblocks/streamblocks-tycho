@@ -80,6 +80,18 @@ public class TypeAnalysisPhase implements Phase {
 			return true;
 		}
 
+		default boolean isConvertible(AliasType to, AliasType from) {
+			return isConvertible(to.getType(), from.getType());
+		}
+
+		default boolean isConvertible(AliasType to, Type from) {
+			return isConvertible(to.getType(), from);
+		}
+
+		default boolean isConvertible(Type to, AliasType from) {
+			return isConvertible(to, from.getType());
+		}
+
 		default boolean isAssertable(Type to, Type from) {
 			return to.equals(from);
 		}
@@ -91,6 +103,15 @@ public class TypeAnalysisPhase implements Phase {
 		}
 		default boolean isAssertable(RealType to, IntType from) {
 			return true;
+		}
+		default boolean isAssertable(AliasType to, AliasType from) {
+			return isAssertable(to.getType(), from.getType());
+		}
+		default boolean isAssertable(AliasType to, Type from) {
+			return isAssertable(to.getType(), from);
+		}
+		default boolean isAssertable(Type to, AliasType from) {
+			return isAssertable(to, from.getType());
 		}
 
 		default boolean isComparable(Type a, Type b, String operand) {
@@ -125,6 +146,15 @@ public class TypeAnalysisPhase implements Phase {
 		}
 		default boolean isComparable(Type a, AlgebraicType b, String operand) {
 			return false;
+		}
+		default boolean isComparable(AliasType a, AliasType b, String operand) {
+			return isComparable(a.getType(), b.getType(), operand);
+		}
+		default boolean isComparable(AliasType a, Type b, String operand) {
+			return isComparable(a.getType(), b, operand);
+		}
+		default boolean isComparable(Type a, AliasType b, String operand) {
+			return isComparable(a, b.getType(), operand);
 		}
 
 		default boolean isAssignable(Type to, Type from) {
@@ -228,6 +258,18 @@ public class TypeAnalysisPhase implements Phase {
 
 		default boolean isAssignable(AlgebraicType to, AlgebraicType from) {
 			return to.equals(from);
+		}
+
+		default boolean isAssignable(AliasType to, AliasType from) {
+			return isAssignable(to.getType(), from.getType());
+		}
+
+		default boolean isAssignable(AliasType to, Type from) {
+			return isAssignable(to.getType(), from);
+		}
+
+		default boolean isAssignable(Type to, AliasType from) {
+			return isAssignable(to, from.getType());
 		}
 	}
 
@@ -506,8 +548,8 @@ public class TypeAnalysisPhase implements Phase {
 		default void checkTypes(PatternDeconstruction deconstruction) {
 			typeScopes().construction(deconstruction).ifPresent(decl -> {
 				GlobalTypeDecl type = (GlobalTypeDecl) decl;
-				if (type.getDeclaration() instanceof ProductTypeDecl) {
-					ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
+				if (type instanceof ProductTypeDecl) {
+					ProductTypeDecl product = (ProductTypeDecl) type;
 					Iterator<Type> types = product.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
 					Iterator<Pattern> patterns = deconstruction.getPatterns().iterator();
 					while (types.hasNext() && patterns.hasNext()) {
@@ -521,8 +563,8 @@ public class TypeAnalysisPhase implements Phase {
 						final int actual = deconstruction.getPatterns().size();
 						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstruction));
 					}
-				} else if (type.getDeclaration() instanceof SumTypeDecl) {
-					SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
+				} else if (type instanceof SumTypeDecl) {
+					SumTypeDecl sum = (SumTypeDecl) type;
 					SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
 					Iterator<Type> types = variant.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
 					Iterator<Pattern> patterns = deconstruction.getPatterns().iterator();

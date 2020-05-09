@@ -47,7 +47,7 @@ public interface PatternMatching {
 		emitter().emit("%s = false;", code().declaration(BoolType.INSTANCE, match));
 		Type type = code().types().type(caseExpr);
 		String result = code().variables().generateTemp();
-		if ((type instanceof AlgebraicType) || (code().isAlgebraicTypeList(type))) {
+		if ((type instanceof AlgebraicType) || (code().isAlgebraicTypeList(type)) || backend().alias().isAlgebraicType(type)) {
 			backend().memoryStack().trackPointer(result, type);
 		}
 		emitter().emit("%s = %s;", code().declaration(type, result), backend().defaultValues().defaultValue(type));
@@ -172,7 +172,7 @@ public interface PatternMatching {
 			code().copy(type, alias, type, expr);
 		} else if (pattern.getAlias() instanceof PatternBinding) {
 			alias = backend().variables().declarationName(((PatternBinding) pattern.getAlias()).getDeclaration());
-			if (type instanceof AlgebraicType) {
+			if (type instanceof AlgebraicType || backend().alias().isAlgebraicType(type)) {
 				backend().memoryStack().trackPointer(alias, type);
 			}
 			emitter().emit("%s = %s;", code().declaration(type, alias), backend().defaultValues().defaultValue(type));

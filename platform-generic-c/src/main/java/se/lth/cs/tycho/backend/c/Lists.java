@@ -29,7 +29,7 @@ public interface Lists {
     default void declareType(ListType type) {
         String typeName = backend().code().type(type);
         String elementType = backend().code().type(type.getElementType());
-        if (type.getElementType() instanceof AlgebraicType) elementType += "*";
+        if (type.getElementType() instanceof AlgebraicType || backend().alias().isAlgebraicType(type.getElementType())) elementType += "*";
         int size = type.getSize().getAsInt();
 
         emitter().emit("typedef struct {");

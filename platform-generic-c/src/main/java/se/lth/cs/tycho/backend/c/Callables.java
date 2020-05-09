@@ -129,9 +129,9 @@ public interface Callables {
 	default void declareCallableFatPointerType(CallableType type) {
 		String name = mangle(type).encode();
 		String returnType = backend().code().type(type.getReturnType());
-		if (type.getReturnType() instanceof AlgebraicType) returnType += "*";
+		if (type.getReturnType() instanceof AlgebraicType || backend().alias().isAlgebraicType(type.getReturnType())) returnType += "*";
 		Stream<String> parameterStream = type.getParameterTypes().stream()
-				.map(tpe -> backend().code().type(tpe) + (tpe instanceof AlgebraicType ? "*" : ""));
+				.map(tpe -> backend().code().type(tpe) + (tpe instanceof AlgebraicType || backend().alias().isAlgebraicType(tpe) ? "*" : ""));
 		String parameters = Stream.concat(Stream.of("void *restrict"), parameterStream).collect(Collectors.joining(", "));
 		backend().emitter().emit("typedef struct {");
 		backend().emitter().increaseIndentation();
@@ -194,6 +194,10 @@ public interface Callables {
 
 	default NameExpression mangle(AlgebraicType type) {
 		return name(backend().algebraicTypes().type(type));
+	}
+
+	default NameExpression mangle(AliasType type) {
+		return mangle(type.getConcreteType());
 	}
 
 	// function prototype
@@ -413,7 +417,7 @@ public interface Callables {
 			parameters.add(backend().code().declaration(type.getParameterTypes().get(i), parameterNames.get(i)));
 		}
 		String result = backend().code().type(type.getReturnType());
-		if (type.getReturnType() instanceof AlgebraicType) result += "*";
+		if (type.getReturnType() instanceof AlgebraicType || backend().alias().isAlgebraicType(type.getReturnType())) result += "*";
 		result += " ";
 		result += name;
 		result += "(";

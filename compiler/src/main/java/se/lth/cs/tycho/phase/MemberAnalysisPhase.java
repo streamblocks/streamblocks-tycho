@@ -14,6 +14,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.ProductType;
 import se.lth.cs.tycho.type.Type;
 
@@ -72,6 +73,10 @@ public class MemberAnalysisPhase implements Phase {
 
 		default void checkMember(IRNode node, Type type, String member) {
 			error(node, type, member);
+		}
+
+		default void checkMember(IRNode node, AliasType type, String member) {
+			checkMember(node, type.getConcreteType(), member);
 		}
 
 		default void checkMember(IRNode node, ProductType type, String member) {

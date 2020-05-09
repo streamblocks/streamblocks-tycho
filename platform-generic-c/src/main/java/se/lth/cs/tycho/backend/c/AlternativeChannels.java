@@ -6,6 +6,7 @@ import org.multij.Module;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.Arrays;
@@ -172,6 +173,10 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("");
 	}
 
+	default void channelListCodeForType(AliasType type, int[] size) {
+		channelListCodeForType(type.getConcreteType(), size);
+	}
+
 	default String sizeToBufferSize(int size) {
 		return size == 0 ? "BUFFER_SIZE" : Integer.toString(size);
 	}
@@ -316,6 +321,10 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("	}");
 		emitter().emit("}");
 		emitter().emit("");
+	}
+
+	default void channelCodeForType(AliasType type, int size) {
+		channelCodeForType(type.getConcreteType(), size);
 	}
 
 	default void inputActorCodeForType(Type type, int[] size) {

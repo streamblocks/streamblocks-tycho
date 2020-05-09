@@ -239,18 +239,22 @@ public interface Types {
 				ImmutableList<TypeDecl> declarations = typeScopes().declarations(getSourceUnit(decl).getTree());
 
 				// First pass
-				declarations.forEach(declaration -> {
-					AlgebraicType algebraicType = null;
+				declarations.stream().filter(AlgebraicTypeDecl.class::isInstance).forEach(declaration -> {
+					Type type = null;
 					GlobalTypeDecl globalTypeDecl = (GlobalTypeDecl) declaration;
-					AlgebraicTypeDecl algebraicTypeDecl = globalTypeDecl.getDeclaration();
-					if (algebraicTypeDecl instanceof ProductTypeDecl) {
-						ProductTypeDecl productTypeDecl = (ProductTypeDecl) algebraicTypeDecl;
-						algebraicType = new ProductType(productTypeDecl.getName(), new ArrayList<>(productTypeDecl.getFields().size()));
-					} else if (algebraicTypeDecl instanceof SumTypeDecl) {
-						SumTypeDecl sumTypeDecl = (SumTypeDecl) algebraicTypeDecl;
-						algebraicType = new SumType(sumTypeDecl.getName(), sumTypeDecl.getVariants().stream().map(variant -> new SumType.VariantType(variant.getName(), new ArrayList<>(variant.getFields().size()))).collect(Collectors.toList()));
+					if (globalTypeDecl instanceof ProductTypeDecl) {
+						ProductTypeDecl productTypeDecl = (ProductTypeDecl) globalTypeDecl;
+						type = new ProductType(productTypeDecl.getName(), new ArrayList<>(productTypeDecl.getFields().size()));
+					} else if (globalTypeDecl instanceof SumTypeDecl) {
+						SumTypeDecl sumTypeDecl = (SumTypeDecl) globalTypeDecl;
+						type = new SumType(sumTypeDecl.getName(), sumTypeDecl.getVariants().stream().map(variant -> new SumType.VariantType(variant.getName(), new ArrayList<>(variant.getFields().size()))).collect(Collectors.toList()));
 					}
-					declaredGlobalTypeMap().put(globalTypeDecl, algebraicType);
+					declaredGlobalTypeMap().put(globalTypeDecl, type);
+				});
+				declarations.stream().filter(AliasTypeDecl.class::isInstance).forEach(declaration -> {
+					AliasTypeDecl aliasTypeDecl = (AliasTypeDecl) declaration;
+					Type type = new AliasType(aliasTypeDecl.getName(), convert(aliasTypeDecl.getType()));
+					declaredGlobalTypeMap().put(aliasTypeDecl, type);
 				});
 
 				// Second pass
@@ -258,13 +262,13 @@ public interface Types {
 					GlobalTypeDecl globalTypeDecl = (GlobalTypeDecl) declaration;
 					Type type = declaredGlobalTypeMap().get(globalTypeDecl);
 					if (type instanceof ProductType) {
-						ProductTypeDecl productTypeDecl = (ProductTypeDecl) globalTypeDecl.getDeclaration();
+						ProductTypeDecl productTypeDecl = (ProductTypeDecl) globalTypeDecl;
 						ProductType productType = (ProductType) type;
 						for (int i = 0; i < productTypeDecl.getFields().size(); ++i) {
 							productType.getFields().add(new FieldType(productTypeDecl.getFields().get(i).getName(), convert(productTypeDecl.getFields().get(i).getType())));
 						}
 					} else if (type instanceof SumType) {
-						SumTypeDecl sumTypeDecl = (SumTypeDecl) globalTypeDecl.getDeclaration();
+						SumTypeDecl sumTypeDecl = (SumTypeDecl) globalTypeDecl;
 						SumType sumType = (SumType) type;
 						for (int i = 0; i < sumTypeDecl.getVariants().size(); ++i) {
 							SumTypeDecl.VariantDecl variantDecl = sumTypeDecl.getVariants().get(i);
@@ -332,12 +336,12 @@ public interface Types {
 					PatternDeconstruction deconstruction = (PatternDeconstruction) node;
 					return typeScopes().construction(deconstruction).map(decl -> {
 						GlobalTypeDecl type = (GlobalTypeDecl) decl;
-						if (type.getDeclaration() instanceof ProductTypeDecl) {
-							ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
+						if (type instanceof ProductTypeDecl) {
+							ProductTypeDecl product = (ProductTypeDecl) type;
 							int index = deconstruction.getPatterns().indexOf(p);
 							return convert(product.getFields().get(index).getType());
 						} else {
-							SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
+							SumTypeDecl sum = (SumTypeDecl) type;
 							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
 							int index = deconstruction.getPatterns().indexOf(p);
 							return convert(variant.getFields().get(index).getType());
@@ -439,6 +443,14 @@ public interface Types {
 			Type structureType = computeLValueType(fieldLValue.getStructure());
 			if (structureType instanceof ProductType) {
 				ProductType productType = (ProductType) structureType;
+				return productType.getFields()
+						.stream()
+						.filter(field -> Objects.equals(field.getName(), fieldLValue.getField().getName()))
+						.map(FieldType::getType)
+						.findAny()
+						.orElse(BottomType.INSTANCE);
+			} else if (structureType instanceof AliasType && ((AliasType) structureType).getType() instanceof ProductType) {
+				ProductType productType = (ProductType) ((AliasType) structureType).getType();
 				return productType.getFields()
 						.stream()
 						.filter(field -> Objects.equals(field.getName(), fieldLValue.getField().getName()))
@@ -782,6 +794,14 @@ public interface Types {
 						.map(FieldType::getType)
 						.findAny()
 						.orElse(BottomType.INSTANCE);
+			} else if (structureType instanceof AliasType && ((AliasType) structureType).getType() instanceof ProductType) {
+				ProductType productType = (ProductType) ((AliasType) structureType).getType();
+				return productType.getFields()
+						.stream()
+						.filter(field -> Objects.equals(field.getName(), fieldExpr.getField().getName()))
+						.map(FieldType::getType)
+						.findAny()
+						.orElse(BottomType.INSTANCE);
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -862,6 +882,18 @@ public interface Types {
 			} else {
 				return TopType.INSTANCE;
 			}
+		}
+
+		default Type leastUpperBound(AliasType a, AliasType b) {
+			return leastUpperBound(a.getType(), b.getType());
+		}
+
+		default Type leastUpperBound(AliasType a, Type b) {
+			return leastUpperBound(a.getType(), b);
+		}
+
+		default Type leastUpperBound(Type a, AliasType b) {
+			return leastUpperBound(a, b.getType());
 		}
 
 		default int positiveBits(IntType t) {

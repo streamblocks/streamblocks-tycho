@@ -3,10 +3,13 @@ package se.lth.cs.tycho.backend.c;
 import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
+import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.ProductType;
 import se.lth.cs.tycho.type.SumType;
+import se.lth.cs.tycho.type.Type;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -14,6 +17,7 @@ import java.util.stream.Stream;
 
 @Module
 public interface AlgebraicTypes {
+
 	@Binding(BindingKind.INJECTED)
 	Backend backend();
 
@@ -25,12 +29,16 @@ public interface AlgebraicTypes {
 		return backend().code();
 	}
 
+	default Alias alias() {
+		return backend().alias();
+	}
+
 	default void forwardDeclareAlgebraicTypes() {
 		emitter().emit("// FORWARD TYPE DECLARATIONS");
 		types().forEachOrdered(this::forwardDeclareType);
 	}
 
-	default void forwardDeclareType(AlgebraicType type) {}
+	default void forwardDeclareType(Type type) {}
 
 	default void forwardDeclareType(ProductType product) {
 		emitter().emit("typedef struct %s_s %s_t;", product.getName(), product.getName());
@@ -47,7 +55,12 @@ public interface AlgebraicTypes {
 		types().forEachOrdered(this::declareType);
 	}
 
-	default void declareType(AlgebraicType type) {}
+	default void declareType(Type type) {}
+
+	default void declareType(AliasType alias) {
+		emitter().emit("typedef %s %s;", code().type(alias.getType()), alias.getName());
+		emitter().emit("");
+	}
 
 	default void declareType(ProductType product) {
 		emitter().emit("struct %s_s {", product.getName());
@@ -125,7 +138,7 @@ public interface AlgebraicTypes {
 		types().forEachOrdered(this::defineType);
 	}
 
-	default void defineType(AlgebraicType type) {}
+	default void defineType(Type type) {}
 
 	default void defineType(ProductType product) {
 		defineInit(product);
@@ -159,6 +172,9 @@ public interface AlgebraicTypes {
 			if (field.getType() instanceof AlgebraicType) {
 				emitter().emit("%s(%s->%s);", destructor((AlgebraicType) field.getType()), self, field.getName());
 			}
+			if (alias().isAlgebraicType(field.getType())) {
+				emitter().emit("%s(%s->%s);", destructor((AlgebraicType) (((AliasType) field.getType()).getConcreteType())), self, field.getName());
+			}
 		});
 		emitter().emit("free(%s);", self);
 		emitter().decreaseIndentation();
@@ -177,6 +193,9 @@ public interface AlgebraicTypes {
 			if (field.getType() instanceof AlgebraicType) {
 				emitter().emit("write_%s_t(%s->%s, %s);", ((AlgebraicType) field.getType()).getName(), self, field.getName(), ptr);
 				emitter().emit("%s += size_%s_t(%s->%s);", ptr, ((AlgebraicType) field.getType()).getName(), self, field.getName());
+			} else if (alias().isAlgebraicType(field.getType())) {
+				emitter().emit("write_%s_t(%s->%s, %s);", ((AlgebraicType) (((AliasType) field.getType()).getConcreteType())).getName(), self, field.getName(), ptr);
+				emitter().emit("%s += size_%s_t(%s->%s);", ptr, ((AlgebraicType) (((AliasType) field.getType()).getConcreteType())).getName(), self, field.getName());
 			} else {
 				emitter().emit("*(%s*) %s = %s->%s;", code().type(field.getType()), ptr, self, field.getName());
 				emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
@@ -200,6 +219,9 @@ public interface AlgebraicTypes {
 			if (field.getType() instanceof AlgebraicType) {
 				emitter().emit("%s->%s = read_%s_t(%s);", self, field.getName(), ((AlgebraicType) field.getType()).getName(), ptr);
 				emitter().emit("%s += size_%s_t(%s->%s);", ptr, ((AlgebraicType) field.getType()).getName(), self, field.getName());
+			} else if (alias().isAlgebraicType(field.getType())) {
+				emitter().emit("%s->%s = read_%s_t(%s);", self, field.getName(), ((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName(), ptr);
+				emitter().emit("%s += size_%s_t(%s->%s);", ptr, ((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName(), self, field.getName());
 			} else {
 				emitter().emit("%s->%s = *(%s*) %s;", self, field.getName(), code().type(field.getType()), ptr);
 				emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
@@ -221,6 +243,8 @@ public interface AlgebraicTypes {
 		product.getFields().forEach(field -> {
 			if (field.getType() instanceof AlgebraicType) {
 				emitter().emit("%s += size_%s_t(%s->%s);", size, ((AlgebraicType) field.getType()).getName(), self, field.getName());
+			} else if (alias().isAlgebraicType(field.getType())) {
+				emitter().emit("%s += size_%s_t(%s->%s);", size, ((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName(), self, field.getName());
 			} else{
 				emitter().emit("%s += sizeof(%s);", size, code().type(field.getType()));
 			}
@@ -305,6 +329,9 @@ public interface AlgebraicTypes {
 				if (field.getType() instanceof AlgebraicType) {
 					emitter().emit("%s(%s->data.%s.%s);", destructor((AlgebraicType) field.getType()), self, variant.getName(), field.getName());
 				}
+				if (alias().isAlgebraicType(field.getType())) {
+					emitter().emit("%s(%s->data.%s.%s);", destructor((AlgebraicType) ((AliasType) field.getType()).getConcreteType()), self, variant.getName(), field.getName());
+				}
 			});
 			emitter().emit("break;");
 			emitter().decreaseIndentation();
@@ -335,6 +362,9 @@ public interface AlgebraicTypes {
 				if (field.getType() instanceof AlgebraicType) {
 					emitter().emit("write_%s_t(%s->data.%s.%s, %s);", ((AlgebraicType) field.getType()).getName(), self, variant.getName(), field.getName(), ptr);
 					emitter().emit("%s += size_%s_t(%s->data.%s.%s);", ptr, ((AlgebraicType) field.getType()).getName(), self, variant.getName(), field.getName());
+				} else if (alias().isAlgebraicType(field.getType())) {
+					emitter().emit("write_%s_t(%s->data.%s.%s, %s);", ((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName(), self, variant.getName(), field.getName(), ptr);
+					emitter().emit("%s += size_%s_t(%s->data.%s.%s);", ptr, ((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName(), self, variant.getName(), field.getName());
 				} else {
 					emitter().emit("*(%s*) %s = %s->data.%s.%s;", code().type(field.getType()), ptr, self, variant.getName(), field.getName());
 					emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
@@ -370,6 +400,9 @@ public interface AlgebraicTypes {
 				if (field.getType() instanceof AlgebraicType) {
 					emitter().emit("%s->data.%s.%s = read_%s_t(%s);", self, variant.getName(), field.getName(), ((AlgebraicType) field.getType()).getName(), ptr);
 					emitter().emit("%s += size_%s_t(%s->data.%s.%s);", ptr, ((AlgebraicType) field.getType()).getName(), self, variant.getName(), field.getName());
+				} else if (alias().isAlgebraicType(field.getType())) {
+					emitter().emit("%s->data.%s.%s = read_%s_t(%s);", self, variant.getName(), field.getName(), ((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName(), ptr);
+					emitter().emit("%s += size_%s_t(%s->data.%s.%s);", ptr, ((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName(), self, variant.getName(), field.getName());
 				} else {
 					emitter().emit("%s->data.%s.%s = *(%s*) %s;", self, variant.getName(), field.getName(), code().type(field.getType()), ptr);
 					emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
@@ -402,7 +435,9 @@ public interface AlgebraicTypes {
 			variant.getFields().forEach(field -> {
 				if (field.getType() instanceof AlgebraicType) {
 					emitter().emit("%s += size_%s_t(%s->data.%s.%s);", size, ((AlgebraicType) field.getType()).getName(), self, variant.getName(), field.getName());
-				} else{
+				} else if (alias().isAlgebraicType(field.getType())) {
+					emitter().emit("%s += size_%s_t(%s->data.%s.%s);", size, ((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName(), self, variant.getName(), field.getName());
+				} else {
 					emitter().emit("%s += sizeof(%s);", size, code().type(field.getType()));
 				}
 			});
@@ -479,6 +514,8 @@ public interface AlgebraicTypes {
 
 	default String constructor(String constructor) {
 		return types()
+				.filter(AlgebraicType.class::isInstance)
+				.map(AlgebraicType.class::cast)
 				.filter(type -> {
 					if (type instanceof ProductType) {
 						return Objects.equals(type.getName(), constructor);
@@ -501,10 +538,11 @@ public interface AlgebraicTypes {
 		return String.format("free_%s_t", type.getName());
 	}
 
-	default Stream<AlgebraicType> types() {
+	default Stream<Type> types() {
 		return backend().task()
 				.getSourceUnits().stream()
 				.flatMap(unit -> unit.getTree().getTypeDecls().stream())
-				.map(decl -> (AlgebraicType) backend().types().declaredGlobalType(decl));
+				.filter(AlgebraicTypeDecl.class::isInstance)
+				.map(decl -> backend().types().declaredGlobalType(decl));
 	}
 }

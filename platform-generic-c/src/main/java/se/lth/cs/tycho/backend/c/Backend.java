@@ -105,6 +105,9 @@ public interface Backend {
 	@Binding(LAZY) default PatternMatching patternMatching() {
 		return MultiJ.from(PatternMatching.class).bind("backend").to(this).instance();
 	}
+	@Binding(LAZY) default Alias alias() {
+		return MultiJ.from(Alias.class).bind("backend").to(this).instance();
+	}
 
 	// Utils
 	@Binding(LAZY) default MemoryStack memoryStack() {

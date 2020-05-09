@@ -4,6 +4,7 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.Type;
 
@@ -33,6 +34,8 @@ public interface MemoryStack {
 		pointers().pop().forEach((ptr, type) -> {
 			if (type instanceof AlgebraicType) {
 				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), ptr);
+			} else if (backend().alias().isAlgebraicType(type)) {
+				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), ptr);
 			} else if (type instanceof ListType) {
 				ListType listType = (ListType) type;
 				emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());

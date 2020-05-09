@@ -8,12 +8,15 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.AliasTypeDecl;
 import se.lth.cs.tycho.ir.decl.FieldDecl;
 import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
+import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TypeDeclarationAnalysisPhase implements Phase {
@@ -80,6 +83,12 @@ public class TypeDeclarationAnalysisPhase implements Phase {
 							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Field " + name + " is already declared.", sourceUnit(fields.get(1)), fields.get(1)));
 						}
 					});
+		}
+
+		default void checkDeclaration(AliasTypeDecl decl) {
+			if (Objects.equals(decl.getName(), ((NominalTypeExpr) decl.getType()).getName())) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Type " + decl.getName() + " is already declared.", sourceUnit(decl), decl));
+			}
 		}
 
 		default SourceUnit sourceUnit(IRNode node) {

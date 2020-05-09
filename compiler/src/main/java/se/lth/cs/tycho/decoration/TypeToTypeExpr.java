@@ -11,6 +11,7 @@ import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.LambdaType;
@@ -98,5 +99,8 @@ public final class TypeToTypeExpr {
 			return new NominalTypeExpr(type.getName());
 		}
 
+		default NominalTypeExpr convert(AliasType type) {
+			return new NominalTypeExpr(type.getName());
+		}
 	}
 }

@@ -6,6 +6,7 @@ import org.multij.Module;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.Type;
@@ -57,6 +58,8 @@ public interface Global {
 		backend().algebraicTypes().forwardDeclareAlgebraicTypes();
 		emitter().emit("");
 		backend().lists().declareListTypes();
+		emitter().emit("");
+		backend().alias().declareAliasTypes();
 		emitter().emit("");
 		backend().algebraicTypes().declareAlgebraicTypes();
 		emitter().emit("");
@@ -114,6 +117,8 @@ public interface Global {
 			Type type = types().declaredType(decl);
 			if (type instanceof AlgebraicType) {
 				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
+			} else if (backend().alias().isAlgebraicType(type)) {
+				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(decl));
 			} else if (code().isAlgebraicTypeList(type)) {
 				emitter().emit("{");
 				emitter().increaseIndentation();

@@ -73,12 +73,16 @@ public interface Code {
 		emitter().emit("copy_%s(&(%s), %s);", backend().algebraicTypes().type(lvalueType), lvalue, rvalue);
 	}
 
+	default void copy(AliasType lvalueType, String lvalue, AliasType rvalueType, String rvalue) {
+		copy(lvalueType.getType(), lvalue, rvalueType.getType(), rvalue);
+	}
+
 	default boolean isAlgebraicTypeList(Type type) {
 		if (!(type instanceof ListType)) {
 			return false;
 		}
 		ListType listType = (ListType) type;
-		if (listType.getElementType() instanceof AlgebraicType) {
+		if (listType.getElementType() instanceof AlgebraicType || backend().alias().isAlgebraicType(listType.getElementType())) {
 			return true;
 		} else {
 			return isAlgebraicTypeList(listType.getElementType());
@@ -107,6 +111,10 @@ public interface Code {
 		return tmp;
 	}
 
+	default String compare(AliasType lvalueType, String lvalue, AliasType rvalueType, String rvalue) {
+		return compare(lvalueType.getType(), lvalue, rvalueType.getType(), rvalue);
+	}
+
 	default String declaration(Type type, String name) {
 		return type(type) + " " + name;
 	}
@@ -133,6 +141,10 @@ public interface Code {
 
 	default String declaration(AlgebraicType type, String name) {
 		return type(type) + " *" + name;
+	}
+
+	default String declaration(AliasType type, String name) {
+		return type(type) + (backend().alias().isAlgebraicType(type) ? " *" : " ") + name;
 	}
 
 	String type(Type type);
@@ -178,6 +190,10 @@ public interface Code {
 		return backend().algebraicTypes().type(type);
 	}
 
+	default String type(AliasType type) {
+		return type.getName();
+	}
+
 	String evaluate(Expression expr);
 
 	default String evaluate(ExprVariable variable) {
@@ -217,7 +233,7 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		Type type = types().type(input);
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
-		if (type instanceof AlgebraicType) {
+		if (type instanceof AlgebraicType || backend().alias().isAlgebraicType(type)) {
 			memoryStack().trackPointer(tmp, type);
 		}
 		if (input.hasRepeat()) {
@@ -381,13 +397,13 @@ public interface Code {
 		if (t.getSize().isPresent()) {
 			String name = variables().generateTemp();
 			Type elementType = t.getElementType();
-			if (elementType instanceof AlgebraicType) {
+			if (elementType instanceof AlgebraicType || backend().alias().isAlgebraicType(elementType)) {
 				memoryStack().trackPointer(name, t);
 			}
 			String decl = declaration(t, name);
 			String value = list.getElements().stream().sequential()
 					.map(element -> {
-						if (elementType instanceof AlgebraicType) {
+						if (elementType instanceof AlgebraicType || backend().alias().isAlgebraicType(elementType)) {
 							String tmp = variables().generateTemp();
 							emitter().emit("%s = %s;", declaration(elementType, tmp), backend().defaultValues().defaultValue(elementType));
 							copy(elementType, tmp, elementType , evaluate(element));
@@ -441,7 +457,7 @@ public interface Code {
 	default String evaluate(ExprIf expr) {
 		Type type = types().type(expr);
 		String temp = variables().generateTemp();
-		if (type instanceof AlgebraicType) {
+		if (type instanceof AlgebraicType || backend().alias().isAlgebraicType(type)) {
 			memoryStack().trackPointer(temp, type);
 		}
 		String decl = declaration(type, temp);
@@ -486,7 +502,7 @@ public interface Code {
 		Type type = types().type(apply);
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		if ((type instanceof AlgebraicType) || (isAlgebraicTypeList(type))) {
+		if ((type instanceof AlgebraicType) || (isAlgebraicTypeList(type)) || backend().alias().isAlgebraicType(type)) {
 			memoryStack().trackPointer(result, type);
 		}
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
@@ -555,7 +571,7 @@ public interface Code {
 		Type type = types().type(assertion.getType());
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		emitter().emit("%s = (%s)(%s);", decl, type(type) + (type instanceof AlgebraicType ? "*" : ""), evaluate(assertion.getExpression()));
+		emitter().emit("%s = (%s)(%s);", decl, type(type) + (type instanceof AlgebraicType || backend().alias().isAlgebraicType(type) ? "*" : ""), evaluate(assertion.getExpression()));
 		return result;
 	}
 
@@ -615,7 +631,7 @@ public interface Code {
 			Type t = types().declaredType(decl);
 			String declarationName = variables().declarationName(decl);
 			String d = declaration(t, declarationName);
-			if (t instanceof AlgebraicType) {
+			if (t instanceof AlgebraicType || backend().alias().isAlgebraicType(t)) {
 				memoryStack().trackPointer(declarationName, t);
 			}
 			emitter().emit("%s = %s;", d, backend().defaultValues().defaultValue(t));

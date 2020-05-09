@@ -2,6 +2,7 @@ package se.lth.cs.tycho.backend.c;
 
 import org.multij.Module;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.IntType;
@@ -43,5 +44,8 @@ public interface DefaultValues {
 	}
 	default String defaultValue(AlgebraicType t) {
 		return "NULL";
+	}
+	default String defaultValue(AliasType t) {
+		return defaultValue(t.getConcreteType());
 	}
 }

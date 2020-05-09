@@ -53,12 +53,12 @@ public class SumTypeDecl extends AlgebraicTypeDecl {
 
 	private ImmutableList<VariantDecl> variants;
 
-	public SumTypeDecl(String name, List<VariantDecl> variants) {
-		this(null, name, variants);
+	public SumTypeDecl(String name, Availability availability, List<VariantDecl> variants) {
+		this(null, name, availability, variants);
 	}
 
-	private SumTypeDecl(AbstractDecl original, String name, List<VariantDecl> variants) {
-		super(original, name);
+	public SumTypeDecl(TypeDecl original, String name, Availability availability, List<VariantDecl> variants) {
+		super(original, name, availability);
 		this.variants = ImmutableList.from(variants);
 	}
 
@@ -66,17 +66,22 @@ public class SumTypeDecl extends AlgebraicTypeDecl {
 		return variants;
 	}
 
-	public SumTypeDecl copy(String name, List<VariantDecl> types) {
-		if (Objects.equals(getName(), name) && Lists.sameElements(getVariants(), types)) {
+	public SumTypeDecl copy(String name, Availability availability, List<VariantDecl> types) {
+		if (Objects.equals(getName(), name) && Objects.equals(getAvailability(), availability) && Lists.sameElements(getVariants(), types)) {
 			return this;
 		} else {
-			return new SumTypeDecl(this, name, types);
+			return new SumTypeDecl(this, name, availability, types);
 		}
 	}
 
 	@Override
 	public Decl withName(String name) {
-		return copy(name, getVariants());
+		return copy(name, getAvailability(), getVariants());
+	}
+
+	@Override
+	public GlobalDecl withAvailability(Availability availability) {
+		return copy(getName(), availability, getVariants());
 	}
 
 	@Override
@@ -86,6 +91,6 @@ public class SumTypeDecl extends AlgebraicTypeDecl {
 
 	@Override
 	public Decl transformChildren(Transformation transformation) {
-		return copy(getName(), transformation.mapChecked(VariantDecl.class, variants));
+		return copy(getName(), getAvailability(), transformation.mapChecked(VariantDecl.class, variants));
 	}
 }
