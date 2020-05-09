@@ -611,6 +611,10 @@ public class CaseAnalysisPhase implements Phase {
 							}).collect(Collectors.toList())
 					);
 				}
+			} else if (a instanceof Space.Singleton && b instanceof Space.Singleton) {
+				return StructuralEquality.equals(((Space.Singleton) a).expression(), ((Space.Singleton) b).expression()) ? Space.EMPTY : a;
+			} else if (a instanceof Space.Singleton && b instanceof Space.Universe) {
+				return subtype().test(((Space.Singleton) a).type(), ((Space.Universe) b).type()) ? Space.EMPTY : a;
 			} else if (a instanceof Space.Singleton) {
 				return a;
 			} else if (b instanceof Space.Singleton) {
@@ -678,8 +682,6 @@ public class CaseAnalysisPhase implements Phase {
 				return ((Space.Union) _a).spaces().stream().allMatch(s -> isSubSpace(s, b));
 			} else if (_a instanceof Space.Universe && b instanceof Space.Universe) {
 				return subtype().test(((Space.Universe) _a).type(), ((Space.Universe) b).type());
-			} else if (_a instanceof Space.Universe && b instanceof Space.Union) {
-				return ((Space.Union) b).spaces().stream().anyMatch(s -> isSubSpace(a, s)) || isSubSpaceTryDecompose1(((Space.Universe) _a).type(), b);
 			} else if (b instanceof Space.Union) {
 				return simplify(minus(a, b), false) == Space.EMPTY;
 			} else if (_a instanceof Space.Product && b instanceof Space.Universe) {
@@ -695,10 +697,6 @@ public class CaseAnalysisPhase implements Phase {
 			} else {
 				return false;
 			}
-		}
-
-		default boolean isSubSpaceTryDecompose1(Type type, Space space) {
-			return decompose().test(type) && isSubSpace(Space.Union.of(decompose().apply(type)), space);
 		}
 	}
 
