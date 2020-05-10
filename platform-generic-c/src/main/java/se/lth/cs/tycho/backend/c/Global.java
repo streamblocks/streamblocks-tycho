@@ -34,7 +34,7 @@ public interface Global {
 		backend().main().emitDefaultHeaders();
 		emitter().emit("#include \"global.h\"");
 		emitter().emit("");
-		backend().algebraicTypes().defineAlgebraicTypes();
+		backend().algebraic().defineAlgebraic();
 		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
@@ -55,13 +55,13 @@ public interface Global {
 		emitter().emit("");
 		emitter().emit("void free_global_variables(void);");
 		emitter().emit("");
-		backend().algebraicTypes().forwardDeclareAlgebraicTypes();
+		backend().algebraic().forwardAlgebraic();
 		emitter().emit("");
 		backend().lists().declareListTypes();
 		emitter().emit("");
 		backend().alias().declareAliasTypes();
 		emitter().emit("");
-		backend().algebraicTypes().declareAlgebraicTypes();
+		backend().algebraic().declareAlgebraic();
 		emitter().emit("");
 		backend().callables().declareCallables();
 		emitter().emit("");
@@ -116,16 +116,16 @@ public interface Global {
 		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			if (type instanceof AlgebraicType) {
-				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
+				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
 			} else if (backend().alias().isAlgebraicType(type)) {
-				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(decl));
+				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(decl));
 			} else if (code().isAlgebraicTypeList(type)) {
 				emitter().emit("{");
 				emitter().increaseIndentation();
 				ListType listType = (ListType) type;
 				emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
 				emitter().increaseIndentation();
-				emitter().emit("%s(%s.data[i]);", backend().algebraicTypes().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(decl));
+				emitter().emit("%s(%s.data[i]);", backend().algebraic().utils().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(decl));
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 				emitter().decreaseIndentation();

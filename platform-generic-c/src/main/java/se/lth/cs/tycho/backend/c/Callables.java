@@ -193,7 +193,7 @@ public interface Callables {
 	}
 
 	default NameExpression mangle(AlgebraicType type) {
-		return name(backend().algebraicTypes().type(type));
+		return name(backend().algebraic().utils().name(type));
 	}
 
 	default NameExpression mangle(AliasType type) {

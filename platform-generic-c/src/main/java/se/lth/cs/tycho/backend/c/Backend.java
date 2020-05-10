@@ -99,8 +99,8 @@ public interface Backend {
 	@Binding(LAZY) default AlternativeChannels channels() {
 		return MultiJ.from(AlternativeChannels.class).bind("backend").to(this).instance();
 	}
-	@Binding(LAZY) default AlgebraicTypes algebraicTypes() {
-		return MultiJ.from(AlgebraicTypes.class).bind("backend").to(this).instance();
+	@Binding(LAZY) default Algebraic algebraic() {
+		return MultiJ.from(Algebraic.class).bind("backend").to(this).instance();
 	}
 	@Binding(LAZY) default PatternMatching patternMatching() {
 		return MultiJ.from(PatternMatching.class).bind("backend").to(this).instance();

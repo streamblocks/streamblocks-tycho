@@ -33,14 +33,14 @@ public interface MemoryStack {
 	default void exitScope() {
 		pointers().pop().forEach((ptr, type) -> {
 			if (type instanceof AlgebraicType) {
-				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), ptr);
+				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) type), ptr);
 			} else if (backend().alias().isAlgebraicType(type)) {
-				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), ptr);
+				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), ptr);
 			} else if (type instanceof ListType) {
 				ListType listType = (ListType) type;
 				emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
 				emitter().increaseIndentation();
-				emitter().emit("%s(%s.data[i]);", backend().algebraicTypes().destructor((AlgebraicType) listType.getElementType()), ptr);
+				emitter().emit("%s(%s.data[i]);", backend().algebraic().utils().destructor((AlgebraicType) listType.getElementType()), ptr);
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 			}

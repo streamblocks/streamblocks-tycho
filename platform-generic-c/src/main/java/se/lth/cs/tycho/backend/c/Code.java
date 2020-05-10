@@ -70,7 +70,7 @@ public interface Code {
 	}
 
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
-		emitter().emit("copy_%s(&(%s), %s);", backend().algebraicTypes().type(lvalueType), lvalue, rvalue);
+		emitter().emit("copy_%s(&(%s), %s);", backend().algebraic().utils().name(lvalueType), lvalue, rvalue);
 	}
 
 	default void copy(AliasType lvalueType, String lvalue, AliasType rvalueType, String rvalue) {
@@ -187,7 +187,7 @@ public interface Code {
 	default String type(RefType type) { return type(type.getType()) + "*"; }
 
 	default String type(AlgebraicType type) {
-		return backend().algebraicTypes().type(type);
+		return backend().algebraic().utils().name(type);
 	}
 
 	default String type(AliasType type) {
@@ -555,7 +555,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprTypeConstruction construction) {
-		String fn = backend().algebraicTypes().constructor(construction.getConstructor());
+		String fn = backend().algebraic().utils().constructor(construction.getConstructor());
 		List<String> parameters = new ArrayList<>();
 		for (Expression parameter : construction.getArgs()) {
 			parameters.add(evaluate(parameter));

@@ -268,13 +268,13 @@ public interface Structure {
 				if (type instanceof AlgebraicType) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(var));
+					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor((AlgebraicType) type), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				} else if (backend().alias().isAlgebraicType(type)) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s);", backend().algebraicTypes().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(var));
+					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				} else if (code().isAlgebraicTypeList(type)) {
@@ -283,7 +283,7 @@ public interface Structure {
 					ListType listType = (ListType) type;
 					emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
 					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s.data[i]);", backend().algebraicTypes().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(var));
+					emitter().emit("%s(self->%s.data[i]);", backend().algebraic().utils().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 					emitter().decreaseIndentation();
