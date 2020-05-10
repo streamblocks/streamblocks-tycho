@@ -225,7 +225,9 @@ TOKEN: {
 |	< COLON_EQ: ":=" >
 |	< SINGLE_ARROW_RIGHT: "->" >
 |	< VERTICAL_BAR: "|" >
+|	< LOWER_THAN: "<" >
 |	< GREATER_THAN: ">" >
+|	< SHARP: "#" >
 |	< STAR: "*" >
 |	< DOT_STAR: ".*" >
 |	< CINNAMON_BUN: "@" >
@@ -331,7 +333,8 @@ Annotation Annotation() :
 {
 	"@" id = <ID>
 	(
-		"("
+		LOOKAHEAD(3)
+    "("
 		(
 			AnnotationParameter()
 			("," AnnotationParameter())*
@@ -1697,6 +1700,8 @@ Expression PrimaryExpression() :
 	ImmutableList<Expression> args;
 	Expression index;
 	Field field;
+  Nth nth;
+  Token decimal;
 	Token lastToken;
     ImmutableList.Builder<TypeParameter> typeParameters;
     ImmutableList.Builder<ValueParameter> valueParameters;
@@ -1722,6 +1727,11 @@ Expression PrimaryExpression() :
 	|
 		"." field = Field()
 		{ expr = setPosition(new ExprField(expr, field), expr, field); }
+ 	|
+		<SHARP> nth = Nth()
+		{
+			expr = setPosition(new ExprNth(expr, nth), expr, nth);
+		}
 	)*
 	{
 		return expr;
@@ -1740,6 +1750,9 @@ Expression SingleExpression() :
 	|
 		LOOKAHEAD(TypeAssertionExpression())
 		expr = TypeAssertionExpression()
+  |
+    LOOKAHEAD(TupleExpression())
+		expr = TupleExpression()
 	|
 		"(" expr = Expression() ")"
 	|
@@ -2305,6 +2318,19 @@ Expression ListExpression() :
 	}
 }
 
+Expression TupleExpression() :
+{
+  Token first;
+  Token last;
+  ImmutableList<Expression> exprs;
+}
+{
+  first = "("
+  exprs = ExpressionList()
+  last = ")"
+  { return setPosition(new ExprTuple(exprs), first, last); }
+}
+
 Expression ComprehensionFor(Expression contents) :
 {
 	TypeExpr type = null;
@@ -2352,24 +2378,73 @@ Expression ComprehensionFor(Expression contents) :
 /* Type expressions */
 TypeExpr Type() :
 {
-	Token name;
-	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
-	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
-	Token last;
+  TypeExpr type;
+  ImmutableList.Builder<TypeExpr> builder = ImmutableList.builder();
 }
 {
-	name = <ID>
-	{ last = name; }
-	(
-		"("
-		ParameterAssignments(types, vals)
-		last = ")"
-	)?
-	{
-		return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
-	}
+  type = SimpleType() { builder.add(type); }
+  (
+    "|" type = SimpleType() { builder.add(type); }
+  )*
+  {
+    ImmutableList<TypeExpr> types = builder.build();
+    if (types.size() == 1) {
+      return types.get(0);
+    } else {
+      return setPosition(new UnionTypeExpr(types), types.get(0), types.get(types.size() - 1));
+    }
+  }
 }
 
+TypeExpr SimpleType() :
+{
+  TypeExpr type;
+}
+{
+  (
+    type = NominalType()
+  |
+    type = TupleType()
+  )
+  { return type; }
+}
+
+TupleTypeExpr TupleType() :
+{
+  Token first;
+  Token last;
+  TypeExpr type;
+  ImmutableList.Builder<TypeExpr> types = ImmutableList.builder();
+}
+{
+  first = "("
+  type = Type() { types.add(type); }
+  (
+    "," type = Type() { types.add(type); }
+  )+
+  last = ")"
+  { return setPosition(new TupleTypeExpr(types.build()), first, last); }
+}
+
+NominalTypeExpr NominalType() :
+{
+  Token name;
+  ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
+  ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
+  Token last;
+}
+{
+  name = <ID>
+  { last = name; }
+  (
+    "("
+    ParameterAssignments(types, vals)
+    last = ")"
+  )?
+  {
+    return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
+  }
+}
 
 /* Type definitions */
 GlobalTypeDecl GlobalTypeDecl() :
@@ -2628,6 +2703,7 @@ LValue LValue() :
 	Variable var;
 	Field field;
 	Expression index;
+  Nth nth;
 	LValue lvalue;
 	Token end;
 }
@@ -2652,7 +2728,12 @@ LValue LValue() :
 				lvalue = new LValueIndexer(lvalue, index);
 				lvalue.setPosition(var.getFromLineNumber(), var.getFromColumnNumber(), end.endLine, end.endColumn);
 			}
-
+    |
+			<SHARP> nth = Nth()
+			{
+				lvalue = new LValueNth(lvalue, nth);
+				lvalue.setPosition(var, nth);
+			}
 		)
 	)*
 	{
@@ -2667,6 +2748,15 @@ Field Field() :
 {
 	id = <ID>
 	{ return setPosition(new Field(id.image), id, id); }
+}
+
+Nth Nth() :
+{
+  Token decimal;
+}
+{
+  decimal = <INTEGER>
+  { return setPosition(new Nth(Integer.valueOf(decimal.image)), decimal, decimal); }
 }
 
 StmtCall CallStmt() :

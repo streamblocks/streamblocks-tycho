@@ -462,6 +462,15 @@ public interface Types {
 			}
 		}
 
+		default Type computeLValueType(LValueNth nthLValue) {
+			Type structureType = computeLValueType(nthLValue.getStructure());
+			if (structureType instanceof TupleType && nthLValue.getNth().getNumber() > 0 && nthLValue.getNth().getNumber() <= ((TupleType) structureType).getTypes().size()) {
+				return ((TupleType) structureType).getTypes().get(nthLValue.getNth().getNumber() - 1);
+			} else {
+				return BottomType.INSTANCE;
+			}
+		}
+
 
 		Type convert(TypeExpr t);
 
@@ -818,6 +827,19 @@ public interface Types {
 					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 		}
 
+		default Type computeType(ExprTuple tupleExpr) {
+			return new TupleType(tupleExpr.getElements().map(this::computeType));
+		}
+
+		default Type computeType(ExprNth nthExpr) {
+			Type structureType = type(nthExpr.getStructure());
+			if (structureType instanceof TupleType && nthExpr.getNth().getNumber() > 0 && nthExpr.getNth().getNumber() <= ((TupleType) structureType).getTypes().size()) {
+				return ((TupleType) structureType).getTypes().get(nthExpr.getNth().getNumber() - 1);
+			} else {
+				return BottomType.INSTANCE;
+			}
+		}
+
 
 		default Type leastUpperBound(Type a, Type b) {
 			return TopType.INSTANCE;
@@ -894,6 +916,14 @@ public interface Types {
 
 		default Type leastUpperBound(Type a, AliasType b) {
 			return leastUpperBound(a, b.getType());
+		}
+
+		default Type leastUpperBound(TupleType a, TupleType b) {
+			if (Objects.equals(a, b)) {
+				return a;
+			} else {
+				return TopType.INSTANCE;
+			}
 		}
 
 		default int positiveBits(IntType t) {

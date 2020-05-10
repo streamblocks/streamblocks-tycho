@@ -13,6 +13,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueNth;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.attribute.Types;
@@ -77,6 +78,10 @@ public interface Code {
 		copy(lvalueType.getType(), lvalue, rvalueType.getType(), rvalue);
 	}
 
+	default void copy(TupleType lvalueType, String lvalue, TupleType rvalueType, String rvalue) {
+		copy(backend().tuples().convert().apply(lvalueType), lvalue, backend().tuples().convert().apply(rvalueType), rvalue);
+	}
+
 	default boolean isAlgebraicTypeList(Type type) {
 		if (!(type instanceof ListType)) {
 			return false;
@@ -115,6 +120,10 @@ public interface Code {
 		return compare(lvalueType.getType(), lvalue, rvalueType.getType(), rvalue);
 	}
 
+	default String compare(TupleType lvalueType, String lvalue, TupleType rvalueType, String rvalue) {
+		return compare(backend().tuples().convert().apply(lvalueType), lvalue, backend().tuples().convert().apply(rvalueType), rvalue);
+	}
+
 	default String declaration(Type type, String name) {
 		return type(type) + " " + name;
 	}
@@ -145,6 +154,10 @@ public interface Code {
 
 	default String declaration(AliasType type, String name) {
 		return type(type) + (backend().alias().isAlgebraicType(type) ? " *" : " ") + name;
+	}
+
+	default String declaration(TupleType type, String name) {
+		return declaration(backend().tuples().convert().apply(type), name);
 	}
 
 	String type(Type type);
@@ -192,6 +205,10 @@ public interface Code {
 
 	default String type(AliasType type) {
 		return type.getName();
+	}
+
+	default String type(TupleType type) {
+		return type(backend().tuples().convert().apply(type));
 	}
 
 	String evaluate(Expression expr);
@@ -454,6 +471,22 @@ public interface Code {
 		return String.format("%s.data[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
 	}
 
+	default String evaluate(ExprTuple tuple) {
+		String fn = backend().tuples().utils().constructor((TupleType) types().type(tuple));
+		List<String> parameters = new ArrayList<>();
+		for (Expression parameter : tuple.getElements()) {
+			parameters.add(evaluate(parameter));
+		}
+		String result = variables().generateTemp();
+		String decl = declaration(types().type(tuple), result);
+		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
+		return result;
+	}
+
+	default String evaluate(ExprNth nth) {
+		return String.format("%s->%s", evaluate(nth.getStructure()), "_" + nth.getNth().getNumber());
+	}
+
 	default String evaluate(ExprIf expr) {
 		Type type = types().type(expr);
 		String temp = variables().generateTemp();
@@ -580,7 +613,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprCase caseExpr) {
-		return backend().patternMatching().evaluate(caseExpr);
+		return backend().patmat().evaluate(caseExpr);
 	}
 
 	void execute(Statement stmt);
@@ -715,7 +748,7 @@ public interface Code {
 	}
 
 	default void execute(StmtCase caseStmt) {
-		backend().patternMatching().execute(caseStmt);
+		backend().patmat().execute(caseStmt);
 	}
 
 	String lvalue(LValue lvalue);
@@ -734,6 +767,10 @@ public interface Code {
 
 	default String lvalue(LValueField field) {
 		return String.format("%s->%s", lvalue(field.getStructure()), field.getField().getName());
+	}
+
+	default String lvalue(LValueNth nth) {
+		return String.format("%s->%s", lvalue(nth.getStructure()), "_" + nth.getNth().getNumber());
 	}
 
 	default String passByValue(String param, Type type) {

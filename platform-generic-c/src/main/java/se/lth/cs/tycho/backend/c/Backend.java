@@ -9,6 +9,7 @@ import se.lth.cs.tycho.attribute.ConstantEvaluator;
 import se.lth.cs.tycho.attribute.FreeVariables;
 import se.lth.cs.tycho.attribute.GlobalNames;
 import se.lth.cs.tycho.attribute.ScopeDependencies;
+import se.lth.cs.tycho.attribute.TupleAnnotations;
 import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
@@ -61,6 +62,9 @@ public interface Backend {
 	@Binding(LAZY) default TypeScopes typeScopes() {
 		return task().getModule(TypeScopes.key);
 	}
+	@Binding(LAZY) default TupleAnnotations tupleAnnotations() {
+		return task().getModule(TupleAnnotations.key);
+	}
 	// @Binding(LAZY) default ModuleMembers moduleMembers() {
 		// return task().getModule(ModuleMembers.key);
 	// }
@@ -102,11 +106,14 @@ public interface Backend {
 	@Binding(LAZY) default Algebraic algebraic() {
 		return MultiJ.from(Algebraic.class).bind("backend").to(this).instance();
 	}
-	@Binding(LAZY) default PatternMatching patternMatching() {
+	@Binding(LAZY) default PatternMatching patmat() {
 		return MultiJ.from(PatternMatching.class).bind("backend").to(this).instance();
 	}
 	@Binding(LAZY) default Alias alias() {
 		return MultiJ.from(Alias.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default Tuples tuples() {
+		return MultiJ.from(Tuples.class).bind("backend").to(this).instance();
 	}
 
 	// Utils

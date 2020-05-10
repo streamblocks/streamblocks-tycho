@@ -106,6 +106,7 @@ public class Compiler {
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),
                 new MemberAnalysisPhase(),
+                new NthAnalysisPhase(),
                 new CaseAnalysisPhase(),
 
                 // Orcc list parameters

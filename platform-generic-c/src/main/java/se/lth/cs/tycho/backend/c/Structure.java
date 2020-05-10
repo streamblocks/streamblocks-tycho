@@ -15,6 +15,7 @@ import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.ArrayList;
@@ -275,6 +276,12 @@ public interface Structure {
 					emitter().emit("{");
 					emitter().increaseIndentation();
 					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(var));
+					emitter().decreaseIndentation();
+					emitter().emit("}");
+				} else if (type instanceof TupleType) {
+					emitter().emit("{");
+					emitter().increaseIndentation();
+					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor(backend().tuples().utils().convert().apply((TupleType) type)), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				} else if (code().isAlgebraicTypeList(type)) {

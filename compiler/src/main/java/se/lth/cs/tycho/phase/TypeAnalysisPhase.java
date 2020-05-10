@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TypeAnalysisPhase implements Phase {
 	@Override
@@ -156,6 +157,9 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isComparable(Type a, AliasType b, String operand) {
 			return isComparable(a, b.getType(), operand);
 		}
+		default boolean isComparable(TupleType a, TupleType b, String operand) {
+			return Arrays.asList("=", "==", "!=").contains(operand) && a.equals(b);
+		}
 
 		default boolean isAssignable(Type to, Type from) {
 			return false;
@@ -270,6 +274,10 @@ public class TypeAnalysisPhase implements Phase {
 
 		default boolean isAssignable(Type to, AliasType from) {
 			return isAssignable(to, from.getType());
+		}
+
+		default boolean isAssignable(TupleType to, TupleType from) {
+			return to.equals(from);
 		}
 	}
 

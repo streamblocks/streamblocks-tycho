@@ -4,6 +4,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class TupleType implements Type {
 	private final ImmutableList<Type> types;
@@ -27,5 +28,10 @@ public final class TupleType implements Type {
 	@Override
 	public int hashCode() {
 		return Objects.hash(types);
+	}
+
+	@Override
+	public String toString() {
+		return types.stream().map(Type::toString).collect(Collectors.joining(", ", "(", ")"));
 	}
 }

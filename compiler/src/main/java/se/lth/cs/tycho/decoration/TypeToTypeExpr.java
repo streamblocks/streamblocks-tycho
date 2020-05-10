@@ -8,6 +8,7 @@ import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
+import se.lth.cs.tycho.ir.type.TupleTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.type.AlgebraicType;
@@ -18,6 +19,7 @@ import se.lth.cs.tycho.type.LambdaType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.ProcType;
 import se.lth.cs.tycho.type.RealType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.List;
@@ -101,6 +103,10 @@ public final class TypeToTypeExpr {
 
 		default NominalTypeExpr convert(AliasType type) {
 			return new NominalTypeExpr(type.getName());
+		}
+
+		default TupleTypeExpr convert(TupleType type) {
+			return new TupleTypeExpr(type.getTypes().map(this::convert));
 		}
 	}
 }

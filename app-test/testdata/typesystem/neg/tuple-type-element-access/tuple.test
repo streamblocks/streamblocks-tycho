@@ -1,0 +1,6 @@
+{
+    "description": "Test element access on tuple type",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "tuple.ElementAccess"
+}

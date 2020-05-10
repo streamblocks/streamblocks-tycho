@@ -9,6 +9,7 @@ import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.stream.Stream;
@@ -36,6 +37,8 @@ public interface Global {
 		emitter().emit("");
 		backend().algebraic().defineAlgebraic();
 		emitter().emit("");
+		backend().tuples().defineTuple();
+		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
 		globalVariableInitializer(getGlobalVarDecls());
@@ -57,11 +60,15 @@ public interface Global {
 		emitter().emit("");
 		backend().algebraic().forwardAlgebraic();
 		emitter().emit("");
+		backend().tuples().forwardTuple();
+		emitter().emit("");
 		backend().lists().declareListTypes();
 		emitter().emit("");
 		backend().alias().declareAliasTypes();
 		emitter().emit("");
 		backend().algebraic().declareAlgebraic();
+		emitter().emit("");
+		backend().tuples().declareTuple();
 		emitter().emit("");
 		backend().callables().declareCallables();
 		emitter().emit("");
@@ -119,6 +126,8 @@ public interface Global {
 				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
 			} else if (backend().alias().isAlgebraicType(type)) {
 				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(decl));
+			} else if (type instanceof TupleType) {
+				emitter().emit("%s(%s);", backend().algebraic().utils().destructor(backend().tuples().convert().apply((TupleType) type)), backend().variables().declarationName(decl));
 			} else if (code().isAlgebraicTypeList(type)) {
 				emitter().emit("{");
 				emitter().increaseIndentation();

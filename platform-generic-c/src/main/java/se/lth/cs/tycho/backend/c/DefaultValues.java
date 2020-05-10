@@ -8,6 +8,7 @@ import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.RealType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 @Module
@@ -47,5 +48,8 @@ public interface DefaultValues {
 	}
 	default String defaultValue(AliasType t) {
 		return defaultValue(t.getConcreteType());
+	}
+	default String defaultValue(TupleType t) {
+		return "NULL";
 	}
 }
