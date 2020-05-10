@@ -1,0 +1,12 @@
+namespace patmat:
+    actor UnreachabilityTuple() ==> int OUT:
+        (int, bool) t;
+        do
+            OUT <--
+            case t of
+                _ : 0 end
+                (_, false) : 1 end
+            end;
+        end
+    end
+end

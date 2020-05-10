@@ -22,6 +22,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
+import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -35,6 +36,7 @@ import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.ProductType;
 import se.lth.cs.tycho.type.RealType;
 import se.lth.cs.tycho.type.SumType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.ArrayList;
@@ -449,6 +451,11 @@ public class CaseAnalysisPhase implements Phase {
 			return Space.Product.of(types().type(pattern), types().type(pattern), Stream.concat(pattern.getPatterns().stream().map(this::apply), remaining).collect(Collectors.toList()));
 		}
 
+		default Space apply(PatternTuple pattern) {
+			Type type = types().type(pattern);
+			return Space.Product.of(type, type, pattern.getPatterns().map(this::apply));
+		}
+
 		default Space apply(PatternDeconstruction pattern) {
 			Type type = types().type(pattern);
 			Type apply;
@@ -770,6 +777,10 @@ public class CaseAnalysisPhase implements Phase {
 		default boolean test(Type a, AliasType b) {
 			return test(a, b.getType());
 		}
+
+		default boolean test(TupleType a, TupleType b) {
+			return a.equals(b);
+		}
 	}
 
 	@Module
@@ -791,6 +802,10 @@ public class CaseAnalysisPhase implements Phase {
 			return true;
 		}
 
+		default boolean test(TupleType type) {
+			return true;
+		}
+
 		default boolean test(AliasType type) {
 			return test(type.getType());
 		}
@@ -806,6 +821,10 @@ public class CaseAnalysisPhase implements Phase {
 		}
 
 		default List<Space> apply(ProductType type) {
+			return Collections.singletonList(Space.Universe.of(type));
+		}
+
+		default List<Space> apply(TupleType type) {
 			return Collections.singletonList(Space.Universe.of(type));
 		}
 
@@ -834,6 +853,10 @@ public class CaseAnalysisPhase implements Phase {
 		default List<Type> apply(AliasType type) {
 			return apply(type.getType());
 		}
+
+		default List<Type> apply(TupleType type) {
+			return type.getTypes();
+		}
 	}
 
 	@Module
@@ -853,6 +876,10 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean test(AliasType type) {
 			return test(type.getType());
+		}
+
+		default boolean test(TupleType type) {
+			return type.getTypes().stream().allMatch(tpe -> test(tpe));
 		}
 	}
 
@@ -877,6 +904,10 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean visit(AliasType type, Set<Type> visited) {
 			return visit(type.getType(), visited);
+		}
+
+		default boolean visit(TupleType type, Set<Type> visited) {
+			return visited.add(type) || type.getTypes().stream().anyMatch(tpe -> visit(tpe, visited));
 		}
 	}
 
@@ -965,6 +996,8 @@ public class CaseAnalysisPhase implements Phase {
 				} else {
 					return variant.getName() + variant.getFields().stream().map(f -> "_").collect(Collectors.joining(", ", "(", ")"));
 				}
+			} else if (type instanceof TupleType) {
+				return ((TupleType) type).getTypes().stream().map(t -> "_").collect(Collectors.joining(", ", "(", ")"));
 			} else {
 				return "_";
 			}
@@ -979,10 +1012,12 @@ public class CaseAnalysisPhase implements Phase {
 			if (type instanceof ListType) {
 				if (flattenList) return space.spaces().stream().map(s -> doApply(s, flattenList)).collect(Collectors.joining(", "));
 				else return space.spaces().stream().map(s -> doApply(s, true)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "[", "]"));
-			} else {
+			} else if (type instanceof AlgebraicType) {
 				String constructorStr = space.apply() instanceof SumType.VariantType ? ((SumType.VariantType) space.apply()).getName() : ((ProductType) space.apply()).getName();
 				String parametersStr = space.spaces().stream().map(s -> doApply(s, true)).collect(Collectors.joining(", ", "(", ")"));
 				return constructorStr + parametersStr;
+			} else {
+				return space.spaces().stream().map(s -> doApply(s, true)).collect(Collectors.joining(", ", "(", ")"));
 			}
 		}
 
