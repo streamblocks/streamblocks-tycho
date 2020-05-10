@@ -14,6 +14,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
+import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
@@ -21,6 +22,7 @@ import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.ProductType;
 import se.lth.cs.tycho.type.SumType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.Objects;
@@ -206,6 +208,13 @@ public interface PatternMatching {
 		}
 	}
 
+	default void openPattern(PatternTuple pattern, String target, String deref, String member) {
+		ProductType product = backend().tuples().convert().apply((TupleType) backend().types().type(pattern));
+		for (int i = 0; i < product.getFields().size(); ++i) {
+			openPattern(pattern.getPatterns().get(i), member == "" ? target : target + deref + member, "->", product.getFields().get(i).getName());
+		}
+	}
+
 	void closePattern(Pattern pattern);
 
 	default void closePattern(PatternDeconstruction pattern) {
@@ -248,6 +257,10 @@ public interface PatternMatching {
 		backend().memoryStack().exitScope();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
+	}
+
+	default void closePattern(PatternTuple pattern) {
+		pattern.getPatterns().forEach(this::closePattern);
 	}
 
 	default void closePattern(PatternList pattern) {

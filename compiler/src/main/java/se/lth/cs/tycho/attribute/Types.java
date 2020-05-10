@@ -22,6 +22,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
+import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.network.Connection;
@@ -195,6 +196,64 @@ public interface Types {
 			return new ListType(type, OptionalInt.of(size));
 		}
 
+		default Type type(PatternTuple pattern) {
+			if (deducible(pattern)) {
+				return deduce(pattern);
+			}
+			return infer(pattern);
+		}
+
+		default Type deduce(PatternTuple pattern) {
+			return new TupleType(pattern.getPatterns().map(this::type));
+		}
+
+		default boolean deducible(PatternTuple pattern) {
+			return pattern.getPatterns().stream().allMatch(this::typable);
+		}
+
+		default Type infer(PatternTuple pattern) {
+			List<Type> types = new ArrayList<>();
+			for (int i = 0; i < pattern.getPatterns().size(); ++i) {
+				Pattern p = pattern.getPatterns().get(i);
+				if (typable(p)) {
+					types.add(type(p));
+				} else {
+					IRNode parent = tree().parent(pattern);
+					if (parent instanceof Pattern) {
+						if (parent instanceof PatternDeconstruction) {
+							final PatternDeconstruction deconstruction = (PatternDeconstruction) parent;
+							AlgebraicType algebraicType = (AlgebraicType) type((Pattern) parent);
+							if (algebraicType instanceof ProductType) {
+								ProductType productType = (ProductType) algebraicType;
+								types.add(productType.getFields().get(pattern.getPatterns().indexOf(p)).getType());
+							} else {
+								SumType sumType = (SumType) algebraicType;
+								types.add(sumType.getVariants().stream()
+										.filter(variant -> Objects.equals(variant.getName(), deconstruction.getName()))
+										.map(variant -> variant.getFields().get(pattern.getPatterns().indexOf(p)).getType())
+										.findAny()
+										.get());
+							}
+						} else if (parent instanceof PatternList) {
+							ListType listType = (ListType) type((Pattern) parent);
+							types.add(listType.getElementType());
+						} else {
+							TupleType tupleType = (TupleType) type((Pattern) parent);
+							types.add(tupleType.getTypes().get(pattern.getPatterns().indexOf(p)));
+						}
+					} else {
+						parent = tree().parent(parent);
+						if (parent instanceof ExprCase) {
+							return type(((ExprCase) parent).getExpression());
+						} else {
+							return type(((StmtCase) parent).getExpression());
+						}
+					}
+				}
+			}
+			return new TupleType(types);
+		}
+
 		@Binding(BindingKind.LAZY)
 		default ThreadLocal<Set<VarDecl>> currentlyComputing() {
 			return ThreadLocal.withInitial(HashSet::new);
@@ -349,6 +408,9 @@ public interface Types {
 					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getName() + "."));
 				} else if (node instanceof PatternList) {
 					return ((ListType) type((PatternList) node)).getElementType();
+				} else if (node instanceof PatternTuple) {
+					PatternTuple tuple = (PatternTuple) node;
+					return ((TupleType) type(tuple)).getTypes().get(tuple.getPatterns().indexOf(p));
 				} else if (node instanceof ExprCase) {
 					return type(((ExprCase) node).getExpression());
 				} else if (node instanceof StmtCase) {

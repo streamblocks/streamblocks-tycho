@@ -1944,6 +1944,8 @@ Pattern Pattern() :
 		LOOKAHEAD(<ID> "(")
 		pattern = PatternDeconstruction()
 	|
+		pattern = PatternTuple()
+	|
 		pattern = PatternList()
 	|
 		pattern = PatternLiteral()
@@ -2071,6 +2073,25 @@ PatternDeconstruction PatternDeconstruction() :
 	)?
 	last = ")"
 	{ return setPosition(new PatternDeconstruction(id.image, patterns.build()), id, last); }
+}
+
+PatternTuple PatternTuple() :
+{
+	Token first;
+	Token last;
+	Pattern pattern;
+	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+	first = "("
+	(
+		pattern = Pattern() { patterns.add(pattern); }
+		(
+			"," pattern = Pattern() { patterns.add(pattern); }
+		)*
+	)?
+	last = ")"
+	{ return setPosition(new PatternTuple(patterns.build()), first, last); }
 }
 
 ExprIf IfExpression() :

@@ -18,6 +18,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
+import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
@@ -117,6 +118,10 @@ public class AddPrioritiesPhase implements Phase {
 		}
 
 		default long priority(PatternList pattern) {
+			return pattern.getPatterns().stream().map(this::priority).reduce(Priority.HIGH.value, (acc, p) -> acc + p);
+		}
+
+		default long priority(PatternTuple pattern) {
 			return pattern.getPatterns().stream().map(this::priority).reduce(Priority.HIGH.value, (acc, p) -> acc + p);
 		}
 

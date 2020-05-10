@@ -18,6 +18,7 @@ import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternList;
+import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.attribute.ConstantEvaluator;
@@ -106,6 +107,8 @@ public class Scopes {
 			return ((PatternDeconstruction) pattern).getPatterns().stream().flatMap(this::variables);
 		} else if (pattern instanceof PatternList) {
 			return ((PatternList) pattern).getPatterns().stream().flatMap(this::variables);
+		} else if (pattern instanceof PatternTuple) {
+			return ((PatternTuple) pattern).getPatterns().stream().flatMap(this::variables);
 		} else if (pattern instanceof PatternAlias) {
 			return variables(((PatternAlias) pattern).getAlias());
 		} else {
