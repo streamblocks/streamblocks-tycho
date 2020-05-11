@@ -148,6 +148,7 @@ TOKEN :
 |	< ENDFUNCTION: "endfunction" >
 |	< ENDIF: "endif" >
 |	< ENDINITIALIZE: "endinitialize" >
+|	< ENDINVARIANT: "endinvariant" >
 |	< ENDLAMBDA: "endlambda" >
 |	< ENDLET: "endlet" >
 |	< ENDPRIORITY: "endpriority" >
@@ -166,6 +167,7 @@ TOKEN :
 |	< IMPORT: "import" >
 |	< IN: "in" >
 |	< INITIALIZE: "initialize" >
+|   < INVARIANT: "invariant" >
 |	< LAMBDA: "lambda" >
 |	< LET: "let" >
 |	< MAP: "map" >
@@ -1180,7 +1182,7 @@ GlobalEntityDecl ActorDecl() :
 	ScheduleFSM scheduleFSM = null;
 	ProcessDescription process = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
-	ImmutableList.Builder<Expression> invariants = ImmutableList.builder();
+	ImmutableList<Expression> invariants = ImmutableList.empty();
 	int beginLine;
     int beginColumn;
 }
@@ -1220,6 +1222,9 @@ GlobalEntityDecl ActorDecl() :
 			|
 				varDecl = LocalVarDecl()
 				{ varDecls.add(varDecl); }
+
+            |
+                invariants = Invariants()
 			|
 				PriorityOrder(priorities)
 			|
@@ -1243,7 +1248,7 @@ GlobalEntityDecl ActorDecl() :
 		";"
 	)
 	{
-		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants.build());
+		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants);
 		a.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
@@ -1556,6 +1561,18 @@ OutputExpression OutputExpression() :
 	}
 }
 
+ImmutableList<Expression> Invariants() :
+{
+    ImmutableList<Expression> exprs = ImmutableList.empty();
+}
+{
+    "invariant"
+    exprs = ExpressionList()
+    ("end" | "endinvariant")
+    {
+            return exprs;
+    }
+}
 /* Action control */
 ScheduleFSM ActionSchedule() :
 {
