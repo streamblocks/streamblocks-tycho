@@ -9,4 +9,5 @@ import se.lth.cs.tycho.ir.IRNode;
  */
 
 public interface EntityExpr extends IRNode {
+    <R, P> R accept(EntityExprVisitor<R, P> v, P p);
 }

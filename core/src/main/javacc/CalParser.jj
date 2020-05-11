@@ -949,7 +949,7 @@ EntityExpr ListExprEntity() :
 	{ result = new EntityListExpr(exprs); }
 	(
 		":"
-		result = EntityComprehensionFor(result)
+		result = EntityComprehensionFor(exprs.size() == 1 ? exprs.get(0) : new EntityListExpr(exprs))
 	)?
 	"]"
 	{

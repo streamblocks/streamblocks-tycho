@@ -222,6 +222,7 @@ public class Compiler {
         }
     };
 
+
     public Compiler(Platform platform, Configuration configuration) {
         Reporter reporter = Reporter.instance(configuration);
         Loader loader = Loader.instance(configuration, reporter);

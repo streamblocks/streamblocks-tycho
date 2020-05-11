@@ -41,6 +41,7 @@ package se.lth.cs.tycho.ir.expr;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
 
@@ -167,13 +168,21 @@ public class ExprLiteral extends Expression {
         }
     }
 
-    /**
-     * Literal text (includes delimiters).
-     * <p>
-     * This will be non-null only for litChar, litInteger, litFloat, and
-     * litString literals.
-     */
-    private String text;
+	public OptionalDouble asDouble() {
+		if (kind != Kind.Real) {
+			return OptionalDouble.empty();
+		} else {
+			return OptionalDouble.of(Double.parseDouble(text));
+		}
+	}
+
+	/**
+	 * Literal text (includes delimiters).
+	 * 
+	 * This will be non-null only for litChar, litInteger, litFloat, and
+	 * litString literals.
+	 */
+	private String text;
 
     public String toString() {
         return "Literal: " + text;

@@ -78,7 +78,7 @@ public class NetworkParameterAnalysisPhase implements Phase {
 
         default void checkParameters(NlNetwork nlNetwork) {
             if (nlNetwork == parent()) {
-                // -- Check top network Parameters if they have default values
+                // -- Check top network Parameters if they have default se.lth.cs.tycho.interp.values
                 for (ParameterVarDecl decl : nlNetwork.getValueParameters()) {
                     if (decl.getDefaultValue() == null) {
                         reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Parameter declaration : " + decl.getName() + ", does not have a default value.", sourceUnit(decl), decl));

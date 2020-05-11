@@ -125,6 +125,27 @@ public final class ImmutableList<E> extends AbstractList<E> {
 		return new Builder<E>().addAll(values).build();
 	}
 
+
+	/**
+	 * Returns a list containing the elements of elements, and an empty list
+	 * list if elements is null. If elements is an ImmutableList, this method
+	 * will return elements.
+	 *
+	 * @param elements
+	 *            the content of the list
+	 * @return a list containing the elements of the argument
+	 */
+	public static <E> ImmutableList<E> copyOf(Iterable<E> elements) {
+		if (elements == null) {
+			return empty();
+		} else if (elements instanceof ImmutableList) {
+			return (ImmutableList<E>) elements;
+		} else {
+			return new Builder<E>().addAll(elements).build();
+		}
+	}
+
+
 	/**
 	 * Returns a list containing the elements of elements, and an empty list
 	 * list if elements is null. If elements is an ImmutableList, this method

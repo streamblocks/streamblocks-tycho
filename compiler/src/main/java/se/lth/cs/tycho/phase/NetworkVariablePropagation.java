@@ -9,17 +9,14 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
