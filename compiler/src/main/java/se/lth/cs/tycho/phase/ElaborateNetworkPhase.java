@@ -9,19 +9,11 @@ import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
-import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
-import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
-import se.lth.cs.tycho.ir.entity.nl.PortReference;
-import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
-import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.settings.Configuration;
@@ -30,14 +22,6 @@ import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.transformation.nl2network.NlToNetwork;
 
 import java.util.*;
-import javax.swing.text.html.Option;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,7 +36,29 @@ public class ElaborateNetworkPhase implements Phase {
         return task.withNetwork(fullyElaborate(task, context, task.getNetwork(), new HashSet<>(), Optional.empty()));
     }
 
-    public Network fullyElaborate(CompilationTask task,  Context context, Network network, Set<String> names, Optional<ToolAttribute> partition) {
+    public static final Setting<Boolean> experimentalNetworkElaboration = new OnOffSetting() {
+        @Override
+        public String getKey() {
+            return "experimental-network-elaboration";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Experimental network elaboration supporting advanced CAL network languages features.";
+        }
+
+        @Override
+        public Boolean defaultValue(Configuration configuration) {
+            return false;
+        }
+    };
+
+    @Override
+    public List<Setting<?>> getPhaseSettings() {
+        return Arrays.asList(experimentalNetworkElaboration);
+    }
+
+    public Network fullyElaborate(CompilationTask task, Context context, Network network, Set<String> names, Optional<ToolAttribute> partition) {
         Network result = uniqueNames(network, names);
         for (Instance instance : result.getInstances()) {
             GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
@@ -62,12 +68,12 @@ public class ElaborateNetworkPhase implements Phase {
                 if (context.getConfiguration().get(experimentalNetworkElaboration)) {
                     BasicInterpreter interpreter = new BasicInterpreter(task, 100);
                     NlToNetwork nlToNetwork = new NlToNetwork(task, (NlNetwork) entity.getEntity(), interpreter);
-                    nlToNetwork.evaluate(ImmutableList.<Map.Entry<String, Expression>>empty());
+                    nlToNetwork.evaluate(instance.getValueParameters());
                     elaborated = nlToNetwork.getNetwork();
                 } else {
-                    elaborated = elaborate(context, (NlNetwork) entity.getEntity(),partition);
+                    elaborated = elaborate(context, (NlNetwork) entity.getEntity(), instPartition);
                 }
-                elaborated = fullyElaborate(task, context, elaborated, names,partition);
+                elaborated = fullyElaborate(task, context, elaborated, names, instPartition);
                 result = connectElaboratedInstance(result, instance.getInstanceName(), elaborated);
             }
         }

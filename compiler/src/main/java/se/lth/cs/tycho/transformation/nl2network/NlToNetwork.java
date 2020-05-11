@@ -56,7 +56,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         this.entityDeclarations = task.getModule(EntityDeclarations.key);
     }
 
-    public void evaluate(ImmutableList<Map.Entry<String, Expression>> parameterAssignments) throws CompilationException {
+    public void evaluate(ImmutableList<ValueParameter>  parameterAssignments) throws CompilationException {
         entities = new HashMap<InstanceDecl, EntityExpr>();
         structure = new ArrayList<StructureStatement>();
         mem = new BasicMemory();
@@ -70,13 +70,13 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         }
 
         ImmutableList<ParameterVarDecl> parList = srcNetwork.getValueParameters();
-        for (Map.Entry<String, Expression> assignment : parameterAssignments) {
-            String name = assignment.getKey();
+        for (ValueParameter parameter: parameterAssignments) {
+            String name = parameter.getName();
             ParameterVarDecl decl = null;
             boolean found = false;
-            for (int i = 0; i < parList.size(); i++) {
-                if (name.equals(parList.get(i).getName())) {
-                    decl = parList.get(i);
+            for (ParameterVarDecl parameterVarDecl : parList) {
+                if (name.equals(parameterVarDecl.getName())) {
+                    decl = parameterVarDecl;
                     found = true;
                 }
             }
@@ -84,7 +84,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
                 throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR,
                         "unknown parameter name: " + name + " found in parameter assignments while evaluating network "));
             }
-            RefView value = interpreter.evaluate(assignment.getValue(), env);
+            RefView value = interpreter.evaluate(parameter.getValue(), env);
             mem.declareLocal(decl);
             value.assignTo(mem.getLocal(decl));
         }

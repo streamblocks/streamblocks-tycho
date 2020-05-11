@@ -291,18 +291,11 @@ public interface ExpressionEvaluator {
             return environment.getMemory().getGlobal(decl);
         }
 
-
+        if(environment.getMemory().getLocal(decl) != null){
+            return environment.getMemory().getLocal(decl);
+        }
 
         return stack().peek(0);
-
-        /*
-        if (decl.isConstant()) {
-            return evaluate(decl.getValue(), environment);
-        }else{
-            return null;
-        }
-        */
-
     }
 
 
