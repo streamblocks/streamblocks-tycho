@@ -1,4 +1,4 @@
-package se.lth.cs.tycho.interp.attribute;
+package se.lth.cs.tycho.interp.evaluators;
 
 
 import org.multij.Binding;
@@ -17,9 +17,13 @@ import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
+import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.RealType;
 import se.lth.cs.tycho.type.Type;
+
+import java.util.OptionalDouble;
+import java.util.OptionalLong;
 
 @Module
 public interface ExpressionEvaluator {
@@ -57,27 +61,99 @@ public interface ExpressionEvaluator {
     default RefView evaluate(ExprBinaryOp expression, Environment environment) {
         assert expression.getOperations().size() == 1 && expression.getOperands().size() == 2;
         String operation = expression.getOperations().get(0);
-        Expression l = expression.getOperands().get(0);
-        Expression r = expression.getOperands().get(1);
+        Expression lExpression = expression.getOperands().get(0);
+        Expression rExpression = expression.getOperands().get(1);
 
-        RefView left = evaluate(l, environment);
-        RefView right = evaluate(r, environment);
-        switch (operation) {
-            case "..": {
-                int from = converter().getInt(left);
-                int to = converter().getInt(right);
-                BasicRef br = new BasicRef();
-                br.setValue(new Range(from, to));
-                return br;
-            }
-            case "+": {
-                return ConstRef.of(converter().getInt(left) + converter().getInt(right));
-            }
+        Type lType = types().type(lExpression);
+        Type rType = types().type(rExpression);
 
-            default:
-                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "ExprBinaryOp is not supported"));
+        RefView left = evaluate(lExpression, environment);
+        RefView right = evaluate(rExpression, environment);
+
+        if (operation.equals("..")) {
+            int from = converter().getInt(left);
+            int to = converter().getInt(right);
+            BasicRef br = new BasicRef();
+            br.setValue(new Range(from, to));
+            return br;
+        } else {
+            if ((lType instanceof IntType) && (rType instanceof IntType)) {
+                OptionalLong value = longValue(operation, converter().getInt(left), converter().getInt(right));
+                return ConstRef.of(value.getAsLong());
+            } else if ((lType instanceof RealType) && (rType instanceof RealType)) {
+                OptionalDouble value = doubleValue(operation, converter().getDouble(left), converter().getDouble(right));
+                return ConstRef.of(value.getAsDouble());
+            } else if ((lType instanceof IntType) && (rType instanceof RealType)) {
+                OptionalDouble value = doubleValue(operation, converter().getInt(left), converter().getDouble(right));
+                return ConstRef.of(value.getAsDouble());
+            } else if ((lType instanceof RealType) && (rType instanceof IntType)) {
+                OptionalDouble value = doubleValue(operation, converter().getDouble(left), converter().getInt(right));
+                return ConstRef.of(value.getAsDouble());
+            } else if ((lType instanceof BoolType) && (rType instanceof BoolType)) {
+                Boolean value = booleanValue(operation, converter().getBoolean(left), converter().getBoolean(right));
+                return ConstRef.of(value);
+            } else {
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "ExprBinaryOp is not supported for this type"));
+            }
         }
+    }
 
+
+    default OptionalLong longValue(String operator, long left, long right) {
+        switch (operator) {
+            case "+":
+                return OptionalLong.of(left + right);
+            case "-":
+                return OptionalLong.of(left - right);
+            case "*":
+                return OptionalLong.of(left * right);
+            case "/":
+                return OptionalLong.of(left / right);
+            case "<<":
+                return OptionalLong.of(left << right);
+            case ">>":
+                return OptionalLong.of(left >> right);
+            case "&":
+                return OptionalLong.of(left & right);
+            case "|":
+                return OptionalLong.of(left | right);
+            case "^":
+                return OptionalLong.of(left ^ right);
+            default:
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Binary operation : \"" + operator + "\" not supported for int type"));
+        }
+    }
+
+    default Boolean booleanValue(String operator, boolean left, boolean right) {
+        switch (operator) {
+            case "&":
+                return left & right;
+            case "&&":
+                return left && right;
+            case "|":
+                return left | right;
+            case "||":
+                return left || right;
+            case "^":
+                return left ^ right;
+            default:
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Binary operation : \"" + operator + "\" not supported for boolean type."));
+        }
+    }
+
+    default OptionalDouble doubleValue(String operator, double left, double right) {
+        switch (operator) {
+            case "+":
+                return OptionalDouble.of(left + right);
+            case "-":
+                return OptionalDouble.of(left - right);
+            case "*":
+                return OptionalDouble.of(left * right);
+            case "/":
+                return OptionalDouble.of(left / right);
+            default:
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Binary operation : \"" + operator + "\" not supported for real type."));
+        }
     }
 
     default RefView evaluate(ExprComprehension expression, Environment environment) {
@@ -175,20 +251,33 @@ public interface ExpressionEvaluator {
     default RefView evaluate(ExprUnaryOp expression, Environment environment) {
         RefView operand = evaluate(expression.getOperand(), environment);
         String operation = expression.getOperation();
+        Type type = types().type(expression.getOperand());
         switch (operation) {
             case "-": {
-                Type type = types().type(expression.getOperand());
                 if (type instanceof IntType) {
-                    return ConstRef.of(operand.getLong() * (-1));
+                    return ConstRef.of(operand.getLong());
                 } else if (type instanceof RealType) {
-                    return ConstRef.of(operand.getDouble() * (-1));
+                    return ConstRef.of(-operand.getDouble());
                 } else {
-                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Expression type on operation unary \"-\" is not supported "));
+                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Expression type on operation unary \"-\" is not supported."));
+                }
+            }
+            case "~": {
+                if (type instanceof IntType) {
+                    ConstRef.of(~operand.getLong());
+                } else {
+                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Expression type on operation unary \"~\" is not supported."));
+                }
+            }
+            case "!": {
+                if (type instanceof BoolType) {
+                    ConstRef.of(!operand.getBoolean());
+                } else {
+                    throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Expression type on operation unary \"!\" is supported only on boolean types."));
                 }
             }
             default:
                 throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "ExprUnaryOp is not supported"));
-
         }
     }
 
@@ -197,6 +286,12 @@ public interface ExpressionEvaluator {
         if (decl.isExternal()) {
             throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "External ExprVariable is not supported."));
         }
+
+        if(environment.getMemory().getGlobal(decl) != null){
+            return environment.getMemory().getGlobal(decl);
+        }
+
+
 
         return stack().peek(0);
 

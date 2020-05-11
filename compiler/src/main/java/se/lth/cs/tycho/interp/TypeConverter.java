@@ -28,4 +28,7 @@ public enum TypeConverter {
     public int getInt(RefView r) throws CompilationException { return (int) r.getLong(); }
     public void setInt(Ref r, int v) { r.setLong(v); }
 
+    public double getDouble(RefView r) throws CompilationException { return (int) r.getDouble(); }
+    public void setDouble(Ref r, double v) { r.setDouble(v); }
+
 }

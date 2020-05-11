@@ -5,7 +5,7 @@ import se.lth.cs.tycho.attribute.FreeVariables;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.compiler.CompilationTask;
-import se.lth.cs.tycho.interp.attribute.ExpressionEvaluator;
+import se.lth.cs.tycho.interp.evaluators.ExpressionEvaluator;
 import se.lth.cs.tycho.interp.values.RefView;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
