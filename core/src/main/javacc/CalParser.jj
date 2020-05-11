@@ -142,6 +142,7 @@ TOKEN :
 |	< END: "end" >
 |	< ENDACTION: "endaction" >
 |	< ENDACTOR: "endactor" >
+|	< ENDCASE: "endcase" >
 |	< ENDCHOOSE: "endchoose" >
 |	< ENDFOREACH: "endforeach" >
 |	< ENDFUNCTION: "endfunction" >

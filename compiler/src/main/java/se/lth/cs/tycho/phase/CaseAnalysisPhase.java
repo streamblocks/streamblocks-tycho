@@ -8,10 +8,12 @@ import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
+import se.lth.cs.tycho.decoration.StructuralEquality;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternAlias;
 import se.lth.cs.tycho.ir.expr.pattern.PatternAlternative;
@@ -187,17 +189,23 @@ public class CaseAnalysisPhase implements Phase {
 		static class Singleton extends Space {
 
 			private final Type type;
+			private final Expression expression;
 
-			private Singleton(Type type) {
+			private Singleton(Type type, Expression expression) {
 				this.type = type;
+				this.expression = expression;
 			}
 
-			public static Singleton of(Type type) {
-				return new Singleton(type);
+			public static Singleton of(Type type, Expression expression) {
+				return new Singleton(type, expression);
 			}
 
 			public Type type() {
 				return type;
+			}
+
+			public Expression expression() {
+				return expression;
 			}
 		}
 
@@ -399,7 +407,7 @@ public class CaseAnalysisPhase implements Phase {
 			if (types().type(pattern) instanceof BoolType) {
 				return Space.Universe.of(new ConstantType(Boolean.valueOf(pattern.getLiteral().getText())));
 			} else {
-				return Space.Singleton.of(types().type(pattern));
+				return Space.Singleton.of(types().type(pattern), pattern.getLiteral());
 			}
 		}
 
@@ -425,7 +433,7 @@ public class CaseAnalysisPhase implements Phase {
 			} else if (!(recursive().test(types().type(pattern))) && unit().test(types().type(pattern))) {
 				return Space.Universe.of(types().type(pattern));
 			} else {
-				return Space.Singleton.of(types().type(pattern));
+				return Space.Singleton.of(types().type(pattern), pattern.getExpression());
 			}
 		}
 
@@ -680,7 +688,7 @@ public class CaseAnalysisPhase implements Phase {
 			} else if (_a instanceof Space.Product && b instanceof Space.Product) {
 				return equal().test(((Space.Product) _a).apply(), ((Space.Product) b).apply()) && IntStream.range(0, ((Space.Product) _a).spaces().size()).allMatch(i -> isSubSpace(((Space.Product) _a).spaces().get(i), ((Space.Product) b).spaces().get(i)));
 			} else if (_a instanceof Space.Singleton && b instanceof Space.Singleton) {
-				return subtype().test(((Space.Singleton) _a).type(), ((Space.Singleton) b).type());
+				return StructuralEquality.equals(((Space.Singleton) _a).expression(), ((Space.Singleton) b).expression());
 			} else if (_a instanceof Space.Singleton && b instanceof Space.Universe) {
 				return subtype().test(((Space.Singleton) _a).type(), ((Space.Universe) b).type());
 			} else {
