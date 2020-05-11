@@ -1,4 +1,4 @@
 Error in "testdata/typesystem/neg/tuple-type-element-access/src/tuple.cal" on line 5:
-            OUT <-- a#0;
-                    ^^^
+            OUT <-- a.#0;
+                    ^^^^
 Value #0 is not a member of (int, bool).

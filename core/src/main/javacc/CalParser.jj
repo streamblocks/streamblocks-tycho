@@ -228,6 +228,7 @@ TOKEN: {
 |	< LOWER_THAN: "<" >
 |	< GREATER_THAN: ">" >
 |	< SHARP: "#" >
+|	< DOT_SHARP: ".#" >
 |	< STAR: "*" >
 |	< DOT_STAR: ".*" >
 |	< CINNAMON_BUN: "@" >
@@ -1724,14 +1725,15 @@ Expression PrimaryExpression() :
 			{ expr = new ExprIndexer(expr, index); }
 		)*
 		"]"
-	|
-		"." field = Field()
-		{ expr = setPosition(new ExprField(expr, field), expr, field); }
  	|
-		<SHARP> nth = Nth()
+		LOOKAHEAD(<DOT_SHARP>)
+		<DOT_SHARP> nth = Nth()
 		{
 			expr = setPosition(new ExprNth(expr, nth), expr, nth);
 		}
+	|
+		"." field = Field()
+		{ expr = setPosition(new ExprField(expr, field), expr, field); }
 	)*
 	{
 		return expr;
@@ -2736,6 +2738,13 @@ LValue LValue() :
 	}
 	(
 		(
+			LOOKAHEAD(<DOT_SHARP>)
+			<DOT_SHARP> nth = Nth()
+			{
+				lvalue = new LValueNth(lvalue, nth);
+				lvalue.setPosition(var, nth);
+			}
+		|
 			"." field = Field()
 			{
 				lvalue = new LValueField(lvalue, field);
@@ -2748,12 +2757,6 @@ LValue LValue() :
 			{
 				lvalue = new LValueIndexer(lvalue, index);
 				lvalue.setPosition(var.getFromLineNumber(), var.getFromColumnNumber(), end.endLine, end.endColumn);
-			}
-    |
-			<SHARP> nth = Nth()
-			{
-				lvalue = new LValueNth(lvalue, nth);
-				lvalue.setPosition(var, nth);
 			}
 		)
 	)*
