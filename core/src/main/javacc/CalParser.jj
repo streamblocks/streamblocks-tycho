@@ -2428,6 +2428,8 @@ TypeExpr SimpleType() :
     type = NominalType()
   |
     type = TupleType()
+  |
+    type = LambdaType()
   )
   { return type; }
 }
@@ -2466,6 +2468,36 @@ NominalTypeExpr NominalType() :
   )?
   {
     return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
+  }
+}
+
+TypeExpr LambdaType() :
+{
+  Token first;
+  Token last;
+  TypeExpr type;
+  TypeExpr retType = null;
+  ImmutableList.Builder<TypeExpr> types = ImmutableList.builder();
+}
+{
+  first = "["
+  (
+    type = Type() { types.add(type); }
+    (
+      "," type = Type() { types.add(type); }
+    )*
+  )?
+  "-->"
+  (
+    retType = Type()
+  )?
+  last = "]"
+  {
+    if (retType == null) {
+      return setPosition(new ProcedureTypeExpr(types.build()), first, last);
+    } else {
+      return setPosition(new FunctionTypeExpr(types.build(), retType), first, last);
+    }
   }
 }
 

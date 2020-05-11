@@ -135,13 +135,11 @@ public interface Code {
 	}
 
 	default String declaration(LambdaType type, String name) {
-		String t = backend().callables().mangle(type).encode();
-		return t + " " + name;
+		return type(type) + " " + name;
 	}
 
 	default String declaration(ProcType type, String name) {
-		String t = backend().callables().mangle(type).encode();
-		return t + " " + name;
+		return type(type) + " " + name;
 	}
 
 	default String declaration(BoolType type, String name) { return "_Bool " + name; }
@@ -209,6 +207,14 @@ public interface Code {
 
 	default String type(TupleType type) {
 		return type(backend().tuples().convert().apply(type));
+	}
+
+	default String type(LambdaType type) {
+		return backend().callables().mangle(type).encode();
+	}
+
+	default String type(ProcType type) {
+		return backend().callables().mangle(type).encode();
 	}
 
 	String evaluate(Expression expr);

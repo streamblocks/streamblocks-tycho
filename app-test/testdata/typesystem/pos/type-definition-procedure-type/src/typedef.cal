@@ -1,0 +1,8 @@
+namespace typedef:
+    actor ProcedureType() ==> int OUT:
+        [int --> ] p := proc (int n) do n := n + 1; end;
+        do
+            p(1);
+        end
+    end
+end
