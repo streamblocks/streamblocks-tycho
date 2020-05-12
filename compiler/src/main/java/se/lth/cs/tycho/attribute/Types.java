@@ -43,6 +43,7 @@ import se.lth.cs.tycho.type.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static se.lth.cs.tycho.util.CheckedCasts.toOptInt;
 
@@ -921,6 +922,17 @@ public interface Types {
 			return new ListType(elementLub, size);
 		}
 
+		default Type leastUpperBound(TupleType a, TupleType b) {
+			if (a.getTypes().size() != b.getTypes().size()) {
+				return TopType.INSTANCE;
+			}
+			List<Type> types = new ArrayList<>();
+			for (int i = 0; i < a.getTypes().size(); ++i) {
+				types.add(leastUpperBound(a.getTypes().get(i), b.getTypes().get(i)));
+			}
+			return new TupleType(types);
+		}
+
 		default Type leastUpperBound(RefType a, RefType b) {
 			return new RefType(leastUpperBound(a, b));
 		}
@@ -980,14 +992,6 @@ public interface Types {
 			return leastUpperBound(a, b.getType());
 		}
 
-		default Type leastUpperBound(TupleType a, TupleType b) {
-			if (Objects.equals(a, b)) {
-				return a;
-			} else {
-				return TopType.INSTANCE;
-			}
-		}
-
 		default int positiveBits(IntType t) {
 			if (t.isSigned()) {
 				return t.getSize().getAsInt() - 1;
@@ -1023,6 +1027,18 @@ public interface Types {
 		default Type greatestLowerBound(ListType a, ListType b) {
 			if (a.getSize().equals(b.getSize())) {
 				return new ListType(greatestLowerBound(a.getElementType(), b.getElementType()), a.getSize());
+			} else {
+				return BottomType.INSTANCE;
+			}
+		}
+
+		default Type greatestLowerBound(TupleType a, TupleType b) {
+			if (a.getTypes().size() == b.getTypes().size()) {
+				List<Type> types = new ArrayList<>();
+				for (int i = 0; i < a.getTypes().size(); ++i) {
+					types.add(greatestLowerBound(a.getTypes().get(i), b.getTypes().get(i)));
+				}
+				return new TupleType(types);
 			} else {
 				return BottomType.INSTANCE;
 			}

@@ -158,7 +158,10 @@ public class TypeAnalysisPhase implements Phase {
 			return isComparable(a, b.getType(), operand);
 		}
 		default boolean isComparable(TupleType a, TupleType b, String operand) {
-			return Arrays.asList("=", "==", "!=").contains(operand) && a.equals(b);
+			return Arrays.asList("=", "==", "!=").contains(operand) && a.getTypes().size() == b.getTypes().size()
+					&& IntStream
+					.range(0, a.getTypes().size())
+					.allMatch(i -> isAssignable(a.getTypes().get(i), b.getTypes().get(i)));
 		}
 
 		default boolean isAssignable(Type to, Type from) {
@@ -277,7 +280,10 @@ public class TypeAnalysisPhase implements Phase {
 		}
 
 		default boolean isAssignable(TupleType to, TupleType from) {
-			return to.equals(from);
+			return to.getTypes().size() == from.getTypes().size()
+					&& IntStream
+						.range(0, to.getTypes().size())
+						.allMatch(i -> isAssignable(to.getTypes().get(i), from.getTypes().get(i)));
 		}
 	}
 
