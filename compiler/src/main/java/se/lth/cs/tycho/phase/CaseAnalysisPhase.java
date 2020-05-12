@@ -977,16 +977,16 @@ public class CaseAnalysisPhase implements Phase {
 		Flatten flatten();
 
 		default String apply(Space space) {
-			return flatten().apply(space).stream().map(s -> doApply(s, false)).distinct().collect(Collectors.joining(", "));
+			return flatten().apply(space).stream().map(s -> doApply(s)).distinct().collect(Collectors.joining(", "));
 		}
 
-		String doApply(Space space, boolean flattenList);
+		String doApply(Space space);
 
-		default String doApply(Space.Empty space, boolean flattenList) {
+		default String doApply(Space.Empty space) {
 			return "";
 		}
 
-		default String doApply(Space.Universe space, boolean flattenList) {
+		default String doApply(Space.Universe space) {
 			Type type = space.type();
 			if (type instanceof ConstantType) {
 				return "" + ((ConstantType) type).value();
@@ -1013,28 +1013,26 @@ public class CaseAnalysisPhase implements Phase {
 			}
 		}
 
-		default String doApply(Space.Singleton space, boolean flattenList) {
+		default String doApply(Space.Singleton space) {
 			return "_";
 		}
 
-		default String doApply(Space.Product space, boolean flattenList) {
+		default String doApply(Space.Product space) {
 			Type type = space.type();
 			if (type instanceof ListType) {
-				if (flattenList) return space.spaces().stream().map(s -> doApply(s, flattenList)).collect(Collectors.joining(", "));
-				else return space.spaces().stream().map(s -> doApply(s, true)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "[", "]"));
+				return space.spaces().stream().map(s -> doApply(s)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "[", "]"));
 			} else if (type instanceof TupleType) {
-				if (flattenList) return space.spaces().stream().map(s -> doApply(s, flattenList)).collect(Collectors.joining(", "));
-				else return space.spaces().stream().map(s -> doApply(s, true)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "(", ")"));
+				return space.spaces().stream().map(s -> doApply(s)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "(", ")"));
 			} else if (type instanceof AlgebraicType) {
 				String constructorStr = space.apply() instanceof SumType.VariantType ? ((SumType.VariantType) space.apply()).getName() : ((ProductType) space.apply()).getName();
-				String parametersStr = space.spaces().stream().map(s -> doApply(s, true)).collect(Collectors.joining(", ", "(", ")"));
+				String parametersStr = space.spaces().stream().map(s -> doApply(s)).collect(Collectors.joining(", ", "(", ")"));
 				return constructorStr + parametersStr;
 			} else {
-				return space.spaces().stream().map(s -> doApply(s, true)).collect(Collectors.joining(", ", "(", ")"));
+				return space.spaces().stream().map(s -> doApply(s)).collect(Collectors.joining(", ", "(", ")"));
 			}
 		}
 
-		default String doApply(Space.Union space, boolean flattenList) {
+		default String doApply(Space.Union space) {
 			throw new RuntimeException("incorrect flatten result");
 		}
 	}
