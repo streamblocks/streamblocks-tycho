@@ -348,7 +348,7 @@ public class CaseAnalysisPhase implements Phase {
 		}
 
 		default void check(ExprCase expr) {
-			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
+			Space targetSpace = Space.Universe.of(types().type(expr.getScrutinee()));
 
 			Space patternSpace = expr.getAlternatives().stream()
 					.map(a -> a.getGuards().isEmpty() ? project().apply(a.getPattern()) : Space.EMPTY)
@@ -367,14 +367,14 @@ public class CaseAnalysisPhase implements Phase {
 						.append(System.lineSeparator())
 						.append(String.format("It would fail on pattern%s: %s", uncovered.size() != 1 ? "s" : "" , printer().apply(Space.Union.of(uncovered))))
 						.toString();
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(expr), expr.getExpression()));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(expr), expr.getScrutinee()));
 			}
 		}
 
 		default void check(ActionCase action) {
 			ExprCase expr = transform().apply(action);
 
-			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
+			Space targetSpace = Space.Universe.of(types().type(expr.getScrutinee()));
 
 			Space patternSpace = expr.getAlternatives().stream()
 					.map(a -> a.getGuards().isEmpty() ? project().apply(a.getPattern()) : Space.EMPTY)
@@ -393,7 +393,7 @@ public class CaseAnalysisPhase implements Phase {
 						.append(System.lineSeparator())
 						.append(String.format("It would fail on action%s: %s", uncovered.size() != 1 ? "s" : "" , printer().apply(Space.Union.of(uncovered))))
 						.toString();
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(action), expr.getExpression()));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(action), expr.getScrutinee()));
 			}
 		}
 
@@ -432,7 +432,7 @@ public class CaseAnalysisPhase implements Phase {
 		}
 
 		default void check(ExprCase expr) {
-			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
+			Space targetSpace = Space.Universe.of(types().type(expr.getScrutinee()));
 
 			for (int i = 1; i < expr.getAlternatives().size(); ++i) {
 				Space previousSpace = expr.getAlternatives().stream()
@@ -455,7 +455,7 @@ public class CaseAnalysisPhase implements Phase {
 		default void check(ActionCase action) {
 			ExprCase expr = transform().apply(action);
 
-			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
+			Space targetSpace = Space.Universe.of(types().type(expr.getScrutinee()));
 
 			for (int i = 1; i < expr.getAlternatives().size(); ++i) {
 				Space previousSpace = expr.getAlternatives().stream()
@@ -1188,13 +1188,13 @@ public class CaseAnalysisPhase implements Phase {
 			Expression expression = new ExpressionUtils.ExprActionCase(
 					action.getActions().get(0).getInputPatterns().stream()
 							.sorted(Comparator.comparing(i -> i.getPort().getName()))
-							.map(i -> new ExpressionUtils.ExprActionInputCase(i.getPort().getName(), i.getMatches().get(0).getExpression().getExpression()))
+							.map(i -> new ExpressionUtils.ExprActionInputCase(i.getPort().getName(), i.getMatches().get(0).getExpression().getScrutinee()))
 							.collect(Collectors.toList()));
 			expression.setPosition(action, action);
 
 			action.getActions().get(0).getInputPatterns().stream()
 					.sorted(Comparator.comparing(i -> i.getPort().getName()))
-					.map(i -> i.getMatches().get(0).getExpression().getExpression());
+					.map(i -> i.getMatches().get(0).getExpression().getScrutinee());
 
 			expression.setPosition(action, action);
 

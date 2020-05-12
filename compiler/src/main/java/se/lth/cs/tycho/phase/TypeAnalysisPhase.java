@@ -540,7 +540,7 @@ public class TypeAnalysisPhase implements Phase {
 		}
 
 		default void checkTypes(ExprCase caseExpr) {
-			Type type = types().type(caseExpr.getExpression());
+			Type type = types().type(caseExpr.getScrutinee());
 			caseExpr.getAlternatives().forEach(alternative -> {
 				checkAssignment(type, types().type(alternative.getPattern()), alternative.getPattern());
 			});
@@ -550,7 +550,7 @@ public class TypeAnalysisPhase implements Phase {
 		}
 
 		default void checkTypes(StmtCase caseStmt) {
-			Type type = types().type(caseStmt.getExpression());
+			Type type = types().type(caseStmt.getScrutinee());
 			caseStmt.getAlternatives().forEach(alternative -> {
 				checkAssignment(type, types().type(alternative.getPattern()), alternative.getPattern());
 			});

@@ -44,7 +44,6 @@ import se.lth.cs.tycho.type.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static se.lth.cs.tycho.util.CheckedCasts.toOptInt;
 
@@ -254,9 +253,9 @@ public interface Types {
 					} else {
 						parent = tree().parent(parent);
 						if (parent instanceof ExprCase) {
-							return type(((ExprCase) parent).getExpression());
+							return type(((ExprCase) parent).getScrutinee());
 						} else {
-							return type(((StmtCase) parent).getExpression());
+							return type(((StmtCase) parent).getScrutinee());
 						}
 					}
 				}
@@ -422,9 +421,9 @@ public interface Types {
 					PatternTuple tuple = (PatternTuple) node;
 					return ((TupleType) type(tuple)).getTypes().get(tuple.getPatterns().indexOf(p));
 				} else if (node instanceof ExprCase) {
-					return type(((ExprCase) node).getExpression());
+					return type(((ExprCase) node).getScrutinee());
 				} else if (node instanceof StmtCase) {
-					return type(((StmtCase) node).getExpression());
+					return type(((StmtCase) node).getScrutinee());
 				} else if (node instanceof Match) {
 					return computeDeclaredType(((Match) node).getDeclaration());
 				}

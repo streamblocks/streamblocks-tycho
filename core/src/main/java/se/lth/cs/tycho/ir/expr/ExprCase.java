@@ -62,43 +62,43 @@ public class ExprCase extends Expression {
 		}
 	}
 
-	private Expression expression;
+	private Expression scrutinee;
 	private ImmutableList<Alternative> alternatives;
 
-	public ExprCase(Expression expression, List<Alternative> alternatives) {
-		this(null, expression, alternatives);
+	public ExprCase(Expression scrutinee, List<Alternative> alternatives) {
+		this(null, scrutinee, alternatives);
 	}
 
-	private ExprCase(IRNode original, Expression expression, List<Alternative> alternatives) {
+	private ExprCase(IRNode original, Expression scrutinee, List<Alternative> alternatives) {
 		super(original);
-		this.expression = expression;
+		this.scrutinee = scrutinee;
 		this.alternatives = ImmutableList.from(alternatives);
 	}
 
-	public Expression getExpression() {
-		return expression;
+	public Expression getScrutinee() {
+		return scrutinee;
 	}
 
 	public ImmutableList<Alternative> getAlternatives() {
 		return alternatives;
 	}
 
-	public ExprCase copy(Expression expression, List<Alternative> alternatives) {
-		if (Objects.equals(getExpression(), expression) && Lists.sameElements(getAlternatives(), alternatives)) {
+	public ExprCase copy(Expression scrutinee, List<Alternative> alternatives) {
+		if (Objects.equals(getScrutinee(), scrutinee) && Lists.sameElements(getAlternatives(), alternatives)) {
 			return this;
 		} else {
-			return new ExprCase(this, expression, alternatives);
+			return new ExprCase(this, scrutinee, alternatives);
 		}
 	}
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(getExpression());
+		action.accept(getScrutinee());
 		getAlternatives().forEach(action);
 	}
 
 	@Override
 	public Expression transformChildren(Transformation transformation) {
-		return copy((Expression) transformation.apply(getExpression()), transformation.mapChecked(Alternative.class, getAlternatives()));
+		return copy((Expression) transformation.apply(getScrutinee()), transformation.mapChecked(Alternative.class, getAlternatives()));
 	}
 }

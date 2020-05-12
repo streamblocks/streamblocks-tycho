@@ -98,7 +98,7 @@ public interface PatternMatching {
 			trackable().enter();
 
 			String scrutinee = code().variables().generateTemp();
-			emitter().emit("%s = %s;", code().declaration(code().types().type(expr.getExpression()), scrutinee), code().evaluate(expr.getExpression()));
+			emitter().emit("%s = %s;", code().declaration(code().types().type(expr.getScrutinee()), scrutinee), code().evaluate(expr.getScrutinee()));
 
 			String matched = code().variables().generateTemp();
 			emitter().emit("%s = false;", code().declaration(BoolType.INSTANCE, matched));
@@ -130,7 +130,7 @@ public interface PatternMatching {
 
 		default void execute(StmtCase stmt) {
 			String scrutinee = code().variables().generateTemp();
-			emitter().emit("%s = %s;", code().declaration(code().types().type(stmt.getExpression()), scrutinee), code().evaluate(stmt.getExpression()));
+			emitter().emit("%s = %s;", code().declaration(code().types().type(stmt.getScrutinee()), scrutinee), code().evaluate(stmt.getScrutinee()));
 
 			String matched = code().variables().generateTemp();
 			emitter().emit("%s = false;", code().declaration(BoolType.INSTANCE, matched));

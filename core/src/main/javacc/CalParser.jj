@@ -1890,13 +1890,13 @@ ExprCase CaseExpression() :
 {
     Token first;
     Token last;
-    Expression expression;
+    Expression scrutinee;
     ExprCase.Alternative alternative;
     ImmutableList.Builder<ExprCase.Alternative> alternatives = ImmutableList.builder();
 }
 {
     first = "case"
-    expression = Expression()
+    scrutinee = Expression()
     "of"
     (
         alternative = CaseExprAlternative() { alternatives.add(alternative); }
@@ -1905,7 +1905,7 @@ ExprCase CaseExpression() :
         )*
     )?
     last = "end"
-    { return setPosition(new ExprCase(expression, alternatives.build()), first, last); }
+    { return setPosition(new ExprCase(scrutinee, alternatives.build()), first, last); }
 }
 
 ExprCase.Alternative CaseExprAlternative() :
@@ -2835,13 +2835,13 @@ StmtCase CaseStmt() :
 {
     Token first;
     Token last;
-    Expression expression;
+    Expression scrutinee;
     StmtCase.Alternative alternative;
     ImmutableList.Builder<StmtCase.Alternative> alternatives = ImmutableList.builder();
 }
 {
     first = "case"
-    expression = Expression()
+    scrutinee = Expression()
     "of"
     (
         alternative = CaseStmtAlternative() { alternatives.add(alternative); }
@@ -2850,7 +2850,7 @@ StmtCase CaseStmt() :
         )*
     )?
     last = "end"
-    { return setPosition(new StmtCase(expression, alternatives.build()), first, last); }
+    { return setPosition(new StmtCase(scrutinee, alternatives.build()), first, last); }
 }
 
 StmtCase.Alternative CaseStmtAlternative() :

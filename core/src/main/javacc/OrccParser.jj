@@ -860,12 +860,12 @@ Match Match() :
     pattern = Pattern()
     {
         InputVarDecl declaration = new InputVarDecl();
-        Expression expression = new ExprVariable(Variable.variable(declaration.getName()));
-        expression.setPosition(pattern, pattern);
+        Expression scrutinee = new ExprVariable(Variable.variable(declaration.getName()));
+        scrutinee.setPosition(pattern, pattern);
         ExprCase.Alternative alternative = new ExprCase.Alternative(pattern, Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.True));
         alternative.setPosition(pattern, pattern);
         ExprCase.Alternative otherwise = new ExprCase.Alternative(new PatternWildcard(), Collections.emptyList(), new ExprLiteral(ExprLiteral.Kind.False));
-        ExprCase casee = new ExprCase(expression, Arrays.asList(alternative, otherwise));
+        ExprCase casee = new ExprCase(scrutinee, Arrays.asList(alternative, otherwise));
         casee.setPosition(pattern, pattern);
         return new Match(declaration, casee);
     }
