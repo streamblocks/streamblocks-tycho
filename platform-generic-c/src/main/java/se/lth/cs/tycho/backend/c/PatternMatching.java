@@ -42,27 +42,25 @@ public interface PatternMatching {
 	}
 
 	default String evaluate(ExprCase caseExpr) {
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 		String expr = code().variables().generateTemp();
 		emitter().emit("%s = %s;", code().declaration(code().types().type(caseExpr.getExpression()), expr), code().evaluate(caseExpr.getExpression()));
 		String match = code().variables().generateTemp();
 		emitter().emit("%s = false;", code().declaration(BoolType.INSTANCE, match));
 		Type type = code().types().type(caseExpr);
 		String result = code().variables().generateTemp();
-		if ((type instanceof AlgebraicType) || (code().isAlgebraicTypeList(type)) || backend().alias().isAlgebraicType(type)) {
-			backend().memoryStack().trackPointer(result, type);
-		}
+		backend().trackable().track(result, type);
 		emitter().emit("%s = %s;", code().declaration(type, result), backend().defaultValues().defaultValue(type));
 		caseExpr.getAlternatives().forEach(alternative -> {
 			emitter().emit("if (!%s) {", match);
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 			emitter().increaseIndentation();
 			evaluateAlternative(alternative, expr, result, match);
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		});
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		return result;
 	}
 
@@ -74,9 +72,9 @@ public interface PatternMatching {
 		caseStmt.getAlternatives().forEach(alternative -> {
 			emitter().emit("if (!%s) {", match);
 			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 			executeAlternative(alternative, expr, match);
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		});
@@ -87,12 +85,12 @@ public interface PatternMatching {
 		alternative.getGuards().forEach(guard -> {
 			emitter().emit("if (%s) {", code().evaluate(guard));
 			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 		});
 		code().copy(code().types().type(alternative.getExpression()), result, code().types().type(alternative.getExpression()), code().evaluate(alternative.getExpression()));
 		emitter().emit("%s = true;", match);
 		alternative.getGuards().forEach(guard -> {
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		});
@@ -104,14 +102,14 @@ public interface PatternMatching {
 		alternative.getGuards().forEach(guard -> {
 			emitter().emit("if (%s) {", code().evaluate(guard));
 			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 		});
 		alternative.getStatements().forEach(statement -> {
 			code().execute(statement);
 		});
 		emitter().emit("%s = true;", match);
 		alternative.getGuards().forEach(guard -> {
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		});
@@ -127,7 +125,7 @@ public interface PatternMatching {
 			SumType.VariantType variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), pattern.getName())).findAny().get();
 			emitter().emit("if (%s->tag == tag_%s_%s) {", member == "" ? target : target + deref + member, sum.getName(), variant.getName());
 			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 			for (int i = 0; i < variant.getFields().size(); ++i) {
 				openPattern(pattern.getPatterns().get(i), (member == "" ? target : target + deref + member) + "->data." + pattern.getName(), ".", variant.getFields().get(i).getName());
 			}
@@ -143,7 +141,7 @@ public interface PatternMatching {
 		Type type = backend().types().type(pattern.getExpression());
 		emitter().emit("if (%s) {", code().compare(type, String.format("%s%s%s", target, deref, member), type, code().evaluate(pattern.getExpression())));
 		emitter().increaseIndentation();
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 	}
 
 	default void openPattern(PatternBinding pattern, String target, String deref, String member) {
@@ -162,7 +160,7 @@ public interface PatternMatching {
 		Type type = backend().types().type(pattern.getLiteral());
 		emitter().emit("if (%s) {", code().compare(type, String.format("%s%s%s", target, deref, member), type, code().evaluate(pattern.getLiteral())));
 		emitter().increaseIndentation();
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 	}
 
 	default void openPattern(PatternAlias pattern, String target, String deref, String member) {
@@ -174,9 +172,7 @@ public interface PatternMatching {
 			code().copy(type, alias, type, expr);
 		} else if (pattern.getAlias() instanceof PatternBinding) {
 			alias = backend().variables().declarationName(((PatternBinding) pattern.getAlias()).getDeclaration());
-			if (type instanceof AlgebraicType || backend().alias().isAlgebraicType(type)) {
-				backend().memoryStack().trackPointer(alias, type);
-			}
+			backend().trackable().track(alias, type);
 			emitter().emit("%s = %s;", code().declaration(type, alias), backend().defaultValues().defaultValue(type));
 			code().copy(type, alias, type, expr);
 		} else {
@@ -184,7 +180,7 @@ public interface PatternMatching {
 		}
 		emitter().emit("if (%s) {", code().compare(type, String.format("%s%s%s", target, deref, member), type, alias));
 		emitter().increaseIndentation();
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 	}
 
 	default void openPattern(PatternAlternative pattern, String target, String deref, String member) {
@@ -199,7 +195,7 @@ public interface PatternMatching {
 			return code().compare(type, String.format("%s%s%s", target, deref, member), type, code().evaluate(expr));
 		}).collect(Collectors.joining(" || ")));
 		emitter().increaseIndentation();
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 	}
 
 	default void openPattern(PatternList pattern, String target, String deref, String member) {
@@ -220,7 +216,7 @@ public interface PatternMatching {
 	default void closePattern(PatternDeconstruction pattern) {
 		Type type = code().types().type(pattern);
 		if (type instanceof SumType) {
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		}
@@ -228,7 +224,7 @@ public interface PatternMatching {
 	}
 
 	default void closePattern(PatternExpression pattern) {
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
@@ -242,19 +238,19 @@ public interface PatternMatching {
 	}
 
 	default void closePattern(PatternLiteral pattern) {
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
 
 	default void closePattern(PatternAlias pattern) {
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
 
 	default void closePattern(PatternAlternative pattern) {
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}

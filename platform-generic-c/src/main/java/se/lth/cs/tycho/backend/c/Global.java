@@ -96,7 +96,7 @@ public interface Global {
 	default void globalVariableInitializer(Stream<VarDecl> varDecls) {
 		emitter().emit("void init_global_variables() {");
 		emitter().increaseIndentation();
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			if (decl.isExternal() && type instanceof CallableType) {
@@ -112,7 +112,7 @@ public interface Global {
 				emitter().emit("%s = %s;", backend().variables().declarationName(decl), tmp);
 			}
 		});
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}

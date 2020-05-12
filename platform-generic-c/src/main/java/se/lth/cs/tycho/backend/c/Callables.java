@@ -245,10 +245,10 @@ public interface Callables {
 		backend().emitter().increaseIndentation();
 		lambda.forEachChild(this::declareEnvironmentForCallablesInScope);
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 		Type retType = backend().types().type(lambda.getReturnType());
 		String result = backend().code().returnValue(backend().code().evaluate(lambda.getBody()), retType);
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		backend().emitter().emit("return %s;", result);
 		backend().emitter().decreaseIndentation();
 		backend().emitter().emit("}");
@@ -260,9 +260,9 @@ public interface Callables {
 		backend().emitter().increaseIndentation();
 		proc.forEachChild(this::declareEnvironmentForCallablesInScope);
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 		proc.getBody().forEach(backend().code()::execute);
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		backend().emitter().decreaseIndentation();
 		backend().emitter().emit("}");
 	}

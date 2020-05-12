@@ -117,7 +117,7 @@ public interface Backend {
 	}
 
 	// Utils
-	@Binding(LAZY) default MemoryStack memoryStack() {
-		return MultiJ.from(MemoryStack.class).bind("backend").to(this).instance();
+	@Binding(LAZY) default Trackable trackable() {
+		return MultiJ.from(Trackable.class).bind("backend").to(this).instance();
 	}
 }

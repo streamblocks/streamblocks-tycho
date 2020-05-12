@@ -42,7 +42,7 @@ public interface Code {
 		return backend().variables();
 	}
 
-	default MemoryStack memoryStack() { return backend().memoryStack(); }
+	default Trackable trackable() { return backend().trackable(); }
 
 	default String outputPortTypeSize(Port port) {
 		Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), port.getName());
@@ -256,9 +256,7 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		Type type = types().type(input);
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
-		if (type instanceof AlgebraicType || backend().alias().isAlgebraicType(type)) {
-			memoryStack().trackPointer(tmp, type);
-		}
+		trackable().track(tmp, type);
 		if (input.hasRepeat()) {
 		    if (input.getOffset() == 0) {
 				emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, %s.data);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getRepeat(), tmp);
@@ -309,15 +307,15 @@ public interface Code {
 				emitter().emit("_Bool %s;", andResult);
 				emitter().emit("if (%s) {", evaluate(left));
 				emitter().increaseIndentation();
-				memoryStack().enterScope();
+				trackable().enter();
 				emitter().emit("%s = %s;", andResult, evaluate(right));
-				memoryStack().exitScope();
+				trackable().exit();
 				emitter().decreaseIndentation();
 				emitter().emit("} else {");
 				emitter().increaseIndentation();
-				memoryStack().enterScope();
+				trackable().enter();
 				emitter().emit("%s = false;", andResult);
-				memoryStack().exitScope();
+				trackable().exit();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 				return andResult;
@@ -331,9 +329,9 @@ public interface Code {
 				emitter().decreaseIndentation();
 				emitter().emit("} else {");
 				emitter().increaseIndentation();
-				memoryStack().enterScope();
+				trackable().enter();
 				emitter().emit("%s = %s;", orResult, evaluate(right));
-				memoryStack().exitScope();
+				trackable().exit();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 				return orResult;
@@ -398,14 +396,14 @@ public interface Code {
 				emitter().emit("%s = %s;", declaration(type, name), from);
 				emitter().emit("while (%s <= %s) {", name, to);
 				emitter().increaseIndentation();
-				memoryStack().enterScope();
+				trackable().enter();
 			}
 			action.run();
 			List<VarDecl> reversed = new ArrayList<>(varDecls);
 			Collections.reverse(reversed);
 			for (VarDecl d : reversed) {
 				emitter().emit("%s++;", variables().declarationName(d));
-				memoryStack().exitScope();
+				trackable().exit();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 			}
@@ -420,9 +418,7 @@ public interface Code {
 		if (t.getSize().isPresent()) {
 			String name = variables().generateTemp();
 			Type elementType = t.getElementType();
-			if (elementType instanceof AlgebraicType || backend().alias().isAlgebraicType(elementType)) {
-				memoryStack().trackPointer(name, t);
-			}
+			trackable().track(name, t);
 			String decl = declaration(t, name);
 			String value = list.getElements().stream().sequential()
 					.map(element -> {
@@ -447,7 +443,7 @@ public interface Code {
 	default void forEach(ExprBinaryOp binOp, List<GeneratorVarDecl> varDecls, Runnable action) {
 		emitter().emit("{");
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
 			Type type = types().declaredType(varDecls.get(0));
 			for (VarDecl d : varDecls) {
@@ -457,18 +453,18 @@ public interface Code {
 			emitter().emit("%s = %s;", declaration(type, temp), evaluate(binOp.getOperands().get(0)));
 			emitter().emit("while (%s <= %s) {", temp, evaluate(binOp.getOperands().get(1)));
 			emitter().increaseIndentation();
-			memoryStack().enterScope();
+			trackable().enter();
 			for (VarDecl d : varDecls) {
 				emitter().emit("%s = %s++;", variables().declarationName(d), temp);
 			}
 			action.run();
-			memoryStack().exitScope();
+			trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		} else {
 			throw new UnsupportedOperationException(binOp.getOperations().get(0));
 		}
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
@@ -485,6 +481,7 @@ public interface Code {
 		}
 		String result = variables().generateTemp();
 		String decl = declaration(types().type(tuple), result);
+		trackable().track(result, types().type(tuple));
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
 		return result;
 	}
@@ -496,26 +493,24 @@ public interface Code {
 	default String evaluate(ExprIf expr) {
 		Type type = types().type(expr);
 		String temp = variables().generateTemp();
-		if (type instanceof AlgebraicType || backend().alias().isAlgebraicType(type)) {
-			memoryStack().trackPointer(temp, type);
-		}
+		trackable().track(temp, type);
 		String decl = declaration(type, temp);
 		emitter().emit("%s = %s;", decl, backend().defaultValues().defaultValue(type));
 		emitter().emit("if (%s) {", evaluate(expr.getCondition()));
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		Type thenType = types().type(expr.getThenExpr());
 		String thenValue = evaluate(expr.getThenExpr());
 		copy(type, temp, thenType, thenValue);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("} else {");
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		Type elseType = types().type(expr.getElseExpr());
 		String elseValue = evaluate(expr.getElseExpr());
 		copy(type, temp, elseType, elseValue);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		return temp;
@@ -541,9 +536,7 @@ public interface Code {
 		Type type = types().type(apply);
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		if ((type instanceof AlgebraicType) || (isAlgebraicTypeList(type)) || backend().alias().isAlgebraicType(type)) {
-			memoryStack().trackPointer(result, type);
-		}
+		trackable().track(result, type);
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
 		return result;
 	}
@@ -602,7 +595,7 @@ public interface Code {
 		String result = variables().generateTemp();
 		String decl = declaration(types().type(construction), result);
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
-		memoryStack().trackPointer(result, types().type(construction));
+		trackable().track(result, types().type(construction));
 		return result;
 	}
 
@@ -654,54 +647,52 @@ public interface Code {
 	}
 
 	default void execute(StmtAssignment assign) {
-		memoryStack().enterScope();
+		trackable().enter();
 		Type type = types().lvalueType(assign.getLValue());
 		String lvalue = lvalue(assign.getLValue());
 		copy(type, lvalue, types().type(assign.getExpression()), evaluate(assign.getExpression()));
-		memoryStack().exitScope();
+		trackable().exit();
 	}
 
 	default void execute(StmtBlock block) {
 		emitter().emit("{");
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		backend().callables().declareEnvironmentForCallablesInScope(block);
 		for (VarDecl decl : block.getVarDecls()) {
 			Type t = types().declaredType(decl);
 			String declarationName = variables().declarationName(decl);
 			String d = declaration(t, declarationName);
-			if (t instanceof AlgebraicType || backend().alias().isAlgebraicType(t)) {
-				memoryStack().trackPointer(declarationName, t);
-			}
+			trackable().track(declarationName, t);
 			emitter().emit("%s = %s;", d, backend().defaultValues().defaultValue(t));
 			if (decl.getValue() != null) {
 				copy(t, declarationName, types().type(decl.getValue()), evaluate(decl.getValue()));
 			}
 		}
 		block.getStatements().forEach(this::execute);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
 
 	default void execute(StmtIf stmt) {
-		memoryStack().enterScope();
+		trackable().enter();
 		emitter().emit("if (%s) {", evaluate(stmt.getCondition()));
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		stmt.getThenBranch().forEach(this::execute);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		if (stmt.getElseBranch() != null) {
 			emitter().emit("} else {");
 			emitter().increaseIndentation();
-			memoryStack().enterScope();
+			trackable().enter();
 			stmt.getElseBranch().forEach(this::execute);
-			memoryStack().exitScope();
+			trackable().exit();
 			emitter().decreaseIndentation();
 		}
 		emitter().emit("}");
-		memoryStack().exitScope();
+		trackable().exit();
 	}
 
 	default void execute(StmtForeach foreach) {
@@ -709,11 +700,11 @@ public interface Code {
 			for (Expression filter : foreach.getFilters()) {
 				emitter().emit("if (%s) {", evaluate(filter));
 				emitter().increaseIndentation();
-				memoryStack().enterScope();
+				trackable().enter();
 			}
 			foreach.getBody().forEach(this::execute);
 			for (Expression filter : foreach.getFilters()) {
-				memoryStack().exitScope();
+				trackable().exit();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 			}
@@ -721,7 +712,7 @@ public interface Code {
 	}
 
 	default void execute(StmtCall call) {
-		memoryStack().enterScope();
+		trackable().enter();
 		Optional<String> directlyCallable = backend().callables().directlyCallableName(call.getProcedure());
 		String proc;
 		List<String> parameters = new ArrayList<>();
@@ -739,16 +730,16 @@ public interface Code {
 			parameters.add(passByValue(param, type));
 		}
 		emitter().emit("%s(%s);", proc, String.join(", ", parameters));
-		memoryStack().exitScope();
+		trackable().exit();
 	}
 
 	default void execute(StmtWhile stmt) {
 		emitter().emit("while (true) {");
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		emitter().emit("if (!%s) break;", evaluate(stmt.getCondition()));
 		stmt.getBody().forEach(this::execute);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
@@ -787,7 +778,7 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
 		copy(type, tmp, type, param);
-		memoryStack().trackPointer(tmp, type);
+		trackable().track(tmp, type);
 		return tmp;
 	}
 
@@ -798,8 +789,16 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
 		copy(type, tmp, type, param);
-		memoryStack().trackPointer(tmp, type);
+		trackable().track(tmp, type);
 		return tmp;
+	}
+
+	default String passByValue(String param, TupleType type) {
+		return passByValue(param, backend().tuples().convert().apply(type));
+	}
+
+	default String passByValue(String param, AliasType type) {
+		return passByValue(param, type.getConcreteType());
 	}
 
 	default String returnValue(String result, Type type) {
@@ -821,5 +820,13 @@ public interface Code {
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
 		copy(type, tmp, type, result);
 		return tmp;
+	}
+
+	default String returnValue(String result, TupleType type) {
+		return returnValue(result, backend().tuples().convert().apply(type));
+	}
+
+	default String returnValue(String result, AliasType type) {
+		return returnValue(result, type.getConcreteType());
 	}
 }

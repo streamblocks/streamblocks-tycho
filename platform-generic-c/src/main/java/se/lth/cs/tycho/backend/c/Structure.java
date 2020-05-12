@@ -176,9 +176,9 @@ public interface Structure {
 		for (Transition transition : actorMachine.getTransitions()) {
 			emitter().emit("static void %s_transition_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 			transition.getBody().forEach(code()::execute);
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -192,11 +192,11 @@ public interface Structure {
 		for (Condition condition : actorMachine.getConditions()) {
 			emitter().emit("static _Bool %s_condition_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 			String result = evaluateCondition(condition);
 			String tmp = backend().variables().generateTemp();
 			emitter().emit("%s = %s;", backend().code().declaration(BoolType.INSTANCE, tmp), result);
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().emit("return %s;", tmp);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
@@ -236,9 +236,9 @@ public interface Structure {
 				} else if (var.getValue() != null) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
-					backend().memoryStack().enterScope();
+					backend().trackable().enter();
 					code().copy(types().declaredType(var), "self->" + backend().variables().declarationName(var), types().type(var.getValue()), code().evaluate(var.getValue()));
-					backend().memoryStack().exitScope();
+					backend().trackable().exit();
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				} else {
