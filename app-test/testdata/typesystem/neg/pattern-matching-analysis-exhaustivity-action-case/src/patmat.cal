@@ -1,0 +1,17 @@
+namespace patmat:
+    type T : A | B(T t) end
+    type U : (int n, bool b) end
+    actor ExhaustivityActionCase() T X, U Y ==>:
+        action
+            case
+                X:[A], Y:[U(1, false)] ==>
+                do
+                end
+            else
+                X:[B(A)], Y:[U(2, false)] ==>
+                do
+                end
+            end
+        end
+    end
+end

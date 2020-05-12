@@ -10,6 +10,10 @@ import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.decoration.StructuralEquality;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.entity.cal.Action;
+import se.lth.cs.tycho.ir.entity.cal.ActionCase;
+import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
@@ -24,6 +28,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
 import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
@@ -42,11 +47,13 @@ import se.lth.cs.tycho.type.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -81,6 +88,8 @@ public class CaseAnalysisPhase implements Phase {
 
 		Recursive recursive = MultiJ.from(Recursive.class).instance();
 
+		Transform transform = MultiJ.from(Transform.class).instance();
+
 		Printer printer = MultiJ.from(Printer.class)
 				.bind("flatten").to(flatten)
 				.instance();
@@ -112,6 +121,7 @@ public class CaseAnalysisPhase implements Phase {
 				.bind("printer").to(printer)
 				.bind("reporter").to(reporter)
 				.bind("tree").to(tree)
+				.bind("transform").to(transform)
 				.instance();
 
 		Redundancy redundancy = MultiJ.from(Redundancy.class)
@@ -120,6 +130,7 @@ public class CaseAnalysisPhase implements Phase {
 				.bind("ops").to(ops)
 				.bind("reporter").to(reporter)
 				.bind("tree").to(tree)
+				.bind("transform").to(transform)
 				.instance();
 
 		SpaceLogic logic = MultiJ.from(SpaceLogic.class)
@@ -147,24 +158,42 @@ public class CaseAnalysisPhase implements Phase {
 		TreeShadow tree();
 
 		default void analyse(IRNode node) {
-			check(node);
+			apply(node);
 			node.forEachChild(this::analyse);
 		}
 
-		default void check(IRNode node) {
-
-		}
-
-		default void check(ExprCase expr) {
-			if (fromMatch(expr)) {
+		default void apply(IRNode node) {
+			if (!(checkable(node))) {
 				return;
 			}
-			logic().checkExhaustivity(expr);
-			logic().checkRedundancy(expr);
+			logic().checkExhaustivity(node);
+			logic().checkRedundancy(node);
 		}
 
-		default boolean fromMatch(ExprCase expr) {
-			return tree().parent(expr) instanceof Match;
+		default boolean checkable(IRNode node) {
+			return false;
+		}
+
+		default boolean checkable(ExprCase expr) {
+			return !(tree().parent(expr) instanceof Match);
+		}
+
+		default boolean checkable(ActionCase action) {
+			if (action.getActions().stream()
+					.anyMatch(a -> a.getInputPatterns().stream()
+							.anyMatch(i -> i.getMatches().size() != 1 || i.getRepeatExpr() != null))) {
+				return false;
+			}
+
+			Set<Port> ports = action.getActions().get(0).getInputPatterns().stream()
+					.map(InputPattern::getPort)
+					.collect(Collectors.toSet());
+
+			return action.getActions()
+					.subList(1, action.getActions().size()).stream()
+					.allMatch(a -> ports.equals(a.getInputPatterns().stream()
+							.map(InputPattern::getPort)
+							.collect(Collectors.toSet())));
 		}
 	}
 
@@ -275,12 +304,12 @@ public class CaseAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		Redundancy redundancy();
 
-		default void checkExhaustivity(ExprCase expr) {
-			exhaustivity().check(expr);
+		default void checkExhaustivity(IRNode node) {
+			exhaustivity().check(node);
 		}
 
-		default void checkRedundancy(ExprCase expr) {
-			redundancy().check(expr);
+		default void checkRedundancy(IRNode node) {
+			redundancy().check(node);
 		}
 	}
 
@@ -311,6 +340,13 @@ public class CaseAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();
 
+		@Binding(BindingKind.INJECTED)
+		Transform transform();
+
+		default void check(IRNode node) {
+
+		}
+
 		default void check(ExprCase expr) {
 			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
 
@@ -332,6 +368,32 @@ public class CaseAnalysisPhase implements Phase {
 						.append(String.format("It would fail on pattern%s: %s", uncovered.size() != 1 ? "s" : "" , printer().apply(Space.Union.of(uncovered))))
 						.toString();
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(expr), expr.getExpression()));
+			}
+		}
+
+		default void check(ActionCase action) {
+			ExprCase expr = transform().apply(action);
+
+			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
+
+			Space patternSpace = expr.getAlternatives().stream()
+					.map(a -> a.getGuards().isEmpty() ? project().apply(a.getPattern()) : Space.EMPTY)
+					.reduce((a, b) -> Space.Union.of(Arrays.asList(a, b))).get();
+
+			List<Space> uncovered = flatten()
+					.apply(ops().simplify(ops().minus(targetSpace, patternSpace), true))
+					.stream()
+					.filter(s -> s != Space.EMPTY && satisfiable().test(s))
+					.collect(Collectors.toList());
+
+			if (!uncovered.isEmpty()) {
+				String message = new StringBuilder()
+						.append("action case may not be exhaustive.")
+						.append(System.lineSeparator())
+						.append(System.lineSeparator())
+						.append(String.format("It would fail on action%s: %s", uncovered.size() != 1 ? "s" : "" , printer().apply(Space.Union.of(uncovered))))
+						.toString();
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(action), expr.getExpression()));
 			}
 		}
 
@@ -362,6 +424,13 @@ public class CaseAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();
 
+		@Binding(BindingKind.INJECTED)
+		Transform transform();
+
+		default void check(IRNode node) {
+
+		}
+
 		default void check(ExprCase expr) {
 			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
 
@@ -379,6 +448,29 @@ public class CaseAnalysisPhase implements Phase {
 
 				if (ops().isSubSpace(covered, previousSpace)) {
 					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unreachable alternative.", sourceUnit(expr), expr.getAlternatives().get(i).getPattern()));
+				}
+			}
+		}
+
+		default void check(ActionCase action) {
+			ExprCase expr = transform().apply(action);
+
+			Space targetSpace = Space.Universe.of(types().type(expr.getExpression()));
+
+			for (int i = 1; i < expr.getAlternatives().size(); ++i) {
+				Space previousSpace = expr.getAlternatives().stream()
+						.limit(i)
+						.map(a -> a.getGuards().isEmpty() ? project().apply(a.getPattern()) : Space.EMPTY)
+						.reduce((a, b) -> Space.Union.of(Arrays.asList(a, b))).get();
+
+				Space currentSpace = project()
+						.apply(expr.getAlternatives().get(i).getPattern());
+
+				Space covered = ops().
+						simplify(ops().intersect(currentSpace, targetSpace), false);
+
+				if (ops().isSubSpace(covered, previousSpace)) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unreachable action.", sourceUnit(action), expr.getAlternatives().get(i).getPattern()));
 				}
 			}
 		}
@@ -408,7 +500,7 @@ public class CaseAnalysisPhase implements Phase {
 
 		default Space apply(PatternLiteral pattern) {
 			if (types().type(pattern) instanceof BoolType) {
-				return Space.Universe.of(new ConstantType(Boolean.valueOf(pattern.getLiteral().getText())));
+				return Space.Universe.of(new TypeUtils.ConstantType(Boolean.valueOf(pattern.getLiteral().getText())));
 			} else {
 				return Space.Singleton.of(types().type(pattern), pattern.getLiteral());
 			}
@@ -454,6 +546,15 @@ public class CaseAnalysisPhase implements Phase {
 		default Space apply(PatternTuple pattern) {
 			Type type = types().type(pattern);
 			return Space.Product.of(type, type, pattern.getPatterns().map(this::apply));
+		}
+
+		default Space apply(PatternUtils.PatternActionCase pattern) {
+			Type type = types().type(pattern);
+			return Space.Product.of(type, type, pattern.getPatterns().map(this::apply));
+		}
+
+		default Space apply(PatternUtils.PatternPort pattern) {
+			return apply(pattern.getPattern());
 		}
 
 		default Space apply(PatternDeconstruction pattern) {
@@ -736,11 +837,27 @@ public class CaseAnalysisPhase implements Phase {
 			return true;
 		}
 
+		default boolean test(TypeUtils.ActionCaseType a, TypeUtils.ActionCaseType b) {
+			return IntStream.range(0, a.getTypes().size()).allMatch(i -> test(a.getTypes().get(i), b.getTypes().get(i)));
+		}
+
+		default boolean test(TypeUtils.ActionCaseInputType a, TypeUtils.ActionCaseInputType b) {
+			return test(a.getType(), b.getType());
+		}
+
+		default boolean test(TypeUtils.ActionCaseInputType a, Type b) {
+			return test(a.getType(), b);
+		}
+
+		default boolean test(Type a, TypeUtils.ActionCaseInputType b) {
+			return test(a, b.getType());
+		}
+
 		default boolean test(SumType.VariantType a, SumType b) {
 			return b.getVariants().contains(a);
 		}
 
-		default boolean test(ConstantType a, BoolType b) {
+		default boolean test(TypeUtils.ConstantType a, BoolType b) {
 			return true;
 		}
 
@@ -770,6 +887,22 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean test(TupleType a, TupleType b) {
 			return true;
+		}
+
+		default boolean test(TypeUtils.ActionCaseType a, TypeUtils.ActionCaseType b) {
+			return IntStream.range(0, a.getTypes().size()).allMatch(i -> test(a.getTypes().get(i), b.getTypes().get(i)));
+		}
+
+		default boolean test(TypeUtils.ActionCaseInputType a, TypeUtils.ActionCaseInputType b) {
+			return test(a.getType(), b.getType());
+		}
+
+		default boolean test(TypeUtils.ActionCaseInputType a, Type b) {
+			return test(a.getType(), b);
+		}
+
+		default boolean test(Type a, TypeUtils.ActionCaseInputType b) {
+			return test(a, b.getType());
 		}
 
 		default boolean test(AlgebraicType a, AlgebraicType b) {
@@ -819,7 +952,7 @@ public class CaseAnalysisPhase implements Phase {
 		List<Space> apply(Type type);
 
 		default List<Space> apply(BoolType type) {
-			return Arrays.asList(Space.Universe.of(new ConstantType(false)), Space.Universe.of(new ConstantType(true)));
+			return Arrays.asList(Space.Universe.of(new TypeUtils.ConstantType(false)), Space.Universe.of(new TypeUtils.ConstantType(true)));
 		}
 
 		default List<Space> apply(SumType type) {
@@ -846,6 +979,10 @@ public class CaseAnalysisPhase implements Phase {
 
 		default List<Type> apply(TupleType type) {
 			return type.getTypes();
+		}
+
+		default List<Type> apply(TypeUtils.ActionCaseType type) {
+			return type.getTypes().map(Type.class::cast);
 		}
 
 		default List<Type> apply(ProductType type) {
@@ -988,12 +1125,14 @@ public class CaseAnalysisPhase implements Phase {
 
 		default String doApply(Space.Universe space) {
 			Type type = space.type();
-			if (type instanceof ConstantType) {
-				return "" + ((ConstantType) type).value();
+			if (type instanceof TypeUtils.ConstantType) {
+				return "" + ((TypeUtils.ConstantType) type).value();
 			} else if (type instanceof ListType && ((ListType) type).getSize().isPresent()) {
 				return Collections.nCopies(((ListType) type).getSize().getAsInt(), "_").stream().collect(Collectors.joining(", ", "[", "]"));
 			} else if (type instanceof TupleType) {
 				return ((TupleType) type).getTypes().stream().map(t -> "_").collect(Collectors.joining(", ", "(", ")"));
+			} else if (type instanceof TypeUtils.ActionCaseType) {
+				return ((TypeUtils.ActionCaseType) type).getTypes().stream().map(t -> t.getName() + ":[_]").collect(Collectors.joining(", "));
 			} else if (type instanceof ProductType) {
 				ProductType product = (ProductType) type;
 				if (product.getFields().isEmpty()) {
@@ -1023,6 +1162,9 @@ public class CaseAnalysisPhase implements Phase {
 				return space.spaces().stream().map(s -> doApply(s)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "[", "]"));
 			} else if (type instanceof TupleType) {
 				return space.spaces().stream().map(s -> doApply(s)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "(", ")"));
+			} else if (type instanceof TypeUtils.ActionCaseType) {
+				TypeUtils.ActionCaseType tpe = (TypeUtils.ActionCaseType) type;
+				return IntStream.range(0, tpe.getTypes().size()).mapToObj(i -> String.format("%s:[%s]", tpe.getTypes().get(i).getName(), doApply(space.spaces().get(i)))).collect(Collectors.joining(", "));
 			} else if (type instanceof AlgebraicType) {
 				String constructorStr = space.apply() instanceof SumType.VariantType ? ((SumType.VariantType) space.apply()).getName() : ((ProductType) space.apply()).getName();
 				String parametersStr = space.spaces().stream().map(s -> doApply(s)).collect(Collectors.joining(", ", "(", ")"));
@@ -1034,6 +1176,58 @@ public class CaseAnalysisPhase implements Phase {
 
 		default String doApply(Space.Union space) {
 			throw new RuntimeException("incorrect flatten result");
+		}
+	}
+
+	@Module
+	interface Transform {
+
+		ExprCase apply(IRNode node);
+
+		default ExprCase apply(ActionCase action) {
+			Expression expression = new ExpressionUtils.ExprActionCase(
+					action.getActions().get(0).getInputPatterns().stream()
+							.sorted(Comparator.comparing(i -> i.getPort().getName()))
+							.map(i -> new ExpressionUtils.ExprActionInputCase(i.getPort().getName(), i.getMatches().get(0).getExpression().getExpression()))
+							.collect(Collectors.toList()));
+			expression.setPosition(action, action);
+
+			action.getActions().get(0).getInputPatterns().stream()
+					.sorted(Comparator.comparing(i -> i.getPort().getName()))
+					.map(i -> i.getMatches().get(0).getExpression().getExpression());
+
+			expression.setPosition(action, action);
+
+			List<ExprCase.Alternative> alternatives = new ArrayList<>();
+			for (Action a : action.getActions()) {
+				List<InputPattern> inputs = a.getInputPatterns().stream()
+						.sorted(Comparator.comparing(i -> i.getPort().getName()))
+						.collect(Collectors.toList());
+
+				List<PatternUtils.PatternPort> patterns = new ArrayList<>();
+				for (InputPattern i : inputs) {
+					PatternUtils.PatternPort pattern = new PatternUtils.PatternPort(
+							i.getPort(),
+							i.getMatches().get(0)
+								.getExpression()
+								.getAlternatives().get(0)
+								.getPattern());
+					pattern.setPosition(i, i);
+					patterns.add(pattern);
+				}
+
+				PatternUtils.PatternActionCase pattern = new PatternUtils.PatternActionCase(patterns);
+				pattern.setPosition(a.getInputPatterns().get(0), a.getInputPatterns().get(a.getInputPatterns().size() - 1));
+
+				ExprCase.Alternative alternative = new ExprCase.Alternative(pattern, Collections.emptyList(), null);
+				alternative.setPosition(a, a);
+				alternatives.add(alternative);
+			}
+
+			ExprCase exprCase = new ExprCase(expression, alternatives);
+			exprCase.setPosition(action, action);
+
+			return exprCase;
 		}
 	}
 
@@ -1060,29 +1254,222 @@ public class CaseAnalysisPhase implements Phase {
 		}
 	}
 
-	static class ConstantType implements Type {
+	public static class TypeUtils {
 
-		private final boolean value;
+		static class ConstantType implements Type {
 
-		public ConstantType(boolean value) {
-			this.value = value;
+			private final boolean value;
+
+			public ConstantType(boolean value) {
+				this.value = value;
+			}
+
+			public boolean value() {
+				return value;
+			}
+
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) return true;
+				if (o == null || getClass() != o.getClass()) return false;
+				ConstantType that = (ConstantType) o;
+				return value == that.value;
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(value);
+			}
 		}
 
-		public boolean value() {
-			return value;
+		public static class ActionCaseType implements Type {
+
+			private final ImmutableList<ActionCaseInputType> types;
+
+			public ActionCaseType(ImmutableList<ActionCaseInputType> types) {
+				this.types = types;
+			}
+
+			public ImmutableList<ActionCaseInputType> getTypes() {
+				return types;
+			}
+
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) return true;
+				if (o == null || getClass() != o.getClass()) return false;
+				ActionCaseType that = (ActionCaseType) o;
+				return getTypes().equals(that.getTypes());
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(getTypes());
+			}
 		}
 
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-			ConstantType that = (ConstantType) o;
-			return value == that.value;
+		public static class ActionCaseInputType implements Type {
+
+			private final String name;
+			private final Type type;
+
+			public ActionCaseInputType(String name, Type type) {
+				this.name = name;
+				this.type = type;
+			}
+
+			public String getName() {
+				return name;
+			}
+
+			public Type getType() {
+				return type;
+			}
+
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) return true;
+				if (o == null || getClass() != o.getClass()) return false;
+				ActionCaseInputType that = (ActionCaseInputType) o;
+				return getName().equals(that.getName()) &&
+						getType().equals(that.getType());
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(getName(), getType());
+			}
+		}
+	}
+
+	public static class ExpressionUtils {
+
+		public static class ExprActionCase extends Expression {
+
+			private final ImmutableList<ExprActionInputCase> expressions;
+
+			public ExprActionCase(List<ExprActionInputCase> expressions) {
+				this(null, expressions);
+			}
+
+			public ExprActionCase(IRNode original, List<ExprActionInputCase> expressions) {
+				super(original);
+				this.expressions = ImmutableList.from(expressions);
+			}
+
+			public ImmutableList<ExprActionInputCase> getExpressions() {
+				return expressions;
+			}
+
+			@Override
+			public void forEachChild(Consumer<? super IRNode> action) {
+
+			}
+
+			@Override
+			public Expression transformChildren(Transformation transformation) {
+				return this;
+			}
 		}
 
-		@Override
-		public int hashCode() {
-			return Objects.hash(value);
+		public static class ExprActionInputCase extends Expression {
+
+			private final String name;
+			private final Expression expression;
+
+			public ExprActionInputCase(String name, Expression expression) {
+				this(null, name, expression);
+			}
+
+			public ExprActionInputCase(IRNode original, String name, Expression expression) {
+				super(original);
+				this.name = name;
+				this.expression = expression;
+			}
+
+			public String getName() {
+				return name;
+			}
+
+			public Expression getExpression() {
+				return expression;
+			}
+
+			@Override
+			public void forEachChild(Consumer<? super IRNode> action) {
+
+			}
+
+			@Override
+			public Expression transformChildren(Transformation transformation) {
+				return this;
+			}
+		}
+	}
+
+	public static class PatternUtils {
+
+		public static class PatternActionCase extends Pattern {
+
+			private final ImmutableList<PatternPort> patterns;
+
+			public PatternActionCase(List<PatternPort> patterns) {
+				this(null, patterns);
+			}
+
+			public PatternActionCase(IRNode original, List<PatternPort> patterns) {
+				super(original);
+				this.patterns = ImmutableList.from(patterns);
+			}
+
+			public ImmutableList<PatternPort> getPatterns() {
+				return patterns;
+			}
+
+
+			@Override
+			public void forEachChild(Consumer<? super IRNode> action) {
+
+			}
+
+			@Override
+			public IRNode transformChildren(Transformation transformation) {
+				return this;
+			}
+		}
+
+		public static class PatternPort extends Pattern {
+
+			private final Port port;
+			private final Pattern pattern;
+
+			public PatternPort(Port port, Pattern pattern) {
+				this(null, port, pattern);
+			}
+
+			public PatternPort(IRNode original, Port port, Pattern pattern) {
+				super(original);
+				this.port = port;
+				this.pattern = pattern;
+			}
+
+			public Port getPort() {
+				return port;
+			}
+
+			public Pattern getPattern() {
+				return pattern;
+			}
+
+			@Override
+			public void forEachChild(Consumer<? super IRNode> action) {
+
+			}
+
+			@Override
+			public IRNode transformChildren(Transformation transformation) {
+				return this;
+			}
 		}
 	}
 }

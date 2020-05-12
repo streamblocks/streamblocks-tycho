@@ -36,6 +36,7 @@ import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
 import se.lth.cs.tycho.ir.type.TupleTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phase.CaseAnalysisPhase;
 import se.lth.cs.tycho.phase.TreeShadow;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.type.*;
@@ -152,6 +153,14 @@ public interface Types {
 				return deduce(pattern);
 			}
 			return infer(pattern);
+		}
+
+		default Type type(CaseAnalysisPhase.PatternUtils.PatternActionCase pattern) {
+			return new CaseAnalysisPhase.TypeUtils.ActionCaseType(pattern.getPatterns().map(p -> (CaseAnalysisPhase.TypeUtils.ActionCaseInputType) type(p)));
+		}
+
+		default Type type(CaseAnalysisPhase.PatternUtils.PatternPort pattern) {
+			return new CaseAnalysisPhase.TypeUtils.ActionCaseInputType(pattern.getPort().getName(), type(pattern.getPattern()));
 		}
 
 		default boolean deducible(PatternList pattern) {
@@ -903,6 +912,13 @@ public interface Types {
 			}
 		}
 
+		default Type computeType(CaseAnalysisPhase.ExpressionUtils.ExprActionCase expr) {
+			return new CaseAnalysisPhase.TypeUtils.ActionCaseType(expr.getExpressions().map(e -> (CaseAnalysisPhase.TypeUtils.ActionCaseInputType) type(e)));
+		}
+
+		default Type computeType(CaseAnalysisPhase.ExpressionUtils.ExprActionInputCase expr) {
+			return new CaseAnalysisPhase.TypeUtils.ActionCaseInputType(expr.getName(), type(expr.getExpression()));
+		}
 
 		default Type leastUpperBound(Type a, Type b) {
 			return TopType.INSTANCE;

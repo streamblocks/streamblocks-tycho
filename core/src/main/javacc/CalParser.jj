@@ -1364,11 +1364,11 @@ ActionCase ActionCase() :
 {
   ( tag = QID() ":" )?
   "action"
-  "case"
   {
     beginLine = token.beginLine;
     beginColumn = token.beginColumn;
   }
+  "case"
   action = ActionLambda() { actions.add(action); }
   (
     "else"
