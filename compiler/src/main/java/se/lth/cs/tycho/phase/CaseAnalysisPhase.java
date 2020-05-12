@@ -689,6 +689,8 @@ public class CaseAnalysisPhase implements Phase {
 				return ((Space.Union) _a).spaces().stream().allMatch(s -> isSubSpace(s, b));
 			} else if (_a instanceof Space.Universe && b instanceof Space.Universe) {
 				return subtype().test(((Space.Universe) _a).type(), ((Space.Universe) b).type());
+			} else if (_a instanceof Space.Universe && b instanceof Space.Union) {
+				return ((Space.Union) b).spaces().stream().anyMatch(s -> isSubSpace(a, s)) || isSubSpaceTryDecompose1(((Space.Universe) _a).type(), b);
 			} else if (b instanceof Space.Union) {
 				return simplify(minus(a, b), false) == Space.EMPTY;
 			} else if (_a instanceof Space.Product && b instanceof Space.Universe) {
@@ -704,6 +706,10 @@ public class CaseAnalysisPhase implements Phase {
 			} else {
 				return false;
 			}
+		}
+
+		default boolean isSubSpaceTryDecompose1(Type type, Space space) {
+			return decompose().test(type) && isSubSpace(Space.Union.of(decompose().apply(type)), space);
 		}
 	}
 
@@ -723,6 +729,10 @@ public class CaseAnalysisPhase implements Phase {
 		}
 
 		default boolean test(ListType a, ListType b) {
+			return true;
+		}
+
+		default boolean test(TupleType a, TupleType b) {
 			return true;
 		}
 
@@ -755,7 +765,11 @@ public class CaseAnalysisPhase implements Phase {
 		}
 
 		default boolean test(ListType a, ListType b) {
-			return a.equals(b);
+			return true;
+		}
+
+		default boolean test(TupleType a, TupleType b) {
+			return true;
 		}
 
 		default boolean test(AlgebraicType a, AlgebraicType b) {
@@ -776,10 +790,6 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean test(Type a, AliasType b) {
 			return test(a, b.getType());
-		}
-
-		default boolean test(TupleType a, TupleType b) {
-			return a.equals(b);
 		}
 	}
 
@@ -802,10 +812,6 @@ public class CaseAnalysisPhase implements Phase {
 			return true;
 		}
 
-		default boolean test(TupleType type) {
-			return true;
-		}
-
 		default boolean test(AliasType type) {
 			return test(type.getType());
 		}
@@ -824,10 +830,6 @@ public class CaseAnalysisPhase implements Phase {
 			return Collections.singletonList(Space.Universe.of(type));
 		}
 
-		default List<Space> apply(TupleType type) {
-			return Collections.singletonList(Space.Universe.of(type));
-		}
-
 		default List<Space> apply(AliasType type) {
 			return apply(type.getType());
 		}
@@ -842,6 +844,10 @@ public class CaseAnalysisPhase implements Phase {
 			return Collections.nCopies(type.getSize().getAsInt(), type.getElementType());
 		}
 
+		default List<Type> apply(TupleType type) {
+			return type.getTypes();
+		}
+
 		default List<Type> apply(ProductType type) {
 			return type.getFields().stream().map(FieldType::getType).collect(Collectors.toList());
 		}
@@ -852,10 +858,6 @@ public class CaseAnalysisPhase implements Phase {
 
 		default List<Type> apply(AliasType type) {
 			return apply(type.getType());
-		}
-
-		default List<Type> apply(TupleType type) {
-			return type.getTypes();
 		}
 	}
 
@@ -876,6 +878,10 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean test(AliasType type) {
 			return test(type.getType());
+		}
+
+		default boolean test(ListType type) {
+			return test(type.getElementType());
 		}
 
 		default boolean test(TupleType type) {
@@ -904,6 +910,10 @@ public class CaseAnalysisPhase implements Phase {
 
 		default boolean visit(AliasType type, Set<Type> visited) {
 			return visit(type.getType(), visited);
+		}
+
+		default boolean visit(ListType type, Set<Type> visited) {
+			return visited.add(type) || visit(type.getElementType(), visited);
 		}
 
 		default boolean visit(TupleType type, Set<Type> visited) {
@@ -982,6 +992,8 @@ public class CaseAnalysisPhase implements Phase {
 				return "" + ((ConstantType) type).value();
 			} else if (type instanceof ListType && ((ListType) type).getSize().isPresent()) {
 				return Collections.nCopies(((ListType) type).getSize().getAsInt(), "_").stream().collect(Collectors.joining(", ", "[", "]"));
+			} else if (type instanceof TupleType) {
+				return ((TupleType) type).getTypes().stream().map(t -> "_").collect(Collectors.joining(", ", "(", ")"));
 			} else if (type instanceof ProductType) {
 				ProductType product = (ProductType) type;
 				if (product.getFields().isEmpty()) {
@@ -996,8 +1008,6 @@ public class CaseAnalysisPhase implements Phase {
 				} else {
 					return variant.getName() + variant.getFields().stream().map(f -> "_").collect(Collectors.joining(", ", "(", ")"));
 				}
-			} else if (type instanceof TupleType) {
-				return ((TupleType) type).getTypes().stream().map(t -> "_").collect(Collectors.joining(", ", "(", ")"));
 			} else {
 				return "_";
 			}
@@ -1012,6 +1022,9 @@ public class CaseAnalysisPhase implements Phase {
 			if (type instanceof ListType) {
 				if (flattenList) return space.spaces().stream().map(s -> doApply(s, flattenList)).collect(Collectors.joining(", "));
 				else return space.spaces().stream().map(s -> doApply(s, true)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "[", "]"));
+			} else if (type instanceof TupleType) {
+				if (flattenList) return space.spaces().stream().map(s -> doApply(s, flattenList)).collect(Collectors.joining(", "));
+				else return space.spaces().stream().map(s -> doApply(s, true)).filter(s -> !s.isEmpty()).collect(Collectors.joining(", ", "(", ")"));
 			} else if (type instanceof AlgebraicType) {
 				String constructorStr = space.apply() instanceof SumType.VariantType ? ((SumType.VariantType) space.apply()).getName() : ((ProductType) space.apply()).getName();
 				String parametersStr = space.spaces().stream().map(s -> doApply(s, true)).collect(Collectors.joining(", ", "(", ")"));
