@@ -1,6 +1,6 @@
 namespace patmat:
-    int a;
     actor AlternativeExpressionType() ==> int OUT:
+        int a;
         do
             OUT <--
                 case a of

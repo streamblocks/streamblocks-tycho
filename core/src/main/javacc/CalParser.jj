@@ -654,7 +654,9 @@ GlobalVarDecl GlobalVarDecl() :
         ProcedureVarDecl(varDecl)
     )
     {
-		return VarDecl.global(varDecl.availability, varDecl.type, varDecl.name, varDecl.value).asExternal(varDecl.external);
+		GlobalVarDecl globalVarDecl = VarDecl.global(varDecl.availability, varDecl.type, varDecl.name, varDecl.value).asExternal(varDecl.external);
+		globalVarDecl.setPosition(varDecl.fromLine, varDecl.fromCol, varDecl.toLine, varDecl.toCol);
+		return globalVarDecl;
     }
 }
 
