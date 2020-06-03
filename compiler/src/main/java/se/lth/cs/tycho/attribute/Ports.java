@@ -7,11 +7,14 @@ import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.PortCondition;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
+import se.lth.cs.tycho.ir.entity.cal.Match;
 import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
+import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.stmt.StmtConsume;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
@@ -32,6 +35,8 @@ public interface Ports {
     boolean isInputPort(PortDecl decl);
     boolean isOutputPort(PortDecl decl);
 
+    PortDecl declaration(PatternVarDecl patternVarDecl);
+
     @Module
     interface Implementation extends Ports {
         @Binding(BindingKind.INJECTED)
@@ -51,6 +56,25 @@ public interface Ports {
                 node = tree().parent(node);
             }
             return null;
+        }
+
+        @Override
+        default PortDecl declaration(PatternVarDecl patternVarDecl) {
+            // InputPattern > Match > ExprCase > Alternative > Pattern > PatternVarDecl
+            IRNode node = null;
+
+            node = tree().parent(tree().parent(patternVarDecl));
+            if (!(node instanceof ExprCase.Alternative)) {
+                return null;
+            }
+
+            node = tree().parent(tree().parent(node));
+            if (!(node instanceof Match)) {
+                return null;
+            }
+
+            InputPattern inputPattern = (InputPattern) tree().parent(node);
+            return declaration(inputPattern.getPort());
         }
 
         default Optional<ImmutableList<PortDecl>> declarations(IRNode node) {
