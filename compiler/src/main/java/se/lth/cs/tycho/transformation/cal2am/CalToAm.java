@@ -59,7 +59,7 @@ public class CalToAm {
 	}
 
 	public ActorMachine buildActorMachine() {
-		return new ActorMachine(actor.getInputPorts(), actor.getOutputPorts(), actor.getTypeParameters(), actor.getValueParameters(), scopes.getScopes(), new CalController(), transitions.getAllTransitions(), conditions.getAllConditions());
+		return new ActorMachine(actor.getAnnotations(), actor.getInputPorts(), actor.getOutputPorts(), actor.getTypeParameters(), actor.getValueParameters(), scopes.getScopes(), new CalController(), transitions.getAllTransitions(), conditions.getAllConditions());
 	}
 
 	private class CalController implements Controller {

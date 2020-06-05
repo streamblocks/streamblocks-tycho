@@ -153,6 +153,7 @@ public class InternalizeBuffersPhase implements Phase {
 		ImmutableList<Scope> scopes = transformScopes(actorMachine.getScopes(), inputPortMap, outputPortMap);
 		ImmutableList<Transition> transitions = transformTransitions(actorMachine.getTransitions(), inputPortMap.keySet(), outputPortMap);
 		return actorMachine.copy(
+				actorMachine.getAnnotations(),
 				inputPorts,
 				outputPorts,
 				actorMachine.getTypeParameters(),
@@ -199,7 +200,7 @@ public class InternalizeBuffersPhase implements Phase {
 				Map<Port, Integer> outputRates = transition.getOutputRates().keySet().stream()
 						.filter(port -> !outputPortMap.containsKey(port.getName()))
 						.collect(Collectors.toMap(Function.identity(), transition.getOutputRates()::get));
-				transition = transition.copy(transition.getInputRates(), outputRates, transition.getScopesToKill(), transition.getBody());
+				transition = transition.copy(transition.getAnnotations(), transition.getInputRates(), outputRates, transition.getScopesToKill(), transition.getBody());
 				transition = transition.transformChildren(this);
 				return transition;
 			}
@@ -267,6 +268,7 @@ public class InternalizeBuffersPhase implements Phase {
 					.filter(port -> !inputPorts().contains(port.getName()))
 					.collect(Collectors.toMap(Function.identity(), transition.getInputRates()::get));
 			return transition.copy(
+					transition.getAnnotations(),
 					inputRates,
 					transition.getOutputRates(),
 					transition.getScopesToKill(),
@@ -293,7 +295,7 @@ public class InternalizeBuffersPhase implements Phase {
 				.distinct() // one variable per port, irrespective of how many consumers
 				.collect(Collectors.toMap(Function.identity(), port -> {
 					TypeExpr type = actorMachine.getOutputPorts().stream().filter(p -> p.getName().equals(port)).findFirst().get().getType();
-					return VarDecl.local(type, String.format("%s_%d", port, uniqueNumbers.next()), null, false);
+					return VarDecl.local(ImmutableList.empty(), type, String.format("%s_%d", port, uniqueNumbers.next()), null, false);
 				}));
 	}
 

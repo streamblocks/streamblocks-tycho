@@ -51,7 +51,7 @@ public class XDF2NLReader {
 		ImmutableList<LocalVarDecl> varDecls = getVariableDeclarations(doc);
 		ImmutableList<PortDecl> inputPorts = getPorts(doc, true);
 		ImmutableList<PortDecl> outputPorts = getPorts(doc, false);
-		NlNetwork network = new NlNetwork(ImmutableList.empty(), parameters, ImmutableList.empty(), varDecls, inputPorts, outputPorts, instances, connections);
+		NlNetwork network = new NlNetwork(ImmutableList.empty(), ImmutableList.empty(), parameters, ImmutableList.empty(), varDecls, inputPorts, outputPorts, instances, connections);
 		GlobalEntityDecl networkDecl = GlobalEntityDecl.global(Availability.PUBLIC, qid.getLast().toString(), network);
 		return new NamespaceDecl(qid.getButLast(), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.of(networkDecl), ImmutableList.empty());
 	}
@@ -79,7 +79,7 @@ public class XDF2NLReader {
 			if (decl.getAttribute("kind").equals("Param")) {
 				String name = decl.getAttribute("name");
 				TypeExpr type = getTypeExpr(selectChild(decl, "Type"));
-				builder.add(new ParameterVarDecl(type, name, null));
+				builder.add(new ParameterVarDecl(ImmutableList.empty(), type, name, null));
 			}
 		}
 		return builder.build();
@@ -92,7 +92,7 @@ public class XDF2NLReader {
 				String name = decl.getAttribute("name");
 				TypeExpr type = getTypeExpr(selectChild(decl, "Type"));
 				Expression value = buildExpression(selectChild(decl, "Expr"));
-				builder.add(new LocalVarDecl(type, name, value, true));
+				builder.add(new LocalVarDecl(ImmutableList.empty(), type, name, value, true));
 			}
 		}
 		return builder.build();

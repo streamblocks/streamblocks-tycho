@@ -114,7 +114,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             stmt.accept(nb, "");
         }
 
-        return new Network(inputPorts, outputPorts, nb.getInstances(), nb.getConnections());
+        return new Network(srcNetwork.getAnnotations(), inputPorts, outputPorts, nb.getInstances(), nb.getConnections());
     }
 
     @Override

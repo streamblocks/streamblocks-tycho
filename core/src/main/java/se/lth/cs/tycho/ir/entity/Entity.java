@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.entity;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
@@ -11,17 +12,23 @@ import java.util.function.Consumer;
 
 public abstract class Entity extends AbstractIRNode {
 
+	protected final ImmutableList<Annotation> annotations;
 	protected final ImmutableList<PortDecl> inputPorts;
 	protected final ImmutableList<PortDecl> outputPorts;
 	protected final ImmutableList<TypeDecl> typeParameters;
 	protected final ImmutableList<ParameterVarDecl> valueParameters;
 
-	public Entity(IRNode original, List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters) {
+	public Entity(IRNode original, List<Annotation> annotations,  List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters) {
 		super(original);
+		this.annotations =  ImmutableList.from(annotations);
 		this.inputPorts = ImmutableList.from(inputPorts);
 		this.outputPorts = ImmutableList.from(outputPorts);
 		this.valueParameters = ImmutableList.from(valueParameters);
 		this.typeParameters = ImmutableList.from(typeParameters);
+	}
+
+	public ImmutableList<Annotation> getAnnotations() {
+		return annotations;
 	}
 
 	public ImmutableList<PortDecl> getInputPorts() {
@@ -50,6 +57,7 @@ public abstract class Entity extends AbstractIRNode {
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
+		annotations.forEach(action);
 		inputPorts.forEach(action);
 		outputPorts.forEach(action);
 		typeParameters.forEach(action);

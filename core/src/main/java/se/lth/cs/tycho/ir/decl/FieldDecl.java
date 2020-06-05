@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.decl;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.type.TypeExpr;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -13,7 +14,7 @@ public class FieldDecl extends VarDecl {
 	}
 
 	private FieldDecl(VarDecl original, TypeExpr type, String name) {
-		super(original, type, name, null, false, false);
+		super(original, ImmutableList.empty(), type, name, null, false, false);
 	}
 
 	@Override

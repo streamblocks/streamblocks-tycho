@@ -49,6 +49,7 @@ public class CalParser {
 	    public String name = null;
 	    public boolean constant = true;
 	    public Expression value = null;
+	    public List<Annotation> annotations = new ArrayList<Annotation>();
     }
 
 	public static FunctionTypeExpr lambdaToType(ExprLambda lambda) {
@@ -328,28 +329,38 @@ Annotation Annotation() :
 {
 	Token id;
 	Token par;
+	ImmutableList.Builder<AnnotationParameter> parameters = ImmutableList.builder();
+	AnnotationParameter parameter;
 }
 {
 	"@" id = <ID>
 	(
 		"("
 		(
-			AnnotationParameter()
-			("," AnnotationParameter())*
+			parameter = AnnotationParameter() {parameters.add(parameter);}
+			("," parameter = AnnotationParameter() {parameters.add(parameter);})*
 		)?
 		")"
 	)?
-	{ return new Annotation(id.image, ImmutableList.empty()); }
+	{ return new Annotation(id.image, parameters.build()); }
 }
 
-void AnnotationParameter() :
+AnnotationParameter AnnotationParameter() :
 {
+	Token id;
+	Expression expression = null;
+	AnnotationParameter parameter;
 }
 {
+(
 	LOOKAHEAD(2)
-	<ID> "=" Expression()
+	id=<ID> "=" expression=Expression() {parameter = new AnnotationParameter(id.image, expression);}
 |
-	Expression()
+	expression=Expression() {parameter = new AnnotationParameter(null, expression);}
+)
+	{
+        return parameter;
+    }
 }
 
 NamespaceDecl NamespaceDecl() :
@@ -392,17 +403,18 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 	GlobalTypeDecl t;
 }
 {
-	(Annotation())*
 	(
 		i = Import() ";" { imports.add(i); }
+    |
+        LOOKAHEAD(( Annotation() )* "actor")
+        e = ActorDecl() { entityDecls.add(e); }
 	|
-		LOOKAHEAD(2)
-		v = GlobalVarDecl() { varDecls.add(v); }
+		LOOKAHEAD(( Annotation() )* "network")
+        e = NetworkDecl() { entityDecls.add(e); }
 	|
-		e = ActorDecl() { entityDecls.add(e); }
-	|
-		e = NetworkDecl() { entityDecls.add(e); }
-	|
+        LOOKAHEAD(2)
+        v = GlobalVarDecl() { varDecls.add(v); }
+    |
 		t = GlobalTypeDecl() { typeDecls.add(t); }
 	)*
 	{
@@ -449,8 +461,10 @@ Availability Availability() :
 void VariableVarDecl(GenericVarDecl varDecl) :
 {
     Token id;
+    Annotation annotation;
 }
 {
+    ( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
     { varDecl.constant = false; }
     (
         LOOKAHEAD(2)
@@ -496,10 +510,12 @@ void FunctionVarDecl(GenericVarDecl varDecl) :
 	ImmutableList<LocalVarDecl> varDecls = null;
 	TypeExpr returnType = null;
 	Expression body = null;
+	Annotation annotation;
 	int beginLine;
 	int beginColumn;
 }
 {
+    ( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
     "function"
     {
         beginLine = token.beginLine;
@@ -545,10 +561,12 @@ void ProcedureVarDecl(GenericVarDecl varDecl) :
 	ImmutableList<ParameterVarDecl> valPars;
 	ImmutableList<LocalVarDecl> varDecls = null;
 	ImmutableList<Statement> stmts = null;
+	Annotation annotation;
 	int beginLine;
 	int beginColumn;
 }
 {
+	( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
 	"procedure"
 	{
 	    beginLine = token.beginLine;
@@ -602,36 +620,49 @@ ImmutableList<LocalVarDecl> BlockVarDecls() :
 LocalVarDecl BlockVarDecl() :
 {
     GenericVarDecl varDecl = new GenericVarDecl();
+    ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+    Annotation annotation;
 }
 {
+
     (
+        LOOKAHEAD(4)
         VariableVarDecl(varDecl)
     |
+        LOOKAHEAD(( Annotation() )* "function")
         FunctionVarDecl(varDecl)
     |
+        LOOKAHEAD(( Annotation() )* "procedure")
         ProcedureVarDecl(varDecl)
     )
     {
-        return VarDecl.local(varDecl.type, varDecl.name, varDecl.value, varDecl.constant);
+        return VarDecl.local(ImmutableList.from(varDecl.annotations), varDecl.type, varDecl.name, varDecl.value, varDecl.constant);
     }
 }
 
 LocalVarDecl LocalVarDecl() :
 {
     GenericVarDecl varDecl = new GenericVarDecl();
+    ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+    Annotation annotation;
     boolean external = false;
+
 }
 {
+
     ("external" { varDecl.external = true; })?
     (
+        LOOKAHEAD(4)
         VariableVarDecl(varDecl) ";"
     |
+        LOOKAHEAD(( Annotation() )* "function")
         FunctionVarDecl(varDecl)
     |
+        LOOKAHEAD(( Annotation() )* "procedure")
         ProcedureVarDecl(varDecl)
     )
     {
-        return VarDecl.local(varDecl.type, varDecl.name, varDecl.value, varDecl.constant).asExternal(varDecl.external);
+        return VarDecl.local(ImmutableList.from(varDecl.annotations), varDecl.type, varDecl.name, varDecl.value, varDecl.constant).asExternal(varDecl.external);
     }
 }
 
@@ -641,17 +672,21 @@ GlobalVarDecl GlobalVarDecl() :
     varDecl.availability = Availability.PUBLIC;
 }
 {
+
     (varDecl.availability = Availability())?
     ("external" { varDecl.external = true; })?
     (
+        LOOKAHEAD(4)
         VariableVarDecl(varDecl) ";"
     |
+        LOOKAHEAD(( Annotation() )* "function")
         FunctionVarDecl(varDecl)
     |
+        LOOKAHEAD(( Annotation() )* "procedure")
         ProcedureVarDecl(varDecl)
     )
     {
-		return VarDecl.global(varDecl.availability, varDecl.type, varDecl.name, varDecl.value).asExternal(varDecl.external);
+		return VarDecl.global(ImmutableList.from(varDecl.annotations), varDecl.availability, varDecl.type, varDecl.name, varDecl.value).asExternal(varDecl.external);
     }
 }
 
@@ -728,9 +763,12 @@ GlobalEntityDecl NetworkDecl() :
 	ImmutableList.Builder<TypeDecl> typeDecls = ImmutableList.builder();
 	ImmutableList<InstanceDecl> instances = ImmutableList.empty();
 	ImmutableList<StructureStatement> structure = ImmutableList.empty();
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+    Annotation annotation;
 	LocalVarDecl varDecl;
 }
 {
+	( annotation = Annotation() {annotations.add(annotation);} )*
 	"network"
 	id = <ID>
 	"("
@@ -752,7 +790,7 @@ GlobalEntityDecl NetworkDecl() :
 	"end"
 
 
-	{ return GlobalEntityDecl.global(Availability.PUBLIC, id.image, new NlNetwork(typePars, valuePars, typeDecls.build(), varDecls.build(), inputPorts, outputPorts,
+	{ return GlobalEntityDecl.global(Availability.PUBLIC, id.image, new NlNetwork(annotations.build(), typePars, valuePars, typeDecls.build(), varDecls.build(), inputPorts, outputPorts,
                  			instances, structure)); }
 }
 
@@ -1167,6 +1205,8 @@ GlobalEntityDecl ActorDecl() :
 	Token id;
 	String name;
 	boolean external = false;
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+	Annotation annotation;
 	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
@@ -1187,6 +1227,7 @@ GlobalEntityDecl ActorDecl() :
     int beginColumn;
 }
 {
+	( annotation = Annotation() {annotations.add(annotation);} )*
 	("external" {external = true;})?
 	"actor"
 	{
@@ -1205,18 +1246,15 @@ GlobalEntityDecl ActorDecl() :
 		":"
 		(
 			(
-				Annotation()
-			)*
-			(
-				LOOKAHEAD((QID() ":")? "action" "case")
+				LOOKAHEAD(( Annotation() )* (QID() ":")? "action" "case")
 				actionCase = ActionCase()
 				{ actionCases.add(actionCase); }
 			|
-				LOOKAHEAD((QID() ":")? "action")
+				LOOKAHEAD( ( Annotation() )* (QID() ":")? "action")
 				action = Action()
 				{ actions.add(action); }
 			|
-				LOOKAHEAD((QID() ":")? "initialize")
+				LOOKAHEAD( ( Annotation() )* (QID() ":")? "initialize")
 				action = InitializationAction()
 				{ initializers.add(action); }
 			|
@@ -1248,7 +1286,7 @@ GlobalEntityDecl ActorDecl() :
 		";"
 	)
 	{
-		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants);
+		CalActor a = new CalActor(annotations.build(), typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants);
 		a.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
@@ -1319,6 +1357,8 @@ PortDecl PortDecl() :
 Action Action() :
 {
 	QID tag = null;
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+	Annotation annotation;
 	ImmutableList<InputPattern> inputPatterns;
 	ImmutableList<OutputExpression> outputExpressions;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
@@ -1328,10 +1368,12 @@ Action Action() :
 	Expression delay = null;
 	ImmutableList<Expression> preconditions = ImmutableList.empty();
 	ImmutableList<Expression> postconditions = ImmutableList.empty();
+
 	int beginLine;
     int beginColumn;
 }
 {
+	( annotation = Annotation() {annotations.add(annotation);} )*
 	( tag = QID() ":" )?
 	"action"
 	{
@@ -1347,7 +1389,7 @@ Action Action() :
 	("do" body = Statements())?
 	("end" | "endaction")
 	{
-		Action action = new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		Action action = new Action(tag, annotations.build(), inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
 		action.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return action;
 	}
@@ -1358,10 +1400,14 @@ ActionCase ActionCase() :
   QID tag = null;
   Action action;
   ImmutableList.Builder<Action> actions = ImmutableList.builder();
+  ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+  Annotation annotation;
+
   int beginLine;
   int beginColumn;
 }
 {
+  ( annotation = Annotation() {annotations.add(annotation);} )*
   ( tag = QID() ":" )?
   "action"
   "case"
@@ -1369,10 +1415,10 @@ ActionCase ActionCase() :
     beginLine = token.beginLine;
     beginColumn = token.beginColumn;
   }
-  action = ActionLambda() { actions.add(action); }
+  action = ActionLambda(annotations.build()) { actions.add(action); }
   (
     "else"
-    action = ActionLambda() { actions.add(action); }
+    action = ActionLambda(annotations.build()) { actions.add(action); }
   )+
   ( "end" | "endcase")
   ( "end" | "endaction")
@@ -1383,7 +1429,7 @@ ActionCase ActionCase() :
   }
 }
 
-Action ActionLambda() :
+Action ActionLambda(ImmutableList<Annotation> annotations) :
 {
   QID tag = null;
   ImmutableList<InputPattern> inputPatterns;
@@ -1403,6 +1449,7 @@ Action ActionLambda() :
     beginLine = token.beginLine;
     beginColumn = token.beginColumn;
   }
+
   inputPatterns = InputPatterns()
   "==>"
   outputExpressions = OutputExpressions()
@@ -1412,7 +1459,7 @@ Action ActionLambda() :
   ("do" body = Statements())?
   ("end")
   {
-    Action action = new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+    Action action = new Action(tag, annotations, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
     action.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
     return action;
   }
@@ -1421,6 +1468,8 @@ Action ActionLambda() :
 Action InitializationAction() :
 {
 	QID tag = null;
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+	Annotation annotation;
 	ImmutableList<InputPattern> inputPatterns = ImmutableList.empty();
 	ImmutableList<OutputExpression> outputExpressions;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
@@ -1434,6 +1483,7 @@ Action InitializationAction() :
     int beginColumn;
 }
 {
+	( annotation = Annotation() {annotations.add(annotation);} )*
 	( tag = QID() ":" )?
 	"initialize"
 	{
@@ -1448,7 +1498,7 @@ Action InitializationAction() :
 	("do" body = Statements())?
 	("end" | "endinitialize")
 	{
-		Action action = new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		Action action = new Action(tag, annotations.build(), inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
 		action.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return action;
 	}
@@ -2206,9 +2256,10 @@ ParameterVarDecl FormalValueParameter() :
     GenericVarDecl varDecl = new GenericVarDecl();
 }
 {
+
     VariableVarDecl(varDecl)
 	{
-		return VarDecl.parameter(varDecl.type, varDecl.name, varDecl.value);
+		return VarDecl.parameter(ImmutableList.from(varDecl.annotations), varDecl.type, varDecl.name, varDecl.value);
 	}
 }
 

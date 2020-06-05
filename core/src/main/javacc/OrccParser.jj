@@ -407,28 +407,38 @@ Annotation Annotation() :
 {
 	Token id;
 	Token par;
+	ImmutableList.Builder<AnnotationParameter> parameters = ImmutableList.builder();
+	AnnotationParameter parameter;
 }
 {
 	"@" id = <ID>
 	(
 		"("
 		(
-			AnnotationParameter()
-			("," AnnotationParameter())*
+			parameter = AnnotationParameter() {parameters.add(parameter);}
+			("," parameter = AnnotationParameter() {parameters.add(parameter);})*
 		)?
 		")"
 	)?
-	{ return new Annotation(id.image, ImmutableList.empty()); }
+	{ return new Annotation(id.image, parameters.build()); }
 }
 
-void AnnotationParameter() :
+AnnotationParameter AnnotationParameter() :
 {
+	Token id;
+	Expression expression = null;
+	AnnotationParameter parameter;
 }
 {
+(
 	LOOKAHEAD(2)
-	<ID> "=" Expression()
+	id=<ID> "=" expression=Expression() {parameter = new AnnotationParameter(id.image, expression);}
 |
-	Expression()
+	expression=Expression() {parameter = new AnnotationParameter(null, expression);}
+)
+	{
+        return parameter;
+    }
 }
 
 
@@ -449,7 +459,8 @@ QID QID() :
 
 GlobalVarDecl GlobalVarDecl() :
 {
-	Annotation ann;
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+    Annotation ann;
 	Availability availability = Availability.PUBLIC;
 	String name;
 	TypeExpr type = null;
@@ -463,6 +474,7 @@ GlobalVarDecl GlobalVarDecl() :
 			if (ann.getName().equals("native")) {
 				external = true;
 			}
+			annotations.add(ann);
 		}
 	)*
 	(
@@ -498,14 +510,15 @@ GlobalVarDecl GlobalVarDecl() :
 		}
 	)
 	{
-		return VarDecl.global(availability, type, name, expr).asExternal(external);
+		return VarDecl.global(annotations.build(), availability, type, name, expr).asExternal(external);
 	}
 }
 
 
 LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 {
-	Annotation ann;
+    ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+    Annotation ann;
 	boolean external = false;
 	TypeExpr type = null;
 	String name;
@@ -519,6 +532,7 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 			if (ann.getName().equals("native")) {
 				external = true;
 			}
+			annotations.add(ann);
 		}
 	)*
 	(
@@ -543,7 +557,7 @@ LocalVarDecl LocalVarDecl(boolean endWithSemicolon) :
 		{ name = proc.name; expr = proc.def; assignable = false; }
 	)
 	{
-		return VarDecl.local(type, name, expr, !assignable).asExternal(external);
+		return VarDecl.local(annotations.build(), type, name, expr, !assignable).asExternal(external);
 	}
 }
 
@@ -660,6 +674,8 @@ GlobalEntityDecl ActorDecl() :
 {
 	Token id;
 	String name;
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+	ImmutableList.Builder<Annotation> bodyAnnotations = ImmutableList.builder();
 	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
@@ -684,6 +700,7 @@ GlobalEntityDecl ActorDecl() :
             if (ann.getName().equals("native")) {
                 external = true;
             }
+            annotations.add(ann);
         }
     )*
 	"actor"
@@ -698,9 +715,6 @@ GlobalEntityDecl ActorDecl() :
 		":"
 		(
 			(
-			    LOOKAHEAD(4)
-			    Annotation()
-			|
 				LOOKAHEAD(("@" | (QID() ":"))? "action")
 				action = Action()
 				{ actions.add(action); }
@@ -725,7 +739,7 @@ GlobalEntityDecl ActorDecl() :
 		"end"
 	)
 	{
-		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases, scheduleFSM, null, priorities.build(), invariants.build());
+		CalActor a = new CalActor(annotations.build(), typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases, scheduleFSM, null, priorities.build(), invariants.build());
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
 }
@@ -764,6 +778,7 @@ PortDecl PortDecl() :
 Action Action() :
 {
 	QID tag = null;
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
 	ImmutableList<InputPattern> inputPatterns;
 	ImmutableList<OutputExpression> outputExpressions;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
@@ -771,11 +786,12 @@ Action Action() :
 	ImmutableList<Expression> guards = ImmutableList.empty();
 	ImmutableList<Statement> body = ImmutableList.empty();
 	Expression delay = null;
+	Annotation annotation;
 	ImmutableList<Expression> preconditions = ImmutableList.empty();
 	ImmutableList<Expression> postconditions = ImmutableList.empty();
 }
 {
-    (Annotation())*
+    ( annotation = Annotation() {annotations.add(annotation);} )*
 	( tag = QID() ":" )?
 	"action"
 	inputPatterns = InputPatterns()
@@ -786,13 +802,14 @@ Action Action() :
 	("do" body = Statements())?
 	"end"
 	{
-		return new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		return new Action(tag, annotations.build(), inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
 	}
 }
 
 Action InitializationAction() :
 {
 	QID tag = null;
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
 	ImmutableList<InputPattern> inputPatterns = ImmutableList.empty();
 	ImmutableList<OutputExpression> outputExpressions;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
@@ -800,11 +817,12 @@ Action InitializationAction() :
 	ImmutableList<Expression> guards = ImmutableList.empty();
 	ImmutableList<Statement> body = ImmutableList.empty();
 	Expression delay = null;
+	Annotation annotation;
 	ImmutableList<Expression> preconditions = ImmutableList.empty();
 	ImmutableList<Expression> postconditions = ImmutableList.empty();
 }
 {
-	(Annotation())*
+	( annotation = Annotation() {annotations.add(annotation);} )*
 	( tag = QID() ":" )?
 	"initialize"
 	"==>"
@@ -814,7 +832,7 @@ Action InitializationAction() :
 	("do" body = Statements())?
 	"end"
 	{
-		return new Action(tag, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+		return new Action(tag, annotations.build(), inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
 	}
 }
 
@@ -1262,7 +1280,7 @@ ParameterVarDecl FormalValueParameter() :
 	typeName = VarDeclTypeName()
 	("=" defaultValue = Expression())?
 	{
-		return VarDecl.parameter(typeName.type, typeName.name, defaultValue);
+		return VarDecl.parameter(ImmutableList.empty(), typeName.type, typeName.name, defaultValue);
 	}
 }
 

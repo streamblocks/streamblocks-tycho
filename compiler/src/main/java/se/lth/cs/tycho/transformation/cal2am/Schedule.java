@@ -60,6 +60,10 @@ public class Schedule {
 		}
 	}
 
+	public Map<String, List<Action>> getEligible(){
+		return eligible;
+	}
+
 	public Set<String> targetState(Set<String> sourceState, Action action) {
 		if (action.getTag() == null) {
 			return sourceState;

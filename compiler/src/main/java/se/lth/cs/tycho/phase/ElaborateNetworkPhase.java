@@ -4,6 +4,7 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
 import se.lth.cs.tycho.interp.BasicInterpreter;
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
@@ -166,7 +167,8 @@ public class ElaborateNetworkPhase implements Phase {
         ImmutableList<Instance> instances = Stream.concat(outerInstances, innerInstances)
                 .collect(ImmutableList.collector());
 
-        return new Network(outer.getInputPorts(), outer.getOutputPorts(), instances, builder.build());
+
+        return new Network(outer.getAnnotations(), outer.getInputPorts(), outer.getOutputPorts(), instances, builder.build());
     }
 
     private List<ToolAttribute> mergeAttributes(Connection connSrc, Connection connTgt) {
@@ -222,7 +224,7 @@ public class ElaborateNetworkPhase implements Phase {
                     .withAttributes(conn.getAttributes().map(ToolAttribute::deepClone));
             connections.add(connection);
         }
-        return new Network(inputPorts, outputPorts, instances.build(), connections.build());
+        return new Network(network.getAnnotations(), inputPorts, outputPorts, instances.build(), connections.build());
     }
 
     private Connection.End convert(PortReference portReference) {

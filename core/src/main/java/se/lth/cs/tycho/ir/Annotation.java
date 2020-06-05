@@ -1,8 +1,12 @@
 package se.lth.cs.tycho.ir;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
@@ -11,76 +15,104 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
  * An annotation has a name and a list of key-value pairs.
  */
 public class Annotation extends AbstractIRNode {
-	private final String name;
-	private final ImmutableList<ImmutableEntry<String, String>> parameters;
+    private final String name;
+    private final ImmutableList<AnnotationParameter> parameters;
 
-	/**
-	 * Constructs an annotation node.
-	 * 
-	 * @param name the name of the anotation
-	 * @param parameters the list of key-value pairs
-	 */
-	public Annotation(String name, ImmutableList<ImmutableEntry<String, String>> parameters) {
-		this(null, name, parameters);
-	}
+    /**
+     * Constructs an annotation node.
+     *
+     * @param name       the name of the anotation
+     * @param parameters the list of key-value pairs
+     */
+    public Annotation(String name, ImmutableList<AnnotationParameter> parameters) {
+        this(null, name, parameters);
+    }
 
-	/**
-	 * Constructs an annotation node from a previous node.
-	 *
-	 * @param original the previous node
-	 * @param name the name of the anotation
-	 * @param parameters the list of key-value pairs
-	 */
-	private Annotation(Annotation original, String name, ImmutableList<ImmutableEntry<String, String>> parameters) {
-		super(original);
-		this.name = name;
-		this.parameters = parameters;
-	}
+    /**
+     * Constructs an annotation node from a previous node.
+     *
+     * @param original   the previous node
+     * @param name       the name of the annotation
+     * @param parameters the list of key-value pairs
+     */
+    private Annotation(Annotation original, String name, ImmutableList<AnnotationParameter> parameters) {
+        super(original);
+        this.name = name;
+        this.parameters = parameters;
+    }
 
-	/**
-	 * Returns the name of the annotation.
-	 *
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
+    /**
+     * Check if a list of annotations has an annotation with a given name
+     *
+     * @param name        the annotation name to search
+     * @param annotations the list of annotations
+     * @return true if the annotation is found
+     */
+    public static boolean hasAnnotationWithName(String name, List<Annotation> annotations) {
+        return annotations.stream().filter(ann -> ann.getName().equals(name)).findAny().isPresent();
+    }
 
-	/**
-	 * Returns the key-value pairs.
-	 * @return the key-value pairs
-	 */
-	public ImmutableList<ImmutableEntry<String, String>> getParameters() {
-		return parameters;
-	}
+    /**
+     * Get the annotation from a given annotation name
+     *
+     * @param name        the annotation name to search
+     * @param annotations the list of annotations
+     * @return an optional annotation
+     */
+    public static Optional<Annotation> getAnnotationWithName(String name, List<Annotation> annotations) {
+        return annotations.stream().filter(ann -> ann.getName().equals(name)).findAny();
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof Annotation) {
-			Annotation that = (Annotation) obj;
-			return this.name.equals(that.name) && this.parameters.equals(that.parameters);
-		} else {
-			return false;
-		}
-	}
+    /**
+     * Returns the name of the annotation.
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(name, parameters);
-	}
+    /**
+     * Returns the key-value pairs.
+     *
+     * @return the key-value pairs
+     */
+    public ImmutableList<AnnotationParameter> getParameters() {
+        return parameters;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Annotation) {
+            Annotation that = (Annotation) obj;
+            return this.name.equals(that.name) && this.parameters.equals(that.parameters);
+        } else {
+            return false;
+        }
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Annotation transformChildren(Transformation transformation) {
-		return this;
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, parameters);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Annotation transformChildren(Transformation transformation) {
+        return this;
+    }
+
+    @Override
+    public Annotation deepClone() {
+        return (Annotation) super.deepClone();
+    }
 }

@@ -3,6 +3,7 @@ package se.lth.cs.tycho.ir.decl;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -14,7 +15,7 @@ public class PatternVarDecl extends VarDecl {
 	}
 
 	private PatternVarDecl(VarDecl original, TypeExpr type, String name) {
-		super(original, type, name, null, true, false);
+		super(original, ImmutableList.empty(), type, name, null, true, false);
 	}
 
 	public PatternVarDecl copy(TypeExpr type, String name) {

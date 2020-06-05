@@ -74,11 +74,11 @@ public class Scopes {
 			if (input.getRepeatExpr() == null) {
 				int i = 0;
 				for (InputVarDecl var : input.getMatches().stream().map(Match::getDeclaration).collect(Collectors.toList())) {
-					varDecls.add(VarDecl.local(var.getType(), var.getName(), new ExprInput((Port) input.getPort().deepClone(), i), var.isConstant()));
+					varDecls.add(VarDecl.local(var.getAnnotations(), var.getType(), var.getName(), new ExprInput((Port) input.getPort().deepClone(), i), var.isConstant()));
 					i = i + 1;
 				}
 				for (PatternVariable var : input.getMatches().stream().filter(match -> match.getExpression() != null).flatMap(match -> variables(match.getExpression().getAlternatives().get(0).getPattern())).collect(Collectors.toList())) {
-					varDecls.add(VarDecl.local(TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), value(var), false));
+					varDecls.add(VarDecl.local(ImmutableList.empty(), TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), value(var), false));
 					i = i + 1;
 				}
 			} else {
@@ -86,11 +86,11 @@ public class Scopes {
 				int patternLength = input.getMatches().size();
 				int i = 0;
 				for (InputVarDecl var : input.getMatches().stream().map(Match::getDeclaration).collect(Collectors.toList())) {
-					varDecls.add(VarDecl.local(var.getType(), var.getName(), new ExprInput((Port) input.getPort().deepClone(), i, repeat, patternLength), var.isConstant()));
+					varDecls.add(VarDecl.local(var.getAnnotations(), var.getType(), var.getName(), new ExprInput((Port) input.getPort().deepClone(), i, repeat, patternLength), var.isConstant()));
 					i = i + 1;
 				}
 				for (PatternVariable var : input.getMatches().stream().filter(match -> match.getExpression() != null).flatMap(match -> variables(match.getExpression().getAlternatives().get(0).getPattern())).collect(Collectors.toList())) {
-					varDecls.add(VarDecl.local(TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), value(var), false));
+					varDecls.add(VarDecl.local(ImmutableList.empty(), TypeToTypeExpr.convert(types.type(var)), var.getVariable().getName(), value(var), false));
 					i = i + 1;
 				}
 			}
