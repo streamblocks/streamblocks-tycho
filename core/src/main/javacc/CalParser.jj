@@ -2429,6 +2429,8 @@ Expression ComprehensionFor(Expression contents) :
 TypeExpr Type() :
 {
   TypeExpr type;
+  Expression expr = null;
+  Token last = null;
   ImmutableList.Builder<TypeExpr> builder = ImmutableList.builder();
 }
 {
@@ -2436,12 +2438,22 @@ TypeExpr Type() :
   (
     "|" type = SimpleType() { builder.add(type); }
   )*
+  (
+    "["
+    expr = Expression()
+    last = "]"
+  )?
   {
     ImmutableList<TypeExpr> types = builder.build();
     if (types.size() == 1) {
-      return types.get(0);
+      type = types.get(0);
     } else {
-      return setPosition(new UnionTypeExpr(types), types.get(0), types.get(types.size() - 1));
+      type = setPosition(new UnionTypeExpr(types), types.get(0), types.get(types.size() - 1));
+    }
+    if (expr == null) {
+      return type;
+    } else {
+      return setPosition(new NominalTypeExpr("List", ImmutableList.of(setPosition(new TypeParameter("type", type), type, type)), ImmutableList.of(setPosition(new ValueParameter("size", expr), expr, expr))), type, last);
     }
   }
 }
