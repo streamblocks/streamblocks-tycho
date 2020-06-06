@@ -112,7 +112,7 @@ public interface Code {
 
 	default String compare(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		String tmp = variables().generateTemp();
-		emitter().emit("%s = compare_%s_t(%s, %s);", declaration(BoolType.INSTANCE, tmp), lvalueType.getName(), lvalue, rvalue);
+		emitter().emit("%s = compare_%s(%s, %s);", declaration(BoolType.INSTANCE, tmp), backend().algebraic().utils().name(lvalueType), lvalue, rvalue);
 		return tmp;
 	}
 

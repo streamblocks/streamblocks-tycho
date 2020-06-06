@@ -563,7 +563,7 @@ public class CaseAnalysisPhase implements Phase {
 			if (type instanceof ProductType) {
 				apply = type;
 			} else {
-				apply = ((SumType) type).getVariants().stream().filter(v -> Objects.equals(v.getName(), pattern.getName())).findAny().get();
+				apply = ((SumType) type).getVariants().stream().filter(v -> Objects.equals(v.getName(), pattern.getDeconstructor())).findAny().get();
 			}
 			return Space.Product.of(type, apply, pattern.getPatterns().map(this::apply));
 		}

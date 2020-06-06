@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.entity.nl;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -18,7 +19,7 @@ public class NlNetwork extends Entity {
 	private final ImmutableList<InstanceDecl> entities;
 	private final ImmutableList<StructureStatement> structure;
 
-	public NlNetwork(List<TypeDecl> typePars,
+	public NlNetwork(List<ParameterTypeDecl> typePars,
 					 List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 					 List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 					 List<InstanceDecl> entities, List<StructureStatement> structure) {
@@ -26,7 +27,7 @@ public class NlNetwork extends Entity {
 	}
 
 	private NlNetwork(NlNetwork original,
-			List<TypeDecl> typePars, List<ParameterVarDecl> valuePars,
+			List<ParameterTypeDecl> typePars, List<ParameterVarDecl> valuePars,
 			List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls, List<PortDecl> inputPorts,
 			List<PortDecl> outputPorts, List<InstanceDecl> entities,
 			List<StructureStatement> structure) {
@@ -39,7 +40,7 @@ public class NlNetwork extends Entity {
 		this.structure = ImmutableList.from(structure);
 	}
 
-	public NlNetwork copy(List<TypeDecl> typePars,
+	public NlNetwork copy(List<ParameterTypeDecl> typePars,
 			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 			List<InstanceDecl> entities, List<StructureStatement> structure) {

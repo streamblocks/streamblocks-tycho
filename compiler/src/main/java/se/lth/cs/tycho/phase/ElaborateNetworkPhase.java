@@ -20,7 +20,6 @@ import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import javax.swing.text.html.Option;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -176,7 +175,7 @@ public class ElaborateNetworkPhase implements Phase {
 			Instance instance = new Instance(
 					entity.getInstanceName(),
 					entityName,
-					expr.getParameterAssignments().map(ValueParameter::deepClone),
+					expr.getValueParameters().map(ValueParameter::deepClone),
 					ImmutableList.empty())
 					.withAttributes(attrs.build());
 			instances.add(instance);

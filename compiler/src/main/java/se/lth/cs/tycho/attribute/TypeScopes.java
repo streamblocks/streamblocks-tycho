@@ -128,7 +128,7 @@ public interface TypeScopes {
 		}
 
 		default Optional<TypeDecl> construction(PatternDeconstruction deconstruction) {
-			return constructionOf(deconstruction, deconstruction.getName());
+			return constructionOf(deconstruction, deconstruction.getDeconstructor());
 		}
 
 		default Optional<TypeDecl> constructionOf(IRNode node, String name) {

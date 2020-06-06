@@ -75,7 +75,10 @@ public class Compiler {
                 new ResolveTypeConstructionPhase(),
                 new ConstantVariableImmutabilityPhase(),
                 new ConstantVariableInitializationPhase(),
-                new NameAnalysisPhase()
+                new NameAnalysisPhase(),
+                new TemplateAnalysisPhase(),
+                new TemplateInitializationPhase(),
+                new TemplateInstantiationPhase()
 
                 // -- Folding
                 //new NetworkParameterAnalysisPhase(),

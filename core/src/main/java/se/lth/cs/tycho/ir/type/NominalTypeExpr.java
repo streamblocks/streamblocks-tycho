@@ -67,6 +67,18 @@ public class NominalTypeExpr extends AbstractIRNode implements Cloneable, TypeEx
 		return valueParameters;
 	}
 
+	public NominalTypeExpr withName(String name) {
+		return copy(name, getTypeParameters(), getValueParameters());
+	}
+
+	public NominalTypeExpr withTypeParameters(ImmutableList<TypeParameter> typeParameters) {
+		return copy(getName(), typeParameters, getValueParameters());
+	}
+
+	public NominalTypeExpr withValueParameters(ImmutableList<ValueParameter> valueParameters) {
+		return copy(getName(), getTypeParameters(), valueParameters);
+	}
+
 	public NominalTypeExpr(String name) {
 		this(null, name, null, null);
 	}
@@ -117,5 +129,10 @@ public class NominalTypeExpr extends AbstractIRNode implements Cloneable, TypeEx
 	@Override
 	public NominalTypeExpr deepClone() {
 		return (NominalTypeExpr) super.deepClone();
+	}
+
+	@Override
+	public String toString() {
+		return getName();
 	}
 }

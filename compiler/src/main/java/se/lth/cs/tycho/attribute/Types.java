@@ -238,7 +238,7 @@ public interface Types {
 							} else {
 								SumType sumType = (SumType) algebraicType;
 								types.add(sumType.getVariants().stream()
-										.filter(variant -> Objects.equals(variant.getName(), deconstruction.getName()))
+										.filter(variant -> Objects.equals(variant.getName(), deconstruction.getDeconstructor()))
 										.map(variant -> variant.getFields().get(pattern.getPatterns().indexOf(p)).getType())
 										.findAny()
 										.get());
@@ -410,11 +410,11 @@ public interface Types {
 							return convert(product.getFields().get(index).getType());
 						} else {
 							SumTypeDecl sum = (SumTypeDecl) type;
-							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
+							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getDeconstructor())).findAny().get();
 							int index = deconstruction.getPatterns().indexOf(p);
 							return convert(variant.getFields().get(index).getType());
 						}
-					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getName() + "."));
+					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getDeconstructor() + "."));
 				} else if (node instanceof PatternList) {
 					return ((ListType) type((PatternList) node)).getElementType();
 				} else if (node instanceof PatternTuple) {

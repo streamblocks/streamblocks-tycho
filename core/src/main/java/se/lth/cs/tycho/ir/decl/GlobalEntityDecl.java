@@ -19,7 +19,7 @@ public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
         return entity == this.entity ? this : new GlobalEntityDecl(this, getAvailability(), getName(), entity, getExternal());
     }
 
-    private GlobalEntityDecl(GlobalEntityDecl original, Availability availability, String name, Entity entity, boolean external) {
+    public GlobalEntityDecl(GlobalEntityDecl original, Availability availability, String name, Entity entity, boolean external) {
         super(original, name);
         this.entity = entity;
         this.availability = availability;

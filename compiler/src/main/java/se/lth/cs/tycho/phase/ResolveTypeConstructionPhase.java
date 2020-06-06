@@ -54,7 +54,7 @@ public class ResolveTypeConstructionPhase implements Phase {
 						if (algebraicTypeDecl instanceof SumTypeDecl) {
 							constructor = ((SumTypeDecl) algebraicTypeDecl).getVariants().stream().filter(variant -> Objects.equals(variant.getName(), ((ExprVariable) application.getFunction()).getVariable().getName())).findAny().get().getName();
 						}
-						return (IRNode) new ExprTypeConstruction(application, constructor, application.getArgs().stream().map(arg -> (Expression) apply(arg)).collect(Collectors.toList()));
+						return (IRNode) new ExprTypeConstruction(application, constructor, Collections.emptyList(), Collections.emptyList(), application.getArgs().stream().map(arg -> (Expression) apply(arg)).collect(Collectors.toList()));
 					})
 					.orElse(application);
 		}
@@ -65,7 +65,7 @@ public class ResolveTypeConstructionPhase implements Phase {
 					.filter(SumTypeDecl.class::isInstance)
 					.map(decl -> {
 						SumTypeDecl sum = (SumTypeDecl) decl;
-						return (IRNode) new ExprTypeConstruction(variable, sum.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), variable.getVariable().getName())).findAny().get().getName(), Collections.emptyList());
+						return (IRNode) new ExprTypeConstruction(variable, sum.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), variable.getVariable().getName())).findAny().get().getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 					})
 					.orElse(variable);
 		}

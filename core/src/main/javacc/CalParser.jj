@@ -725,7 +725,7 @@ Import.Kind ImportKind() :
 GlobalEntityDecl NetworkDecl() :
 {
 	Token id;
-	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
+	ImmutableList<ParameterTypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<PortDecl> inputPorts;
 	ImmutableList<PortDecl> outputPorts;
@@ -857,7 +857,7 @@ EntityInstanceExpr InstanceExprEntity() :
         ")"
         toolAttrs = OptToolAttributes()
     {
-        return new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), valueParameters.build()).withAttributes(toolAttrs);
+        return new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), typeParameters.build(), valueParameters.build()).withAttributes(toolAttrs);
     }
 }
 
@@ -1172,8 +1172,8 @@ GlobalEntityDecl ActorDecl() :
 	Token id;
 	String name;
 	boolean external = false;
-	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
-	ImmutableList<ParameterVarDecl> valuePars;
+	ImmutableList.Builder<ParameterTypeDecl> typePars = ImmutableList.builder();
+	ImmutableList.Builder<ParameterVarDecl> valuePars = ImmutableList.builder();
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
 	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
 	LocalVarDecl varDecl;
@@ -1200,7 +1200,7 @@ GlobalEntityDecl ActorDecl() :
 	}
 	id = <ID> { name = id.image; }
 	"("
-	valuePars = FormalValuePars()
+	FormalParameters(typePars, valuePars)
 	")"
 	inputPorts = PortDecls()
 	"==>"
@@ -1250,7 +1250,7 @@ GlobalEntityDecl ActorDecl() :
 		";"
 	)
 	{
-		CalActor a = new CalActor(typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants.build());
+		CalActor a = new CalActor(typePars.build(), valuePars.build(), typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants.build());
 		a.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
@@ -1703,23 +1703,37 @@ Expression PrimaryExpression() :
 	ImmutableList<Expression> args;
 	Expression index;
 	Field field;
-  Nth nth;
-  Token decimal;
+	Nth nth;
+	Token decimal;
 	Token lastToken;
-    ImmutableList.Builder<TypeParameter> typeParameters;
-    ImmutableList.Builder<ValueParameter> valueParameters;
+	ImmutableList.Builder<TypeParameter> typeParameters = ImmutableList.builder();
+	ImmutableList.Builder<ValueParameter> valueParameters = ImmutableList.builder();
 }
 {
 	expr = SingleExpression()
 	{ exprIsVar = expr instanceof ExprVariable; }
 	(
+		(
+			LOOKAHEAD(2)
+			"("
+				ParameterAssignments(typeParameters, valueParameters)
+			")"
+		)?
 		"("
-        args = ExpressionList()
-        lastToken = ")"
-        { expr = setPosition(new ExprApplication(expr, args), expr, lastToken); }
+		args = ExpressionList()
+		lastToken = ")"
+		{
+			List<TypeParameter> types = typeParameters.build();
+			List<ValueParameter> values = valueParameters.build();
+			if (types.isEmpty() && values.isEmpty()) {
+				expr = setPosition(new ExprApplication(expr, args), expr, lastToken);
+			} else {
+				expr = setPosition(new ExprTypeConstruction(((ExprVariable) expr).getVariable().getName(), types, values, args), expr, lastToken);
+			}
+	}
 	|
 		"["
-	    index = Expression()
+			index = Expression()
 		{ expr = new ExprIndexer(expr, index); }
 		(
 			","
@@ -2064,10 +2078,18 @@ PatternDeconstruction PatternDeconstruction() :
 	Token id;
 	Token last;
 	Pattern pattern;
+	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
+	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
 	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
 }
 {
 	id = <ID>
+	(
+		LOOKAHEAD(3)
+    "("
+			ParameterAssignments(types, vals)
+		")"
+	)?
 	"("
 	(
 		pattern = Pattern() { patterns.add(pattern); }
@@ -2076,7 +2098,7 @@ PatternDeconstruction PatternDeconstruction() :
 		)*
 	)?
 	last = ")"
-	{ return setPosition(new PatternDeconstruction(id.image, patterns.build()), id, last); }
+	{ return setPosition(new PatternDeconstruction(id.image, types.build(), vals.build(), patterns.build()), id, last); }
 }
 
 PatternTuple PatternTuple() :
@@ -2088,12 +2110,10 @@ PatternTuple PatternTuple() :
 }
 {
 	first = "("
+	pattern = Pattern() { patterns.add(pattern); }
 	(
-		pattern = Pattern() { patterns.add(pattern); }
-		(
-			"," pattern = Pattern() { patterns.add(pattern); }
-		)*
-	)?
+		"," pattern = Pattern() { patterns.add(pattern); }
+	)+
 	last = ")"
 	{ return setPosition(new PatternTuple(patterns.build()), first, last); }
 }
@@ -2347,13 +2367,18 @@ Expression TupleExpression() :
 {
   Token first;
   Token last;
-  ImmutableList<Expression> exprs;
+  Expression expr;
+  ImmutableList.Builder<Expression> exprs = ImmutableList.builder();
 }
 {
   first = "("
-  exprs = ExpressionList()
+  expr = Expression() { exprs.add(expr); }
+  (
+    ","
+    expr = Expression() { exprs.add(expr); }
+  )+
   last = ")"
-  { return setPosition(new ExprTuple(exprs), first, last); }
+  { return setPosition(new ExprTuple(exprs.build()), first, last); }
 }
 
 Expression ComprehensionFor(Expression contents) :
@@ -2543,21 +2568,28 @@ AlgebraicTypeDecl AlgebraicType(Availability availability) :
   Token last;
   Token name;
   AlgebraicTypeDecl declaration;
+  ImmutableList.Builder<ParameterTypeDecl> typeDecls = ImmutableList.builder();
+  ImmutableList.Builder<ParameterVarDecl> varDecls = ImmutableList.builder();
 }
 {
   first = "type"
   name = <ID>
+  (
+    "("
+      FormalParameters(typeDecls, varDecls)
+    ")"
+  )?
   ":"
   (
-      declaration = ProductTypeDecl(availability, name)
+      declaration = ProductTypeDecl(availability, name, typeDecls.build(), varDecls.build())
   |
-      declaration = SumTypeDecl(availability, name)
+      declaration = SumTypeDecl(availability, name, typeDecls.build(), varDecls.build())
   )
   last = "end"
   { return setPosition(declaration, first, last); }
 }
 
-ProductTypeDecl ProductTypeDecl(Availability availability, Token name) :
+ProductTypeDecl ProductTypeDecl(Availability availability, Token name, List<ParameterTypeDecl> typeDecls, List<ParameterVarDecl> varDecls) :
 {
     Token first;
     Token last;
@@ -2571,7 +2603,7 @@ ProductTypeDecl ProductTypeDecl(Availability availability, Token name) :
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
     last = ")"
-    { return setPosition(new ProductTypeDecl(name.image, availability, fields.build()), first, last); }
+    { return setPosition(new ProductTypeDecl(name.image, availability, typeDecls, varDecls, fields.build()), first, last); }
 }
 
 FieldDecl FieldDecl() :
@@ -2585,7 +2617,7 @@ FieldDecl FieldDecl() :
     { return setPosition(new FieldDecl(type, name.image), type, name); }
 }
 
-SumTypeDecl SumTypeDecl(Availability availability, Token name) :
+SumTypeDecl SumTypeDecl(Availability availability, Token name, List<ParameterTypeDecl> typeDecls, List<ParameterVarDecl> varDecls) :
 {
     SumTypeDecl.VariantDecl first;
     SumTypeDecl.VariantDecl last;
@@ -2600,7 +2632,7 @@ SumTypeDecl SumTypeDecl(Availability availability, Token name) :
         variant = VariantDecl() { variants.add(variant); }
         { last = variant; }
     )*
-    { return setPosition(new SumTypeDecl(name.image, availability, variants.build()), first, last); }
+    { return setPosition(new SumTypeDecl(name.image, availability, typeDecls, varDecls, variants.build()), first, last); }
 }
 
 SumTypeDecl.VariantDecl VariantDecl() :
@@ -3075,4 +3107,3 @@ void ParameterAssignment(ImmutableList.Builder<TypeParameter> types, ImmutableLi
 		{ vals.add(setPosition(new ValueParameter(name.image, expr), name, expr)); }
 	)
 }
-

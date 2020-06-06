@@ -42,7 +42,7 @@ public class ResolvePatternsPhase implements Phase {
 
 		default IRNode apply(PatternBinding pattern) {
 			if (typeScopes().construction(pattern.getDeclaration()).isPresent()) {
-				return new PatternDeconstruction(pattern, pattern.getDeclaration().getName(), Collections.emptyList());
+				return new PatternDeconstruction(pattern, pattern.getDeclaration().getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 			}
 			return pattern;
 		}

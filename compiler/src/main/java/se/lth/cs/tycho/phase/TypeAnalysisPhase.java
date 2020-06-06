@@ -579,7 +579,7 @@ public class TypeAnalysisPhase implements Phase {
 					}
 				} else if (type instanceof SumTypeDecl) {
 					SumTypeDecl sum = (SumTypeDecl) type;
-					SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
+					SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getDeconstructor())).findAny().get();
 					Iterator<Type> types = variant.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
 					Iterator<Pattern> patterns = deconstruction.getPatterns().iterator();
 					while (types.hasNext() && patterns.hasNext()) {

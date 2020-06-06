@@ -231,15 +231,15 @@ public interface PatternMatching {
 			Type type = code().types().type(pattern);
 			if (type instanceof SumType) {
 				SumType sum = (SumType) type;
-				SumType.VariantType variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), pattern.getName())).findAny().get();
+				SumType.VariantType variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), pattern.getDeconstructor())).findAny().get();
 
-				emitter().emit("if (%s->tag == tag_%s_%s) {", ctx.getScrutinee(), sum.getName(), variant.getName());
+				emitter().emit("if (%s->tag == tag_%s_%s) {", ctx.getScrutinee(), backend().algebraic().utils().mangle(sum.getName()), backend().algebraic().utils().mangle(variant.getName()));
 				emitter().increaseIndentation();
 				trackable().enter();
 
 				for (int i = 0; i < variant.getFields().size(); ++i) {
 					start(pattern.getPatterns().get(i), ctx.withScrutinee(ctx.getScrutinee()
-							.withTarget(ctx.getScrutinee() + "->data." + pattern.getName())
+							.withTarget(ctx.getScrutinee() + "->data." + backend().algebraic().utils().mangle(pattern.getDeconstructor()))
 							.withAccess(".")
 							.withMember(variant.getFields().get(i).getName())));
 				}

@@ -151,6 +151,12 @@ public interface VariableScopes {
                     .collect(ImmutableList.collector());
         }
 
+        // Type declaration
+
+        default ImmutableList<VarDecl> declarations(AlgebraicTypeDecl decl) {
+            return decl.getValueParameters().map(VarDecl.class::cast);
+        }
+
         // Case
 
         default ImmutableList<VarDecl> declarations(StmtCase.Alternative alternative) {

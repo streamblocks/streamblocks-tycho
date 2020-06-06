@@ -140,7 +140,7 @@ public class XDF2NLReader {
 			ImmutableList<ToolAttribute> attributes = getAttributes(instance);
 			entities.add(new InstanceDecl(instanceName,
 					new EntityInstanceExpr(
-							new EntityReferenceGlobal(entityQid), parameters).withAttributes(attributes)));
+							new EntityReferenceGlobal(entityQid), ImmutableList.empty(), parameters).withAttributes(attributes)));
 		}
 		return entities.build();
 	}

@@ -10,6 +10,8 @@ import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.AliasTypeDecl;
 import se.lth.cs.tycho.ir.decl.FieldDecl;
+import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
@@ -61,6 +63,22 @@ public class TypeDeclarationAnalysisPhase implements Phase {
 							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Field " + name + " is already declared.", sourceUnit(fields.get(1)), fields.get(1)));
 						}
 					});
+			decl.getTypeParameters()
+					.stream()
+					.collect(Collectors.groupingBy(ParameterTypeDecl::getName))
+					.forEach((name, types) -> {
+						if (types.size() > 1) {
+							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Type parameter " + name + " is already declared.", sourceUnit(types.get(1)), types.get(1)));
+						}
+					});
+			decl.getValueParameters()
+					.stream()
+					.collect(Collectors.groupingBy(ParameterVarDecl::getName))
+					.forEach((name, values) -> {
+						if (values.size() > 1) {
+							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Value parameter " + name + " is already declared.", sourceUnit(values.get(1)), values.get(1)));
+						}
+					});
 		}
 
 		default void checkDeclaration(SumTypeDecl decl) {
@@ -70,6 +88,22 @@ public class TypeDeclarationAnalysisPhase implements Phase {
 					.forEach((name, fields) -> {
 						if (fields.size() > 1) {
 							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Variant " + name + " is already declared.", sourceUnit(fields.get(1)), fields.get(1)));
+						}
+					});
+			decl.getTypeParameters()
+					.stream()
+					.collect(Collectors.groupingBy(ParameterTypeDecl::getName))
+					.forEach((name, types) -> {
+						if (types.size() > 1) {
+							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Type parameter " + name + " is already declared.", sourceUnit(types.get(1)), types.get(1)));
+						}
+					});
+			decl.getValueParameters()
+					.stream()
+					.collect(Collectors.groupingBy(ParameterVarDecl::getName))
+					.forEach((name, values) -> {
+						if (values.size() > 1) {
+							reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Value parameter " + name + " is already declared.", sourceUnit(values.get(1)), values.get(1)));
 						}
 					});
 		}

@@ -660,7 +660,7 @@ GlobalEntityDecl ActorDecl() :
 {
 	Token id;
 	String name;
-	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
+	ImmutableList<ParameterTypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
 	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
