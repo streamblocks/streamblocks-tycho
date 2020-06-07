@@ -623,6 +623,9 @@ public interface Types {
 				case "bool": {
 					return BoolType.INSTANCE;
 				}
+				case "char": {
+					return CharType.INSTANCE;
+				}
 				case "unit": {
 					return UnitType.INSTANCE;
 				}
@@ -685,6 +688,9 @@ public interface Types {
 				}
 				case Real: {
 					return RealType.f32;
+				}
+				case Char: {
+					return CharType.INSTANCE;
 				}
 				default: {
 					return BottomType.INSTANCE;

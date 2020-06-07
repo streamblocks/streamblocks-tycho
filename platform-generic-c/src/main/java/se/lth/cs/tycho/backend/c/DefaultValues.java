@@ -5,6 +5,7 @@ import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
+import se.lth.cs.tycho.type.CharType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.RealType;
@@ -19,6 +20,9 @@ public interface DefaultValues {
 	}
 	default String defaultValue(BoolType t) {
 		return "false";
+	}
+	default String defaultValue(CharType t) {
+		return "'\0'";
 	}
 	default String defaultValue(RealType t) {
 		return "0.0";

@@ -220,6 +220,9 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssignable(BoolType to, BoolType from) {
 			return true;
 		}
+		default boolean isAssignable(CharType to, CharType from) {
+			return true;
+		}
 		default boolean isAssignable(UnitType to, UnitType from) {
 			return true;
 		}
@@ -357,6 +360,9 @@ public class TypeAnalysisPhase implements Phase {
 			return true;
 		}
 		default boolean isAssignable(BoolType to, BoolType from) {
+			return true;
+		}
+		default boolean isAssignable(CharType to, CharType from) {
 			return true;
 		}
 		default boolean isAssignable(UnitType to, UnitType from) {

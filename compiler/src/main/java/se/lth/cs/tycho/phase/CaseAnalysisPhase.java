@@ -35,6 +35,7 @@ import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
+import se.lth.cs.tycho.type.CharType;
 import se.lth.cs.tycho.type.FieldType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.ListType;
@@ -822,6 +823,10 @@ public class CaseAnalysisPhase implements Phase {
 		}
 
 		default boolean test(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean test(CharType a, CharType b) {
 			return true;
 		}
 

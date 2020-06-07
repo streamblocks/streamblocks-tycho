@@ -69,6 +69,7 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 					checkTypeParams(type);
 					checkValueParams(type, "size");
 					break;
+				case "char":
 				case "float":
 				case "double":
 				case "bool":

@@ -22,6 +22,7 @@ import se.lth.cs.tycho.meta.interp.op.operator.OperatorTimes;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorXOr;
 import se.lth.cs.tycho.meta.interp.value.Value;
 import se.lth.cs.tycho.meta.interp.value.ValueBool;
+import se.lth.cs.tycho.meta.interp.value.ValueChar;
 import se.lth.cs.tycho.meta.interp.value.ValueInteger;
 import se.lth.cs.tycho.meta.interp.value.ValueReal;
 import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
@@ -77,6 +78,10 @@ public interface Binary {
 		return new ValueBool(lhs.real() < rhs.integer());
 	}
 
+	default Value apply(OperatorLowerThan op, ValueChar lhs, ValueChar rhs) {
+		return new ValueBool(lhs.character() < rhs.character());
+	}
+
 	default Value apply(OperatorLowerEqualThan op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueBool(lhs.integer() <= rhs.integer());
 	}
@@ -91,6 +96,10 @@ public interface Binary {
 
 	default Value apply(OperatorLowerEqualThan op, ValueReal lhs, ValueInteger rhs) {
 		return new ValueBool(lhs.real() <= rhs.integer());
+	}
+
+	default Value apply(OperatorLowerEqualThan op, ValueChar lhs, ValueChar rhs) {
+		return new ValueBool(lhs.character() <= rhs.character());
 	}
 
 	default Value apply(OperatorGreaterThan op, ValueInteger lhs, ValueInteger rhs) {
@@ -109,6 +118,10 @@ public interface Binary {
 		return new ValueBool(lhs.real() > rhs.integer());
 	}
 
+	default Value apply(OperatorGreaterThan op, ValueChar lhs, ValueChar rhs) {
+		return new ValueBool(lhs.character() > rhs.character());
+	}
+
 	default Value apply(OperatorGreaterEqualThan op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueBool(lhs.integer() >= rhs.integer());
 	}
@@ -123,6 +136,10 @@ public interface Binary {
 
 	default Value apply(OperatorGreaterEqualThan op, ValueReal lhs, ValueInteger rhs) {
 		return new ValueBool(lhs.real() >= rhs.integer());
+	}
+
+	default Value apply(OperatorGreaterEqualThan op, ValueChar lhs, ValueChar rhs) {
+		return new ValueBool(lhs.character() >= rhs.character());
 	}
 
 	default Value apply(OperatorPlus op, ValueInteger lhs, ValueInteger rhs) {

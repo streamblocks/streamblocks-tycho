@@ -195,6 +195,8 @@ public interface Code {
 
 	default String type(BoolType type) { return "_Bool"; }
 
+	default String type(CharType type) { return "char"; }
+
 	default String type(RefType type) { return type(type.getType()) + "*"; }
 
 	default String type(AlgebraicType type) {
@@ -246,6 +248,8 @@ public interface Code {
 			case Real:
 				return literal.getText();
 			case String:
+				return literal.getText();
+			case Char:
 				return literal.getText();
 			default:
 				throw new UnsupportedOperationException(literal.getText());

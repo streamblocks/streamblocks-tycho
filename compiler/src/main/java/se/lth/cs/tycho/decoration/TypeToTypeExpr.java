@@ -14,6 +14,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
+import se.lth.cs.tycho.type.CharType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.LambdaType;
 import se.lth.cs.tycho.type.ListType;
@@ -69,6 +70,10 @@ public final class TypeToTypeExpr {
 				throw new AssertionError();
 			}
 			return new NominalTypeExpr(name, ImmutableList.empty(), ImmutableList.empty());
+		}
+
+		default NominalTypeExpr convert(CharType type) {
+			return new NominalTypeExpr("char");
 		}
 
 		default FunctionTypeExpr convert(LambdaType type) {
