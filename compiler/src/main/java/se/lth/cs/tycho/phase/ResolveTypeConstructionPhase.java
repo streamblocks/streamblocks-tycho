@@ -56,7 +56,7 @@ public class ResolveTypeConstructionPhase implements Phase {
 						}
 						return (IRNode) new ExprTypeConstruction(application, constructor, Collections.emptyList(), Collections.emptyList(), application.getArgs().stream().map(arg -> (Expression) apply(arg)).collect(Collectors.toList()));
 					})
-					.orElse(application);
+					.orElse(application.transformChildren(this));
 		}
 
 		default IRNode apply(ExprVariable variable) {
