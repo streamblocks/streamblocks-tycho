@@ -65,7 +65,7 @@ public class NthAnalysisPhase implements Phase {
 		}
 
 		default void check(LValueNth lvalue) {
-			TupleType type = (TupleType) types().lvalueType(lvalue.getStructure());
+			TupleType type = (TupleType) types().type(lvalue.getStructure());
 			int n = lvalue.getNth().getNumber();
 			if (n < 1 || n > type.getTypes().size()) {
 				error(lvalue, type, lvalue.getNth().getNumber());

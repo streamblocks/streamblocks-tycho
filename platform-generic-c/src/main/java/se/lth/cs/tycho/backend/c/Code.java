@@ -652,7 +652,7 @@ public interface Code {
 
 	default void execute(StmtAssignment assign) {
 		trackable().enter();
-		Type type = types().lvalueType(assign.getLValue());
+		Type type = types().type(assign.getLValue());
 		String lvalue = lvalue(assign.getLValue());
 		copy(type, lvalue, types().type(assign.getExpression()), evaluate(assign.getExpression()));
 		trackable().exit();

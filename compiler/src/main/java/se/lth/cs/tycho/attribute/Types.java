@@ -64,7 +64,7 @@ public interface Types {
 	Type type(Expression expr);
 	Type type(TypeExpr expr);
 	Type type(Pattern pattern);
-	Type lvalueType(LValue lvalue);
+	Type type(LValue lvalue);
 	Type declaredPortType(PortDecl port);
 	Type portType(Port port);
 	Type portTypeRepeated(Port port, Expression repeat);
@@ -448,7 +448,7 @@ public interface Types {
 			return new ConcurrentHashMap<>();
 		}
 
-		default Type lvalueType(LValue lvalue) {
+		default Type type(LValue lvalue) {
 			return lvalueTypeMap().computeIfAbsent(lvalue, this::computeLValueType);
 		}
 
