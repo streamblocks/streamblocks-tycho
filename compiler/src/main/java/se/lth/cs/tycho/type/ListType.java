@@ -3,7 +3,7 @@ package se.lth.cs.tycho.type;
 import java.util.Objects;
 import java.util.OptionalInt;
 
-public final class ListType implements Type {
+public final class ListType implements CollectionType {
 	private final Type elementType;
 	private final OptionalInt size;
 
