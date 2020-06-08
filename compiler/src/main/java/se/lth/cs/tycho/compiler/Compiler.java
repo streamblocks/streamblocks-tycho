@@ -109,7 +109,7 @@ public class Compiler {
                 new TypeAnnotationAnalysisPhase(),
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),
-                new MemberAnalysisPhase(),
+                new ProductAccessingAnalysisPhase(),
                 new NthAnalysisPhase(),
                 new CaseAnalysisPhase(),
 

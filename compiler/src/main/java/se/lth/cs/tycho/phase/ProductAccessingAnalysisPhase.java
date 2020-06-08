@@ -22,11 +22,11 @@ import java.util.Objects;
 
 import static org.multij.BindingKind.INJECTED;
 
-public class MemberAnalysisPhase implements Phase {
+public class ProductAccessingAnalysisPhase implements Phase {
 
 	@Override
 	public String getDescription() {
-		return "Checks member existence in type definition";
+		return "Checks accesses of product fields";
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class MemberAnalysisPhase implements Phase {
 		}
 
 		default void check(LValueField lvalue) {
-			Type type = types().lvalueType(lvalue.getStructure());
+			Type type = types().type(lvalue.getStructure());
 			checkMember(lvalue, type, lvalue.getField().getName());
 		}
 
