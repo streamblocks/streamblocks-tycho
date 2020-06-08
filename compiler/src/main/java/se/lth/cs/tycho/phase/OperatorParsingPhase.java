@@ -108,7 +108,9 @@ public class OperatorParsingPhase implements Phase {
 			String operator = ops.removeLast();
 			Expression right = out.removeLast();
 			Expression left = out.removeLast();
-			out.add(new ExprBinaryOp(ImmutableList.of(operator), ImmutableList.of(left, right)));
+			Expression expr = new ExprBinaryOp(ImmutableList.of(operator), ImmutableList.of(left, right));
+			expr.setPosition(left, right);
+			out.add(expr);
 		}
 	}
 
