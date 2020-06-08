@@ -428,7 +428,9 @@ public interface Algebraic {
 			emitter().emit("void free_%s_t(%s) {", utils().mangle(sum.getName()), code().declaration(sum, self));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s) return;", self);
-			emitter().emit("switch (%s->tag) {", self);
+			emitter().emit("for (enum %s_tag_t tag = tag_%s_%s; tag <= tag_%s_%s; ++tag) {", utils().mangle(sum.getName()), utils().mangle(sum.getName()), utils().mangle(sum.getVariants().get(0).getName()), utils().mangle(sum.getName()), utils().mangle(sum.getVariants().get(sum.getVariants().size() - 1).getName()));
+			emitter().increaseIndentation();
+			emitter().emit("switch (tag) {");
 			emitter().increaseIndentation();
 			sum.getVariants().forEach(variant -> {
 				emitter().emit("case tag_%s_%s:", utils().mangle(sum.getName()), utils().mangle(variant.getName()));
@@ -444,6 +446,8 @@ public interface Algebraic {
 				emitter().emit("break;");
 				emitter().decreaseIndentation();
 			});
+			emitter().decreaseIndentation();
+			emitter().emit("}");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("free(%s);", self);
