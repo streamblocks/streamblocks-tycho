@@ -755,6 +755,7 @@ public interface Algebraic {
 			emitter().emit("void copy_%s_t(%s, %s) {", utils().mangle(product.getName()), code().declaration(product, "*" + to), code().declaration(product, from));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !%s) return;", to, from);
+			emitter().emit("if (*%s == %s) return;", to, from);
 			emitter().emit("if (*%s) { %s(*%s); *%s = NULL; }", to, utils().destructor(product), to, to);
 			emitter().emit("if (!(*%s)) *%s = calloc(1, sizeof(%s_t));", to, to, utils().mangle(product.getName()));
 			emitter().emit("if (!(*%s)) return;", to);
@@ -772,6 +773,7 @@ public interface Algebraic {
 			emitter().emit("void copy_%s_t(%s, %s) {", utils().mangle(sum.getName()), code().declaration(sum, "*" + to), code().declaration(sum, from));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !%s) return;", to, from);
+			emitter().emit("if (*%s == %s) return;", to, from);
 			emitter().emit("if (*%s) { %s(*%s); *%s = NULL; }", to, utils().destructor(sum), to, to);
 			emitter().emit("if (!(*%s)) *%s = calloc(1, sizeof(%s_t));", to, to, utils().mangle(sum.getName()));
 			emitter().emit("if (!(*%s)) return;", to);
@@ -830,6 +832,7 @@ public interface Algebraic {
 			emitter().emit("%s compare_%s_t(%s, %s) {", code().type(BoolType.INSTANCE), utils().mangle(product.getName()), code().declaration(product, lhs), code().declaration(product, rhs));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !%s) return false;", lhs, rhs);
+			emitter().emit("if (%s == %s) return true;", lhs, rhs);
 			product.getFields().forEach(field -> {
 				emitter().emit("if (!%s) return false;", code().compare(field.getType(), String.format("%s->%s", lhs, field.getName()), field.getType(), String.format("%s->%s", rhs, field.getName())));
 			});
@@ -845,6 +848,7 @@ public interface Algebraic {
 			emitter().emit("%s compare_%s_t(%s, %s) {", code().type(BoolType.INSTANCE), utils().mangle(sum.getName()), code().declaration(sum, "lhs"), code().declaration(sum, "rhs"));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !%s) return false;", lhs, rhs);
+			emitter().emit("if (%s == %s) return true;", lhs, rhs);
 			emitter().emit("if (%s->tag != %s->tag) return false;", lhs, rhs);
 			emitter().emit("switch (%s->tag) {", lhs);
 			emitter().increaseIndentation();
