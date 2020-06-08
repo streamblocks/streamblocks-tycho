@@ -105,7 +105,7 @@ public class Compiler {
         return ImmutableList.of(
                 // Name and type analyses and transformations
 
-                new TypeDeclarationAnalysisPhase(),
+                //new TypeDeclarationAnalysisPhase(),
                 new TypeAnnotationAnalysisPhase(),
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),

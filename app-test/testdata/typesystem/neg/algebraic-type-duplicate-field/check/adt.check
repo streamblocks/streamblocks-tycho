@@ -1,4 +1,4 @@
 Error in "testdata/typesystem/neg/algebraic-type-duplicate-field/src/adt.cal" on line 2:
     type T : (int a, bool a) end // error
                      ^^^^^^
-Field a is already declared.
+a is already declared in this scope.

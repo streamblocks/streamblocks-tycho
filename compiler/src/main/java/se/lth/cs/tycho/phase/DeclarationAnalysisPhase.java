@@ -15,7 +15,8 @@ import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
+import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.expr.ExprCase;
@@ -23,6 +24,7 @@ import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprProc;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
+import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
@@ -33,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,15 +68,12 @@ public class DeclarationAnalysisPhase implements Phase {
 		checkGlobalNames(typeDecls, "Type", context.getReporter());
 		checkGlobalNames(entityDecls, "Entity", context.getReporter());
 
-		CheckLocalNames check = new CheckLocalNames(context.getReporter(), task.getModule(VariableScopes.key));
-		check.accept(task);
-
-		PatternNameChecker checker = MultiJ.from(PatternNameChecker.class)
+		LocalNameChecker checker = MultiJ.from(LocalNameChecker.class)
 				.bind("tree").to(task.getModule(TreeShadow.key))
 				.bind("variableScopes").to(task.getModule(VariableScopes.key))
 				.bind("reporter").to(context.getReporter())
 				.instance();
-		checker.check(task);
+		checker.accept(task);
 
 		return task;
 	}
@@ -115,62 +113,9 @@ public class DeclarationAnalysisPhase implements Phase {
 		}
 	}
 
-	private static class CheckLocalNames implements Consumer<IRNode> {
-		private final Reporter reporter;
-		private final VariableScopes variableScopes;
-
-		public CheckLocalNames(Reporter reporter, VariableScopes variableScopes) {
-			this.reporter = reporter;
-			this.variableScopes = variableScopes;
-		}
-
-		@Override
-		public void accept(IRNode node) {
-			if (node instanceof NamespaceDecl) {
-				check(((NamespaceDecl) node).getTypeDecls());
-				check(((NamespaceDecl) node).getVarDecls());
-				check(((NamespaceDecl) node).getEntityDecls());
-			} else if (node instanceof ExprLet) {
-				check(((ExprLet) node).getTypeDecls());
-				check(((ExprLet) node).getVarDecls());
-			} else if (node instanceof ExprLambda) {
-				check(((ExprLambda) node).getValueParameters());
-			} else if (node instanceof ExprProc) {
-				check(((ExprProc) node).getValueParameters());
-			} else if (node instanceof StmtBlock) {
-				check(((StmtBlock) node).getTypeDecls());
-				check(((StmtBlock) node).getVarDecls());
-			} else if (node instanceof Generator) {
-				check(((Generator) node).getVarDecls());
-			} else if (node instanceof Action) {
-				Action action = (Action) node;
-				check(action.getTypeDecls());
-				check(variableScopes.declarations(action));
-			} else if (node instanceof CalActor) {
-				check(((CalActor) node).getTypeDecls());
-				check(((CalActor) node).getVarDecls());
-			}
-			node.forEachChild(this);
-		}
-
-		private void check(ImmutableList<? extends Decl> decls) {
-			check(decls.stream());
-		}
-
-		private void check(Stream<? extends Decl> decls) {
-			Set<String> names = new HashSet<>();
-			decls.forEach(decl -> {
-				if (!names.add(decl.getName())) {
-					reporter.report(new Diagnostic(
-							Diagnostic.Kind.ERROR,
-							decl.getName() + " is already declared in this scope."));
-				}
-			});
-		}
-	}
-
 	@Module
-	public interface PatternNameChecker {
+	interface LocalNameChecker {
+
 		@Binding(BindingKind.INJECTED)
 		TreeShadow tree();
 
@@ -180,20 +125,84 @@ public class DeclarationAnalysisPhase implements Phase {
 		@Binding(BindingKind.INJECTED)
 		Reporter reporter();
 
-		default void check(IRNode node) {
-			checkNames(node);
-			node.forEachChild(this::check);
+		default void accept(IRNode node) {
+			visit(node);
+			node.forEachChild(this::accept);
 		}
 
-		default void checkNames(IRNode node) {
+		default void visit(IRNode node) {
 
 		}
 
-		default void checkNames(ExprCase.Alternative alternative) {
-			variableScopes().declarations(alternative).stream().collect(Collectors.groupingBy(VarDecl::getName)).forEach((name, declarations) -> {
-				if (declarations.size() > 1) {
-					VarDecl decl = declarations.get(1);
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, decl.getName() + " is already declared in this scope.", sourceUnit(decl), decl));
+		default void visit(NamespaceDecl node) {
+			check(node.getTypeDecls().stream());
+			check(node.getVarDecls().stream());
+			check(node.getEntityDecls().stream());
+		}
+
+		default void visit(ExprLet node) {
+			check(node.getTypeDecls().stream());
+			check(node.getVarDecls().stream());
+		}
+
+		default void visit(ExprLambda node) {
+			check(node.getValueParameters().stream());
+		}
+
+		default void visit(ExprProc node) {
+			check(node.getValueParameters().stream());
+		}
+
+		default void visit(StmtBlock node) {
+			check(node.getTypeDecls().stream());
+			check(node.getVarDecls().stream());
+		}
+
+		default void visit(Generator node) {
+			check(node.getVarDecls().stream());
+		}
+
+		default void visit(Action node) {
+			check(node.getTypeDecls().stream());
+			check(variableScopes().declarations(node).stream());
+		}
+
+		default void visit(CalActor node) {
+			check(node.getTypeDecls().stream());
+			check(node.getVarDecls().stream());
+		}
+
+		default void visit(ProductTypeDecl node) {
+			check(node.getValueParameters().stream());
+			check(node.getTypeParameters().stream());
+			check(ImmutableList.from((node.getFields())).stream());
+		}
+
+		default void visit(SumTypeDecl node) {
+			check(node.getValueParameters().stream());
+			check(node.getTypeParameters().stream());
+			check(node.getVariants().stream());
+		}
+
+		default void visit(SumTypeDecl.VariantDecl node) {
+			check(ImmutableList.from(node.getFields()).stream());
+		}
+
+		default void visit(ExprCase.Alternative node) {
+			check(variableScopes().declarations(node).stream());
+		}
+
+		default void visit(StmtCase.Alternative node) {
+			check(variableScopes().declarations(node).stream());
+		}
+
+		default void check(Stream<? extends Decl> decls) {
+			Set<String> names = new HashSet<>();
+			decls.forEach(decl -> {
+				if (!names.add(decl.getName())) {
+					reporter().report(new Diagnostic(
+							Diagnostic.Kind.ERROR,
+							decl.getName() + " is already declared in this scope.", sourceUnit(decl), decl));
 				}
 			});
 		}
