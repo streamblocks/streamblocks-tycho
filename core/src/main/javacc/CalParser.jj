@@ -406,7 +406,7 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 	(
 		i = Import() ";" { imports.add(i); }
     |
-        LOOKAHEAD(("external")? ( Annotation() )* "actor")
+        LOOKAHEAD(( Annotation() )* ("external")?  "actor")
         e = ActorDecl() { entityDecls.add(e); }
 	|
 		LOOKAHEAD(( Annotation() )* "network")
@@ -461,10 +461,8 @@ Availability Availability() :
 void VariableVarDecl(GenericVarDecl varDecl) :
 {
     Token id;
-    Annotation annotation;
 }
 {
-    ( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
     { varDecl.constant = false; }
     (
         LOOKAHEAD(2)
@@ -515,7 +513,6 @@ void FunctionVarDecl(GenericVarDecl varDecl) :
 	int beginColumn;
 }
 {
-    ( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
     "function"
     {
         beginLine = token.beginLine;
@@ -566,7 +563,6 @@ void ProcedureVarDecl(GenericVarDecl varDecl) :
 	int beginColumn;
 }
 {
-	( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
 	"procedure"
 	{
 	    beginLine = token.beginLine;
@@ -624,7 +620,7 @@ LocalVarDecl BlockVarDecl() :
     Annotation annotation;
 }
 {
-
+    ( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
     (
         LOOKAHEAD(4)
         VariableVarDecl(varDecl)
@@ -645,11 +641,9 @@ LocalVarDecl LocalVarDecl() :
     GenericVarDecl varDecl = new GenericVarDecl();
     ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
     Annotation annotation;
-    boolean external = false;
-
 }
 {
-
+    ( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
     ("external" { varDecl.external = true; })?
     (
         LOOKAHEAD(4)
@@ -668,11 +662,14 @@ LocalVarDecl LocalVarDecl() :
 
 GlobalVarDecl GlobalVarDecl() :
 {
+    ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+    Annotation annotation;
     GenericVarDecl varDecl = new GenericVarDecl();
     varDecl.availability = Availability.PUBLIC;
 }
 {
 
+    ( annotation = Annotation() {varDecl.annotations.add(annotation);} )*
     (varDecl.availability = Availability())?
     ("external" { varDecl.external = true; })?
     (
@@ -1227,8 +1224,8 @@ GlobalEntityDecl ActorDecl() :
     int beginColumn;
 }
 {
-	("external" {external = true;})?
 	( annotation = Annotation() {annotations.add(annotation);} )*
+	("external" {external = true;})?
 	"actor"
 	{
 	    beginLine = token.beginLine;
