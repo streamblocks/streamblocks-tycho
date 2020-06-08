@@ -406,7 +406,7 @@ NamespaceDecl NamespaceDeclContents(QID name) :
 	(
 		i = Import() ";" { imports.add(i); }
     |
-        LOOKAHEAD(( Annotation() )* "actor")
+        LOOKAHEAD(("external")? ( Annotation() )* "actor")
         e = ActorDecl() { entityDecls.add(e); }
 	|
 		LOOKAHEAD(( Annotation() )* "network")
@@ -1227,8 +1227,8 @@ GlobalEntityDecl ActorDecl() :
     int beginColumn;
 }
 {
-	( annotation = Annotation() {annotations.add(annotation);} )*
 	("external" {external = true;})?
+	( annotation = Annotation() {annotations.add(annotation);} )*
 	"actor"
 	{
 	    beginLine = token.beginLine;
