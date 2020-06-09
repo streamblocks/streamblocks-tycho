@@ -127,6 +127,7 @@ TOKEN :
 |	< ALIAS: "alias" >
 |	< ALL: "all" >
 |	< AND: "and" >
+|	< AS: "as" >
 //|	< ANY: "any" >
 //|	< AT: "at" >
 //|	< AT_STAR: "at*" >
@@ -1956,7 +1957,7 @@ Pattern Pattern() :
 		LOOKAHEAD((PatternLiteral() | PatternExpression()) "|")
 		pattern = PatternAlternative()
 	|
-		LOOKAHEAD(PatternDeclaration() "@")
+		LOOKAHEAD(PatternDeclaration() <AS>)
 		pattern = PatternAlias()
 	|
 		LOOKAHEAD(<ID> "(")
@@ -2021,7 +2022,7 @@ PatternAlias PatternAlias() :
 }
 {
 	alias = PatternDeclaration()
-	"@"
+	<AS>
 	expression = PatternExpression()
 	{ return setPosition(new PatternAlias(alias, expression.getExpression()), alias, expression); }
 }

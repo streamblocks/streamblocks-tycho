@@ -3,7 +3,7 @@ namespace patmat:
     actor PatternList() ==> int OUT:
         do
             OUT <-- case xs of
-                [1, n, `(2 + 3), _, m @ `(4 + 5), 6 | `(7 + 8), _] : n + m + 1 end
+                [1, n, `(2 + 3), _, m as `(4 + 5), 6 | `(7 + 8), _] : n + m + 1 end
                 _ : -1 end
             end;
         end
