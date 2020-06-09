@@ -617,6 +617,8 @@ public class TypeAnalysisPhase implements Phase {
 			switch (op) {
 				case "-":
 					return testMinusSupport(type);
+				case "~":
+					return testInvertSupport(type);
 				case "!":
 				case "not":
 					return testNotSupport(type);
@@ -640,6 +642,14 @@ public class TypeAnalysisPhase implements Phase {
 		}
 
 		default boolean testMinusSupport(NumberType type) {
+			return true;
+		}
+
+		default boolean testInvertSupport(Type type) {
+			return false;
+		}
+
+		default boolean testInvertSupport(IntType type) {
 			return true;
 		}
 
@@ -694,6 +704,10 @@ public class TypeAnalysisPhase implements Phase {
 					return testExpSupport(a, b);
 				case "&":
 					return testBitAndSupport(a, b);
+				case "<<":
+					return testShiftLSupport(a, b);
+				case ">>":
+					return testShiftRSupport(a, b);
 				case "&&":
 				case "and":
 					return testAndSupport(a, b);
@@ -703,6 +717,7 @@ public class TypeAnalysisPhase implements Phase {
 				case "or":
 					return testOrSupport(a, b);
 				case "=":
+				case "==":
 					return testEqSupport(a, b);
 				case "!=":
 					return testNeqSupport(a, b);
@@ -814,6 +829,22 @@ public class TypeAnalysisPhase implements Phase {
 		}
 
 		default boolean testBitAndSupport(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean testShiftLSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testShiftLSupport(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean testShiftRSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testShiftRSupport(IntType a, IntType b) {
 			return true;
 		}
 
