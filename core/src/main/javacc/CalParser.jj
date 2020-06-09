@@ -1898,7 +1898,7 @@ String UnaryOperator() :
 {
 	(
 		op = <OP> | op = "=" | op = "-->" | op = "->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@"
-		| op = "not" | op = "dom" | op = "rng" | op = "old"
+		| op = "not" | op = "dom" | op = "rng" | op = "old" | op = "#"
 	)
 	{ return op.image; }
 }

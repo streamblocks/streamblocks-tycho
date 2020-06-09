@@ -820,6 +820,12 @@ public interface Types {
 						return BottomType.INSTANCE;
 					}
 				}
+				case "#":
+					if (t instanceof CollectionType) {
+						return new IntType(OptionalInt.empty(), true);
+					} else {
+						return BottomType.INSTANCE;
+					}
 				default:
 					return BottomType.INSTANCE;
 			}

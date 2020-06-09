@@ -608,6 +608,10 @@ public interface Code {
 		throw new UnsupportedOperationException(expr.getOperation());
 	}
 
+	default String evaluateUnarySize(ListType type, ExprUnaryOp expr) {
+		return "" + type.getSize().getAsInt();
+	}
+
 	default String evaluate(ExprComprehension comprehension) {
 		return evaluateComprehension(comprehension, types().type(comprehension));
 	}

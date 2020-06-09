@@ -682,7 +682,7 @@ public class TypeAnalysisPhase implements Phase {
 		}
 
 		default boolean testSizeSupport(CollectionType type) {
-			return false;
+			return true;
 		}
 
 		default boolean isBinaryOpSupported(String op, Type a, Type b) {

@@ -7,6 +7,8 @@ public abstract class Operator {
 			case "!":
 			case "not":
 				return new OperatorNot();
+			case "#":
+				return new OperatorSize();
 			case "+":
 				return new OperatorPlus();
 			case "-":

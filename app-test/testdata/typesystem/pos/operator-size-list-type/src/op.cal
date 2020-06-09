@@ -1,0 +1,8 @@
+namespace op:
+    actor ListSize() ==> int OUT:
+        List(type:int, size=5) xs;
+        do
+            OUT <-- #xs;
+        end
+    end
+end
