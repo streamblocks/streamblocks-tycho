@@ -14,11 +14,11 @@ import se.lth.cs.tycho.reporting.CompilationException;
 
 import java.util.Collections;
 
-public class ResolvePatternsPhase implements Phase {
+public class ResolvePatternDeconstructionPhase implements Phase {
 
 	@Override
 	public String getDescription() {
-		return "Resolve patterns of case alternatives";
+		return "Resolve deconstruction patterns";
 	}
 
 	@Override
