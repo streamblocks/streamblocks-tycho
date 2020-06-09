@@ -10,6 +10,7 @@ import se.lth.cs.tycho.meta.interp.op.operator.OperatorDiv;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorEqual;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorGreaterEqualThan;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorGreaterThan;
+import se.lth.cs.tycho.meta.interp.op.operator.OperatorIn;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorLowerEqualThan;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorLowerThan;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorMinus;
@@ -24,6 +25,7 @@ import se.lth.cs.tycho.meta.interp.value.Value;
 import se.lth.cs.tycho.meta.interp.value.ValueBool;
 import se.lth.cs.tycho.meta.interp.value.ValueChar;
 import se.lth.cs.tycho.meta.interp.value.ValueInteger;
+import se.lth.cs.tycho.meta.interp.value.ValueList;
 import se.lth.cs.tycho.meta.interp.value.ValueReal;
 import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
 
@@ -220,5 +222,12 @@ public interface Binary {
 
 	default Value apply(OperatorDifferent op, Value lhs, Value rhs) {
 		return new ValueBool(!(lhs.equals(rhs)));
+	}
+
+	default Value apply(OperatorIn op, Value lhs, ValueList rhs) {
+		if (lhs == ValueUndefined.undefined()) {
+			return ValueUndefined.undefined();
+		}
+		return new ValueBool(rhs.elements().stream().anyMatch(element -> element.equals(lhs)));
 	}
 }

@@ -782,6 +782,7 @@ public interface Types {
 				case "==":
 				case "=":
 				case "!=":
+				case "in":
 					return BoolType.INSTANCE;
 				case "..":
 					Type type = leastUpperBound(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));

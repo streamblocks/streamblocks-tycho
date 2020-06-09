@@ -47,6 +47,8 @@ public abstract class Operator {
 				return new OperatorGreaterThan();
 			case ">=":
 				return new OperatorGreaterEqualThan();
+			case "in":
+				return new OperatorIn();
 			default:
 				throw new RuntimeException("Unsupported operator " + op + ".");
 		}

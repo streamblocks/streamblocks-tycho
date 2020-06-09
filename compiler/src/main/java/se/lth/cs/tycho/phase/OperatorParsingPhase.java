@@ -181,7 +181,8 @@ public class OperatorParsingPhase implements Phase {
 			new BinaryOperator("+", -6, false),
 			new BinaryOperator("<<", -7, false),
 			new BinaryOperator(">>", -7, false),
-			new BinaryOperator("*", -5 , false)
+			new BinaryOperator("*", -5 , false),
+			new BinaryOperator("in", -7 , false)
 	).collect(Collectors.toMap(op -> op.name, Function.identity()));
 
 	private static final Map<String, BinaryOperator> noOperators = Collections.emptyMap();

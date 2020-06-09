@@ -552,6 +552,20 @@ public interface Code {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
 	}
 
+	default String evaluateBinaryIn(Type lhs, ListType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		String index = variables().generateTemp();
+		String elem = evaluate(binaryOp.getOperands().get(0));
+		String list = evaluate(binaryOp.getOperands().get(1));
+		emitter().emit("%s = false;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("for (size_t %1$s = 0; (%1$s < %2$s) && !(%3$s); %1$s++) {", index, rhs.getSize().getAsInt(), tmp);
+		emitter().increaseIndentation();
+		emitter().emit("%s |= %s;", tmp, compare(lhs, elem, rhs.getElementType(), String.format("%s.data[%s]", list, index)));
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return tmp;
+	}
+
 	default String evaluate(ExprUnaryOp unaryOp) {
 		switch (unaryOp.getOperation()) {
 			case "-":

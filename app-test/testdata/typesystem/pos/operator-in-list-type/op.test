@@ -1,0 +1,5 @@
+{
+    "description": "Test in operator on list type",
+    "source-paths": ["src"],
+    "entity": "op.ListMembership"
+}
