@@ -125,7 +125,7 @@ public class CaseAnalysisPhase implements Phase {
 				.bind("transform").to(transform)
 				.instance();
 
-		Redundancy redundancy = MultiJ.from(Redundancy.class)
+		Reachability reachability = MultiJ.from(Reachability.class)
 				.bind("types").to(types)
 				.bind("project").to(project)
 				.bind("ops").to(ops)
@@ -136,7 +136,7 @@ public class CaseAnalysisPhase implements Phase {
 
 		SpaceLogic logic = MultiJ.from(SpaceLogic.class)
 				.bind("exhaustivity").to(exhaustivity)
-				.bind("redundancy").to(redundancy)
+				.bind("reachability").to(reachability)
 				.instance();
 
 		Analysis analysis = MultiJ.from(Analysis.class)
@@ -168,7 +168,7 @@ public class CaseAnalysisPhase implements Phase {
 				return;
 			}
 			logic().checkExhaustivity(node);
-			logic().checkRedundancy(node);
+			logic().checkReachability(node);
 		}
 
 		default boolean checkable(IRNode node) {
@@ -303,14 +303,14 @@ public class CaseAnalysisPhase implements Phase {
 		Exhaustivity exhaustivity();
 
 		@Binding(BindingKind.INJECTED)
-		Redundancy redundancy();
+		Reachability reachability();
 
 		default void checkExhaustivity(IRNode node) {
 			exhaustivity().check(node);
 		}
 
-		default void checkRedundancy(IRNode node) {
-			redundancy().check(node);
+		default void checkReachability(IRNode node) {
+			reachability().check(node);
 		}
 	}
 
@@ -408,7 +408,7 @@ public class CaseAnalysisPhase implements Phase {
 	}
 
 	@Module
-	interface Redundancy {
+	interface Reachability {
 
 		@Binding(BindingKind.INJECTED)
 		Types types();
