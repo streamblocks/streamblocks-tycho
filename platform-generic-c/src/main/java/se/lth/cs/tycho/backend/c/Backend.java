@@ -73,6 +73,9 @@ public interface Backend {
 	@Binding(LAZY) default Lists lists() {
 		return MultiJ.from(Lists.class).bind("backend").to(this).instance();
 	}
+	@Binding(LAZY) default Sets sets() {
+		return MultiJ.from(Sets.class).bind("backend").to(this).instance();
+	}
 	@Binding(LAZY) default Variables variables() {
 		return MultiJ.from(Variables.class).bind("backend").to(this).instance();
 	}

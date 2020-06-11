@@ -27,7 +27,12 @@ import se.lth.cs.tycho.meta.interp.value.ValueChar;
 import se.lth.cs.tycho.meta.interp.value.ValueInteger;
 import se.lth.cs.tycho.meta.interp.value.ValueList;
 import se.lth.cs.tycho.meta.interp.value.ValueReal;
+import se.lth.cs.tycho.meta.interp.value.ValueSet;
 import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Module
 public interface Binary {
@@ -84,6 +89,10 @@ public interface Binary {
 		return new ValueBool(lhs.character() < rhs.character());
 	}
 
+	default Value apply(OperatorLowerThan op, ValueSet lhs, ValueSet rhs) {
+		return new ValueBool(lhs.elements().stream().allMatch(elem -> rhs.elements().contains(elem)) && lhs.elements().size() < rhs.elements().size());
+	}
+
 	default Value apply(OperatorLowerEqualThan op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueBool(lhs.integer() <= rhs.integer());
 	}
@@ -102,6 +111,10 @@ public interface Binary {
 
 	default Value apply(OperatorLowerEqualThan op, ValueChar lhs, ValueChar rhs) {
 		return new ValueBool(lhs.character() <= rhs.character());
+	}
+
+	default Value apply(OperatorLowerEqualThan op, ValueSet lhs, ValueSet rhs) {
+		return new ValueBool(lhs.elements().stream().allMatch(elem -> rhs.elements().contains(elem)) && lhs.elements().size() <= rhs.elements().size());
 	}
 
 	default Value apply(OperatorGreaterThan op, ValueInteger lhs, ValueInteger rhs) {
@@ -124,6 +137,10 @@ public interface Binary {
 		return new ValueBool(lhs.character() > rhs.character());
 	}
 
+	default Value apply(OperatorGreaterThan op, ValueSet lhs, ValueSet rhs) {
+		return new ValueBool(rhs.elements().stream().allMatch(elem -> lhs.elements().contains(elem)) && rhs.elements().size() < lhs.elements().size());
+	}
+
 	default Value apply(OperatorGreaterEqualThan op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueBool(lhs.integer() >= rhs.integer());
 	}
@@ -144,6 +161,10 @@ public interface Binary {
 		return new ValueBool(lhs.character() >= rhs.character());
 	}
 
+	default Value apply(OperatorGreaterEqualThan op, ValueSet lhs, ValueSet rhs) {
+		return new ValueBool(rhs.elements().stream().allMatch(elem -> lhs.elements().contains(elem)) && rhs.elements().size() <= lhs.elements().size());
+	}
+
 	default Value apply(OperatorPlus op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueInteger(lhs.integer() + rhs.integer());
 	}
@@ -158,6 +179,11 @@ public interface Binary {
 
 	default Value apply(OperatorPlus op, ValueReal lhs, ValueInteger rhs) {
 		return new ValueReal(lhs.real() + rhs.integer());
+	}
+
+	default Value apply(OperatorPlus op, ValueSet lhs, ValueSet rhs) {
+		Set<Value> elements = new HashSet<>(lhs.elements()); elements.addAll(rhs.elements());
+		return new ValueSet(elements);
 	}
 
 	default Value apply(OperatorMinus op, ValueInteger lhs, ValueInteger rhs) {
@@ -176,6 +202,10 @@ public interface Binary {
 		return new ValueReal(lhs.real() - rhs.integer());
 	}
 
+	default Value apply(OperatorMinus op, ValueSet lhs, ValueSet rhs) {
+		return new ValueSet(lhs.elements().stream().filter(elem -> !(rhs.elements().contains(elem))).collect(Collectors.toSet()));
+	}
+
 	default Value apply(OperatorTimes op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueInteger(lhs.integer() * rhs.integer());
 	}
@@ -190,6 +220,10 @@ public interface Binary {
 
 	default Value apply(OperatorTimes op, ValueReal lhs, ValueInteger rhs) {
 		return new ValueReal(lhs.real() * rhs.integer());
+	}
+
+	default Value apply(OperatorTimes op, ValueSet lhs, ValueSet rhs) {
+		return new ValueSet(lhs.elements().stream().filter(elem -> rhs.elements().contains(elem)).collect(Collectors.toSet()));
 	}
 
 	default Value apply(OperatorDiv op, ValueInteger lhs, ValueInteger rhs) {
@@ -225,6 +259,13 @@ public interface Binary {
 	}
 
 	default Value apply(OperatorIn op, Value lhs, ValueList rhs) {
+		if (lhs == ValueUndefined.undefined()) {
+			return ValueUndefined.undefined();
+		}
+		return new ValueBool(rhs.elements().stream().anyMatch(element -> element.equals(lhs)));
+	}
+
+	default Value apply(OperatorIn op, Value lhs, ValueSet rhs) {
 		if (lhs == ValueUndefined.undefined()) {
 			return ValueUndefined.undefined();
 		}

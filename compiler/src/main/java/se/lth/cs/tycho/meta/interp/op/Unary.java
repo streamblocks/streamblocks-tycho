@@ -10,6 +10,7 @@ import se.lth.cs.tycho.meta.interp.value.ValueBool;
 import se.lth.cs.tycho.meta.interp.value.ValueInteger;
 import se.lth.cs.tycho.meta.interp.value.ValueList;
 import se.lth.cs.tycho.meta.interp.value.ValueReal;
+import se.lth.cs.tycho.meta.interp.value.ValueSet;
 import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
 
 @Module
@@ -24,6 +25,10 @@ public interface Unary {
 	}
 
 	default Value apply(OperatorSize op, ValueList operand) {
+		return new ValueInteger(operand.elements().size());
+	}
+
+	default Value apply(OperatorSize op, ValueSet operand) {
 		return new ValueInteger(operand.elements().size());
 	}
 

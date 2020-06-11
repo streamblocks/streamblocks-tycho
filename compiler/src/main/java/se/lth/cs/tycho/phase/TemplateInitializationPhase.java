@@ -34,6 +34,7 @@ import se.lth.cs.tycho.meta.ir.expr.pattern.MetaPatternDeconstruction;
 import se.lth.cs.tycho.meta.ir.type.MetaNominalTypeExpr;
 import se.lth.cs.tycho.reporting.CompilationException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -101,7 +102,7 @@ public class TemplateInitializationPhase implements Phase {
 		}
 
 		default IRNode apply(NominalTypeExpr expr) {
-			if (expr.getName().equals("List")
+			if (Arrays.asList("Set", "List").contains(expr.getName())
 					|| expr.getName().equals("int")
 					|| expr.getName().equals("uint")
 					|| (expr.getTypeParameters().isEmpty() && expr.getValueParameters().isEmpty())) {

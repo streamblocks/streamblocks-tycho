@@ -9,6 +9,7 @@ import se.lth.cs.tycho.type.CharType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.RealType;
+import se.lth.cs.tycho.type.SetType;
 import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
@@ -55,5 +56,8 @@ public interface DefaultValues {
 	}
 	default String defaultValue(TupleType t) {
 		return "NULL";
+	}
+	default String defaultValue(SetType t) {
+		return "{ 0 }";
 	}
 }

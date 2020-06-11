@@ -574,6 +574,14 @@ public interface Types {
 					}
 					return BottomType.INSTANCE;
 				}
+				case "Set": {
+					Optional<TypeExpr> e = findParameter(t.getTypeParameters(), "type");
+					Optional<Type> elements = e.map(this::convert);
+					if (elements.isPresent()) {
+						return new SetType(elements.get());
+					}
+					return BottomType.INSTANCE;
+				}
 				case "Queue": {
 					Optional<TypeExpr> e = findParameter(t.getTypeParameters(), "token");
 					Optional<Type> elements = e.map(this::convert);
@@ -716,6 +724,10 @@ public interface Types {
 			return new ListType(t.getElementType(), size);
 		}
 
+		default Type withCollectionSize(SetType t, OptionalInt size) {
+			return t;
+		}
+
 		default Type computeType(ExprComprehension comprehension) {
 			Type collectionType = type(comprehension.getCollection());
 			OptionalInt collectionSize = collectionSize(collectionType);
@@ -741,6 +753,13 @@ public interface Types {
 					.map(this::type)
 					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 			return new ListType(elementType, OptionalInt.of(list.getElements().size()));
+		}
+
+		default Type computeType(ExprSet set) {
+			Type elementType = set.getElements().stream()
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+			return new SetType(elementType);
 		}
 
 		default Type computeType(ExprRef ref) {
@@ -948,6 +967,11 @@ public interface Types {
 			Type elementLub = leastUpperBound(a.getElementType(), b.getElementType());
 			OptionalInt size = a.getSize().equals(b.getSize()) ? a.getSize() : OptionalInt.empty();
 			return new ListType(elementLub, size);
+		}
+
+		default Type leastUpperBound(SetType a, SetType b) {
+			Type elementLub = leastUpperBound(a.getElementType(), b.getElementType());
+			return new SetType(elementLub);
 		}
 
 		default Type leastUpperBound(TupleType a, TupleType b) {

@@ -172,6 +172,10 @@ public interface Callables {
 		return seq(name("list"), mangle(type.getElementType()), name(size));
 	}
 
+	default NameExpression mangle(SetType type) {
+		return seq(name("set"), mangle(type.getElementType()));
+	}
+
 	default NameExpression mangle(IntType type) {
 		String kind;
 		if (type.isSigned()) {

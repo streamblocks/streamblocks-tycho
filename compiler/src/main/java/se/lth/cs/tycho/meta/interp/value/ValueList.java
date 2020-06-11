@@ -7,8 +7,8 @@ public class ValueList implements Value {
 
 	private final List<Value> elements;
 
-	public ValueList(List<Value>list) {
-		this.elements = list;
+	public ValueList(List<Value> elements) {
+		this.elements = elements;
 	}
 
 	public List<Value> elements() {

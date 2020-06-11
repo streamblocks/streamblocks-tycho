@@ -24,6 +24,7 @@ import se.lth.cs.tycho.ir.expr.ExprLet;
 import se.lth.cs.tycho.ir.expr.ExprList;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprNth;
+import se.lth.cs.tycho.ir.expr.ExprSet;
 import se.lth.cs.tycho.ir.expr.ExprTuple;
 import se.lth.cs.tycho.ir.expr.ExprTypeAssertion;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
@@ -53,6 +54,7 @@ import se.lth.cs.tycho.meta.interp.value.ValueList;
 import se.lth.cs.tycho.meta.interp.value.ValueParameter;
 import se.lth.cs.tycho.meta.interp.value.ValueProduct;
 import se.lth.cs.tycho.meta.interp.value.ValueReal;
+import se.lth.cs.tycho.meta.interp.value.ValueSet;
 import se.lth.cs.tycho.meta.interp.value.ValueString;
 import se.lth.cs.tycho.meta.interp.value.ValueSum;
 import se.lth.cs.tycho.meta.interp.value.ValueTuple;
@@ -60,10 +62,12 @@ import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -325,6 +329,14 @@ public interface Interpreter {
 		List<Value> elements = expr.getElements().map(elem -> eval(elem, env));
 		if (elements.size() > 0 && elements.subList(1, elements.size()).stream().allMatch(e -> e.getClass().equals(elements.get(0).getClass()))) {
 			return new ValueList(elements);
+		}
+		return ValueUndefined.undefined();
+	}
+
+	default Value eval(ExprSet expr, Environment env) {
+		List<Value> elements = expr.getElements().map(elem -> eval(elem, env));
+		if (elements.size() > 0 && elements.subList(1, elements.size()).stream().allMatch(e -> e.getClass().equals(elements.get(0).getClass()))) {
+			return new ValueSet(new HashSet<>(elements));
 		}
 		return ValueUndefined.undefined();
 	}

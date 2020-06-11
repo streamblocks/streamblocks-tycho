@@ -20,6 +20,7 @@ import se.lth.cs.tycho.type.LambdaType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.ProcType;
 import se.lth.cs.tycho.type.RealType;
+import se.lth.cs.tycho.type.SetType;
 import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
@@ -112,6 +113,11 @@ public final class TypeToTypeExpr {
 
 		default TupleTypeExpr convert(TupleType type) {
 			return new TupleTypeExpr(type.getTypes().map(this::convert));
+		}
+
+		default NominalTypeExpr convert(SetType type) {
+			TypeParameter elementType = new TypeParameter("type", convert(type.getElementType()));
+			return new NominalTypeExpr("Set", ImmutableList.of(elementType), ImmutableList.empty());
 		}
 	}
 }

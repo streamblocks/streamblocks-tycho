@@ -70,6 +70,10 @@ public interface Code {
 		}
 	}
 
+	default void copy(SetType lvalueType, String lvalue, SetType rvalueType, String rvalue) {
+		emitter().emit("copy_%1$s(&(%2$s), &(%3$s));", type(lvalueType), lvalue, rvalue);
+	}
+
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		emitter().emit("copy_%s(&(%s), %s);", backend().algebraic().utils().name(lvalueType), lvalue, rvalue);
 	}
@@ -107,6 +111,13 @@ public interface Code {
 		emitter().emit("%s &= %s;", tmp, compare(lvalueType.getElementType(), String.format("%s.data[%s]", lvalue, index), rvalueType.getElementType(), String.format("%s.data[%s]", rvalue, index)));
 		emitter().decreaseIndentation();
 		emitter().emit("}");
+		return tmp;
+	}
+
+	default String compare(SetType lvalueType, String lvalue, SetType rvalueType, String rvalue) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%$1s = union_%$2s(&(%$3s), &(%$4s));", tmp, type(lvalueType), lvalue, rvalue);
 		return tmp;
 	}
 
@@ -186,6 +197,10 @@ public interface Code {
 	}
 
 	default String type(ListType type) {
+		return backend().callables().mangle(type).encode();
+	}
+
+	default String type(SetType type) {
 		return backend().callables().mangle(type).encode();
 	}
 
@@ -342,6 +357,15 @@ public interface Code {
 		return String.format("(%s + %s)", evaluate(left), evaluate(right));
 	}
 
+	default String evaluateBinaryAdd(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%$1s = union_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
 	default String evaluateBinarySub(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
 	}
@@ -352,6 +376,15 @@ public interface Code {
 		return String.format("(%s - %s)", evaluate(left), evaluate(right));
 	}
 
+	default String evaluateBinarySub(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%$1s = difference_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
 	default String evaluateBinaryTimes(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
 	}
@@ -360,6 +393,15 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		return String.format("(%s * %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryTimes(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%$1s = intersect_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
 	}
 
 	default String evaluateBinaryDiv(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
@@ -518,6 +560,15 @@ public interface Code {
 		return String.format("(%s < %s)", evaluate(left), evaluate(right));
 	}
 
+	default String evaluateBinaryLtn(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%$1s = less_than_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
 	default String evaluateBinaryLeq(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
 	}
@@ -526,6 +577,15 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		return String.format("(%s <= %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryLeq(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%$1s = less_than_equal_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
 	}
 	
 	default String evaluateBinaryGtn(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
@@ -537,6 +597,15 @@ public interface Code {
 		Expression right = binaryOp.getOperands().get(1);
 		return String.format("(%s > %s)", evaluate(left), evaluate(right));
 	}
+
+	default String evaluateBinaryGtn(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%$1s = greater_than_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
 	
 	default String evaluateBinaryGeq(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
@@ -546,6 +615,15 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		return String.format("(%s >= %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryGeq(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%$1s = greater_than_equal_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
 	}
 
 	default String evaluateBinaryIn(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
@@ -563,6 +641,15 @@ public interface Code {
 		emitter().emit("%s |= %s;", tmp, compare(lhs, elem, rhs.getElementType(), String.format("%s.data[%s]", list, index)));
 		emitter().decreaseIndentation();
 		emitter().emit("}");
+		return tmp;
+	}
+
+	default String evaluateBinaryIn(Type lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%$1s = membership_%$2s(&(%$3s), %$4s);", tmp, type(rhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -624,6 +711,12 @@ public interface Code {
 
 	default String evaluateUnarySize(ListType type, ExprUnaryOp expr) {
 		return "" + type.getSize().getAsInt();
+	}
+
+	default String evaluateUnarySize(SetType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = size_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
+		return tmp;
 	}
 
 	default String evaluate(ExprComprehension comprehension) {
