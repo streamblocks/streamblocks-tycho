@@ -102,9 +102,7 @@ public class TemplateInitializationPhase implements Phase {
 		}
 
 		default IRNode apply(NominalTypeExpr expr) {
-			if (Arrays.asList("Set", "List").contains(expr.getName())
-					|| expr.getName().equals("int")
-					|| expr.getName().equals("uint")
+			if (Arrays.asList("Set", "List", "Map", "int", "uint").contains(expr.getName())
 					|| (expr.getTypeParameters().isEmpty() && expr.getValueParameters().isEmpty())) {
 				return expr.transformChildren(this);
 			}

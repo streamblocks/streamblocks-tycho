@@ -18,6 +18,7 @@ import se.lth.cs.tycho.type.CharType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.LambdaType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.MapType;
 import se.lth.cs.tycho.type.ProcType;
 import se.lth.cs.tycho.type.RealType;
 import se.lth.cs.tycho.type.SetType;
@@ -118,6 +119,12 @@ public final class TypeToTypeExpr {
 		default NominalTypeExpr convert(SetType type) {
 			TypeParameter elementType = new TypeParameter("type", convert(type.getElementType()));
 			return new NominalTypeExpr("Set", ImmutableList.of(elementType), ImmutableList.empty());
+		}
+
+		default NominalTypeExpr convert(MapType type) {
+			TypeParameter keyType = new TypeParameter("key", convert(type.getKeyType()));
+			TypeParameter valueType = new TypeParameter("value", convert(type.getValueType()));
+			return new NominalTypeExpr("Map", ImmutableList.of(keyType, valueType), ImmutableList.empty());
 		}
 	}
 }

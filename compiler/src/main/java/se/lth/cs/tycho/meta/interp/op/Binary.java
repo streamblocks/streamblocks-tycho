@@ -1,6 +1,8 @@
 package se.lth.cs.tycho.meta.interp.op;
 
 import org.multij.Module;
+import se.lth.cs.tycho.ir.util.ImmutableEntry;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.meta.interp.op.operator.Operator;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorAnd;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorConjunction;
@@ -26,11 +28,16 @@ import se.lth.cs.tycho.meta.interp.value.ValueBool;
 import se.lth.cs.tycho.meta.interp.value.ValueChar;
 import se.lth.cs.tycho.meta.interp.value.ValueInteger;
 import se.lth.cs.tycho.meta.interp.value.ValueList;
+import se.lth.cs.tycho.meta.interp.value.ValueMap;
 import se.lth.cs.tycho.meta.interp.value.ValueReal;
 import se.lth.cs.tycho.meta.interp.value.ValueSet;
 import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -186,6 +193,27 @@ public interface Binary {
 		return new ValueSet(elements);
 	}
 
+	default Value apply(OperatorPlus op, ValueMap lhs, ValueMap rhs) {
+		Map<Value, List<Value>> union = new HashMap<>();
+		for (ImmutableEntry<Value, Value> mapping : lhs.mappings()) {
+			List<Value> value = new ArrayList<>(); value.add(mapping.getValue());
+			union.put(mapping.getKey(), value);
+		}
+		for (ImmutableEntry<Value, Value> mapping : rhs.mappings()) {
+			if (union.containsKey(mapping.getValue())) {
+				union.get(mapping.getValue()).add(mapping.getKey());
+			} else {
+				List<Value> value = new ArrayList<>(); value.add(mapping.getValue());
+				union.put(mapping.getKey(), value);
+			}
+		}
+		List<ImmutableEntry<Value, Value>> mappings = new ArrayList<>();
+		for (Map.Entry<Value, List<Value>> entry : union.entrySet()) {
+			mappings.add(ImmutableEntry.of(entry.getKey(), new ValueList(entry.getValue())));
+		}
+		return new ValueMap(ImmutableList.from(mappings));
+	}
+
 	default Value apply(OperatorMinus op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueInteger(lhs.integer() - rhs.integer());
 	}
@@ -259,16 +287,15 @@ public interface Binary {
 	}
 
 	default Value apply(OperatorIn op, Value lhs, ValueList rhs) {
-		if (lhs == ValueUndefined.undefined()) {
-			return ValueUndefined.undefined();
-		}
 		return new ValueBool(rhs.elements().stream().anyMatch(element -> element.equals(lhs)));
 	}
 
 	default Value apply(OperatorIn op, Value lhs, ValueSet rhs) {
-		if (lhs == ValueUndefined.undefined()) {
-			return ValueUndefined.undefined();
-		}
+
 		return new ValueBool(rhs.elements().stream().anyMatch(element -> element.equals(lhs)));
+	}
+
+	default Value apply(OperatorIn op, Value lhs, ValueMap rhs) {
+		return new ValueBool(rhs.mappings().stream().anyMatch(element -> element.getKey().equals(lhs)));
 	}
 }

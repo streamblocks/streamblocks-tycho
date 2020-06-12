@@ -9,6 +9,10 @@ public abstract class Operator {
 				return new OperatorNot();
 			case "#":
 				return new OperatorSize();
+			case "dom":
+				return new OperatorDom();
+			case "rng":
+				return new OperatorRng();
 			case "+":
 				return new OperatorPlus();
 			case "-":

@@ -36,6 +36,6 @@ public final class MapType implements CollectionType {
 
 	@Override
 	public String toString() {
-		return String.format("Map[%s, %s]", getKeyType(), getValueType());
+		return String.format("Map(key:%s, value:%s)", getKeyType(), getValueType());
 	}
 }

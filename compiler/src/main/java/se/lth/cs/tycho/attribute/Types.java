@@ -505,6 +505,8 @@ public interface Types {
 			Type structureType = computeLValueType(indexer.getStructure());
 			if (structureType instanceof ListType) {
 				return ((ListType) structureType).getElementType();
+			} else if (structureType instanceof MapType) {
+				return ((MapType) structureType).getValueType();
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -762,6 +764,18 @@ public interface Types {
 			return new SetType(elementType);
 		}
 
+		default Type computeType(ExprMap map) {
+			Type keyType = map.getMappings().stream()
+					.map(AbstractMap.SimpleImmutableEntry::getKey)
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+			Type valueType = map.getMappings().stream()
+					.map(AbstractMap.SimpleImmutableEntry::getValue)
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+			return new MapType(keyType, valueType);
+		}
+
 		default Type computeType(ExprRef ref) {
 			return new RefType(declaredType(variables().declaration(ref.getVariable())));
 		}
@@ -846,6 +860,19 @@ public interface Types {
 					} else {
 						return BottomType.INSTANCE;
 					}
+				case "dom":
+					if (t instanceof MapType) {
+						return new SetType(((MapType) t).getKeyType());
+					} else {
+						return BottomType.INSTANCE;
+					}
+				case "rng":
+					if (t instanceof MapType) {
+						// FIXME should be a list type instead once they are no longer fixed-length
+						return new SetType(((MapType) t).getValueType());
+					} else {
+						return BottomType.INSTANCE;
+					}
 				default:
 					return BottomType.INSTANCE;
 			}
@@ -872,6 +899,8 @@ public interface Types {
 			Type structureType = type(indexer.getStructure());
 			if (structureType instanceof ListType) {
 				return ((ListType) structureType).getElementType();
+			} else if (structureType instanceof MapType) {
+				return ((MapType) structureType).getValueType();
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -972,6 +1001,12 @@ public interface Types {
 		default Type leastUpperBound(SetType a, SetType b) {
 			Type elementLub = leastUpperBound(a.getElementType(), b.getElementType());
 			return new SetType(elementLub);
+		}
+
+		default Type leastUpperBound(MapType a, MapType b) {
+			Type keyLub = leastUpperBound(a.getKeyType(), b.getKeyType());
+			Type valueLub = leastUpperBound(a.getValueType(), b.getValueType());
+			return new MapType(keyLub, valueLub);
 		}
 
 		default Type leastUpperBound(TupleType a, TupleType b) {
