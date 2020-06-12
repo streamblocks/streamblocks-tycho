@@ -715,11 +715,11 @@ GlobalEntityDecl ActorDecl() :
 		":"
 		(
 			(
-				LOOKAHEAD(("@" | (QID() ":"))? "action")
+				LOOKAHEAD(( Annotation() )* (QID() ":")? "action")
 				action = Action()
 				{ actions.add(action); }
 			|
-				LOOKAHEAD((QID() ":")? "initialize")
+				LOOKAHEAD(( Annotation() )* (QID() ":")? "initialize")
 				action = InitializationAction()
 				{ initializers.add(action); }
 			|

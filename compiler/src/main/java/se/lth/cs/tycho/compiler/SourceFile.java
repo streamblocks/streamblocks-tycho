@@ -19,6 +19,10 @@ public class SourceFile implements SourceUnit {
 		this.language = language;
 	}
 
+	public Path getFile() {
+		return file;
+	}
+
 	@Override
 	public InputLanguage getLanguage() {
 		return language;
