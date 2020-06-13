@@ -2288,11 +2288,13 @@ ExprProc ProcExpression() :
 
 Expression MapExpression() :
 {
+	Token first;
+	Token last;
 	Expression result;
 	ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
 }
 {
-	"map"
+	first = "map"
 	"{"
 	mappings = Mappings()
 	{ result = new ExprMap(mappings); }
@@ -2300,9 +2302,9 @@ Expression MapExpression() :
 		":"
 		result = ComprehensionFor(result)
 	)?
-	"}"
+	last = "}"
 	{
-		return result;
+		return setPosition(result, first, last);
 	}
 }
 

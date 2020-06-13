@@ -167,6 +167,10 @@ public interface Callables {
 		return name("bool");
 	}
 
+	default NameExpression mangle(CharType type) {
+		return name("char");
+	}
+
 	default NameExpression mangle(ListType type) {
 		String size = type.getSize().isPresent() ? Integer.toString(type.getSize().getAsInt()) : "X";
 		return seq(name("list"), mangle(type.getElementType()), name(size));
@@ -174,6 +178,10 @@ public interface Callables {
 
 	default NameExpression mangle(SetType type) {
 		return seq(name("set"), mangle(type.getElementType()));
+	}
+
+	default NameExpression mangle(MapType type) {
+		return seq(name("map"), mangle(type.getKeyType()), mangle(type.getValueType()));
 	}
 
 	default NameExpression mangle(IntType type) {

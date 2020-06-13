@@ -215,6 +215,10 @@ public class TypeAnalysisPhase implements Phase {
 			return isAssignable(to.getElementType(), from.getElementType());
 		}
 
+		default boolean isAssignable(MapType to, MapType from) {
+			return isAssignable(to.getKeyType(), from.getKeyType()) && isAssignable(to.getValueType(), from.getValueType());
+		}
+
 		default boolean isAssignable(CallableType to, CallableType from) {
 			if (to.getParameterTypes().size() != from.getParameterTypes().size()) {
 				return false;

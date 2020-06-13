@@ -38,6 +38,8 @@ public interface Global {
 		emitter().emit("");
 		backend().sets().defineSet();
 		emitter().emit("");
+		backend().maps().defineMap();
+		emitter().emit("");
 		backend().algebraic().defineAlgebraic();
 		emitter().emit("");
 		backend().tuples().defineTuple();
@@ -65,11 +67,15 @@ public interface Global {
 		emitter().emit("");
 		backend().sets().forwardSet();
 		emitter().emit("");
+		backend().maps().forwardMap();
+		emitter().emit("");
 		backend().tuples().forwardTuple();
 		emitter().emit("");
 		backend().lists().declareListTypes();
 		emitter().emit("");
 		backend().sets().declareSet();
+		emitter().emit("");
+		backend().maps().declareMap();
 		emitter().emit("");
 		backend().alias().declareAliasTypes();
 		emitter().emit("");

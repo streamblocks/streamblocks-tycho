@@ -35,6 +35,7 @@ import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
 import se.lth.cs.tycho.ir.type.TupleTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
+import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.CaseAnalysisPhase;
 import se.lth.cs.tycho.phase.TreeShadow;
@@ -584,6 +585,16 @@ public interface Types {
 					}
 					return BottomType.INSTANCE;
 				}
+				case "Map": {
+					Optional<TypeExpr> k = findParameter(t.getTypeParameters(), "key");
+					Optional<TypeExpr> v = findParameter(t.getTypeParameters(), "value");
+					Optional<Type> keys = k.map(this::convert);
+					Optional<Type> values = v.map(this::convert);
+					if (keys.isPresent() && values.isPresent()) {
+						return new MapType(keys.get(), values.get());
+					}
+					return BottomType.INSTANCE;
+				}
 				case "Queue": {
 					Optional<TypeExpr> e = findParameter(t.getTypeParameters(), "token");
 					Optional<Type> elements = e.map(this::convert);
@@ -766,11 +777,11 @@ public interface Types {
 
 		default Type computeType(ExprMap map) {
 			Type keyType = map.getMappings().stream()
-					.map(AbstractMap.SimpleImmutableEntry::getKey)
+					.map(ImmutableEntry::getKey)
 					.map(this::type)
 					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 			Type valueType = map.getMappings().stream()
-					.map(AbstractMap.SimpleImmutableEntry::getValue)
+					.map(ImmutableEntry::getValue)
 					.map(this::type)
 					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 			return new MapType(keyType, valueType);
@@ -799,7 +810,17 @@ public interface Types {
 				case "-":
 				case "%":
 				case "mod":
-				case "+":
+				case "+": {
+					if ("+".equals(binary.getOperations().get(0))) {
+						Type lhs = type(binary.getOperands().get(0));
+						Type rhs = type(binary.getOperands().get(1));
+						if (lhs instanceof MapType && rhs instanceof MapType) {
+							Type keyType = leastUpperBound(((MapType) lhs).getKeyType(), ((MapType) rhs).getKeyType());
+							Type valueType = leastUpperBound(((MapType) lhs).getValueType(), ((MapType) rhs).getValueType());
+							return new MapType(keyType, new TupleType(ImmutableList.of(valueType, valueType)));
+						}
+					}
+				}
 				case "<<":
 				case ">>":
 				case "*":
@@ -992,6 +1013,10 @@ public interface Types {
 			return BoolType.INSTANCE;
 		}
 
+		default Type leastUpperBound(CharType a, CharType b) {
+			return CharType.INSTANCE;
+		}
+
 		default Type leastUpperBound(ListType a, ListType b) {
 			Type elementLub = leastUpperBound(a.getElementType(), b.getElementType());
 			OptionalInt size = a.getSize().equals(b.getSize()) ? a.getSize() : OptionalInt.empty();
@@ -1102,6 +1127,10 @@ public interface Types {
 			return BoolType.INSTANCE;
 		}
 
+		default Type greatestLowerBound(CharType a, CharType b) {
+			return CharType.INSTANCE;
+		}
+
 		default Type greatestLowerBound(IntType a, IntType b) {
 			if (a.getSize().isPresent() || b.getSize().isPresent()) {
 				int size = Math.min(a.getSize().orElse(Integer.MAX_VALUE), b.getSize().orElse(Integer.MAX_VALUE));
@@ -1117,6 +1146,14 @@ public interface Types {
 			} else {
 				return BottomType.INSTANCE;
 			}
+		}
+
+		default Type greatestLowerBound(SetType a, SetType b) {
+			return new SetType(greatestLowerBound(a.getElementType(), b.getElementType()));
+		}
+
+		default Type greatestLowerBound(MapType a, MapType b) {
+			return new MapType(greatestLowerBound(a.getKeyType(), b.getKeyType()), greatestLowerBound(a.getValueType(), b.getValueType()));
 		}
 
 		default Type greatestLowerBound(TupleType a, TupleType b) {

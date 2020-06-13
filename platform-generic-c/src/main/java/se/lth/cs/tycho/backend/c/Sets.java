@@ -8,6 +8,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.type.BoolType;
+import se.lth.cs.tycho.type.MapType;
 import se.lth.cs.tycho.type.SetType;
 import se.lth.cs.tycho.type.Type;
 
@@ -1149,6 +1150,10 @@ public interface Sets {
 
 		default Stream<SetType> wrapIfSet(SetType t) {
 			return Stream.of(t);
+		}
+
+		default Stream<SetType> wrapIfSet(MapType t) {
+			return Stream.of(new SetType(t.getValueType()), new SetType(t.getKeyType()));
 		}
 	}
 }

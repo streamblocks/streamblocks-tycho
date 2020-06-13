@@ -8,6 +8,7 @@ import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.CharType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.MapType;
 import se.lth.cs.tycho.type.RealType;
 import se.lth.cs.tycho.type.SetType;
 import se.lth.cs.tycho.type.TupleType;
@@ -23,7 +24,7 @@ public interface DefaultValues {
 		return "false";
 	}
 	default String defaultValue(CharType t) {
-		return "'\0'";
+		return "0";
 	}
 	default String defaultValue(RealType t) {
 		return "0.0";
@@ -58,6 +59,9 @@ public interface DefaultValues {
 		return "NULL";
 	}
 	default String defaultValue(SetType t) {
+		return "{ 0 }";
+	}
+	default String defaultValue(MapType t) {
 		return "{ 0 }";
 	}
 }

@@ -9,6 +9,7 @@ import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.MapType;
+import se.lth.cs.tycho.type.SetType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.stream.Stream;
@@ -47,6 +48,8 @@ public interface Maps {
 				.bind("add").to(add())
 				.bind("union").to(union())
 				.bind("membership").to(membership())
+				.bind("domain").to(domain())
+				.bind("range").to(range())
 				.instance();
 	}
 
@@ -64,6 +67,8 @@ public interface Maps {
 				.bind("add").to(add())
 				.bind("union").to(union())
 				.bind("membership").to(membership())
+				.bind("domain").to(domain())
+				.bind("range").to(range())
 				.instance();
 	}
 
@@ -199,6 +204,28 @@ public interface Maps {
 	}
 
 	@Binding(LAZY)
+	default Domain domain() {
+		return MultiJ.from(Domain.class)
+				.bind("backend").to(backend())
+				.bind("code").to(backend().code())
+				.bind("alias").to(backend().alias())
+				.bind("emitter").to(backend().emitter())
+				.bind("utils").to(utils())
+				.instance();
+	}
+
+	@Binding(LAZY)
+	default Range range() {
+		return MultiJ.from(Range.class)
+				.bind("backend").to(backend())
+				.bind("code").to(backend().code())
+				.bind("alias").to(backend().alias())
+				.bind("emitter").to(backend().emitter())
+				.bind("utils").to(utils())
+				.instance();
+	}
+
+	@Binding(LAZY)
 	default Utils utils() {
 		return MultiJ.from(Utils.class)
 				.bind("backend").to(backend())
@@ -236,7 +263,11 @@ public interface Maps {
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
 
-		void apply(MapType type);
+		default void apply(MapType type) {
+			emitter().emit("typedef struct %1$s_t %1$s;", utils().name(type));
+			emitter().emit("typedef struct %1$s_t %1$s;", utils().entry(type));
+			emitter().emit("");
+		}
 	}
 
 	@Module
@@ -266,6 +297,10 @@ public interface Maps {
 		Union union();
 		@Binding(BindingKind.INJECTED)
 		Membership membership();
+		@Binding(BindingKind.INJECTED)
+		Domain domain();
+		@Binding(BindingKind.INJECTED)
+		Range range();
 
 		default void apply(MapType type) {
 			typedef().apply(type);
@@ -280,14 +315,14 @@ public interface Maps {
 			add().prototype(type);
 			union().prototype(type);
 			membership().prototype(type);
+			domain().prototype(type);
+			range().prototype(type);
 		}
 	}
 
 	@Module
 	interface Definitions {
 
-		@Binding(BindingKind.INJECTED)
-		TypeDef typedef();
 		@Binding(BindingKind.INJECTED)
 		Init init();
 		@Binding(BindingKind.INJECTED)
@@ -310,6 +345,10 @@ public interface Maps {
 		Union union();
 		@Binding(BindingKind.INJECTED)
 		Membership membership();
+		@Binding(BindingKind.INJECTED)
+		Domain domain();
+		@Binding(BindingKind.INJECTED)
+		Range range();
 
 		default void apply(MapType type) {
 			init().definition(type);
@@ -323,6 +362,8 @@ public interface Maps {
 			add().definition(type);
 			union().definition(type);
 			membership().definition(type);
+			domain().definition(type);
+			range().definition(type);
 		}
 	}
 
@@ -338,7 +379,23 @@ public interface Maps {
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
 
-		void apply(MapType type);
+		default void apply(MapType type) {
+			emitter().emit("struct %s_t {", utils().name(type));
+			emitter().increaseIndentation();
+			emitter().emit("size_t capacity;");
+			emitter().emit("size_t size;");
+			emitter().emit("%s* data;", utils().entry(type));
+			emitter().decreaseIndentation();
+			emitter().emit("};");
+			emitter().emit("");
+			emitter().emit("struct %s_t {", utils().entry(type));
+			emitter().increaseIndentation();
+			emitter().emit("%s key;", code().type(type.getKeyType()));
+			emitter().emit("%s value;", code().type(type.getValueType()));
+			emitter().decreaseIndentation();
+			emitter().emit("};");
+			emitter().emit("");
+		}
 	}
 
 	@Module
@@ -514,7 +571,8 @@ public interface Maps {
 		default void definition(MapType type) {
 			emitter().emit("size_t size_%1$s(const %1$s* self) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("return self == NULL ? 0 : self->size;");
+			emitter().emit("if (self == NULL) return 0;");
+			emitter().emit("return sizeof(self->size) + (self->size * sizeof(self->data[0]));");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -569,20 +627,20 @@ public interface Maps {
 		Emitter emitter();
 
 		default void prototype(MapType type) {
-			emitter().emit("void copy_%1$s(%2$s* lhs, const %2$s* rhs);", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s* rhs);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
 			String tmp = backend().variables().generateTemp();
-			emitter().emit("void copy_%1$s(%2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s* rhs) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (lhs == NULL || rhs == NULL) return;");
 			emitter().emit("memset(lhs->data, 0, sizeof(%s) * lhs->size);", utils().entry(type));
 			emitter().emit("lhs->size = 0;");
 			emitter().emit("for (size_t i = 0; i < rhs->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%s(lhs, rhs->data[i]);", utils().name(type));
+			emitter().emit("add_%s(lhs, rhs->data[i].key, rhs->data[i].value);", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().decreaseIndentation();
@@ -623,8 +681,8 @@ public interface Maps {
 			emitter().emit("for (size_t j = 0; (j < rhs->size) && !(found); j++) {");
 			emitter().increaseIndentation();
 			emitter().emit("if (%1$s && %2$s) {",
-					code().compare(type.getKeyType(), "lhs->data[i].key", type.getKeyType(), "rhs->data[j].key"),
-					code().compare(type.getValueType(), "lhs->data[i].value", type.getValueType(), "rhs->data[j].value")));
+			code().compare(type.getKeyType(), "lhs->data[i].key", type.getKeyType(), "rhs->data[j].key"),
+			code().compare(type.getValueType(), "lhs->data[i].value", type.getValueType(), "rhs->data[j].value"));
 			emitter().increaseIndentation();
 			emitter().emit("count++;");
 			emitter().emit("found = true;");
@@ -656,16 +714,23 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			emitter().emit("void add_%1$s(%12s* self, %2$s key, %4$s value);", utils().name(type), code().type(type.getKeyType()), code().type(type.getValueType()));
+			emitter().emit("void add_%1$s(%1$s* self, %2$s key, %3$s value);", utils().name(type), code().type(type.getKeyType()), code().type(type.getValueType()));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("void add_%1$s(%12s* self, %2$s key, %4$s value) {", utils().name(type), code().type(type.getKeyType()), code().type(type.getValueType()));
+			emitter().emit("void add_%1$s(%1$s* self, %2$s key, %3$s value) {", utils().name(type), code().type(type.getKeyType()), code().type(type.getValueType()));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return;");
 			emitter().emit("if (membership_%s(self, key)) {", utils().name(type));
 			emitter().increaseIndentation();
+			emitter().emit("size_t index;");
+			emitter().emit("for (index = 0; index < self->size; index++) {");
+			emitter().increaseIndentation();
+			emitter().emit("if (%s) break;", code().compare(type.getKeyType(), "self->data[index].key", type.getKeyType(), "key"));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			code().copy(type.getValueType(), "self->data[index].value", type.getValueType(), "value");
 			emitter().decreaseIndentation();
 			emitter().emit("} else {");
 			emitter().increaseIndentation();
@@ -695,9 +760,13 @@ public interface Maps {
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
 
-		void prototype(MapType type);
+		default void prototype(MapType type) {
+			// TODO
+		}
 
-		void definition(MapType type);
+		default void definition(MapType type) {
+			// TODO
+		}
 	}
 
 	@Module
@@ -730,6 +799,82 @@ public interface Maps {
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("return found;");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("");
+		}
+	}
+
+	@Module
+	interface Domain {
+
+		@Binding(BindingKind.INJECTED)
+		Backend backend();
+		@Binding(BindingKind.INJECTED)
+		Code code();
+		@Binding(BindingKind.INJECTED)
+		Alias alias();
+		@Binding(BindingKind.INJECTED)
+		Emitter emitter();
+		@Binding(BindingKind.INJECTED)
+		Utils utils();
+
+		default void prototype(MapType type) {
+			emitter().emit("%1$s domain_%2$s(const %2$s* self);", code().type(new SetType(type.getKeyType())), utils().name(type));
+			emitter().emit("");
+		}
+
+		default void definition(MapType type) {
+			SetType resultType = new SetType(type.getKeyType());
+			emitter().emit("%1$s domain_%2$s(const %2$s* self) {", code().type(resultType), utils().name(type));
+			emitter().increaseIndentation();
+			emitter().emit("%s result = %s;", code().type(resultType), backend().defaultValues().defaultValue(resultType));
+			emitter().emit("if (self == NULL) return result;");
+			emitter().emit("init_%1$s(&(result));", code().type(resultType));
+			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
+			emitter().increaseIndentation();
+			emitter().emit("add_%1$s(&(result), self->data[i].key);", code().type(resultType));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("return result;");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("");
+		}
+	}
+
+	@Module
+	interface Range {
+
+		@Binding(BindingKind.INJECTED)
+		Backend backend();
+		@Binding(BindingKind.INJECTED)
+		Code code();
+		@Binding(BindingKind.INJECTED)
+		Alias alias();
+		@Binding(BindingKind.INJECTED)
+		Emitter emitter();
+		@Binding(BindingKind.INJECTED)
+		Utils utils();
+
+		default void prototype(MapType type) {
+			emitter().emit("%1$s range_%2$s(const %2$s* self);", code().type(new SetType(type.getValueType())), utils().name(type));
+			emitter().emit("");
+		}
+
+		default void definition(MapType type) {
+			SetType resultType = new SetType(type.getValueType());
+			emitter().emit("%1$s range_%2$s(const %2$s* self) {", code().type(resultType), utils().name(type));
+			emitter().increaseIndentation();
+			emitter().emit("%s result = %s;", code().type(resultType), backend().defaultValues().defaultValue(resultType));
+			emitter().emit("if (self == NULL) return result;");
+			emitter().emit("init_%1$s(&(result));", code().type(resultType));
+			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
+			emitter().increaseIndentation();
+			emitter().emit("add_%1$s(&(result), self->data[i].value);", code().type(resultType));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("return result;");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");

@@ -76,6 +76,9 @@ public interface Backend {
 	@Binding(LAZY) default Sets sets() {
 		return MultiJ.from(Sets.class).bind("backend").to(this).instance();
 	}
+	@Binding(LAZY) default Maps maps() {
+		return MultiJ.from(Maps.class).bind("backend").to(this).instance();
+	}
 	@Binding(LAZY) default Variables variables() {
 		return MultiJ.from(Variables.class).bind("backend").to(this).instance();
 	}

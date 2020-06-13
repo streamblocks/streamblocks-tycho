@@ -74,6 +74,10 @@ public interface Code {
 		emitter().emit("copy_%1$s(&(%2$s), &(%3$s));", type(lvalueType), lvalue, rvalue);
 	}
 
+	default void copy(MapType lvalueType, String lvalue, MapType rvalueType, String rvalue) {
+		emitter().emit("copy_%1$s(&(%2$s), &(%3$s));", type(lvalueType), lvalue, rvalue);
+	}
+
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		emitter().emit("copy_%s(&(%s), %s);", backend().algebraic().utils().name(lvalueType), lvalue, rvalue);
 	}
@@ -117,7 +121,14 @@ public interface Code {
 	default String compare(SetType lvalueType, String lvalue, SetType rvalueType, String rvalue) {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("%$1s = union_%$2s(&(%$3s), &(%$4s));", tmp, type(lvalueType), lvalue, rvalue);
+		emitter().emit("%$1s = compare_%2$s(&(%3$s), &(%4$s));", tmp, type(lvalueType), lvalue, rvalue);
+		return tmp;
+	}
+
+	default String compare(MapType lvalueType, String lvalue, MapType rvalueType, String rvalue) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%$1s = compare_%2$s(&(%3$s), &(%4$s));", tmp, type(lvalueType), lvalue, rvalue);
 		return tmp;
 	}
 
@@ -201,6 +212,10 @@ public interface Code {
 	}
 
 	default String type(SetType type) {
+		return backend().callables().mangle(type).encode();
+	}
+
+	default String type(MapType type) {
 		return backend().callables().mangle(type).encode();
 	}
 
@@ -362,7 +377,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(lhs, tmp));
-		emitter().emit("%$1s = union_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%$1s = union_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -381,7 +396,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(lhs, tmp));
-		emitter().emit("%$1s = difference_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%$1s = difference_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -400,7 +415,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(lhs, tmp));
-		emitter().emit("%$1s = intersect_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = intersect_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -565,7 +580,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("%$1s = less_than_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = less_than_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -584,7 +599,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("%$1s = less_than_equal_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = less_than_equal_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 	
@@ -603,7 +618,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("%$1s = greater_than_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = greater_than_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 	
@@ -622,7 +637,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("%$1s = greater_than_equal_%$2s(&(%$3s), &(%$4s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = greater_than_equal_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -649,7 +664,16 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("%$1s = membership_%$2s(&(%$3s), %$4s);", tmp, type(rhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = membership_%2$s(&(%4$s), %3$s);", tmp, type(rhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryIn(Type lhs, MapType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = membership_%2$s(&(%4$s), %3$s);", tmp, type(rhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -701,8 +725,20 @@ public interface Code {
 		throw new UnsupportedOperationException(expr.getOperation());
 	}
 
+	default String evaluateUnaryDom(MapType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = domain_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
+		return tmp;
+	}
+
 	default String evaluateUnaryRng(Type type, ExprUnaryOp expr) {
 		throw new UnsupportedOperationException(expr.getOperation());
+	}
+
+	default String evaluateUnaryRng(MapType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = range_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
+		return tmp;
 	}
 
 	default String evaluateUnarySize(Type type, ExprUnaryOp expr) {
@@ -714,6 +750,12 @@ public interface Code {
 	}
 
 	default String evaluateUnarySize(SetType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = size_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
+		return tmp;
+	}
+
+	default String evaluateUnarySize(MapType type, ExprUnaryOp expr) {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = size_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
 		return tmp;
@@ -847,8 +889,39 @@ public interface Code {
 		return name;
 	}
 
+	default String evaluate(ExprMap map) {
+		String name = variables().generateTemp();
+		MapType type = (MapType) types().type(map);
+		emitter().emit("%1$s = %2$s;", declaration(type, name), backend().defaultValues().defaultValue(type));
+		emitter().emit("init_%1$s(&(%2$s));", type(type), name);
+		map.getMappings().forEach(mapping -> {
+			String key = evaluate(mapping.getKey());
+			String value = evaluate(mapping.getValue());
+			emitter().emit("add_%1$s(&(%2$s), %3$s, %4$s);", type(type), name, key, value);
+
+		});
+		return name;
+	}
+
 	default String evaluate(ExprIndexer indexer) {
+		return exprIndexing(types().type(indexer.getStructure()), indexer);
+	}
+	String exprIndexing(Type type, ExprIndexer indexer);
+	default String exprIndexing(ListType type, ExprIndexer indexer) {
 		return String.format("%s.data[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
+	}
+
+	default String exprIndexing(MapType type, ExprIndexer indexer) {
+		String index = variables().generateTemp();
+		String map = evaluate(indexer.getStructure());
+		String key = evaluate(indexer.getIndex());
+		emitter().emit("size_t %s;", index);
+		emitter().emit("for (%1$s = 0; %1$s < %2$s.size; %1$s++) {", index, map);
+		emitter().increaseIndentation();
+		emitter().emit("if (%s) break;", compare(type.getKeyType(), key, type.getValueType(), String.format("%s.data[%s].key", map, index)));
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return String.format("%s.data[%s].value", map, index);
 	}
 
 	default String evaluate(ExprTuple tuple) {
@@ -1137,7 +1210,25 @@ public interface Code {
 	}
 
 	default String lvalue(LValueIndexer indexer) {
+		return lvalueIndexing(types().type(indexer.getStructure()), indexer);
+	}
+
+	String lvalueIndexing(Type type, LValueIndexer indexer);
+	default String lvalueIndexing(ListType type, LValueIndexer indexer) {
 		return String.format("%s.data[%s]", lvalue(indexer.getStructure()), evaluate(indexer.getIndex()));
+	}
+
+	default String lvalueIndexing(MapType type, LValueIndexer indexer) {
+		String index = variables().generateTemp();
+		String map = lvalue(indexer.getStructure());
+		String key = evaluate(indexer.getIndex());
+		emitter().emit("size_t %s;", index);
+		emitter().emit("for (%1$s = 0; %1$s < %2$s.size; %1$s++) {", index, map);
+		emitter().increaseIndentation();
+		emitter().emit("if (%s) break;", compare(type.getKeyType(), key, type.getValueType(), String.format("%s.data[%s].key", map, index)));
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return String.format("%s.data[%s].value", map, index);
 	}
 
 	default String lvalue(LValueField field) {
