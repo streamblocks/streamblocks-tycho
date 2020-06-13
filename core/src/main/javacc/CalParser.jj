@@ -226,7 +226,6 @@ TOKEN: {
 |	< COLON_EQ: ":=" >
 |	< SINGLE_ARROW_RIGHT: "->" >
 |	< VERTICAL_BAR: "|" >
-|	< LOWER_THAN: "<" >
 |	< GREATER_THAN: ">" >
 |	< SHARP: "#" >
 |	< DOT_SHARP: ".#" >
@@ -1715,9 +1714,10 @@ Expression PrimaryExpression() :
 	{ exprIsVar = expr instanceof ExprVariable; }
 	(
 		(
-			LOOKAHEAD(2)
+			LOOKAHEAD("(" ParameterAssignment())
 			"("
-				ParameterAssignments(typeParameters, valueParameters)
+        ParameterAssignment(typeParameters, valueParameters)
+        ( "," ParameterAssignment(typeParameters, valueParameters) )*
 			")"
 		)?
 		"("
@@ -1885,7 +1885,7 @@ String BinaryOperator() :
 }
 {
 	(
-		op = <OP> | op = "=" | op = "-->" | op = "<" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@" | "->"
+		op = <OP> | op = "=" | op = "-->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@" | "->"
 		| op = "and" | op = "or" | op = "in" | op = "div" | op = "mod"
 	)
 	{ return op.image; }
@@ -2086,9 +2086,10 @@ PatternDeconstruction PatternDeconstruction() :
 {
 	id = <ID>
 	(
-		LOOKAHEAD(3)
+		LOOKAHEAD("(" ParameterAssignment())
     "("
-			ParameterAssignments(types, vals)
+        ParameterAssignment(types, vals)
+        ( "," ParameterAssignment(types, vals) )*
 		")"
 	)?
 	"("
