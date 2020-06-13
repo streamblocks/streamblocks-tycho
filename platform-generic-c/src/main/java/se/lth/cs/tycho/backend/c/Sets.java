@@ -635,7 +635,8 @@ public interface Sets {
 		default void definition(SetType type) {
 			emitter().emit("size_t size_%1$s(const %1$s* self) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("return self == NULL ? 0 : self->size;");
+			emitter().emit("if (self == NULL) return 0;");
+			emitter().emit("return sizeof(self->size) + (self->size * sizeof(self->data[0]));");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -737,23 +738,16 @@ public interface Sets {
 			emitter().emit("if (lhs == NULL && rhs == NULL) return true;");
 			emitter().emit("if (lhs == NULL || rhs == NULL) return false;");
 			emitter().emit("if (lhs->size != rhs->size) return false;");
-			emitter().emit("size_t count = 0;");
 			emitter().emit("for (size_t i = 0; i < lhs->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("%s found = false;", code().type(BoolType.INSTANCE));
-			emitter().emit("for (size_t j = 0; (j < rhs->size) && !(found); j++) {");
+			emitter().emit("for (size_t j = 0; j < rhs->size; j++) {");
 			emitter().increaseIndentation();
-			emitter().emit("if (%s) {", code().compare(type.getElementType(), "lhs->data[i]", type.getElementType(), "rhs->data[j]"));
-			emitter().increaseIndentation();
-			emitter().emit("count++;");
-			emitter().emit("found = true;");
+			emitter().emit("if (!(%s)) return false;", code().compare(type.getElementType(), "lhs->data[i]", type.getElementType(), "rhs->data[j]"));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
-			emitter().decreaseIndentation();
-			emitter().emit("}");
-			emitter().emit("return (count == lhs->size) && (count == rhs->size);");
+			emitter().emit("return true;");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -834,7 +828,7 @@ public interface Sets {
 			emitter().emit("}");
 			emitter().emit("return result;");
 			emitter().decreaseIndentation();
-			emitter().emit("};");
+			emitter().emit("}");
 			emitter().emit("");
 		}
 	}
@@ -876,7 +870,7 @@ public interface Sets {
 			emitter().emit("}");
 			emitter().emit("return result;");
 			emitter().decreaseIndentation();
-			emitter().emit("};");
+			emitter().emit("}");
 			emitter().emit("");
 		}
 	}
@@ -923,7 +917,7 @@ public interface Sets {
 			emitter().emit("}");
 			emitter().emit("return result;");
 			emitter().decreaseIndentation();
-			emitter().emit("};");
+			emitter().emit("}");
 			emitter().emit("");
 		}
 	}
@@ -1062,25 +1056,7 @@ public interface Sets {
 		default void definition(SetType type) {
 			emitter().emit("%1$s greater_than_%2$s(const %2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("if (lhs == NULL || rhs == NULL) return false;");
-			emitter().emit("if (lhs->size <= rhs->size) return false;");
-			emitter().emit("size_t count = 0;");
-			emitter().emit("for (size_t i = 0; (i < lhs->size); i++) {");
-			emitter().increaseIndentation();
-			emitter().emit("%s found = false;", code().type(BoolType.INSTANCE));
-			emitter().emit("for (size_t j = 0; (j < rhs->size) && !(found); j++) {");
-			emitter().increaseIndentation();
-			emitter().emit("if (%s) {", code().compare(type.getElementType(), "lhs->data[i]", type.getElementType(), "rhs->data[j]"));
-			emitter().increaseIndentation();
-			emitter().emit("count++;");
-			emitter().emit("found = true;");
-			emitter().decreaseIndentation();
-			emitter().emit("}");
-			emitter().decreaseIndentation();
-			emitter().emit("}");
-			emitter().decreaseIndentation();
-			emitter().emit("}");
-			emitter().emit("return (count == lhs->size) && (count > rhs->size);");
+			emitter().emit("return !(less_than_equal_%1$s(lhs, rhs));", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -1109,7 +1085,7 @@ public interface Sets {
 		default void definition(SetType type) {
 			emitter().emit("%1$s greater_than_equal_%2$s(const %2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("return greater_than_%1$s(lhs, rhs) || compare_%1$s(lhs, rhs);", utils().name(type));
+			emitter().emit("return !(less_than_%1$s(lhs, rhs));", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");

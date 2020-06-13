@@ -751,13 +751,13 @@ public interface Code {
 
 	default String evaluateUnarySize(SetType type, ExprUnaryOp expr) {
 		String tmp = variables().generateTemp();
-		emitter().emit("%s = size_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
+		emitter().emit("%s = %s.size;", declaration(types().type(expr), tmp), evaluate(expr.getOperand()));
 		return tmp;
 	}
 
 	default String evaluateUnarySize(MapType type, ExprUnaryOp expr) {
 		String tmp = variables().generateTemp();
-		emitter().emit("%s = size_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
+		emitter().emit("%s = %s.size;", declaration(types().type(expr), tmp), evaluate(expr.getOperand()));
 		return tmp;
 	}
 
