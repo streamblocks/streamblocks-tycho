@@ -689,13 +689,13 @@ public interface Sets {
 		Emitter emitter();
 
 		default void prototype(SetType type) {
-			emitter().emit("void copy_%1$s(%2$s* lhs, const %2$s* rhs);", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s* rhs);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
 			String tmp = backend().variables().generateTemp();
-			emitter().emit("void copy_%1$s(%2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s* rhs) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (lhs == NULL || rhs == NULL) return;");
 			emitter().emit("memset(lhs->data, 0, sizeof(%s) * lhs->size);", code().type(type.getElementType()));
