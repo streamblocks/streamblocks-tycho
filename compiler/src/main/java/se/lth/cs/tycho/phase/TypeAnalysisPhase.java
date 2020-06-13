@@ -609,6 +609,14 @@ public class TypeAnalysisPhase implements Phase {
 			Type type = types().type(generator.getCollection());
 			if (!(type instanceof CollectionType)) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a collection.", sourceUnit(generator.getCollection()), generator.getCollection()));
+			} else {
+				if (generator.getType() != null) {
+					if (type instanceof ListType) {
+						check(((ListType) type).getElementType(), types().type(generator.getType()), generator.getType());
+					} else if (type instanceof SetType) {
+						check(((SetType) type).getElementType(), types().type(generator.getType()), generator.getType());
+					}
+				}
 			}
 		}
 
