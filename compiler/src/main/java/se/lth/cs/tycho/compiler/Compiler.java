@@ -108,8 +108,6 @@ public class Compiler {
                 new TypeAnnotationAnalysisPhase(),
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),
-                new ProductAccessingAnalysisPhase(),
-                new NthAnalysisPhase(),
                 new CaseAnalysisPhase(),
 
                 // Orcc list parameters
