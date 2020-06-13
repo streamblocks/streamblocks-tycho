@@ -39,6 +39,9 @@ import se.lth.cs.tycho.ir.stmt.StmtRead;
 import se.lth.cs.tycho.ir.stmt.StmtWhile;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
 import se.lth.cs.tycho.attribute.Types;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueNth;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.type.*;
@@ -413,8 +416,14 @@ public class TypeAnalysisPhase implements Phase {
 
 		default void typecheck(ExprField expr) {
 			Type type =  types().type(expr.getStructure());
-			if (!(type instanceof CaseAnalysisPhase.Space.Product)) {
+			if (!(type instanceof ProductType)) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a product.", sourceUnit(expr.getStructure()), expr.getStructure()));
+			} else {
+				ProductType product = (ProductType) type;
+				String member = expr.getField().getName();
+				if (product.getFields().stream().noneMatch(field -> Objects.equals(field.getName(), member))) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "No member " + member + " for " + type + ".", sourceUnit(expr), expr));
+				}
 			}
 		}
 
@@ -437,6 +446,12 @@ public class TypeAnalysisPhase implements Phase {
 			Type type = types().type(expr.getStructure());
 			if (!(type instanceof TupleType)) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a tuple.", sourceUnit(expr.getStructure()), expr.getStructure()));
+			} else {
+				TupleType tuple = (TupleType) type;
+				int n = expr.getNth().getNumber();
+				if (n < 1 || n > tuple.getTypes().size()) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "No member #" + n + " for " + type + ".", sourceUnit(expr), expr));
+				}
 			}
 		}
 
@@ -594,6 +609,43 @@ public class TypeAnalysisPhase implements Phase {
 			Type type = types().type(generator.getCollection());
 			if (!(type instanceof CollectionType)) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a collection.", sourceUnit(generator.getCollection()), generator.getCollection()));
+			}
+		}
+
+		default void typecheck(LValueField lvalue) {
+			Type type =  types().type(lvalue.getStructure());
+			if (!(type instanceof ProductType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a product.", sourceUnit(lvalue.getStructure()), lvalue.getStructure()));
+			} else {
+				ProductType product = (ProductType) type;
+				String member = lvalue.getField().getName();
+				if (product.getFields().stream().noneMatch(field -> Objects.equals(field.getName(), member))) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "No member " + member + " for type " + type + ".", sourceUnit(lvalue), lvalue));
+				}
+			}
+		}
+
+		default void typecheck(LValueIndexer lvalue) {
+			Type type = types().type(lvalue.getStructure());
+			if (type instanceof ListType) {
+				check(new IntType(OptionalInt.empty(), false), types().type(lvalue.getIndex()), lvalue.getIndex());
+			} else if (type instanceof MapType) {
+				check(((MapType) type).getKeyType(), types().type(lvalue.getIndex()), lvalue.getIndex());
+			} else {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a supported operation.", sourceUnit(lvalue), lvalue));
+			}
+		}
+
+		default void typecheck(LValueNth lvalue) {
+			Type type = types().type(lvalue.getStructure());
+			if (!(type instanceof TupleType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a tuple.", sourceUnit(lvalue.getStructure()), lvalue.getStructure()));
+			} else {
+				TupleType tuple = (TupleType) type;
+				int n = lvalue.getNth().getNumber();
+				if (n < 1 || n > tuple.getTypes().size()) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "No member #" + n + " for" + type + ".", sourceUnit(lvalue), lvalue));
+				}
 			}
 		}
 
