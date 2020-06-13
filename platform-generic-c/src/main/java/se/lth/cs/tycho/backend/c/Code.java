@@ -121,14 +121,14 @@ public interface Code {
 	default String compare(SetType lvalueType, String lvalue, SetType rvalueType, String rvalue) {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("%$1s = compare_%2$s(&(%3$s), &(%4$s));", tmp, type(lvalueType), lvalue, rvalue);
+		emitter().emit("%1$s = compare_%2$s(&(%3$s), &(%4$s));", tmp, type(lvalueType), lvalue, rvalue);
 		return tmp;
 	}
 
 	default String compare(MapType lvalueType, String lvalue, MapType rvalueType, String rvalue) {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("%$1s = compare_%2$s(&(%3$s), &(%4$s));", tmp, type(lvalueType), lvalue, rvalue);
+		emitter().emit("%1$s = compare_%2$s(&(%3$s), &(%4$s));", tmp, type(lvalueType), lvalue, rvalue);
 		return tmp;
 	}
 
@@ -377,7 +377,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(lhs, tmp));
-		emitter().emit("%$1s = union_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = union_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -396,7 +396,7 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(lhs, tmp));
-		emitter().emit("%$1s = difference_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = difference_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 

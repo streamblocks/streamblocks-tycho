@@ -1,0 +1,7 @@
+namespace cons:
+    actor SetType() ==> bool OUT:
+        Set(type:bool) xs := {true, false};
+        do
+        end
+    end
+end

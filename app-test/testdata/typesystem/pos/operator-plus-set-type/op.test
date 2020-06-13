@@ -1,0 +1,5 @@
+{
+    "description": "Test + (union) operator on set type",
+    "source-paths": ["src"],
+    "entity": "op.SetUnion"
+}

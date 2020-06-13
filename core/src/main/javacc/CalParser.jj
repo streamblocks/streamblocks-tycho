@@ -1885,7 +1885,7 @@ String BinaryOperator() :
 }
 {
 	(
-		op = <OP> | op = "=" | op = "-->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@" | "->"
+		op = <OP> | op = "=" | op = "-->" | op = "<" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@" | "->"
 		| op = "and" | op = "or" | op = "in" | op = "div" | op = "mod"
 	)
 	{ return op.image; }

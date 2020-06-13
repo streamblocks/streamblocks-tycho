@@ -1,0 +1,5 @@
+{
+    "description": "Test >= (inclusion) operator on set type",
+    "source-paths": ["src"],
+    "entity": "op.SetInclusionOrEquality"
+}

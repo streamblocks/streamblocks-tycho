@@ -1,0 +1,8 @@
+namespace op:
+    actor SetSize() ==> int OUT:
+        Set(type:int) xs;
+        do
+            OUT <-- #xs;
+        end
+    end
+end
