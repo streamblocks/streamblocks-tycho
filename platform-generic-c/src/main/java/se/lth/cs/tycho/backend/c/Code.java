@@ -446,7 +446,7 @@ public interface Code {
 	default String evaluateBinaryMod(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
-		return String.format("(%s % %s)", evaluate(left), evaluate(right));
+		return String.format("(%s %% %s)", evaluate(left), evaluate(right));
 	}
 
 	default String evaluateBinaryExp(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
