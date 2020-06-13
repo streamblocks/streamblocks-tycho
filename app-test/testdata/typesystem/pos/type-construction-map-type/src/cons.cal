@@ -1,0 +1,7 @@
+namespace cons:
+    actor MapType() ==> bool OUT:
+        Map(key:char, value:bool) xs := map {'a' -> true, 'b' -> false};
+        do
+        end
+    end
+end

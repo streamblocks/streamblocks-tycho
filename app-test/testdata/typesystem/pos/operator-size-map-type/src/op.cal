@@ -1,0 +1,8 @@
+namespace op:
+    actor MapSize() ==> int OUT:
+        Map(key:int, value:char) xs;
+        do
+            OUT <-- #xs;
+        end
+    end
+end

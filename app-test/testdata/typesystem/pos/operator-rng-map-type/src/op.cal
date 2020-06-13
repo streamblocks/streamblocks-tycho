@@ -1,0 +1,8 @@
+namespace op:
+    actor MapRange() ==> Set(type:char) OUT:
+        Map(key:int, value:char) xs;
+        do
+            OUT <-- rng xs;
+        end
+    end
+end

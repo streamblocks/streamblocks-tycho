@@ -1,0 +1,5 @@
+{
+    "description": "Test rng operator on map type",
+    "source-paths": ["src"],
+    "entity": "op.MapRange"
+}

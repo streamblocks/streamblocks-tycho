@@ -1,0 +1,8 @@
+namespace op:
+    actor MapMembership() ==> bool OUT:
+        Map(key:char, value:float) xs;
+        do
+            OUT <-- 'a' in xs;
+        end
+    end
+end

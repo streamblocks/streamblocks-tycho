@@ -1,0 +1,5 @@
+{
+    "description": "Test in operator on map type",
+    "source-paths": ["src"],
+    "entity": "op.MapMembership"
+}
