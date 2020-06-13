@@ -1,4 +1,4 @@
 Error in "testdata/typesystem/neg/type-comparison-any-type-with-any-type/src/cmp.cal" on line 6:
-           OUT <-- 1 = false; // error
-                   ^^^^^^^^^
-Incomparable types; uint(size=1) cannot be compared with bool.
+            OUT <-- 1 = false; // error
+                    ^^^^^^^^^
+= is not supported with uint(size=1) and bool.

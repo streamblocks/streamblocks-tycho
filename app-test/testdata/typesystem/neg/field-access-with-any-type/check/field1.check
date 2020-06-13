@@ -1,4 +1,4 @@
 Error in "testdata/typesystem/neg/field-access-with-any-type/src/field.cal" on line 9:
             OUT <-- t.foo; // error
                     ^^^^^
-No member foo in type T.
+No member foo for T.

@@ -1,5 +1,0 @@
-{
-    "description": "Test type definition of alias type",
-    "source-paths": ["src"],
-    "entity": "typedef.AliasType"
-}
