@@ -2326,20 +2326,22 @@ ImmutableList<ImmutableEntry<Expression, Expression>> Mappings() :
 
 Expression SetExpression() :
 {
+	Token first;
+	Token last;
 	Expression result;
 	ImmutableList<Expression> exprs;
 }
 {
-	"{"
+	first = "{"
 	exprs = ExpressionList()
 	{ result = new ExprSet(exprs); }
 	(
 		":"
 		result = ComprehensionFor(result)
 	)?
-	"}"
+	last = "}"
 	{
-		return result;
+		return setPosition(result, first, last);
 	}
 }
 
