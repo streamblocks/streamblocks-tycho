@@ -836,6 +836,17 @@ public interface Code {
 		emitter().emit("}");
 	}
 
+	default String evaluate(ExprSet set) {
+		String name = variables().generateTemp();
+		SetType type = (SetType) types().type(set);
+		emitter().emit("%1$s = %2$s;", declaration(type, name), backend().defaultValues().defaultValue(type));
+		emitter().emit("init_%1$s(&(%2$s));", type(type), name);
+		set.getElements().stream().map(this::evaluate).forEach(elem -> {
+			emitter().emit("add_%1$s(&(%2$s), %3$s);", type(type), name, elem);
+		});
+		return name;
+	}
+
 	default String evaluate(ExprIndexer indexer) {
 		return String.format("%s.data[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
 	}
