@@ -69,7 +69,7 @@ public interface ConstantEvaluator {
 					text = text.substring(2);
 					radix = 16;
 				}
-				return OptionalLong.of(Long.parseUnsignedLong(text, radix));
+				return OptionalLong.of(Long.parseLong(text, radix));
 			} catch (NumberFormatException e) {
 				return OptionalLong.empty();
 			}
