@@ -840,6 +840,7 @@ EntityInstanceExpr InstanceExprEntity() :
     EntityInstanceExpr expr;
     Token entityName;
     Token parameterName;
+    Token last;
     Expression parameter;
     ImmutableList.Builder<ValueParameter> valueParameters;
     ImmutableList.Builder<TypeParameter> typeParameters;
@@ -854,10 +855,10 @@ EntityInstanceExpr InstanceExprEntity() :
         entityName = <ID>
         "("
         ParameterAssignments(typeParameters, valueParameters)
-        ")"
+        last = ")"
         toolAttrs = OptToolAttributes()
     {
-        return new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), typeParameters.build(), valueParameters.build()).withAttributes(toolAttrs);
+        return setPosition(new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), typeParameters.build(), valueParameters.build()).withAttributes(toolAttrs), entityName, last);
     }
 }
 

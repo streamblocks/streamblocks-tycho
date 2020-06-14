@@ -76,8 +76,9 @@ public class Compiler {
                 new ConstantVariableImmutabilityPhase(),
                 new ConstantVariableInitializationPhase(),
                 new NameAnalysisPhase(),
-                new TemplateAnalysisPhase(),
                 new TemplateInitializationPhase(),
+                new TemplateAnalysisPhase(),
+                new TemplateTransformationPhase(),
                 new TemplateInstantiationPhase()
 
                 // -- Folding

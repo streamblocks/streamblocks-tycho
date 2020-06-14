@@ -119,7 +119,7 @@ public class TemplateAnalysisPhase implements Phase {
 			});
 
 			decl.getValueParameters().forEach(param -> {
-				if (param.getDefaultValue() != null && valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
+				if (valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
 					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing value argument " + param.getName() + ".", sourceUnit(node), node));
 				}
 			});
@@ -146,7 +146,7 @@ public class TemplateAnalysisPhase implements Phase {
 			});
 
 			actor.getValueParameters().forEach(param -> {
-				if (param.getDefaultValue() != null && valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
+				if (valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
 					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing value argument " + param.getName() + ".", sourceUnit(node), node));
 				}
 			});
