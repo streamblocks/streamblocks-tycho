@@ -56,9 +56,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -213,12 +215,20 @@ public class TemplateInstantiationPhase implements Phase {
 				if (metaArg instanceof MetaArgumentType) {
 					tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()).getName());
 				} else {
-					String global = "$eval" + numbers().next();
 					Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
+					String global = staging().globals1().containsKey(value) ? staging().globals1().get(value) : "$eval" + numbers().next();
 					ParameterVarDecl declaration = metaDecl.getAlgebraicTypeDecl().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
 					vals.put(declaration, global);
-					staging().globals().put(sourceUnit(metaDecl).getTree(), value);
-					staging().globals1().put(value, global);
+					if (!(staging().globals1().containsKey(value))) {
+						NamespaceDecl namespace = sourceUnit(metaDecl).getTree();
+						if (staging().globals().containsKey(namespace)) {
+							staging().globals().get(namespace).add(value);
+						} else {
+							Set<Value> values = new HashSet<>(); values.add(value);
+							staging().globals().put(sourceUnit(metaDecl).getTree(), values);
+						}
+						staging().globals1().put(value, global);
+					}
 				}
 			}
 
@@ -236,7 +246,7 @@ public class TemplateInstantiationPhase implements Phase {
 
 			instance = (AlgebraicTypeDecl) substituteValue.apply(instance);
 
-			// FIXME useful ?
+			// Fork template instance
 			instance = (AlgebraicTypeDecl) instance.withTypeParameters(ImmutableList.empty()).withValueParameters(ImmutableList.empty()).deepClone();
 
 			// Rename node
@@ -268,8 +278,8 @@ public class TemplateInstantiationPhase implements Phase {
 			staging().setChanged(true);
 
 			// Check existing instance
-			if (staging().typeDeclarations().containsKey(nameOf(meta))) {
-				return renameOf(meta, staging().typeDeclarations().get(nameOf(meta)).getName());
+			if (staging().entityDeclarations().containsKey(nameOf(meta))) {
+				return renameOf(meta, staging().entityDeclarations().get(nameOf(meta)).getName());
 			}
 
 			// Find declaration
@@ -306,12 +316,20 @@ public class TemplateInstantiationPhase implements Phase {
 				if (metaArg instanceof MetaArgumentType) {
 					tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()).getName());
 				} else {
-					String global = "$eval" + numbers().next();
 					Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
+					String global = staging().globals1().containsKey(value) ? staging().globals1().get(value) : "$eval" + numbers().next();
 					ParameterVarDecl declaration = metaDecl.getEntity().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
 					vals.put(declaration, global);
-					staging().globals().put(sourceUnit(metaDecl).getTree(), value);
-					staging().globals1().put(value, global);
+					if (!(staging().globals1().containsKey(value))) {
+						NamespaceDecl namespace = sourceUnit(metaDecl).getTree();
+						if (staging().globals().containsKey(namespace)) {
+							staging().globals().get(namespace).add(value);
+						} else {
+							Set<Value> values = new HashSet<>(); values.add(value);
+							staging().globals().put(sourceUnit(metaDecl).getTree(), values);
+						}
+						staging().globals1().put(value, global);
+					}
 				}
 			}
 
@@ -329,8 +347,8 @@ public class TemplateInstantiationPhase implements Phase {
 
 			instance = (GlobalEntityDecl) substituteValue.apply(instance);
 
-			// FIXME useful ?
-			//instance = (GlobalEntityDecl) instance.withTypeParameters(ImmutableList.empty()).withValueParameters(ImmutableList.empty()).deepClone();
+			// Fork template instance
+			instance = instance.deepClone();
 
 			// Rename node
 			IRNode node = renameOf(meta, nameOf(meta));
@@ -564,7 +582,8 @@ public class TemplateInstantiationPhase implements Phase {
 					.filter(typeDecl -> !(typeDecl instanceof MetaAlgebraicTypeDecl));
 			Stream<GlobalVarDecl> interpreted = staging().globals().entrySet().stream()
 					.filter(e -> decl.getQID().equals(e.getKey().getQID()))
-					.map(e -> new GlobalVarDecl(Availability.PUBLIC, null, staging().globals1().get(e.getValue()), convert().apply(e.getValue())));
+					.flatMap(e -> e.getValue().stream())
+					.map(v -> new GlobalVarDecl(Availability.PUBLIC, null, staging().globals1().get(v), convert().apply(v)));
 			Stream<GlobalEntityDecl> instantiatedEntities = staging().entityInstances().entrySet().stream()
 					.filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
 			Stream<GlobalEntityDecl> remainingEntities = decl.getEntityDecls().stream()
@@ -579,7 +598,7 @@ public class TemplateInstantiationPhase implements Phase {
 	static class Staging {
 
 		private boolean changed;
-		private final Map<NamespaceDecl, Value> globals = new HashMap<>();
+		private final Map<NamespaceDecl, Set<Value>> globals = new HashMap<>();
 		private final Map<Value, String> globals1 = new HashMap<>();
 		private final Map<String, AlgebraicTypeDecl> typeDeclarations = new HashMap<>();
 		private final Map<MetaAlgebraicTypeDecl, List<AlgebraicTypeDecl>> typeInstances = new HashMap<>();
@@ -594,7 +613,7 @@ public class TemplateInstantiationPhase implements Phase {
 			this.changed = changed;
 		}
 
-		public Map<NamespaceDecl, Value> globals() {
+		public Map<NamespaceDecl, Set<Value>> globals() {
 			return globals;
 		}
 
