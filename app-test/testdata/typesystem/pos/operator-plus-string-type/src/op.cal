@@ -1,0 +1,9 @@
+namespace op:
+    actor StringConcatenation() ==>:
+        String s1;
+        String s2;
+        do
+            s1 := s1 + s2;
+        end
+    end
+end

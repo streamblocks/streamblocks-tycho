@@ -33,12 +33,13 @@ public interface Global {
 
 	default void generateGlobalCode() {
 		backend().main().emitDefaultHeaders();
-		emitter().emit("#include <string.h>");
 		emitter().emit("#include \"global.h\"");
 		emitter().emit("");
 		backend().sets().defineSet();
 		emitter().emit("");
 		backend().maps().defineMap();
+		emitter().emit("");
+		backend().strings().defineString();
 		emitter().emit("");
 		backend().algebraic().defineAlgebraic();
 		emitter().emit("");
@@ -68,6 +69,8 @@ public interface Global {
 		backend().sets().forwardSet();
 		emitter().emit("");
 		backend().maps().forwardMap();
+		emitter().emit("");
+		backend().strings().declareString();
 		emitter().emit("");
 		backend().tuples().forwardTuple();
 		emitter().emit("");

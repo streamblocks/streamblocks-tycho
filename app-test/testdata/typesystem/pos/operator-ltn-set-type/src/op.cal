@@ -3,7 +3,7 @@ namespace op:
         Set(type:int) s1;
         Set(type:int) s2;
         do
-            OUT <-- s1 > s2;
+            OUT <-- s1 <= s2;
         end
     end
 end

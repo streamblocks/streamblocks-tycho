@@ -31,6 +31,7 @@ import se.lth.cs.tycho.meta.interp.value.ValueList;
 import se.lth.cs.tycho.meta.interp.value.ValueMap;
 import se.lth.cs.tycho.meta.interp.value.ValueReal;
 import se.lth.cs.tycho.meta.interp.value.ValueSet;
+import se.lth.cs.tycho.meta.interp.value.ValueString;
 import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
 
 import java.util.ArrayList;
@@ -100,6 +101,10 @@ public interface Binary {
 		return new ValueBool(lhs.elements().stream().allMatch(elem -> rhs.elements().contains(elem)) && lhs.elements().size() < rhs.elements().size());
 	}
 
+	default Value apply(OperatorLowerThan op, ValueString lhs, ValueString rhs) {
+		return new ValueBool(lhs.string().compareTo(rhs.string()) < 0);
+	}
+
 	default Value apply(OperatorLowerEqualThan op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueBool(lhs.integer() <= rhs.integer());
 	}
@@ -122,6 +127,10 @@ public interface Binary {
 
 	default Value apply(OperatorLowerEqualThan op, ValueSet lhs, ValueSet rhs) {
 		return new ValueBool(lhs.elements().stream().allMatch(elem -> rhs.elements().contains(elem)) && lhs.elements().size() <= rhs.elements().size());
+	}
+
+	default Value apply(OperatorLowerEqualThan op, ValueString lhs, ValueString rhs) {
+		return new ValueBool(lhs.string().compareTo(rhs.string()) <= 0);
 	}
 
 	default Value apply(OperatorGreaterThan op, ValueInteger lhs, ValueInteger rhs) {
@@ -148,6 +157,10 @@ public interface Binary {
 		return new ValueBool(rhs.elements().stream().allMatch(elem -> lhs.elements().contains(elem)) && rhs.elements().size() < lhs.elements().size());
 	}
 
+	default Value apply(OperatorGreaterThan op, ValueString lhs, ValueString rhs) {
+		return new ValueBool(lhs.string().compareTo(rhs.string()) > 0);
+	}
+
 	default Value apply(OperatorGreaterEqualThan op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueBool(lhs.integer() >= rhs.integer());
 	}
@@ -172,6 +185,10 @@ public interface Binary {
 		return new ValueBool(rhs.elements().stream().allMatch(elem -> lhs.elements().contains(elem)) && rhs.elements().size() <= lhs.elements().size());
 	}
 
+	default Value apply(OperatorGreaterEqualThan op, ValueString lhs, ValueString rhs) {
+		return new ValueBool(lhs.string().compareTo(rhs.string()) >= 0);
+	}
+
 	default Value apply(OperatorPlus op, ValueInteger lhs, ValueInteger rhs) {
 		return new ValueInteger(lhs.integer() + rhs.integer());
 	}
@@ -191,6 +208,10 @@ public interface Binary {
 	default Value apply(OperatorPlus op, ValueSet lhs, ValueSet rhs) {
 		Set<Value> elements = new HashSet<>(lhs.elements()); elements.addAll(rhs.elements());
 		return new ValueSet(elements);
+	}
+
+	default Value apply(OperatorPlus op, ValueString lhs, ValueString rhs) {
+		return new ValueString(lhs.string() + rhs.string());
 	}
 
 	default Value apply(OperatorPlus op, ValueMap lhs, ValueMap rhs) {
@@ -291,11 +312,14 @@ public interface Binary {
 	}
 
 	default Value apply(OperatorIn op, Value lhs, ValueSet rhs) {
-
 		return new ValueBool(rhs.elements().stream().anyMatch(element -> element.equals(lhs)));
 	}
 
 	default Value apply(OperatorIn op, Value lhs, ValueMap rhs) {
 		return new ValueBool(rhs.mappings().stream().anyMatch(element -> element.getKey().equals(lhs)));
+	}
+
+	default Value apply(OperatorIn op, ValueChar lhs, ValueString rhs) {
+		return new ValueBool(rhs.string().indexOf(lhs.character()) > -1);
 	}
 }

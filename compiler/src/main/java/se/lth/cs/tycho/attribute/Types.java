@@ -508,6 +508,8 @@ public interface Types {
 				return ((ListType) structureType).getElementType();
 			} else if (structureType instanceof MapType) {
 				return ((MapType) structureType).getValueType();
+			} else if (structureType instanceof StringType) {
+				return CharType.INSTANCE;
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -713,6 +715,9 @@ public interface Types {
 				case Char: {
 					return CharType.INSTANCE;
 				}
+				case String: {
+					return StringType.INSTANCE;
+				}
 				default: {
 					return BottomType.INSTANCE;
 				}
@@ -876,7 +881,7 @@ public interface Types {
 					}
 				}
 				case "#":
-					if (t instanceof CollectionType) {
+					if (t instanceof CollectionType || t instanceof StringType) {
 						return new IntType(OptionalInt.empty(), true);
 					} else {
 						return BottomType.INSTANCE;
@@ -922,6 +927,8 @@ public interface Types {
 				return ((ListType) structureType).getElementType();
 			} else if (structureType instanceof MapType) {
 				return ((MapType) structureType).getValueType();
+			} else if (structureType instanceof StringType) {
+				return CharType.INSTANCE;
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -1015,6 +1022,10 @@ public interface Types {
 
 		default Type leastUpperBound(CharType a, CharType b) {
 			return CharType.INSTANCE;
+		}
+
+		default Type leastUpperBound(StringType a, StringType b) {
+			return StringType.INSTANCE;
 		}
 
 		default Type leastUpperBound(ListType a, ListType b) {
@@ -1129,6 +1140,10 @@ public interface Types {
 
 		default Type greatestLowerBound(CharType a, CharType b) {
 			return CharType.INSTANCE;
+		}
+
+		default Type greatestLowerBound(StringType a, StringType b) {
+			return StringType.INSTANCE;
 		}
 
 		default Type greatestLowerBound(IntType a, IntType b) {

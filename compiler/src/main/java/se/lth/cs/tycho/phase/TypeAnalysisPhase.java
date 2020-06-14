@@ -219,6 +219,10 @@ public class TypeAnalysisPhase implements Phase {
 			return isAssignable(to.getKeyType(), from.getKeyType()) && isAssignable(to.getValueType(), from.getValueType());
 		}
 
+		default boolean isAssignable(StringType to, StringType from) {
+			return true;
+		}
+
 		default boolean isAssignable(CallableType to, CallableType from) {
 			if (to.getParameterTypes().size() != from.getParameterTypes().size()) {
 				return false;
@@ -445,6 +449,8 @@ public class TypeAnalysisPhase implements Phase {
 				check(new IntType(OptionalInt.empty(), false), types().type(expr.getIndex()), expr.getIndex());
 			} else if (type instanceof MapType) {
 				check(((MapType) type).getKeyType(), types().type(expr.getIndex()), expr.getIndex());
+			} else if (type instanceof StringType) {
+				check(new IntType(OptionalInt.empty(), true), types().type(expr.getIndex()), expr.getIndex());
 			} else {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a supported operation.", sourceUnit(expr), expr));
 			}
@@ -647,6 +653,8 @@ public class TypeAnalysisPhase implements Phase {
 				check(new IntType(OptionalInt.empty(), false), types().type(lvalue.getIndex()), lvalue.getIndex());
 			} else if (type instanceof MapType) {
 				check(((MapType) type).getKeyType(), types().type(lvalue.getIndex()), lvalue.getIndex());
+			} else if (type instanceof StringType) {
+				check(new IntType(OptionalInt.empty(), true), types().type(lvalue.getIndex()), lvalue.getIndex());
 			} else {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a supported operation.", sourceUnit(lvalue), lvalue));
 			}
@@ -753,6 +761,10 @@ public class TypeAnalysisPhase implements Phase {
 			return true;
 		}
 
+		default boolean testSizeSupport(StringType type) {
+			return true;
+		}
+
 		default boolean isBinaryOpSupported(String op, Type a, Type b) {
 			switch (op) {
 				case "+":
@@ -830,6 +842,10 @@ public class TypeAnalysisPhase implements Phase {
 
 		default boolean testAddSupport(MapType a, MapType b) {
 			return isAssignable(a, b);
+		}
+
+		default boolean testAddSupport(StringType a, StringType b) {
+			return true;
 		}
 
 		default boolean testSubSupport(Type a, Type b) {
@@ -1042,6 +1058,10 @@ public class TypeAnalysisPhase implements Phase {
 
 		default boolean testInSupport(Type a, MapType b) {
 			return isAssignable(a, b.getKeyType());
+		}
+
+		default boolean testInSupport(CharType a, StringType b) {
+			return true;
 		}
 
 		default SourceUnit sourceUnit(IRNode node) {

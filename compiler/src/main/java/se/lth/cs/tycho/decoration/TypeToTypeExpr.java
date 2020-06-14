@@ -22,6 +22,7 @@ import se.lth.cs.tycho.type.MapType;
 import se.lth.cs.tycho.type.ProcType;
 import se.lth.cs.tycho.type.RealType;
 import se.lth.cs.tycho.type.SetType;
+import se.lth.cs.tycho.type.StringType;
 import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
@@ -125,6 +126,10 @@ public final class TypeToTypeExpr {
 			TypeParameter keyType = new TypeParameter("key", convert(type.getKeyType()));
 			TypeParameter valueType = new TypeParameter("value", convert(type.getValueType()));
 			return new NominalTypeExpr("Map", ImmutableList.of(keyType, valueType), ImmutableList.empty());
+		}
+
+		default NominalTypeExpr convert(StringType type) {
+			return new NominalTypeExpr("String", ImmutableList.empty(), ImmutableList.empty());
 		}
 	}
 }

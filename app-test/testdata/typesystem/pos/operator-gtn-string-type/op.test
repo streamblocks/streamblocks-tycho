@@ -1,0 +1,5 @@
+{
+    "description": "Test > operator on string type",
+    "source-paths": ["src"],
+    "entity": "op.StringGreater"
+}

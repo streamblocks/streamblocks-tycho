@@ -78,6 +78,10 @@ public interface Code {
 		emitter().emit("copy_%1$s(&(%2$s), &(%3$s));", type(lvalueType), lvalue, rvalue);
 	}
 
+	default void copy(StringType lvalueType, String lvalue, StringType rvalueType, String rvalue) {
+		emitter().emit("copy_%1$s(&(%2$s), %3$s);", type(lvalueType), lvalue, rvalue);
+	}
+
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		emitter().emit("copy_%s(&(%s), %s);", backend().algebraic().utils().name(lvalueType), lvalue, rvalue);
 	}
@@ -132,6 +136,13 @@ public interface Code {
 		return tmp;
 	}
 
+	default String compare(StringType lvalueType, String lvalue, StringType rvalueType, String rvalue) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = compare_%2$s(%3$s, %4$s);", tmp, type(lvalueType), lvalue, rvalue);
+		return tmp;
+	}
+
 	default String compare(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = compare_%s(%s, %s);", declaration(BoolType.INSTANCE, tmp), backend().algebraic().utils().name(lvalueType), lvalue, rvalue);
@@ -166,7 +177,7 @@ public interface Code {
 
 	default String declaration(BoolType type, String name) { return "_Bool " + name; }
 
-	default String declaration(StringType type, String name) { return "char *" + name; }
+	default String declaration(StringType type, String name) { return type(type) + " " + name; }
 
 	default String declaration(AlgebraicType type, String name) {
 		return type(type) + " *" + name;
@@ -220,7 +231,7 @@ public interface Code {
 	}
 
 	default String type(StringType type) {
-		return "char*";
+		return "string_t";
 	}
 
 	default String type(BoolType type) { return "_Bool"; }
@@ -277,8 +288,11 @@ public interface Code {
 				return "false";
 			case Real:
 				return literal.getText();
-			case String:
-				return literal.getText();
+			case String: {
+				String tmp = variables().generateTemp();
+				emitter().emit("%s = init_%s(%s);", declaration(StringType.INSTANCE, tmp), type(StringType.INSTANCE), literal.getText());
+				return tmp;
+			}
 			case Char:
 				return literal.getText();
 			default:
@@ -378,6 +392,15 @@ public interface Code {
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(lhs, tmp));
 		emitter().emit("%1$s = union_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryAdd(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%1$s = concat_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -584,6 +607,15 @@ public interface Code {
 		return tmp;
 	}
 
+	default String evaluateBinaryLtn(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = less_than_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
 	default String evaluateBinaryLeq(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
 	}
@@ -600,6 +632,15 @@ public interface Code {
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
 		emitter().emit("%1$s = less_than_equal_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryLeq(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = less_than_equal_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 	
@@ -621,6 +662,15 @@ public interface Code {
 		emitter().emit("%1$s = greater_than_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
+
+	default String evaluateBinaryGtn(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = greater_than_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
 	
 	default String evaluateBinaryGeq(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
@@ -638,6 +688,15 @@ public interface Code {
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
 		emitter().emit("%1$s = greater_than_equal_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryGeq(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = greater_than_equal_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -674,6 +733,15 @@ public interface Code {
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
 		emitter().emit("%1$s = membership_%2$s(&(%4$s), %3$s);", tmp, type(rhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryIn(Type lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = membership_%2$s(%4$s, %3$s);", tmp, type(rhs), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
@@ -758,6 +826,12 @@ public interface Code {
 	default String evaluateUnarySize(MapType type, ExprUnaryOp expr) {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = %s.size;", declaration(types().type(expr), tmp), evaluate(expr.getOperand()));
+		return tmp;
+	}
+
+	default String evaluateUnarySize(StringType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = strlen(%s);", declaration(types().type(expr), tmp), evaluate(expr.getOperand()));
 		return tmp;
 	}
 
@@ -922,6 +996,10 @@ public interface Code {
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		return String.format("%s.data[%s].value", map, index);
+	}
+
+	default String exprIndexing(StringType type, ExprIndexer indexer) {
+		return String.format("%s[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
 	}
 
 	default String evaluate(ExprTuple tuple) {
@@ -1229,6 +1307,10 @@ public interface Code {
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		return String.format("%s.data[%s].value", map, index);
+	}
+
+	default String lvalueIndexing(StringType type, LValueIndexer indexer) {
+		return String.format("%s[%s]", lvalue(indexer.getStructure()), evaluate(indexer.getIndex()));
 	}
 
 	default String lvalue(LValueField field) {

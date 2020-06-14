@@ -11,6 +11,7 @@ import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.MapType;
 import se.lth.cs.tycho.type.RealType;
 import se.lth.cs.tycho.type.SetType;
+import se.lth.cs.tycho.type.StringType;
 import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
@@ -63,5 +64,8 @@ public interface DefaultValues {
 	}
 	default String defaultValue(MapType t) {
 		return "{ 0 }";
+	}
+	default String defaultValue(StringType t) {
+		return "NULL";
 	}
 }
