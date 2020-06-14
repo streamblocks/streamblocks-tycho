@@ -3,7 +3,7 @@ package se.lth.cs.tycho.type;
 import java.util.Objects;
 import java.util.OptionalInt;
 
-public final class IntType implements Type {
+public final class IntType implements NumberType {
 	private final OptionalInt size;
 	private final boolean signed;
 

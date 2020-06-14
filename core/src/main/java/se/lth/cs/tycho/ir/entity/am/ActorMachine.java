@@ -2,8 +2,8 @@ package se.lth.cs.tycho.ir.entity.am;
 
 import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Controller;
@@ -61,13 +61,13 @@ public class ActorMachine extends Entity {
     }
 
     public ActorMachine(List<Annotation> annotations, List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-                        List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes, Controller controller,
+                        List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes, Controller controller,
                         List<Transition> transitions, List<Condition> conditions) {
         this(null, annotations, inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
     }
 
     private ActorMachine(ActorMachine original, List<Annotation> annotations, List<PortDecl> inputPorts,
-                         List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes,
+                         List<PortDecl> outputPorts, List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes,
                          Controller controller, List<Transition> transitions,
                          List<Condition> conditions) {
         super(original, annotations, inputPorts, outputPorts, typeParameters, valueParameters);
@@ -78,7 +78,7 @@ public class ActorMachine extends Entity {
         this.annotations = ImmutableList.from(annotations);
     }
 
-    public ActorMachine copy(List<Annotation> annotations, List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<TypeDecl> typeParameters,
+    public ActorMachine copy(List<Annotation> annotations, List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<ParameterTypeDecl> typeParameters,
                              List<ParameterVarDecl> valueParameters,
                              List<Scope> scopes, Controller controller,
                              List<Transition> transitions, List<Condition> conditions) {
@@ -143,5 +143,4 @@ public class ActorMachine extends Entity {
             return new ActorMachine(this, annotations, inputPorts, outputPorts, typeParameters, valueParameters, scopes, ctrl, transitions, conditions);
         }
     }
-
 }

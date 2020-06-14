@@ -6,8 +6,10 @@ import org.multij.Module;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.stream.Stream;
@@ -33,7 +35,15 @@ public interface Global {
 		backend().main().emitDefaultHeaders();
 		emitter().emit("#include \"global.h\"");
 		emitter().emit("");
-		backend().algebraicTypes().defineAlgebraicTypes();
+		backend().sets().defineSet();
+		emitter().emit("");
+		backend().maps().defineMap();
+		emitter().emit("");
+		backend().strings().defineString();
+		emitter().emit("");
+		backend().algebraic().defineAlgebraic();
+		emitter().emit("");
+		backend().tuples().defineTuple();
 		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
@@ -54,11 +64,27 @@ public interface Global {
 		emitter().emit("");
 		emitter().emit("void free_global_variables(void);");
 		emitter().emit("");
-		backend().algebraicTypes().forwardDeclareAlgebraicTypes();
+		backend().algebraic().forwardAlgebraic();
+		emitter().emit("");
+		backend().sets().forwardSet();
+		emitter().emit("");
+		backend().maps().forwardMap();
+		emitter().emit("");
+		backend().strings().declareString();
+		emitter().emit("");
+		backend().tuples().forwardTuple();
 		emitter().emit("");
 		backend().lists().declareListTypes();
 		emitter().emit("");
-		backend().algebraicTypes().declareAlgebraicTypes();
+		backend().sets().declareSet();
+		emitter().emit("");
+		backend().maps().declareMap();
+		emitter().emit("");
+		backend().alias().declareAliasTypes();
+		emitter().emit("");
+		backend().algebraic().declareAlgebraic();
+		emitter().emit("");
+		backend().tuples().declareTuple();
 		emitter().emit("");
 		backend().callables().declareCallables();
 		emitter().emit("");
@@ -86,7 +112,7 @@ public interface Global {
 	default void globalVariableInitializer(Stream<VarDecl> varDecls) {
 		emitter().emit("void init_global_variables() {");
 		emitter().increaseIndentation();
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			if (decl.isExternal() && type instanceof CallableType) {
@@ -102,7 +128,7 @@ public interface Global {
 				emitter().emit("%s = %s;", backend().variables().declarationName(decl), tmp);
 			}
 		});
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
@@ -113,14 +139,18 @@ public interface Global {
 		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			if (type instanceof AlgebraicType) {
-				emitter().emit("%s(%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
+				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
+			} else if (backend().alias().isAlgebraicType(type)) {
+				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(decl));
+			} else if (type instanceof TupleType) {
+				emitter().emit("%s(%s);", backend().algebraic().utils().destructor(backend().tuples().convert().apply((TupleType) type)), backend().variables().declarationName(decl));
 			} else if (code().isAlgebraicTypeList(type)) {
 				emitter().emit("{");
 				emitter().increaseIndentation();
 				ListType listType = (ListType) type;
 				emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
 				emitter().increaseIndentation();
-				emitter().emit("%s(%s.data[i]);", backend().algebraicTypes().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(decl));
+				emitter().emit("%s(%s.data[i]);", backend().algebraic().utils().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(decl));
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 				emitter().decreaseIndentation();

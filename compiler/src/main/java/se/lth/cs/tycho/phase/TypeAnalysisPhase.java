@@ -8,8 +8,10 @@ import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
+import se.lth.cs.tycho.ir.decl.PatternVarDecl;
 import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -17,27 +19,39 @@ import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.ExprCase;
+import se.lth.cs.tycho.ir.expr.ExprComprehension;
+import se.lth.cs.tycho.ir.expr.ExprField;
+import se.lth.cs.tycho.ir.expr.ExprIf;
+import se.lth.cs.tycho.ir.expr.ExprIndexer;
+import se.lth.cs.tycho.ir.expr.ExprNth;
 import se.lth.cs.tycho.ir.expr.ExprTypeAssertion;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
+import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtCall;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
+import se.lth.cs.tycho.ir.stmt.StmtForeach;
+import se.lth.cs.tycho.ir.stmt.StmtIf;
 import se.lth.cs.tycho.ir.stmt.StmtRead;
+import se.lth.cs.tycho.ir.stmt.StmtWhile;
 import se.lth.cs.tycho.ir.stmt.StmtWrite;
-import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.attribute.Types;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueNth;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.type.*;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TypeAnalysisPhase implements Phase {
 	@Override
@@ -57,10 +71,10 @@ public class TypeAnalysisPhase implements Phase {
 			TypeChecker checker = MultiJ.from(module)
 					.bind("types").to(task.getModule(Types.key))
 					.bind("reporter").to(context.getReporter())
-					.bind("sourceUnit").to(sourceUnit)
+					.bind("tree").to(task.getModule(TreeShadow.key))
 					.bind("typeScopes").to(task.getModule(TypeScopes.key))
 					.instance();
-			checker.check(sourceUnit);
+			checker.accept(sourceUnit);
 		});
 		return task;
 	}
@@ -80,10 +94,22 @@ public class TypeAnalysisPhase implements Phase {
 			return true;
 		}
 
+		default boolean isConvertible(AliasType to, AliasType from) {
+			return isConvertible(to.getType(), from.getType());
+		}
+
+		default boolean isConvertible(AliasType to, Type from) {
+			return isConvertible(to.getType(), from);
+		}
+
+		default boolean isConvertible(Type to, AliasType from) {
+			return isConvertible(to, from.getType());
+		}
+
 		default boolean isAssertable(Type to, Type from) {
 			return to.equals(from);
 		}
-		default boolean isAssertable(IntType to, IntType from) {
+		default boolean isAssertable(NumberType to, NumberType from) {
 			return true;
 		}
 		default boolean isAssertable(IntType to, RealType from) {
@@ -92,39 +118,14 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssertable(RealType to, IntType from) {
 			return true;
 		}
-
-		default boolean isComparable(Type a, Type b, String operand) {
-			return a.equals(b);
+		default boolean isAssertable(AliasType to, AliasType from) {
+			return isAssertable(to.getType(), from.getType());
 		}
-		default boolean isComparable(IntType a, IntType b, String operand) {
-			return true;
+		default boolean isAssertable(AliasType to, Type from) {
+			return isAssertable(to.getType(), from);
 		}
-		default boolean isComparable(RealType a, RealType b, String operand) {
-			return true;
-		}
-		default boolean isComparable(IntType a, RealType b, String operand) {
-			return true;
-		}
-		default boolean isComparable(RealType a, IntType b, String operand) {
-			return true;
-		}
-		default boolean isComparable(ListType a, ListType b, String operand) {
-			return Arrays.asList("=", "==", "!=").contains(operand) && a.getSize().equals(b.getSize()) && isComparable(a.getElementType(), b.getElementType(), operand);
-		}
-		default boolean isComparable(ListType a, Type b, String operand) {
-			return false;
-		}
-		default boolean isComparable(Type a, ListType b, String operand) {
-			return false;
-		}
-		default boolean isComparable(AlgebraicType a, AlgebraicType b, String operand) {
-			return Arrays.asList("=", "==", "!=").contains(operand) && a.equals(b);
-		}
-		default boolean isComparable(AlgebraicType a, Type b, String operand) {
-			return false;
-		}
-		default boolean isComparable(Type a, AlgebraicType b, String operand) {
-			return false;
+		default boolean isAssertable(Type to, AliasType from) {
+			return isAssertable(to, from.getType());
 		}
 
 		default boolean isAssignable(Type to, Type from) {
@@ -166,10 +167,10 @@ public class TypeAnalysisPhase implements Phase {
 				} else {
 					return to.getSize().getAsInt() > from.getSize().getAsInt();
 				}
-			}else{
-				if(to.getSize().isPresent()){
+			} else {
+				if (to.getSize().isPresent()) {
 					return true;
-				}else{
+				} else {
 					return false;
 				}
 			}
@@ -181,6 +182,9 @@ public class TypeAnalysisPhase implements Phase {
 			return true;
 		}
 		default boolean isAssignable(BoolType to, BoolType from) {
+			return true;
+		}
+		default boolean isAssignable(CharType to, CharType from) {
 			return true;
 		}
 		default boolean isAssignable(UnitType to, UnitType from) {
@@ -207,6 +211,18 @@ public class TypeAnalysisPhase implements Phase {
 			return false;
 		}
 
+		default boolean isAssignable(SetType to, SetType from) {
+			return isAssignable(to.getElementType(), from.getElementType());
+		}
+
+		default boolean isAssignable(MapType to, MapType from) {
+			return isAssignable(to.getKeyType(), from.getKeyType()) && isAssignable(to.getValueType(), from.getValueType());
+		}
+
+		default boolean isAssignable(StringType to, StringType from) {
+			return true;
+		}
+
 		default boolean isAssignable(CallableType to, CallableType from) {
 			if (to.getParameterTypes().size() != from.getParameterTypes().size()) {
 				return false;
@@ -229,6 +245,25 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssignable(AlgebraicType to, AlgebraicType from) {
 			return to.equals(from);
 		}
+
+		default boolean isAssignable(AliasType to, AliasType from) {
+			return isAssignable(to.getType(), from.getType());
+		}
+
+		default boolean isAssignable(AliasType to, Type from) {
+			return isAssignable(to.getType(), from);
+		}
+
+		default boolean isAssignable(Type to, AliasType from) {
+			return isAssignable(to, from.getType());
+		}
+
+		default boolean isAssignable(TupleType to, TupleType from) {
+			return to.getTypes().size() == from.getTypes().size()
+					&& IntStream
+						.range(0, to.getTypes().size())
+						.allMatch(i -> isAssignable(to.getTypes().get(i), from.getTypes().get(i)));
+		}
 	}
 
 	@Module
@@ -248,23 +283,6 @@ public class TypeAnalysisPhase implements Phase {
 		@Override
 		default boolean isAssertable(Type to, Type from) {
 			return false;
-		}
-
-		@Override
-		default boolean isComparable(Type a, Type b, String operand) {
-			return a.equals(b);
-		}
-		default boolean isComparable(IntType a, IntType b, String operand) {
-			return true;
-		}
-		default boolean isComparable(RealType a, RealType b, String operand) {
-			return true;
-		}
-		default boolean isComparable(IntType a, RealType b, String operand) {
-			return true;
-		}
-		default boolean isComparable(RealType a, IntType b, String operand) {
-			return true;
 		}
 
 		default boolean isAssignable(Type to, Type from) {
@@ -303,6 +321,9 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssignable(BoolType to, BoolType from) {
 			return true;
 		}
+		default boolean isAssignable(CharType to, CharType from) {
+			return true;
+		}
 		default boolean isAssignable(UnitType to, UnitType from) {
 			return true;
 		}
@@ -330,6 +351,7 @@ public class TypeAnalysisPhase implements Phase {
 	}
 
 	interface TypeChecker {
+
 		@Binding(BindingKind.INJECTED)
 		Types types();
 
@@ -337,224 +359,717 @@ public class TypeAnalysisPhase implements Phase {
 		Reporter reporter();
 
 		@Binding(BindingKind.INJECTED)
-		SourceUnit sourceUnit();
+		TreeShadow tree();
 
 		@Binding(BindingKind.INJECTED)
 		TypeScopes typeScopes();
 
-		default void check(IRNode node) {
-			checkTypes(node);
-			node.forEachChild(this::check);
-		}
+		boolean isAssignable(Type to, Type from);
 
-		boolean isAssertable(Type a, Type b);
+		boolean isAssertable(Type to, Type from);
 
-		boolean isAssignable(Type a, Type b);
+		boolean isConvertible(Type to, Type from);
 
-		boolean isConvertible(Type a, Type b);
-
-		boolean isComparable(Type a, Type b, String operand);
-
-		default void checkAssignment(Type to, Type from, IRNode node) {
-			if (!isAssignable(to, from)) {
-				if (isConvertible(to, from)) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + from + " to " + to + ".", sourceUnit(), node));
+		default void check(Type expected, Type actual, IRNode node) {
+			if (!isAssignable(expected, actual)) {
+				if (isConvertible(expected, actual)) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + actual + " to " + expected + ".", sourceUnit(node), node));
 				} else {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + to + " but was " + from + ".", sourceUnit(), node));
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + expected + " but was " + actual + ".", sourceUnit(node), node));
 				}
 			}
 		}
 
-		default void checkComparison(Type to, Type from, String operand, IRNode node) {
-			if (!isComparable(to, from, operand)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incomparable types; " + to + " cannot be compared with " + from + ".", sourceUnit(), node));
-			}
+		default void accept(IRNode node) {
+			typecheck(node);
+			node.forEachChild(this::accept);
 		}
 
-		default void checkTypes(IRNode node) {}
+		default void typecheck(IRNode node) {
 
-		default void checkTypes(StmtAssignment assignment) {
-			checkAssignment(
-					types().lvalueType(assignment.getLValue()),
-					types().type(assignment.getExpression()),
-					assignment);
 		}
 
-		default void checkTypes(VarDecl varDecl) {
-			if (varDecl.getValue() != null && varDecl.getType() != null) {
-				checkAssignment(
-						types().declaredType(varDecl),
-						types().type(varDecl.getValue()),
-						varDecl);
-			} else if (varDecl.getType() == null) {
-				Type t = types().declaredType(varDecl);
-				if (t == TopType.INSTANCE || t == BottomType.INSTANCE) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not infer a type for " + varDecl.getName() + ".", sourceUnit(), varDecl));
-				}
-			}
-		}
-
-		default void checkTypes(ExprApplication apply) {
-			Type type = types().type(apply.getFunction());
+		default void typecheck(ExprApplication expr) {
+			Type type = types().type(expr.getFunction());
 			if (!(type instanceof LambdaType)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a function.", sourceUnit(), apply.getFunction()));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a function.", sourceUnit(expr.getFunction()), expr.getFunction()));
 			} else {
 				CallableType callableType = (LambdaType) type;
-				checkArguments(apply, callableType, apply.getArgs());
+				typecheckArgs(expr, callableType, expr.getArgs());
 			}
 		}
 
-		default void checkTypes(ExprTypeConstruction construction) {
-			Type type = types().type(construction);
+		default void typecheck(ExprBinaryOp expr) {
+			String op = expr.getOperations().get(0);
+			Type lhs = types().type(expr.getOperands().get(0));
+			Type rhs = types().type(expr.getOperands().get(1));
+			if (!(isBinaryOpSupported(op, lhs, rhs))) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, op + " is not supported with " + lhs + " and " + rhs + ".", sourceUnit(expr), expr));
+			}
+		}
+
+		default void typecheck(ExprCase expr) {
+			Type expected = types().type(expr.getScrutinee());
+			expr.getAlternatives().forEach(alternative -> {
+				check(expected, types().type(alternative.getPattern()), alternative.getPattern());
+			});
+			expr.getAlternatives().forEach(alternative -> {
+				alternative.getGuards().forEach(guard -> check(BoolType.INSTANCE, types().type(guard), guard));
+			});
+		}
+
+		default void typecheck(ExprComprehension expr) {
+			Type type = types().type(expr.getCollection());
+			if (!(type instanceof CollectionType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a collection.", sourceUnit(expr.getCollection()), expr.getCollection()));
+			}
+			expr.getFilters().forEach(filter -> check(BoolType.INSTANCE, types().type(filter), filter));
+		}
+
+		default void typecheck(ExprField expr) {
+			Type type =  types().type(expr.getStructure());
+			if (!(type instanceof ProductType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a product.", sourceUnit(expr.getStructure()), expr.getStructure()));
+			} else {
+				ProductType product = (ProductType) type;
+				String member = expr.getField().getName();
+				if (product.getFields().stream().noneMatch(field -> Objects.equals(field.getName(), member))) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "No member " + member + " for " + type + ".", sourceUnit(expr), expr));
+				}
+			}
+		}
+
+		default void typecheck(ExprIf expr) {
+			check(BoolType.INSTANCE, types().type(expr.getCondition()), expr.getCondition());
+		}
+
+		default void typecheck(ExprIndexer expr) {
+			Type type = types().type(expr.getStructure());
+			if (type instanceof ListType) {
+				check(new IntType(OptionalInt.empty(), false), types().type(expr.getIndex()), expr.getIndex());
+			} else if (type instanceof MapType) {
+				check(((MapType) type).getKeyType(), types().type(expr.getIndex()), expr.getIndex());
+			} else if (type instanceof StringType) {
+				check(new IntType(OptionalInt.empty(), true), types().type(expr.getIndex()), expr.getIndex());
+			} else {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a supported operation.", sourceUnit(expr), expr));
+			}
+		}
+
+		default void typecheck(ExprNth expr) {
+			Type type = types().type(expr.getStructure());
+			if (!(type instanceof TupleType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a tuple.", sourceUnit(expr.getStructure()), expr.getStructure()));
+			} else {
+				TupleType tuple = (TupleType) type;
+				int n = expr.getNth().getNumber();
+				if (n < 1 || n > tuple.getTypes().size()) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "No member #" + n + " for " + type + ".", sourceUnit(expr), expr));
+				}
+			}
+		}
+
+		default void typecheck(ExprTypeAssertion expr) {
+			Type expected = types().type(expr.getType());
+			Type actual = types().type(expr.getExpression());
+			if (!isAssertable(expected, actual)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert " + actual + " to " + expected + ".", sourceUnit(expr), expr));
+			}
+		}
+
+		default void typecheck(ExprTypeConstruction expr) {
+			Type type = types().type(expr);
 			if (!(type instanceof AlgebraicType)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a user type.", sourceUnit(), construction));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not an algebraic type.", sourceUnit(expr), expr));
 			} else if (type instanceof ProductType) {
 				ProductType productType = (ProductType) type;
 				CallableType callableType = new CallableType(productType.getFields().stream().map(FieldType::getType).collect(Collectors.toList()), type) {};
-				checkArguments(construction, callableType, construction.getArgs());
+				typecheckArgs(expr, callableType, expr.getArgs());
 			} else if (type instanceof SumType) {
 				SumType sumType = (SumType) type;
-				SumType.VariantType variantType = sumType.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), construction.getConstructor())).findAny().get();
+				SumType.VariantType variantType = sumType.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), expr.getConstructor())).findAny().get();
 				CallableType callableType = new CallableType(variantType.getFields().stream().map(FieldType::getType).collect(Collectors.toList()), type) {};
-				checkArguments(construction, callableType, construction.getArgs());
+				typecheckArgs(expr, callableType, expr.getArgs());
 			}
 		}
 
-		default void checkTypes(ExprBinaryOp binaryOp) {
-			if (Arrays.asList(">=", ">", "<=", "<", "==", "=", "!=").contains(binaryOp.getOperations().get(0))) {
-				checkComparison(types().type(binaryOp.getOperands().get(0)), types().type(binaryOp.getOperands().get(1)), binaryOp.getOperations().get(0), binaryOp);
+		default void typecheck(ExprUnaryOp expr) {
+			String op = expr.getOperation();
+			Type type = types().type(expr.getOperand());
+			if (!(isUnaryOpSupported(op, type))) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, op + " is not supported with " + type + ".", sourceUnit(expr), expr));
 			}
 		}
 
-		default void checkTypes(StmtCall call) {
-			Type type = types().type(call.getProcedure());
+		default void typecheck(StmtAssignment stmt) {
+			check(types().type(stmt.getLValue()), types().type(stmt.getExpression()), stmt.getExpression());
+		}
+
+		default void typecheck(StmtCall stmt) {
+			Type type = types().type(stmt.getProcedure());
 			if (!(type instanceof ProcType)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a procedure.", sourceUnit(), call.getProcedure()));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a procedure.", sourceUnit(stmt), stmt.getProcedure()));
 			} else {
 				CallableType callableType = (ProcType) type;
-				checkArguments(call, callableType, call.getArgs());
+				typecheckArgs(stmt, callableType, stmt.getArgs());
 			}
 		}
 
-		default void checkTypes(StmtRead read) {
+		default void typecheck(StmtCase stmt) {
+			Type expected = types().type(stmt.getScrutinee());
+			stmt.getAlternatives().forEach(alternative -> {
+				check(expected, types().type(alternative.getPattern()), alternative.getPattern());
+			});
+			stmt.getAlternatives().forEach(alternative -> {
+				alternative.getGuards().forEach(guard -> check(BoolType.INSTANCE, types().type(guard), guard));
+			});
+		}
+
+		default void typecheck(StmtForeach stmt) {
+			stmt.getFilters().forEach(filter -> check(BoolType.INSTANCE, types().type(filter), filter));
+		}
+
+		default void typecheck(StmtIf stmt) {
+			check(BoolType.INSTANCE, types().type(stmt.getCondition()), stmt.getCondition());
+		}
+
+		default void typecheck(StmtRead stmt) {
 			Type actual;
-			if (read.getRepeatExpression() != null) {
-				actual = types().portTypeRepeated(read.getPort(), read.getRepeatExpression());
+			if (stmt.getRepeatExpression() != null) {
+				actual = types().portTypeRepeated(stmt.getPort(), stmt.getRepeatExpression());
 			} else {
-				actual = types().portType(read.getPort());
+				actual = types().portType(stmt.getPort());
 			}
-			for (LValue lvalue : read.getLValues()) {
-				Type expected = types().lvalueType(lvalue);
-				checkAssignment(expected, actual, lvalue);
+			stmt.getLValues().forEach(lvalue -> check(types().type(lvalue), actual, lvalue));
+		}
+
+		default void typecheck(StmtWhile stmt) {
+			check(BoolType.INSTANCE, types().type(stmt.getCondition()), stmt.getCondition());
+		}
+
+		default void typecheck(StmtWrite stmt) {
+			Type expected;
+			if (stmt.getRepeatExpression() != null) {
+				expected = types().portTypeRepeated(stmt.getPort(), stmt.getRepeatExpression());
+			} else {
+				expected = types().portType(stmt.getPort());
+			}
+			stmt.getValues().forEach(value -> check(expected, types().type(value), value));
+		}
+
+		default void typecheck(VarDecl decl) {
+			if (decl instanceof PatternVarDecl) {
+				return;
+			}
+			if (decl.getValue() != null && decl.getType() != null) {
+				check(types().declaredType(decl), types().type(decl.getValue()), decl);
+			} else if (decl.getType() == null) {
+				Type t = types().declaredType(decl);
+				if (t == TopType.INSTANCE || t == BottomType.INSTANCE) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not infer a type for " + decl.getName() + ".", sourceUnit(decl), decl));
+				}
 			}
 		}
 
-		default void checkTypes(OutputExpression output) {
+		default void typecheck(OutputExpression output) {
 			Type expected;
 			if (output.getRepeatExpr() != null) {
 				expected = types().portTypeRepeated(output.getPort(), output.getRepeatExpr());
 			} else {
 				expected = types().portType(output.getPort());
 			}
-			for (Expression value : output.getExpressions()) {
-				Type actual = types().type(value);
-				checkAssignment(expected, actual, value);
-			}
+			output.getExpressions().forEach(expr -> check(expected, types().type(expr), expr));
 		}
 
-		default void checkTypes(StmtWrite write) {
-			Type expected;
-			if (write.getRepeatExpression() != null) {
-				expected = types().portTypeRepeated(write.getPort(), write.getRepeatExpression());
-			} else {
-				expected = types().portType(write.getPort());
-			}
-			for (Expression value : write.getValues()) {
-				Type actual = types().type(value);
-				checkAssignment(expected, actual, value);
-			}
-		}
-
-		default void checkTypes(ExprTypeAssertion assertion) {
-			Type to = types().type(assertion.getType());
-			Type from = types().type(assertion.getExpression());
-			if (!isAssertable(to, from)) {
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert " + from + " to " + to + ".", sourceUnit(), assertion));
-			}
-		}
-
-		default void checkTypes(ExprCase caseExpr) {
-			Type type = types().type(caseExpr.getExpression());
-			caseExpr.getAlternatives().forEach(alternative -> {
-				checkAssignment(type, types().type(alternative.getPattern()), alternative.getPattern());
-			});
-			caseExpr.getAlternatives().forEach(alternative -> {
-				alternative.getGuards().forEach(guard -> checkAssignment(BoolType.INSTANCE, types().type(guard), guard));
-			});
-		}
-
-		default void checkTypes(StmtCase caseStmt) {
-			Type type = types().type(caseStmt.getExpression());
-			caseStmt.getAlternatives().forEach(alternative -> {
-				checkAssignment(type, types().type(alternative.getPattern()), alternative.getPattern());
-			});
-			caseStmt.getAlternatives().forEach(alternative -> {
-				alternative.getGuards().forEach(guard -> checkAssignment(BoolType.INSTANCE, types().type(guard), guard));
-			});
-		}
-
-		default void checkTypes(PatternDeconstruction deconstruction) {
-			typeScopes().construction(deconstruction).ifPresent(decl -> {
+		default void typecheck(PatternDeconstruction pattern) {
+			typeScopes().construction(pattern).ifPresent(decl -> {
 				GlobalTypeDecl type = (GlobalTypeDecl) decl;
-				if (type.getDeclaration() instanceof ProductTypeDecl) {
-					ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
+				if (type instanceof ProductTypeDecl) {
+					ProductTypeDecl product = (ProductTypeDecl) type;
 					Iterator<Type> types = product.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
-					Iterator<Pattern> patterns = deconstruction.getPatterns().iterator();
+					Iterator<Pattern> patterns = pattern.getPatterns().iterator();
 					while (types.hasNext() && patterns.hasNext()) {
-						Pattern pattern = patterns.next();
-						Type patType = types().type(pattern);
+						Pattern p = patterns.next();
+						Type patType = types().type(p);
 						Type parType = types.next();
-						checkAssignment(parType, patType, pattern);
+						check(parType, patType, p);
 					}
 					if (types.hasNext() || patterns.hasNext()) {
 						final int expected = product.getFields().size();
-						final int actual = deconstruction.getPatterns().size();
-						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstruction));
+						final int actual = pattern.getPatterns().size();
+						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(pattern), pattern));
 					}
-				} else if (type.getDeclaration() instanceof SumTypeDecl) {
-					SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
-					SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
+				} else if (type instanceof SumTypeDecl) {
+					SumTypeDecl sum = (SumTypeDecl) type;
+					SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), pattern.getDeconstructor())).findAny().get();
 					Iterator<Type> types = variant.getFields().stream().map(field -> types().type(field.getType())).collect(Collectors.toList()).iterator();
-					Iterator<Pattern> patterns = deconstruction.getPatterns().iterator();
+					Iterator<Pattern> patterns = pattern.getPatterns().iterator();
 					while (types.hasNext() && patterns.hasNext()) {
-						Pattern pattern = patterns.next();
-						Type patType = types().type(pattern);
+						Pattern p = patterns.next();
+						Type patType = types().type(p);
 						Type parType = types.next();
-						checkAssignment(parType, patType, pattern);
+						check(parType, patType, p);
 					}
 					if (types.hasNext() || patterns.hasNext()) {
 						final int expected = variant.getFields().size();
-						final int actual = deconstruction.getPatterns().size();
-						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), deconstruction));
+						final int actual = pattern.getPatterns().size();
+						reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(pattern), pattern));
 					}
 				}
 			});
 		}
 
-		default void checkArguments(IRNode node, CallableType callableType, List<Expression> args) {
+		default void typecheck(Generator generator) {
+			Type type = types().type(generator.getCollection());
+			if (!(type instanceof CollectionType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a collection.", sourceUnit(generator.getCollection()), generator.getCollection()));
+			} else {
+				if (generator.getType() != null) {
+					if (type instanceof ListType) {
+						check(((ListType) type).getElementType(), types().type(generator.getType()), generator.getType());
+					} else if (type instanceof SetType) {
+						check(((SetType) type).getElementType(), types().type(generator.getType()), generator.getType());
+					}
+				}
+			}
+		}
+
+		default void typecheck(LValueField lvalue) {
+			Type type =  types().type(lvalue.getStructure());
+			if (!(type instanceof ProductType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a product.", sourceUnit(lvalue.getStructure()), lvalue.getStructure()));
+			} else {
+				ProductType product = (ProductType) type;
+				String member = lvalue.getField().getName();
+				if (product.getFields().stream().noneMatch(field -> Objects.equals(field.getName(), member))) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "No member " + member + " for type " + type + ".", sourceUnit(lvalue), lvalue));
+				}
+			}
+		}
+
+		default void typecheck(LValueIndexer lvalue) {
+			Type type = types().type(lvalue.getStructure());
+			if (type instanceof ListType) {
+				check(new IntType(OptionalInt.empty(), false), types().type(lvalue.getIndex()), lvalue.getIndex());
+			} else if (type instanceof MapType) {
+				check(((MapType) type).getKeyType(), types().type(lvalue.getIndex()), lvalue.getIndex());
+			} else if (type instanceof StringType) {
+				check(new IntType(OptionalInt.empty(), true), types().type(lvalue.getIndex()), lvalue.getIndex());
+			} else {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a supported operation.", sourceUnit(lvalue), lvalue));
+			}
+		}
+
+		default void typecheck(LValueNth lvalue) {
+			Type type = types().type(lvalue.getStructure());
+			if (!(type instanceof TupleType)) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Not a tuple.", sourceUnit(lvalue.getStructure()), lvalue.getStructure()));
+			} else {
+				TupleType tuple = (TupleType) type;
+				int n = lvalue.getNth().getNumber();
+				if (n < 1 || n > tuple.getTypes().size()) {
+					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "No member #" + n + " for" + type + ".", sourceUnit(lvalue), lvalue));
+				}
+			}
+		}
+
+		default void typecheckArgs(IRNode node, CallableType callableType, List<Expression> args) {
 			Iterator<Type> typeIter = callableType.getParameterTypes().iterator();
 			Iterator<Expression> exprIter = args.iterator();
 			while (typeIter.hasNext() && exprIter.hasNext()) {
 				Type parType = typeIter.next();
 				Expression expr = exprIter.next();
 				Type argType = types().type(expr);
-				checkAssignment(parType, argType, expr);
+				check(parType, argType, expr);
 			}
 			if (typeIter.hasNext() || exprIter.hasNext()) {
 				final int expected = callableType.getParameterTypes().size();
 				final int actual = args.size();
-				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(), node));
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Wrong number of arguments; expected " + expected + ", but was " + actual + ".", sourceUnit(node), node));
 			}
+		}
+
+		default boolean isUnaryOpSupported(String op, Type type) {
+			switch (op) {
+				case "-":
+					return testMinusSupport(type);
+				case "~":
+					return testInvertSupport(type);
+				case "!":
+				case "not":
+					return testNotSupport(type);
+				case "dom":
+					return testDomSupport(type);
+				case "rng":
+					return testRngSupport(type);
+				case "#":
+					return testSizeSupport(type);
+				default:
+					return false;
+			}
+		}
+
+		default boolean isUnaryOpSupported(String op, AliasType type) {
+			return isUnaryOpSupported(op, type.getConcreteType());
+		}
+
+		default boolean testMinusSupport(Type type) {
+			return false;
+		}
+
+		default boolean testMinusSupport(NumberType type) {
+			return true;
+		}
+
+		default boolean testInvertSupport(Type type) {
+			return false;
+		}
+
+		default boolean testInvertSupport(IntType type) {
+			return true;
+		}
+
+		default boolean testNotSupport(Type type) {
+			return false;
+		}
+
+		default boolean testNotSupport(BoolType type) {
+			return true;
+		}
+
+		default boolean testDomSupport(Type type) {
+			return false;
+		}
+
+		default boolean testDomSupport(MapType type) {
+			return true;
+		}
+
+		default boolean testRngSupport(Type type) {
+			return false;
+		}
+
+		default boolean testRngSupport(MapType type) {
+			return true;
+		}
+
+		default boolean testSizeSupport(Type type) {
+			return false;
+		}
+
+		default boolean testSizeSupport(CollectionType type) {
+			return true;
+		}
+
+		default boolean testSizeSupport(StringType type) {
+			return true;
+		}
+
+		default boolean isBinaryOpSupported(String op, Type a, Type b) {
+			switch (op) {
+				case "+":
+					return testAddSupport(a, b);
+				case "-":
+					return testSubSupport(a, b);
+				case "*":
+					return testTimesSupport(a, b);
+				case "/":
+					return testDivSupport(a, b);
+				case "div":
+					return testIntDivSupport(a, b);
+				case "%":
+				case "mod":
+					return testModSupport(a, b);
+				case "^":
+					return testExpSupport(a, b);
+				case "&":
+					return testBitAndSupport(a, b);
+				case "<<":
+					return testShiftLSupport(a, b);
+				case ">>":
+					return testShiftRSupport(a, b);
+				case "&&":
+				case "and":
+					return testAndSupport(a, b);
+				case "|":
+					return testBitOrSupport(a, b);
+				case "||":
+				case "or":
+					return testOrSupport(a, b);
+				case "=":
+				case "==":
+					return testEqSupport(a, b);
+				case "!=":
+					return testNeqSupport(a, b);
+				case "<":
+					return testLtnSupport(a, b);
+				case "<=":
+					return testLeqSupport(a, b);
+				case ">":
+					return testGtnSupport(a, b);
+				case ">=":
+					return testGeqSupport(a, b);
+				case "in":
+					return testInSupport(a, b);
+				default:
+					return false;
+			}
+		}
+
+		default boolean isBinaryOpSupported(String op, AliasType a, Type b) {
+			return isBinaryOpSupported(op, a.getConcreteType(), b);
+		}
+
+		default boolean isBinaryOpSupported(String op, Type a, AliasType b) {
+			return isBinaryOpSupported(op, a, b.getConcreteType());
+		}
+
+		default boolean testAddSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testAddSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testAddSupport(SetType a, SetType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testAddSupport(ListType a, ListType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testAddSupport(MapType a, MapType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testAddSupport(StringType a, StringType b) {
+			return true;
+		}
+
+		default boolean testSubSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testSubSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testSubSupport(SetType a, SetType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testTimesSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testTimesSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testTimesSupport(SetType a, SetType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testDivSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testDivSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testDivSupport(SetType a, SetType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testIntDivSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testIntDivSupport(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean testModSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testModSupport(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean testExpSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testExpSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testBitAndSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testBitAndSupport(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean testShiftLSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testShiftLSupport(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean testShiftRSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testShiftRSupport(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean testAndSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testBitOrSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testBitOrSupport(IntType a, IntType b) {
+			return true;
+		}
+
+		default boolean testAndSupport(BoolType a, BoolType b) {
+			return true;
+		}
+
+		default boolean testOrSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testOrSupport(BoolType a, BoolType b) {
+			return true;
+		}
+
+		default boolean testEqSupport(Type a, Type b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testNeqSupport(Type a, Type b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testLtnSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testLtnSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testLtnSupport(StringType a, StringType b) {
+			return true;
+		}
+
+		default boolean testLtnSupport(CharType a, CharType b) {
+			return true;
+		}
+
+		default boolean testLtnSupport(SetType a, SetType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testLeqSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testLeqSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testLeqSupport(StringType a, StringType b) {
+			return true;
+		}
+
+		default boolean testLeqSupport(CharType a, CharType b) {
+			return true;
+		}
+
+		default boolean testLeqSupport(SetType a, SetType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testGtnSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testGtnSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testGtnSupport(StringType a, StringType b) {
+			return true;
+		}
+
+		default boolean testGtnSupport(CharType a, CharType b) {
+			return true;
+		}
+
+		default boolean testGtnSupport(SetType a, SetType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testGeqSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testGeqSupport(NumberType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testGeqSupport(StringType a, StringType b) {
+			return true;
+		}
+
+		default boolean testGeqSupport(CharType a, CharType b) {
+			return true;
+		}
+
+		default boolean testGeqSupport(SetType a, SetType b) {
+			return isAssignable(a, b);
+		}
+
+		default boolean testInSupport(Type a, Type b) {
+			return false;
+		}
+
+		default boolean testInSupport(Type a, ListType b) {
+			return isAssignable(a, b.getElementType());
+		}
+
+		default boolean testInSupport(Type a, SetType b) {
+			return isAssignable(a, b.getElementType());
+		}
+
+		default boolean testInSupport(Type a, MapType b) {
+			return isAssignable(a, b.getKeyType());
+		}
+
+		default boolean testInSupport(CharType a, StringType b) {
+			return true;
+		}
+
+		default SourceUnit sourceUnit(IRNode node) {
+			return sourceUnit(tree().parent(node));
+		}
+
+		default SourceUnit sourceUnit(SourceUnit unit) {
+			return unit;
 		}
 	}
 }

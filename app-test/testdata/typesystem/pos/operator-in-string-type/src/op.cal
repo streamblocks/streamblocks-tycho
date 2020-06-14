@@ -1,0 +1,8 @@
+namespace op:
+    actor StringMembership() ==> bool OUT:
+        String str;
+        do
+            OUT <-- '1' in str;
+        end
+    end
+end

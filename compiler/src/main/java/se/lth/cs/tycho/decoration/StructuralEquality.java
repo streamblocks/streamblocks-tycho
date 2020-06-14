@@ -13,12 +13,15 @@ import se.lth.cs.tycho.ir.expr.ExprIf;
 import se.lth.cs.tycho.ir.expr.ExprIndexer;
 import se.lth.cs.tycho.ir.expr.ExprList;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
+import se.lth.cs.tycho.ir.expr.ExprNth;
+import se.lth.cs.tycho.ir.expr.ExprTuple;
 import se.lth.cs.tycho.ir.expr.ExprTypeAssertion;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprUnaryOp;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
+import se.lth.cs.tycho.ir.type.TupleTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 
 import java.util.Iterator;
@@ -77,6 +80,11 @@ public final class StructuralEquality {
 					&& Objects.equals(a.getField().getName(), b.getField().getName());
 		}
 
+		default boolean eq(ExprNth a, ExprNth b) {
+			return eq(a.getStructure(), b.getStructure())
+					&& Objects.equals(a.getNth().getNumber(), b.getNth().getNumber());
+		}
+
 		default boolean eq(ExprIf a, ExprIf b) {
 			return eq(a.getCondition(), b.getCondition())
 					&& eq(a.getThenExpr(), b.getThenExpr())
@@ -96,6 +104,10 @@ public final class StructuralEquality {
 			return listEquals(a.getElements(), b.getElements(), this::eq);
 		}
 
+		default boolean eq(ExprTuple a, ExprTuple b) {
+			return listEquals(a.getElements(), b.getElements(), this::eq);
+		}
+
 		default boolean eq(TypeExpr a, TypeExpr b) {
 			return false;
 		}
@@ -104,6 +116,10 @@ public final class StructuralEquality {
 			return Objects.equals(a.getName(), b.getName())
 					&& listEquals(a.getTypeParameters(), b.getTypeParameters(), this::eq)
 					&& listEquals(a.getValueParameters(), b.getValueParameters(), this::eq);
+		}
+
+		default boolean eq(TupleTypeExpr a, TupleTypeExpr b) {
+			return listEquals(a.getTypes(), b.getTypes(), this::eq);
 		}
 
 		default boolean eq(TypeParameter a, TypeParameter b) {

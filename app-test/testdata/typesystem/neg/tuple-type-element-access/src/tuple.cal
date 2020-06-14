@@ -1,0 +1,9 @@
+namespace tuple:
+    actor ElementAccess() ==> int OUT:
+        (int, bool) a;
+        do
+            OUT <-- a.#0;
+            OUT <-- a.#3;
+        end
+    end
+end

@@ -1,0 +1,8 @@
+namespace op:
+    actor StringSize() ==> int OUT:
+        String str;
+        do
+            OUT <-- #str;
+        end
+    end
+end

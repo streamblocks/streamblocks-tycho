@@ -2,11 +2,17 @@ package se.lth.cs.tycho.backend.c;
 
 import org.multij.Module;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
+import se.lth.cs.tycho.type.CharType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.MapType;
 import se.lth.cs.tycho.type.RealType;
+import se.lth.cs.tycho.type.SetType;
+import se.lth.cs.tycho.type.StringType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 @Module
@@ -17,6 +23,9 @@ public interface DefaultValues {
 	}
 	default String defaultValue(BoolType t) {
 		return "false";
+	}
+	default String defaultValue(CharType t) {
+		return "0";
 	}
 	default String defaultValue(RealType t) {
 		return "0.0";
@@ -42,6 +51,21 @@ public interface DefaultValues {
 		}
 	}
 	default String defaultValue(AlgebraicType t) {
+		return "NULL";
+	}
+	default String defaultValue(AliasType t) {
+		return defaultValue(t.getConcreteType());
+	}
+	default String defaultValue(TupleType t) {
+		return "NULL";
+	}
+	default String defaultValue(SetType t) {
+		return "{ 0 }";
+	}
+	default String defaultValue(MapType t) {
+		return "{ 0 }";
+	}
+	default String defaultValue(StringType t) {
 		return "NULL";
 	}
 }

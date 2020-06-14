@@ -3,7 +3,9 @@ package se.lth.cs.tycho.ir.entity.nl;
 import se.lth.cs.tycho.ir.AttributableIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.ToolAttribute;
+import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
+import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -18,39 +20,59 @@ import java.util.function.Consumer;
 
 public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr {
 
-	public EntityInstanceExpr(EntityReference entity, List<ValueParameter> parameterAssignments) {
-		this(null, entity, parameterAssignments);
+	public EntityInstanceExpr(EntityReference entity, List<TypeParameter> typeParameters, List<ValueParameter> valueParameters) {
+		this(null, entity, typeParameters, valueParameters);
 	}
 
-	private EntityInstanceExpr(EntityInstanceExpr original, EntityReference entity, List<ValueParameter> parameterAssignments) {
+	private EntityInstanceExpr(EntityInstanceExpr original, EntityReference entity, List<TypeParameter> typeParameters, List<ValueParameter> valueParameters) {
 		super(original);
 		this.entity = entity;
-		this.parameterAssignments = ImmutableList.from(parameterAssignments);
+		this.typeParameters = ImmutableList.from(typeParameters);
+		this.valueParameters = ImmutableList.from(valueParameters);
 	}
 
-	public EntityInstanceExpr copy(EntityReference entity, List<ValueParameter> parameterAssignments) {
+	public EntityInstanceExpr copy(EntityReference entity, List<TypeParameter> typeParameters, List<ValueParameter> valueParameters) {
 		if (Objects.equals(this.entity, entity)
-				&& Lists.sameElements(this.parameterAssignments, parameterAssignments)) {
+				&& Lists.sameElements(this.typeParameters, typeParameters)
+				&& Lists.sameElements(this.valueParameters, valueParameters)) {
 			return this;
 		}
-		return new EntityInstanceExpr(this, entity, parameterAssignments);
+		return new EntityInstanceExpr(this, entity, typeParameters, valueParameters);
 	}
 
 	public EntityReference getEntityName() {
 		return entity;
 	}
 
-	public ImmutableList<ValueParameter> getParameterAssignments() {
-		return parameterAssignments;
+	public ImmutableList<TypeParameter> getTypeParameters() {
+		return typeParameters;
+	}
+
+	public ImmutableList<ValueParameter> getValueParameters() {
+		return valueParameters;
+	}
+
+	public EntityInstanceExpr withEntityName(EntityReference entity) {
+		return copy(entity, getTypeParameters(), getValueParameters());
+	}
+
+	public EntityInstanceExpr withTypeParameters(ImmutableList<TypeParameter> typeParameters) {
+		return copy(getEntityName(), typeParameters, getValueParameters());
+	}
+
+	public EntityInstanceExpr withValueParameters(ImmutableList<ValueParameter> valueParameters) {
+		return copy(getEntityName(), getTypeParameters(), valueParameters);
 	}
 
 	private final EntityReference entity;
-	private final ImmutableList<ValueParameter> parameterAssignments;
+	private final ImmutableList<TypeParameter> typeParameters;
+	private final ImmutableList<ValueParameter> valueParameters;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(entity);
-		parameterAssignments.forEach(action);
+		typeParameters.forEach(action);
+		valueParameters.forEach(action);
 		getAttributes().forEach(action);
 	}
 
@@ -63,7 +85,8 @@ public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr
 	@SuppressWarnings("unchecked")
 	public EntityInstanceExpr transformChildren(Transformation transformation) {
 		return copy(transformation.applyChecked(EntityReference.class, entity),
-				(ImmutableList) parameterAssignments.map(transformation)
+				(ImmutableList) typeParameters.map(transformation),
+				(ImmutableList) valueParameters.map(transformation)
 		).withAttributes((List) getAttributes().map(transformation));
 	}
 

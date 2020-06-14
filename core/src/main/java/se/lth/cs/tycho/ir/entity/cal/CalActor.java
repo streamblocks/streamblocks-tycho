@@ -43,6 +43,7 @@ import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
@@ -56,7 +57,7 @@ import java.util.function.Consumer;
 
 public class CalActor extends Entity {
 
-	public CalActor(List<Annotation> annotations, List<TypeDecl> typePars,
+	public CalActor(List<Annotation> annotations, List<ParameterTypeDecl> typePars,
 			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 			List<Action> initializers, List<Action> actions, List<ActionCase> actionCases, ScheduleFSM scheduleFSM,
@@ -66,7 +67,7 @@ public class CalActor extends Entity {
 				actions, actionCases, scheduleFSM, process, priorities, invariants);
 	}
 
-	private CalActor(CalActor original, List<Annotation> annotations, List<TypeDecl> typePars,
+	private CalActor(CalActor original, List<Annotation> annotations, List<ParameterTypeDecl> typePars,
 			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 			List<Action> initializers, List<Action> actions, List<ActionCase> actionCases, ScheduleFSM scheduleFSM,
@@ -85,7 +86,7 @@ public class CalActor extends Entity {
 		this.invariants = ImmutableList.from(invariants);
 	}
 
-	public CalActor copy(List<Annotation> annotations, List<TypeDecl> typePars,
+	public CalActor copy(List<Annotation> annotations, List<ParameterTypeDecl> typePars,
 			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 			List<Action> initializers, List<Action> actions, List<ActionCase> actionCases, ScheduleFSM scheduleFSM,
@@ -193,6 +194,14 @@ public class CalActor extends Entity {
 
 	public CalActor withVarDecls(List<LocalVarDecl> varDecls) {
 		if (Lists.sameElements(this.varDecls, varDecls)) {
+			return this;
+		} else {
+			return new CalActor(this, annotations, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, priorities, invariants);
+		}
+	}
+
+	public CalActor withTypeParameters(ImmutableList<ParameterTypeDecl> typeParameters) {
+		if (Lists.sameElements(this.typeParameters, typeParameters)) {
 			return this;
 		} else {
 			return new CalActor(this, annotations, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, priorities, invariants);

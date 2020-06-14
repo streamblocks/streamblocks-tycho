@@ -11,9 +11,11 @@ import se.lth.cs.tycho.ir.entity.am.*;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.ArrayList;
@@ -174,9 +176,9 @@ public interface Structure {
 		for (Transition transition : actorMachine.getTransitions()) {
 			emitter().emit("static void %s_transition_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 			transition.getBody().forEach(code()::execute);
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -190,11 +192,11 @@ public interface Structure {
 		for (Condition condition : actorMachine.getConditions()) {
 			emitter().emit("static _Bool %s_condition_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
-			backend().memoryStack().enterScope();
+			backend().trackable().enter();
 			String result = evaluateCondition(condition);
 			String tmp = backend().variables().generateTemp();
 			emitter().emit("%s = %s;", backend().code().declaration(BoolType.INSTANCE, tmp), result);
-			backend().memoryStack().exitScope();
+			backend().trackable().exit();
 			emitter().emit("return %s;", tmp);
 			emitter().decreaseIndentation();
 			emitter().emit("}");
@@ -234,9 +236,9 @@ public interface Structure {
 				} else if (var.getValue() != null) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
-					backend().memoryStack().enterScope();
+					backend().trackable().enter();
 					code().copy(types().declaredType(var), "self->" + backend().variables().declarationName(var), types().type(var.getValue()), code().evaluate(var.getValue()));
-					backend().memoryStack().exitScope();
+					backend().trackable().exit();
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				} else {
@@ -267,7 +269,19 @@ public interface Structure {
 				if (type instanceof AlgebraicType) {
 					emitter().emit("{");
 					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s);", backend().algebraicTypes().destructor((AlgebraicType) type), backend().variables().declarationName(var));
+					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor((AlgebraicType) type), backend().variables().declarationName(var));
+					emitter().decreaseIndentation();
+					emitter().emit("}");
+				} else if (backend().alias().isAlgebraicType(type)) {
+					emitter().emit("{");
+					emitter().increaseIndentation();
+					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(var));
+					emitter().decreaseIndentation();
+					emitter().emit("}");
+				} else if (type instanceof TupleType) {
+					emitter().emit("{");
+					emitter().increaseIndentation();
+					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor(backend().tuples().utils().convert().apply((TupleType) type)), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 				} else if (code().isAlgebraicTypeList(type)) {
@@ -276,7 +290,7 @@ public interface Structure {
 					ListType listType = (ListType) type;
 					emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
 					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s.data[i]);", backend().algebraicTypes().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(var));
+					emitter().emit("%s(self->%s.data[i]);", backend().algebraic().utils().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(var));
 					emitter().decreaseIndentation();
 					emitter().emit("}");
 					emitter().decreaseIndentation();

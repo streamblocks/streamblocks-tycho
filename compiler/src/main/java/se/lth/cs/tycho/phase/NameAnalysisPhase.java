@@ -16,6 +16,8 @@ import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
+import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
+import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
@@ -114,6 +116,18 @@ public class NameAnalysisPhase implements Phase {
 		default void checkNames(EntityReferenceLocal reference) {
 			if (entityDeclarations().declaration(reference) == null) {
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Entity " + reference.getName() + " is not declared.", sourceUnit(reference), reference));
+			}
+		}
+
+		default void checkNames(ExprTypeConstruction construction) {
+			if (!typeScopes().construction(construction).isPresent()) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Constructor " + construction.getConstructor() + " is not declared.", sourceUnit(construction), construction));
+			}
+		}
+
+		default void checkNames(PatternDeconstruction deconstruction) {
+			if (!typeScopes().construction(deconstruction).isPresent()) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Deconstructor " + deconstruction.getDeconstructor() + " is not declared.", sourceUnit(deconstruction), deconstruction));
 			}
 		}
 

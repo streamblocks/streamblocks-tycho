@@ -22,6 +22,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternExpression;
 import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
+import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
 import se.lth.cs.tycho.ir.network.Connection;
@@ -34,7 +35,9 @@ import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
 import se.lth.cs.tycho.ir.type.TupleTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
+import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.phase.CaseAnalysisPhase;
 import se.lth.cs.tycho.phase.TreeShadow;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.type.*;
@@ -62,7 +65,7 @@ public interface Types {
 	Type type(Expression expr);
 	Type type(TypeExpr expr);
 	Type type(Pattern pattern);
-	Type lvalueType(LValue lvalue);
+	Type type(LValue lvalue);
 	Type declaredPortType(PortDecl port);
 	Type portType(Port port);
 	Type portTypeRepeated(Port port, Expression repeat);
@@ -152,6 +155,14 @@ public interface Types {
 			return infer(pattern);
 		}
 
+		default Type type(CaseAnalysisPhase.PatternUtils.PatternActionCase pattern) {
+			return new CaseAnalysisPhase.TypeUtils.ActionCaseType(pattern.getPatterns().map(p -> (CaseAnalysisPhase.TypeUtils.ActionCaseInputType) type(p)));
+		}
+
+		default Type type(CaseAnalysisPhase.PatternUtils.PatternPort pattern) {
+			return new CaseAnalysisPhase.TypeUtils.ActionCaseInputType(pattern.getPort().getName(), type(pattern.getPattern()));
+		}
+
 		default boolean deducible(PatternList pattern) {
 			ImmutableList<Pattern> patterns = pattern.getPatterns();
 			boolean isTypeKnowable = patterns.stream().anyMatch(this::typable);
@@ -193,6 +204,64 @@ public interface Types {
 				}
 			}
 			return new ListType(type, OptionalInt.of(size));
+		}
+
+		default Type type(PatternTuple pattern) {
+			if (deducible(pattern)) {
+				return deduce(pattern);
+			}
+			return infer(pattern);
+		}
+
+		default Type deduce(PatternTuple pattern) {
+			return new TupleType(pattern.getPatterns().map(this::type));
+		}
+
+		default boolean deducible(PatternTuple pattern) {
+			return pattern.getPatterns().stream().allMatch(this::typable);
+		}
+
+		default Type infer(PatternTuple pattern) {
+			List<Type> types = new ArrayList<>();
+			for (int i = 0; i < pattern.getPatterns().size(); ++i) {
+				Pattern p = pattern.getPatterns().get(i);
+				if (typable(p)) {
+					types.add(type(p));
+				} else {
+					IRNode parent = tree().parent(pattern);
+					if (parent instanceof Pattern) {
+						if (parent instanceof PatternDeconstruction) {
+							final PatternDeconstruction deconstruction = (PatternDeconstruction) parent;
+							AlgebraicType algebraicType = (AlgebraicType) type((Pattern) parent);
+							if (algebraicType instanceof ProductType) {
+								ProductType productType = (ProductType) algebraicType;
+								types.add(productType.getFields().get(pattern.getPatterns().indexOf(p)).getType());
+							} else {
+								SumType sumType = (SumType) algebraicType;
+								types.add(sumType.getVariants().stream()
+										.filter(variant -> Objects.equals(variant.getName(), deconstruction.getDeconstructor()))
+										.map(variant -> variant.getFields().get(pattern.getPatterns().indexOf(p)).getType())
+										.findAny()
+										.get());
+							}
+						} else if (parent instanceof PatternList) {
+							ListType listType = (ListType) type((Pattern) parent);
+							types.add(listType.getElementType());
+						} else {
+							TupleType tupleType = (TupleType) type((Pattern) parent);
+							types.add(tupleType.getTypes().get(pattern.getPatterns().indexOf(p)));
+						}
+					} else {
+						parent = tree().parent(parent);
+						if (parent instanceof ExprCase) {
+							return type(((ExprCase) parent).getScrutinee());
+						} else {
+							return type(((StmtCase) parent).getScrutinee());
+						}
+					}
+				}
+			}
+			return new TupleType(types);
 		}
 
 		@Binding(BindingKind.LAZY)
@@ -239,18 +308,22 @@ public interface Types {
 				ImmutableList<TypeDecl> declarations = typeScopes().declarations(getSourceUnit(decl).getTree());
 
 				// First pass
-				declarations.forEach(declaration -> {
-					AlgebraicType algebraicType = null;
+				declarations.stream().filter(AlgebraicTypeDecl.class::isInstance).forEach(declaration -> {
+					Type type = null;
 					GlobalTypeDecl globalTypeDecl = (GlobalTypeDecl) declaration;
-					AlgebraicTypeDecl algebraicTypeDecl = globalTypeDecl.getDeclaration();
-					if (algebraicTypeDecl instanceof ProductTypeDecl) {
-						ProductTypeDecl productTypeDecl = (ProductTypeDecl) algebraicTypeDecl;
-						algebraicType = new ProductType(productTypeDecl.getName(), new ArrayList<>(productTypeDecl.getFields().size()));
-					} else if (algebraicTypeDecl instanceof SumTypeDecl) {
-						SumTypeDecl sumTypeDecl = (SumTypeDecl) algebraicTypeDecl;
-						algebraicType = new SumType(sumTypeDecl.getName(), sumTypeDecl.getVariants().stream().map(variant -> new SumType.VariantType(variant.getName(), new ArrayList<>(variant.getFields().size()))).collect(Collectors.toList()));
+					if (globalTypeDecl instanceof ProductTypeDecl) {
+						ProductTypeDecl productTypeDecl = (ProductTypeDecl) globalTypeDecl;
+						type = new ProductType(productTypeDecl.getName(), new ArrayList<>(productTypeDecl.getFields().size()));
+					} else if (globalTypeDecl instanceof SumTypeDecl) {
+						SumTypeDecl sumTypeDecl = (SumTypeDecl) globalTypeDecl;
+						type = new SumType(sumTypeDecl.getName(), sumTypeDecl.getVariants().stream().map(variant -> new SumType.VariantType(variant.getName(), new ArrayList<>(variant.getFields().size()))).collect(Collectors.toList()));
 					}
-					declaredGlobalTypeMap().put(globalTypeDecl, algebraicType);
+					declaredGlobalTypeMap().put(globalTypeDecl, type);
+				});
+				declarations.stream().filter(AliasTypeDecl.class::isInstance).forEach(declaration -> {
+					AliasTypeDecl aliasTypeDecl = (AliasTypeDecl) declaration;
+					Type type = new AliasType(aliasTypeDecl.getName(), convert(aliasTypeDecl.getType()));
+					declaredGlobalTypeMap().put(aliasTypeDecl, type);
 				});
 
 				// Second pass
@@ -258,13 +331,13 @@ public interface Types {
 					GlobalTypeDecl globalTypeDecl = (GlobalTypeDecl) declaration;
 					Type type = declaredGlobalTypeMap().get(globalTypeDecl);
 					if (type instanceof ProductType) {
-						ProductTypeDecl productTypeDecl = (ProductTypeDecl) globalTypeDecl.getDeclaration();
+						ProductTypeDecl productTypeDecl = (ProductTypeDecl) globalTypeDecl;
 						ProductType productType = (ProductType) type;
 						for (int i = 0; i < productTypeDecl.getFields().size(); ++i) {
 							productType.getFields().add(new FieldType(productTypeDecl.getFields().get(i).getName(), convert(productTypeDecl.getFields().get(i).getType())));
 						}
 					} else if (type instanceof SumType) {
-						SumTypeDecl sumTypeDecl = (SumTypeDecl) globalTypeDecl.getDeclaration();
+						SumTypeDecl sumTypeDecl = (SumTypeDecl) globalTypeDecl;
 						SumType sumType = (SumType) type;
 						for (int i = 0; i < sumTypeDecl.getVariants().size(); ++i) {
 							SumTypeDecl.VariantDecl variantDecl = sumTypeDecl.getVariants().get(i);
@@ -332,23 +405,26 @@ public interface Types {
 					PatternDeconstruction deconstruction = (PatternDeconstruction) node;
 					return typeScopes().construction(deconstruction).map(decl -> {
 						GlobalTypeDecl type = (GlobalTypeDecl) decl;
-						if (type.getDeclaration() instanceof ProductTypeDecl) {
-							ProductTypeDecl product = (ProductTypeDecl) type.getDeclaration();
+						if (type instanceof ProductTypeDecl) {
+							ProductTypeDecl product = (ProductTypeDecl) type;
 							int index = deconstruction.getPatterns().indexOf(p);
 							return convert(product.getFields().get(index).getType());
 						} else {
-							SumTypeDecl sum = (SumTypeDecl) type.getDeclaration();
-							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getName())).findAny().get();
+							SumTypeDecl sum = (SumTypeDecl) type;
+							SumTypeDecl.VariantDecl variant = sum.getVariants().stream().filter(v -> Objects.equals(v.getName(), deconstruction.getDeconstructor())).findAny().get();
 							int index = deconstruction.getPatterns().indexOf(p);
 							return convert(variant.getFields().get(index).getType());
 						}
-					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getName() + "."));
+					}).orElseThrow(() -> new RuntimeException("Could not find corresponding type for deconstructor " + deconstruction.getDeconstructor() + "."));
 				} else if (node instanceof PatternList) {
 					return ((ListType) type((PatternList) node)).getElementType();
+				} else if (node instanceof PatternTuple) {
+					PatternTuple tuple = (PatternTuple) node;
+					return ((TupleType) type(tuple)).getTypes().get(tuple.getPatterns().indexOf(p));
 				} else if (node instanceof ExprCase) {
-					return type(((ExprCase) node).getExpression());
+					return type(((ExprCase) node).getScrutinee());
 				} else if (node instanceof StmtCase) {
-					return type(((StmtCase) node).getExpression());
+					return type(((StmtCase) node).getScrutinee());
 				} else if (node instanceof Match) {
 					return computeDeclaredType(((Match) node).getDeclaration());
 				}
@@ -373,7 +449,7 @@ public interface Types {
 			return new ConcurrentHashMap<>();
 		}
 
-		default Type lvalueType(LValue lvalue) {
+		default Type type(LValue lvalue) {
 			return lvalueTypeMap().computeIfAbsent(lvalue, this::computeLValueType);
 		}
 
@@ -430,6 +506,10 @@ public interface Types {
 			Type structureType = computeLValueType(indexer.getStructure());
 			if (structureType instanceof ListType) {
 				return ((ListType) structureType).getElementType();
+			} else if (structureType instanceof MapType) {
+				return ((MapType) structureType).getValueType();
+			} else if (structureType instanceof StringType) {
+				return CharType.INSTANCE;
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -445,6 +525,23 @@ public interface Types {
 						.map(FieldType::getType)
 						.findAny()
 						.orElse(BottomType.INSTANCE);
+			} else if (structureType instanceof AliasType && ((AliasType) structureType).getType() instanceof ProductType) {
+				ProductType productType = (ProductType) ((AliasType) structureType).getType();
+				return productType.getFields()
+						.stream()
+						.filter(field -> Objects.equals(field.getName(), fieldLValue.getField().getName()))
+						.map(FieldType::getType)
+						.findAny()
+						.orElse(BottomType.INSTANCE);
+			} else {
+				return BottomType.INSTANCE;
+			}
+		}
+
+		default Type computeLValueType(LValueNth nthLValue) {
+			Type structureType = computeLValueType(nthLValue.getStructure());
+			if (structureType instanceof TupleType && nthLValue.getNth().getNumber() > 0 && nthLValue.getNth().getNumber() <= ((TupleType) structureType).getTypes().size()) {
+				return ((TupleType) structureType).getTypes().get(nthLValue.getNth().getNumber() - 1);
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -479,6 +576,24 @@ public interface Types {
 							}
 						}
 						return new ListType(elements.get(), OptionalInt.empty());
+					}
+					return BottomType.INSTANCE;
+				}
+				case "Set": {
+					Optional<TypeExpr> e = findParameter(t.getTypeParameters(), "type");
+					Optional<Type> elements = e.map(this::convert);
+					if (elements.isPresent()) {
+						return new SetType(elements.get());
+					}
+					return BottomType.INSTANCE;
+				}
+				case "Map": {
+					Optional<TypeExpr> k = findParameter(t.getTypeParameters(), "key");
+					Optional<TypeExpr> v = findParameter(t.getTypeParameters(), "value");
+					Optional<Type> keys = k.map(this::convert);
+					Optional<Type> values = v.map(this::convert);
+					if (keys.isPresent() && values.isPresent()) {
+						return new MapType(keys.get(), values.get());
 					}
 					return BottomType.INSTANCE;
 				}
@@ -530,6 +645,9 @@ public interface Types {
 				}
 				case "bool": {
 					return BoolType.INSTANCE;
+				}
+				case "char": {
+					return CharType.INSTANCE;
 				}
 				case "unit": {
 					return UnitType.INSTANCE;
@@ -594,6 +712,12 @@ public interface Types {
 				case Real: {
 					return RealType.f32;
 				}
+				case Char: {
+					return CharType.INSTANCE;
+				}
+				case String: {
+					return StringType.INSTANCE;
+				}
 				default: {
 					return BottomType.INSTANCE;
 				}
@@ -616,6 +740,10 @@ public interface Types {
 
 		default Type withCollectionSize(ListType t, OptionalInt size) {
 			return new ListType(t.getElementType(), size);
+		}
+
+		default Type withCollectionSize(SetType t, OptionalInt size) {
+			return t;
 		}
 
 		default Type computeType(ExprComprehension comprehension) {
@@ -645,6 +773,25 @@ public interface Types {
 			return new ListType(elementType, OptionalInt.of(list.getElements().size()));
 		}
 
+		default Type computeType(ExprSet set) {
+			Type elementType = set.getElements().stream()
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+			return new SetType(elementType);
+		}
+
+		default Type computeType(ExprMap map) {
+			Type keyType = map.getMappings().stream()
+					.map(ImmutableEntry::getKey)
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+			Type valueType = map.getMappings().stream()
+					.map(ImmutableEntry::getValue)
+					.map(this::type)
+					.reduce(BottomType.INSTANCE, this::leastUpperBound);
+			return new MapType(keyType, valueType);
+		}
+
 		default Type computeType(ExprRef ref) {
 			return new RefType(declaredType(variables().declaration(ref.getVariable())));
 		}
@@ -668,7 +815,17 @@ public interface Types {
 				case "-":
 				case "%":
 				case "mod":
-				case "+":
+				case "+": {
+					if ("+".equals(binary.getOperations().get(0))) {
+						Type lhs = type(binary.getOperands().get(0));
+						Type rhs = type(binary.getOperands().get(1));
+						if (lhs instanceof MapType && rhs instanceof MapType) {
+							Type keyType = leastUpperBound(((MapType) lhs).getKeyType(), ((MapType) rhs).getKeyType());
+							Type valueType = leastUpperBound(((MapType) lhs).getValueType(), ((MapType) rhs).getValueType());
+							return new MapType(keyType, new TupleType(ImmutableList.of(valueType, valueType)));
+						}
+					}
+				}
 				case "<<":
 				case ">>":
 				case "*":
@@ -684,6 +841,7 @@ public interface Types {
 				case "==":
 				case "=":
 				case "!=":
+				case "in":
 					return BoolType.INSTANCE;
 				case "..":
 					Type type = leastUpperBound(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
@@ -722,6 +880,25 @@ public interface Types {
 						return BottomType.INSTANCE;
 					}
 				}
+				case "#":
+					if (t instanceof CollectionType || t instanceof StringType) {
+						return new IntType(OptionalInt.empty(), true);
+					} else {
+						return BottomType.INSTANCE;
+					}
+				case "dom":
+					if (t instanceof MapType) {
+						return new SetType(((MapType) t).getKeyType());
+					} else {
+						return BottomType.INSTANCE;
+					}
+				case "rng":
+					if (t instanceof MapType) {
+						// FIXME should be a list type instead once they are no longer fixed-length
+						return new SetType(((MapType) t).getValueType());
+					} else {
+						return BottomType.INSTANCE;
+					}
 				default:
 					return BottomType.INSTANCE;
 			}
@@ -748,6 +925,10 @@ public interface Types {
 			Type structureType = type(indexer.getStructure());
 			if (structureType instanceof ListType) {
 				return ((ListType) structureType).getElementType();
+			} else if (structureType instanceof MapType) {
+				return ((MapType) structureType).getValueType();
+			} else if (structureType instanceof StringType) {
+				return CharType.INSTANCE;
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -782,6 +963,14 @@ public interface Types {
 						.map(FieldType::getType)
 						.findAny()
 						.orElse(BottomType.INSTANCE);
+			} else if (structureType instanceof AliasType && ((AliasType) structureType).getType() instanceof ProductType) {
+				ProductType productType = (ProductType) ((AliasType) structureType).getType();
+				return productType.getFields()
+						.stream()
+						.filter(field -> Objects.equals(field.getName(), fieldExpr.getField().getName()))
+						.map(FieldType::getType)
+						.findAny()
+						.orElse(BottomType.INSTANCE);
 			} else {
 				return BottomType.INSTANCE;
 			}
@@ -798,6 +987,26 @@ public interface Types {
 					.reduce(BottomType.INSTANCE, this::leastUpperBound);
 		}
 
+		default Type computeType(ExprTuple tupleExpr) {
+			return new TupleType(tupleExpr.getElements().map(this::computeType));
+		}
+
+		default Type computeType(ExprNth nthExpr) {
+			Type structureType = type(nthExpr.getStructure());
+			if (structureType instanceof TupleType && nthExpr.getNth().getNumber() > 0 && nthExpr.getNth().getNumber() <= ((TupleType) structureType).getTypes().size()) {
+				return ((TupleType) structureType).getTypes().get(nthExpr.getNth().getNumber() - 1);
+			} else {
+				return BottomType.INSTANCE;
+			}
+		}
+
+		default Type computeType(CaseAnalysisPhase.ExpressionUtils.ExprActionCase expr) {
+			return new CaseAnalysisPhase.TypeUtils.ActionCaseType(expr.getExpressions().map(e -> (CaseAnalysisPhase.TypeUtils.ActionCaseInputType) type(e)));
+		}
+
+		default Type computeType(CaseAnalysisPhase.ExpressionUtils.ExprActionInputCase expr) {
+			return new CaseAnalysisPhase.TypeUtils.ActionCaseInputType(expr.getName(), type(expr.getExpression()));
+		}
 
 		default Type leastUpperBound(Type a, Type b) {
 			return TopType.INSTANCE;
@@ -811,10 +1020,40 @@ public interface Types {
 			return BoolType.INSTANCE;
 		}
 
+		default Type leastUpperBound(CharType a, CharType b) {
+			return CharType.INSTANCE;
+		}
+
+		default Type leastUpperBound(StringType a, StringType b) {
+			return StringType.INSTANCE;
+		}
+
 		default Type leastUpperBound(ListType a, ListType b) {
 			Type elementLub = leastUpperBound(a.getElementType(), b.getElementType());
 			OptionalInt size = a.getSize().equals(b.getSize()) ? a.getSize() : OptionalInt.empty();
 			return new ListType(elementLub, size);
+		}
+
+		default Type leastUpperBound(SetType a, SetType b) {
+			Type elementLub = leastUpperBound(a.getElementType(), b.getElementType());
+			return new SetType(elementLub);
+		}
+
+		default Type leastUpperBound(MapType a, MapType b) {
+			Type keyLub = leastUpperBound(a.getKeyType(), b.getKeyType());
+			Type valueLub = leastUpperBound(a.getValueType(), b.getValueType());
+			return new MapType(keyLub, valueLub);
+		}
+
+		default Type leastUpperBound(TupleType a, TupleType b) {
+			if (a.getTypes().size() != b.getTypes().size()) {
+				return TopType.INSTANCE;
+			}
+			List<Type> types = new ArrayList<>();
+			for (int i = 0; i < a.getTypes().size(); ++i) {
+				types.add(leastUpperBound(a.getTypes().get(i), b.getTypes().get(i)));
+			}
+			return new TupleType(types);
 		}
 
 		default Type leastUpperBound(RefType a, RefType b) {
@@ -864,6 +1103,18 @@ public interface Types {
 			}
 		}
 
+		default Type leastUpperBound(AliasType a, AliasType b) {
+			return leastUpperBound(a.getType(), b.getType());
+		}
+
+		default Type leastUpperBound(AliasType a, Type b) {
+			return leastUpperBound(a.getType(), b);
+		}
+
+		default Type leastUpperBound(Type a, AliasType b) {
+			return leastUpperBound(a, b.getType());
+		}
+
 		default int positiveBits(IntType t) {
 			if (t.isSigned()) {
 				return t.getSize().getAsInt() - 1;
@@ -887,6 +1138,14 @@ public interface Types {
 			return BoolType.INSTANCE;
 		}
 
+		default Type greatestLowerBound(CharType a, CharType b) {
+			return CharType.INSTANCE;
+		}
+
+		default Type greatestLowerBound(StringType a, StringType b) {
+			return StringType.INSTANCE;
+		}
+
 		default Type greatestLowerBound(IntType a, IntType b) {
 			if (a.getSize().isPresent() || b.getSize().isPresent()) {
 				int size = Math.min(a.getSize().orElse(Integer.MAX_VALUE), b.getSize().orElse(Integer.MAX_VALUE));
@@ -899,6 +1158,26 @@ public interface Types {
 		default Type greatestLowerBound(ListType a, ListType b) {
 			if (a.getSize().equals(b.getSize())) {
 				return new ListType(greatestLowerBound(a.getElementType(), b.getElementType()), a.getSize());
+			} else {
+				return BottomType.INSTANCE;
+			}
+		}
+
+		default Type greatestLowerBound(SetType a, SetType b) {
+			return new SetType(greatestLowerBound(a.getElementType(), b.getElementType()));
+		}
+
+		default Type greatestLowerBound(MapType a, MapType b) {
+			return new MapType(greatestLowerBound(a.getKeyType(), b.getKeyType()), greatestLowerBound(a.getValueType(), b.getValueType()));
+		}
+
+		default Type greatestLowerBound(TupleType a, TupleType b) {
+			if (a.getTypes().size() == b.getTypes().size()) {
+				List<Type> types = new ArrayList<>();
+				for (int i = 0; i < a.getTypes().size(); ++i) {
+					types.add(greatestLowerBound(a.getTypes().get(i), b.getTypes().get(i)));
+				}
+				return new TupleType(types);
 			} else {
 				return BottomType.INSTANCE;
 			}

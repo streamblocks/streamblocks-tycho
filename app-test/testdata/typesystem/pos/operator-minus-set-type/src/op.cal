@@ -1,0 +1,9 @@
+namespace op:
+    actor SetDifference() ==>:
+        Set(type:int) s1;
+        Set(type:int) s2;
+        do
+            s1 := s1 - s2;
+        end
+    end
+end

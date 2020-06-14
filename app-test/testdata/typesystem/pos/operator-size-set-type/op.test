@@ -1,0 +1,5 @@
+{
+    "description": "Test size operator on set type",
+    "source-paths": ["src"],
+    "entity": "op.SetSize"
+}

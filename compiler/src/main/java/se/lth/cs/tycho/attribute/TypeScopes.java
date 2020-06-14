@@ -9,6 +9,7 @@ import se.lth.cs.tycho.compiler.GlobalDeclarations;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
+import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
 import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
@@ -18,7 +19,6 @@ import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
-import se.lth.cs.tycho.ir.expr.pattern.PatternBinding;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -128,19 +128,20 @@ public interface TypeScopes {
 		}
 
 		default Optional<TypeDecl> construction(PatternDeconstruction deconstruction) {
-			return constructionOf(deconstruction, deconstruction.getName());
+			return constructionOf(deconstruction, deconstruction.getDeconstructor());
 		}
 
 		default Optional<TypeDecl> constructionOf(IRNode node, String name) {
 			return typeDeclarations()
 					.declarations(sourceUnit(node).getTree())
 					.stream()
-					.map(GlobalTypeDecl.class::cast)
+					.filter(AlgebraicTypeDecl.class::isInstance)
+					.map(AlgebraicTypeDecl.class::cast)
 					.filter(decl -> {
-						if (decl.getDeclaration() instanceof ProductTypeDecl) {
-							return Objects.equals(name, decl.getDeclaration().getName());
-						} else if (decl.getDeclaration() instanceof SumTypeDecl) {
-							return ((SumTypeDecl) decl.getDeclaration()).getVariants().stream().anyMatch(variant -> Objects.equals(name, variant.getName()));
+						if (decl instanceof ProductTypeDecl) {
+							return Objects.equals(name, decl.getName());
+						} else if (decl instanceof SumTypeDecl) {
+							return ((SumTypeDecl) decl).getVariants().stream().anyMatch(variant -> Objects.equals(name, variant.getName()));
 						} else {
 							return false;
 						}

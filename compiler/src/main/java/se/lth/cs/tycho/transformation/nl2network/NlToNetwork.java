@@ -120,12 +120,12 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     @Override
     public EntityExpr visitEntityInstanceExpr(EntityInstanceExpr e, Environment environment) {
         ImmutableList.Builder<ValueParameter> builder = new ImmutableList.Builder<>();
-        for (ValueParameter valueParameter : e.getParameterAssignments()) {
+        for (ValueParameter valueParameter : e.getValueParameters()) {
             Expression expr = valueParameter.getValue();
             RefView value = interpreter.evaluate(expr, environment);
             builder.add(new ValueParameter(valueParameter.getName(), new ExprValue(new ExprLiteral(ExprLiteral.Kind.Integer, value.toString()))));
         }
-        return e.copy(e.getEntityName(), builder.build());
+        return e.copy(e.getEntityName(), ImmutableList.empty(), builder.build());
     }
 
     @Override
@@ -251,7 +251,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             Instance instance = new Instance(
                     s,
                     entityName,
-                    e.getParameterAssignments().map(ValueParameter::deepClone),
+                    e.getValueParameters().map(ValueParameter::deepClone),
                     ImmutableList.empty())
                     .withAttributes(e.getAttributes().map(ToolAttribute::deepClone));
             instances.put(instance.getInstanceName(), instance);

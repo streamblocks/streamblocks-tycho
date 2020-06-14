@@ -125,8 +125,10 @@ TOKEN :
 {
 	< ACTION: "action" >
 |	< ACTOR: "actor" >
+|	< ALIAS: "alias" >
 |	< ALL: "all" >
 |	< AND: "and" >
+|	< AS: "as" >
 //|	< ANY: "any" >
 //|	< AT: "at" >
 //|	< AT_STAR: "at*" >
@@ -228,6 +230,8 @@ TOKEN: {
 |	< SINGLE_ARROW_RIGHT: "->" >
 |	< VERTICAL_BAR: "|" >
 |	< GREATER_THAN: ">" >
+|	< SHARP: "#" >
+|	< DOT_SHARP: ".#" >
 |	< STAR: "*" >
 |	< DOT_STAR: ".*" >
 |	< CINNAMON_BUN: "@" >
@@ -335,7 +339,8 @@ Annotation Annotation() :
 {
 	"@" id = <ID>
 	(
-		"("
+		LOOKAHEAD(3)
+    "("
 		(
 			parameter = AnnotationParameter() {parameters.add(parameter);}
 			("," parameter = AnnotationParameter() {parameters.add(parameter);})*
@@ -683,7 +688,9 @@ GlobalVarDecl GlobalVarDecl() :
         ProcedureVarDecl(varDecl)
     )
     {
-		return VarDecl.global(ImmutableList.from(varDecl.annotations), varDecl.availability, varDecl.type, varDecl.name, varDecl.value).asExternal(varDecl.external);
+		GlobalVarDecl globalVarDecl = VarDecl.global(ImmutableList.from(varDecl.annotations), varDecl.availability, varDecl.type, varDecl.name, varDecl.value).asExternal(varDecl.external);
+		globalVarDecl.setPosition(varDecl.fromLine, varDecl.fromCol, varDecl.toLine, varDecl.toCol);
+		return globalVarDecl;
     }
 }
 
@@ -752,7 +759,7 @@ Import.Kind ImportKind() :
 GlobalEntityDecl NetworkDecl() :
 {
 	Token id;
-	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
+	ImmutableList<ParameterTypeDecl> typePars = ImmutableList.empty();
 	ImmutableList<ParameterVarDecl> valuePars;
 	ImmutableList<PortDecl> inputPorts;
 	ImmutableList<PortDecl> outputPorts;
@@ -870,6 +877,7 @@ EntityInstanceExpr InstanceExprEntity() :
     EntityInstanceExpr expr;
     Token entityName;
     Token parameterName;
+    Token last;
     Expression parameter;
     ImmutableList.Builder<ValueParameter> valueParameters;
     ImmutableList.Builder<TypeParameter> typeParameters;
@@ -884,10 +892,10 @@ EntityInstanceExpr InstanceExprEntity() :
         entityName = <ID>
         "("
         ParameterAssignments(typeParameters, valueParameters)
-        ")"
+        last = ")"
         toolAttrs = OptToolAttributes()
     {
-        return new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), valueParameters.build()).withAttributes(toolAttrs);
+        return setPosition(new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), typeParameters.build(), valueParameters.build()).withAttributes(toolAttrs), entityName, last);
     }
 }
 
@@ -1204,8 +1212,8 @@ GlobalEntityDecl ActorDecl() :
 	boolean external = false;
 	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
 	Annotation annotation;
-	ImmutableList<TypeDecl> typePars = ImmutableList.empty();
-	ImmutableList<ParameterVarDecl> valuePars;
+	ImmutableList.Builder<ParameterTypeDecl> typePars = ImmutableList.builder();
+	ImmutableList.Builder<ParameterVarDecl> valuePars = ImmutableList.builder();
 	ImmutableList<TypeDecl> typeDecls = ImmutableList.empty();
 	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
 	LocalVarDecl varDecl;
@@ -1233,7 +1241,7 @@ GlobalEntityDecl ActorDecl() :
 	}
 	id = <ID> { name = id.image; }
 	"("
-	valuePars = FormalValuePars()
+	FormalParameters(typePars, valuePars)
 	")"
 	inputPorts = PortDecls()
 	"==>"
@@ -1283,7 +1291,7 @@ GlobalEntityDecl ActorDecl() :
 		";"
 	)
 	{
-		CalActor a = new CalActor(annotations.build(), typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants);
+		CalActor a = new CalActor(annotations.build(), typePars.build(), valuePars.build(), typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants);
 		a.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
@@ -1407,11 +1415,11 @@ ActionCase ActionCase() :
   ( annotation = Annotation() {annotations.add(annotation);} )*
   ( tag = QID() ":" )?
   "action"
-  "case"
   {
     beginLine = token.beginLine;
     beginColumn = token.beginColumn;
   }
+  "case"
   action = ActionLambda(annotations.build()) { actions.add(action); }
   (
     "else"
@@ -1760,21 +1768,38 @@ Expression PrimaryExpression() :
 	ImmutableList<Expression> args;
 	Expression index;
 	Field field;
+	Nth nth;
+	Token decimal;
 	Token lastToken;
-    ImmutableList.Builder<TypeParameter> typeParameters;
-    ImmutableList.Builder<ValueParameter> valueParameters;
+	ImmutableList.Builder<TypeParameter> typeParameters = ImmutableList.builder();
+	ImmutableList.Builder<ValueParameter> valueParameters = ImmutableList.builder();
 }
 {
 	expr = SingleExpression()
 	{ exprIsVar = expr instanceof ExprVariable; }
 	(
+		(
+			LOOKAHEAD("(" ParameterAssignment())
+			"("
+        ParameterAssignment(typeParameters, valueParameters)
+        ( "," ParameterAssignment(typeParameters, valueParameters) )*
+			")"
+		)?
 		"("
-        args = ExpressionList()
-        lastToken = ")"
-        { expr = setPosition(new ExprApplication(expr, args), expr, lastToken); }
+		args = ExpressionList()
+		lastToken = ")"
+		{
+			List<TypeParameter> types = typeParameters.build();
+			List<ValueParameter> values = valueParameters.build();
+			if (types.isEmpty() && values.isEmpty()) {
+				expr = setPosition(new ExprApplication(expr, args), expr, lastToken);
+			} else {
+				expr = setPosition(new ExprTypeConstruction(((ExprVariable) expr).getVariable().getName(), types, values, args), expr, lastToken);
+			}
+	}
 	|
 		"["
-	    index = Expression()
+			index = Expression()
 		{ expr = new ExprIndexer(expr, index); }
 		(
 			","
@@ -1782,6 +1807,12 @@ Expression PrimaryExpression() :
 			{ expr = new ExprIndexer(expr, index); }
 		)*
 		"]"
+ 	|
+		LOOKAHEAD(<DOT_SHARP>)
+		<DOT_SHARP> nth = Nth()
+		{
+			expr = setPosition(new ExprNth(expr, nth), expr, nth);
+		}
 	|
 		"." field = Field()
 		{ expr = setPosition(new ExprField(expr, field), expr, field); }
@@ -1803,6 +1834,9 @@ Expression SingleExpression() :
 	|
 		LOOKAHEAD(TypeAssertionExpression())
 		expr = TypeAssertionExpression()
+  |
+    LOOKAHEAD(TupleExpression())
+		expr = TupleExpression()
 	|
 		"(" expr = Expression() ")"
 	|
@@ -1929,7 +1963,7 @@ String UnaryOperator() :
 {
 	(
 		op = <OP> | op = "=" | op = "-->" | op = "->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@"
-		| op = "not" | op = "dom" | op = "rng" | op = "old"
+		| op = "not" | op = "dom" | op = "rng" | op = "old" | op = "#"
 	)
 	{ return op.image; }
 }
@@ -1938,13 +1972,13 @@ ExprCase CaseExpression() :
 {
     Token first;
     Token last;
-    Expression expression;
+    Expression scrutinee;
     ExprCase.Alternative alternative;
     ImmutableList.Builder<ExprCase.Alternative> alternatives = ImmutableList.builder();
 }
 {
     first = "case"
-    expression = Expression()
+    scrutinee = Expression()
     "of"
     (
         alternative = CaseExprAlternative() { alternatives.add(alternative); }
@@ -1953,7 +1987,7 @@ ExprCase CaseExpression() :
         )*
     )?
     last = "end"
-    { return setPosition(new ExprCase(expression, alternatives.build()), first, last); }
+    { return setPosition(new ExprCase(scrutinee, alternatives.build()), first, last); }
 }
 
 ExprCase.Alternative CaseExprAlternative() :
@@ -1988,11 +2022,13 @@ Pattern Pattern() :
 		LOOKAHEAD((PatternLiteral() | PatternExpression()) "|")
 		pattern = PatternAlternative()
 	|
-		LOOKAHEAD(PatternDeclaration() "@")
+		LOOKAHEAD(PatternDeclaration() <AS>)
 		pattern = PatternAlias()
 	|
 		LOOKAHEAD(<ID> "(")
 		pattern = PatternDeconstruction()
+	|
+		pattern = PatternTuple()
 	|
 		pattern = PatternList()
 	|
@@ -2051,7 +2087,7 @@ PatternAlias PatternAlias() :
 }
 {
 	alias = PatternDeclaration()
-	"@"
+	<AS>
 	expression = PatternExpression()
 	{ return setPosition(new PatternAlias(alias, expression.getExpression()), alias, expression); }
 }
@@ -2091,7 +2127,7 @@ PatternExpression PatternExpression() :
 	Expression expression;
 }
 {
-  first = "'"
+  first = "`"
   (
     "("
     expression = Expression()
@@ -2108,10 +2144,19 @@ PatternDeconstruction PatternDeconstruction() :
 	Token id;
 	Token last;
 	Pattern pattern;
+	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
+	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
 	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
 }
 {
 	id = <ID>
+	(
+		LOOKAHEAD("(" ParameterAssignment())
+    "("
+        ParameterAssignment(types, vals)
+        ( "," ParameterAssignment(types, vals) )*
+		")"
+	)?
 	"("
 	(
 		pattern = Pattern() { patterns.add(pattern); }
@@ -2120,7 +2165,24 @@ PatternDeconstruction PatternDeconstruction() :
 		)*
 	)?
 	last = ")"
-	{ return setPosition(new PatternDeconstruction(id.image, patterns.build()), id, last); }
+	{ return setPosition(new PatternDeconstruction(id.image, types.build(), vals.build(), patterns.build()), id, last); }
+}
+
+PatternTuple PatternTuple() :
+{
+	Token first;
+	Token last;
+	Pattern pattern;
+	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
+}
+{
+	first = "("
+	pattern = Pattern() { patterns.add(pattern); }
+	(
+		"," pattern = Pattern() { patterns.add(pattern); }
+	)+
+	last = ")"
+	{ return setPosition(new PatternTuple(patterns.build()), first, last); }
 }
 
 ExprIf IfExpression() :
@@ -2293,11 +2355,13 @@ ExprProc ProcExpression() :
 
 Expression MapExpression() :
 {
+	Token first;
+	Token last;
 	Expression result;
 	ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
 }
 {
-	"map"
+	first = "map"
 	"{"
 	mappings = Mappings()
 	{ result = new ExprMap(mappings); }
@@ -2305,9 +2369,9 @@ Expression MapExpression() :
 		":"
 		result = ComprehensionFor(result)
 	)?
-	"}"
+	last = "}"
 	{
-		return result;
+		return setPosition(result, first, last);
 	}
 }
 
@@ -2331,20 +2395,22 @@ ImmutableList<ImmutableEntry<Expression, Expression>> Mappings() :
 
 Expression SetExpression() :
 {
+	Token first;
+	Token last;
 	Expression result;
 	ImmutableList<Expression> exprs;
 }
 {
-	"{"
+	first = "{"
 	exprs = ExpressionList()
 	{ result = new ExprSet(exprs); }
 	(
 		":"
 		result = ComprehensionFor(result)
 	)?
-	"}"
+	last = "}"
 	{
-		return result;
+		return setPosition(result, first, last);
 	}
 }
 
@@ -2367,6 +2433,24 @@ Expression ListExpression() :
 	{
 		return setPosition(result, first, last);
 	}
+}
+
+Expression TupleExpression() :
+{
+  Token first;
+  Token last;
+  Expression expr;
+  ImmutableList.Builder<Expression> exprs = ImmutableList.builder();
+}
+{
+  first = "("
+  expr = Expression() { exprs.add(expr); }
+  (
+    ","
+    expr = Expression() { exprs.add(expr); }
+  )+
+  last = ")"
+  { return setPosition(new ExprTuple(exprs.build()), first, last); }
 }
 
 Expression ComprehensionFor(Expression contents) :
@@ -2416,51 +2500,180 @@ Expression ComprehensionFor(Expression contents) :
 /* Type expressions */
 TypeExpr Type() :
 {
-	Token name;
-	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
-	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
-	Token last;
+  TypeExpr type;
+  Expression expr = null;
+  Token last = null;
+  ImmutableList.Builder<TypeExpr> builder = ImmutableList.builder();
 }
 {
-	name = <ID>
-	{ last = name; }
-	(
-		"("
-		ParameterAssignments(types, vals)
-		last = ")"
-	)?
-	{
-		return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
-	}
+  type = SimpleType() { builder.add(type); }
+  (
+    "|" type = SimpleType() { builder.add(type); }
+  )*
+  (
+    "["
+    expr = Expression()
+    last = "]"
+  )?
+  {
+    ImmutableList<TypeExpr> types = builder.build();
+    if (types.size() == 1) {
+      type = types.get(0);
+    } else {
+      type = setPosition(new UnionTypeExpr(types), types.get(0), types.get(types.size() - 1));
+    }
+    if (expr == null) {
+      return type;
+    } else {
+      return setPosition(new NominalTypeExpr("List", ImmutableList.of(setPosition(new TypeParameter("type", type), type, type)), ImmutableList.of(setPosition(new ValueParameter("size", expr), expr, expr))), type, last);
+    }
+  }
 }
 
+TypeExpr SimpleType() :
+{
+  TypeExpr type;
+}
+{
+  (
+    type = NominalType()
+  |
+    type = TupleType()
+  |
+    type = LambdaType()
+  )
+  { return type; }
+}
+
+TupleTypeExpr TupleType() :
+{
+  Token first;
+  Token last;
+  TypeExpr type;
+  ImmutableList.Builder<TypeExpr> types = ImmutableList.builder();
+}
+{
+  first = "("
+  type = Type() { types.add(type); }
+  (
+    "," type = Type() { types.add(type); }
+  )+
+  last = ")"
+  { return setPosition(new TupleTypeExpr(types.build()), first, last); }
+}
+
+NominalTypeExpr NominalType() :
+{
+  Token name;
+  ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
+  ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
+  Token last;
+}
+{
+  name = <ID>
+  { last = name; }
+  (
+    "("
+    ParameterAssignments(types, vals)
+    last = ")"
+  )?
+  {
+    return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
+  }
+}
+
+TypeExpr LambdaType() :
+{
+  Token first;
+  Token last;
+  TypeExpr type;
+  TypeExpr retType = null;
+  ImmutableList.Builder<TypeExpr> types = ImmutableList.builder();
+}
+{
+  first = "["
+  (
+    type = Type() { types.add(type); }
+    (
+      "," type = Type() { types.add(type); }
+    )*
+  )?
+  "-->"
+  (
+    retType = Type()
+  )?
+  last = "]"
+  {
+    if (retType == null) {
+      return setPosition(new ProcedureTypeExpr(types.build()), first, last);
+    } else {
+      return setPosition(new FunctionTypeExpr(types.build(), retType), first, last);
+    }
+  }
+}
 
 /* Type definitions */
 GlobalTypeDecl GlobalTypeDecl() :
 {
-    Token first;
-    Token last;
-    Token name;
-    Availability availability = Availability.PUBLIC;
-    AlgebraicTypeDecl declaration;
+  Availability availability = Availability.PUBLIC;
+  GlobalTypeDecl declaration;
 }
 {
-    (
-        availability = Availability()
-    )?
-    first = "type"
-    name = <ID>
-    ":"
-    (
-       declaration = ProductTypeDecl(name)
-    |
-       declaration = SumTypeDecl(name)
-    )
-    last = "end"
-    { return setPosition(new GlobalTypeDecl(name.image, availability, declaration), first, last); }
+  (
+    availability = Availability()
+  )?
+  (
+    declaration = AliasType(availability)
+  |
+    declaration = AlgebraicType(availability)
+  )
+  { return declaration; }
 }
 
-ProductTypeDecl ProductTypeDecl(Token name) :
+AliasTypeDecl AliasType(Availability availability) :
+{
+  Token first;
+  Token last;
+  Token name;
+  TypeExpr type;
+}
+{
+  first = "alias"
+  name = <ID>
+  ":"
+  type = Type()
+  last = "end"
+  { return setPosition(new AliasTypeDecl(name.image, availability, type), first, last); }
+}
+
+AlgebraicTypeDecl AlgebraicType(Availability availability) :
+{
+  Token first;
+  Token last;
+  Token name;
+  AlgebraicTypeDecl declaration;
+  ImmutableList.Builder<ParameterTypeDecl> typeDecls = ImmutableList.builder();
+  ImmutableList.Builder<ParameterVarDecl> varDecls = ImmutableList.builder();
+}
+{
+  first = "type"
+  name = <ID>
+  (
+    "("
+      FormalParameters(typeDecls, varDecls)
+    ")"
+  )?
+  ":"
+  (
+      declaration = ProductTypeDecl(availability, name, typeDecls.build(), varDecls.build())
+  |
+      declaration = SumTypeDecl(availability, name, typeDecls.build(), varDecls.build())
+  )
+  last = "end"
+  { return setPosition(declaration, first, last); }
+}
+
+ProductTypeDecl ProductTypeDecl(Availability availability, Token name, List<ParameterTypeDecl> typeDecls, List<ParameterVarDecl> varDecls) :
 {
     Token first;
     Token last;
@@ -2474,7 +2687,7 @@ ProductTypeDecl ProductTypeDecl(Token name) :
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
     last = ")"
-    { return setPosition(new ProductTypeDecl(name.image, fields.build()), first, last); }
+    { return setPosition(new ProductTypeDecl(name.image, availability, typeDecls, varDecls, fields.build()), first, last); }
 }
 
 FieldDecl FieldDecl() :
@@ -2488,7 +2701,7 @@ FieldDecl FieldDecl() :
     { return setPosition(new FieldDecl(type, name.image), type, name); }
 }
 
-SumTypeDecl SumTypeDecl(Token name) :
+SumTypeDecl SumTypeDecl(Availability availability, Token name, List<ParameterTypeDecl> typeDecls, List<ParameterVarDecl> varDecls) :
 {
     SumTypeDecl.VariantDecl first;
     SumTypeDecl.VariantDecl last;
@@ -2503,7 +2716,7 @@ SumTypeDecl SumTypeDecl(Token name) :
         variant = VariantDecl() { variants.add(variant); }
         { last = variant; }
     )*
-    { return setPosition(new SumTypeDecl(name.image, variants.build()), first, last); }
+    { return setPosition(new SumTypeDecl(name.image, availability, typeDecls, varDecls, variants.build()), first, last); }
 }
 
 SumTypeDecl.VariantDecl VariantDecl() :
@@ -2663,6 +2876,7 @@ LValue LValue() :
 	Variable var;
 	Field field;
 	Expression index;
+  Nth nth;
 	LValue lvalue;
 	Token end;
 }
@@ -2674,6 +2888,13 @@ LValue LValue() :
 	}
 	(
 		(
+			LOOKAHEAD(<DOT_SHARP>)
+			<DOT_SHARP> nth = Nth()
+			{
+				lvalue = new LValueNth(lvalue, nth);
+				lvalue.setPosition(var, nth);
+			}
+		|
 			"." field = Field()
 			{
 				lvalue = new LValueField(lvalue, field);
@@ -2687,7 +2908,6 @@ LValue LValue() :
 				lvalue = new LValueIndexer(lvalue, index);
 				lvalue.setPosition(var.getFromLineNumber(), var.getFromColumnNumber(), end.endLine, end.endColumn);
 			}
-
 		)
 	)*
 	{
@@ -2702,6 +2922,15 @@ Field Field() :
 {
 	id = <ID>
 	{ return setPosition(new Field(id.image), id, id); }
+}
+
+Nth Nth() :
+{
+  Token decimal;
+}
+{
+  decimal = <INTEGER>
+  { return setPosition(new Nth(Integer.valueOf(decimal.image)), decimal, decimal); }
 }
 
 StmtCall CallStmt() :
@@ -2724,13 +2953,13 @@ StmtCase CaseStmt() :
 {
     Token first;
     Token last;
-    Expression expression;
+    Expression scrutinee;
     StmtCase.Alternative alternative;
     ImmutableList.Builder<StmtCase.Alternative> alternatives = ImmutableList.builder();
 }
 {
     first = "case"
-    expression = Expression()
+    scrutinee = Expression()
     "of"
     (
         alternative = CaseStmtAlternative() { alternatives.add(alternative); }
@@ -2739,7 +2968,7 @@ StmtCase CaseStmt() :
         )*
     )?
     last = "end"
-    { return setPosition(new StmtCase(expression, alternatives.build()), first, last); }
+    { return setPosition(new StmtCase(scrutinee, alternatives.build()), first, last); }
 }
 
 StmtCase.Alternative CaseStmtAlternative() :
@@ -2962,4 +3191,3 @@ void ParameterAssignment(ImmutableList.Builder<TypeParameter> types, ImmutableLi
 		{ vals.add(setPosition(new ValueParameter(name.image, expr), name, expr)); }
 	)
 }
-

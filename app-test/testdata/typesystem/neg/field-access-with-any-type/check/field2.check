@@ -1,4 +1,4 @@
 Error in "testdata/typesystem/neg/field-access-with-any-type/src/field.cal" on line 10:
             OUT <-- u.foo; // error
-                    ^^^^^
-No member foo in type U.
+                    ^
+Not a product.

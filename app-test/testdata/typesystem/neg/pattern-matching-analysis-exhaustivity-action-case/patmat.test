@@ -1,0 +1,6 @@
+{
+    "description": "Test pattern matching exhaustivity on action case",
+    "source-paths": ["src"],
+    "check-paths": ["check"],
+    "entity": "patmat.ExhaustivityActionCase"
+}

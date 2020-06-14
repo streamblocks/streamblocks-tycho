@@ -11,12 +11,10 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.cal.OutputExpression;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
@@ -94,7 +92,7 @@ public class NetworkValueParameterPropagationPhase implements Phase {
                     EntityReferenceLocal ref = ((EntityReferenceLocal) instanceExpr.getEntityName());
                     GlobalEntityDecl globalEntityDecl = entities().declaration(ref);
                     for (ParameterVarDecl parameterVarDecl : globalEntityDecl.getEntity().getValueParameters()) {
-                        ValueParameter valueParameter = ((EntityInstanceExpr) entity.getEntityExpr()).getParameterAssignments()
+                        ValueParameter valueParameter = ((EntityInstanceExpr) entity.getEntityExpr()).getValueParameters()
                                 .stream().filter(vp -> vp.getName().equals(parameterVarDecl.getName()))
                                 .findAny()
                                 .orElse(null);

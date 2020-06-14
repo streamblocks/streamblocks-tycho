@@ -1,4 +1,4 @@
 Error in "testdata/typesystem/neg/type-comparison-algebraic-type-with-any-type/src/cmp.cal" on line 7:
             OUT <-- T(1, false) = 1; // error
                     ^^^^^^^^^^^^^^^
-Incomparable types; T cannot be compared with uint(size=1).
+= is not supported with T and uint(size=1).

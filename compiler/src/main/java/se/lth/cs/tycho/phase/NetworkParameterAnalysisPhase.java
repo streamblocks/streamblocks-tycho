@@ -92,7 +92,7 @@ public class NetworkParameterAnalysisPhase implements Phase {
         default void checkParameters(EntityInstanceExpr entityInstanceExpr) {
             EntityReferenceLocal ref = ((EntityReferenceLocal) entityInstanceExpr.getEntityName());
             GlobalEntityDecl globalEntityDecl = entities().declaration(ref);
-            int parameterAssignments = entityInstanceExpr.getParameterAssignments().size();
+            int parameterAssignments = entityInstanceExpr.getValueParameters().size();
             int entityParameterDeclarations = globalEntityDecl.getEntity().getValueParameters().size();
             // -- Check the number of value parameters given to entity
             if (parameterAssignments != entityParameterDeclarations) {

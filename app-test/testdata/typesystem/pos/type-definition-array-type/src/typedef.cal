@@ -1,0 +1,8 @@
+namespace typedef:
+    actor ArrayType() ==> int OUT:
+        int[5] a := [1, 2, 3, 4, 5];
+        do
+            OUT <-- a[0];
+        end
+    end
+end

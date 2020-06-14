@@ -70,11 +70,16 @@ public class Compiler {
                 new RemoveExternStubPhase(),
                 new OperatorParsingPhase(),
                 new ImportAnalysisPhase(),
-                new ResolvePatternsPhase(),
+                new ResolvePatternDeconstructionPhase(),
                 new DeclarationAnalysisPhase(),
                 new ResolveTypeConstructionPhase(),
                 new ConstantVariableImmutabilityPhase(),
-                new NameAnalysisPhase()
+                new ConstantVariableInitializationPhase(),
+                new NameAnalysisPhase(),
+                new TemplateInitializationPhase(),
+                new TemplateAnalysisPhase(),
+                new TemplateTransformationPhase(),
+                new TemplateInstantiationPhase()
 
                 // -- Folding
                 //new NetworkParameterAnalysisPhase(),
@@ -101,11 +106,9 @@ public class Compiler {
         return ImmutableList.of(
                 // Name and type analyses and transformations
 
-                new TypeDeclarationAnalysisPhase(),
                 new TypeAnnotationAnalysisPhase(),
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),
-                new MemberAnalysisPhase(),
                 new CaseAnalysisPhase(),
 
                 // Orcc list parameters

@@ -4,7 +4,6 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
 import se.lth.cs.tycho.interp.BasicInterpreter;
-import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
@@ -22,7 +21,14 @@ import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.transformation.nl2network.NlToNetwork;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -205,7 +211,7 @@ public class ElaborateNetworkPhase implements Phase {
                 Instance instance = new Instance(
                         entity.getInstanceName(),
                         entityName,
-                        expr.getParameterAssignments().map(ValueParameter::deepClone),
+                        expr.getValueParameters().map(ValueParameter::deepClone),
                         ImmutableList.empty())
                         .withAttributes(attrs.build());
                 instances.add(instance);

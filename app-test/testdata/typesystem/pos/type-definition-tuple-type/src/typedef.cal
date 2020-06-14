@@ -1,0 +1,8 @@
+namespace typedef:
+    actor TupleType() ==> int OUT:
+        (int, bool) t;
+        do
+            OUT <-- t.#1;
+        end
+    end
+end

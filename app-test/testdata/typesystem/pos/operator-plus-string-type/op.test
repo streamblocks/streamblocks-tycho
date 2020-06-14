@@ -1,0 +1,5 @@
+{
+    "description": "Test + (concatenation) operator on string type",
+    "source-paths": ["src"],
+    "entity": "op.StringConcatenation"
+}

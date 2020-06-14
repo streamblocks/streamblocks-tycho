@@ -1,0 +1,9 @@
+namespace op:
+    actor StringLower() ==> bool OUT:
+        String s1;
+        String s2;
+        do
+            OUT <-- s1 < s2;
+        end
+    end
+end

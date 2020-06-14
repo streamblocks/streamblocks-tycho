@@ -8,15 +8,22 @@ import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
+import se.lth.cs.tycho.ir.type.TupleTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.type.AlgebraicType;
+import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
+import se.lth.cs.tycho.type.CharType;
 import se.lth.cs.tycho.type.IntType;
 import se.lth.cs.tycho.type.LambdaType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.MapType;
 import se.lth.cs.tycho.type.ProcType;
 import se.lth.cs.tycho.type.RealType;
+import se.lth.cs.tycho.type.SetType;
+import se.lth.cs.tycho.type.StringType;
+import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.List;
@@ -68,6 +75,10 @@ public final class TypeToTypeExpr {
 			return new NominalTypeExpr(name, ImmutableList.empty(), ImmutableList.empty());
 		}
 
+		default NominalTypeExpr convert(CharType type) {
+			return new NominalTypeExpr("char");
+		}
+
 		default FunctionTypeExpr convert(LambdaType type) {
 			List<TypeExpr> parameterTypes = type.getParameterTypes().stream()
 					.map(this::convert)
@@ -98,5 +109,27 @@ public final class TypeToTypeExpr {
 			return new NominalTypeExpr(type.getName());
 		}
 
+		default NominalTypeExpr convert(AliasType type) {
+			return new NominalTypeExpr(type.getName());
+		}
+
+		default TupleTypeExpr convert(TupleType type) {
+			return new TupleTypeExpr(type.getTypes().map(this::convert));
+		}
+
+		default NominalTypeExpr convert(SetType type) {
+			TypeParameter elementType = new TypeParameter("type", convert(type.getElementType()));
+			return new NominalTypeExpr("Set", ImmutableList.of(elementType), ImmutableList.empty());
+		}
+
+		default NominalTypeExpr convert(MapType type) {
+			TypeParameter keyType = new TypeParameter("key", convert(type.getKeyType()));
+			TypeParameter valueType = new TypeParameter("value", convert(type.getValueType()));
+			return new NominalTypeExpr("Map", ImmutableList.of(keyType, valueType), ImmutableList.empty());
+		}
+
+		default NominalTypeExpr convert(StringType type) {
+			return new NominalTypeExpr("String", ImmutableList.empty(), ImmutableList.empty());
+		}
 	}
 }

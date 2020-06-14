@@ -1,2 +1,4 @@
-Error:
+Error in "testdata/typesystem/neg/algebraic-type-duplicate-declaration/src/adt.cal" on line 3:
+    type T : (int a) end // error
+    ^^^^^^^^^^^^^^^^^^^^
 T is already declared in this scope.

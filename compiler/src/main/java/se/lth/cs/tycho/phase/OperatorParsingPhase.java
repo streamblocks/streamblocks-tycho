@@ -108,7 +108,9 @@ public class OperatorParsingPhase implements Phase {
 			String operator = ops.removeLast();
 			Expression right = out.removeLast();
 			Expression left = out.removeLast();
-			out.add(new ExprBinaryOp(ImmutableList.of(operator), ImmutableList.of(left, right)));
+			Expression expr = new ExprBinaryOp(ImmutableList.of(operator), ImmutableList.of(left, right));
+			expr.setPosition(left, right);
+			out.add(expr);
 		}
 	}
 
@@ -179,7 +181,8 @@ public class OperatorParsingPhase implements Phase {
 			new BinaryOperator("+", -6, false),
 			new BinaryOperator("<<", -7, false),
 			new BinaryOperator(">>", -7, false),
-			new BinaryOperator("*", -5 , false)
+			new BinaryOperator("*", -5 , false),
+			new BinaryOperator("in", -7 , false)
 	).collect(Collectors.toMap(op -> op.name, Function.identity()));
 
 	private static final Map<String, BinaryOperator> noOperators = Collections.emptyMap();

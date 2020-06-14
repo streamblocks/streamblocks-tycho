@@ -13,6 +13,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueDeref;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueNth;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.attribute.Types;
@@ -41,7 +42,7 @@ public interface Code {
 		return backend().variables();
 	}
 
-	default MemoryStack memoryStack() { return backend().memoryStack(); }
+	default Trackable trackable() { return backend().trackable(); }
 
 	default String outputPortTypeSize(Port port) {
 		Connection.End source = new Connection.End(Optional.of(backend().instance().get().getInstanceName()), port.getName());
@@ -69,8 +70,28 @@ public interface Code {
 		}
 	}
 
+	default void copy(SetType lvalueType, String lvalue, SetType rvalueType, String rvalue) {
+		emitter().emit("copy_%1$s(&(%2$s), &(%3$s));", type(lvalueType), lvalue, rvalue);
+	}
+
+	default void copy(MapType lvalueType, String lvalue, MapType rvalueType, String rvalue) {
+		emitter().emit("copy_%1$s(&(%2$s), &(%3$s));", type(lvalueType), lvalue, rvalue);
+	}
+
+	default void copy(StringType lvalueType, String lvalue, StringType rvalueType, String rvalue) {
+		emitter().emit("copy_%1$s(&(%2$s), %3$s);", type(lvalueType), lvalue, rvalue);
+	}
+
 	default void copy(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
-		emitter().emit("copy_%s(&(%s), %s);", backend().algebraicTypes().type(lvalueType), lvalue, rvalue);
+		emitter().emit("copy_%s(&(%s), %s);", backend().algebraic().utils().name(lvalueType), lvalue, rvalue);
+	}
+
+	default void copy(AliasType lvalueType, String lvalue, AliasType rvalueType, String rvalue) {
+		copy(lvalueType.getType(), lvalue, rvalueType.getType(), rvalue);
+	}
+
+	default void copy(TupleType lvalueType, String lvalue, TupleType rvalueType, String rvalue) {
+		copy(backend().tuples().convert().apply(lvalueType), lvalue, backend().tuples().convert().apply(rvalueType), rvalue);
 	}
 
 	default boolean isAlgebraicTypeList(Type type) {
@@ -78,7 +99,7 @@ public interface Code {
 			return false;
 		}
 		ListType listType = (ListType) type;
-		if (listType.getElementType() instanceof AlgebraicType) {
+		if (listType.getElementType() instanceof AlgebraicType || backend().alias().isAlgebraicType(listType.getElementType())) {
 			return true;
 		} else {
 			return isAlgebraicTypeList(listType.getElementType());
@@ -101,10 +122,39 @@ public interface Code {
 		return tmp;
 	}
 
+	default String compare(SetType lvalueType, String lvalue, SetType rvalueType, String rvalue) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = compare_%2$s(&(%3$s), &(%4$s));", tmp, type(lvalueType), lvalue, rvalue);
+		return tmp;
+	}
+
+	default String compare(MapType lvalueType, String lvalue, MapType rvalueType, String rvalue) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = compare_%2$s(&(%3$s), &(%4$s));", tmp, type(lvalueType), lvalue, rvalue);
+		return tmp;
+	}
+
+	default String compare(StringType lvalueType, String lvalue, StringType rvalueType, String rvalue) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = compare_%2$s(%3$s, %4$s);", tmp, type(lvalueType), lvalue, rvalue);
+		return tmp;
+	}
+
 	default String compare(AlgebraicType lvalueType, String lvalue, AlgebraicType rvalueType, String rvalue) {
 		String tmp = variables().generateTemp();
-		emitter().emit("%s = compare_%s_t(%s, %s);", declaration(BoolType.INSTANCE, tmp), lvalueType.getName(), lvalue, rvalue);
+		emitter().emit("%s = compare_%s(%s, %s);", declaration(BoolType.INSTANCE, tmp), backend().algebraic().utils().name(lvalueType), lvalue, rvalue);
 		return tmp;
+	}
+
+	default String compare(AliasType lvalueType, String lvalue, AliasType rvalueType, String rvalue) {
+		return compare(lvalueType.getType(), lvalue, rvalueType.getType(), rvalue);
+	}
+
+	default String compare(TupleType lvalueType, String lvalue, TupleType rvalueType, String rvalue) {
+		return compare(backend().tuples().convert().apply(lvalueType), lvalue, backend().tuples().convert().apply(rvalueType), rvalue);
 	}
 
 	default String declaration(Type type, String name) {
@@ -118,21 +168,27 @@ public interface Code {
 	}
 
 	default String declaration(LambdaType type, String name) {
-		String t = backend().callables().mangle(type).encode();
-		return t + " " + name;
+		return type(type) + " " + name;
 	}
 
 	default String declaration(ProcType type, String name) {
-		String t = backend().callables().mangle(type).encode();
-		return t + " " + name;
+		return type(type) + " " + name;
 	}
 
 	default String declaration(BoolType type, String name) { return "_Bool " + name; }
 
-	default String declaration(StringType type, String name) { return "char *" + name; }
+	default String declaration(StringType type, String name) { return type(type) + " " + name; }
 
 	default String declaration(AlgebraicType type, String name) {
 		return type(type) + " *" + name;
+	}
+
+	default String declaration(AliasType type, String name) {
+		return type(type) + (backend().alias().isAlgebraicType(type) ? " *" : " ") + name;
+	}
+
+	default String declaration(TupleType type, String name) {
+		return declaration(backend().tuples().convert().apply(type), name);
 	}
 
 	String type(Type type);
@@ -166,16 +222,42 @@ public interface Code {
 		return backend().callables().mangle(type).encode();
 	}
 
+	default String type(SetType type) {
+		return backend().callables().mangle(type).encode();
+	}
+
+	default String type(MapType type) {
+		return backend().callables().mangle(type).encode();
+	}
+
 	default String type(StringType type) {
-		return "char*";
+		return "string_t";
 	}
 
 	default String type(BoolType type) { return "_Bool"; }
 
+	default String type(CharType type) { return "char"; }
+
 	default String type(RefType type) { return type(type.getType()) + "*"; }
 
 	default String type(AlgebraicType type) {
-		return backend().algebraicTypes().type(type);
+		return backend().algebraic().utils().name(type);
+	}
+
+	default String type(AliasType type) {
+		return type.getName();
+	}
+
+	default String type(TupleType type) {
+		return type(backend().tuples().convert().apply(type));
+	}
+
+	default String type(LambdaType type) {
+		return backend().callables().mangle(type).encode();
+	}
+
+	default String type(ProcType type) {
+		return backend().callables().mangle(type).encode();
 	}
 
 	String evaluate(Expression expr);
@@ -206,7 +288,12 @@ public interface Code {
 				return "false";
 			case Real:
 				return literal.getText();
-			case String:
+			case String: {
+				String tmp = variables().generateTemp();
+				emitter().emit("%s = init_%s(%s);", declaration(StringType.INSTANCE, tmp), type(StringType.INSTANCE), literal.getText());
+				return tmp;
+			}
+			case Char:
 				return literal.getText();
 			default:
 				throw new UnsupportedOperationException(literal.getText());
@@ -217,9 +304,7 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		Type type = types().type(input);
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
-		if (type instanceof AlgebraicType) {
-			memoryStack().trackPointer(tmp, type);
-		}
+		trackable().track(tmp, type);
 		if (input.hasRepeat()) {
 		    if (input.getOffset() == 0) {
 				emitter().emit("channel_peek_%s(self->%s_channel, 0, %d, %s.data);", inputPortTypeSize(input.getPort()), input.getPort().getName(), input.getRepeat(), tmp);
@@ -236,83 +321,518 @@ public interface Code {
 		return tmp;
 	}
 
-
 	default String evaluate(ExprBinaryOp binaryOp) {
 		assert binaryOp.getOperations().size() == 1 && binaryOp.getOperands().size() == 2;
+		Type lhs = types().type(binaryOp.getOperands().get(0));
+		Type rhs = types().type(binaryOp.getOperands().get(1));
 		String operation = binaryOp.getOperations().get(0);
-		Expression left = binaryOp.getOperands().get(0);
-		Expression right = binaryOp.getOperands().get(1);
 		switch (operation) {
-			case "==":
-			case "=":
-				return compare(types().type(left), evaluate(left), types().type(right), evaluate(right));
-			case "!=":
-				return "!" + compare(types().type(left), evaluate(left), types().type(right), evaluate(right));
 			case "+":
+				return evaluateBinaryAdd(lhs, rhs, binaryOp);
 			case "-":
+				return evaluateBinarySub(lhs, rhs, binaryOp);
 			case "*":
+				return evaluateBinaryTimes(lhs, rhs, binaryOp);
 			case "/":
-			case "<":
-			case "<=":
-			case ">":
-			case ">=":
-			case "<<":
-			case ">>":
-			case "&":
-			case "|":
-			case "^":
-				return String.format("(%s %s %s)", evaluate(left), operation, evaluate(right));
+				return evaluateBinaryDiv(lhs, rhs, binaryOp);
+			case "div":
+				return evaluateBinaryIntDiv(lhs, rhs, binaryOp);
+			case "%":
 			case "mod":
-				return String.format("(%s %% %s)", evaluate(left), evaluate(right));
-			case "and":
+				return evaluateBinaryMod(lhs, rhs, binaryOp);
+			case "^":
+				return evaluateBinaryExp(lhs, rhs, binaryOp);
+			case "&":
+				return evaluateBinaryBitAnd(lhs, rhs, binaryOp);
+			case "<<":
+				return evaluateBinaryShiftL(lhs, rhs, binaryOp);
+			case ">>":
+				return evaluateBinaryShiftR(lhs, rhs, binaryOp);
 			case "&&":
-				String andResult = variables().generateTemp();
-				emitter().emit("_Bool %s;", andResult);
-				emitter().emit("if (%s) {", evaluate(left));
-				emitter().increaseIndentation();
-				memoryStack().enterScope();
-				emitter().emit("%s = %s;", andResult, evaluate(right));
-				memoryStack().exitScope();
-				emitter().decreaseIndentation();
-				emitter().emit("} else {");
-				emitter().increaseIndentation();
-				memoryStack().enterScope();
-				emitter().emit("%s = false;", andResult);
-				memoryStack().exitScope();
-				emitter().decreaseIndentation();
-				emitter().emit("}");
-				return andResult;
+			case "and":
+				return evaluateBinaryAnd(lhs, rhs, binaryOp);
+			case "|":
+				return evaluateBinaryBitOr(lhs, rhs, binaryOp);
 			case "||":
 			case "or":
-				String orResult = variables().generateTemp();
-				emitter().emit("_Bool %s;", orResult);
-				emitter().emit("if (%s) {", evaluate(left));
-				emitter().increaseIndentation();
-				emitter().emit("%s = true;", orResult);
-				emitter().decreaseIndentation();
-				emitter().emit("} else {");
-				emitter().increaseIndentation();
-				memoryStack().enterScope();
-				emitter().emit("%s = %s;", orResult, evaluate(right));
-				memoryStack().exitScope();
-				emitter().decreaseIndentation();
-				emitter().emit("}");
-				return orResult;
+				return evaluateBinaryOr(lhs, rhs, binaryOp);
+			case "=":
+			case "==":
+				return evaluateBinaryEq(lhs, rhs, binaryOp);
+			case "!=":
+				return evaluateBinaryNeq(lhs, rhs, binaryOp);
+			case "<":
+				return evaluateBinaryLtn(lhs, rhs, binaryOp);
+			case "<=":
+				return evaluateBinaryLeq(lhs, rhs, binaryOp);
+			case ">":
+				return evaluateBinaryGtn(lhs, rhs, binaryOp);
+			case ">=":
+				return evaluateBinaryGeq(lhs, rhs, binaryOp);
+			case "in":
+				return evaluateBinaryIn(lhs, rhs, binaryOp);
 			default:
 				throw new UnsupportedOperationException(operation);
 		}
+	}
+	
+	default String evaluateBinaryAdd(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryAdd(NumberType lhs, NumberType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s + %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryAdd(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%1$s = union_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryAdd(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%1$s = concat_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinarySub(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinarySub(NumberType lhs, NumberType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s - %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinarySub(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%1$s = difference_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryTimes(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryTimes(NumberType lhs, NumberType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s * %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryTimes(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%1$s = intersect_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryDiv(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryDiv(NumberType lhs, NumberType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s / %s)", evaluate(left), evaluate(right));
+	}
+	
+	default String evaluateBinaryIntDiv(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryIntDiv(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s / %s)", evaluate(left), evaluate(right));
+	}
+	
+	default String evaluateBinaryMod(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryMod(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s %% %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryExp(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryExp(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s << %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryMod(RealType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("pow(%s, %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryBitAnd(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryBitAnd(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s & %s)", evaluate(left), evaluate(right));
+	}
+	
+	default String evaluateBinaryShiftL(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryShiftL(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s << %s)", evaluate(left), evaluate(right));
+	}
+	
+	default String evaluateBinaryShiftR(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryShiftR(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s >> %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryAnd(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryAnd(BoolType lhs, BoolType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		String andResult = variables().generateTemp();
+		emitter().emit("_Bool %s;", andResult);
+		emitter().emit("if (%s) {", evaluate(left));
+		emitter().increaseIndentation();
+		trackable().enter();
+		emitter().emit("%s = %s;", andResult, evaluate(right));
+		trackable().exit();
+		emitter().decreaseIndentation();
+		emitter().emit("} else {");
+		emitter().increaseIndentation();
+		trackable().enter();
+		emitter().emit("%s = false;", andResult);
+		trackable().exit();
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return andResult;
+	}
+	
+	default String evaluateBinaryBitOr(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryBitOr(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s | %s)", evaluate(left), evaluate(right));
+	}
+	
+	default String evaluateBinaryOr(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryOr(BoolType lhs, BoolType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		String orResult = variables().generateTemp();
+		emitter().emit("_Bool %s;", orResult);
+		emitter().emit("if (%s) {", evaluate(left));
+		emitter().increaseIndentation();
+		emitter().emit("%s = true;", orResult);
+		emitter().decreaseIndentation();
+		emitter().emit("} else {");
+		emitter().increaseIndentation();
+		trackable().enter();
+		emitter().emit("%s = %s;", orResult, evaluate(right));
+		trackable().exit();
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return orResult;
+	}
+
+	default String evaluateBinaryEq(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return compare(types().type(left), evaluate(left), types().type(right), evaluate(right));
+	}
+	
+	default String evaluateBinaryNeq(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return "!" + compare(types().type(left), evaluate(left), types().type(right), evaluate(right));
+	}
+
+	default String evaluateBinaryLtn(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryLtn(NumberType lhs, NumberType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s < %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryLtn(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = less_than_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryLtn(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = less_than_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryLeq(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryLeq(NumberType lhs, NumberType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s <= %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryLeq(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = less_than_equal_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryLeq(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = less_than_equal_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+	
+	default String evaluateBinaryGtn(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryGtn(NumberType lhs, NumberType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s > %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryGtn(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = greater_than_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryGtn(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = greater_than_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+	
+	default String evaluateBinaryGeq(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryGeq(NumberType lhs, NumberType rhs, ExprBinaryOp binaryOp) {
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		return String.format("(%s >= %s)", evaluate(left), evaluate(right));
+	}
+
+	default String evaluateBinaryGeq(SetType lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = greater_than_equal_%2$s(&(%3$s), &(%4$s));", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryGeq(StringType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = greater_than_equal_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryIn(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
+	}
+
+	default String evaluateBinaryIn(Type lhs, ListType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		String index = variables().generateTemp();
+		String elem = evaluate(binaryOp.getOperands().get(0));
+		String list = evaluate(binaryOp.getOperands().get(1));
+		emitter().emit("%s = false;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("for (size_t %1$s = 0; (%1$s < %2$s) && !(%3$s); %1$s++) {", index, rhs.getSize().getAsInt(), tmp);
+		emitter().increaseIndentation();
+		emitter().emit("%s |= %s;", tmp, compare(lhs, elem, rhs.getElementType(), String.format("%s.data[%s]", list, index)));
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return tmp;
+	}
+
+	default String evaluateBinaryIn(Type lhs, SetType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = membership_%2$s(&(%4$s), %3$s);", tmp, type(rhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryIn(Type lhs, MapType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = membership_%2$s(&(%4$s), %3$s);", tmp, type(rhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryIn(Type lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(BoolType.INSTANCE, tmp));
+		emitter().emit("%1$s = membership_%2$s(%4$s, %3$s);", tmp, type(rhs), evaluate(left), evaluate(right));
+		return tmp;
 	}
 
 	default String evaluate(ExprUnaryOp unaryOp) {
 		switch (unaryOp.getOperation()) {
 			case "-":
+				return evaluateUnaryMinus(types().type(unaryOp.getOperand()), unaryOp);
 			case "~":
-				return String.format("%s(%s)", unaryOp.getOperation(), evaluate(unaryOp.getOperand()));
+				return evaluateUnaryInvert(types().type(unaryOp.getOperand()), unaryOp);
+			case "!":
 			case "not":
-				return String.format("!%s", evaluate(unaryOp.getOperand()));
+				return evaluateUnaryNot(types().type(unaryOp.getOperand()), unaryOp);
+			case "dom":
+				return evaluateUnaryDom(types().type(unaryOp.getOperand()), unaryOp);
+			case "rng":
+				return evaluateUnaryRng(types().type(unaryOp.getOperand()), unaryOp);
+			case "#":
+				return evaluateUnarySize(types().type(unaryOp.getOperand()), unaryOp);
 			default:
 				throw new UnsupportedOperationException(unaryOp.getOperation());
 		}
+	}
+
+	default String evaluateUnaryMinus(Type type, ExprUnaryOp expr) {
+		throw new UnsupportedOperationException(expr.getOperation());
+	}
+
+	default String evaluateUnaryMinus(NumberType type, ExprUnaryOp expr) {
+		return String.format("-(%s)",evaluate(expr.getOperand()));
+	}
+
+	default String evaluateUnaryInvert(Type type, ExprUnaryOp expr) {
+		throw new UnsupportedOperationException(expr.getOperation());
+	}
+
+	default String evaluateUnaryInvert(IntType type, ExprUnaryOp expr) {
+		return String.format("~(%s)",evaluate(expr.getOperand()));
+	}
+
+	default String evaluateUnaryNot(Type type, ExprUnaryOp expr) {
+		throw new UnsupportedOperationException(expr.getOperation());
+	}
+
+	default String evaluateUnaryNot(BoolType type, ExprUnaryOp expr) {
+		return String.format("!(%s)",evaluate(expr.getOperand()));
+	}
+
+	default String evaluateUnaryDom(Type type, ExprUnaryOp expr) {
+		throw new UnsupportedOperationException(expr.getOperation());
+	}
+
+	default String evaluateUnaryDom(MapType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = domain_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
+		return tmp;
+	}
+
+	default String evaluateUnaryRng(Type type, ExprUnaryOp expr) {
+		throw new UnsupportedOperationException(expr.getOperation());
+	}
+
+	default String evaluateUnaryRng(MapType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = range_%s(&(%s));", declaration(types().type(expr), tmp), type(type), evaluate(expr.getOperand()));
+		return tmp;
+	}
+
+	default String evaluateUnarySize(Type type, ExprUnaryOp expr) {
+		throw new UnsupportedOperationException(expr.getOperation());
+	}
+
+	default String evaluateUnarySize(ListType type, ExprUnaryOp expr) {
+		return "" + type.getSize().getAsInt();
+	}
+
+	default String evaluateUnarySize(SetType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s.size;", declaration(types().type(expr), tmp), evaluate(expr.getOperand()));
+		return tmp;
+	}
+
+	default String evaluateUnarySize(MapType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s.size;", declaration(types().type(expr), tmp), evaluate(expr.getOperand()));
+		return tmp;
+	}
+
+	default String evaluateUnarySize(StringType type, ExprUnaryOp expr) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = strlen(%s);", declaration(types().type(expr), tmp), evaluate(expr.getOperand()));
+		return tmp;
 	}
 
 	default String evaluate(ExprComprehension comprehension) {
@@ -359,14 +879,14 @@ public interface Code {
 				emitter().emit("%s = %s;", declaration(type, name), from);
 				emitter().emit("while (%s <= %s) {", name, to);
 				emitter().increaseIndentation();
-				memoryStack().enterScope();
+				trackable().enter();
 			}
 			action.run();
 			List<VarDecl> reversed = new ArrayList<>(varDecls);
 			Collections.reverse(reversed);
 			for (VarDecl d : reversed) {
 				emitter().emit("%s++;", variables().declarationName(d));
-				memoryStack().exitScope();
+				trackable().exit();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 			}
@@ -381,13 +901,11 @@ public interface Code {
 		if (t.getSize().isPresent()) {
 			String name = variables().generateTemp();
 			Type elementType = t.getElementType();
-			if (elementType instanceof AlgebraicType) {
-				memoryStack().trackPointer(name, t);
-			}
+			trackable().track(name, t);
 			String decl = declaration(t, name);
 			String value = list.getElements().stream().sequential()
 					.map(element -> {
-						if (elementType instanceof AlgebraicType) {
+						if (elementType instanceof AlgebraicType || backend().alias().isAlgebraicType(elementType)) {
 							String tmp = variables().generateTemp();
 							emitter().emit("%s = %s;", declaration(elementType, tmp), backend().defaultValues().defaultValue(elementType));
 							copy(elementType, tmp, elementType , evaluate(element));
@@ -408,7 +926,7 @@ public interface Code {
 	default void forEach(ExprBinaryOp binOp, List<GeneratorVarDecl> varDecls, Runnable action) {
 		emitter().emit("{");
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		if (binOp.getOperations().equals(Collections.singletonList(".."))) {
 			Type type = types().declaredType(varDecls.get(0));
 			for (VarDecl d : varDecls) {
@@ -418,49 +936,110 @@ public interface Code {
 			emitter().emit("%s = %s;", declaration(type, temp), evaluate(binOp.getOperands().get(0)));
 			emitter().emit("while (%s <= %s) {", temp, evaluate(binOp.getOperands().get(1)));
 			emitter().increaseIndentation();
-			memoryStack().enterScope();
+			trackable().enter();
 			for (VarDecl d : varDecls) {
 				emitter().emit("%s = %s++;", variables().declarationName(d), temp);
 			}
 			action.run();
-			memoryStack().exitScope();
+			trackable().exit();
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 		} else {
 			throw new UnsupportedOperationException(binOp.getOperations().get(0));
 		}
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
 
+	default String evaluate(ExprSet set) {
+		String name = variables().generateTemp();
+		SetType type = (SetType) types().type(set);
+		emitter().emit("%1$s = %2$s;", declaration(type, name), backend().defaultValues().defaultValue(type));
+		emitter().emit("init_%1$s(&(%2$s));", type(type), name);
+		set.getElements().stream().map(this::evaluate).forEach(elem -> {
+			emitter().emit("add_%1$s(&(%2$s), %3$s);", type(type), name, elem);
+		});
+		return name;
+	}
+
+	default String evaluate(ExprMap map) {
+		String name = variables().generateTemp();
+		MapType type = (MapType) types().type(map);
+		emitter().emit("%1$s = %2$s;", declaration(type, name), backend().defaultValues().defaultValue(type));
+		emitter().emit("init_%1$s(&(%2$s));", type(type), name);
+		map.getMappings().forEach(mapping -> {
+			String key = evaluate(mapping.getKey());
+			String value = evaluate(mapping.getValue());
+			emitter().emit("add_%1$s(&(%2$s), %3$s, %4$s);", type(type), name, key, value);
+
+		});
+		return name;
+	}
+
 	default String evaluate(ExprIndexer indexer) {
+		return exprIndexing(types().type(indexer.getStructure()), indexer);
+	}
+	String exprIndexing(Type type, ExprIndexer indexer);
+	default String exprIndexing(ListType type, ExprIndexer indexer) {
 		return String.format("%s.data[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
+	}
+
+	default String exprIndexing(MapType type, ExprIndexer indexer) {
+		String index = variables().generateTemp();
+		String map = evaluate(indexer.getStructure());
+		String key = evaluate(indexer.getIndex());
+		emitter().emit("size_t %s;", index);
+		emitter().emit("for (%1$s = 0; %1$s < %2$s.size; %1$s++) {", index, map);
+		emitter().increaseIndentation();
+		emitter().emit("if (%s) break;", compare(type.getKeyType(), key, type.getValueType(), String.format("%s.data[%s].key", map, index)));
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return String.format("%s.data[%s].value", map, index);
+	}
+
+	default String exprIndexing(StringType type, ExprIndexer indexer) {
+		return String.format("%s[%s]", evaluate(indexer.getStructure()), evaluate(indexer.getIndex()));
+	}
+
+	default String evaluate(ExprTuple tuple) {
+		String fn = backend().tuples().utils().constructor((TupleType) types().type(tuple));
+		List<String> parameters = new ArrayList<>();
+		for (Expression parameter : tuple.getElements()) {
+			parameters.add(evaluate(parameter));
+		}
+		String result = variables().generateTemp();
+		String decl = declaration(types().type(tuple), result);
+		trackable().track(result, types().type(tuple));
+		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
+		return result;
+	}
+
+	default String evaluate(ExprNth nth) {
+		return String.format("%s->%s", evaluate(nth.getStructure()), "_" + nth.getNth().getNumber());
 	}
 
 	default String evaluate(ExprIf expr) {
 		Type type = types().type(expr);
 		String temp = variables().generateTemp();
-		if (type instanceof AlgebraicType) {
-			memoryStack().trackPointer(temp, type);
-		}
+		trackable().track(temp, type);
 		String decl = declaration(type, temp);
 		emitter().emit("%s = %s;", decl, backend().defaultValues().defaultValue(type));
 		emitter().emit("if (%s) {", evaluate(expr.getCondition()));
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		Type thenType = types().type(expr.getThenExpr());
 		String thenValue = evaluate(expr.getThenExpr());
 		copy(type, temp, thenType, thenValue);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("} else {");
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		Type elseType = types().type(expr.getElseExpr());
 		String elseValue = evaluate(expr.getElseExpr());
 		copy(type, temp, elseType, elseValue);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 		return temp;
@@ -486,9 +1065,7 @@ public interface Code {
 		Type type = types().type(apply);
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		if ((type instanceof AlgebraicType) || (isAlgebraicTypeList(type))) {
-			memoryStack().trackPointer(result, type);
-		}
+		trackable().track(result, type);
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
 		return result;
 	}
@@ -539,7 +1116,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprTypeConstruction construction) {
-		String fn = backend().algebraicTypes().constructor(construction.getConstructor());
+		String fn = backend().algebraic().utils().constructor(construction.getConstructor());
 		List<String> parameters = new ArrayList<>();
 		for (Expression parameter : construction.getArgs()) {
 			parameters.add(evaluate(parameter));
@@ -547,7 +1124,7 @@ public interface Code {
 		String result = variables().generateTemp();
 		String decl = declaration(types().type(construction), result);
 		emitter().emit("%s = %s(%s);", decl, fn, String.join(", ", parameters));
-		memoryStack().trackPointer(result, types().type(construction));
+		trackable().track(result, types().type(construction));
 		return result;
 	}
 
@@ -555,7 +1132,7 @@ public interface Code {
 		Type type = types().type(assertion.getType());
 		String result = variables().generateTemp();
 		String decl = declaration(type, result);
-		emitter().emit("%s = (%s)(%s);", decl, type(type) + (type instanceof AlgebraicType ? "*" : ""), evaluate(assertion.getExpression()));
+		emitter().emit("%s = (%s)(%s);", decl, type(type) + (type instanceof AlgebraicType || backend().alias().isAlgebraicType(type) ? "*" : ""), evaluate(assertion.getExpression()));
 		return result;
 	}
 
@@ -564,7 +1141,7 @@ public interface Code {
 	}
 
 	default String evaluate(ExprCase caseExpr) {
-		return backend().patternMatching().evaluate(caseExpr);
+		return backend().patmat().evaluate(caseExpr);
 	}
 
 	void execute(Statement stmt);
@@ -599,54 +1176,52 @@ public interface Code {
 	}
 
 	default void execute(StmtAssignment assign) {
-		memoryStack().enterScope();
-		Type type = types().lvalueType(assign.getLValue());
+		trackable().enter();
+		Type type = types().type(assign.getLValue());
 		String lvalue = lvalue(assign.getLValue());
 		copy(type, lvalue, types().type(assign.getExpression()), evaluate(assign.getExpression()));
-		memoryStack().exitScope();
+		trackable().exit();
 	}
 
 	default void execute(StmtBlock block) {
 		emitter().emit("{");
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		backend().callables().declareEnvironmentForCallablesInScope(block);
 		for (VarDecl decl : block.getVarDecls()) {
 			Type t = types().declaredType(decl);
 			String declarationName = variables().declarationName(decl);
 			String d = declaration(t, declarationName);
-			if (t instanceof AlgebraicType) {
-				memoryStack().trackPointer(declarationName, t);
-			}
+			trackable().track(declarationName, t);
 			emitter().emit("%s = %s;", d, backend().defaultValues().defaultValue(t));
 			if (decl.getValue() != null) {
 				copy(t, declarationName, types().type(decl.getValue()), evaluate(decl.getValue()));
 			}
 		}
 		block.getStatements().forEach(this::execute);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
 
 	default void execute(StmtIf stmt) {
-		memoryStack().enterScope();
+		trackable().enter();
 		emitter().emit("if (%s) {", evaluate(stmt.getCondition()));
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		stmt.getThenBranch().forEach(this::execute);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		if (stmt.getElseBranch() != null) {
 			emitter().emit("} else {");
 			emitter().increaseIndentation();
-			memoryStack().enterScope();
+			trackable().enter();
 			stmt.getElseBranch().forEach(this::execute);
-			memoryStack().exitScope();
+			trackable().exit();
 			emitter().decreaseIndentation();
 		}
 		emitter().emit("}");
-		memoryStack().exitScope();
+		trackable().exit();
 	}
 
 	default void execute(StmtForeach foreach) {
@@ -654,11 +1229,11 @@ public interface Code {
 			for (Expression filter : foreach.getFilters()) {
 				emitter().emit("if (%s) {", evaluate(filter));
 				emitter().increaseIndentation();
-				memoryStack().enterScope();
+				trackable().enter();
 			}
 			foreach.getBody().forEach(this::execute);
 			for (Expression filter : foreach.getFilters()) {
-				memoryStack().exitScope();
+				trackable().exit();
 				emitter().decreaseIndentation();
 				emitter().emit("}");
 			}
@@ -666,7 +1241,7 @@ public interface Code {
 	}
 
 	default void execute(StmtCall call) {
-		memoryStack().enterScope();
+		trackable().enter();
 		Optional<String> directlyCallable = backend().callables().directlyCallableName(call.getProcedure());
 		String proc;
 		List<String> parameters = new ArrayList<>();
@@ -684,22 +1259,22 @@ public interface Code {
 			parameters.add(passByValue(param, type));
 		}
 		emitter().emit("%s(%s);", proc, String.join(", ", parameters));
-		memoryStack().exitScope();
+		trackable().exit();
 	}
 
 	default void execute(StmtWhile stmt) {
 		emitter().emit("while (true) {");
 		emitter().increaseIndentation();
-		memoryStack().enterScope();
+		trackable().enter();
 		emitter().emit("if (!%s) break;", evaluate(stmt.getCondition()));
 		stmt.getBody().forEach(this::execute);
-		memoryStack().exitScope();
+		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
 	}
 
 	default void execute(StmtCase caseStmt) {
-		backend().patternMatching().execute(caseStmt);
+		backend().patmat().execute(caseStmt);
 	}
 
 	String lvalue(LValue lvalue);
@@ -713,11 +1288,37 @@ public interface Code {
 	}
 
 	default String lvalue(LValueIndexer indexer) {
+		return lvalueIndexing(types().type(indexer.getStructure()), indexer);
+	}
+
+	String lvalueIndexing(Type type, LValueIndexer indexer);
+	default String lvalueIndexing(ListType type, LValueIndexer indexer) {
 		return String.format("%s.data[%s]", lvalue(indexer.getStructure()), evaluate(indexer.getIndex()));
+	}
+
+	default String lvalueIndexing(MapType type, LValueIndexer indexer) {
+		String index = variables().generateTemp();
+		String map = lvalue(indexer.getStructure());
+		String key = evaluate(indexer.getIndex());
+		emitter().emit("size_t %s;", index);
+		emitter().emit("for (%1$s = 0; %1$s < %2$s.size; %1$s++) {", index, map);
+		emitter().increaseIndentation();
+		emitter().emit("if (%s) break;", compare(type.getKeyType(), key, type.getValueType(), String.format("%s.data[%s].key", map, index)));
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+		return String.format("%s.data[%s].value", map, index);
+	}
+
+	default String lvalueIndexing(StringType type, LValueIndexer indexer) {
+		return String.format("%s[%s]", lvalue(indexer.getStructure()), evaluate(indexer.getIndex()));
 	}
 
 	default String lvalue(LValueField field) {
 		return String.format("%s->%s", lvalue(field.getStructure()), field.getField().getName());
+	}
+
+	default String lvalue(LValueNth nth) {
+		return String.format("%s->%s", lvalue(nth.getStructure()), "_" + nth.getNth().getNumber());
 	}
 
 	default String passByValue(String param, Type type) {
@@ -728,7 +1329,7 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
 		copy(type, tmp, type, param);
-		memoryStack().trackPointer(tmp, type);
+		trackable().track(tmp, type);
 		return tmp;
 	}
 
@@ -739,8 +1340,16 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
 		copy(type, tmp, type, param);
-		memoryStack().trackPointer(tmp, type);
+		trackable().track(tmp, type);
 		return tmp;
+	}
+
+	default String passByValue(String param, TupleType type) {
+		return passByValue(param, backend().tuples().convert().apply(type));
+	}
+
+	default String passByValue(String param, AliasType type) {
+		return passByValue(param, type.getConcreteType());
 	}
 
 	default String returnValue(String result, Type type) {
@@ -762,5 +1371,13 @@ public interface Code {
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
 		copy(type, tmp, type, result);
 		return tmp;
+	}
+
+	default String returnValue(String result, TupleType type) {
+		return returnValue(result, backend().tuples().convert().apply(type));
+	}
+
+	default String returnValue(String result, AliasType type) {
+		return returnValue(result, type.getConcreteType());
 	}
 }

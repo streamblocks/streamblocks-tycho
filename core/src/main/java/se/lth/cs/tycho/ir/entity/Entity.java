@@ -3,6 +3,7 @@ package se.lth.cs.tycho.ir.entity;
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -15,10 +16,10 @@ public abstract class Entity extends AbstractIRNode {
 	protected final ImmutableList<Annotation> annotations;
 	protected final ImmutableList<PortDecl> inputPorts;
 	protected final ImmutableList<PortDecl> outputPorts;
-	protected final ImmutableList<TypeDecl> typeParameters;
+	protected final ImmutableList<ParameterTypeDecl> typeParameters;
 	protected final ImmutableList<ParameterVarDecl> valueParameters;
 
-	public Entity(IRNode original, List<Annotation> annotations,  List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<TypeDecl> typeParameters, List<ParameterVarDecl> valueParameters) {
+	public Entity(IRNode original, List<Annotation> annotations,  List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters) {
 		super(original);
 		this.annotations =  ImmutableList.from(annotations);
 		this.inputPorts = ImmutableList.from(inputPorts);
@@ -47,7 +48,7 @@ public abstract class Entity extends AbstractIRNode {
 		throw new UnsupportedOperationException("Not yet implemented.");
 	}
 
-	public ImmutableList<TypeDecl> getTypeParameters() {
+	public ImmutableList<ParameterTypeDecl> getTypeParameters() {
 		return typeParameters;
 	}
 

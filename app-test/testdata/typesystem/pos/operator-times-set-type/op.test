@@ -1,0 +1,5 @@
+{
+    "description": "Test * (intersection) operator on set type",
+    "source-paths": ["src"],
+    "entity": "op.SetIntersection"
+}

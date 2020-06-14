@@ -1,0 +1,5 @@
+{
+    "description": "Test type construction of set type",
+    "source-paths": ["src"],
+    "entity": "cons.SetType"
+}

@@ -1,4 +1,4 @@
 Warning in "testdata/typesystem/pos/pattern-matching-analysis-unreachability-structural/src/patmat.cal" on line 8:
-                '(1 + 2) : 3 end
+                `(1 + 2) : 3 end
                 ^^^^^^^^
 Unreachable alternative.

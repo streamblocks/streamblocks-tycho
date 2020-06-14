@@ -3,8 +3,8 @@ namespace patmat:
         int n := 0;
         do
             OUT <-- case n of
-                k @ '(1 + 2) guard k > 2 : k + 1 end
-                _ @ '(1 + 2 + 3) : 0 end
+                k as `(1 + 2) guard k > 2 : k + 1 end
+                _ as `(1 + 2 + 3) : 0 end
                 _ : -1 end
             end;
         end

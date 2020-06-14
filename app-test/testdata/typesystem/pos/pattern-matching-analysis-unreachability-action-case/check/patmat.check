@@ -1,0 +1,4 @@
+Warning in "testdata/typesystem/pos/pattern-matching-analysis-unreachability-action-case/src/patmat.cal" on line 15:
+                X:[B(A)], Y:[U(2, false)] ==>
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+Unreachable action.

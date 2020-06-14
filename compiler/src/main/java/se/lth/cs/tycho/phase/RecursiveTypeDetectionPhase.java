@@ -10,11 +10,13 @@ import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
+import se.lth.cs.tycho.ir.decl.AliasTypeDecl;
+import se.lth.cs.tycho.ir.decl.Decl;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -24,6 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 public class RecursiveTypeDetectionPhase implements Phase {
 
@@ -54,6 +58,26 @@ public class RecursiveTypeDetectionPhase implements Phase {
 
 		@Binding(BindingKind.INJECTED)
 		Reporter reporter();
+
+		@Binding(BindingKind.LAZY)
+		default TypeDecl primitive() {
+			return new TypeDecl(null, "primitive") {
+				@Override
+				public Decl withName(String name) {
+					return this;
+				}
+
+				@Override
+				public Decl transformChildren(Transformation transformation) {
+					return this;
+				}
+
+				@Override
+				public void forEachChild(Consumer<? super IRNode> action) {
+
+				}
+			};
+		}
 
 		default void check(IRNode node) {
 			checkDeclaration(node);
@@ -101,20 +125,24 @@ public class RecursiveTypeDetectionPhase implements Phase {
 		default int[][] graph(ImmutableList<TypeDecl> declarations, Map<TypeDecl, Integer> TypeDeclToInteger) {
 			int[][] graph = new int[declarations.size()][declarations.size()];
 			declarations.forEach(declaration -> {
-				AlgebraicTypeDecl algebraicTypeDecl = ((GlobalTypeDecl) declaration).getDeclaration();
-				if (algebraicTypeDecl instanceof ProductTypeDecl) {
-					((ProductTypeDecl) algebraicTypeDecl).getFields().forEach(field -> {
-						typeScopes().declaration(field.getType()).ifPresent(decl -> {
+				GlobalTypeDecl typeDecl = (GlobalTypeDecl) declaration;
+				if (typeDecl instanceof ProductTypeDecl) {
+					((ProductTypeDecl) typeDecl).getFields().forEach(field -> {
+						declaration(field.getType()).ifPresent(decl -> {
 							graph[TypeDeclToInteger.get(declaration)][TypeDeclToInteger.get(decl)] = 1;
 						});
 					});
-				} else if (algebraicTypeDecl instanceof SumTypeDecl) {
-					((SumTypeDecl) algebraicTypeDecl).getVariants().forEach(variant -> {
+				} else if (typeDecl instanceof SumTypeDecl) {
+					((SumTypeDecl) typeDecl).getVariants().forEach(variant -> {
 						variant.getFields().forEach(field -> {
-							typeScopes().declaration(field.getType()).ifPresent(decl -> {
+							declaration(field.getType()).ifPresent(decl -> {
 								graph[TypeDeclToInteger.get(declaration)][TypeDeclToInteger.get(decl)] = 1;
 							});
 						});
+					});
+				} else if (typeDecl instanceof AliasTypeDecl) {
+					declaration(((AliasTypeDecl) typeDecl).getType()).ifPresent(decl -> {
+						graph[TypeDeclToInteger.get(declaration)][TypeDeclToInteger.get(decl)] = 1;
 					});
 				}
 			});
@@ -143,6 +171,14 @@ public class RecursiveTypeDetectionPhase implements Phase {
 			blacklist.add(current);
 
 			return false;
+		}
+
+		default Optional<TypeDecl> declaration(TypeExpr type) {
+			Optional<TypeDecl> decl = typeScopes().declaration(type);
+			if (decl.isPresent() && decl.get() instanceof AliasTypeDecl && ((AliasTypeDecl) decl.get()).getType() != type) {
+				return declaration(((AliasTypeDecl) decl.get()).getType());
+			}
+			return decl;
 		}
 
 		default SourceUnit sourceUnit(IRNode node) {

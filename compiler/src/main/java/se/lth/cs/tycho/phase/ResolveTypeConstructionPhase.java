@@ -9,7 +9,6 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
-import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
@@ -51,22 +50,22 @@ public class ResolveTypeConstructionPhase implements Phase {
 					.construction(application.getFunction())
 					.map(decl -> {
 						String constructor = decl.getName();
-						AlgebraicTypeDecl algebraicTypeDecl = ((GlobalTypeDecl) decl).getDeclaration();
+						AlgebraicTypeDecl algebraicTypeDecl = (AlgebraicTypeDecl) decl;
 						if (algebraicTypeDecl instanceof SumTypeDecl) {
 							constructor = ((SumTypeDecl) algebraicTypeDecl).getVariants().stream().filter(variant -> Objects.equals(variant.getName(), ((ExprVariable) application.getFunction()).getVariable().getName())).findAny().get().getName();
 						}
-						return (IRNode) new ExprTypeConstruction(application, constructor, application.getArgs().stream().map(arg -> (Expression) apply(arg)).collect(Collectors.toList()));
+						return (IRNode) new ExprTypeConstruction(application, constructor, Collections.emptyList(), Collections.emptyList(), application.getArgs().stream().map(arg -> (Expression) apply(arg)).collect(Collectors.toList()));
 					})
-					.orElse(application);
+					.orElse(application.transformChildren(this));
 		}
 
 		default IRNode apply(ExprVariable variable) {
 			return typeScopes()
 					.construction(variable)
-					.filter(decl -> ((GlobalTypeDecl) decl).getDeclaration() instanceof SumTypeDecl)
+					.filter(SumTypeDecl.class::isInstance)
 					.map(decl -> {
-						SumTypeDecl sum = (SumTypeDecl) ((GlobalTypeDecl) decl).getDeclaration();
-						return (IRNode) new ExprTypeConstruction(variable, sum.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), variable.getVariable().getName())).findAny().get().getName(), Collections.emptyList());
+						SumTypeDecl sum = (SumTypeDecl) decl;
+						return (IRNode) new ExprTypeConstruction(variable, sum.getVariants().stream().filter(variant -> Objects.equals(variant.getName(), variable.getVariable().getName())).findAny().get().getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 					})
 					.orElse(variable);
 		}

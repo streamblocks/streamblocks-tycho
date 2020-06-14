@@ -2,7 +2,7 @@ package se.lth.cs.tycho.type;
 
 import java.util.Objects;
 
-public final class RealType implements Type {
+public final class RealType implements NumberType {
 	private final int size;
 
 	public static final RealType f32 = new RealType(32);

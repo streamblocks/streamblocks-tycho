@@ -1,0 +1,5 @@
+{
+    "description": "Test type definition of procedure type",
+    "source-paths": ["src"],
+    "entity": "typedef.ProcedureType"
+}

@@ -1,0 +1,5 @@
+{
+    "description": "Test type definition of function type",
+    "source-paths": ["src"],
+    "entity": "typedef.FunctionType"
+}

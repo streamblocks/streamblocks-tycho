@@ -1,0 +1,8 @@
+namespace op:
+    actor SetMembership() ==> bool OUT:
+        Set(type:int) xs;
+        do
+            OUT <-- 1 in xs;
+        end
+    end
+end

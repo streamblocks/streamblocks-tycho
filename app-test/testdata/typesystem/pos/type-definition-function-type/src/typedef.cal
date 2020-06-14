@@ -1,0 +1,8 @@
+namespace typedef:
+    actor FunctionType() ==> int OUT:
+        [int --> int] f := lambda (int n) --> int : n + 1 end;
+        do
+            OUT <-- f(1);
+        end
+    end
+end

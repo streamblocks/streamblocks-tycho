@@ -129,9 +129,9 @@ public interface Callables {
 	default void declareCallableFatPointerType(CallableType type) {
 		String name = mangle(type).encode();
 		String returnType = backend().code().type(type.getReturnType());
-		if (type.getReturnType() instanceof AlgebraicType) returnType += "*";
+		if (type.getReturnType() instanceof AlgebraicType || backend().alias().isAlgebraicType(type.getReturnType())) returnType += "*";
 		Stream<String> parameterStream = type.getParameterTypes().stream()
-				.map(tpe -> backend().code().type(tpe) + (tpe instanceof AlgebraicType ? "*" : ""));
+				.map(tpe -> backend().code().type(tpe) + (tpe instanceof AlgebraicType || backend().alias().isAlgebraicType(tpe) ? "*" : ""));
 		String parameters = Stream.concat(Stream.of("void *restrict"), parameterStream).collect(Collectors.joining(", "));
 		backend().emitter().emit("typedef struct {");
 		backend().emitter().increaseIndentation();
@@ -167,9 +167,21 @@ public interface Callables {
 		return name("bool");
 	}
 
+	default NameExpression mangle(CharType type) {
+		return name("char");
+	}
+
 	default NameExpression mangle(ListType type) {
 		String size = type.getSize().isPresent() ? Integer.toString(type.getSize().getAsInt()) : "X";
 		return seq(name("list"), mangle(type.getElementType()), name(size));
+	}
+
+	default NameExpression mangle(SetType type) {
+		return seq(name("set"), mangle(type.getElementType()));
+	}
+
+	default NameExpression mangle(MapType type) {
+		return seq(name("map"), mangle(type.getKeyType()), mangle(type.getValueType()));
 	}
 
 	default NameExpression mangle(IntType type) {
@@ -193,7 +205,11 @@ public interface Callables {
 	}
 
 	default NameExpression mangle(AlgebraicType type) {
-		return name(backend().algebraicTypes().type(type));
+		return name(backend().algebraic().utils().name(type));
+	}
+
+	default NameExpression mangle(AliasType type) {
+		return mangle(type.getConcreteType());
 	}
 
 	// function prototype
@@ -241,10 +257,10 @@ public interface Callables {
 		backend().emitter().increaseIndentation();
 		lambda.forEachChild(this::declareEnvironmentForCallablesInScope);
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 		Type retType = backend().types().type(lambda.getReturnType());
 		String result = backend().code().returnValue(backend().code().evaluate(lambda.getBody()), retType);
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		backend().emitter().emit("return %s;", result);
 		backend().emitter().decreaseIndentation();
 		backend().emitter().emit("}");
@@ -256,9 +272,9 @@ public interface Callables {
 		backend().emitter().increaseIndentation();
 		proc.forEachChild(this::declareEnvironmentForCallablesInScope);
 		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
-		backend().memoryStack().enterScope();
+		backend().trackable().enter();
 		proc.getBody().forEach(backend().code()::execute);
-		backend().memoryStack().exitScope();
+		backend().trackable().exit();
 		backend().emitter().decreaseIndentation();
 		backend().emitter().emit("}");
 	}
@@ -413,7 +429,7 @@ public interface Callables {
 			parameters.add(backend().code().declaration(type.getParameterTypes().get(i), parameterNames.get(i)));
 		}
 		String result = backend().code().type(type.getReturnType());
-		if (type.getReturnType() instanceof AlgebraicType) result += "*";
+		if (type.getReturnType() instanceof AlgebraicType || backend().alias().isAlgebraicType(type.getReturnType())) result += "*";
 		result += " ";
 		result += name;
 		result += "(";

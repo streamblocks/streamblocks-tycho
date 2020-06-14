@@ -1,0 +1,5 @@
+{
+    "description": "Test size operator on map type",
+    "source-paths": ["src"],
+    "entity": "op.MapSize"
+}

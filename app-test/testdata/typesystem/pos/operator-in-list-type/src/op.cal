@@ -1,0 +1,8 @@
+namespace op:
+    actor ListMembership() ==> bool OUT:
+        List(type:uint, size=5) xs;
+        do
+            OUT <-- 1 in xs;
+        end
+    end
+end

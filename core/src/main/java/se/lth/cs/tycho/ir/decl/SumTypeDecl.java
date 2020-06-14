@@ -53,12 +53,12 @@ public class SumTypeDecl extends AlgebraicTypeDecl {
 
 	private ImmutableList<VariantDecl> variants;
 
-	public SumTypeDecl(String name, List<VariantDecl> variants) {
-		this(null, name, variants);
+	public SumTypeDecl(String name, Availability availability, List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<VariantDecl> variants) {
+		this(null, name, availability, typeParameters, valueParameters, variants);
 	}
 
-	private SumTypeDecl(AbstractDecl original, String name, List<VariantDecl> variants) {
-		super(original, name);
+	public SumTypeDecl(TypeDecl original, String name, Availability availability, List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<VariantDecl> variants) {
+		super(original, name, availability, typeParameters, valueParameters);
 		this.variants = ImmutableList.from(variants);
 	}
 
@@ -66,26 +66,43 @@ public class SumTypeDecl extends AlgebraicTypeDecl {
 		return variants;
 	}
 
-	public SumTypeDecl copy(String name, List<VariantDecl> types) {
-		if (Objects.equals(getName(), name) && Lists.sameElements(getVariants(), types)) {
+	public SumTypeDecl copy(String name, Availability availability, List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<VariantDecl> variants) {
+		if (Objects.equals(getName(), name) && Objects.equals(getAvailability(), availability) && Lists.sameElements(getValueParameters(), valueParameters) && Lists.sameElements(getTypeParameters(), typeParameters) && Lists.sameElements(getVariants(), variants)) {
 			return this;
 		} else {
-			return new SumTypeDecl(this, name, types);
+			return new SumTypeDecl(this, name, availability, typeParameters, valueParameters, variants);
 		}
 	}
 
 	@Override
 	public Decl withName(String name) {
-		return copy(name, getVariants());
+		return copy(name, getAvailability(), getTypeParameters(), getValueParameters(), getVariants());
+	}
+
+	@Override
+	public AlgebraicTypeDecl withTypeParameters(List<ParameterTypeDecl> typeParameters) {
+		return copy(getName(), getAvailability(), typeParameters, getValueParameters(), getVariants());
+	}
+
+	@Override
+	public AlgebraicTypeDecl withValueParameters(List<ParameterVarDecl> valueParameters) {
+		return copy(getName(), getAvailability(), getTypeParameters(), valueParameters, getVariants());
+	}
+
+	@Override
+	public GlobalDecl withAvailability(Availability availability) {
+		return copy(getName(), availability, getTypeParameters(), getValueParameters(), getVariants());
 	}
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
-		variants.forEach(action);
+		getVariants().forEach(action);
+		getValueParameters().forEach(action);
+		getTypeParameters().forEach(action);
 	}
 
 	@Override
 	public Decl transformChildren(Transformation transformation) {
-		return copy(getName(), transformation.mapChecked(VariantDecl.class, variants));
+		return copy(getName(), getAvailability(), transformation.mapChecked(ParameterTypeDecl.class, getTypeParameters()), transformation.mapChecked(ParameterVarDecl.class, getValueParameters()), transformation.mapChecked(VariantDecl.class, variants));
 	}
 }

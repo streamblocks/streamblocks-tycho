@@ -1,0 +1,5 @@
+{
+    "description": "Test type definition of tuple type",
+    "source-paths": ["src"],
+    "entity": "typedef.TupleType"
+}

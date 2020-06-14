@@ -1,0 +1,8 @@
+namespace op:
+    actor MapDomain() ==> Set(type:int) OUT:
+        Map(key:int, value:char) xs;
+        do
+            OUT <-- dom xs;
+        end
+    end
+end

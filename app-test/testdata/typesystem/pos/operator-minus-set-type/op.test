@@ -1,0 +1,5 @@
+{
+    "description": "Test - (difference) operator on set type",
+    "source-paths": ["src"],
+    "entity": "op.SetDifference"
+}
