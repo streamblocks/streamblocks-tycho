@@ -112,6 +112,7 @@ public interface Maps {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("serialization").to(backend().serialization())
 				.instance();
 	}
 
@@ -123,6 +124,7 @@ public interface Maps {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("serialization").to(backend().serialization())
 				.instance();
 	}
 
@@ -134,6 +136,7 @@ public interface Maps {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("sizeof").to(backend().sizeof())
 				.instance();
 	}
 
@@ -476,6 +479,8 @@ public interface Maps {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		Serialization serialization();
 
 		default void prototype(MapType type) {
 			emitter().emit("void write_%1$s(const %1$s* self, char* buffer);", utils().name(type));
@@ -483,7 +488,6 @@ public interface Maps {
 		}
 
 		default void definition(MapType type) {
-			// FIXME support for all types; works only for primitive types
 			emitter().emit("void write_%1$s(const %1$s* self, char* buffer) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL || buffer == NULL) return;");
@@ -492,10 +496,8 @@ public interface Maps {
 			emitter().emit("ptr = (char*)((size_t*) ptr + 1);");
 			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("*(%s*) ptr = self->data[i].key;", code().type(type.getKeyType()));
-			emitter().emit("ptr = (char*)((%s*) ptr + 1);", code().type(type.getKeyType()));
-			emitter().emit("*(%s*) ptr = self->data[i].value;", code().type(type.getValueType()));
-			emitter().emit("ptr = (char*)((%s*) ptr + 1);", code().type(type.getValueType()));
+			serialization().write(type.getKeyType(), "self->data[i].key", "ptr");
+			serialization().write(type.getValueType(), "self->data[i].value", "ptr");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().decreaseIndentation();
@@ -517,6 +519,8 @@ public interface Maps {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		Serialization serialization();
 
 		default void prototype(MapType type) {
 			emitter().emit("%s read_%1$s(char* buffer);", utils().name(type));
@@ -524,7 +528,6 @@ public interface Maps {
 		}
 
 		default void definition(MapType type) {
-			// FIXME support for all types; works only for primitive types
 			emitter().emit("%s read_%1$s(char* buffer) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("%s result = %s;", utils().name(type), backend().defaultValues().defaultValue(type));
@@ -536,10 +539,8 @@ public interface Maps {
 			emitter().emit("result.data = result.size == 0 ? NULL : calloc(result.capacity, sizeof(%s));", utils().entry(type));
 			emitter().emit("for (size_t i = 0; i < result.size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("result.data[i].key = *(%s*) ptr;", code().type(type.getKeyType()));
-			emitter().emit("ptr = (char*)((%s*) ptr + 1);", code().type(type.getKeyType()));
-			emitter().emit("result.data[i].value = *(%s*) ptr;", code().type(type.getValueType()));
-			emitter().emit("ptr = (char*)((%s*) ptr + 1);", code().type(type.getValueType()));
+			serialization().read(type.getKeyType(), "result.data[i].key", "ptr");
+			serialization().read(type.getValueType(), "result.data[i].value", "ptr");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("return result;");
@@ -562,6 +563,8 @@ public interface Maps {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		SizeOf sizeof();
 
 		default void prototype(MapType type) {
 			emitter().emit("size_t size_%1$s(const %1$s* self);", utils().name(type));
@@ -572,7 +575,15 @@ public interface Maps {
 			emitter().emit("size_t size_%1$s(const %1$s* self) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return 0;");
-			emitter().emit("return sizeof(self->size) + (self->size * sizeof(self->data[0]));");
+			emitter().emit("size_t size = 0;");
+			emitter().emit("size += self->size;");
+			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
+			emitter().increaseIndentation();
+			emitter().emit("size += %s;", sizeof().evaluate(type.getKeyType(), "self->data[i].key"));
+			emitter().emit("size += %s;", sizeof().evaluate(type.getValueType(), "self->data[i].value"));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("return size;");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");

@@ -99,6 +99,7 @@ public interface Algebraic {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("serialization").to(backend().serialization())
 				.instance();
 	}
 
@@ -110,6 +111,7 @@ public interface Algebraic {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("serialization").to(backend().serialization())
 				.instance();
 	}
 
@@ -121,6 +123,7 @@ public interface Algebraic {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("sizeof").to(backend().sizeof())
 				.instance();
 	}
 
@@ -470,6 +473,8 @@ public interface Algebraic {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		Serialization serialization();
 
 		void prototype(AlgebraicType type);
 
@@ -493,16 +498,7 @@ public interface Algebraic {
 			emitter().emit("if (!%s || !buffer) return;", self);
 			emitter().emit("char *%s = buffer;", ptr);
 			product.getFields().forEach(field -> {
-				if (field.getType() instanceof AlgebraicType) {
-					emitter().emit("write_%s_t(%s->%s, %s);", utils().mangle(((AlgebraicType) field.getType()).getName()), self, field.getName(), ptr);
-					emitter().emit("%s += size_%s_t(%s->%s);", ptr, utils().mangle(((AlgebraicType) field.getType()).getName()), self, field.getName());
-				} else if (alias().isAlgebraicType(field.getType())) {
-					emitter().emit("write_%s_t(%s->%s, %s);", utils().mangle(((AlgebraicType) (((AliasType) field.getType()).getConcreteType())).getName()), self, field.getName(), ptr);
-					emitter().emit("%s += size_%s_t(%s->%s);", ptr, utils().mangle(((AlgebraicType) (((AliasType) field.getType()).getConcreteType())).getName()), self, field.getName());
-				} else {
-					emitter().emit("*(%s*) %s = %s->%s;", code().type(field.getType()), ptr, self, field.getName());
-					emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
-				}
+				serialization().write(field.getType(), String.format("%s->%s", self, field.getName()), ptr);
 			});
 			emitter().decreaseIndentation();
 			emitter().emit("}");
@@ -524,16 +520,7 @@ public interface Algebraic {
 				emitter().emit("case tag_%s_%s:", utils().mangle(sum.getName()), utils().mangle(variant.getName()));
 				emitter().increaseIndentation();
 				variant.getFields().forEach(field -> {
-					if (field.getType() instanceof AlgebraicType) {
-						emitter().emit("write_%s_t(%s->data.%s.%s, %s);", utils().mangle(((AlgebraicType) field.getType()).getName()), self, utils().mangle(variant.getName()), field.getName(), ptr);
-						emitter().emit("%s += size_%s_t(%s->data.%s.%s);", ptr, utils().mangle(((AlgebraicType) field.getType()).getName()), self, utils().mangle(variant.getName()), field.getName());
-					} else if (alias().isAlgebraicType(field.getType())) {
-						emitter().emit("write_%s_t(%s->data.%s.%s, %s);", utils().mangle(((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName()), self, utils().mangle(variant.getName()), field.getName(), ptr);
-						emitter().emit("%s += size_%s_t(%s->data.%s.%s);", ptr, utils().mangle(((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName()), self, utils().mangle(variant.getName()), field.getName());
-					} else {
-						emitter().emit("*(%s*) %s = %s->data.%s.%s;", code().type(field.getType()), ptr, self, utils().mangle(variant.getName()), field.getName());
-						emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
-					}
+					serialization().write(field.getType(), String.format("%s->data.%s.%s", self, utils().mangle(variant.getName()), field.getName()), ptr);
 				});
 				emitter().emit("break;");
 				emitter().decreaseIndentation();
@@ -559,6 +546,8 @@ public interface Algebraic {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		Serialization serialization();
 
 		void prototype(AlgebraicType type);
 
@@ -584,16 +573,7 @@ public interface Algebraic {
 			emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, self), utils().mangle(product.getName()));
 			emitter().emit("if (!%s) return NULL;", self);
 			product.getFields().forEach(field -> {
-				if (field.getType() instanceof AlgebraicType) {
-					emitter().emit("%s->%s = read_%s_t(%s);", self, field.getName(), utils().mangle(((AlgebraicType) field.getType()).getName()), ptr);
-					emitter().emit("%s += size_%s_t(%s->%s);", ptr, utils().mangle(((AlgebraicType) field.getType()).getName()), self, field.getName());
-				} else if (alias().isAlgebraicType(field.getType())) {
-					emitter().emit("%s->%s = read_%s_t(%s);", self, field.getName(), utils().mangle(((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName()), ptr);
-					emitter().emit("%s += size_%s_t(%s->%s);", ptr, utils().mangle(((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName()), self, field.getName());
-				} else {
-					emitter().emit("%s->%s = *(%s*) %s;", self, field.getName(), code().type(field.getType()), ptr);
-					emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
-				}
+				serialization().read(field.getType(), String.format("%s->%s", self, field.getName()), ptr);
 			});
 			emitter().emit("return %s;", self);
 			emitter().decreaseIndentation();
@@ -618,16 +598,7 @@ public interface Algebraic {
 				emitter().emit("case tag_%s_%s:", utils().mangle(sum.getName()), utils().mangle(variant.getName()));
 				emitter().increaseIndentation();
 				variant.getFields().forEach(field -> {
-					if (field.getType() instanceof AlgebraicType) {
-						emitter().emit("%s->data.%s.%s = read_%s_t(%s);", self, utils().mangle(variant.getName()), field.getName(), utils().mangle(((AlgebraicType) field.getType()).getName()), ptr);
-						emitter().emit("%s += size_%s_t(%s->data.%s.%s);", ptr, utils().mangle(((AlgebraicType) field.getType()).getName()), self, utils().mangle(variant.getName()), field.getName());
-					} else if (alias().isAlgebraicType(field.getType())) {
-						emitter().emit("%s->data.%s.%s = read_%s_t(%s);", self, utils().mangle(variant.getName()), field.getName(), utils().mangle(((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName()), ptr);
-						emitter().emit("%s += size_%s_t(%s->data.%s.%s);", ptr, utils().mangle(((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName()), self, utils().mangle(variant.getName()), field.getName());
-					} else {
-						emitter().emit("%s->data.%s.%s = *(%s*) %s;", self, utils().mangle(variant.getName()), field.getName(), code().type(field.getType()), ptr);
-						emitter().emit("%s = (char*)((%s*) %s + 1);", ptr, code().type(field.getType()), ptr);
-					}
+					serialization().read(field.getType(), String.format("%s->data.%s.%s", self, utils().mangle(variant.getName()), field.getName()), ptr);
 				});
 				emitter().emit("break;");
 				emitter().decreaseIndentation();
@@ -654,6 +625,8 @@ public interface Algebraic {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		SizeOf sizeof();
 
 		void prototype(AlgebraicType type);
 
@@ -677,13 +650,7 @@ public interface Algebraic {
 			emitter().emit("if (!%s) return 0;", self);
 			emitter().emit("size_t %s = 0;", size);
 			product.getFields().forEach(field -> {
-				if (field.getType() instanceof AlgebraicType) {
-					emitter().emit("%s += size_%s_t(%s->%s);", size, utils().mangle(((AlgebraicType) field.getType()).getName()), self, field.getName());
-				} else if (alias().isAlgebraicType(field.getType())) {
-					emitter().emit("%s += size_%s_t(%s->%s);", size, utils().mangle(((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName()), self, field.getName());
-				} else{
-					emitter().emit("%s += sizeof(%s);", size, code().type(field.getType()));
-				}
+				emitter().emit("%s += %s;", size, sizeof().evaluate(field.getType(), String.format("%s->%s", self, field.getName())));
 			});
 			emitter().emit("return %s;", size);
 			emitter().decreaseIndentation();
@@ -705,13 +672,7 @@ public interface Algebraic {
 				emitter().emit("case tag_%s_%s:", utils().mangle(sum.getName()), utils().mangle(variant.getName()));
 				emitter().increaseIndentation();
 				variant.getFields().forEach(field -> {
-					if (field.getType() instanceof AlgebraicType) {
-						emitter().emit("%s += size_%s_t(%s->data.%s.%s);", size, utils().mangle(((AlgebraicType) field.getType()).getName()), self, utils().mangle(variant.getName()), field.getName());
-					} else if (alias().isAlgebraicType(field.getType())) {
-						emitter().emit("%s += size_%s_t(%s->data.%s.%s);", size, utils().mangle(((AlgebraicType) ((AliasType) field.getType()).getConcreteType()).getName()), self, utils().mangle(variant.getName()), field.getName());
-					} else {
-						emitter().emit("%s += sizeof(%s);", size, code().type(field.getType()));
-					}
+					emitter().emit("%s += %s;", size, sizeof().evaluate(field.getType(), String.format("%s->data.%s.%s", self, utils().mangle(variant.getName()), field.getName())));
 				});
 				emitter().emit("break;");
 				emitter().decreaseIndentation();

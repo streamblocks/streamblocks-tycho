@@ -129,4 +129,10 @@ public interface Backend {
 	@Binding(LAZY) default Trackable trackable() {
 		return MultiJ.from(Trackable.class).bind("backend").to(this).instance();
 	}
+	@Binding(LAZY) default SizeOf sizeof() {
+		return MultiJ.from(SizeOf.class).bind("backend").to(this).instance();
+	}
+	@Binding(LAZY) default Serialization serialization() {
+		return MultiJ.from(Serialization.class).bind("backend").to(this).instance();
+	}
 }

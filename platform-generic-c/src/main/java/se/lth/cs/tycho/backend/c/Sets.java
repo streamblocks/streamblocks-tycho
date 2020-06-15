@@ -120,6 +120,7 @@ public interface Sets {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("serialization").to(backend().serialization())
 				.instance();
 	}
 
@@ -131,6 +132,7 @@ public interface Sets {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("serialization").to(backend().serialization())
 				.instance();
 	}
 
@@ -142,6 +144,7 @@ public interface Sets {
 				.bind("alias").to(backend().alias())
 				.bind("emitter").to(backend().emitter())
 				.bind("utils").to(utils())
+				.bind("sizeof").to(backend().sizeof())
 				.instance();
 	}
 
@@ -544,6 +547,8 @@ public interface Sets {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		Serialization serialization();
 
 		default void prototype(SetType type) {
 			emitter().emit("void write_%1$s(const %1$s* self, char* buffer);", utils().name(type));
@@ -551,7 +556,6 @@ public interface Sets {
 		}
 
 		default void definition(SetType type) {
-			// FIXME support for all types; works only for primitive types
 			emitter().emit("void write_%1$s(const %1$s* self, char* buffer) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL || buffer == NULL) return;");
@@ -560,8 +564,7 @@ public interface Sets {
 			emitter().emit("ptr = (char*)((size_t*) ptr + 1);");
 			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("*(%s*) ptr = self->data[i];", code().type(type.getElementType()));
-			emitter().emit("ptr = (char*)((%s*) ptr + 1);", code().type(type.getElementType()));
+			serialization().write(type.getElementType(), "self->data[i]", "ptr");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().decreaseIndentation();
@@ -583,6 +586,8 @@ public interface Sets {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		Serialization serialization();
 
 		default void prototype(SetType type) {
 			emitter().emit("%s read_%1$s(char* buffer);", utils().name(type));
@@ -590,7 +595,6 @@ public interface Sets {
 		}
 
 		default void definition(SetType type) {
-			// FIXME support for all types; works only for primitive types
 			emitter().emit("%s read_%1$s(char* buffer) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("%s result = %s;", utils().name(type), backend().defaultValues().defaultValue(type));
@@ -602,8 +606,7 @@ public interface Sets {
 			emitter().emit("result.data = result.size == 0 ? NULL : calloc(result.capacity, sizeof(%s));", code().type(type.getElementType()));
 			emitter().emit("for (size_t i = 0; i < result.size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("result.data[i] = *(%s*) ptr;", code().type(type.getElementType()));
-			emitter().emit("ptr = (char*)((%s*) ptr + 1);", code().type(type.getElementType()));
+			serialization().read(type.getElementType(), "result.data[i]", "ptr");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("return result;");
@@ -626,6 +629,8 @@ public interface Sets {
 		Emitter emitter();
 		@Binding(BindingKind.INJECTED)
 		Utils utils();
+		@Binding(BindingKind.INJECTED)
+		SizeOf sizeof();
 
 		default void prototype(SetType type) {
 			emitter().emit("size_t size_%1$s(const %1$s* self);", utils().name(type));
@@ -636,7 +641,14 @@ public interface Sets {
 			emitter().emit("size_t size_%1$s(const %1$s* self) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return 0;");
-			emitter().emit("return sizeof(self->size) + (self->size * sizeof(self->data[0]));");
+			emitter().emit("size_t size = 0;");
+			emitter().emit("size += self->size;");
+			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
+			emitter().increaseIndentation();
+			emitter().emit("size += %s;", sizeof().evaluate(type.getElementType(), "self->data[i]"));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("return size;");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
