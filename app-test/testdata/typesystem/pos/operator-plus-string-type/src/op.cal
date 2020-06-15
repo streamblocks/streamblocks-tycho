@@ -1,9 +1,17 @@
 namespace op:
     actor StringConcatenation() ==>:
-        String s1;
-        String s2;
+        String s;
         do
-            s1 := s1 + s2;
+            s := s + "hello";
+            s := "hello" + s;
+            s := s + 1;
+            s := 1 + s;
+            s := s + 'a';
+            s := 'a' + s;
+            s := s + true;
+            s := true + s;
+            s := s + 3.14;
+            s := 3.14 + s;
         end
     end
 end

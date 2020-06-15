@@ -848,6 +848,30 @@ public class TypeAnalysisPhase implements Phase {
 			return true;
 		}
 
+		default boolean testAddSupport(StringType a, NumberType b) {
+			return true;
+		}
+
+		default boolean testAddSupport(NumberType a, StringType b) {
+			return true;
+		}
+
+		default boolean testAddSupport(StringType a, CharType b) {
+			return true;
+		}
+
+		default boolean testAddSupport(CharType a, StringType b) {
+			return true;
+		}
+
+		default boolean testAddSupport(StringType a, BoolType b) {
+			return true;
+		}
+
+		default boolean testAddSupport(BoolType a, StringType b) {
+			return true;
+		}
+
 		default boolean testSubSupport(Type a, Type b) {
 			return false;
 		}

@@ -59,6 +59,7 @@ public interface Global {
 		emitter().emit("#include <stdlib.h>");
 		emitter().emit("#include <stdint.h>");
 		emitter().emit("#include <stdbool.h>");
+		emitter().emit("#include <stdio.h>");
 		emitter().emit("");
 		emitter().emit("void init_global_variables(void);");
 		emitter().emit("");

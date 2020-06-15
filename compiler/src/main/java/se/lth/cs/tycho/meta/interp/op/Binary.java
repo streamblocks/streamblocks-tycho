@@ -214,6 +214,38 @@ public interface Binary {
 		return new ValueString(lhs.string() + rhs.string());
 	}
 
+	default Value apply(OperatorPlus op, ValueString lhs, ValueInteger rhs) {
+		return new ValueString(lhs.string() + rhs.integer());
+	}
+
+	default Value apply(OperatorPlus op, ValueInteger lhs, ValueString rhs) {
+		return new ValueString(lhs.integer() + rhs.string());
+	}
+
+	default Value apply(OperatorPlus op, ValueString lhs, ValueReal rhs) {
+		return new ValueString(lhs.string() + rhs.real());
+	}
+
+	default Value apply(OperatorPlus op, ValueReal lhs, ValueString rhs) {
+		return new ValueString(lhs.real() + rhs.string());
+	}
+
+	default Value apply(OperatorPlus op, ValueString lhs, ValueBool rhs) {
+		return new ValueString(lhs.string() + rhs.bool());
+	}
+
+	default Value apply(OperatorPlus op, ValueBool lhs, ValueString rhs) {
+		return new ValueString(lhs.bool() + rhs.string());
+	}
+
+	default Value apply(OperatorPlus op, ValueString lhs, ValueChar rhs) {
+		return new ValueString(lhs.string() + rhs.character());
+	}
+
+	default Value apply(OperatorPlus op, ValueChar lhs, ValueString rhs) {
+		return new ValueString(lhs.character() + rhs.string());
+	}
+
 	default Value apply(OperatorPlus op, ValueMap lhs, ValueMap rhs) {
 		Map<Value, List<Value>> union = new HashMap<>();
 		for (ImmutableEntry<Value, Value> mapping : lhs.mappings()) {

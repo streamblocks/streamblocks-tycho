@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
 @Module
@@ -400,7 +401,63 @@ public interface Code {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
 		emitter().emit("%s;", declaration(lhs, tmp));
-		emitter().emit("%1$s = concat_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		emitter().emit("%1$s = concat_%2$s_%2$s(%3$s, %4$s);", tmp, type(lhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryAdd(Type lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(rhs, tmp));
+		emitter().emit("%1$s = concat_%2$s_%3$s(%4$s, %5$s);", tmp, type(lhs), type(rhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryAdd(StringType lhs, Type rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%1$s = concat_%2$s_%3$s(%4$s, %5$s);", tmp, type(lhs), type(rhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryAdd(RealType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(rhs, tmp));
+		emitter().emit("%1$s = concat_%2$s_%3$s(%4$s, %5$s);", tmp, type(RealType.f64), type(rhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryAdd(StringType lhs, RealType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%1$s = concat_%2$s_%3$s(%4$s, %5$s);", tmp, type(lhs), type(RealType.f64), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryAdd(IntType lhs, StringType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Type type = lhs.isSigned() ? new IntType(OptionalInt.empty(), true) : new IntType(OptionalInt.empty(), false);
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(rhs, tmp));
+		emitter().emit("%1$s = concat_%2$s_%3$s(%4$s, %5$s);", tmp, type(type), type(rhs), evaluate(left), evaluate(right));
+		return tmp;
+	}
+
+	default String evaluateBinaryAdd(StringType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+		String tmp = variables().generateTemp();
+		Type type = rhs.isSigned() ? new IntType(OptionalInt.empty(), true) : new IntType(OptionalInt.empty(), false);
+		Expression left = binaryOp.getOperands().get(0);
+		Expression right = binaryOp.getOperands().get(1);
+		emitter().emit("%s;", declaration(lhs, tmp));
+		emitter().emit("%1$s = concat_%2$s_%3$s(%4$s, %5$s);", tmp, type(lhs), type(type), evaluate(left), evaluate(right));
 		return tmp;
 	}
 
