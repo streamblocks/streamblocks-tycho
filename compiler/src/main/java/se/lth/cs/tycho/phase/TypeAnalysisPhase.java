@@ -373,7 +373,7 @@ public class TypeAnalysisPhase implements Phase {
 		default void check(Type expected, Type actual, IRNode node) {
 			if (!isAssignable(expected, actual)) {
 				if (isConvertible(expected, actual)) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + actual + " to " + expected + ".", sourceUnit(node), node));
+					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + expected + " to " + actual + ".", sourceUnit(node), node));
 				} else {
 					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + expected + " but was " + actual + ".", sourceUnit(node), node));
 				}

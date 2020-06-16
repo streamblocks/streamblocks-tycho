@@ -822,7 +822,7 @@ public interface Types {
 						if (lhs instanceof MapType && rhs instanceof MapType) {
 							Type keyType = leastUpperBound(((MapType) lhs).getKeyType(), ((MapType) rhs).getKeyType());
 							Type valueType = leastUpperBound(((MapType) lhs).getValueType(), ((MapType) rhs).getValueType());
-							return new MapType(keyType, new TupleType(ImmutableList.of(valueType, valueType)));
+							return new MapType(keyType, new SetType(valueType));
 						} else if ((lhs instanceof StringType && (rhs instanceof NumberType || rhs instanceof BoolType || rhs instanceof CharType))
 								|| (rhs instanceof StringType && (lhs instanceof NumberType || lhs instanceof BoolType || lhs instanceof CharType))) {
 							return StringType.INSTANCE;

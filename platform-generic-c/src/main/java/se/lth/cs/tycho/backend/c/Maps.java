@@ -772,11 +772,11 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			// TODO
+			// TODO need dynamic list since the value may be either a list of size 1 or a list of size 2
 		}
 
 		default void definition(MapType type) {
-			// TODO
+			// TODO need dynamic list since the value may be either a list of size 1 or a list of size 2
 		}
 	}
 
