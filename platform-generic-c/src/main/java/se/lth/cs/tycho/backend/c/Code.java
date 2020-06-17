@@ -1405,6 +1405,14 @@ public interface Code {
 		return tmp;
 	}
 
+	default String passByValue(String param, SetType type) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, param);
+		trackable().track(tmp, type);
+		return tmp;
+	}
+
 	default String passByValue(String param, ListType type) {
 		if (!isAlgebraicTypeList(type)) {
 			return param;
@@ -1429,6 +1437,13 @@ public interface Code {
 	}
 
 	default String returnValue(String result, AlgebraicType type) {
+		String tmp = variables().generateTemp();
+		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
+		copy(type, tmp, type, result);
+		return tmp;
+	}
+
+	default String returnValue(String result, SetType type) {
 		String tmp = variables().generateTemp();
 		emitter().emit("%s = %s;", declaration(type, tmp), backend().defaultValues().defaultValue(type));
 		copy(type, tmp, type, result);
