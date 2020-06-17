@@ -10,12 +10,8 @@ import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.*;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.attribute.Types;
-import se.lth.cs.tycho.type.AlgebraicType;
-import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.CallableType;
-import se.lth.cs.tycho.type.ListType;
-import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.ArrayList;
@@ -265,37 +261,11 @@ public interface Structure {
 			emitter().emit("static void %s_free_scope_%d(%s_state *self) {", name, i, name);
 			emitter().increaseIndentation();
 			for (VarDecl var : scope.getDeclarations()) {
-				Type type = types().declaredType(var);
-				if (type instanceof AlgebraicType) {
-					emitter().emit("{");
-					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor((AlgebraicType) type), backend().variables().declarationName(var));
-					emitter().decreaseIndentation();
-					emitter().emit("}");
-				} else if (backend().alias().isAlgebraicType(type)) {
-					emitter().emit("{");
-					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(var));
-					emitter().decreaseIndentation();
-					emitter().emit("}");
-				} else if (type instanceof TupleType) {
-					emitter().emit("{");
-					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s);", backend().algebraic().utils().destructor(backend().tuples().utils().convert().apply((TupleType) type)), backend().variables().declarationName(var));
-					emitter().decreaseIndentation();
-					emitter().emit("}");
-				} else if (code().isAlgebraicTypeList(type)) {
-					emitter().emit("{");
-					emitter().increaseIndentation();
-					ListType listType = (ListType) type;
-					emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
-					emitter().increaseIndentation();
-					emitter().emit("%s(self->%s.data[i]);", backend().algebraic().utils().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(var));
-					emitter().decreaseIndentation();
-					emitter().emit("}");
-					emitter().decreaseIndentation();
-					emitter().emit("}");
-				}
+				emitter().emit("{");
+				emitter().increaseIndentation();
+				backend().free().apply(types().declaredType(var), String.format("self->%s", backend().variables().declarationName(var)));
+				emitter().decreaseIndentation();
+				emitter().emit("}");
 			}
 			emitter().decreaseIndentation();
 			emitter().emit("}");

@@ -6,6 +6,9 @@ import org.multij.Module;
 import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.ListType;
+import se.lth.cs.tycho.type.MapType;
+import se.lth.cs.tycho.type.SetType;
+import se.lth.cs.tycho.type.StringType;
 import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
@@ -44,23 +47,7 @@ public interface Trackable {
 	}
 
 	default void release(String ptr, Type type) {
-
-	}
-
-	default void release(String ptr, AlgebraicType type) {
-		emitter().emit("%s(%s);", backend().algebraic().utils().destructor(type), ptr);
-	}
-
-	default void release(String ptr, ListType type) {
-		emitter().emit("for (size_t i = 0; i < %s; ++i) {", type.getSize().getAsInt());
-		emitter().increaseIndentation();
-		release(String.format("%s.data[i]", ptr), type.getElementType());
-		emitter().decreaseIndentation();
-		emitter().emit("}");
-	}
-
-	default void release(String ptr, TupleType type) {
-		release(ptr, backend().tuples().convert().apply(type));
+		backend().free().apply(type, ptr);
 	}
 
 	default void release(String ptr, AliasType type) {
@@ -72,6 +59,18 @@ public interface Trackable {
 	}
 
 	default boolean isTrackable(AlgebraicType type) {
+		return true;
+	}
+
+	default boolean isTrackable(SetType type) {
+		return true;
+	}
+
+	default boolean isTrackable(MapType type) {
+		return true;
+	}
+
+	default boolean isTrackable(StringType type) {
 		return true;
 	}
 

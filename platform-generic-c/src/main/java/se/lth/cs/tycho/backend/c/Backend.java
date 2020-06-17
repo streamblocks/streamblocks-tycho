@@ -135,4 +135,7 @@ public interface Backend {
 	@Binding(LAZY) default Serialization serialization() {
 		return MultiJ.from(Serialization.class).bind("backend").to(this).instance();
 	}
+	@Binding(LAZY) default Free free() {
+		return MultiJ.from(Free.class).bind("backend").to(this).instance();
+	}
 }

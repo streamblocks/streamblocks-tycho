@@ -5,11 +5,7 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.attribute.Types;
-import se.lth.cs.tycho.type.AlgebraicType;
-import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.CallableType;
-import se.lth.cs.tycho.type.ListType;
-import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
 import java.util.stream.Stream;
@@ -138,25 +134,11 @@ public interface Global {
 		emitter().emit("void free_global_variables() {");
 		emitter().increaseIndentation();
 		varDecls.forEach(decl -> {
-			Type type = types().declaredType(decl);
-			if (type instanceof AlgebraicType) {
-				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) type), backend().variables().declarationName(decl));
-			} else if (backend().alias().isAlgebraicType(type)) {
-				emitter().emit("%s(%s);", backend().algebraic().utils().destructor((AlgebraicType) ((AliasType) type).getConcreteType()), backend().variables().declarationName(decl));
-			} else if (type instanceof TupleType) {
-				emitter().emit("%s(%s);", backend().algebraic().utils().destructor(backend().tuples().convert().apply((TupleType) type)), backend().variables().declarationName(decl));
-			} else if (code().isAlgebraicTypeList(type)) {
-				emitter().emit("{");
-				emitter().increaseIndentation();
-				ListType listType = (ListType) type;
-				emitter().emit("for (size_t i = 0; i < %s; ++i) {", listType.getSize().getAsInt());
-				emitter().increaseIndentation();
-				emitter().emit("%s(%s.data[i]);", backend().algebraic().utils().destructor((AlgebraicType) listType.getElementType()), backend().variables().declarationName(decl));
-				emitter().decreaseIndentation();
-				emitter().emit("}");
-				emitter().decreaseIndentation();
-				emitter().emit("}");
-			}
+			emitter().emit("{");
+			emitter().increaseIndentation();
+			backend().free().apply(types().declaredType(decl), backend().variables().declarationName(decl));
+			emitter().decreaseIndentation();
+			emitter().emit("}");
 		});
 		emitter().decreaseIndentation();
 		emitter().emit("}");
