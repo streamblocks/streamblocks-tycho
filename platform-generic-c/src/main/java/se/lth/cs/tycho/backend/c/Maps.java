@@ -267,7 +267,7 @@ public interface Maps {
 		Utils utils();
 
 		default void apply(MapType type) {
-			emitter().emit("typedef struct %1$s_t %1$s;", utils().name(type));
+			emitter().emit("typedef %1$s* %2$s;", utils().internalName(type), utils().name(type));
 			emitter().emit("typedef struct %1$s_t %1$s;", utils().entry(type));
 			emitter().emit("");
 		}
@@ -383,7 +383,7 @@ public interface Maps {
 		Utils utils();
 
 		default void apply(MapType type) {
-			emitter().emit("struct %s_t {", utils().name(type));
+			emitter().emit("%s {", utils().internalName(type));
 			emitter().increaseIndentation();
 			emitter().emit("size_t capacity;");
 			emitter().emit("size_t size;");
@@ -416,17 +416,20 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			emitter().emit("void init_%1$s(%1$s* self);", utils().name(type));
+			emitter().emit("%1$s init_%1$s(void);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("void init_%1$s(%1$s* self) {", utils().name(type));
+			emitter().emit("%1$s init_%1$s(void) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("if (self == NULL) return;");
+			emitter().emit("%1$s self = calloc(1, sizeof(%2$s));", utils().name(type), utils().internalName(type));
+			emitter().emit("if (self == NULL) return NULL;");
+			emitter().emit("self->data = calloc(%1$s, sizeof(%2$s));", CAPACITY, utils().entry(type));
+			emitter().emit("if (self->data == NULL) { free(self); return NULL; }");
 			emitter().emit("self->capacity = %s;", CAPACITY);
 			emitter().emit("self->size = 0;");
-			emitter().emit("self->data = calloc(%1$s, sizeof(%2$s));", CAPACITY, utils().entry(type));
+			emitter().emit("return self;");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -448,18 +451,25 @@ public interface Maps {
 		Emitter emitter();
 
 		default void prototype(MapType type) {
-			emitter().emit("void free_%1$s(%1$s* self);", utils().name(type));
+			emitter().emit("void free_%1$s(%1$s self);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("void free_%1$s(%1$s* self) {", utils().name(type));
+			emitter().emit("void free_%1$s(%1$s self) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return;");
+			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
+			emitter().increaseIndentation();
+			backend().free().apply(type.getKeyType(), "self->data[i].key");
+			backend().free().apply(type.getValueType(), "self->data[i].value");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
 			emitter().emit("free(self->data);");
 			emitter().emit("self->data = NULL;");
 			emitter().emit("self->capacity = 0;");
 			emitter().emit("self->size = 0;");
+			emitter().emit("free(self);");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -483,12 +493,12 @@ public interface Maps {
 		Serialization serialization();
 
 		default void prototype(MapType type) {
-			emitter().emit("void write_%1$s(const %1$s* self, char* buffer);", utils().name(type));
+			emitter().emit("void write_%1$s(const %1$s self, char* buffer);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("void write_%1$s(const %1$s* self, char* buffer) {", utils().name(type));
+			emitter().emit("void write_%1$s(const %1$s self, char* buffer) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL || buffer == NULL) return;");
 			emitter().emit("char* ptr = buffer;");
@@ -530,17 +540,19 @@ public interface Maps {
 		default void definition(MapType type) {
 			emitter().emit("%s read_%1$s(char* buffer) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("%s result = %s;", utils().name(type), backend().defaultValues().defaultValue(type));
-			emitter().emit("if (buffer == NULL) return result;");
+			emitter().emit("if (buffer == NULL) return NULL;");
+			emitter().emit("if (buffer == NULL) return NULL;");
+			emitter().emit("%s result = calloc(1, sizeof(%s));", utils().name(type), utils().internalName(type));
+			emitter().emit("if (result == NULL) return NULL;");
 			emitter().emit("char* ptr = buffer;");
-			emitter().emit("result.size = *(size_t*) ptr;");
+			emitter().emit("result->size = *(size_t*) ptr;");
 			emitter().emit("ptr = (char*)((size_t*) ptr + 1);");
-			emitter().emit("result.capacity = result.size + (result.size %% %s);", CAPACITY);
-			emitter().emit("result.data = result.size == 0 ? NULL : calloc(result.capacity, sizeof(%s));", utils().entry(type));
-			emitter().emit("for (size_t i = 0; i < result.size; i++) {");
+			emitter().emit("result->capacity = result->size + (result->size %% %s);", CAPACITY);
+			emitter().emit("result->data = result->size == 0 ? NULL : calloc(result->capacity, sizeof(%s));", utils().entry(type));
+			emitter().emit("for (size_t i = 0; i < result->size; i++) {");
 			emitter().increaseIndentation();
-			serialization().read(type.getKeyType(), "result.data[i].key", "ptr");
-			serialization().read(type.getValueType(), "result.data[i].value", "ptr");
+			serialization().read(type.getKeyType(), "result->data[i].key", "ptr");
+			serialization().read(type.getValueType(), "result->data[i].value", "ptr");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("return result;");
@@ -567,12 +579,12 @@ public interface Maps {
 		SizeOf sizeof();
 
 		default void prototype(MapType type) {
-			emitter().emit("size_t size_%1$s(const %1$s* self);", utils().name(type));
+			emitter().emit("size_t size_%1$s(const %1$s self);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("size_t size_%1$s(const %1$s* self) {", utils().name(type));
+			emitter().emit("size_t size_%1$s(const %1$s self) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return 0;");
 			emitter().emit("size_t size = 0;");
@@ -605,12 +617,12 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			emitter().emit("void resize_%1$s(%1$s* self);", utils().name(type));
+			emitter().emit("void resize_%1$s(%1$s self);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("void resize_%1$s(%1$s* self) {", utils().name(type));
+			emitter().emit("void resize_%1$s(%1$s self) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return;");
 			emitter().emit("if (self->size < self->capacity) return;");
@@ -638,20 +650,20 @@ public interface Maps {
 		Emitter emitter();
 
 		default void prototype(MapType type) {
-			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s* rhs);", utils().name(type));
+			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s rhs);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			String tmp = backend().variables().generateTemp();
-			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s* rhs) {", utils().name(type));
+			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s rhs) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (lhs == NULL || rhs == NULL) return;");
-			emitter().emit("memset(lhs->data, 0, sizeof(%s) * lhs->size);", utils().entry(type));
-			emitter().emit("lhs->size = 0;");
+			emitter().emit("if (*lhs == rhs) return;");
+			emitter().emit("if (*lhs) { free_%s(*lhs); *lhs = NULL; }", utils().name(type));
+			emitter().emit("if (!(*lhs)) *lhs = calloc(1, sizeof(%s));", utils().internalName(type));
 			emitter().emit("for (size_t i = 0; i < rhs->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%s(lhs, rhs->data[i].key, rhs->data[i].value);", utils().name(type));
+			emitter().emit("add_%s(*lhs, rhs->data[i].key, rhs->data[i].value);", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().decreaseIndentation();
@@ -675,12 +687,12 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			emitter().emit("%1$s compare_%2$s(const %2$s* lhs, const %2$s* rhs);", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s compare_%2$s(const %2$s lhs, const %2$s rhs);", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("%1$s compare_%2$s(const %2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s compare_%2$s(const %2$s lhs, const %2$s rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (lhs == NULL && rhs == NULL) return true;");
 			emitter().emit("if (lhs == NULL || rhs == NULL) return false;");
@@ -725,12 +737,12 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			emitter().emit("void add_%1$s(%1$s* self, %2$s key, %3$s value);", utils().name(type), code().type(type.getKeyType()), code().type(type.getValueType()));
+			emitter().emit("void add_%1$s(%1$s self, %2$s key, %3$s value);", utils().name(type), code().type(type.getKeyType()), code().type(type.getValueType()));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("void add_%1$s(%1$s* self, %2$s key, %3$s value) {", utils().name(type), code().type(type.getKeyType()), code().type(type.getValueType()));
+			emitter().emit("void add_%1$s(%1$s self, %2$s key, %3$s value) {", utils().name(type), code().type(type.getKeyType()), code().type(type.getValueType()));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return;");
 			emitter().emit("if (membership_%s(self, key)) {", utils().name(type));
@@ -795,12 +807,12 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			emitter().emit("%1$s membership_%2$s(const %2$s* self, %3$s elem);", code().type(BoolType.INSTANCE), utils().name(type), code().type(type.getKeyType()));
+			emitter().emit("%1$s membership_%2$s(const %2$s self, %3$s elem);", code().type(BoolType.INSTANCE), utils().name(type), code().type(type.getKeyType()));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
-			emitter().emit("%1$s membership_%2$s(const %2$s* self, %3$s elem) {", code().type(BoolType.INSTANCE), utils().name(type), code().type(type.getKeyType()));
+			emitter().emit("%1$s membership_%2$s(const %2$s self, %3$s elem) {", code().type(BoolType.INSTANCE), utils().name(type), code().type(type.getKeyType()));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return false;");
 			emitter().emit("%s found = false;", code().type(BoolType.INSTANCE));
@@ -831,20 +843,20 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			emitter().emit("%1$s domain_%2$s(const %2$s* self);", code().type(new SetType(type.getKeyType())), utils().name(type));
+			emitter().emit("%1$s domain_%2$s(const %2$s self);", code().type(new SetType(type.getKeyType())), utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
 			SetType resultType = new SetType(type.getKeyType());
-			emitter().emit("%1$s domain_%2$s(const %2$s* self) {", code().type(resultType), utils().name(type));
+			emitter().emit("%1$s domain_%2$s(const %2$s self) {", code().type(resultType), utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("%s result = %s;", code().type(resultType), backend().defaultValues().defaultValue(resultType));
-			emitter().emit("if (self == NULL) return result;");
-			emitter().emit("init_%1$s(&(result));", code().type(resultType));
+			emitter().emit("if (self == NULL) return NULL;");
+			emitter().emit("%s result = init_%1$s();", code().type(resultType), backend().defaultValues().defaultValue(resultType));
+			emitter().emit("if (result == NULL) return NULL;");
 			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%1$s(&(result), self->data[i].key);", code().type(resultType));
+			emitter().emit("add_%1$s(result, self->data[i].key);", code().type(resultType));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("return result;");
@@ -869,20 +881,20 @@ public interface Maps {
 		Utils utils();
 
 		default void prototype(MapType type) {
-			emitter().emit("%1$s range_%2$s(const %2$s* self);", code().type(new SetType(type.getValueType())), utils().name(type));
+			emitter().emit("%1$s range_%2$s(const %2$s self);", code().type(new SetType(type.getValueType())), utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(MapType type) {
 			SetType resultType = new SetType(type.getValueType());
-			emitter().emit("%1$s range_%2$s(const %2$s* self) {", code().type(resultType), utils().name(type));
+			emitter().emit("%1$s range_%2$s(const %2$s self) {", code().type(resultType), utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("%s result = %s;", code().type(resultType), backend().defaultValues().defaultValue(resultType));
-			emitter().emit("if (self == NULL) return result;");
-			emitter().emit("init_%1$s(&(result));", code().type(resultType));
+			emitter().emit("if (self == NULL) return NULL;");
+			emitter().emit("%s result = init_%1$s();", code().type(resultType), backend().defaultValues().defaultValue(resultType));
+			emitter().emit("if (result == NULL) return NULL;");
 			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%1$s(&(result), self->data[i].value);", code().type(resultType));
+			emitter().emit("add_%1$s(result, self->data[i].value);", code().type(resultType));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("return result;");
@@ -900,6 +912,10 @@ public interface Maps {
 
 		default String name(MapType type) {
 			return backend().code().type(type);
+		}
+
+		default String internalName(MapType type) {
+			return "struct " + backend().code().type(type) + "_t";
 		}
 
 		default String entry(MapType type) {

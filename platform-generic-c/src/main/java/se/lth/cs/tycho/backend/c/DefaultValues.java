@@ -60,10 +60,10 @@ public interface DefaultValues {
 		return "NULL";
 	}
 	default String defaultValue(SetType t) {
-		return "{ 0 }";
+		return "NULL";
 	}
 	default String defaultValue(MapType t) {
-		return "{ 0 }";
+		return "NULL";
 	}
 	default String defaultValue(StringType t) {
 		return "NULL";

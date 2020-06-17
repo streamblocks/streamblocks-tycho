@@ -319,7 +319,7 @@ public interface Sets {
 		Utils utils();
 
 		default void apply(SetType type) {
-			emitter().emit("typedef struct %1$s_t %1$s;", utils().name(type));
+			emitter().emit("typedef %1$s* %2$s;", utils().internalName(type), utils().name(type));
 			emitter().emit("");
 		}
 	}
@@ -458,7 +458,7 @@ public interface Sets {
 		Utils utils();
 
 		default void apply(SetType type) {
-			emitter().emit("struct %s_t {", utils().name(type));
+			emitter().emit("%s {", utils().internalName(type));
 			emitter().increaseIndentation();
 			emitter().emit("size_t capacity;");
 			emitter().emit("size_t size;");
@@ -484,17 +484,20 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("void init_%1$s(%1$s* self);", utils().name(type));
+			emitter().emit("%1$s init_%1$s(void);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("void init_%1$s(%1$s* self) {", utils().name(type));
+			emitter().emit("%1$s init_%1$s(void) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("if (self == NULL) return;");
+			emitter().emit("%1$s self = calloc(1, sizeof(%2$s));", utils().name(type), utils().internalName(type));
+			emitter().emit("if (self == NULL) return NULL;");
+			emitter().emit("self->data = calloc(%1$s, sizeof(%2$s));", CAPACITY, code().type(type.getElementType()));
+			emitter().emit("if (self->data == NULL) { free(self); return NULL; }");
 			emitter().emit("self->capacity = %s;", CAPACITY);
 			emitter().emit("self->size = 0;");
-			emitter().emit("self->data = calloc(%1$s, sizeof(%2$s));", CAPACITY, code().type(type.getElementType()));
+			emitter().emit("return self;");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -516,18 +519,24 @@ public interface Sets {
 		Emitter emitter();
 
 		default void prototype(SetType type) {
-			emitter().emit("void free_%1$s(%1$s* self);", utils().name(type));
+			emitter().emit("void free_%1$s(%1$s self);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("void free_%1$s(%1$s* self) {", utils().name(type));
+			emitter().emit("void free_%1$s(%1$s self) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return;");
+			emitter().emit("for (size_t i = 0; i < self->size; i++) {");
+			emitter().increaseIndentation();
+			backend().free().apply(type.getElementType(), "self->data[i]");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
 			emitter().emit("free(self->data);");
 			emitter().emit("self->data = NULL;");
 			emitter().emit("self->capacity = 0;");
 			emitter().emit("self->size = 0;");
+			emitter().emit("free(self);");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("");
@@ -551,12 +560,12 @@ public interface Sets {
 		Serialization serialization();
 
 		default void prototype(SetType type) {
-			emitter().emit("void write_%1$s(const %1$s* self, char* buffer);", utils().name(type));
+			emitter().emit("void write_%1$s(const %1$s self, char* buffer);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("void write_%1$s(const %1$s* self, char* buffer) {", utils().name(type));
+			emitter().emit("void write_%1$s(const %1$s self, char* buffer) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL || buffer == NULL) return;");
 			emitter().emit("char* ptr = buffer;");
@@ -597,16 +606,17 @@ public interface Sets {
 		default void definition(SetType type) {
 			emitter().emit("%s read_%1$s(char* buffer) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("%s result = %s;", utils().name(type), backend().defaultValues().defaultValue(type));
-			emitter().emit("if (buffer == NULL) return result;");
+			emitter().emit("if (buffer == NULL) return NULL;");
+			emitter().emit("%s result = calloc(1, sizeof(%s));", utils().name(type), utils().internalName(type));
+			emitter().emit("if (result == NULL) return NULL;");
 			emitter().emit("char* ptr = buffer;");
-			emitter().emit("result.size = *(size_t*) ptr;");
+			emitter().emit("result->size = *(size_t*) ptr;");
 			emitter().emit("ptr = (char*)((size_t*) ptr + 1);");
-			emitter().emit("result.capacity = result.size + (result.size %% %s);", CAPACITY);
-			emitter().emit("result.data = result.size == 0 ? NULL : calloc(result.capacity, sizeof(%s));", code().type(type.getElementType()));
-			emitter().emit("for (size_t i = 0; i < result.size; i++) {");
+			emitter().emit("result->capacity = result->size + (result->size %% %s);", CAPACITY);
+			emitter().emit("result->data = result->size == 0 ? NULL : calloc(result->capacity, sizeof(%s));", code().type(type.getElementType()));
+			emitter().emit("for (size_t i = 0; i < result->size; i++) {");
 			emitter().increaseIndentation();
-			serialization().read(type.getElementType(), "result.data[i]", "ptr");
+			serialization().read(type.getElementType(), "result->data[i]", "ptr");
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("return result;");
@@ -633,12 +643,12 @@ public interface Sets {
 		SizeOf sizeof();
 
 		default void prototype(SetType type) {
-			emitter().emit("size_t size_%1$s(const %1$s* self);", utils().name(type));
+			emitter().emit("size_t size_%1$s(const %1$s self);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("size_t size_%1$s(const %1$s* self) {", utils().name(type));
+			emitter().emit("size_t size_%1$s(const %1$s self) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return 0;");
 			emitter().emit("size_t size = 0;");
@@ -670,12 +680,12 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("void resize_%1$s(%1$s* self);", utils().name(type));
+			emitter().emit("void resize_%1$s(%1$s self);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("void resize_%1$s(%1$s* self) {", utils().name(type));
+			emitter().emit("void resize_%1$s(%1$s self) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return;");
 			emitter().emit("if (self->size < self->capacity) return;");
@@ -703,20 +713,20 @@ public interface Sets {
 		Emitter emitter();
 
 		default void prototype(SetType type) {
-			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s* rhs);", utils().name(type));
+			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s rhs);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			String tmp = backend().variables().generateTemp();
-			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s* rhs) {", utils().name(type));
+			emitter().emit("void copy_%1$s(%1$s* lhs, const %1$s rhs) {", utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (lhs == NULL || rhs == NULL) return;");
-			emitter().emit("memset(lhs->data, 0, sizeof(%s) * lhs->size);", code().type(type.getElementType()));
-			emitter().emit("lhs->size = 0;");
+			emitter().emit("if (*lhs == rhs) return;");
+			emitter().emit("if (*lhs) { free_%s(*lhs); *lhs = NULL; }", utils().name(type));
+			emitter().emit("if (!(*lhs)) *lhs = calloc(1, sizeof(%s));", utils().internalName(type));
 			emitter().emit("for (size_t i = 0; i < rhs->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%s(lhs, rhs->data[i]);", utils().name(type));
+			emitter().emit("add_%s(*lhs, rhs->data[i]);", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().decreaseIndentation();
@@ -740,12 +750,12 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s compare_%2$s(const %2$s* lhs, const %2$s* rhs);", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s compare_%2$s(const %2$s lhs, const %2$s rhs);", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s compare_%2$s(const %2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s compare_%2$s(const %2$s lhs, const %2$s rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (lhs == NULL && rhs == NULL) return true;");
 			emitter().emit("if (lhs == NULL || rhs == NULL) return false;");
@@ -781,12 +791,12 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("void add_%1$s(%1$s* self, %2$s elem);", utils().name(type), code().type(type.getElementType()));
+			emitter().emit("void add_%1$s(%1$s self, %2$s elem);", utils().name(type), code().type(type.getElementType()));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("void add_%1$s(%1$s* self, %2$s elem) {", utils().name(type), code().type(type.getElementType()));
+			emitter().emit("void add_%1$s(%1$s self, %2$s elem) {", utils().name(type), code().type(type.getElementType()));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return;");
 			emitter().emit("if (membership_%s(self, elem)) return;", utils().name(type));
@@ -813,16 +823,16 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s intersect_%1$s(const %1$s* lhs, const %1$s* rhs);", utils().name(type));
+			emitter().emit("%1$s intersect_%1$s(const %1$s lhs, const %1$s rhs);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s intersect_%1$s(const %1$s* lhs, const %1$s* rhs) {", utils().name(type));
+			emitter().emit("%1$s intersect_%1$s(const %1$s lhs, const %1$s rhs) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("%1$s result = %2$s;", utils().name(type), backend().defaultValues().defaultValue(type));
-			emitter().emit("init_%1$s(&result);", utils().name(type));
-			emitter().emit("if (lhs == NULL || rhs == NULL) return result;");
+			emitter().emit("if (lhs == NULL || rhs == NULL) return NULL;");
+			emitter().emit("%1$s result = init_%1$s();", utils().name(type));
+			emitter().emit("if (result == NULL) return NULL;");
 			emitter().emit("for (size_t i = 0; i < lhs->size; i++) {");
 			emitter().increaseIndentation();
 			emitter().emit("%s found = false;", code().type(BoolType.INSTANCE));
@@ -833,7 +843,7 @@ public interface Sets {
 			emitter().emit("}");
 			emitter().emit("if (found) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%s(&result, lhs->data[i]);", utils().name(type));
+			emitter().emit("add_%s(result, lhs->data[i]);", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().decreaseIndentation();
@@ -860,24 +870,24 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s union_%1$s(const %1$s* lhs, const %1$s* rhs);", utils().name(type));
+			emitter().emit("%1$s union_%1$s(const %1$s lhs, const %1$s rhs);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s union_%1$s(const %1$s* lhs, const %1$s* rhs) {", utils().name(type));
+			emitter().emit("%1$s union_%1$s(const %1$s lhs, const %1$s rhs) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("%1$s result = %2$s;", utils().name(type), backend().defaultValues().defaultValue(type));
-			emitter().emit("init_%1$s(&result);", utils().name(type));
-			emitter().emit("if (lhs == NULL || rhs == NULL) return result;");
+			emitter().emit("if (lhs == NULL || rhs == NULL) return NULL;");
+			emitter().emit("%1$s result = init_%1$s();", utils().name(type));
+			emitter().emit("if (result == NULL) return NULL;");
 			emitter().emit("for (size_t i = 0; i < lhs->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%s(&result, lhs->data[i]);", utils().name(type));
+			emitter().emit("add_%s(result, lhs->data[i]);", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("for (size_t i = 0; i < rhs->size; i++) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%s(&result, rhs->data[i]);", utils().name(type));
+			emitter().emit("add_%s(result, rhs->data[i]);", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().emit("return result;");
@@ -902,16 +912,16 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s difference_%1$s(const %1$s* lhs, const %1$s* rhs);", utils().name(type));
+			emitter().emit("%1$s difference_%1$s(const %1$s lhs, const %1$s rhs);", utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s difference_%1$s(const %1$s* lhs, const %1$s* rhs) {", utils().name(type));
+			emitter().emit("%1$s difference_%1$s(const %1$s lhs, const %1$s rhs) {", utils().name(type));
 			emitter().increaseIndentation();
-			emitter().emit("%1$s result = %2$s;", utils().name(type), backend().defaultValues().defaultValue(type));
-			emitter().emit("init_%1$s(&result);", utils().name(type));
-			emitter().emit("if (lhs == NULL || rhs == NULL) return result;");
+			emitter().emit("if (lhs == NULL || rhs == NULL) return NULL;");
+			emitter().emit("%1$s result = init_%1$s();", utils().name(type));
+			emitter().emit("if (result == NULL) return NULL;");
 			emitter().emit("for (size_t i = 0; i < lhs->size; i++) {");
 			emitter().increaseIndentation();
 			emitter().emit("%s found = false;", code().type(BoolType.INSTANCE));
@@ -922,7 +932,7 @@ public interface Sets {
 			emitter().emit("}");
 			emitter().emit("if (!(found)) {");
 			emitter().increaseIndentation();
-			emitter().emit("add_%s(&result, lhs->data[i]);", utils().name(type));
+			emitter().emit("add_%s(result, lhs->data[i]);", utils().name(type));
 			emitter().decreaseIndentation();
 			emitter().emit("}");
 			emitter().decreaseIndentation();
@@ -949,12 +959,12 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s membership_%2$s(const %2$s* self, %3$s elem);", code().type(BoolType.INSTANCE), utils().name(type), code().type(type.getElementType()));
+			emitter().emit("%1$s membership_%2$s(const %2$s self, %3$s elem);", code().type(BoolType.INSTANCE), utils().name(type), code().type(type.getElementType()));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s membership_%2$s(const %2$s* self, %3$s elem) {", code().type(BoolType.INSTANCE), utils().name(type), code().type(type.getElementType()));
+			emitter().emit("%1$s membership_%2$s(const %2$s self, %3$s elem) {", code().type(BoolType.INSTANCE), utils().name(type), code().type(type.getElementType()));
 			emitter().increaseIndentation();
 			emitter().emit("if (self == NULL) return false;");
 			emitter().emit("%s found = false;", code().type(BoolType.INSTANCE));
@@ -985,12 +995,12 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s less_than_%2$s(const %2$s* lhs, const %2$s* rhs);", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s less_than_%2$s(const %2$s lhs, const %2$s rhs);", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s less_than_%2$s(const %2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s less_than_%2$s(const %2$s lhs, const %2$s rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("if (lhs == NULL || rhs == NULL) return false;");
 			emitter().emit("if (lhs->size >= rhs->size) return false;");
@@ -1032,12 +1042,12 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s less_than_equal_%2$s(const %2$s* lhs, const %2$s* rhs);", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s less_than_equal_%2$s(const %2$s lhs, const %2$s rhs);", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s less_than_equal_%2$s(const %2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s less_than_equal_%2$s(const %2$s lhs, const %2$s rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("return less_than_%1$s(lhs, rhs) || compare_%1$s(lhs, rhs);", utils().name(type));
 			emitter().decreaseIndentation();
@@ -1061,12 +1071,12 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s greater_than_%2$s(const %2$s* lhs, const %2$s* rhs);", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s greater_than_%2$s(const %2$s lhs, const %2$s rhs);", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s greater_than_%2$s(const %2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s greater_than_%2$s(const %2$s lhs, const %2$s rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("return !(less_than_equal_%1$s(lhs, rhs));", utils().name(type));
 			emitter().decreaseIndentation();
@@ -1090,12 +1100,12 @@ public interface Sets {
 		Utils utils();
 
 		default void prototype(SetType type) {
-			emitter().emit("%1$s greater_than_equal_%2$s(const %2$s* lhs, const %2$s* rhs);", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s greater_than_equal_%2$s(const %2$s lhs, const %2$s rhs);", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().emit("");
 		}
 
 		default void definition(SetType type) {
-			emitter().emit("%1$s greater_than_equal_%2$s(const %2$s* lhs, const %2$s* rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
+			emitter().emit("%1$s greater_than_equal_%2$s(const %2$s lhs, const %2$s rhs) {", code().type(BoolType.INSTANCE), utils().name(type));
 			emitter().increaseIndentation();
 			emitter().emit("return !(less_than_%1$s(lhs, rhs));", utils().name(type));
 			emitter().decreaseIndentation();
@@ -1111,7 +1121,11 @@ public interface Sets {
 		Backend backend();
 
 		default String name(SetType type) {
-			return backend().code().type(type);
+			return backend().callables().mangle(type).encode();
+		}
+
+		default String internalName(SetType type) {
+			return "struct " + backend().code().type(type) + "_t";
 		}
 
 		default Stream<SetType> types() {

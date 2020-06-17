@@ -6,7 +6,6 @@ import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
 import se.lth.cs.tycho.type.AlgebraicType;
-import se.lth.cs.tycho.type.AliasType;
 import se.lth.cs.tycho.type.BoolType;
 import se.lth.cs.tycho.type.ProductType;
 import se.lth.cs.tycho.type.SumType;
@@ -190,12 +189,12 @@ public interface Algebraic {
 		void apply(AlgebraicType type);
 
 		default void apply(ProductType product) {
-			emitter().emit("typedef struct %s_s %s_t;", utils().mangle(product.getName()), utils().mangle(product.getName()));
+			emitter().emit("typedef %s* %s;", utils().internalName(product), utils().name(product));
 			emitter().emit("");
 		}
 
 		default void apply(SumType sum) {
-			emitter().emit("typedef struct %s_s %s_t;", utils().mangle(sum.getName()), utils().mangle(sum.getName()));
+			emitter().emit("typedef %s* %s;", utils().internalName(sum), utils().name(sum));
 			emitter().emit("");
 		}
 	}
@@ -276,7 +275,7 @@ public interface Algebraic {
 		void apply(AlgebraicType type);
 
 		default void apply(ProductType product) {
-			emitter().emit("struct %s_s {", utils().mangle(product.getName()));
+			emitter().emit("%s {", utils().internalName(product));
 			emitter().increaseIndentation();
 			product.getFields().forEach(field -> {
 				emitter().emit("%s;", code().declaration(field.getType(), field.getName()));
@@ -295,7 +294,7 @@ public interface Algebraic {
 			emitter().decreaseIndentation();
 			emitter().emit("};");
 			emitter().emit("");
-			emitter().emit("struct %s_s {", utils().mangle(sum.getName()));
+			emitter().emit("%s {", utils().internalName(sum));
 			emitter().increaseIndentation();
 			emitter().emit("enum %s_tag_t tag;", utils().mangle(sum.getName()));
 			emitter().emit("union {");
@@ -334,13 +333,13 @@ public interface Algebraic {
 		void prototype(AlgebraicType type);
 
 		default void prototype(ProductType product) {
-			emitter().emit("%s* init_%s_t(%s);", code().type(product), utils().mangle(product.getName()), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+			emitter().emit("%s init_%s(%s);", code().type(product), code().type(product), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 			emitter().emit("");
 		}
 
 		default void prototype(SumType sum) {
 			sum.getVariants().forEach(variant -> {
-				emitter().emit("%s* init_%s_t_%s(%s);", code().type(sum), utils().mangle(sum.getName()), utils().mangle(variant.getName()), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+				emitter().emit("%s init_%s_%s(%s);", code().type(sum), code().type(sum), utils().mangle(variant.getName()), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 				emitter().emit("");
 			});
 		}
@@ -349,9 +348,9 @@ public interface Algebraic {
 
 		default void definition(ProductType product) {
 			String self = "self";
-			emitter().emit("%s* init_%s_t(%s) {", code().type(product), utils().mangle(product.getName()), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+			emitter().emit("%s init_%s(%s) {", code().type(product), code().type(product), product.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 			emitter().increaseIndentation();
-			emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, self), utils().mangle(product.getName()));
+			emitter().emit("%s = calloc(1, sizeof(%s));", code().declaration(product, self), utils().internalName(product));
 			emitter().emit("if (!%s) return NULL;", self);
 			product.getFields().forEach(field ->  code().copy(field.getType(), String.format("%s->%s", self, field.getName()), field.getType(), field.getName()));
 			emitter().emit("return %s;", self);
@@ -363,9 +362,9 @@ public interface Algebraic {
 		default void definition(SumType sum) {
 			sum.getVariants().forEach(variant -> {
 				String self = "self";
-				emitter().emit("%s* init_%s_t_%s(%s) {", code().type(sum), utils().mangle(sum.getName()), utils().mangle(variant.getName()), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
+				emitter().emit("%s init_%s_%s(%s) {", code().type(sum), code().type(sum), utils().mangle(variant.getName()), variant.getFields().stream().map(field -> code().declaration(field.getType(), field.getName())).collect(Collectors.joining(", ")));
 				emitter().increaseIndentation();
-				emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(sum, self), utils().mangle(sum.getName()));
+				emitter().emit("%s = calloc(1, sizeof(%s));", code().declaration(sum, self), utils().internalName(sum));
 				emitter().emit("if (!%s) return NULL;", self);
 				emitter().emit("%s->tag = tag_%s_%s;", self, utils().mangle(sum.getName()), utils().mangle(variant.getName()));
 				variant.getFields().forEach(field -> {
@@ -396,12 +395,12 @@ public interface Algebraic {
 		void prototype(AlgebraicType type);
 
 		default void prototype(ProductType product) {
-			emitter().emit("void free_%s_t(%s);", utils().mangle(product.getName()), code().declaration(product, "self"));
+			emitter().emit("void free_%s(%s);", code().type(product), code().declaration(product, "self"));
 			emitter().emit("");
 		}
 
 		default void prototype(SumType sum) {
-			emitter().emit("void free_%s_t(%s);", utils().mangle(sum.getName()), code().declaration(sum, "self"));
+			emitter().emit("void free_%s(%s);", code().type(sum), code().declaration(sum, "self"));
 			emitter().emit("");
 		}
 
@@ -409,16 +408,11 @@ public interface Algebraic {
 
 		default void definition(ProductType product) {
 			String self = "self";
-			emitter().emit("void free_%s_t(%s) {", utils().mangle(product.getName()), code().declaration(product, self));
+			emitter().emit("void free_%s(%s) {", code().type(product), code().declaration(product, self));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s) return;", self);
 			product.getFields().forEach(field -> {
-				if (field.getType() instanceof AlgebraicType) {
-					emitter().emit("%s(%s->%s);", utils().destructor((AlgebraicType) field.getType()), self, field.getName());
-				}
-				if (alias().isAlgebraicType(field.getType())) {
-					emitter().emit("%s(%s->%s);", utils().destructor((AlgebraicType) (((AliasType) field.getType()).getConcreteType())), self, field.getName());
-				}
+				backend().free().apply(field.getType(), String.format("%s->%s", self, field.getName()));
 			});
 			emitter().emit("free(%s);", self);
 			emitter().decreaseIndentation();
@@ -428,7 +422,7 @@ public interface Algebraic {
 
 		default void definition(SumType sum) {
 			String self = "self";
-			emitter().emit("void free_%s_t(%s) {", utils().mangle(sum.getName()), code().declaration(sum, self));
+			emitter().emit("void free_%s(%s) {", code().type(sum), code().declaration(sum, self));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s) return;", self);
 			emitter().emit("for (enum %s_tag_t tag = tag_%s_%s; tag <= tag_%s_%s; ++tag) {", utils().mangle(sum.getName()), utils().mangle(sum.getName()), utils().mangle(sum.getVariants().get(0).getName()), utils().mangle(sum.getName()), utils().mangle(sum.getVariants().get(sum.getVariants().size() - 1).getName()));
@@ -439,12 +433,7 @@ public interface Algebraic {
 				emitter().emit("case tag_%s_%s:", utils().mangle(sum.getName()), utils().mangle(variant.getName()));
 				emitter().increaseIndentation();
 				variant.getFields().forEach(field -> {
-					if (field.getType() instanceof AlgebraicType) {
-						emitter().emit("%s(%s->data.%s.%s);", utils().destructor((AlgebraicType) field.getType()), self, utils().mangle(variant.getName()), field.getName());
-					}
-					if (alias().isAlgebraicType(field.getType())) {
-						emitter().emit("%s(%s->data.%s.%s);", utils().destructor((AlgebraicType) ((AliasType) field.getType()).getConcreteType()), self, utils().mangle(variant.getName()), field.getName());
-					}
+					backend().free().apply(field.getType(), String.format("%s->data.%s.%s", self, utils().mangle(variant.getName()), field.getName()));
 				});
 				emitter().emit("break;");
 				emitter().decreaseIndentation();
@@ -479,12 +468,12 @@ public interface Algebraic {
 		void prototype(AlgebraicType type);
 
 		default void prototype(ProductType product) {
-			emitter().emit("void write_%s_t(%s, char *buffer);", utils().mangle(product.getName()), code().declaration(product, "self"));
+			emitter().emit("void write_%s(%s, char *buffer);", code().type(product), code().declaration(product, "self"));
 			emitter().emit("");
 		}
 
 		default void prototype(SumType sum) {
-			emitter().emit("void write_%s_t(%s, char *buffer);", utils().mangle(sum.getName()), code().declaration(sum, "self"));
+			emitter().emit("void write_%s(%s, char *buffer);", code().type(sum), code().declaration(sum, "self"));
 			emitter().emit("");
 		}
 
@@ -493,7 +482,7 @@ public interface Algebraic {
 		default void definition(ProductType product) {
 			String self = "self";
 			String ptr = "ptr";
-			emitter().emit("void write_%s_t(%s, char *buffer) {", utils().mangle(product.getName()), code().declaration(product, self));
+			emitter().emit("void write_%s(%s, char *buffer) {", code().type(product), code().declaration(product, self));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !buffer) return;", self);
 			emitter().emit("char *%s = buffer;", ptr);
@@ -508,7 +497,7 @@ public interface Algebraic {
 		default void definition(SumType sum) {
 			String self = "self";
 			String ptr = "ptr";
-			emitter().emit("void write_%s_t(%s, char *buffer) {", utils().mangle(sum.getName()), code().declaration(sum, self));
+			emitter().emit("void write_%s(%s, char *buffer) {", code().type(sum), code().declaration(sum, self));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !buffer) return;", self);
 			emitter().emit("char *%s = buffer;", ptr);
@@ -552,12 +541,12 @@ public interface Algebraic {
 		void prototype(AlgebraicType type);
 
 		default void prototype(ProductType product) {
-			emitter().emit("%s* read_%s_t(char *buffer);", code().type(product), utils().mangle(product.getName()));
+			emitter().emit("%s read_%s(char *buffer);", code().type(product), code().type(product));
 			emitter().emit("");
 		}
 
 		default void prototype(SumType sum) {
-			emitter().emit("%s* read_%s_t(char *buffer);", code().type(sum), utils().mangle(sum.getName()));
+			emitter().emit("%s read_%s(char *buffer);", code().type(sum), code().type(sum));
 			emitter().emit("");
 		}
 
@@ -566,11 +555,11 @@ public interface Algebraic {
 		default void definition(ProductType product) {
 			String self = "self";
 			String ptr = "ptr";
-			emitter().emit("%s* read_%s_t(char *buffer) {", code().type(product), utils().mangle(product.getName()));
+			emitter().emit("%s read_%s(char *buffer) {", code().type(product), code().type(product));
 			emitter().increaseIndentation();
 			emitter().emit("if (!buffer) return NULL;");
 			emitter().emit("char *%s = buffer;", ptr);
-			emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(product, self), utils().mangle(product.getName()));
+			emitter().emit("%s = calloc(1, sizeof(%s));", code().declaration(product, self), utils().internalName(product));
 			emitter().emit("if (!%s) return NULL;", self);
 			product.getFields().forEach(field -> {
 				serialization().read(field.getType(), String.format("%s->%s", self, field.getName()), ptr);
@@ -584,11 +573,11 @@ public interface Algebraic {
 		default void definition(SumType sum) {
 			String self = "self";
 			String ptr = "ptr";
-			emitter().emit("%s* read_%s_t(char *buffer) {", code().type(sum), utils().mangle(sum.getName()));
+			emitter().emit("%s read_%s(char *buffer) {", code().type(sum), code().type(sum));
 			emitter().increaseIndentation();
 			emitter().emit("if (!buffer) return NULL;");
 			emitter().emit("char *%s = buffer;", ptr);
-			emitter().emit("%s = calloc(1, sizeof(%s_t));", code().declaration(sum, self), utils().mangle(sum.getName()));
+			emitter().emit("%s = calloc(1, sizeof(%s));", code().declaration(sum, self), utils().internalName(sum));
 			emitter().emit("if (!%s) return NULL;", self);
 			emitter().emit("%s->tag = *(enum %s_tag_t*) %s;", self,  utils().mangle(sum.getName()), ptr);
 			emitter().emit("%s = (char*)((enum %s_tag_t*) ptr + 1);", ptr, utils().mangle(sum.getName()), ptr);
@@ -631,12 +620,12 @@ public interface Algebraic {
 		void prototype(AlgebraicType type);
 
 		default void prototype(ProductType product) {
-			emitter().emit("size_t size_%s_t(%s);", utils().mangle(product.getName()), code().declaration(product, "self"));
+			emitter().emit("size_t size_%s(%s);", code().type(product), code().declaration(product, "self"));
 			emitter().emit("");
 		}
 
 		default void prototype(SumType sum) {
-			emitter().emit("size_t size_%s_t(%s);", utils().mangle(sum.getName()), code().declaration(sum, "self"));
+			emitter().emit("size_t size_%s(%s);", code().type(sum), code().declaration(sum, "self"));
 			emitter().emit("");
 		}
 
@@ -645,7 +634,7 @@ public interface Algebraic {
 		default void definition(ProductType product) {
 			String self = "self";
 			String size = "size";
-			emitter().emit("size_t size_%s_t(%s) {", utils().mangle(product.getName()), code().declaration(product, self));
+			emitter().emit("size_t size_%s(%s) {", code().type(product), code().declaration(product, self));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s) return 0;", self);
 			emitter().emit("size_t %s = 0;", size);
@@ -661,7 +650,7 @@ public interface Algebraic {
 		default void definition(SumType sum) {
 			String self = "self";
 			String size = "size";
-			emitter().emit("size_t size_%s_t(%s) {", utils().mangle(sum.getName()), code().declaration(sum, self));
+			emitter().emit("size_t size_%s(%s) {", code().type(sum), code().declaration(sum, self));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s) return 0;", self);
 			emitter().emit("size_t %s = 0;", size);
@@ -703,12 +692,12 @@ public interface Algebraic {
 		void prototype(AlgebraicType type);
 
 		default void prototype(ProductType product) {
-			emitter().emit("void copy_%s_t(%s, %s);", utils().mangle(product.getName()), code().declaration(product, "*to"), code().declaration(product, "from"));
+			emitter().emit("void copy_%s(%s, %s);", code().type(product), code().declaration(product, "*to"), code().declaration(product, "from"));
 			emitter().emit("");
 		}
 
 		default void prototype(SumType sum) {
-			emitter().emit("void copy_%s_t(%s, %s);", utils().mangle(sum.getName()), code().declaration(sum, "*to"), code().declaration(sum, "from"));
+			emitter().emit("void copy_%s(%s, %s);", code().type(sum), code().declaration(sum, "*to"), code().declaration(sum, "from"));
 			emitter().emit("");
 		}
 
@@ -717,12 +706,12 @@ public interface Algebraic {
 		default void definition(ProductType product) {
 			String from = "from";
 			String to = "to";
-			emitter().emit("void copy_%s_t(%s, %s) {", utils().mangle(product.getName()), code().declaration(product, "*" + to), code().declaration(product, from));
+			emitter().emit("void copy_%s(%s, %s) {", code().type(product), code().declaration(product, "*" + to), code().declaration(product, from));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !%s) return;", to, from);
 			emitter().emit("if (*%s == %s) return;", to, from);
 			emitter().emit("if (*%s) { %s(*%s); *%s = NULL; }", to, utils().destructor(product), to, to);
-			emitter().emit("if (!(*%s)) *%s = calloc(1, sizeof(%s_t));", to, to, utils().mangle(product.getName()));
+			emitter().emit("if (!(*%s)) *%s = calloc(1, sizeof(%s));", to, to, utils().internalName(product));
 			emitter().emit("if (!(*%s)) return;", to);
 			product.getFields().forEach(field -> {
 				code().copy(field.getType(), "(*" + to + ")->" + field.getName(), field.getType(), from + "->" + field.getName());
@@ -735,12 +724,12 @@ public interface Algebraic {
 		default void definition(SumType sum) {
 			String from = "from";
 			String to = "to";
-			emitter().emit("void copy_%s_t(%s, %s) {", utils().mangle(sum.getName()), code().declaration(sum, "*" + to), code().declaration(sum, from));
+			emitter().emit("void copy_%s(%s, %s) {", code().type(sum), code().declaration(sum, "*" + to), code().declaration(sum, from));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !%s) return;", to, from);
 			emitter().emit("if (*%s == %s) return;", to, from);
 			emitter().emit("if (*%s) { %s(*%s); *%s = NULL; }", to, utils().destructor(sum), to, to);
-			emitter().emit("if (!(*%s)) *%s = calloc(1, sizeof(%s_t));", to, to, utils().mangle(sum.getName()));
+			emitter().emit("if (!(*%s)) *%s = calloc(1, sizeof(%s));", to, to, utils().internalName(sum));
 			emitter().emit("if (!(*%s)) return;", to);
 			emitter().emit("(*%s)->tag = %s->tag;", to, from);
 			emitter().emit("switch (%s->tag) {", from);
@@ -780,12 +769,12 @@ public interface Algebraic {
 		void prototype(AlgebraicType type);
 
 		default void prototype(ProductType product) {
-			emitter().emit("%s compare_%s_t(%s, %s);", code().type(BoolType.INSTANCE), utils().mangle(product.getName()), code().declaration(product, "lhs"), code().declaration(product, "rhs"));
+			emitter().emit("%s compare_%s(%s, %s);", code().type(BoolType.INSTANCE), code().type(product), code().declaration(product, "lhs"), code().declaration(product, "rhs"));
 			emitter().emit("");
 		}
 
 		default void prototype(SumType sum) {
-			emitter().emit("%s compare_%s_t(%s, %s);", BoolType.INSTANCE, utils().mangle(sum.getName()), code().declaration(sum, "lhs"), code().declaration(sum, "rhs"));
+			emitter().emit("%s compare_%s(%s, %s);", BoolType.INSTANCE, code().type(sum), code().declaration(sum, "lhs"), code().declaration(sum, "rhs"));
 			emitter().emit("");
 		}
 
@@ -794,7 +783,7 @@ public interface Algebraic {
 		default void definition(ProductType product) {
 			String lhs = "lhs";
 			String rhs = "rhs";
-			emitter().emit("%s compare_%s_t(%s, %s) {", code().type(BoolType.INSTANCE), utils().mangle(product.getName()), code().declaration(product, lhs), code().declaration(product, rhs));
+			emitter().emit("%s compare_%s(%s, %s) {", code().type(BoolType.INSTANCE), code().type(product), code().declaration(product, lhs), code().declaration(product, rhs));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !%s) return false;", lhs, rhs);
 			emitter().emit("if (%s == %s) return true;", lhs, rhs);
@@ -810,7 +799,7 @@ public interface Algebraic {
 		default void definition(SumType sum) {
 			String lhs = "lhs";
 			String rhs = "rhs";
-			emitter().emit("%s compare_%s_t(%s, %s) {", code().type(BoolType.INSTANCE), utils().mangle(sum.getName()), code().declaration(sum, "lhs"), code().declaration(sum, "rhs"));
+			emitter().emit("%s compare_%s(%s, %s) {", code().type(BoolType.INSTANCE), code().type(sum), code().declaration(sum, "lhs"), code().declaration(sum, "rhs"));
 			emitter().increaseIndentation();
 			emitter().emit("if (!%s || !%s) return false;", lhs, rhs);
 			emitter().emit("if (%s == %s) return true;", lhs, rhs);
@@ -846,6 +835,10 @@ public interface Algebraic {
 			return mangle(type.getName()) + "_t";
 		}
 
+		default String internalName(AlgebraicType type) {
+			return "struct " + mangle(type.getName()) + "_s";
+		}
+
 		default String mangle(String str) {
 			return str.replaceAll("[(,) ]", "_");
 		}
@@ -873,7 +866,7 @@ public interface Algebraic {
 		}
 
 		default String destructor(AlgebraicType type) {
-			return String.format("free_%s_t", mangle(type.getName()));
+			return String.format("free_%s", name(type));
 		}
 
 		default Stream<AlgebraicType> types() {

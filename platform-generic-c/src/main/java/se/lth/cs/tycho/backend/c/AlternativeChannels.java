@@ -142,7 +142,7 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static inline void channel_write_one_%s_%s(channel_list_%1$s_%2$s channel_list, %1$s *data) {", tokenType, String.join("_", sizeStrings));
+		emitter().emit("static inline void channel_write_one_%s_%s(channel_list_%1$s_%2$s channel_list, %1$s data) {", tokenType, String.join("_", sizeStrings));
 		index = 0;
 		for (int s : size) {
 			emitter().emit("	{");
@@ -156,7 +156,7 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static inline void channel_write_%s_%s(channel_list_%1$s_%2$s channel_list, %1$s **data, size_t tokens) {", tokenType, String.join("_", sizeStrings));
+		emitter().emit("static inline void channel_write_%s_%s(channel_list_%1$s_%2$s channel_list, %1$s *data, size_t tokens) {", tokenType, String.join("_", sizeStrings));
 		index = 0;
 		for (int s : size) {
 			emitter().emit("	{");
@@ -282,14 +282,14 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static inline %s* channel_peek_first_%1$s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
-		emitter().emit("	%s *res = read_%1$s(channel->buffer[channel->read %% %2$s]);", tokenType, bufferSize);
+		emitter().emit("static inline %s channel_peek_first_%1$s_%s(channel_%1$s_%2$s *channel) {", tokenType, sizeString);
+		emitter().emit("	%s res = read_%1$s(channel->buffer[channel->read %% %2$s]);", tokenType, bufferSize);
 		emitter().emit("	return res;");
 		emitter().emit("}");
 		emitter().emit("");
 
-		emitter().emit("static inline void channel_peek_%s_%s(channel_%1$s_%2$s *channel, size_t offset, size_t tokens, %1$s **result) {", tokenType, sizeString);
-		emitter().emit("	%s **res = result;", tokenType);
+		emitter().emit("static inline void channel_peek_%s_%s(channel_%1$s_%2$s *channel, size_t offset, size_t tokens, %1$s *result) {", tokenType, sizeString);
+		emitter().emit("	%s *res = result;", tokenType);
 		emitter().emit("	for (size_t i = 0; i < tokens; i++) {");
 		emitter().emit("		res[i] = read_%s(channel->buffer[(channel->read+i+offset) %% %s]);", tokenType, bufferSize);
 		emitter().emit("	}");
