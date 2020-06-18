@@ -82,28 +82,54 @@ public class TypeAnalysisPhase implements Phase {
 	@Module
 	interface CalTypeChecker extends TypeChecker {
 
-		default boolean isConvertible(Type to, Type from) {
+		default boolean isSafe(Type to, Type from) {
 			return isAssignable(to, from);
 		}
 
-		default boolean isConvertible(IntType to, IntType from) {
-			return true;
+		default boolean isSafe(IntType to, IntType from) {
+			if (!to.isSigned() && from.isSigned()) {
+				return false;
+			}
+			if (!to.getSize().isPresent()) {
+				return true;
+			}
+			if (from.getSize().isPresent()) {
+				if (to.isSigned() == from.isSigned()) {
+					return to.getSize().getAsInt() >= from.getSize().getAsInt();
+				} else {
+					return to.getSize().getAsInt() > from.getSize().getAsInt();
+				}
+			} else {
+				if (to.getSize().isPresent()) {
+					return true;
+				} else {
+					return false;
+				}
+			}
 		}
 
-		default boolean isConvertible(RealType to, RealType from) {
-			return true;
+		default boolean isSafe(RealType to, RealType from) {
+			return to.getSize() >= from.getSize();
 		}
 
-		default boolean isConvertible(AliasType to, AliasType from) {
-			return isConvertible(to.getType(), from.getType());
+		default boolean isSafe(IntType to, RealType from) {
+			return false;
 		}
 
-		default boolean isConvertible(AliasType to, Type from) {
-			return isConvertible(to.getType(), from);
+		default boolean isSafe(RealType to, IntType from) {
+			return !(from.getSize().isPresent()) || from.getSize().getAsInt() <= to.getSize();
 		}
 
-		default boolean isConvertible(Type to, AliasType from) {
-			return isConvertible(to, from.getType());
+		default boolean isSafe(AliasType to, AliasType from) {
+			return isSafe(to.getType(), from.getType());
+		}
+
+		default boolean isSafe(AliasType to, Type from) {
+			return isSafe(to.getType(), from);
+		}
+
+		default boolean isSafe(Type to, AliasType from) {
+			return isSafe(to, from.getType());
 		}
 
 		default boolean isAssertable(Type to, Type from) {
@@ -154,31 +180,7 @@ public class TypeAnalysisPhase implements Phase {
 		default boolean isAssignable(TopType to, BottomType from) {
 			return true;
 		}
-		default boolean isAssignable(IntType to, IntType from) {
-			if (!to.isSigned() && from.isSigned()) {
-				return false;
-			}
-			if (!to.getSize().isPresent()) {
-				return true;
-			}
-			if (from.getSize().isPresent()) {
-				if (to.isSigned() == from.isSigned()) {
-					return to.getSize().getAsInt() >= from.getSize().getAsInt();
-				} else {
-					return to.getSize().getAsInt() > from.getSize().getAsInt();
-				}
-			} else {
-				if (to.getSize().isPresent()) {
-					return true;
-				} else {
-					return false;
-				}
-			}
-		}
-		default boolean isAssignable(RealType to, RealType from) {
-			return to.getSize() >= from.getSize();
-		}
-		default boolean isAssignable(RealType to, IntType from) {
+		default boolean isAssignable(NumberType to, NumberType from) {
 			return true;
 		}
 		default boolean isAssignable(BoolType to, BoolType from) {
@@ -269,14 +271,10 @@ public class TypeAnalysisPhase implements Phase {
 	@Module
 	interface OrccTypeChecker extends TypeChecker {
 
-		default boolean isConvertible(Type to, Type from) {
+		default boolean isSafe(Type to, Type from) {
 			return isAssignable(to, from);
 		}
-		default boolean isConvertible(IntType to, IntType from) {
-			return true;
-		}
-
-		default boolean isConvertible(RealType to, RealType from) {
+		default boolean isSafe(NumberType to, NumberType from) {
 			return true;
 		}
 
@@ -368,15 +366,13 @@ public class TypeAnalysisPhase implements Phase {
 
 		boolean isAssertable(Type to, Type from);
 
-		boolean isConvertible(Type to, Type from);
+		boolean isSafe(Type to, Type from);
 
 		default void check(Type expected, Type actual, IRNode node) {
 			if (!isAssignable(expected, actual)) {
-				if (isConvertible(expected, actual)) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + expected + " to " + actual + ".", sourceUnit(node), node));
-				} else {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + expected + " but was " + actual + ".", sourceUnit(node), node));
-				}
+				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Incompatible types; expected " + expected + " but was " + actual + ".", sourceUnit(node), node));
+			} else if (!(isSafe(expected, actual))) {
+				reporter().report(new Diagnostic(Diagnostic.Kind.WARNING, "Unsafe conversion from " + actual + " to " + expected + ".", sourceUnit(node), node));
 			}
 		}
 
