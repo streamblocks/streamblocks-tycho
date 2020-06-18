@@ -811,6 +811,8 @@ public class TypeAnalysisPhase implements Phase {
 					return testGeqSupport(a, b);
 				case "in":
 					return testInSupport(a, b);
+				case "..":
+					return testRangeSupport(a, b);
 				default:
 					return false;
 			}
@@ -1086,6 +1088,10 @@ public class TypeAnalysisPhase implements Phase {
 
 		default boolean testInSupport(CharType a, StringType b) {
 			return true;
+		}
+
+		default boolean testRangeSupport(Type a, Type b) {
+			return isAssignable(a, b);
 		}
 
 		default SourceUnit sourceUnit(IRNode node) {

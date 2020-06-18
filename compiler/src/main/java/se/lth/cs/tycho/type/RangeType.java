@@ -2,7 +2,7 @@ package se.lth.cs.tycho.type;
 
 import java.util.OptionalInt;
 
-public class RangeType implements Type {
+public class RangeType implements CollectionType {
 	private final Type type;
 	private final OptionalInt length;
 
