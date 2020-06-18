@@ -1098,6 +1098,14 @@ public interface Types {
 			return RealType.of(Math.max(a.getSize(), b.getSize()));
 		}
 
+		default Type leastUpperBound(IntType a, RealType b) {
+			return b;
+		}
+
+		default Type leastUpperBound(RealType a, IntType b) {
+			return b;
+		}
+
 		default Type leastUpperBound(AlgebraicType a, AlgebraicType b) {
 			if (Objects.equals(a, b)) {
 				return a;
