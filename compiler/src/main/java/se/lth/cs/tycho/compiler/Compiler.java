@@ -75,29 +75,26 @@ public class Compiler {
                 new ResolveTypeConstructionPhase(),
                 new ConstantVariableImmutabilityPhase(),
                 new ConstantVariableInitializationPhase(),
-                new NameAnalysisPhase(),
+                new NameAnalysisPhase()
+        );
+    }
+
+    public static List<Phase> templatePhases() {
+        return ImmutableList.of(
                 new TemplateInitializationPhase(),
                 new TemplateAnalysisPhase(),
                 new TemplateTransformationPhase(),
                 new TemplateInstantiationPhase()
-
-                // -- Folding
-                //new NetworkParameterAnalysisPhase(),
-                //new NetworkDefaultValueParameterPropagationPhase(),
-                //new NetworkValueParameterPropagationPhase()
         );
     }
 
 
-
     public static List<Phase> networkElaborationPhases() {
         return ImmutableList.of(
-                //new NetworkVariablePropagation(),
                 new CreateNetworkPhase(),
                 new ResolveGlobalEntityNamesPhase(),
                 new ResolveGlobalVariableNamesPhase(),
                 new ElaborateNetworkPhase(),
-                //new ParameterPropagationPhase(),
                 new RemoveUnusedGlobalDeclarations()
         );
     }
@@ -105,7 +102,6 @@ public class Compiler {
     public static ImmutableList<Phase> nameAndTypeAnalysis() {
         return ImmutableList.of(
                 // Name and type analyses and transformations
-
                 new TypeAnnotationAnalysisPhase(),
                 new TypeAnalysisPhase(),
                 new AddTypeAnnotationsPhase(),
