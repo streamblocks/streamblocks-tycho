@@ -20,7 +20,9 @@ import se.lth.cs.tycho.ir.decl.Availability;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
 import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
+import se.lth.cs.tycho.ir.decl.Import;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
+import se.lth.cs.tycho.ir.decl.SingleImport;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -278,8 +280,8 @@ public class TemplateInstantiationPhase implements Phase {
 			staging().setChanged(true);
 
 			// Check existing instance
-			if (staging().entityDeclarations().containsKey(nameOf(meta))) {
-				return renameOf(meta, staging().entityDeclarations().get(nameOf(meta)).getName());
+			if (staging().entityDeclarations().containsKey(staging().symbolics().getOrDefault(nameOf(meta), "<none>"))) {
+				return renameOf(meta, staging().entityDeclarations().get(staging().symbolics().get(nameOf(meta))).getName());
 			}
 
 			// Find declaration
@@ -297,10 +299,27 @@ public class TemplateInstantiationPhase implements Phase {
 			GlobalEntityDecl instance = template.clone();
 
 			// Specialize instance
-			String name = nameOf(meta);
+			String symbolic = nameOf(meta);
+			String logic = template.getName() + "_" + numbers().next();
+
+			staging().symbolics().put(symbolic, logic);
+
+			if (staging().imported().containsKey(sourceUnit(meta).getTree())) {
+				staging().imported().get(sourceUnit(meta).getTree()).add(template.getName());
+			} else {
+				Set<String> values = new HashSet<>(); values.add(template.getName());
+				staging().imported().put(sourceUnit(meta).getTree(), values);
+			}
+
+			if (staging().renamed().containsKey(template.getName())) {
+				staging().renamed().get(template.getName()).add(logic);
+			} else {
+				Set<String> values = new HashSet<>(); values.add(logic);
+				staging().renamed().put(template.getName(), values);
+			}
 
 			Rename rename = MultiJ.from(Rename.class)
-					.bind("name").to(name)
+					.bind("name").to(logic)
 					.instance();
 
 			instance = (GlobalEntityDecl) rename.apply(instance);
@@ -351,7 +370,7 @@ public class TemplateInstantiationPhase implements Phase {
 			instance = instance.deepClone();
 
 			// Rename node
-			IRNode node = renameOf(meta, nameOf(meta));
+			IRNode node = renameOf(meta, logic);
 
 			// Update staging context: save instance
 			staging().entityDeclarations().put(instance.getName(), instance);
@@ -489,7 +508,7 @@ public class TemplateInstantiationPhase implements Phase {
 		}
 
 		default IRNode apply(GlobalEntityDecl decl) {
-			return decl.withName(name()).transformChildren(this);
+			return decl.withName(name());
 		}
 	}
 
@@ -588,7 +607,27 @@ public class TemplateInstantiationPhase implements Phase {
 					.filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
 			Stream<GlobalEntityDecl> remainingEntities = decl.getEntityDecls().stream()
 					.filter(entityDecl -> !(entityDecl instanceof MetaGlobalEntityDecl));
+			List<Import> imports = new ArrayList<>();
+			Optional<Map.Entry<NamespaceDecl, Set<String>>> imported = staging().imported().entrySet().stream().filter(e -> e.getKey().getQID().equals(decl.getQID())).findAny();
+			if (imported.isPresent()) {
+				Set<String> instantiated = imported.get().getValue();
+				for (Import importt : decl.getImports()) {
+					if (importt instanceof SingleImport && instantiated.contains(((SingleImport) importt).getLocalName())) {
+						SingleImport singleImport = (SingleImport) importt;
+						for (String newImportName : staging().renamed().get(singleImport.getLocalName())) {
+							imports.add(((SingleImport) singleImport.deepClone())
+									.withLocalName(newImportName)
+									.withGlobalName(singleImport.getGlobalName().getButLast().concat(QID.of(newImportName))));
+						}
+					} else {
+						imports.add(importt);
+					}
+				}
+			} else {
+				imports = decl.getImports();
+			}
 			return decl
+					.withImports(imports)
 					.withTypeDecls(Stream.concat(instantiatedTypes, remainingTypes).collect(Collectors.toList()))
 					.withEntityDecls(Stream.concat(instantiatedEntities, remainingEntities).collect(Collectors.toList()))
 					.withVarDecls(Stream.concat(decl.getVarDecls().stream(), interpreted).collect(Collectors.toList()));
@@ -604,6 +643,10 @@ public class TemplateInstantiationPhase implements Phase {
 		private final Map<MetaAlgebraicTypeDecl, List<AlgebraicTypeDecl>> typeInstances = new HashMap<>();
 		private final Map<String, GlobalEntityDecl> entityDeclarations = new HashMap<>();
 		private final Map<MetaGlobalEntityDecl, List<GlobalEntityDecl>> entityInstances = new HashMap<>();
+
+		private final Map<String, String> symbolics = new HashMap<>();
+		private final Map<String, Set<String>> renamed = new HashMap<>();
+		private final Map<NamespaceDecl, Set<String>> imported = new HashMap<>();
 
 		public boolean isChanged() {
 			return changed;
@@ -635,6 +678,18 @@ public class TemplateInstantiationPhase implements Phase {
 
 		public Map<MetaGlobalEntityDecl, List<GlobalEntityDecl>> entityInstances() {
 			return entityInstances;
+		}
+
+		public Map<String, String> symbolics() {
+			return symbolics;
+		}
+
+		public Map<String, Set<String>> renamed() {
+			return renamed;
+		}
+
+		public Map<NamespaceDecl, Set<String>> imported() {
+			return imported;
 		}
 	}
 
