@@ -59,7 +59,7 @@ public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
         if (getName().equals(name)) {
             return this;
         } else {
-            return new GlobalEntityDecl(this, getAvailability(), name, entity);
+            return new GlobalEntityDecl(this, getAvailability(), name, entity, this.external);
         }
     }
 
@@ -67,7 +67,7 @@ public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
         if (getAvailability() == availability) {
             return this;
         } else {
-            return new GlobalEntityDecl(this, availability, getName(), entity);
+            return new GlobalEntityDecl(this, availability, getName(), entity, this.external);
         }
     }
 
