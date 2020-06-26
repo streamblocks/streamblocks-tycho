@@ -876,6 +876,13 @@ public interface Types {
 						return BottomType.INSTANCE;
 					}
 				}
+				case "~": {
+					if (t instanceof IntType) {
+						return new IntType(((IntType) t).getSize(), true);
+					} else {
+						return BottomType.INSTANCE;
+					}
+				}
 				case "not": {
 					if (t == BoolType.INSTANCE) {
 						return t;
