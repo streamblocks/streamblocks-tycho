@@ -44,7 +44,7 @@ public class MetaEntityInstanceExpr extends MetaEntityExpr {
 
 	@Override
 	public IRNode clone() {
-		return null;
+		return super.clone();
 	}
 
 	@Override
