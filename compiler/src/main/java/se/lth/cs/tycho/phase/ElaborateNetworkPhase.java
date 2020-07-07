@@ -3,7 +3,6 @@ package se.lth.cs.tycho.phase;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
-import se.lth.cs.tycho.interp.BasicInterpreter;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
@@ -56,7 +55,7 @@ public class ElaborateNetworkPhase implements Phase {
 
         @Override
         public Boolean defaultValue(Configuration configuration) {
-            return false;
+            return true;
         }
     };
 
@@ -73,8 +72,7 @@ public class ElaborateNetworkPhase implements Phase {
             if (entity.getEntity() instanceof NlNetwork) {
                 Optional<ToolAttribute> instPartition = partition.isPresent() ? partition : getPartitionAttribute(instance);
                 if (context.getConfiguration().get(experimentalNetworkElaboration)) {
-                    BasicInterpreter interpreter = new BasicInterpreter(task, 100);
-                    NlToNetwork nlToNetwork = new NlToNetwork(task, (NlNetwork) entity.getEntity(), interpreter);
+                    NlToNetwork nlToNetwork = new NlToNetwork(task, (NlNetwork) entity.getEntity());
                     nlToNetwork.evaluate(instance.getValueParameters());
                     elaborated = nlToNetwork.getNetwork();
                 } else {

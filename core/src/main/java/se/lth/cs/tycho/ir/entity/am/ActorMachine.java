@@ -56,6 +56,16 @@ public class ActorMachine extends Entity {
         return copy(annotations, inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
     }
 
+    @Override
+    public Entity withTypeParameters(List<ParameterTypeDecl> typeParameters) {
+        return copy(annotations, inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
+    }
+
+    @Override
+    public Entity withValueParameters(List<ParameterVarDecl> valueParameters) {
+        return copy(annotations, inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
+    }
+
     public ActorMachine withAnnotations(List<Annotation> annotations) {
         return copy(annotations, inputPorts, outputPorts, typeParameters, valueParameters, scopes, controller, transitions, conditions);
     }

@@ -26,6 +26,7 @@ import se.lth.cs.tycho.ir.decl.SingleImport;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.EntityReference;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
@@ -294,8 +295,8 @@ public class TemplateInstantiationPhase implements Phase {
 			MetaGlobalEntityDecl metaDecl = (MetaGlobalEntityDecl) decl;
 
 			// Instantiate declaration
-			CalActor actor = (CalActor) metaDecl.getEntity();
-			GlobalEntityDecl template = metaDecl.withEntity(actor.withTypeParameters(ImmutableList.empty()).withValueParameters(ImmutableList.empty()));
+			Entity entity = metaDecl.getEntity();
+			GlobalEntityDecl template = metaDecl.withEntity(entity.withTypeParameters(ImmutableList.empty()).withValueParameters(ImmutableList.empty()));
 			GlobalEntityDecl instance = template.clone();
 
 			// Specialize instance

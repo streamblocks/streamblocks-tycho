@@ -62,7 +62,7 @@ public class TemplateTransformationPhase implements Phase {
 
 		default IRNode apply(GlobalEntityDecl decl) {
 			Entity entity = decl.getEntity();
-			if (!(entity instanceof CalActor) || (entity.getTypeParameters().isEmpty() && entity.getValueParameters().isEmpty())) {
+			if ((entity.getTypeParameters().isEmpty() && entity.getValueParameters().isEmpty())) {
 				return decl.transformChildren(this);
 			}
 			Stream<MetaParameter> types  = entity.getTypeParameters().stream().map(this::convert);

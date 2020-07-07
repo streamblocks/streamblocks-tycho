@@ -6,7 +6,9 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -47,6 +49,10 @@ public abstract class Entity extends AbstractIRNode {
 	public Entity withOutputPorts(List<PortDecl> outputPorts) {
 		throw new UnsupportedOperationException("Not yet implemented.");
 	}
+
+	public abstract Entity withTypeParameters(List<ParameterTypeDecl> typeParameters);
+
+	public abstract Entity withValueParameters(List<ParameterVarDecl> valueParameters);
 
 	public ImmutableList<ParameterTypeDecl> getTypeParameters() {
 		return typeParameters;

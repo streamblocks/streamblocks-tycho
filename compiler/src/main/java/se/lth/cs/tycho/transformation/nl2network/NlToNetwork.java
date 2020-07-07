@@ -1,11 +1,12 @@
 package se.lth.cs.tycho.transformation.nl2network;
 
+import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.EntityDeclarations;
+import se.lth.cs.tycho.attribute.TypeScopes;
+import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
-import se.lth.cs.tycho.interp.*;
-import se.lth.cs.tycho.interp.values.ExprValue;
-import se.lth.cs.tycho.interp.values.RefView;
+
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
@@ -21,6 +22,13 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.meta.interp.Environment;
+import se.lth.cs.tycho.meta.interp.Interpreter;
+import se.lth.cs.tycho.meta.interp.op.Binary;
+import se.lth.cs.tycho.meta.interp.op.Unary;
+import se.lth.cs.tycho.meta.interp.value.Value;
+import se.lth.cs.tycho.meta.interp.value.ValueBool;
+import se.lth.cs.tycho.meta.interp.value.util.Convert;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 
@@ -33,44 +41,42 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     private NlNetwork srcNetwork;
     private final Interpreter interpreter;
-
+    private final Convert convert;
     private HashMap<InstanceDecl, EntityExpr> entities;
     private ArrayList<StructureStatement> structure;
     private boolean evaluated;
-    TypeConverter converter = TypeConverter.getInstance();
 
     private CompilationTask task;
 
-    private Memory mem;
-
-    private final ComprehensionHelper comprehensionHelper;
-
     private EntityDeclarations entityDeclarations;
 
-    public NlToNetwork(CompilationTask task, NlNetwork network, Interpreter interpreter) {
+    public NlToNetwork(CompilationTask task, NlNetwork network) {
         this.srcNetwork = network;
-        this.interpreter = interpreter;
         this.evaluated = false;
         this.task = task;
-        this.comprehensionHelper = new ComprehensionHelper(interpreter);
         this.entityDeclarations = task.getModule(EntityDeclarations.key);
+        this.interpreter = MultiJ.from(Interpreter.class)
+                .bind("variables").to(task.getModule(VariableDeclarations.key))
+                .bind("types").to(task.getModule(TypeScopes.key))
+                .bind("unary").to(MultiJ.from(Unary.class).instance())
+                .bind("binary").to(MultiJ.from(Binary.class).instance())
+                .instance();
+        this.convert = MultiJ.from(Convert.class)
+                .instance();
     }
 
-    public void evaluate(ImmutableList<ValueParameter>  parameterAssignments) throws CompilationException {
+    public void evaluate(ImmutableList<ValueParameter> parameterAssignments) throws CompilationException {
         entities = new HashMap<InstanceDecl, EntityExpr>();
         structure = new ArrayList<StructureStatement>();
-        mem = new BasicMemory();
-        Environment env = new BasicEnvironment(mem);    // no expressions will read from the ports while instantiating/flattening this network
+        Environment env = new Environment();    // no expressions will read from the ports while instantiating/flattening this network
 
         ImmutableList<LocalVarDecl> declList = srcNetwork.getVarDecls();
         for (LocalVarDecl decl : declList) {
-            mem.declareGlobal(decl);
-            RefView value = interpreter.evaluate(decl.getValue(), env);
-            value.assignTo(mem.getGlobal(decl));
+            env.put(decl.getName(), interpreter.eval(decl.getValue(), env));
         }
 
         ImmutableList<ParameterVarDecl> parList = srcNetwork.getValueParameters();
-        for (ValueParameter parameter: parameterAssignments) {
+        for (ValueParameter parameter : parameterAssignments) {
             String name = parameter.getName();
             ParameterVarDecl decl = null;
             boolean found = false;
@@ -84,9 +90,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
                 throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR,
                         "unknown parameter name: " + name + " found in parameter assignments while evaluating network "));
             }
-            RefView value = interpreter.evaluate(parameter.getValue(), env);
-            mem.declareLocal(decl);
-            value.assignTo(mem.getLocal(decl));
+            env.put(decl.getName(), interpreter.eval(parameter.getValue(), env));
         }
 
         for (InstanceDecl decl : srcNetwork.getEntities()) {
@@ -122,21 +126,25 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         ImmutableList.Builder<ValueParameter> builder = new ImmutableList.Builder<>();
         for (ValueParameter valueParameter : e.getValueParameters()) {
             Expression expr = valueParameter.getValue();
-            RefView value = interpreter.evaluate(expr, environment);
-            builder.add(new ValueParameter(valueParameter.getName(), new ExprValue(new ExprLiteral(ExprLiteral.Kind.Integer, value.toString()))));
+            Value value = interpreter.eval(expr, environment);
+            builder.add(new ValueParameter(valueParameter.getName(), convert.apply(value)));
         }
         return e.copy(e.getEntityName(), ImmutableList.empty(), builder.build());
     }
 
     @Override
     public EntityExpr visitEntityIfExpr(EntityIfExpr e, Environment environment) {
-        RefView condRef = interpreter.evaluate(e.getCondition(), environment);
-        boolean cond = converter.getBoolean(condRef);
-        if (cond) {
-            return e.getTrueEntity().accept(this, environment);
-        } else {
-            return e.getFalseEntity().accept(this, environment);
+        Value condition = interpreter.eval(e.getCondition(), environment);
+        if(condition instanceof ValueBool){
+            boolean cond = ((ValueBool)condition).bool();
+            if (cond) {
+                return e.getTrueEntity().accept(this, environment);
+            } else {
+                return e.getFalseEntity().accept(this, environment);
+            }
         }
+
+        throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR,"Cannot evaluate EntityIfExpr condition"));
     }
 
     @Override
@@ -156,6 +164,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         final ImmutableList.Builder<EntityExpr> builder = new ImmutableList.Builder<EntityExpr>();
         final NlToNetwork exprEvaluator = this;
 
+        /*
         Runnable exec = new Runnable() {
             public void run() {
                 builder.add(e.getCollection().accept(exprEvaluator, environment));
@@ -163,7 +172,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         };
 
         comprehensionHelper.interpret(e.getGenerator(), e.getFilters(), exec, environment);
-
+         */
         return new EntityListExpr(builder.build());
     }
 
@@ -173,16 +182,16 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         // -- src
         ImmutableList.Builder<Expression> srcBuilder = new ImmutableList.Builder<>();
         for (Expression expr : src.getEntityIndex()) {
-            RefView value = interpreter.evaluate(expr, environment);
-            srcBuilder.add(new ExprValue(expr, ExprLiteral.Kind.Integer, value.toString(), value));
+            Value value = interpreter.eval(expr, environment);
+            srcBuilder.add(convert.apply(value));
         }
         PortReference newSrc = src.copy(src.getEntityName(), srcBuilder.build(), src.getPortName());
         // -- dst
         PortReference dst = stmt.getDst();
         ImmutableList.Builder<Expression> dstBuilder = new ImmutableList.Builder<Expression>();
         for (Expression expr : dst.getEntityIndex()) {
-            RefView value = interpreter.evaluate(expr, environment);
-            dstBuilder.add(new ExprValue(expr, ExprLiteral.Kind.Integer, value.toString(), value));
+            Value value = interpreter.eval(expr, environment);
+            dstBuilder.add(convert.apply(value));
         }
         PortReference newDst = dst.copy(dst.getEntityName(), dstBuilder.build(), dst.getPortName());
         return stmt.copy(newSrc, newDst);
@@ -190,29 +199,32 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     @Override
     public StructureStatement visitStructureIfStmt(StructureIfStmt stmt, Environment environment) {
-        ImmutableList.Builder<StructureStatement> builder = new ImmutableList.Builder<StructureStatement>();
-        RefView condRef = interpreter.evaluate(stmt.getCondition(), environment);
-        boolean cond = converter.getBoolean(condRef);
-        if (cond) {
-            for (StructureStatement s : stmt.getTrueStmt()) {
-                builder.add(s.accept(this, environment));
+        Value condition = interpreter.eval(stmt.getCondition(), environment);
+        if(condition instanceof ValueBool){
+            ImmutableList.Builder<StructureStatement> builder = new ImmutableList.Builder<StructureStatement>();
+            boolean cond = ((ValueBool)condition).bool();
+            if (cond) {
+                for (StructureStatement s : stmt.getTrueStmt()) {
+                    builder.add(s.accept(this, environment));
+                }
+            } else {
+                for (StructureStatement s : stmt.getFalseStmt()) {
+                    builder.add(s.accept(this, environment));
+                }
             }
-        } else {
-            for (StructureStatement s : stmt.getFalseStmt()) {
-                builder.add(s.accept(this, environment));
-            }
+            return new StructureForeachStmt(null, ImmutableList.<Expression>empty(), builder.build());
         }
-        return new StructureForeachStmt(null, ImmutableList.<Expression>empty(), builder.build());
+        throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR,"Cannot evaluate StructureIfStmt condition"));
     }
 
     @Override
     public StructureStatement visitStructureForeachStmt(StructureForeachStmt stmt, Environment environment) {
         final ImmutableList.Builder<StructureStatement> builder = new ImmutableList.Builder<StructureStatement>();
         final NlToNetwork stmtEvaluateor = this;
-
+/*
         Runnable exec = new Runnable() {
             public void run() {
-                for(StructureStatement element : stmt.getStatements()){
+                for (StructureStatement element : stmt.getStatements()) {
                     builder.add(element.accept(stmtEvaluateor, environment));
                 }
             }
@@ -220,6 +232,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
         comprehensionHelper.interpret(stmt.getGenerator(), stmt.getFilters(), exec, environment);
 
+ */
         return stmt.copy(null, ImmutableList.<Expression>empty(), builder.build());
     }
 
@@ -278,11 +291,11 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         }
 
 
-        private String makeEntityName(PortReference port){
+        private String makeEntityName(PortReference port) {
             StringBuffer name = new StringBuffer(port.getEntityName());
-            for(Expression index : port.getEntityIndex()){
+            for (Expression index : port.getEntityIndex()) {
                 name.append("_");
-                name.append(((ExprLiteral)index).getText());
+                name.append(((ExprLiteral) index).getText());
             }
             return name.toString();
         }

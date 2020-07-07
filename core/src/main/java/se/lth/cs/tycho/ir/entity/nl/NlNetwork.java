@@ -108,6 +108,15 @@ public class NlNetwork extends Entity {
         }
     }
 
+    @Override
+    public NlNetwork withTypeParameters(List<ParameterTypeDecl> typeParameters) {
+        if (Lists.sameElements(this.typeParameters, typeParameters)) {
+            return this;
+        } else {
+            return new NlNetwork(this, annotations, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, entities, structure);
+        }
+    }
+
     public ImmutableList<InstanceDecl> getEntities() {
         return entities;
     }
@@ -135,4 +144,6 @@ public class NlNetwork extends Entity {
     public ImmutableList<Annotation> getAnnotations() {
         return annotations;
     }
+
+
 }

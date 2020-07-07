@@ -200,7 +200,7 @@ public class CalActor extends Entity {
 		}
 	}
 
-	public CalActor withTypeParameters(ImmutableList<ParameterTypeDecl> typeParameters) {
+	public CalActor withTypeParameters(List<ParameterTypeDecl> typeParameters) {
 		if (Lists.sameElements(this.typeParameters, typeParameters)) {
 			return this;
 		} else {
@@ -208,7 +208,7 @@ public class CalActor extends Entity {
 		}
 	}
 
-	public CalActor withValueParameters(ImmutableList<ParameterVarDecl> valueParameters) {
+	public CalActor withValueParameters(List<ParameterVarDecl> valueParameters) {
 		if (Lists.sameElements(this.valueParameters, valueParameters)) {
 			return this;
 		} else {
