@@ -347,7 +347,7 @@ public interface Code {
 			case "mod":
 				return evaluateBinaryMod(lhs, rhs, binaryOp);
 			case "^":
-				return evaluateBinaryExp(lhs, rhs, binaryOp);
+				return evaluateBinaryBitXor(lhs, rhs, binaryOp);
 			case "&":
 				return evaluateBinaryBitAnd(lhs, rhs, binaryOp);
 			case "<<":
@@ -544,14 +544,14 @@ public interface Code {
 		return String.format("(%s %% %s)", evaluate(left), evaluate(right));
 	}
 
-	default String evaluateBinaryExp(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
+	default String evaluateBinaryBitXor(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
 	}
 
-	default String evaluateBinaryExp(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
+	default String evaluateBinaryBitXor(IntType lhs, IntType rhs, ExprBinaryOp binaryOp) {
 		Expression left = binaryOp.getOperands().get(0);
 		Expression right = binaryOp.getOperands().get(1);
-		return String.format("(%s << %s)", evaluate(left), evaluate(right));
+		return String.format("(%s ^ %s)", evaluate(left), evaluate(right));
 	}
 
 	default String evaluateBinaryMod(RealType lhs, IntType rhs, ExprBinaryOp binaryOp) {
