@@ -12,7 +12,6 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -62,7 +61,7 @@ public class TemplateTransformationPhase implements Phase {
 
 		default IRNode apply(GlobalEntityDecl decl) {
 			Entity entity = decl.getEntity();
-			if (!(entity instanceof CalActor) || (entity.getTypeParameters().isEmpty() && entity.getValueParameters().isEmpty())) {
+			if ((decl.getExternal()) || (entity.getTypeParameters().isEmpty() && entity.getValueParameters().isEmpty())) {
 				return decl.transformChildren(this);
 			}
 			Stream<MetaParameter> types  = entity.getTypeParameters().stream().map(this::convert);

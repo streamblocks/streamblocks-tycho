@@ -15,7 +15,7 @@ import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
@@ -74,8 +74,8 @@ public class TemplateAnalysisPhase implements Phase {
 
 		default void analyze(EntityInstanceExpr expr) {
 			GlobalEntityDecl decl = entities().declaration(expr.getEntityName());
-			if (decl != null && decl.getEntity() instanceof CalActor) {
-				check(expr, expr.getTypeParameters(), expr.getValueParameters(), (CalActor) decl.getEntity());
+			if (decl != null) {
+				check(expr, expr.getTypeParameters(), expr.getValueParameters(), decl.getEntity());
 			}
 		}
 
@@ -131,9 +131,9 @@ public class TemplateAnalysisPhase implements Phase {
 			});
 		}
 
-		default void check(IRNode node, List<TypeParameter> typeArguments, List<ValueParameter> valueArguments, CalActor actor) {
+		default void check(IRNode node, List<TypeParameter> typeArguments, List<ValueParameter> valueArguments, Entity entity) {
 
-			actor.getTypeParameters().forEach(param -> {
+			entity.getTypeParameters().forEach(param -> {
 				if (typeArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
 					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing type argument " + param.getName() + ".", sourceUnit(node), node));
 				}
@@ -145,7 +145,7 @@ public class TemplateAnalysisPhase implements Phase {
 				}
 			});
 
-			actor.getValueParameters().forEach(param -> {
+			entity.getValueParameters().forEach(param -> {
 				if (valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
 					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing value argument " + param.getName() + ".", sourceUnit(node), node));
 				}

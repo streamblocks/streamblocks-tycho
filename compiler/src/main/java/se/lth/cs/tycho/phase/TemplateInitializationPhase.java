@@ -14,7 +14,7 @@ import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
@@ -59,24 +59,24 @@ public class TemplateInitializationPhase implements Phase {
 			return node.transformChildren(this);
 		}
 
-		default IRNode apply(EntityInstanceExpr expr) {
-			GlobalEntityDecl decl = entities().declaration(expr.getEntityName());
-			if (decl != null && decl.getEntity() instanceof CalActor) {
-				CalActor actor = (CalActor) decl.getEntity();
-				List<ValueParameter> values = provided(actor.getValueParameters(), expr.getValueParameters());
+		default IRNode apply(EntityInstanceExpr instance) {
+			GlobalEntityDecl decl = entities().declaration(instance.getEntityName());
+			if (decl != null) {
+				Entity entity = decl.getEntity();
+				List<ValueParameter> values = defaultValues(entity.getValueParameters(), instance.getValueParameters());
 				if (!(values.isEmpty())) {
-					values.addAll(expr.getValueParameters());
-					return expr.withValueParameters(ImmutableList.from(values)).transformChildren(this);
+					values.addAll(instance.getValueParameters());
+					return instance.withValueParameters(ImmutableList.from(values)).transformChildren(this);
 				}
 			}
-			return expr.transformChildren(this);
+			return instance.transformChildren(this);
 		}
 
 		default IRNode apply(NominalTypeExpr expr) {
 			Optional<TypeDecl> decl = types().declaration(expr);
 			if (decl.isPresent() && decl.get() instanceof AlgebraicTypeDecl) {
 				AlgebraicTypeDecl algebraic = (AlgebraicTypeDecl) decl.get();
-				List<ValueParameter> values = provided(algebraic.getValueParameters(), expr.getValueParameters());
+				List<ValueParameter> values = defaultValues(algebraic.getValueParameters(), expr.getValueParameters());
 				if (!(values.isEmpty())) {
 					values.addAll(expr.getValueParameters());
 					return expr.withValueParameters(ImmutableList.from(values)).transformChildren(this);
@@ -89,7 +89,7 @@ public class TemplateInitializationPhase implements Phase {
 			Optional<TypeDecl> decl = types().declaration(expr);
 			if (decl.isPresent() && decl.get() instanceof AlgebraicTypeDecl) {
 				AlgebraicTypeDecl algebraic = (AlgebraicTypeDecl) decl.get();
-				List<ValueParameter> values = provided(algebraic.getValueParameters(), expr.getValueParameters());
+				List<ValueParameter> values = defaultValues(algebraic.getValueParameters(), expr.getValueParameters());
 				if (!(values.isEmpty())) {
 					values.addAll(expr.getValueParameters());
 					return expr.withValueParameters(ImmutableList.from(values)).transformChildren(this);
@@ -102,7 +102,7 @@ public class TemplateInitializationPhase implements Phase {
 			Optional<TypeDecl> decl = types().declaration(pattern);
 			if (decl.isPresent() && decl.get() instanceof AlgebraicTypeDecl) {
 				AlgebraicTypeDecl algebraic = (AlgebraicTypeDecl) decl.get();
-				List<ValueParameter> values = provided(algebraic.getValueParameters(), pattern.getValueParameters());
+				List<ValueParameter> values = defaultValues(algebraic.getValueParameters(), pattern.getValueParameters());
 				if (!(values.isEmpty())) {
 					values.addAll(pattern.getValueParameters());
 					return pattern.withValueParameters(ImmutableList.from(values)).transformChildren(this);
@@ -111,7 +111,7 @@ public class TemplateInitializationPhase implements Phase {
 			return pattern.transformChildren(this);
 		}
 
-		default List<ValueParameter> provided(List<ParameterVarDecl> params, List<ValueParameter> args) {
+		default List<ValueParameter> defaultValues(List<ParameterVarDecl> params, List<ValueParameter> args) {
 			return params.stream()
 					.filter(param -> param.getDefaultValue() != null && args.stream().noneMatch(arg -> arg.getName().equals(param.getName())))
 					.map(param -> new ValueParameter(param.getName(), param.getDefaultValue().deepClone()))
