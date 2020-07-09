@@ -589,7 +589,7 @@ public class TemplateInstantiationPhase implements Phase {
             Stream<GlobalEntityDecl> instantiatedEntities = staging().entityInstances().entrySet().stream()
                     .filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
             Stream<GlobalEntityDecl> remainingEntities = decl.getEntityDecls().stream()
-                    .filter(entityDecl -> !(entityDecl instanceof MetaGlobalEntityDecl));
+                    .filter(entityDecl -> !(staging().entityInstances().entrySet().contains(entityDecl)));
             List<Import> imports = new ArrayList<>();
             Optional<Map.Entry<NamespaceDecl, Set<String>>> imported = staging().imported().entrySet().stream().filter(e -> e.getKey().getQID().equals(decl.getQID())).findAny();
             if (imported.isPresent()) {
