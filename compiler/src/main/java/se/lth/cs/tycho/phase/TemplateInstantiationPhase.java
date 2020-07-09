@@ -29,6 +29,7 @@ import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
 import se.lth.cs.tycho.meta.interp.value.util.Convert;
 import se.lth.cs.tycho.meta.ir.decl.MetaAlgebraicTypeDecl;
 import se.lth.cs.tycho.meta.ir.decl.MetaGlobalEntityDecl;
+import se.lth.cs.tycho.meta.ir.decl.MetaGlobalTypeDecl;
 import se.lth.cs.tycho.meta.ir.entity.nl.MetaEntityInstanceExpr;
 import se.lth.cs.tycho.meta.ir.expr.MetaExprTypeConstruction;
 import se.lth.cs.tycho.meta.ir.expr.pattern.MetaPatternDeconstruction;
@@ -51,40 +52,52 @@ public class TemplateInstantiationPhase implements Phase {
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
         Staging staging = new Staging();
 
-        Interpreter interpreter = MultiJ.from(Interpreter.class)
-                .bind("variables").to(task.getModule(VariableDeclarations.key))
-                .bind("types").to(task.getModule(TypeScopes.key))
-                .bind("unary").to(MultiJ.from(Unary.class).instance())
-                .bind("binary").to(MultiJ.from(Binary.class).instance())
-                .instance();
+        do {
 
-        Instantiate instantiate = MultiJ.from(Instantiate.class)
-                .bind("staging").to(staging)
-                .bind("types").to(task.getModule(TypeScopes.key))
-                .bind("interpreter").to(interpreter)
-                .bind("numbers").to(context.getUniqueNumbers())
-                .bind("declarations").to(task.getModule(VariableDeclarations.key))
-                .bind("entities").to(task.getModule(EntityDeclarations.key))
-                .bind("tree").to(task.getModule(TreeShadow.key))
-                .instance();
+            Interpreter interpreter = MultiJ.from(Interpreter.class)
+                    .bind("variables").to(task.getModule(VariableDeclarations.key))
+                    .bind("types").to(task.getModule(TypeScopes.key))
+                    .bind("unary").to(MultiJ.from(Unary.class).instance())
+                    .bind("binary").to(MultiJ.from(Binary.class).instance())
+                    .instance();
 
-        Transform transform = MultiJ.from(Transform.class)
-                .bind("instantiate").to(instantiate)
-                .instance();
+            Instantiate instantiate = MultiJ.from(Instantiate.class)
+                    .bind("staging").to(staging)
+                    .bind("types").to(task.getModule(TypeScopes.key))
+                    .bind("interpreter").to(interpreter)
+                    .bind("numbers").to(context.getUniqueNumbers())
+                    .bind("declarations").to(task.getModule(VariableDeclarations.key))
+                    .bind("entities").to(task.getModule(EntityDeclarations.key))
+                    .bind("tree").to(task.getModule(TreeShadow.key))
+                    .instance();
 
-        Convert convert = MultiJ.from(Convert.class)
-                .instance();
+            Transform transform = MultiJ.from(Transform.class)
+                    .bind("instantiate").to(instantiate)
+                    .instance();
+
+            Convert convert = MultiJ.from(Convert.class)
+                    .instance();
+
+            Merge merge = MultiJ.from(Merge.class)
+                    .bind("staging").to(staging)
+                    .bind("tree").to(task.getModule(TreeShadow.key))
+                    .bind("convert").to(convert)
+                    .instance();
+
+            staging.setChanged(false);
+            task = task.transformChildren(transform);
+            if (staging.isChanged()) {
+                task = task.transformChildren(merge);
+                staging.globals().clear();
+                staging.typeInstances().clear();
+                staging.entityInstances().clear();
+            }
+        } while (staging.isChanged());
 
         Replace replace = MultiJ.from(Replace.class)
                 .bind("staging").to(staging)
                 .bind("tree").to(task.getModule(TreeShadow.key))
-                .bind("convert").to(convert)
                 .instance();
-
-        do {
-            staging.setChanged(false);
-            task = task.transformChildren(transform);
-        } while (staging.isChanged());
 
         return task.transformChildren(replace);
     }
@@ -104,6 +117,8 @@ public class TemplateInstantiationPhase implements Phase {
             if (!instantiate().test(meta)) {
                 IRNode node = meta.transformChildren(this);
                 // -- FIXME : is this correct ?
+                // -- Correct but unnecessary since meta.transformChildren(this) calls apply
+                // -- which eventually calls instantiate().apply(meta).transformChildren(this)
                 //if (node instanceof Meta) {
                 //    return instantiate().apply((Meta) node).transformChildren(this);
                 //}
@@ -569,6 +584,56 @@ public class TemplateInstantiationPhase implements Phase {
         @Binding(BindingKind.INJECTED)
         TreeShadow tree();
 
+        @Override
+        default IRNode apply(IRNode node) {
+            return node.transformChildren(this);
+        }
+
+        default IRNode apply(NamespaceDecl decl) {
+            List<GlobalTypeDecl> typeDecls = decl.getTypeDecls().stream().filter(typeDecl -> !(typeDecl instanceof MetaGlobalTypeDecl)).collect(Collectors.toList());
+            for (GlobalTypeDecl metaDecl : decl.getTypeDecls().stream().filter(typeDecl -> typeDecl instanceof MetaGlobalTypeDecl).collect(Collectors.toList())) {
+                if (typeDecls.stream().noneMatch(typeDecl -> typeDecl.getName().equals(metaDecl.getOriginalName()))) {
+                    typeDecls.add(metaDecl);
+                }
+            }
+            List<GlobalEntityDecl> entityDecls = decl.getEntityDecls().stream().filter(entityDecl -> !(entityDecl instanceof MetaGlobalEntityDecl)).collect(Collectors.toList());
+            for (GlobalEntityDecl metaDecl : decl.getEntityDecls().stream().filter(entityDecl -> entityDecl instanceof MetaGlobalEntityDecl).collect(Collectors.toList())) {
+                if (entityDecls.stream().noneMatch(typeDecl -> typeDecl.getOriginalName().equals(metaDecl.getName()))) {
+                    entityDecls.add(metaDecl);
+                }
+            }
+            List<Import> imports = new ArrayList<>();
+            Optional<Map.Entry<NamespaceDecl, Set<String>>> imported = staging().imported().entrySet().stream().filter(e -> e.getKey().getQID().equals(decl.getQID())).findAny();
+            if (imported.isPresent()) {
+                Set<String> instantiated = imported.get().getValue();
+                for (Import importt : decl.getImports()) {
+                    if (importt instanceof SingleImport && instantiated.contains(((SingleImport) importt).getLocalName())) {
+                        SingleImport singleImport = (SingleImport) importt;
+                        for (String newImportName : staging().renamed().get(singleImport.getLocalName())) {
+                            imports.add(((SingleImport) singleImport.deepClone())
+                                    .withLocalName(newImportName)
+                                    .withGlobalName(singleImport.getGlobalName().getButLast().concat(QID.of(newImportName))));
+                        }
+                    } else {
+                        imports.add(importt);
+                    }
+                }
+            } else {
+                imports = decl.getImports();
+            }
+            return decl.withImports(imports).withTypeDecls(typeDecls).withEntityDecls(entityDecls);
+        }
+    }
+
+    @Module
+    interface Merge extends IRNode.Transformation {
+
+        @Binding(BindingKind.INJECTED)
+        Staging staging();
+
+        @Binding(BindingKind.INJECTED)
+        TreeShadow tree();
+
         @Binding(BindingKind.INJECTED)
         Convert convert();
 
@@ -590,27 +655,7 @@ public class TemplateInstantiationPhase implements Phase {
                     .filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
             Stream<GlobalEntityDecl> remainingEntities = decl.getEntityDecls().stream()
                     .filter(entityDecl -> !(staging().entityInstances().entrySet().contains(entityDecl)));
-            List<Import> imports = new ArrayList<>();
-            Optional<Map.Entry<NamespaceDecl, Set<String>>> imported = staging().imported().entrySet().stream().filter(e -> e.getKey().getQID().equals(decl.getQID())).findAny();
-            if (imported.isPresent()) {
-                Set<String> instantiated = imported.get().getValue();
-                for (Import importt : decl.getImports()) {
-                    if (importt instanceof SingleImport && instantiated.contains(((SingleImport) importt).getLocalName())) {
-                        SingleImport singleImport = (SingleImport) importt;
-                        for (String newImportName : staging().renamed().get(singleImport.getLocalName())) {
-                            imports.add(((SingleImport) singleImport.deepClone())
-                                    .withLocalName(newImportName)
-                                    .withGlobalName(singleImport.getGlobalName().getButLast().concat(QID.of(newImportName))));
-                        }
-                    } else {
-                        imports.add(importt);
-                    }
-                }
-            } else {
-                imports = decl.getImports();
-            }
             return decl
-                    .withImports(imports)
                     .withTypeDecls(Stream.concat(instantiatedTypes, remainingTypes).collect(Collectors.toList()))
                     .withEntityDecls(Stream.concat(instantiatedEntities, remainingEntities).collect(Collectors.toList()))
                     .withVarDecls(Stream.concat(decl.getVarDecls().stream(), interpreted).collect(Collectors.toList()));
