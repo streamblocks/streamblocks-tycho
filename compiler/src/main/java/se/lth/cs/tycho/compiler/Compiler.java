@@ -84,7 +84,8 @@ public class Compiler {
                 new TemplateInitializationPhase(),
                 new TemplateAnalysisPhase(),
                 new TemplateTransformationPhase(),
-                new TemplateInstantiationPhase()
+                new TemplateInstantiationPhase(),
+                new TemplatePostInstantiationPhase()
         );
     }
 
