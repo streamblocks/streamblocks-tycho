@@ -1,7 +1,10 @@
 package se.lth.cs.tycho.phase;
 
+import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.attribute.EntityDeclarations;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
@@ -47,12 +50,17 @@ public class TemplateTransformationPhase implements Phase {
 
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
-		Transformation transformation = MultiJ.from(Transformation.class).instance();
+		Transformation transformation = MultiJ.from(Transformation.class)
+				.bind("entities").to(task.getModule(EntityDeclarations.key))
+				.instance();
 		return task.transformChildren(transformation);
 	}
 
 	@Module
 	interface Transformation extends IRNode.Transformation {
+
+		@Binding(BindingKind.INJECTED)
+		EntityDeclarations entities();
 
 		@Override
 		default IRNode apply(IRNode node) {
@@ -74,7 +82,8 @@ public class TemplateTransformationPhase implements Phase {
 		}
 
 		default IRNode apply(EntityInstanceExpr expr) {
-			if (expr.getTypeParameters().isEmpty() && expr.getValueParameters().isEmpty()) {
+			GlobalEntityDecl decl = entities().declaration(expr.getEntityName());
+			if ((decl == null || decl.getExternal()) || (expr.getTypeParameters().isEmpty() && expr.getValueParameters().isEmpty())) {
 				return expr.transformChildren(this);
 			}
 			Stream<MetaArgument> types  = expr.getTypeParameters().stream().map(this::convert);
