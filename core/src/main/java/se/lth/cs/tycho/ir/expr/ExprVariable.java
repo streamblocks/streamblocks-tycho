@@ -47,35 +47,50 @@ import se.lth.cs.tycho.ir.Variable;
 
 public class ExprVariable extends Expression {
 
-	private final Variable var;
+    private final Variable var;
 
-	public ExprVariable(Variable var) {
-		this(null, var);
-	}
+    private final boolean old;
 
-	public ExprVariable(IRNode original, Variable var) {
-		super(original);
-		this.var = var;
-	}
+    public ExprVariable(Variable var) {
+        this(null, var);
+    }
 
-	public ExprVariable copy(Variable var) {
-		if (Objects.equals(this.var, var)) {
-			return this;
-		}
-		return new ExprVariable(this, var);
-	}
+    public ExprVariable(Variable var, boolean old) {
+        this(null, var, old);
+    }
 
-	public Variable getVariable() {
-		return var;
-	}
+    public ExprVariable(IRNode original, Variable var) {
+        super(original);
+        this.old = false;
+        this.var = var;
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(var);
-	}
+    public ExprVariable(IRNode original, Variable var, boolean old) {
+        super(original);
+        this.old = old;
+        this.var = var;
+    }
 
-	@Override
-	public ExprVariable transformChildren(Transformation transformation) {
-		return copy((Variable) transformation.apply(var));
-	}
+    public ExprVariable copy(Variable var, boolean old) {
+        if (Objects.equals(this.var, var)) {
+            return this;
+        }
+        return new ExprVariable(this, var, old);
+    }
+
+    public Variable getVariable() {
+        return var;
+    }
+
+    public boolean getOld() {return old;}
+
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        action.accept(var);
+    }
+
+    @Override
+    public ExprVariable transformChildren(Transformation transformation) {
+        return copy((Variable) transformation.apply(var), old);
+    }
 }

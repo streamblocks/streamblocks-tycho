@@ -75,7 +75,8 @@ public class Compiler {
                 new ResolveTypeConstructionPhase(),
                 new ConstantVariableImmutabilityPhase(),
                 new ConstantVariableInitializationPhase(),
-                new NameAnalysisPhase()
+                new NameAnalysisPhase(),
+                new OldExprVariableSupportPhase()
         );
     }
 

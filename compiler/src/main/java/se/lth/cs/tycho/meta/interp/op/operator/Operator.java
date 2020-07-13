@@ -53,6 +53,8 @@ public abstract class Operator {
 				return new OperatorGreaterEqualThan();
 			case "in":
 				return new OperatorIn();
+			case "..":
+				return new OperatorFromTo();
 			default:
 				throw new RuntimeException("Unsupported operator " + op + ".");
 		}

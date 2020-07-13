@@ -1862,11 +1862,12 @@ Expression SingleExpression() :
 ExprVariable VariableExpression() :
 {
 	Variable var;
+	boolean old = false;
 }
 {
-	var = Variable()
+	("old" {old = true;})?  var = Variable()
 	{
-		return setPosition(new ExprVariable(var), var, var);
+		return setPosition(new ExprVariable(var, old), var, var);
 	}
 }
 
@@ -1963,7 +1964,7 @@ String UnaryOperator() :
 {
 	(
 		op = <OP> | op = "=" | op = "-->" | op = "->" | op = ">" | op = "|" | op = "*" | op = ".*" // | op = "@"
-		| op = "not" | op = "dom" | op = "rng" | op = "old" | op = "#"
+		| op = "not" | op = "dom" | op = "rng" | op = "#"
 	)
 	{ return op.image; }
 }

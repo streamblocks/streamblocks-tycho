@@ -3,26 +3,7 @@ package se.lth.cs.tycho.meta.interp.op;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.meta.interp.op.operator.Operator;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorAnd;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorConjunction;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorDifferent;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorDisjunction;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorDiv;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorEqual;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorGreaterEqualThan;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorGreaterThan;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorIn;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorLowerEqualThan;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorLowerThan;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorMinus;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorMod;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorOr;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorPlus;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorShiftLeft;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorShiftRight;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorTimes;
-import se.lth.cs.tycho.meta.interp.op.operator.OperatorXOr;
+import se.lth.cs.tycho.meta.interp.op.operator.*;
 import se.lth.cs.tycho.meta.interp.value.Value;
 import se.lth.cs.tycho.meta.interp.value.ValueBool;
 import se.lth.cs.tycho.meta.interp.value.ValueChar;
@@ -353,5 +334,13 @@ public interface Binary {
 
 	default Value apply(OperatorIn op, ValueChar lhs, ValueString rhs) {
 		return new ValueBool(rhs.string().indexOf(lhs.character()) > -1);
+	}
+
+	default Value apply(OperatorFromTo op, ValueInteger lhs, ValueInteger rhs){
+		List<Value> values = new ArrayList<>();
+		for(int i = lhs.integer(); i <= rhs.integer(); i++){
+			values.add(new ValueInteger(i));
+		}
+		return new ValueList(values);
 	}
 }
