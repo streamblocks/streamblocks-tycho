@@ -55,7 +55,7 @@ public class ElaborateNetworkPhase implements Phase {
 
         @Override
         public Boolean defaultValue(Configuration configuration) {
-            return true;
+            return false;
         }
     };
 
