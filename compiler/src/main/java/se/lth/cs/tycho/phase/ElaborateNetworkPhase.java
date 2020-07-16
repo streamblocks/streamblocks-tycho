@@ -183,18 +183,13 @@ public class ElaborateNetworkPhase implements Phase {
                 .map(ToolAttribute::getName)
                 .distinct()
                 .count();
-//        assert count == attributes.size();
-        if (count != attributes.size()) {
-            throw new CompilationException(
-                    new Diagnostic(Diagnostic.Kind.ERROR,
-                            String.format(
-                            "inconsistent attributes in connection %s.%s-->%s.%s",
-                                    connSrc.getSource().getInstance().orElse(""),
-                                    connSrc.getSource().getPort(),
-                                    connTgt.getTarget().getInstance().orElse(""),
-                                    connTgt.getTarget().getPort())));
+        assert count == attributes.size() : String.format(
+                "inconsistent attributes in connection %s.%s-->%s.%s",
+                connSrc.getSource().getInstance().orElse(""),
+                connSrc.getSource().getPort(),
+                connTgt.getTarget().getInstance().orElse(""),
+                connTgt.getTarget().getPort());
 
-        }
         return attributes.map(ToolAttribute::deepClone);
     }
 
