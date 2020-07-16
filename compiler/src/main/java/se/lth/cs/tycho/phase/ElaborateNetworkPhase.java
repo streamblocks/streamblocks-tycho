@@ -13,6 +13,7 @@ import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.settings.Configuration;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ElaborateNetworkPhase implements Phase {
+
     @Override
     public String getDescription() {
         return "Elaborates the entities that are networks.";
@@ -181,8 +183,19 @@ public class ElaborateNetworkPhase implements Phase {
                 .map(ToolAttribute::getName)
                 .distinct()
                 .count();
-        assert count == attributes.size();
-        return attributes;
+//        assert count == attributes.size();
+        if (count != attributes.size()) {
+            throw new CompilationException(
+                    new Diagnostic(Diagnostic.Kind.ERROR,
+                            String.format(
+                            "inconsistent attributes in connection %s.%s-->%s.%s",
+                                    connSrc.getSource().getInstance().orElse(""),
+                                    connSrc.getSource().getPort(),
+                                    connTgt.getTarget().getInstance().orElse(""),
+                                    connTgt.getTarget().getPort())));
+
+        }
+        return attributes.map(ToolAttribute::deepClone);
     }
 
     private Network elaborate(Context context, NlNetwork network, Optional<ToolAttribute> partition) {
