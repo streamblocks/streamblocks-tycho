@@ -76,8 +76,8 @@ public interface ScopeDependencies {
 
         @Override
         default Set<Scope> scopesUsingScope(Scope scope) {
-            return actorMachine(scope).getScopes().stream()
-                    .filter(s -> ofScope(s).contains(scope))
+              return actorMachine(scope).getScopes().stream()
+                    .filter(s -> ofScope(s).contains(scope) && !s.equals(scope) )
                     .collect(Collectors.toSet());
         }
 

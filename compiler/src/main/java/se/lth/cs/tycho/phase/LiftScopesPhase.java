@@ -26,83 +26,101 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class LiftScopesPhase implements Phase {
-	public static final OnOffSetting liftScopes = new OnOffSetting() {
-		@Override public String getKey() { return "lift-scopes"; }
-		@Override public String getDescription() { return "Lift actor machine scopes to conditions or transitions when only used from one place."; }
-		@Override public Boolean defaultValue(Configuration configuration) { return true; }
-	};
+    public static final OnOffSetting liftScopes = new OnOffSetting() {
+        @Override
+        public String getKey() {
+            return "lift-scopes";
+        }
 
-	@Override
-	public List<Setting<?>> getPhaseSettings() {
-		return ImmutableList.of(liftScopes);
-	}
+        @Override
+        public String getDescription() {
+            return "Lift actor machine scopes to conditions or transitions when only used from one place.";
+        }
 
-	@Override
-	public String getDescription() {
-		return "Lifts actor machien scopes to conditions or transitions when only used from one place.";
-	}
+        @Override
+        public Boolean defaultValue(Configuration configuration) {
+            return true;
+        }
+    };
 
-	@Override
-	public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
-		if (context.getConfiguration().get(liftScopes)) {
-			Transformation t = MultiJ.from(Transformation.class)
-					.bind("scopes").to(task.getModule(ScopeDependencies.key))
+    @Override
+    public List<Setting<?>> getPhaseSettings() {
+        return ImmutableList.of(liftScopes);
+    }
+
+    @Override
+    public String getDescription() {
+        return "Lifts actor machien scopes to conditions or transitions when only used from one place.";
+    }
+
+    @Override
+    public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
+        if (context.getConfiguration().get(liftScopes)) {
+            Transformation t = MultiJ.from(Transformation.class)
+                    .bind("scopes").to(task.getModule(ScopeDependencies.key))
                     .instance();
-		    return task.transformChildren(t);
-		}
-		return task;
-	}
+            return task.transformChildren(t);
+        }
+        return task;
+    }
 
-	@Module
-	interface Transformation extends IRNode.Transformation {
-		@Binding(BindingKind.INJECTED)
-		ScopeDependencies scopes();
+    @Module
+    interface Transformation extends IRNode.Transformation {
+        @Binding(BindingKind.INJECTED)
+        ScopeDependencies scopes();
 
-		@Override
-		default IRNode apply(IRNode node) {
-			return node.transformChildren(this);
-		}
+        @Override
+        default IRNode apply(IRNode node) {
+            return node.transformChildren(this);
+        }
 
-		default boolean canBeLifted(Scope s) {
-			return !s.isPersistent() && scopes().transitionsUsingScope(s).size() +
-                    scopes().conditionsUsingScope(s).size() +
-                    scopes().scopesUsingScope(s).size() == 1;
-		}
+        default boolean canBeLifted(Scope s) {
+            boolean isPersistent = s.isPersistent();
+            if (isPersistent) {
+                return false;
+            }
+            int transitionUsingScopes = scopes().transitionsUsingScope(s).size();
+            int conditionUsingScopes = scopes().conditionsUsingScope(s).size();
+            int scopesUsingScopes = scopes().scopesUsingScope(s).size();
 
-		default Transition apply(Transition trans) {
-		    List<LocalVarDecl> variables = scopes().ofTransition(trans).stream()
+
+            return (transitionUsingScopes + conditionUsingScopes + scopesUsingScopes) == 1;
+        }
+
+        default Transition apply(Transition trans) {
+            List<LocalVarDecl> variables = scopes().ofTransition(trans).stream()
                     .filter(this::canBeLifted)
                     .flatMap(s -> s.getDeclarations().stream())
-					.collect(Collectors.toList());
-		    if (variables.isEmpty()) {
-		    	return trans;
-			} else {
-		    	return trans.withBody(Collections.singletonList(new StmtBlock(Collections.emptyList(), variables, trans.getBody())));
-			}
-		}
+                    .collect(Collectors.toList());
+            if (variables.isEmpty()) {
+                return trans;
+            } else {
+                return trans.withBody(Collections.singletonList(new StmtBlock(Collections.emptyList(), variables, trans.getBody())));
+            }
+        }
 
-		default PredicateCondition apply(PredicateCondition cond) {
-			List<LocalVarDecl> variables = scopes().ofCondition(cond).stream()
-					.filter(this::canBeLifted)
-					.flatMap(s -> s.getDeclarations().stream())
-					.collect(Collectors.toList());
-			if (variables.isEmpty()) {
-				return cond;
-			} else {
-				return cond.copy(new ExprLet(Collections.emptyList(), variables, cond.getExpression()));
-			}
-		}
+        default PredicateCondition apply(PredicateCondition cond) {
+            List<LocalVarDecl> variables = scopes().ofCondition(cond).stream()
+                    .filter(this::canBeLifted)
+                    .flatMap(s -> s.getDeclarations().stream())
+                    .collect(Collectors.toList());
+            if (variables.isEmpty()) {
+                return cond;
+            } else {
+                return cond.copy(new ExprLet(Collections.emptyList(), variables, cond.getExpression()));
+            }
+        }
 
-		default Scope apply(Scope s) {
-			if (canBeLifted(s)) {
-				return s.copy(ImmutableList.empty(), s.isPersistent());
-			} else {
-				return s;
-			}
-		}
+        default Scope apply(Scope s) {
+            if (canBeLifted(s)) {
+                return s.copy(ImmutableList.empty(), s.isPersistent());
+            } else {
+                return s;
+            }
+        }
 
-		default Condition apply(Condition cond) {
-			return cond;
-		}
-	}
+        default Condition apply(Condition cond) {
+            return cond;
+        }
+    }
 }
