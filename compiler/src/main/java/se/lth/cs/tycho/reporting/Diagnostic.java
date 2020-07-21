@@ -80,21 +80,24 @@ public class Diagnostic {
 
     public String generateMessage() {
         StringBuilder builder = new StringBuilder();
-        builder.append(kind.getText());
         if (location != null) {
-            builder.append(" in \"");
+
             builder.append(location);
-            builder.append("\"");
             if (hasPosition()) {
-                builder.append(" on line ");
+                builder.append(":");
                 builder.append(fromLine);
+                builder.append(":");
+                builder.append(fromCol);
+                builder.append(": ");
+            }else{
+                builder.append(": ");
             }
         }
-        if (kind == Kind.INFO) {
-            builder.append(": ");
-        } else {
-            builder.append(":\n");
-        }
+        builder.append(kind.getText());
+        builder.append(": ");
+        builder.append(message);
+        builder.append("\n");
+
         if (hasPosition() && inputStream != null) {
             try (InputStream stream = inputStream.get()) {
                 List<String> lines = new BufferedReader(new InputStreamReader(stream)).lines()
@@ -105,23 +108,19 @@ public class Diagnostic {
                 for (String line : lines) {
                     String converted = tabsToSpaces(line);
                     builder.append(converted);
-                    builder.append('\n');
+                    builder.append("\n");
                     int w = Math.max(converted.length(), toCol);
                     int start = l == 0 ? fromCol : 1;
                     int end = l == lines.size() - 1 ? toCol : w;
                     char[] marker = createMarker(w, start, end);
                     builder.append(ANSI_CYAN).append(marker).append(ANSI_COLOR_RESET);
-                    builder.append('\n');
+                    //builder.append("\n");
                     l = l + 1;
                 }
             } catch (IOException e) {
             }
         }
-        builder.append(message);
 
-        if (kind != Kind.INFO) {
-            builder.append("\n");
-        }
         return builder.toString();
     }
 
@@ -139,7 +138,7 @@ public class Diagnostic {
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
             if (c == '\t') {
-                int nextTab = (column & ~0b111) + 8;
+                int nextTab = (column & ~0b111) + 2;
                 int spaces = nextTab - column;
                 while (spaces > 0) {
                     output.append(' ');
@@ -155,7 +154,7 @@ public class Diagnostic {
     }
 
     public enum Kind {
-        ERROR(ANSI_RED + "Error" + ANSI_COLOR_RESET), WARNING(ANSI_YELLOW + "Warning" + ANSI_COLOR_RESET), INFO(ANSI_BLUE + "Info" + ANSI_COLOR_RESET);
+        ERROR(ANSI_RED + "error" + ANSI_COLOR_RESET), WARNING(ANSI_YELLOW + "warning" + ANSI_COLOR_RESET), INFO(ANSI_BLUE + "info" + ANSI_COLOR_RESET);
         String text;
 
         Kind(String text) {
