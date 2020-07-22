@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/tuple-type-element-access/src/tuple.cal" on line 5:
+testdata/typesystem/neg/tuple-type-element-access/src/tuple.cal:5:21: error: No member #0 for (int, bool).
             OUT <-- a.#0;
                     ^^^^
-No member #0 for (int, bool).

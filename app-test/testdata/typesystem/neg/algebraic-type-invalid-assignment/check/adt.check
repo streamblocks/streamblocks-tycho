@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/algebraic-type-invalid-assignment/src/adt.cal" on line 11:
+testdata/typesystem/neg/algebraic-type-invalid-assignment/src/adt.cal:11:22: error: Incompatible types; expected U but was T.
                 u := t; // error
                      ^
-Incompatible types; expected U but was T.

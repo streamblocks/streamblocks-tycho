@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/algebraic-type-duplicate-variant/src/adt.cal" on line 2:
+testdata/typesystem/neg/algebraic-type-duplicate-variant/src/adt.cal:2:18: error: A is already declared in this scope.
     type T : A | A(int a, bool b) end // error
                  ^^^^^^^^^^^^^^^^
-A is already declared in this scope.

@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/type-comparison-any-type-with-any-type/src/cmp.cal" on line 6:
+testdata/typesystem/neg/type-comparison-any-type-with-any-type/src/cmp.cal:6:21: error: = is not supported with uint(size=1) and bool.
             OUT <-- 1 = false; // error
                     ^^^^^^^^^
-= is not supported with uint(size=1) and bool.

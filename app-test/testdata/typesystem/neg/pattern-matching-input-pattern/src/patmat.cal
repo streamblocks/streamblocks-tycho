@@ -1,8 +1,8 @@
 namespace patmat:
     type T : (int a, bool b) end
+
     actor InputPattern() int IN ==> :
         action IN:[T(n, _)] ==>
-        do
         end
     end
 end

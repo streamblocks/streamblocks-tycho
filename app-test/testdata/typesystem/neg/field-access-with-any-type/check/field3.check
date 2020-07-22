@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/field-access-with-any-type/src/field.cal" on line 11:
+testdata/typesystem/neg/field-access-with-any-type/src/field.cal:11:21: error: Not a product.
             OUT <-- n.foo; // error
                     ^
-Not a product.

@@ -1,6 +1,4 @@
-Error in "testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-algebraic-type/src/patmat.cal" on line 7:
-                case t of
-                     ^
-case may not be exhaustive.
-
+testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-algebraic-type/src/patmat.cal:7:22: error: case may not be exhaustive.
 It would fail on patterns: A, B(_)
+                case t of
+                     ^ 

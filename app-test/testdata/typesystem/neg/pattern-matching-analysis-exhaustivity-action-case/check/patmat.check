@@ -1,4 +1,6 @@
-Error in "testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-action-case/src/patmat.cal" on line 5:
+testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-action-case/src/patmat.cal:5:9: error: action case may not be exhaustive.
+
+It would fail on actions: X:[_], Y:[U(_, _)], X:[_], Y:[U(_, true)]
         action
         ^^^^^^
             case
@@ -21,6 +23,3 @@ Error in "testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-action-
 ^^^^^^^^^^^^^^^
         end
 ^^^^^^^^^^^
-action case may not be exhaustive.
-
-It would fail on actions: X:[_], Y:[U(_, _)], X:[_], Y:[U(_, true)]

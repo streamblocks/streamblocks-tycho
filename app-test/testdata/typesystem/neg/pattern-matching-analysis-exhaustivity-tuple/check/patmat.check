@@ -1,6 +1,4 @@
-Error in "testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-tuple/src/patmat.cal" on line 6:
+testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-tuple/src/patmat.cal:6:18: error: case may not be exhaustive.
+It would fail on pattern: (_, true)
             case t of
                  ^
-case may not be exhaustive.
-
-It would fail on pattern: (_, true)

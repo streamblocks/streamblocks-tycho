@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/type-construction-arg-type/src/cons.cal" on line 5:
+testdata/typesystem/neg/type-construction-arg-type/src/cons.cal:5:25: error: Incompatible types; expected bool but was real(32).
            OUT <-- T(1, 2.5); // error
                         ^^^
-Incompatible types; expected bool but was real(32).

@@ -89,7 +89,7 @@ public class Diagnostic {
                 builder.append(":");
                 builder.append(fromCol);
                 builder.append(": ");
-            }else{
+            } else {
                 builder.append(": ");
             }
         }
@@ -114,7 +114,8 @@ public class Diagnostic {
                     int end = l == lines.size() - 1 ? toCol : w;
                     char[] marker = createMarker(w, start, end);
                     builder.append(ANSI_CYAN).append(marker).append(ANSI_COLOR_RESET);
-                    //builder.append("\n");
+                    if (lines.size() > 1)
+                        builder.append("\n");
                     l = l + 1;
                 }
             } catch (IOException e) {

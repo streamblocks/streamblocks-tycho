@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/pattern-matching-alternative-pattern-type/src/patmat.cal" on line 7:
+testdata/typesystem/neg/pattern-matching-alternative-pattern-type/src/patmat.cal:7:21: error: Incompatible types; expected int but was bool.
                     true : 1 end // error
                     ^^^^
-Incompatible types; expected int but was bool.

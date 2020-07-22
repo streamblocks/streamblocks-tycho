@@ -1,4 +1,3 @@
-Warning in "testdata/typesystem/pos/pattern-matching-analysis-unreachability-nesting/src/patmat.cal" on line 9:
+testdata/typesystem/pos/pattern-matching-analysis-unreachability-nesting/src/patmat.cal:9:21: warning: Unreachable alternative.
                     B(_, B(false, A)) : 0 end
                     ^^^^^^^^^^^^^^^^^
-Unreachable alternative.

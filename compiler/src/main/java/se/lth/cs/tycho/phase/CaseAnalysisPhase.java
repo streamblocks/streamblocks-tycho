@@ -365,7 +365,6 @@ public class CaseAnalysisPhase implements Phase {
 				String message = new StringBuilder()
 						.append("case may not be exhaustive.")
 						.append(System.lineSeparator())
-						.append(System.lineSeparator())
 						.append(String.format("It would fail on pattern%s: %s", uncovered.size() != 1 ? "s" : "" , printer().apply(Space.Union.of(uncovered))))
 						.toString();
 				reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, message, sourceUnit(expr), expr.getScrutinee()));

@@ -1,6 +1,4 @@
-Error in "testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-nesting/src/patmat.cal" on line 7:
+testdata/typesystem/neg/pattern-matching-analysis-exhaustivity-nesting/src/patmat.cal:7:22: error: case may not be exhaustive.
+It would fail on patterns: A, B(_, A), B(_, B(true, _)), B(_, B(_, B(_, _)))
                 case t of
                      ^
-case may not be exhaustive.
-
-It would fail on patterns: A, B(_, A), B(_, B(true, _)), B(_, B(_, B(_, _)))

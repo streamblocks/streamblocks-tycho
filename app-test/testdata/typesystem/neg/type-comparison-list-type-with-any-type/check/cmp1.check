@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/type-comparison-list-type-with-any-type/src/cmp.cal" on line 4:
+testdata/typesystem/neg/type-comparison-list-type-with-any-type/src/cmp.cal:4:21: error: = is not supported with List(type:uint(size=2), size=3) and bool.
             OUT <-- [1, 2, 3] = false; // error
                     ^^^^^^^^^^^^^^^^^
-= is not supported with List(type:uint(size=2), size=3) and bool.

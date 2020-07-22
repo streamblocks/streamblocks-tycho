@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/field-access-with-any-type/src/field.cal" on line 9:
-            OUT <-- t.foo; // error
-                    ^^^^^
-No member foo for T.
+testdata/typesystem/neg/field-access-with-any-type/src/field.cal:10:21: error: Not a product.
+            OUT <-- u.foo; // error
+                    ^

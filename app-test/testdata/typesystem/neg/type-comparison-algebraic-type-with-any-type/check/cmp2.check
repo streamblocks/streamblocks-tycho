@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/type-comparison-algebraic-type-with-any-type/src/cmp.cal" on line 7:
+testdata/typesystem/neg/type-comparison-algebraic-type-with-any-type/src/cmp.cal:7:21: error: = is not supported with T and uint(size=1).
             OUT <-- T(1, false) = 1; // error
                     ^^^^^^^^^^^^^^^
-= is not supported with T and uint(size=1).

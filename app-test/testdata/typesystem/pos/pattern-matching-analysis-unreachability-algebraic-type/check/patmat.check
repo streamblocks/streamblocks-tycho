@@ -1,4 +1,3 @@
-Warning in "testdata/typesystem/pos/pattern-matching-analysis-unreachability-algebraic-type/src/patmat.cal" on line 9:
+testdata/typesystem/pos/pattern-matching-analysis-unreachability-algebraic-type/src/patmat.cal:9:21: warning: Unreachable alternative.
                     B(1) : 1 end
                     ^^^^
-Unreachable alternative.

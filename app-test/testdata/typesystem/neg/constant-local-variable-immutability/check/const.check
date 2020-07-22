@@ -1,4 +1,3 @@
-Error in "testdata/typesystem/neg/constant-local-variable-immutability/src/const.cal" on line 8:
+testdata/typesystem/neg/constant-local-variable-immutability/src/const.cal:8:17: error: Cannot assign to const variable a.
                 a := a + 1; // error
                 ^
-Cannot assign to const variable a.
