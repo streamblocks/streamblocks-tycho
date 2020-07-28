@@ -189,6 +189,23 @@ public class Compiler {
         }
     };
 
+    public static final Setting<Path> xcfPath = new PathSetting() {
+        @Override
+        public String getKey() {
+            return "xcf-path";
+        }
+
+        @Override
+        public String getDescription() {
+            return "XML configuration file for a given QID.";
+        }
+
+        @Override
+        public Path defaultValue(Configuration configuration) {
+            return Paths.get("");
+        }
+    };
+
     public static final Setting<Path> targetPath = new PathSetting() {
         @Override
         public String getKey() {

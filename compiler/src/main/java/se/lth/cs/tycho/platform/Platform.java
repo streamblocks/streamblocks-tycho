@@ -18,6 +18,7 @@ public interface Platform {
 				.add(Compiler.sourcePaths)
 				.add(Compiler.orccSourcePaths)
 				.add(Compiler.xdfSourcePaths)
+				.add(Compiler.xcfPath)
 				.add(Compiler.targetPath)
 				.add(Reporter.reportingLevel)
 				.add(Compiler.phaseTimer)

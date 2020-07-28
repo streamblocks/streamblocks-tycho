@@ -96,9 +96,10 @@ public class Diagnostic {
         builder.append(kind.getText());
         builder.append(": ");
         builder.append(message);
-        builder.append("\n");
+
 
         if (hasPosition() && inputStream != null) {
+            builder.append("\n");
             try (InputStream stream = inputStream.get()) {
                 List<String> lines = new BufferedReader(new InputStreamReader(stream)).lines()
                         .skip(fromLine - 1)
