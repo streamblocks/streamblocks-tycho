@@ -28,7 +28,10 @@ public class ProgramTester {
 
 	public static Optional<ProgramTester> compile(TestDescription test, Path target) throws IOException, Configuration.Builder.UnknownKeyException, InterruptedException {
 		Platform platform = Compiler.defaultPlatform();
-		SettingsManager settings = platform.settingsManager();
+		SettingsManager initialSettings = SettingsManager.initialSettingManager();
+		SettingsManager settings = new SettingsManager.Builder()
+				.addAll(initialSettings.getAllSettings())
+				.addAll(platform.settingsManager()).build();
 		Configuration config = Configuration.builder(settings)
 				.set(Compiler.sourcePaths, test.getSourcePaths())
 				.set(Compiler.orccSourcePaths, test.getOrccSourcePaths())

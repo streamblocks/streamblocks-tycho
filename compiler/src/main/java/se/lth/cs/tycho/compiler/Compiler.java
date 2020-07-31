@@ -13,6 +13,8 @@ import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.PathListSetting;
 import se.lth.cs.tycho.settings.PathSetting;
 import se.lth.cs.tycho.settings.Setting;
+import se.lth.cs.tycho.settings.SettingsManager;
+import se.lth.cs.tycho.settings.StringSetting;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -202,7 +204,7 @@ public class Compiler {
 
         @Override
         public Path defaultValue(Configuration configuration) {
-            return Paths.get("");
+            return null;
         }
     };
 
@@ -240,11 +242,10 @@ public class Compiler {
         }
     };
 
-
     public Compiler(Platform platform, Configuration configuration) {
         Reporter reporter = Reporter.instance(configuration);
         Loader loader = Loader.instance(configuration, reporter);
-        this.compilationContext = new Context(configuration, loader, reporter);
+        this.compilationContext = new Context(platform, configuration, loader, reporter);
         this.platform = platform;
         assert dependenciesSatisfied() : "Unsatisfied phase dependencies.";
     }

@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.settings;
 
+import se.lth.cs.tycho.ir.util.Lists;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +46,17 @@ public class Configuration {
         }
     }
 
+    public SettingsManager getManager(){
+        return manager;
+    }
+
+    public Configuration withSettingsManager(SettingsManager manager) {
+        if (Lists.sameElements(this.manager.getAllSettings(), manager.getAllSettings())) {
+            return this;
+        } else {
+            return new Configuration(manager, configuration);
+        }
+    }
 
     public static Builder builder(SettingsManager manager) {
         return new Builder(manager);
