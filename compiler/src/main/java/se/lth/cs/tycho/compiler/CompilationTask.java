@@ -71,7 +71,7 @@ public class CompilationTask implements IRNode {
             if (unit.getTree().getQID().isPrefixOf(identifier)) {
                 QID last = identifier.getLast();
                 for (GlobalEntityDecl decl : unit.getTree().getEntityDecls()) {
-                    if (decl.getOriginalName().equals(last.toString())) {
+                    if (decl.getName().equals(last.toString())) {
                         return Optional.of(unit);
                     }
                 }
