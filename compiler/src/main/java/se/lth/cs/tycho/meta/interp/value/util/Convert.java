@@ -9,18 +9,8 @@ import se.lth.cs.tycho.ir.expr.ExprTuple;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.meta.interp.value.Value;
-import se.lth.cs.tycho.meta.interp.value.ValueAlgebraic;
-import se.lth.cs.tycho.meta.interp.value.ValueBool;
-import se.lth.cs.tycho.meta.interp.value.ValueChar;
-import se.lth.cs.tycho.meta.interp.value.ValueField;
-import se.lth.cs.tycho.meta.interp.value.ValueInteger;
-import se.lth.cs.tycho.meta.interp.value.ValueLambda;
-import se.lth.cs.tycho.meta.interp.value.ValueList;
-import se.lth.cs.tycho.meta.interp.value.ValueReal;
-import se.lth.cs.tycho.meta.interp.value.ValueString;
-import se.lth.cs.tycho.meta.interp.value.ValueTuple;
-import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
+import se.lth.cs.tycho.meta.interp.value.*;
+import se.lth.cs.tycho.meta.interp.value.ValueLong;
 
 import java.util.stream.Collectors;
 
@@ -47,8 +37,8 @@ public interface Convert {
 		return apply(value.value());
 	}
 
-	default Expression apply(ValueInteger value) {
-		return new ExprLiteral(ExprLiteral.Kind.Integer, String.valueOf(value.integer()));
+	default Expression apply(ValueLong value) {
+		return new ExprLiteral(ExprLiteral.Kind.Integer, String.valueOf(value.value()));
 	}
 
 	default Expression apply(ValueLambda value) {

@@ -4,16 +4,8 @@ import org.multij.Module;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.meta.interp.op.operator.*;
-import se.lth.cs.tycho.meta.interp.value.Value;
-import se.lth.cs.tycho.meta.interp.value.ValueBool;
-import se.lth.cs.tycho.meta.interp.value.ValueChar;
-import se.lth.cs.tycho.meta.interp.value.ValueInteger;
-import se.lth.cs.tycho.meta.interp.value.ValueList;
-import se.lth.cs.tycho.meta.interp.value.ValueMap;
-import se.lth.cs.tycho.meta.interp.value.ValueReal;
-import se.lth.cs.tycho.meta.interp.value.ValueSet;
-import se.lth.cs.tycho.meta.interp.value.ValueString;
-import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
+import se.lth.cs.tycho.meta.interp.value.*;
+import se.lth.cs.tycho.meta.interp.value.ValueLong;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,24 +22,24 @@ public interface Binary {
 		return ValueUndefined.undefined();
 	}
 
-	default Value apply(OperatorAnd op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() & rhs.integer());
+	default Value apply(OperatorAnd op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() & rhs.value());
 	}
 
-	default Value apply(OperatorOr op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() | rhs.integer());
+	default Value apply(OperatorOr op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() | rhs.value());
 	}
 
-	default Value apply(OperatorXOr op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() ^ rhs.integer());
+	default Value apply(OperatorXOr op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() ^ rhs.value());
 	}
 
-	default Value apply(OperatorShiftLeft op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() << rhs.integer());
+	default Value apply(OperatorShiftLeft op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() << rhs.value());
 	}
 
-	default Value apply(OperatorShiftRight op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() >> rhs.integer());
+	default Value apply(OperatorShiftRight op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() >> rhs.value());
 	}
 
 	default Value apply(OperatorConjunction op, ValueBool lhs, ValueBool rhs) {
@@ -58,20 +50,20 @@ public interface Binary {
 		return new ValueBool(lhs.bool() || rhs.bool());
 	}
 
-	default Value apply(OperatorLowerThan op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.integer() < rhs.integer());
+	default Value apply(OperatorLowerThan op, ValueLong lhs, ValueLong rhs) {
+		return new ValueBool(lhs.value() < rhs.value());
 	}
 
 	default Value apply(OperatorLowerThan op, ValueReal lhs, ValueReal rhs) {
 		return new ValueBool(lhs.real() < rhs.real());
 	}
 
-	default Value apply(OperatorLowerThan op, ValueInteger lhs, ValueReal rhs) {
-		return new ValueBool(lhs.integer() < rhs.real());
+	default Value apply(OperatorLowerThan op, ValueLong lhs, ValueReal rhs) {
+		return new ValueBool(lhs.value() < rhs.real());
 	}
 
-	default Value apply(OperatorLowerThan op, ValueReal lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.real() < rhs.integer());
+	default Value apply(OperatorLowerThan op, ValueReal lhs, ValueLong rhs) {
+		return new ValueBool(lhs.real() < rhs.value());
 	}
 
 	default Value apply(OperatorLowerThan op, ValueChar lhs, ValueChar rhs) {
@@ -86,20 +78,20 @@ public interface Binary {
 		return new ValueBool(lhs.string().compareTo(rhs.string()) < 0);
 	}
 
-	default Value apply(OperatorLowerEqualThan op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.integer() <= rhs.integer());
+	default Value apply(OperatorLowerEqualThan op, ValueLong lhs, ValueLong rhs) {
+		return new ValueBool(lhs.value() <= rhs.value());
 	}
 
 	default Value apply(OperatorLowerEqualThan op, ValueReal lhs, ValueReal rhs) {
 		return new ValueBool(lhs.real() <= rhs.real());
 	}
 
-	default Value apply(OperatorLowerEqualThan op, ValueInteger lhs, ValueReal rhs) {
-		return new ValueBool(lhs.integer() <= rhs.real());
+	default Value apply(OperatorLowerEqualThan op, ValueLong lhs, ValueReal rhs) {
+		return new ValueBool(lhs.value() <= rhs.real());
 	}
 
-	default Value apply(OperatorLowerEqualThan op, ValueReal lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.real() <= rhs.integer());
+	default Value apply(OperatorLowerEqualThan op, ValueReal lhs, ValueLong rhs) {
+		return new ValueBool(lhs.real() <= rhs.value());
 	}
 
 	default Value apply(OperatorLowerEqualThan op, ValueChar lhs, ValueChar rhs) {
@@ -114,20 +106,20 @@ public interface Binary {
 		return new ValueBool(lhs.string().compareTo(rhs.string()) <= 0);
 	}
 
-	default Value apply(OperatorGreaterThan op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.integer() > rhs.integer());
+	default Value apply(OperatorGreaterThan op, ValueLong lhs, ValueLong rhs) {
+		return new ValueBool(lhs.value() > rhs.value());
 	}
 
 	default Value apply(OperatorGreaterThan op, ValueReal lhs, ValueReal rhs) {
 		return new ValueBool(lhs.real() > rhs.real());
 	}
 
-	default Value apply(OperatorGreaterThan op, ValueInteger lhs, ValueReal rhs) {
-		return new ValueBool(lhs.integer() > rhs.real());
+	default Value apply(OperatorGreaterThan op, ValueLong lhs, ValueReal rhs) {
+		return new ValueBool(lhs.value() > rhs.real());
 	}
 
-	default Value apply(OperatorGreaterThan op, ValueReal lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.real() > rhs.integer());
+	default Value apply(OperatorGreaterThan op, ValueReal lhs, ValueLong rhs) {
+		return new ValueBool(lhs.real() > rhs.value());
 	}
 
 	default Value apply(OperatorGreaterThan op, ValueChar lhs, ValueChar rhs) {
@@ -142,20 +134,20 @@ public interface Binary {
 		return new ValueBool(lhs.string().compareTo(rhs.string()) > 0);
 	}
 
-	default Value apply(OperatorGreaterEqualThan op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.integer() >= rhs.integer());
+	default Value apply(OperatorGreaterEqualThan op, ValueLong lhs, ValueLong rhs) {
+		return new ValueBool(lhs.value() >= rhs.value());
 	}
 
 	default Value apply(OperatorGreaterEqualThan op, ValueReal lhs, ValueReal rhs) {
 		return new ValueBool(lhs.real() >= rhs.real());
 	}
 
-	default Value apply(OperatorGreaterEqualThan op, ValueInteger lhs, ValueReal rhs) {
-		return new ValueBool(lhs.integer() >= rhs.real());
+	default Value apply(OperatorGreaterEqualThan op, ValueLong lhs, ValueReal rhs) {
+		return new ValueBool(lhs.value() >= rhs.real());
 	}
 
-	default Value apply(OperatorGreaterEqualThan op, ValueReal lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.real() >= rhs.integer());
+	default Value apply(OperatorGreaterEqualThan op, ValueReal lhs, ValueLong rhs) {
+		return new ValueBool(lhs.real() >= rhs.value());
 	}
 
 	default Value apply(OperatorGreaterEqualThan op, ValueChar lhs, ValueChar rhs) {
@@ -170,20 +162,20 @@ public interface Binary {
 		return new ValueBool(lhs.string().compareTo(rhs.string()) >= 0);
 	}
 
-	default Value apply(OperatorPlus op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() + rhs.integer());
+	default Value apply(OperatorPlus op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() + rhs.value());
 	}
 
 	default Value apply(OperatorPlus op, ValueReal lhs, ValueReal rhs) {
 		return new ValueReal(lhs.real() + rhs.real());
 	}
 
-	default Value apply(OperatorPlus op, ValueInteger lhs, ValueReal rhs) {
-		return new ValueReal(lhs.integer() + rhs.real());
+	default Value apply(OperatorPlus op, ValueLong lhs, ValueReal rhs) {
+		return new ValueReal(lhs.value() + rhs.real());
 	}
 
-	default Value apply(OperatorPlus op, ValueReal lhs, ValueInteger rhs) {
-		return new ValueReal(lhs.real() + rhs.integer());
+	default Value apply(OperatorPlus op, ValueReal lhs, ValueLong rhs) {
+		return new ValueReal(lhs.real() + rhs.value());
 	}
 
 	default Value apply(OperatorPlus op, ValueSet lhs, ValueSet rhs) {
@@ -195,12 +187,12 @@ public interface Binary {
 		return new ValueString(lhs.string() + rhs.string());
 	}
 
-	default Value apply(OperatorPlus op, ValueString lhs, ValueInteger rhs) {
-		return new ValueString(lhs.string() + rhs.integer());
+	default Value apply(OperatorPlus op, ValueString lhs, ValueLong rhs) {
+		return new ValueString(lhs.string() + rhs.value());
 	}
 
-	default Value apply(OperatorPlus op, ValueInteger lhs, ValueString rhs) {
-		return new ValueString(lhs.integer() + rhs.string());
+	default Value apply(OperatorPlus op, ValueLong lhs, ValueString rhs) {
+		return new ValueString(lhs.value() + rhs.string());
 	}
 
 	default Value apply(OperatorPlus op, ValueString lhs, ValueReal rhs) {
@@ -248,68 +240,68 @@ public interface Binary {
 		return new ValueMap(ImmutableList.from(mappings));
 	}
 
-	default Value apply(OperatorMinus op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() - rhs.integer());
+	default Value apply(OperatorMinus op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() - rhs.value());
 	}
 
 	default Value apply(OperatorMinus op, ValueReal lhs, ValueReal rhs) {
 		return new ValueReal(lhs.real() - rhs.real());
 	}
 
-	default Value apply(OperatorMinus op, ValueInteger lhs, ValueReal rhs) {
-		return new ValueReal(lhs.integer() - rhs.real());
+	default Value apply(OperatorMinus op, ValueLong lhs, ValueReal rhs) {
+		return new ValueReal(lhs.value() - rhs.real());
 	}
 
-	default Value apply(OperatorMinus op, ValueReal lhs, ValueInteger rhs) {
-		return new ValueReal(lhs.real() - rhs.integer());
+	default Value apply(OperatorMinus op, ValueReal lhs, ValueLong rhs) {
+		return new ValueReal(lhs.real() - rhs.value());
 	}
 
 	default Value apply(OperatorMinus op, ValueSet lhs, ValueSet rhs) {
 		return new ValueSet(lhs.elements().stream().filter(elem -> !(rhs.elements().contains(elem))).collect(Collectors.toSet()));
 	}
 
-	default Value apply(OperatorTimes op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() * rhs.integer());
+	default Value apply(OperatorTimes op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() * rhs.value());
 	}
 
 	default Value apply(OperatorTimes op, ValueReal lhs, ValueReal rhs) {
 		return new ValueReal(lhs.real() * rhs.real());
 	}
 
-	default Value apply(OperatorTimes op, ValueInteger lhs, ValueReal rhs) {
-		return new ValueReal(lhs.integer() * rhs.real());
+	default Value apply(OperatorTimes op, ValueLong lhs, ValueReal rhs) {
+		return new ValueReal(lhs.value() * rhs.real());
 	}
 
-	default Value apply(OperatorTimes op, ValueReal lhs, ValueInteger rhs) {
-		return new ValueReal(lhs.real() * rhs.integer());
+	default Value apply(OperatorTimes op, ValueReal lhs, ValueLong rhs) {
+		return new ValueReal(lhs.real() * rhs.value());
 	}
 
 	default Value apply(OperatorTimes op, ValueSet lhs, ValueSet rhs) {
 		return new ValueSet(lhs.elements().stream().filter(elem -> rhs.elements().contains(elem)).collect(Collectors.toSet()));
 	}
 
-	default Value apply(OperatorDiv op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() / rhs.integer());
+	default Value apply(OperatorDiv op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() / rhs.value());
 	}
 
 	default Value apply(OperatorDiv op, ValueReal lhs, ValueReal rhs) {
 		return new ValueReal(lhs.real() / rhs.real());
 	}
 
-	default Value apply(OperatorDiv op, ValueInteger lhs, ValueReal rhs) {
-		return new ValueReal(lhs.integer() / rhs.real());
+	default Value apply(OperatorDiv op, ValueLong lhs, ValueReal rhs) {
+		return new ValueReal(lhs.value() / rhs.real());
 	}
 
-	default Value apply(OperatorDiv op, ValueReal lhs, ValueInteger rhs) {
-		return new ValueReal(lhs.real() / rhs.integer());
+	default Value apply(OperatorDiv op, ValueReal lhs, ValueLong rhs) {
+		return new ValueReal(lhs.real() / rhs.value());
 	}
 
-	default Value apply(OperatorMod op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueInteger(lhs.integer() % rhs.integer());
+	default Value apply(OperatorMod op, ValueLong lhs, ValueLong rhs) {
+		return new ValueLong(lhs.value() % rhs.value());
 	}
 
-	default Value apply(OperatorEqual op, ValueInteger lhs, ValueInteger rhs) {
-		return new ValueBool(lhs.integer() == rhs.integer());
+	default Value apply(OperatorEqual op, ValueLong lhs, ValueLong rhs) {
+		return new ValueBool(lhs.value() == rhs.value());
 	}
 
 	default Value apply(OperatorEqual op, Value lhs, Value rhs) {
@@ -336,10 +328,10 @@ public interface Binary {
 		return new ValueBool(rhs.string().indexOf(lhs.character()) > -1);
 	}
 
-	default Value apply(OperatorFromTo op, ValueInteger lhs, ValueInteger rhs){
+	default Value apply(OperatorFromTo op, ValueLong lhs, ValueLong rhs){
 		List<Value> values = new ArrayList<>();
-		for(int i = lhs.integer(); i <= rhs.integer(); i++){
-			values.add(new ValueInteger(i));
+		for(long i = lhs.value(); i <= rhs.value(); i++){
+			values.add(new ValueLong(i));
 		}
 		return new ValueList(values);
 	}

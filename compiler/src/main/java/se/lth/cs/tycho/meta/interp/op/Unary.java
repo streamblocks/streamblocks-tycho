@@ -8,14 +8,8 @@ import se.lth.cs.tycho.meta.interp.op.operator.OperatorMinus;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorNot;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorRng;
 import se.lth.cs.tycho.meta.interp.op.operator.OperatorSize;
-import se.lth.cs.tycho.meta.interp.value.Value;
-import se.lth.cs.tycho.meta.interp.value.ValueBool;
-import se.lth.cs.tycho.meta.interp.value.ValueInteger;
-import se.lth.cs.tycho.meta.interp.value.ValueList;
-import se.lth.cs.tycho.meta.interp.value.ValueMap;
-import se.lth.cs.tycho.meta.interp.value.ValueReal;
-import se.lth.cs.tycho.meta.interp.value.ValueSet;
-import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
+import se.lth.cs.tycho.meta.interp.value.*;
+import se.lth.cs.tycho.meta.interp.value.ValueLong;
 
 import java.util.stream.Collectors;
 
@@ -31,19 +25,19 @@ public interface Unary {
 	}
 
 	default Value apply(OperatorSize op, ValueList operand) {
-		return new ValueInteger(operand.elements().size());
+		return new ValueLong(operand.elements().size());
 	}
 
 	default Value apply(OperatorSize op, ValueSet operand) {
-		return new ValueInteger(operand.elements().size());
+		return new ValueLong(operand.elements().size());
 	}
 
 	default Value apply(OperatorSize op, ValueMap operand) {
-		return new ValueInteger(operand.mappings().size());
+		return new ValueLong(operand.mappings().size());
 	}
 
-	default Value apply(OperatorMinus op, ValueInteger operand) {
-		return new ValueInteger(-operand.integer());
+	default Value apply(OperatorMinus op, ValueLong operand) {
+		return new ValueLong(-operand.value());
 	}
 
 	default Value apply(OperatorMinus op, ValueReal operand) {
