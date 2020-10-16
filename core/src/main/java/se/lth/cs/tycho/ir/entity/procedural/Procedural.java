@@ -4,6 +4,7 @@ import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.am.Scope;
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
 
 public class Procedural extends Entity {
     public Procedural(IRNode original, List<Annotation> annotations, List<PortDecl> inputPorts, List<PortDecl> outputPorts,
-                      List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes, List<Function> functions) {
+                      List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes, List<VarDecl> functions) {
         super(original, annotations, inputPorts, outputPorts, typeParameters, valueParameters);
         this.scopes = ImmutableList.from(scopes);
         this.functions = ImmutableList.from(functions);
@@ -23,7 +24,7 @@ public class Procedural extends Entity {
 
 
     public Procedural copy(List<Annotation> annotations, List<PortDecl> inputPorts, List<PortDecl> outputPorts, List<ParameterTypeDecl> typeParameters,
-                           List<ParameterVarDecl> valueParameters, List<Scope> scopes, List<Function> functions) {
+                           List<ParameterVarDecl> valueParameters, List<Scope> scopes, List<VarDecl> functions) {
         if (Lists.sameElements(this.annotations, annotations)
                 && Lists.sameElements(this.inputPorts, inputPorts)
                 && Lists.sameElements(this.outputPorts, outputPorts)
@@ -48,7 +49,7 @@ public class Procedural extends Entity {
     }
 
     private final ImmutableList<Scope> scopes;
-    private final ImmutableList<Function> functions;
+    private final ImmutableList<VarDecl> functions;
 
     @Override
     public void forEachChild(Consumer<? super IRNode> action) {
