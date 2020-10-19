@@ -15,11 +15,16 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class Procedural extends Entity {
-    public Procedural(IRNode original, List<Annotation> annotations, List<PortDecl> inputPorts, List<PortDecl> outputPorts,
+    public Procedural(Procedural original, List<Annotation> annotations, List<PortDecl> inputPorts, List<PortDecl> outputPorts,
                       List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes, List<VarDecl> functions) {
         super(original, annotations, inputPorts, outputPorts, typeParameters, valueParameters);
         this.scopes = ImmutableList.from(scopes);
         this.functions = ImmutableList.from(functions);
+    }
+
+    public Procedural(List<Annotation> annotations, List<PortDecl> inputPorts, List<PortDecl> outputPorts,
+                      List<ParameterTypeDecl> typeParameters, List<ParameterVarDecl> valueParameters, List<Scope> scopes, List<VarDecl> functions) {
+        this(null, annotations, inputPorts, outputPorts, typeParameters, valueParameters, scopes, functions);
     }
 
 
