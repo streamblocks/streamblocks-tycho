@@ -3,10 +3,21 @@ package se.lth.cs.tycho.transformation.am2procedural;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
-import se.lth.cs.tycho.ir.entity.am.*;
+import se.lth.cs.tycho.ir.entity.am.ActorMachine;
+import se.lth.cs.tycho.ir.entity.am.Condition;
+import se.lth.cs.tycho.ir.entity.am.PortCondition;
+import se.lth.cs.tycho.ir.entity.am.PredicateCondition;
+import se.lth.cs.tycho.ir.entity.am.Scope;
+import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.entity.procedural.Procedural;
-import se.lth.cs.tycho.ir.expr.*;
+import se.lth.cs.tycho.ir.expr.ExprAvailInput;
+import se.lth.cs.tycho.ir.expr.ExprAvailOutput;
+import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
+import se.lth.cs.tycho.ir.expr.ExprLiteral;
+import se.lth.cs.tycho.ir.expr.ExprProcReturn;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
+import se.lth.cs.tycho.ir.stmt.StmtReturn;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
@@ -20,13 +31,22 @@ public class AmToProcedural {
 
     private final ActorMachine actor;
     private final ImmutableList<VarDecl> functions;
+    private final ImmutableList<Scope> scopes;
 
     private final Configuration configuration;
 
     public AmToProcedural(ActorMachine actorMachine, Configuration configuration, Types types, TreeShadow tree) {
         this.actor = actorMachine;
         this.configuration = configuration;
-        this.functions = ImmutableList.empty();
+
+        ProceduralFunctions proceduralFunctions = new ProceduralFunctions(actorMachine);
+        ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
+        builder.addAll(proceduralFunctions.createConditionDecls());
+        builder.addAll(proceduralFunctions.createTransitionDecls());
+        builder.add(proceduralFunctions.createControllerDecl());
+        this.functions = builder.build();
+
+        this.scopes = ImmutableList.empty();
     }
 
     public Procedural buildProcedural() {
@@ -49,10 +69,9 @@ public class AmToProcedural {
         public List<VarDecl> createConditionDecls() {
             List<VarDecl> declarations = new ArrayList<>();
 
-            // -- Conditions
             for (Condition condition : actorMachine.getConditions()) {
                 String name = "condition_" + actorMachine.getConditions().indexOf(condition);
-                Expression expression = null;
+                Expression expression;
 
                 if (condition.kind() == Condition.ConditionKind.input) {
                     PortCondition port = (PortCondition) condition;
@@ -73,10 +92,14 @@ public class AmToProcedural {
                     expression = predicate.getExpression().deepClone();
                 }
 
-                NominalTypeExpr boolType = new NominalTypeExpr("bool");
-                ExprLambda lambda = new ExprLambda(ImmutableList.empty(), expression, boolType);
 
-                VarDecl condDecl = new LocalVarDecl(Collections.emptyList(), null, name, lambda, false);
+                StmtReturn ret = new StmtReturn(expression);
+
+                NominalTypeExpr boolType = new NominalTypeExpr("bool");
+
+                ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), ImmutableList.of(ret), boolType);
+
+                VarDecl condDecl = new LocalVarDecl(Collections.emptyList(), boolType, name, proc, false);
                 declarations.add(condDecl);
             }
 
@@ -97,7 +120,7 @@ public class AmToProcedural {
 
                 builder.addAll(transition.getBody());
 
-                ExprProc proc = new ExprProc(ImmutableList.empty(), builder.build());
+                ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), builder.build(), null);
                 LocalVarDecl decl = new LocalVarDecl(Collections.emptyList(), null, name, proc, true);
 
                 declarations.add(decl);
@@ -113,7 +136,6 @@ public class AmToProcedural {
          */
         public VarDecl createControllerDecl() {
             VarDecl controller = null;
-
 
 
             return controller;
