@@ -6,7 +6,7 @@ import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
-
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.ToolAttribute;
 import se.lth.cs.tycho.ir.ValueParameter;
@@ -15,7 +15,21 @@ import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.nl.*;
+import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
+import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
+import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
+import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.ir.entity.nl.PortReference;
+import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
+import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
+import se.lth.cs.tycho.ir.entity.nl.StructureIfStmt;
+import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
+import se.lth.cs.tycho.ir.entity.nl.StructureStmtVisitor;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Connection;
@@ -28,6 +42,7 @@ import se.lth.cs.tycho.meta.interp.op.Binary;
 import se.lth.cs.tycho.meta.interp.op.Unary;
 import se.lth.cs.tycho.meta.interp.value.Value;
 import se.lth.cs.tycho.meta.interp.value.ValueBool;
+import se.lth.cs.tycho.meta.interp.value.ValueList;
 import se.lth.cs.tycho.meta.interp.value.util.Convert;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
@@ -135,8 +150,8 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     @Override
     public EntityExpr visitEntityIfExpr(EntityIfExpr e, Environment environment) {
         Value condition = interpreter.eval(e.getCondition(), environment);
-        if(condition instanceof ValueBool){
-            boolean cond = ((ValueBool)condition).bool();
+        if (condition instanceof ValueBool) {
+            boolean cond = ((ValueBool) condition).bool();
             if (cond) {
                 return e.getTrueEntity().accept(this, environment);
             } else {
@@ -144,7 +159,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             }
         }
 
-        throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR,"Cannot evaluate EntityIfExpr condition"));
+        throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot evaluate EntityIfExpr condition"));
     }
 
     @Override
@@ -164,15 +179,27 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         final ImmutableList.Builder<EntityExpr> builder = new ImmutableList.Builder<EntityExpr>();
         final NlToNetwork exprEvaluator = this;
 
-        /*
-        Runnable exec = new Runnable() {
-            public void run() {
-                builder.add(e.getCollection().accept(exprEvaluator, environment));
-            }
-        };
+        Generator generator = e.getGenerator();
 
-        comprehensionHelper.interpret(e.getGenerator(), e.getFilters(), exec, environment);
-         */
+        Value value = interpreter.eval(generator.getCollection(), environment);
+        if (!(value instanceof ValueList)) {
+            throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot evaluate EntityComprehensionExpr"));
+        }
+
+        ValueList list = (ValueList) value;
+        for (int i = 0; i < list.elements().size(); i += generator.getVarDecls().size()) {
+            Map<String, Value> bindings = new HashMap<>();
+            for (int j = 0; j < generator.getVarDecls().size(); ++j) {
+                bindings.put(generator.getVarDecls().get(j).getName(), list.elements().get(i));
+            }
+
+            Environment newEnv = environment.with(bindings);
+            if (e.getFilters().stream().map(filter -> interpreter.eval(filter, newEnv)).allMatch(v -> (v instanceof ValueBool) && ((ValueBool) v).bool())) {
+                EntityExpr entityExpr = e.getCollection().accept(exprEvaluator, newEnv);
+                builder.add(entityExpr);
+            }
+        }
+
         return new EntityListExpr(builder.build());
     }
 
@@ -200,9 +227,9 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     @Override
     public StructureStatement visitStructureIfStmt(StructureIfStmt stmt, Environment environment) {
         Value condition = interpreter.eval(stmt.getCondition(), environment);
-        if(condition instanceof ValueBool){
+        if (condition instanceof ValueBool) {
             ImmutableList.Builder<StructureStatement> builder = new ImmutableList.Builder<StructureStatement>();
-            boolean cond = ((ValueBool)condition).bool();
+            boolean cond = ((ValueBool) condition).bool();
             if (cond) {
                 for (StructureStatement s : stmt.getTrueStmt()) {
                     builder.add(s.accept(this, environment));
@@ -214,25 +241,36 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             }
             return new StructureForeachStmt(null, ImmutableList.<Expression>empty(), builder.build());
         }
-        throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR,"Cannot evaluate StructureIfStmt condition"));
+        throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot evaluate StructureIfStmt condition"));
     }
 
     @Override
     public StructureStatement visitStructureForeachStmt(StructureForeachStmt stmt, Environment environment) {
         final ImmutableList.Builder<StructureStatement> builder = new ImmutableList.Builder<StructureStatement>();
         final NlToNetwork stmtEvaluateor = this;
-/*
-        Runnable exec = new Runnable() {
-            public void run() {
-                for (StructureStatement element : stmt.getStatements()) {
-                    builder.add(element.accept(stmtEvaluateor, environment));
+
+        Generator generator = stmt.getGenerator();
+
+        Value value = interpreter.eval(generator.getCollection(), environment);
+        if (!(value instanceof ValueList)) {
+            throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot evaluate EntityComprehensionExpr"));
+        }
+
+        ValueList list = (ValueList) value;
+        for (int i = 0; i < list.elements().size(); i += generator.getVarDecls().size()) {
+            Map<String, Value> bindings = new HashMap<>();
+            for (int j = 0; j < generator.getVarDecls().size(); ++j) {
+                bindings.put(generator.getVarDecls().get(j).getName(), list.elements().get(i));
+            }
+
+            Environment newEnv = environment.with(bindings);
+            if (stmt.getFilters().stream().map(filter -> interpreter.eval(filter, newEnv)).allMatch(v -> (v instanceof ValueBool) && ((ValueBool) v).bool())) {
+                for (StructureStatement structureStatement : stmt.getStatements()) {
+                    builder.add(structureStatement.accept(stmtEvaluateor, newEnv));
                 }
             }
-        };
+        }
 
-        comprehensionHelper.interpret(stmt.getGenerator(), stmt.getFilters(), exec, environment);
-
- */
         return stmt.copy(null, ImmutableList.<Expression>empty(), builder.build());
     }
 
