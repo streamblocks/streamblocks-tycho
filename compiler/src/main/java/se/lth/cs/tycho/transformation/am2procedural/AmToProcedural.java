@@ -43,7 +43,7 @@ public class AmToProcedural {
         ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
         builder.addAll(proceduralFunctions.createConditionDecls());
         builder.addAll(proceduralFunctions.createTransitionDecls());
-        builder.add(proceduralFunctions.createControllerDecl());
+        //builder.add(proceduralFunctions.createControllerDecl());
         this.functions = builder.build();
 
         this.scopes = ImmutableList.empty();
