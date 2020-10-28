@@ -11,12 +11,12 @@ namespace assert:
                 bool b,
                 float f
             do
-                t := (T(1, false) :: T);
-                u := (A :: U);
-                u := (B(2.5) :: U);
-                n := (1 :: int);
-                b := (false :: bool);
-                f := (2.5 :: float);
+                t := (T(1, false) as T);
+                u := (A as U);
+                u := (B(2.5) as U);
+                n := (1 as int);
+                b := (false as bool);
+                f := (2.5 as float);
             end
         end
     end

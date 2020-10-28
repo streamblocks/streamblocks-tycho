@@ -1919,7 +1919,7 @@ ExprTypeAssertion TypeAssertionExpression() :
 {
     first = "("
 	expression = Expression()
-    "::"
+    "as"
     type = Type()
     last = ")"
     { return setPosition(new ExprTypeAssertion(expression, type), first, last); }

@@ -1,7 +1,7 @@
 namespace assert:
     actor IntTypeToRealType() ==> float OUT:
         do
-            OUT <-- (1:: float);
+            OUT <-- (1 as float);
         end
     end
 end

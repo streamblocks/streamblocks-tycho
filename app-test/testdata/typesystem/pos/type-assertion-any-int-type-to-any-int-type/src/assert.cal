@@ -8,18 +8,18 @@ namespace assert:
                 uint un32,
                 uint(size=16) un16
             do
-                n32  := (un32 :: int);
-                n32  := (un16 :: int);
-                n32  := (n16  :: int);
-                n16  := (un32 :: int(size=16));
-                n16  := (un16 :: int(size=16));
-                n16  := (n32  :: int(size=16));
-                un32 := (un16 :: uint);
-                un32 := (n32  :: uint);
-                un32 := (n16  :: uint);
-                un16 := (un32 :: uint(size=16));
-                un16 := (n32  :: uint(size=16));
-                un16 := (n16  :: uint(size=16));
+                n32  := (un32 as int);
+                n32  := (un16 as int);
+                n32  := (n16  as int);
+                n16  := (un32 as int(size=16));
+                n16  := (un16 as int(size=16));
+                n16  := (n32  as int(size=16));
+                un32 := (un16 as uint);
+                un32 := (n32  as uint);
+                un32 := (n16  as uint);
+                un16 := (un32 as uint(size=16));
+                un16 := (n32  as uint(size=16));
+                un16 := (n16  as uint(size=16));
             end
         end
     end
