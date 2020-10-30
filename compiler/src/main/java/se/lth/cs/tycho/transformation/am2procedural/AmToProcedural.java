@@ -17,6 +17,7 @@ import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.ExprProcReturn;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
+import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtReturn;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -119,6 +120,11 @@ public class AmToProcedural {
                 ImmutableList.Builder<Statement> builder = ImmutableList.builder();
 
                 builder.addAll(transition.getBody());
+
+                //TODO CHECK Create stmtBlock to wrap everything into
+                StmtBlock stmtblock = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), builder.build());
+                ImmutableList.Builder<Statement> stmtblockBuilder = ImmutableList.builder();
+                stmtblockBuilder.add(stmtblock);
 
                 ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), builder.build(), null);
                 LocalVarDecl decl = new LocalVarDecl(Collections.emptyList(), null, name, proc, true);

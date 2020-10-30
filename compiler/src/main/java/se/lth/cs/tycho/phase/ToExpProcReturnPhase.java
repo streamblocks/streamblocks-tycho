@@ -41,6 +41,18 @@ public class ToExpProcReturnPhase implements Phase {
             return node.transformChildren(this);
         }
 
+        default IRNode apply(ExprProcReturn proc){
+
+            ImmutableList<Statement> stmts = ImmutableList.from(proc.getBody());
+
+            //If ExprProcReturn contains other stmts than a single StmtBlock
+            if(stmts.size() > 1 || !(stmts.get(0) instanceof StmtBlock)){
+                StmtBlock stmtBlock = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), stmts);
+                return new ExprProcReturn(proc.getValueParameters(), ImmutableList.of(stmtBlock), proc.getReturnType());
+            }
+            return proc;
+        }
+
         default IRNode apply(ExprProc proc) {
             ImmutableList.Builder<ParameterVarDecl> builderParameters = ImmutableList.builder();
             builderParameters.addAll(proc.getValueParameters());
