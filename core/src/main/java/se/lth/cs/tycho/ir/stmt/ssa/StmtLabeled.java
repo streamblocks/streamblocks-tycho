@@ -12,13 +12,17 @@ import java.util.function.Consumer;
 public class StmtLabeled extends Statement {
 
 private final String label;
+private final Statement originalStmt;
 private ImmutableList<StmtLabeled> predecessors;
 private ImmutableList<StmtLabeled> successors;
-private final Statement originalStmt;
-private StmtLabeled last;
+private StmtLabeled exit;
 
     public StmtLabeled(String label, Statement originalStmt){
         this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null);
+    }
+
+    public Statement getOriginalStmt() {
+        return originalStmt;
     }
 
     public void setRelations(List<StmtLabeled> predecessors, List<StmtLabeled> successors){
@@ -43,24 +47,24 @@ private StmtLabeled last;
     }
 
     public boolean lastIsNull(){
-        return last == null;
+        return exit == null;
     }
 
-    public void setLast(StmtLabeled last){
-        this.last = last;
+    public void setExit(StmtLabeled exit){
+        this.exit = exit;
     }
 
-    public StmtLabeled getLast(){
-        return (last != null) ? last : this;
+    public StmtLabeled getExitBlock(){
+        return (exit != null) ? exit : this;
     }
 
-    private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled last) {
+    private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
         this.successors = successors;
         this.originalStmt = originalStmt;
-        this.last = last;
+        this.exit = exit;
     }
 
     @Override

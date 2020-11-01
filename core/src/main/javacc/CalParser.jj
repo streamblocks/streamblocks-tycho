@@ -877,7 +877,7 @@ EntityInstanceExpr InstanceExprEntity() :
     EntityInstanceExpr expr;
     Token entityName;
     Token parameterName;
-    Token last;
+    Token exit;
     Expression parameter;
     ImmutableList.Builder<ValueParameter> valueParameters;
     ImmutableList.Builder<TypeParameter> typeParameters;
@@ -892,10 +892,10 @@ EntityInstanceExpr InstanceExprEntity() :
         entityName = <ID>
         "("
         ParameterAssignments(typeParameters, valueParameters)
-        last = ")"
+        exit = ")"
         toolAttrs = OptToolAttributes()
     {
-        return setPosition(new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), typeParameters.build(), valueParameters.build()).withAttributes(toolAttrs), entityName, last);
+        return setPosition(new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), typeParameters.build(), valueParameters.build()).withAttributes(toolAttrs), entityName, exit);
     }
 }
 
@@ -1593,7 +1593,7 @@ ImmutableList<OutputExpression> OutputExpressions() :
 OutputExpression OutputExpression() :
 {
 	Token first;
-	Token last;
+	Token exit;
 	Token id = null;
 	Port port = null;
 	ImmutableList<Expression> exprs;
@@ -1603,7 +1603,7 @@ OutputExpression OutputExpression() :
 	( id = <ID> ":" { port = new Port(id.image); })?
 	first = "["
 	exprs = ExpressionList()
-	last = "]"
+	exit = "]"
 	( "repeat" repeat = Expression() )?
 	{
 		OutputExpression out = new OutputExpression(port, exprs, repeat);
@@ -1611,7 +1611,7 @@ OutputExpression OutputExpression() :
 		if (repeat != null) {
 			return setPosition(out, first, repeat);
 		} else {
-			return setPosition(out, first, last);
+			return setPosition(out, first, exit);
 		}
 	}
 }
@@ -1912,7 +1912,7 @@ ExprLiteral ExpressionLiteral() :
 ExprTypeAssertion TypeAssertionExpression() :
 {
     Token first;
-    Token last;
+    Token exit;
     Expression expression;
 	TypeExpr type;
 }
@@ -1921,8 +1921,8 @@ ExprTypeAssertion TypeAssertionExpression() :
 	expression = Expression()
     "::"
     type = Type()
-    last = ")"
-    { return setPosition(new ExprTypeAssertion(expression, type), first, last); }
+    exit = ")"
+    { return setPosition(new ExprTypeAssertion(expression, type), first, exit); }
 }
 
 ImmutableList<Expression> ExpressionList() :
@@ -1972,7 +1972,7 @@ String UnaryOperator() :
 ExprCase CaseExpression() :
 {
     Token first;
-    Token last;
+    Token exit;
     Expression scrutinee;
     ExprCase.Alternative alternative;
     ImmutableList.Builder<ExprCase.Alternative> alternatives = ImmutableList.builder();
@@ -1987,8 +1987,8 @@ ExprCase CaseExpression() :
             alternative = CaseExprAlternative() { alternatives.add(alternative); }
         )*
     )?
-    last = "end"
-    { return setPosition(new ExprCase(scrutinee, alternatives.build()), first, last); }
+    exit = "end"
+    { return setPosition(new ExprCase(scrutinee, alternatives.build()), first, exit); }
 }
 
 ExprCase.Alternative CaseExprAlternative() :
@@ -1997,7 +1997,7 @@ ExprCase.Alternative CaseExprAlternative() :
     Expression guard;
     ImmutableList.Builder<Expression> guards = ImmutableList.builder();
     Expression expression;
-    Token last;
+    Token exit;
 }
 {
     pattern = Pattern()
@@ -2010,8 +2010,8 @@ ExprCase.Alternative CaseExprAlternative() :
     )?
     ":"
     expression = Expression()
-    last = "end"
-    { return setPosition(new ExprCase.Alternative(pattern, guards.build(), expression), pattern, last); }
+    exit = "end"
+    { return setPosition(new ExprCase.Alternative(pattern, guards.build(), expression), pattern, exit); }
 }
 
 Pattern Pattern() :
@@ -2061,7 +2061,7 @@ PatternAlternative PatternAlternative() :
 {
   Pattern pattern;
   Pattern first;
-  Pattern last;
+  Pattern exit;
   ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
 }
 {
@@ -2073,12 +2073,12 @@ PatternAlternative PatternAlternative() :
   (
     "|"
     (
-      pattern = PatternLiteral() { patterns.add(pattern); last = pattern; }
+      pattern = PatternLiteral() { patterns.add(pattern); exit = pattern; }
     |
-      pattern = PatternExpression() { patterns.add(pattern); last = pattern; }
+      pattern = PatternExpression() { patterns.add(pattern); exit = pattern; }
     )
   )+
-  { return setPosition(new PatternAlternative(patterns.build()), first, last); }
+  { return setPosition(new PatternAlternative(patterns.build()), first, exit); }
 }
 
 PatternAlias PatternAlias() :
@@ -2096,7 +2096,7 @@ PatternAlias PatternAlias() :
 PatternList PatternList() :
 {
 	Token first;
-	Token last;
+	Token exit;
 	Pattern pattern;
 	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
 }
@@ -2108,8 +2108,8 @@ PatternList PatternList() :
 			"," pattern = Pattern() { patterns.add(pattern); }
 		)*
 	)?
-	last = "]"
-	{ return setPosition(new PatternList(patterns.build()), first, last); }
+	exit = "]"
+	{ return setPosition(new PatternList(patterns.build()), first, exit); }
 }
 
 PatternLiteral PatternLiteral() :
@@ -2124,7 +2124,7 @@ PatternLiteral PatternLiteral() :
 PatternExpression PatternExpression() :
 {
 	Token first;
-	Token last;
+	Token exit;
 	Expression expression;
 }
 {
@@ -2132,8 +2132,8 @@ PatternExpression PatternExpression() :
   (
     "("
     expression = Expression()
-    last = ")"
-    { return setPosition(new PatternExpression(expression), first, last); }
+    exit = ")"
+    { return setPosition(new PatternExpression(expression), first, exit); }
   |
     expression = VariableExpression()
     { return setPosition(new PatternExpression(expression), first, expression); }
@@ -2143,7 +2143,7 @@ PatternExpression PatternExpression() :
 PatternDeconstruction PatternDeconstruction() :
 {
 	Token id;
-	Token last;
+	Token exit;
 	Pattern pattern;
 	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
 	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
@@ -2165,14 +2165,14 @@ PatternDeconstruction PatternDeconstruction() :
 			"," pattern = Pattern() { patterns.add(pattern); }
 		)*
 	)?
-	last = ")"
-	{ return setPosition(new PatternDeconstruction(id.image, types.build(), vals.build(), patterns.build()), id, last); }
+	exit = ")"
+	{ return setPosition(new PatternDeconstruction(id.image, types.build(), vals.build(), patterns.build()), id, exit); }
 }
 
 PatternTuple PatternTuple() :
 {
 	Token first;
-	Token last;
+	Token exit;
 	Pattern pattern;
 	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
 }
@@ -2182,8 +2182,8 @@ PatternTuple PatternTuple() :
 	(
 		"," pattern = Pattern() { patterns.add(pattern); }
 	)+
-	last = ")"
-	{ return setPosition(new PatternTuple(patterns.build()), first, last); }
+	exit = ")"
+	{ return setPosition(new PatternTuple(patterns.build()), first, exit); }
 }
 
 ExprIf IfExpression() :
@@ -2357,7 +2357,7 @@ ExprProc ProcExpression() :
 Expression MapExpression() :
 {
 	Token first;
-	Token last;
+	Token exit;
 	Expression result;
 	ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
 }
@@ -2370,9 +2370,9 @@ Expression MapExpression() :
 		":"
 		result = ComprehensionFor(result)
 	)?
-	last = "}"
+	exit = "}"
 	{
-		return setPosition(result, first, last);
+		return setPosition(result, first, exit);
 	}
 }
 
@@ -2397,7 +2397,7 @@ ImmutableList<ImmutableEntry<Expression, Expression>> Mappings() :
 Expression SetExpression() :
 {
 	Token first;
-	Token last;
+	Token exit;
 	Expression result;
 	ImmutableList<Expression> exprs;
 }
@@ -2409,16 +2409,16 @@ Expression SetExpression() :
 		":"
 		result = ComprehensionFor(result)
 	)?
-	last = "}"
+	exit = "}"
 	{
-		return setPosition(result, first, last);
+		return setPosition(result, first, exit);
 	}
 }
 
 Expression ListExpression() :
 {
 	Token first;
-	Token last;
+	Token exit;
     Expression result;
 	ImmutableList<Expression> exprs;
 }
@@ -2430,16 +2430,16 @@ Expression ListExpression() :
 		":"
 		result = ComprehensionFor(result)
 	)?
-	last = "]"
+	exit = "]"
 	{
-		return setPosition(result, first, last);
+		return setPosition(result, first, exit);
 	}
 }
 
 Expression TupleExpression() :
 {
   Token first;
-  Token last;
+  Token exit;
   Expression expr;
   ImmutableList.Builder<Expression> exprs = ImmutableList.builder();
 }
@@ -2450,8 +2450,8 @@ Expression TupleExpression() :
     ","
     expr = Expression() { exprs.add(expr); }
   )+
-  last = ")"
-  { return setPosition(new ExprTuple(exprs.build()), first, last); }
+  exit = ")"
+  { return setPosition(new ExprTuple(exprs.build()), first, exit); }
 }
 
 Expression ComprehensionFor(Expression contents) :
@@ -2503,7 +2503,7 @@ TypeExpr Type() :
 {
   TypeExpr type;
   Expression expr = null;
-  Token last = null;
+  Token exit = null;
   ImmutableList.Builder<TypeExpr> builder = ImmutableList.builder();
 }
 {
@@ -2514,7 +2514,7 @@ TypeExpr Type() :
   (
     "["
     expr = Expression()
-    last = "]"
+    exit = "]"
   )?
   {
     ImmutableList<TypeExpr> types = builder.build();
@@ -2526,7 +2526,7 @@ TypeExpr Type() :
     if (expr == null) {
       return type;
     } else {
-      return setPosition(new NominalTypeExpr("List", ImmutableList.of(setPosition(new TypeParameter("type", type), type, type)), ImmutableList.of(setPosition(new ValueParameter("size", expr), expr, expr))), type, last);
+      return setPosition(new NominalTypeExpr("List", ImmutableList.of(setPosition(new TypeParameter("type", type), type, type)), ImmutableList.of(setPosition(new ValueParameter("size", expr), expr, expr))), type, exit);
     }
   }
 }
@@ -2549,7 +2549,7 @@ TypeExpr SimpleType() :
 TupleTypeExpr TupleType() :
 {
   Token first;
-  Token last;
+  Token exit;
   TypeExpr type;
   ImmutableList.Builder<TypeExpr> types = ImmutableList.builder();
 }
@@ -2559,8 +2559,8 @@ TupleTypeExpr TupleType() :
   (
     "," type = Type() { types.add(type); }
   )+
-  last = ")"
-  { return setPosition(new TupleTypeExpr(types.build()), first, last); }
+  exit = ")"
+  { return setPosition(new TupleTypeExpr(types.build()), first, exit); }
 }
 
 NominalTypeExpr NominalType() :
@@ -2568,25 +2568,25 @@ NominalTypeExpr NominalType() :
   Token name;
   ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
   ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
-  Token last;
+  Token exit;
 }
 {
   name = <ID>
-  { last = name; }
+  { exit = name; }
   (
     "("
     ParameterAssignments(types, vals)
-    last = ")"
+    exit = ")"
   )?
   {
-    return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, last);
+    return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, exit);
   }
 }
 
 TypeExpr LambdaType() :
 {
   Token first;
-  Token last;
+  Token exit;
   TypeExpr type;
   TypeExpr retType = null;
   ImmutableList.Builder<TypeExpr> types = ImmutableList.builder();
@@ -2603,12 +2603,12 @@ TypeExpr LambdaType() :
   (
     retType = Type()
   )?
-  last = "]"
+  exit = "]"
   {
     if (retType == null) {
-      return setPosition(new ProcedureTypeExpr(types.build()), first, last);
+      return setPosition(new ProcedureTypeExpr(types.build()), first, exit);
     } else {
-      return setPosition(new FunctionTypeExpr(types.build(), retType), first, last);
+      return setPosition(new FunctionTypeExpr(types.build(), retType), first, exit);
     }
   }
 }
@@ -2634,7 +2634,7 @@ GlobalTypeDecl GlobalTypeDecl() :
 AliasTypeDecl AliasType(Availability availability) :
 {
   Token first;
-  Token last;
+  Token exit;
   Token name;
   TypeExpr type;
 }
@@ -2643,14 +2643,14 @@ AliasTypeDecl AliasType(Availability availability) :
   name = <ID>
   ":"
   type = Type()
-  last = "end"
-  { return setPosition(new AliasTypeDecl(name.image, availability, type), first, last); }
+  exit = "end"
+  { return setPosition(new AliasTypeDecl(name.image, availability, type), first, exit); }
 }
 
 AlgebraicTypeDecl AlgebraicType(Availability availability) :
 {
   Token first;
-  Token last;
+  Token exit;
   Token name;
   AlgebraicTypeDecl declaration;
   ImmutableList.Builder<ParameterTypeDecl> typeDecls = ImmutableList.builder();
@@ -2670,14 +2670,14 @@ AlgebraicTypeDecl AlgebraicType(Availability availability) :
   |
       declaration = SumTypeDecl(availability, name, typeDecls.build(), varDecls.build())
   )
-  last = "end"
-  { return setPosition(declaration, first, last); }
+  exit = "end"
+  { return setPosition(declaration, first, exit); }
 }
 
 ProductTypeDecl ProductTypeDecl(Availability availability, Token name, List<ParameterTypeDecl> typeDecls, List<ParameterVarDecl> varDecls) :
 {
     Token first;
-    Token last;
+    Token exit;
     FieldDecl field;
     ImmutableList.Builder<FieldDecl> fields = ImmutableList.builder();
 }
@@ -2687,8 +2687,8 @@ ProductTypeDecl ProductTypeDecl(Availability availability, Token name, List<Para
         field = FieldDecl() { fields.add(field); }
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
-    last = ")"
-    { return setPosition(new ProductTypeDecl(name.image, availability, typeDecls, varDecls, fields.build()), first, last); }
+    exit = ")"
+    { return setPosition(new ProductTypeDecl(name.image, availability, typeDecls, varDecls, fields.build()), first, exit); }
 }
 
 FieldDecl FieldDecl() :
@@ -2705,38 +2705,38 @@ FieldDecl FieldDecl() :
 SumTypeDecl SumTypeDecl(Availability availability, Token name, List<ParameterTypeDecl> typeDecls, List<ParameterVarDecl> varDecls) :
 {
     SumTypeDecl.VariantDecl first;
-    SumTypeDecl.VariantDecl last;
+    SumTypeDecl.VariantDecl exit;
     SumTypeDecl.VariantDecl variant;
     ImmutableList.Builder<SumTypeDecl.VariantDecl> variants = ImmutableList.builder();
 }
 {
     variant = VariantDecl() { variants.add(variant); }
-    { last = first = variant; }
+    { exit = first = variant; }
     (
         "|"
         variant = VariantDecl() { variants.add(variant); }
-        { last = variant; }
+        { exit = variant; }
     )*
-    { return setPosition(new SumTypeDecl(name.image, availability, typeDecls, varDecls, variants.build()), first, last); }
+    { return setPosition(new SumTypeDecl(name.image, availability, typeDecls, varDecls, variants.build()), first, exit); }
 }
 
 SumTypeDecl.VariantDecl VariantDecl() :
 {
 	Token name;
-	Token last;
+	Token exit;
 	FieldDecl field;
 	ImmutableList.Builder<FieldDecl> fields = ImmutableList.builder();
 }
 {
     name = <ID>
-    { last = name; }
+    { exit = name; }
     (
         "("
         field = FieldDecl() { fields.add(field); }
         ( "," field = FieldDecl() { fields.add(field); } )*
-        last = ")"
+        exit = ")"
     )?
-    { return setPosition(new SumTypeDecl.VariantDecl(name.image, fields.build()), name, last); }
+    { return setPosition(new SumTypeDecl.VariantDecl(name.image, fields.build()), name, exit); }
 }
 
 /* Statements */
@@ -2953,7 +2953,7 @@ StmtCall CallStmt() :
 StmtCase CaseStmt() :
 {
     Token first;
-    Token last;
+    Token exit;
     Expression scrutinee;
     StmtCase.Alternative alternative;
     ImmutableList.Builder<StmtCase.Alternative> alternatives = ImmutableList.builder();
@@ -2968,8 +2968,8 @@ StmtCase CaseStmt() :
             alternative = CaseStmtAlternative() { alternatives.add(alternative); }
         )*
     )?
-    last = "end"
-    { return setPosition(new StmtCase(scrutinee, alternatives.build()), first, last); }
+    exit = "end"
+    { return setPosition(new StmtCase(scrutinee, alternatives.build()), first, exit); }
 }
 
 StmtCase.Alternative CaseStmtAlternative() :
@@ -2978,7 +2978,7 @@ StmtCase.Alternative CaseStmtAlternative() :
     Expression guard;
     ImmutableList.Builder<Expression> guards = ImmutableList.builder();
     ImmutableList<Statement> statements;
-    Token last;
+    Token exit;
 }
 {
     pattern = Pattern()
@@ -2991,8 +2991,8 @@ StmtCase.Alternative CaseStmtAlternative() :
     )?
     "do"
     statements = Statements()
-    last = "end"
-    { return setPosition(new StmtCase.Alternative(pattern, guards.build(), statements), pattern, last); }
+    exit = "end"
+    { return setPosition(new StmtCase.Alternative(pattern, guards.build(), statements), pattern, exit); }
 }
 
 StmtBlock BlockStmt() :
