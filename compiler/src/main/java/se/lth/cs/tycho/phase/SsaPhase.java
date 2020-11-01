@@ -5,9 +5,13 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.expr.ExprProcReturn;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.*;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
+import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.stmt.ssa.ExprPhi;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
@@ -48,19 +52,19 @@ public class SsaPhase implements Phase {
 
     }
 
-    //TODO define naming convention
+    //TODO define labeling convention
     private static String assignLabel(Statement stmt) {
         return stmt.getClass().toString().substring(30);
     }
 
 
-    //TODO add cases
     private static LinkedList<StmtLabeled> iterateSubStmts(List<Statement> stmts) {
         LinkedList<StmtLabeled> currentBlocks = new LinkedList<>();
 
         for (Statement currentStmt : stmts) {
 
-            if (isTerminalStmtBlock(currentStmt)) {
+            //TODO add cases
+            if (isTerminalStmt(currentStmt)) {
                 currentBlocks.add(create_SimpleBlock(currentStmt));
             } else if (currentStmt instanceof StmtWhile) {
                 currentBlocks.add(create_WhileBlock((StmtWhile) currentStmt));
@@ -157,7 +161,7 @@ public class SsaPhase implements Phase {
         return entry;
     }
 
-    private static boolean isTerminalStmtBlock(Statement stmt) {
+    private static boolean isTerminalStmt(Statement stmt) {
         return stmt instanceof StmtAssignment ||
                 stmt instanceof StmtCall ||
                 stmt instanceof StmtConsume ||
@@ -168,13 +172,80 @@ public class SsaPhase implements Phase {
 
 //--------------- SSA Algorithm ---------------//
 
-/*    private Statement readVar(StmtLabeled stmt, VarDecl var) {
+    private Expression readVar(StmtLabeled stmt, LValue var) {
         Statement originalStmt = stmt.getOriginalStmt();
-
-
+        if (originalStmt instanceof StmtAssignment) {
+            LValue v = ((StmtAssignment) originalStmt).getLValue();
+            if (v.equals(var)) {
+                return ((StmtAssignment) originalStmt).getExpression();
+            }
+        } else if (originalStmt instanceof StmtBlock) {
+            ImmutableList<LocalVarDecl> localVarDecls = ((StmtBlock) originalStmt).getVarDecls();
+            for (LocalVarDecl v : localVarDecls) {
+                if (v.getName().equals(((LValueVariable) var).getVariable().getName())) {
+                    return v.getValue();
+                }
+            }
+        }
+        return readVarRec(stmt, var);
     }
 
-    private Statement readVarRec(ImmutableList<ParameterVarDecl> localVars, VarDecl var){
+    private Expression readVarRec(StmtLabeled stmt, LValue var) {
+        //Statement originalStmt = stmt.getOriginalStmt();
+        if (stmt.getPredecessors().size() == 1) {
+            return readVar(stmt.getPredecessors().get(0), var);
+        } else {
+            ExprPhi phi = new ExprPhi(var, ImmutableList.empty());
+            return addPhiOperands(phi, var, stmt.getPredecessors());
+        }
+    }
 
-        }*/
+    private Expression addPhiOperands(ExprPhi phi, LValue var, List<StmtLabeled> predecessors) {
+        LinkedList<Expression> phiOperands = new LinkedList<>();
+
+        for (StmtLabeled stmt : predecessors) {
+            Expression lookedUpVar = readVar(stmt, var);
+            phiOperands.add(lookedUpVar);
+            //add Phi to list of users of its operands
+            if (lookedUpVar instanceof ExprPhi) {
+                ((ExprPhi) lookedUpVar).addUser(ImmutableList.of(phi));
+            }
+        }
+        ExprPhi newPhi = new ExprPhi(var, phiOperands);
+        return tryRemoveTrivialPhi(newPhi);
+    }
+
+    private Expression tryRemoveTrivialPhi(ExprPhi phi) {
+        Expression currentOp = null;
+        ImmutableList<Expression> operands = phi.getOperands();
+        for (Expression op : operands) {
+            //clean up ugly continue
+            if (op.equals(currentOp) || (op instanceof ExprPhi && op.equals(phi))) {
+                continue;
+            }
+            if (currentOp != null) {
+                return phi;
+            }
+            currentOp = op;
+        }
+        //TODO set currentOp to undefined value
+
+        LinkedList<Expression> phiUsers = phi.getUsers();
+        phiUsers.remove(phi);
+        //TODO check if can only be done for ExprPhi
+        for (Expression userPhi : phiUsers) {
+            if (userPhi instanceof ExprPhi) {
+                LinkedList<Expression> userPhiUsers = ((ExprPhi) userPhi).getUsers();
+                userPhiUsers.set(userPhiUsers.indexOf(phi), currentOp);
+                ((ExprPhi) userPhi).addUser(userPhiUsers);
+            }
+        }
+
+        for (Expression user : phiUsers) {
+            if (user instanceof ExprPhi) {
+                tryRemoveTrivialPhi((ExprPhi) user);
+            }
+        }
+        return currentOp;
+    }
 }

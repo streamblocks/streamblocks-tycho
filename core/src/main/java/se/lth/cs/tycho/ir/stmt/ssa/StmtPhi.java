@@ -15,8 +15,9 @@ public class StmtPhi extends Statement {
 
     private final LValue lvalue;
     private final ImmutableList<Expression> operands;
+    private ImmutableList<StmtPhi> used;
 
-    public StmtPhi(LValue lvalue, List<Expression> operands) {
+    public StmtPhi(LValue lvalue, List<Expression> operands, List<StmtPhi> used, List<StmtPhi> usedBy) {
         this(null, lvalue, operands);
     }
 

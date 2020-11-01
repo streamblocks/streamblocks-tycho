@@ -69,7 +69,8 @@ private StmtLabeled exit;
 
     @Override
     public void forEachChild(Consumer<? super IRNode> action) {
-
+        predecessors.forEach(action);
+        successors.forEach(action);
     }
 
     @Override
