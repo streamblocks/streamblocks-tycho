@@ -2,11 +2,8 @@ package se.lth.cs.tycho.ir.stmt.ssa;
 
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.entity.am.ctrl.State;
-import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
-import se.lth.cs.tycho.ir.stmt.StmtIf;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.List;
@@ -15,6 +12,7 @@ import java.util.Objects;
 public class StmtBlockLabeled extends StmtBlock {
 
     private final String label;
+
     private ImmutableList<StmtBlockLabeled> predecessors;
     private ImmutableList<StmtBlockLabeled> successors;
     private final List<Statement> statements;
@@ -60,6 +58,15 @@ public class StmtBlockLabeled extends StmtBlock {
         this.successors = ImmutableList.from(succs);
 
     }
+
+    public void setPredecessors(List<StmtBlockLabeled> predecessors){
+        this.predecessors = ImmutableList.from(predecessors);
+    }
+
+    public void setSuccessors(List<StmtBlockLabeled> successors) {
+        this.successors = ImmutableList.from(successors);
+    }
+
 
     public ImmutableList<StmtBlockLabeled> getPredecessors() {
         return predecessors;
