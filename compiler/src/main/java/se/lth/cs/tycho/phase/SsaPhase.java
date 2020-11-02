@@ -47,10 +47,13 @@ public class SsaPhase implements Phase {
             //ImmutableList<ParameterVarDecl> paramVarDecl = proc.getValueParameters();
             ImmutableList<Statement> stmts = proc.getBody();
             StmtLabeled rootCFG = create_CFG(proc);
+
             return proc;
         }
 
     }
+
+    //--------------- CFG Generation ---------------//
 
     //TODO define labeling convention
     private static String assignLabel(Statement stmt) {
@@ -138,15 +141,16 @@ public class SsaPhase implements Phase {
         //Add the while stmt as both predecessors and successor of its body
         wireRelations(currentBlocks, stmtWhileLabeled, stmtWhileLabeled);
 
-        return stmtWhileLabeled;
+        StmtLabeled entryWhile = new StmtLabeled("WhileEntry", null);
+        StmtLabeled exitWhile = new StmtLabeled("WhileExit", null);
 
+        LinkedList<StmtLabeled> whileStmt = new LinkedList<>();
+        whileStmt.add(stmtWhileLabeled);
+        wireRelations(whileStmt, entryWhile, exitWhile);
+        entryWhile.setExit(exitWhile);
 
-    /*    StmtBlockLabeled entryBuffer = new StmtBlockLabeled("buffer", null, ImmutableList.empty())
-                .withRelations(ImmutableList.of(pred), ImmutableList.of(finished));
-        StmtBlockLabeled outputBuffer = new StmtBlockLabeled("buffer", null, ImmutableList.empty())
-                .withRelations(ImmutableList.of(finished), ImmutableList.of(succ));*/
+        return entryWhile;
     }
-
 
     private static StmtLabeled create_CFG(ExprProcReturn proc) {
         StmtBlock body = (StmtBlock) proc.getBody().get(0);
@@ -169,10 +173,13 @@ public class SsaPhase implements Phase {
                 stmt instanceof StmtRead;
     }
 
+    private void testSSA(StmtLabeled root){
+    }
+
 
 //--------------- SSA Algorithm ---------------//
 
-    private Expression readVar(StmtLabeled stmt, LValue var) {
+    private static Expression readVar(StmtLabeled stmt, LValue var) {
         Statement originalStmt = stmt.getOriginalStmt();
         if (originalStmt instanceof StmtAssignment) {
             LValue v = ((StmtAssignment) originalStmt).getLValue();
@@ -190,17 +197,18 @@ public class SsaPhase implements Phase {
         return readVarRec(stmt, var);
     }
 
-    private Expression readVarRec(StmtLabeled stmt, LValue var) {
+    private static Expression readVarRec(StmtLabeled stmt, LValue var) {
         //Statement originalStmt = stmt.getOriginalStmt();
         if (stmt.getPredecessors().size() == 1) {
             return readVar(stmt.getPredecessors().get(0), var);
         } else {
             ExprPhi phi = new ExprPhi(var, ImmutableList.empty());
+            stmt.addPhiExprs(phi);
             return addPhiOperands(phi, var, stmt.getPredecessors());
         }
     }
 
-    private Expression addPhiOperands(ExprPhi phi, LValue var, List<StmtLabeled> predecessors) {
+    private static Expression addPhiOperands(ExprPhi phi, LValue var, List<StmtLabeled> predecessors) {
         LinkedList<Expression> phiOperands = new LinkedList<>();
 
         for (StmtLabeled stmt : predecessors) {
@@ -211,15 +219,15 @@ public class SsaPhase implements Phase {
                 ((ExprPhi) lookedUpVar).addUser(ImmutableList.of(phi));
             }
         }
-        ExprPhi newPhi = new ExprPhi(var, phiOperands);
-        return tryRemoveTrivialPhi(newPhi);
+        phi.setOperands(phiOperands);
+        return tryRemoveTrivialPhi(phi);
     }
 
-    private Expression tryRemoveTrivialPhi(ExprPhi phi) {
+    private static Expression tryRemoveTrivialPhi(ExprPhi phi) {
         Expression currentOp = null;
         ImmutableList<Expression> operands = phi.getOperands();
         for (Expression op : operands) {
-            //clean up ugly continue
+            //TODO clean up ugly continue
             if (op.equals(currentOp) || (op instanceof ExprPhi && op.equals(phi))) {
                 continue;
             }
@@ -228,7 +236,7 @@ public class SsaPhase implements Phase {
             }
             currentOp = op;
         }
-        //TODO set currentOp to undefined value
+        //TODO set currentOp to undefined value?
 
         LinkedList<Expression> phiUsers = phi.getUsers();
         phiUsers.remove(phi);
