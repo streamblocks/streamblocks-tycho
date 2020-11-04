@@ -103,6 +103,14 @@ public class OrccListParameters implements Phase {
                             expr));
         }
 
+        default Expression ref(ExprList exprList){
+            return exprList;
+        }
+
+        default Expression ref(ExprDeref expr){
+             return ref(expr.getReference());
+        }
+
         default Expression ref(ExprVariable var) {
             return new ExprRef(var.getVariable());
         }
