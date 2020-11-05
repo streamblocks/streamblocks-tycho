@@ -5,14 +5,29 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.EntityDeclarations;
+import se.lth.cs.tycho.attribute.GlobalNames;
 import se.lth.cs.tycho.attribute.ModuleKey;
 import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
-import se.lth.cs.tycho.compiler.*;
+import se.lth.cs.tycho.compiler.CompilationTask;
+import se.lth.cs.tycho.compiler.Context;
+import se.lth.cs.tycho.compiler.GlobalDeclarations;
+import se.lth.cs.tycho.compiler.SourceUnit;
+import se.lth.cs.tycho.compiler.UniqueNumbers;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.*;
+import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
+import se.lth.cs.tycho.ir.decl.Availability;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
+import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
+import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
+import se.lth.cs.tycho.ir.decl.Import;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
+import se.lth.cs.tycho.ir.decl.SingleImport;
+import se.lth.cs.tycho.ir.decl.SumTypeDecl;
+import se.lth.cs.tycho.ir.decl.TypeDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.nl.EntityReference;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
@@ -21,7 +36,11 @@ import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.meta.core.*;
+import se.lth.cs.tycho.meta.core.Meta;
+import se.lth.cs.tycho.meta.core.MetaArgument;
+import se.lth.cs.tycho.meta.core.MetaArgumentType;
+import se.lth.cs.tycho.meta.core.MetaArgumentValue;
+import se.lth.cs.tycho.meta.core.MetaParameter;
 import se.lth.cs.tycho.meta.interp.Interpreter;
 import se.lth.cs.tycho.meta.interp.op.Binary;
 import se.lth.cs.tycho.meta.interp.op.Unary;
@@ -38,7 +57,15 @@ import se.lth.cs.tycho.meta.ir.type.MetaNominalTypeExpr;
 import se.lth.cs.tycho.meta.ir.type.MetaTypeExpr;
 import se.lth.cs.tycho.reporting.CompilationException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,11 +102,12 @@ public class TemplateInstantiationPhase implements Phase {
 
             Transform transform = MultiJ.from(Transform.class)
                     .bind("instantiate").to(instantiate)
+                    .bind("task").to(task)
+                    .bind("globalNames").to(task.getModule(GlobalNames.key))
                     .instance();
 
             Convert convert = MultiJ.from(Convert.class)
                     .instance();
-
 
 
             staging.setChanged(false);
@@ -112,6 +140,13 @@ public class TemplateInstantiationPhase implements Phase {
         @Binding(BindingKind.INJECTED)
         Instantiate instantiate();
 
+
+        @Binding(BindingKind.INJECTED)
+        CompilationTask task();
+
+        @Binding(BindingKind.INJECTED)
+        GlobalNames globalNames();
+
         @Override
         default IRNode apply(IRNode node) {
             return node.transformChildren(this);
@@ -130,6 +165,19 @@ public class TemplateInstantiationPhase implements Phase {
             }
             return instantiate().apply(meta).transformChildren(this);
         }
+
+/*
+        default IRNode apply(MetaGlobalEntityDecl decl) {
+            QID identifier = task().getIdentifier();
+
+            Optional<QID> qid = globalNames().globalName(decl);
+            if (qid.isPresent()) {
+                if (qid.get().equals(identifier)) {
+                   // return instantiate().apply(decl).transformChildren(this);
+                }
+            }
+            return decl.transformChildren(this);
+        }*/
     }
 
     @Module
@@ -172,6 +220,9 @@ public class TemplateInstantiationPhase implements Phase {
         }
 
         default boolean test(MetaArgumentValue arg) {
+            if(arg.isExternal()){
+                return true;
+            }
             return interpreter().apply(arg.getValue()) != ValueUndefined.undefined();
         }
 
@@ -345,15 +396,18 @@ public class TemplateInstantiationPhase implements Phase {
                     String global = staging().globals1().containsKey(value) ? staging().globals1().get(value) : "$eval" + numbers().next();
                     ParameterVarDecl declaration = metaDecl.getEntity().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
                     vals.put(declaration, global);
+
+                    NamespaceDecl namespace = sourceUnit(metaDecl).getTree();
+                    if (staging().globals().containsKey(namespace)) {
+                        staging().globals().get(namespace).add(value);
+                    } else {
+                        Set<Value> values = new HashSet<>();
+                        values.add(value);
+                        staging().globals().put(namespace, values);
+                    }
+
                     if (!(staging().globals1().containsKey(value))) {
-                        NamespaceDecl namespace = sourceUnit(metaDecl).getTree();
-                        if (staging().globals().containsKey(namespace)) {
-                            staging().globals().get(namespace).add(value);
-                        } else {
-                            Set<Value> values = new HashSet<>();
-                            values.add(value);
-                            staging().globals().put(sourceUnit(metaDecl).getTree(), values);
-                        }
+
                         staging().globals1().put(value, global);
                         staging().globalValueUnit().put(value, sourceUnit(metaDecl));
                     }
@@ -363,8 +417,8 @@ public class TemplateInstantiationPhase implements Phase {
             SubstituteType substituteType = MultiJ.from(SubstituteType.class)
                     .bind("substitution").to(new TypeSubstitution(tpes))
                     .instance();
-
             instance = (GlobalEntityDecl) substituteType.apply(instance);
+
             Utils.Routines utils = MultiJ.from(Utils.Routines.class).bind("tree").to(tree()).instance();
             SubstituteValue substituteValue = MultiJ.from(SubstituteValue.class)
                     .bind("substitution").to(new ValueSubstitution(vals))
@@ -392,6 +446,15 @@ public class TemplateInstantiationPhase implements Phase {
 
             return node;
         }
+
+        default IRNode apply(MetaGlobalEntityDecl meta) {
+            // Update staging context: mark changed
+            boolean changed = staging().isChanged();
+            staging().setChanged(true);
+
+            return meta;
+        }
+
 
         default String nameOf(Meta meta) {
             return name(meta) + meta.getArguments().stream()
@@ -455,7 +518,10 @@ public class TemplateInstantiationPhase implements Phase {
             if (reference instanceof EntityReferenceLocal) {
                 return meta.getEntityInstanceExpr().withEntityName(((EntityReferenceLocal) reference).withName(name));
             } else {
-                return meta.getEntityInstanceExpr().withEntityName(((EntityReferenceGlobal) reference).withGlobalName(QID.of(name)));
+                EntityReferenceGlobal eGlobal = (EntityReferenceGlobal) reference;
+                QID prefix = eGlobal.getGlobalName().getButLast();
+                QID qid = prefix.concat(QID.of(name));
+                return meta.getEntityInstanceExpr().withEntityName(((EntityReferenceGlobal) reference).withGlobalName(qid));
             }
         }
 
@@ -577,7 +643,10 @@ public class TemplateInstantiationPhase implements Phase {
             }
             return expr;
         }
-        default SourceUnit sourceUnit(IRNode node) { return utils().sourceUnit(node);}
+
+        default SourceUnit sourceUnit(IRNode node) {
+            return utils().sourceUnit(node);
+        }
 
     }
 
@@ -660,16 +729,19 @@ public class TemplateInstantiationPhase implements Phase {
             Stream<GlobalVarDecl> interpreted = staging().globals().entrySet().stream()
                     .filter(e -> decl.getQID().equals(e.getKey().getQID()))
                     .flatMap(e -> e.getValue().stream())
+                    .distinct()
                     .filter(v -> staging().globalValueUnit().get(v).getLocation().equals(sourceFile.getLocation())) // Make sure the value comes from its original SourceUnit
                     .map(v -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, null, staging().globals1().get(v), convert().apply(v)));
             Stream<GlobalEntityDecl> instantiatedEntities = staging().entityInstances().entrySet().stream()
                     .filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
             Stream<GlobalEntityDecl> remainingEntities = decl.getEntityDecls().stream()
                     .filter(entityDecl -> !(staging().entityInstances().entrySet().contains(entityDecl)));
-            return decl
+
+            NamespaceDecl newDecl = decl
                     .withTypeDecls(Stream.concat(instantiatedTypes, remainingTypes).collect(Collectors.toList()))
                     .withEntityDecls(Stream.concat(instantiatedEntities, remainingEntities).collect(Collectors.toList()))
                     .withVarDecls(Stream.concat(decl.getVarDecls().stream(), interpreted).collect(Collectors.toList()));
+            return newDecl;
         }
 
 
@@ -710,7 +782,9 @@ public class TemplateInstantiationPhase implements Phase {
             return globals;
         }
 
-        public Map<Value, SourceUnit> globalValueUnit() { return globalValueUnit; }
+        public Map<Value, SourceUnit> globalValueUnit() {
+            return globalValueUnit;
+        }
 
         public Map<Value, String> globals1() {
             return globals1;
@@ -772,18 +846,19 @@ public class TemplateInstantiationPhase implements Phase {
     }
 
 
-
     interface Utils {
         ModuleKey<Utils> key = task -> MultiJ.from(Routines.class)
                 .bind("tree").to(task.getModule(TreeShadow.key))
                 .instance();
 
         SourceUnit sourceUnit(IRNode node);
+
         @Module
         interface Routines extends Utils {
 
             @Binding(BindingKind.INJECTED)
             TreeShadow tree();
+
             default SourceUnit sourceUnit(IRNode node) {
                 return sourceUnit(tree().parent(node));
             }

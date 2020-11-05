@@ -2,8 +2,8 @@ package se.lth.cs.tycho.ir.decl;
 
 import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 
 import java.util.List;
 import java.util.Objects;
@@ -60,4 +60,10 @@ public class ParameterVarDecl extends VarDecl {
     public ParameterVarDecl withName(String name) {
         return copy(getAnnotations(), getType(), name, defaultValue);
     }
+
+    @Override
+    public ParameterVarDecl deepClone() {
+        return (ParameterVarDecl) super.deepClone();
+    }
+
 }

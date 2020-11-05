@@ -810,7 +810,11 @@ public interface Types {
         }
 
         default Type computeType(ExprGlobalVariable var) {
-            return declaredType(globalNames().varDecl(var.getGlobalName(), true));
+            VarDecl decl = globalNames().varDecl(var.getGlobalName(), true);
+            if(decl == null){
+                return new ErrorType(new Diagnostic(Diagnostic.Kind.ERROR, "Internal Error: Variable declaration is null!", getSourceUnit(var), var));
+            }
+            return declaredType(decl);
         }
 
         default Type computeType(ExprBinaryOp binary) {
