@@ -46,7 +46,7 @@ public class SsaPhase implements Phase {
         default IRNode apply(ExprProcReturn proc) {
             //ImmutableList<ParameterVarDecl> paramVarDecl = proc.getValueParameters();
             ImmutableList<Statement> stmts = proc.getBody();
-            StmtLabeled rootCFG = create_CFG(proc);
+            StmtLabeled rootCFG = create_CFG(proc, ReturnNode.ROOT);
 
             return proc;
         }
@@ -55,11 +55,28 @@ public class SsaPhase implements Phase {
 
     //--------------- CFG Generation ---------------//
 
+    private static StmtLabeled create_CFG(ExprProcReturn proc, ReturnNode node) {
+        StmtBlock body = (StmtBlock) proc.getBody().get(0);
+        ImmutableList<Statement> stmts = body.getStatements();
+
+        StmtLabeled entry = new StmtLabeled("entry", null);
+        StmtLabeled exit = new StmtLabeled("exit", null);
+
+        LinkedList<StmtLabeled> sub = iterateSubStmts(stmts);
+        wireRelations(sub, entry, exit);
+
+        return (node == ReturnNode.ROOT) ? entry : exit;
+    }
+
+    private enum ReturnNode {
+        ROOT,
+        EXIT
+    }
+
     //TODO define labeling convention
     private static String assignLabel(Statement stmt) {
         return stmt.getClass().toString().substring(30);
     }
-
 
     private static LinkedList<StmtLabeled> iterateSubStmts(List<Statement> stmts) {
         LinkedList<StmtLabeled> currentBlocks = new LinkedList<>();
@@ -182,19 +199,6 @@ public class SsaPhase implements Phase {
         return create_StmtBlock(new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), stmt.getBody()));
     }
 
-    private static StmtLabeled create_CFG(ExprProcReturn proc) {
-        StmtBlock body = (StmtBlock) proc.getBody().get(0);
-        ImmutableList<Statement> stmts = body.getStatements();
-
-        StmtLabeled entry = new StmtLabeled("entry", null);
-        StmtLabeled exit = new StmtLabeled("exit", null);
-
-        LinkedList<StmtLabeled> sub = iterateSubStmts(stmts);
-        wireRelations(sub, entry, exit);
-
-        return entry;
-    }
-
     private static boolean isTerminalStmt(Statement stmt) {
         return stmt instanceof StmtAssignment ||
                 stmt instanceof StmtCall ||
@@ -203,7 +207,8 @@ public class SsaPhase implements Phase {
                 stmt instanceof StmtRead;
     }
 
-    private void testSSA(StmtLabeled root){
+    private StmtLabeled testSSA(StmtLabeled exit){
+        //exit.getPredecessors().forEach(pred->pred.getOriginalStmt().);
     }
 
 
