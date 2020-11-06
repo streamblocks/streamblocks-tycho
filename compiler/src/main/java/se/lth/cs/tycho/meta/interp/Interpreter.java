@@ -231,7 +231,8 @@ public interface Interpreter {
         for (int i = 0; i < list.elements().size(); i += generator.getVarDecls().size()) {
             Map<String, Value> bindings = new HashMap<>();
             for (int j = 0; j < generator.getVarDecls().size(); ++j) {
-                bindings.put(generator.getVarDecls().get(i).getName(), eval(generator.getVarDecls().get(i).getValue(), env));
+                //bindings.put(generator.getVarDecls().get(i).getName(), eval(generator.getVarDecls().get(j).getValue(), env));
+                bindings.put(generator.getVarDecls().get(j).getName(), list.elements().get(i));
             }
 
             Environment newEnv = env.with(bindings);
