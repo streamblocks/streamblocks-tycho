@@ -68,23 +68,22 @@ public class SsaPhase implements Phase {
 
             //TODO add cases
             if (isTerminalStmt(currentStmt)) {
-                currentBlocks.add(create_SimpleBlock(currentStmt));
+                currentBlocks.add(create_TerminalBlock(currentStmt));
             } else if (currentStmt instanceof StmtWhile) {
                 currentBlocks.add(create_WhileBlock((StmtWhile) currentStmt));
             } else if (currentStmt instanceof StmtIf) {
                 currentBlocks.add(create_IfBlock((StmtIf) currentStmt));
             } else if (currentStmt instanceof StmtBlock) {
+                currentBlocks.add(create_StmtBlock((StmtBlock) currentStmt));
             } else if (currentStmt instanceof StmtCase) {
+                currentBlocks.add(create_CaseBlock((StmtCase) currentStmt));
             } else if (currentStmt instanceof StmtForeach) {
+                currentBlocks.add(create_ForEachBlock((StmtForeach) currentStmt));
             } else if (currentStmt instanceof StmtReturn) {
-            }
+                //TODO is a return always at the end of a stmtsList?
+            } else throw new NoClassDefFoundError("Unknown Stmt type");
         }
         return currentBlocks;
-    }
-
-    private static StmtLabeled create_SimpleBlock(Statement stmt) {
-        StmtLabeled ret = new StmtLabeled(assignLabel(stmt), stmt);
-        return ret;
     }
 
     private static void wireRelations(LinkedList<StmtLabeled> currentBlocks, StmtLabeled pred, StmtLabeled succ) {
@@ -150,6 +149,37 @@ public class SsaPhase implements Phase {
         entryWhile.setExit(exitWhile);
 
         return entryWhile;
+    }
+
+    private static StmtLabeled create_TerminalBlock(Statement stmt) {
+        StmtLabeled ret = new StmtLabeled(assignLabel(stmt), stmt);
+        return ret;
+    }
+
+    private static StmtLabeled create_StmtBlock(StmtBlock stmt){
+        List<Statement> body = stmt.getStatements();
+        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(body);
+
+        StmtLabeled stmtBlockLabeled = new StmtLabeled(assignLabel(stmt), stmt);
+
+        wireRelations(currentBlocks, stmtBlockLabeled, null);
+        return stmtBlockLabeled;
+    }
+
+    private static StmtLabeled create_CaseBlock(StmtCase stmt){
+        StmtLabeled stmtCaseLabeled = new StmtLabeled(assignLabel(stmt), stmt);
+        StmtLabeled stmtCaseExit = new StmtLabeled("CaseExit", null);
+        for (StmtCase.Alternative alt : stmt.getAlternatives()){
+            LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(alt.getStatements());
+            wireRelations(currentBlocks, stmtCaseLabeled, stmtCaseExit);
+        }
+        stmtCaseLabeled.setExit(stmtCaseExit);
+        return stmtCaseLabeled;
+    }
+
+    private static StmtLabeled create_ForEachBlock(StmtForeach stmt){
+        //TODO check
+        return create_StmtBlock(new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), stmt.getBody()));
     }
 
     private static StmtLabeled create_CFG(ExprProcReturn proc) {
