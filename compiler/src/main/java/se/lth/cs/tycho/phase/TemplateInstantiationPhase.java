@@ -120,7 +120,10 @@ public class TemplateInstantiationPhase implements Phase {
                         .bind("utils").to(task.getModule(Utils.key))
                         .instance();
                 task = task.transformChildren(merge);
-                staging.globals().clear();
+                // -- clear the named interpreted values because they
+                // -- they have been assigned to namespaces as GlobalVarDecl and we do not need
+                // -- to keep them anymore.
+                staging.interpretedValues().clear();
                 staging.typeInstances().clear();
                 staging.entityInstances().clear();
             }
@@ -270,21 +273,12 @@ public class TemplateInstantiationPhase implements Phase {
                     tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()).getName());
                 } else {
                     Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
-                    String global = staging().globals1().containsKey(value) ? staging().globals1().get(value) : "$eval" + numbers().next();
+
+                    String valueName = setValueName(namespaceOf(metaDecl), value);
+
                     ParameterVarDecl declaration = metaDecl.getAlgebraicTypeDecl().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
-                    vals.put(declaration, global);
-                    if (!(staging().globals1().containsKey(value))) {
-                        NamespaceDecl namespace = sourceUnit(metaDecl).getTree();
-                        if (staging().globals().containsKey(namespace)) {
-                            staging().globals().get(namespace).add(value);
-                        } else {
-                            Set<Value> values = new HashSet<>();
-                            values.add(value);
-                            staging().globals().put(sourceUnit(metaDecl).getTree(), values);
-                        }
-                        staging().globals1().put(value, global);
-                        staging().globalValueUnit().put(value, sourceUnit(metaDecl));
-                    }
+                    vals.put(declaration, valueName);
+
                 }
             }
 
@@ -392,25 +386,15 @@ public class TemplateInstantiationPhase implements Phase {
                 if (metaArg instanceof MetaArgumentType) {
                     tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()).getName());
                 } else {
+
+
                     Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
-                    String global = staging().globals1().containsKey(value) ? staging().globals1().get(value) : "$eval" + numbers().next();
+
+                    String valueName = setValueName(namespaceOf(metaDecl), value);
+
                     ParameterVarDecl declaration = metaDecl.getEntity().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
-                    vals.put(declaration, global);
+                    vals.put(declaration, valueName);
 
-                    NamespaceDecl namespace = sourceUnit(metaDecl).getTree();
-                    if (staging().globals().containsKey(namespace)) {
-                        staging().globals().get(namespace).add(value);
-                    } else {
-                        Set<Value> values = new HashSet<>();
-                        values.add(value);
-                        staging().globals().put(namespace, values);
-                    }
-
-                    if (!(staging().globals1().containsKey(value))) {
-
-                        staging().globals1().put(value, global);
-                        staging().globalValueUnit().put(value, sourceUnit(metaDecl));
-                    }
                 }
             }
 
@@ -455,7 +439,38 @@ public class TemplateInstantiationPhase implements Phase {
             return meta;
         }
 
+        default NamespaceDecl namespaceOf(MetaAlgebraicTypeDecl metaDecl) {
+            return sourceUnit(metaDecl).getTree();
+        }
+        default NamespaceDecl namespaceOf(MetaGlobalEntityDecl metaDecl) {
+            return sourceUnit(metaDecl).getTree();
+        }
+        default String setValueName(NamespaceDecl namespace, Value value) {
 
+            // -- the first time encountering a namespace
+            // -- need to initialize the set of named values
+            staging().interpretedValues().putIfAbsent(namespace, new HashSet<>());
+
+            String valueName;
+
+            // -- get the set of "already named values" in the current namespace
+            Set<Staging.NamedValue> namedVals = staging().interpretedValues().get(namespace);
+            // -- check whether a new NamedValue is needed
+            // -- (i.e., if the value is not named yet in this namespace)
+            List<Staging.NamedValue> sameValues =
+                    namedVals.stream().filter(nv -> nv.getValue().equals(value))
+                            .collect(Collectors.toList());
+            if (sameValues.size() == 0) {
+                // -- the value has not been named yet
+                valueName = "$eval" + numbers().next();
+                // -- keep the new NamedValue in the set
+                namedVals.add(Staging.NamedValue.of(valueName, value));
+            } else {
+                // -- the value has already been named
+                valueName = sameValues.get(0).getName();
+            }
+            return valueName;
+        }
         default String nameOf(Meta meta) {
             return name(meta) + meta.getArguments().stream()
                     .map(arg -> {
@@ -726,12 +741,17 @@ public class TemplateInstantiationPhase implements Phase {
                     .filter(e -> decl.getTypeDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
             Stream<GlobalTypeDecl> remainingTypes = decl.getTypeDecls().stream()
                     .filter(typeDecl -> !(typeDecl instanceof MetaAlgebraicTypeDecl));
-            Stream<GlobalVarDecl> interpreted = staging().globals().entrySet().stream()
+//            Stream<GlobalVarDecl> interpreted = staging().globals().entrySet().stream()
+//                    .filter(e -> decl.getQID().equals(e.getKey().getQID()))
+//                    .flatMap(e -> e.getValue().stream())
+//                    .distinct()
+//                    .filter(v -> staging().globalValueUnit().get(v).getLocation().equals(sourceFile.getLocation())) // Make sure the value comes from its original SourceUnit
+//                    .map(v -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, null, staging().globals1().get(v), convert().apply(v)));
+            Stream<GlobalVarDecl> interpreted = staging().interpretedValues().entrySet().stream()
                     .filter(e -> decl.getQID().equals(e.getKey().getQID()))
                     .flatMap(e -> e.getValue().stream())
                     .distinct()
-                    .filter(v -> staging().globalValueUnit().get(v).getLocation().equals(sourceFile.getLocation())) // Make sure the value comes from its original SourceUnit
-                    .map(v -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, null, staging().globals1().get(v), convert().apply(v)));
+                    .map(namedVal -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, null, namedVal.getName(), convert().apply(namedVal.getValue())));
             Stream<GlobalEntityDecl> instantiatedEntities = staging().entityInstances().entrySet().stream()
                     .filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
             Stream<GlobalEntityDecl> remainingEntities = decl.getEntityDecls().stream()
@@ -754,12 +774,31 @@ public class TemplateInstantiationPhase implements Phase {
 
     static class Staging {
 
-        private boolean changed;
-        private final Map<NamespaceDecl, Set<Value>> globals = new HashMap<>();
-        private final Map<Value, String> globals1 = new HashMap<>();
+        static class NamedValue {
+            private final String name;
+            private final Value value;
+            public NamedValue(String name, Value value) {
+                this.name = name;
+                this.value = value;
+            }
+            static public NamedValue of(String name, Value value) {
+                return new NamedValue(name, value);
+            }
+            public Value getValue() {
+                return this.value;
+            }
+            public String getName() {
+                return this.name;
+            }
 
-        // A Map from interpreted Values to their original SourceUnit, not so proud of it
-        private final Map<Value, SourceUnit> globalValueUnit = new HashMap<>();
+        }
+        private boolean changed;
+
+        // -- Map from namespace to a set of "named" interpreted values,
+        // -- for every interpreted value v, we only keep a single name per namespace
+        // -- same values across different namespaces will have different names to keep the
+        // -- namespaces independent of each other. If we do not use namespaces to k
+        private final Map<NamespaceDecl, Set<NamedValue>> interpretedValues = new HashMap<>();
 
         private final Map<String, AlgebraicTypeDecl> typeDeclarations = new HashMap<>();
         private final Map<MetaAlgebraicTypeDecl, List<AlgebraicTypeDecl>> typeInstances = new HashMap<>();
@@ -778,17 +817,6 @@ public class TemplateInstantiationPhase implements Phase {
             this.changed = changed;
         }
 
-        public Map<NamespaceDecl, Set<Value>> globals() {
-            return globals;
-        }
-
-        public Map<Value, SourceUnit> globalValueUnit() {
-            return globalValueUnit;
-        }
-
-        public Map<Value, String> globals1() {
-            return globals1;
-        }
 
         public Map<String, AlgebraicTypeDecl> typeDeclarations() {
             return typeDeclarations;
@@ -817,6 +845,8 @@ public class TemplateInstantiationPhase implements Phase {
         public Map<NamespaceDecl, Set<String>> imported() {
             return imported;
         }
+
+        public Map<NamespaceDecl, Set<NamedValue>> interpretedValues() { return interpretedValues; }
     }
 
     static class TypeSubstitution {
