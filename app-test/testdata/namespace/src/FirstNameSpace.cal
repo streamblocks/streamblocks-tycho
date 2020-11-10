@@ -1,0 +1,14 @@
+namespace a:
+
+
+    actor SourceA(int v1, int v2) ==>  int OUT:
+
+        do
+            OUT <-- v1 + v2;
+
+        end
+
+    end
+
+
+end

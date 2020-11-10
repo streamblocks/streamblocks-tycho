@@ -1,0 +1,35 @@
+namespace net:
+
+    import entity a.SourceA;
+    import entity a.Pass;
+    import entity b.SourceB;
+
+
+
+
+    actor Sink(String msg) int IN ==>:
+
+        action IN:[token] ==>
+        do
+            println(msg + " : " + token);
+        end
+
+    end
+
+
+    network SourceSink() ==> :
+
+        entities
+            a = SourceA(v1=5, v2=5);
+            w = Pass(name="MyWire");
+            b = SourceB(bb=5);
+            sinka = Sink(msg="Sinking A");
+            sinkb = Sink(msg="Sinking B");
+        structure
+            a.OUT --> w.IN;
+            w.OUT --> sinka.IN;
+            b.OUT --> sinkb.IN;
+
+    end
+
+end

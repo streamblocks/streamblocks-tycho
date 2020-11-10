@@ -1,0 +1,10 @@
+namespace b:
+
+    actor SourceB(int bb) ==>  int OUT:
+        do
+            OUT <-- bb;
+
+        end
+    end
+
+end
