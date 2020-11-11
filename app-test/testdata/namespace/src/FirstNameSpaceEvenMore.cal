@@ -1,0 +1,14 @@
+namespace a:
+
+    network MyActor(String name, int v1, int v2) ==> int OUT:
+
+        entities
+            w = Pass(name=name);
+            s = SourceA(v1=v1, v2=v2);
+        structure
+            s.OUT --> w.IN;
+            w.OUT --> OUT;
+
+    end
+
+end

@@ -134,7 +134,8 @@ public class TemplateInstantiationPhase implements Phase {
                 .bind("tree").to(task.getModule(TreeShadow.key))
                 .instance();
 
-        return task.transformChildren(replace);
+        CompilationTask newTask = task.transformChildren(replace);
+        return newTask;
     }
 
     @Module
@@ -274,7 +275,7 @@ public class TemplateInstantiationPhase implements Phase {
                 } else {
                     Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
 
-                    String valueName = setValueName(namespaceOf(metaDecl), value);
+                    String valueName = setValueName(sourceUnit(metaDecl), value);
 
                     ParameterVarDecl declaration = metaDecl.getAlgebraicTypeDecl().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
                     vals.put(declaration, valueName);
@@ -390,7 +391,7 @@ public class TemplateInstantiationPhase implements Phase {
 
                     Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
 
-                    String valueName = setValueName(namespaceOf(metaDecl), value);
+                    String valueName = setValueName(sourceUnit(metaDecl), value);
 
                     ParameterVarDecl declaration = metaDecl.getEntity().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
                     vals.put(declaration, valueName);
@@ -445,8 +446,19 @@ public class TemplateInstantiationPhase implements Phase {
         default NamespaceDecl namespaceOf(MetaGlobalEntityDecl metaDecl) {
             return sourceUnit(metaDecl).getTree();
         }
-        default String setValueName(NamespaceDecl namespace, Value value) {
 
+        /**
+         * Sets a unique name for an interpreted value in a namespace. The named value is also tied to a SourceUnit.
+         * The if the named value is only tied to the same namespace, it could be duplicated among multiple sourceUnits
+         * that span the namespace.
+         * @param sourceUnit The sourceUnit that will possibly contain a named value given by Value argument
+         * @param value the value to be named and staged
+         * @return a new unique name for the value in the namespace of the sourceUnit or a unique name for that value
+         *         from a another sourceUnit spanning the same namespace
+         */
+        default String setValueName(SourceUnit sourceUnit, Value value) {
+
+            NamespaceDecl namespace = sourceUnit.getTree();
             // -- the first time encountering a namespace
             // -- need to initialize the set of named values
             staging().interpretedValues().putIfAbsent(namespace, new HashSet<>());
@@ -464,7 +476,7 @@ public class TemplateInstantiationPhase implements Phase {
                 // -- the value has not been named yet
                 valueName = "$eval" + numbers().next();
                 // -- keep the new NamedValue in the set
-                namedVals.add(Staging.NamedValue.of(valueName, value));
+                namedVals.add(Staging.NamedValue.of(valueName, value, sourceUnit));
             } else {
                 // -- the value has already been named
                 valueName = sameValues.get(0).getName();
@@ -751,6 +763,7 @@ public class TemplateInstantiationPhase implements Phase {
                     .filter(e -> decl.getQID().equals(e.getKey().getQID()))
                     .flatMap(e -> e.getValue().stream())
                     .distinct()
+                    .filter(namedVal -> namedVal.sameSource(sourceFile))
                     .map(namedVal -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, null, namedVal.getName(), convert().apply(namedVal.getValue())));
             Stream<GlobalEntityDecl> instantiatedEntities = staging().entityInstances().entrySet().stream()
                     .filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
@@ -777,18 +790,24 @@ public class TemplateInstantiationPhase implements Phase {
         static class NamedValue {
             private final String name;
             private final Value value;
-            public NamedValue(String name, Value value) {
+            private final SourceUnit sourceUnit;
+            public NamedValue(String name, Value value, SourceUnit sourceUnit) {
                 this.name = name;
                 this.value = value;
+                this.sourceUnit = sourceUnit;
             }
-            static public NamedValue of(String name, Value value) {
-                return new NamedValue(name, value);
+            static public NamedValue of(String name, Value value, SourceUnit sourceUnit) {
+                return new NamedValue(name, value, sourceUnit);
             }
             public Value getValue() {
                 return this.value;
             }
             public String getName() {
                 return this.name;
+            }
+            public SourceUnit getSourceUnit() { return this.sourceUnit; }
+            public boolean sameSource(SourceUnit thatSource) {
+                return this.sourceUnit.getLocation().equals(thatSource.getLocation());
             }
 
         }

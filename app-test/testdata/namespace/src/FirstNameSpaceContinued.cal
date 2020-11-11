@@ -4,8 +4,9 @@ namespace a:
     actor Pass(String name) int IN ==> int OUT:
         action IN:[t] ==> OUT:[t]
         do
-            println(name);
+           println(name);
         end
     end
+
 
 end

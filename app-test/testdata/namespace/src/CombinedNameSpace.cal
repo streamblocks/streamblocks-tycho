@@ -1,7 +1,7 @@
 namespace net:
 
-    import entity a.SourceA;
-    import entity a.Pass;
+    import entity a.MyActor;
+
     import entity b.SourceB;
 
 
@@ -20,14 +20,13 @@ namespace net:
     network SourceSink() ==> :
 
         entities
-            a = SourceA(v1=5, v2=5);
-            w = Pass(name="MyWire");
+            a = MyActor(name="MyWire", v1=5, v2=5);
+
             b = SourceB(bb=5);
             sinka = Sink(msg="Sinking A");
             sinkb = Sink(msg="Sinking B");
         structure
-            a.OUT --> w.IN;
-            w.OUT --> sinka.IN;
+            a.OUT --> sinka.IN;
             b.OUT --> sinkb.IN;
 
     end
