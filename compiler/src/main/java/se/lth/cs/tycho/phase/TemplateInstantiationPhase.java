@@ -451,6 +451,8 @@ public class TemplateInstantiationPhase implements Phase {
          * Sets a unique name for an interpreted value in a namespace. The named value is also tied to a SourceUnit.
          * The if the named value is only tied to the same namespace, it could be duplicated among multiple sourceUnits
          * that span the namespace.
+         * Note that the named values should be tied to a namespace and should also belong to a source unit in that
+         * namespace. Two equal values in two different namespace would have different names.
          * @param sourceUnit The sourceUnit that will possibly contain a named value given by Value argument
          * @param value the value to be named and staged
          * @return a new unique name for the value in the namespace of the sourceUnit or a unique name for that value
