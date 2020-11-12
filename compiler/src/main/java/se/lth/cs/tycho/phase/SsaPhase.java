@@ -1,11 +1,11 @@
 package se.lth.cs.tycho.phase;
 
-import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
@@ -16,8 +16,8 @@ import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
-import java.lang.reflect.Array;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SsaPhase implements Phase {
 
@@ -46,6 +46,8 @@ public class SsaPhase implements Phase {
             //ImmutableList<ParameterVarDecl> paramVarDecl = proc.getValueParameters();
             ImmutableList<Statement> stmts = proc.getBody();
             StmtLabeled rootCFG = create_CFG(proc, ReturnNode.ROOT);
+            StmtLabeled exitCFG = create_CFG(proc, ReturnNode.EXIT);
+            recApplySSA(exitCFG);
 
             return proc;
         }
@@ -206,13 +208,48 @@ public class SsaPhase implements Phase {
                 stmt instanceof StmtRead;
     }
 
-    private static StmtLabeled applySSA(StmtLabeled exit) {
-        exit.getPredecessors().forEach(pred -> pred.getOriginalStmt());
-        return null;
+
+    //--------------- SSA Algorithm Application ---------------//
+
+    private static void recApplySSA(StmtLabeled exit) {
+        List<StmtLabeled> preds = exit.getPredecessors();
+        for (StmtLabeled pred : preds) {
+            Statement originalStmt = pred.getOriginalStmt();
+            if(originalStmt == null){
+                continue;
+            }
+            if (containsExpression(originalStmt)) {
+                List<Expression> expr = getExpressions(originalStmt);
+                List<ExprVariable> exprVar = findExprVar(expr);
+                List<Expression> ssaResult = exprVar.stream().map(ev -> readVar(pred, ev.getVariable())).collect(Collectors.toList());
+                //TODO reset relations?
+                pred.copy(setSsaResult(originalStmt, ssaResult));
+                pred.getPredecessors().forEach(SsaPhase::recApplySSA);
+            }
+        }
+    }
+
+    private static Statement setSsaResult(Statement stmt, List<Expression> ssaExpr) {
+        if (stmt instanceof StmtAssignment) {
+            return ((StmtAssignment) stmt).copy(((StmtAssignment) stmt).getLValue(), ssaExpr.get(0));
+        } else if (stmt instanceof StmtCall) {
+            return ((StmtCall) stmt).copy(((StmtCall) stmt).getProcedure(), ssaExpr);
+        } else if (stmt instanceof StmtForeach) {
+            return ((StmtForeach) stmt).copy(((StmtForeach) stmt).getGenerator(), ssaExpr, ((StmtForeach) stmt).getBody());
+        } else if (stmt instanceof StmtIf) {
+            return ((StmtIf) stmt).copy(ssaExpr.get(0), ((StmtIf) stmt).getThenBranch(), ((StmtIf) stmt).getElseBranch());
+        } else if (stmt instanceof StmtReturn) {
+            return ((StmtReturn) stmt).copy(ssaExpr.get(0));
+        } else if (stmt instanceof StmtWhile) {
+            return ((StmtWhile) stmt).copy(ssaExpr.get(0), ((StmtWhile) stmt).getBody());
+        } else {
+            return stmt;
+        }
     }
 
     //TODO check if additions are needed
-    private static boolean containsExprParam(Statement stmt) {
+
+    private static boolean containsExpression(Statement stmt) {
         return stmt instanceof StmtAssignment ||
                 stmt instanceof StmtCall ||
                 stmt instanceof StmtForeach ||
@@ -221,7 +258,7 @@ public class SsaPhase implements Phase {
                 stmt instanceof StmtWhile;
     }
 
-    private static List<Expression> getExpresssions(Statement stmt) {
+    private static List<Expression> getExpressions(Statement stmt) {
         ImmutableList<Expression> expr = ImmutableList.empty();
         if (stmt instanceof StmtAssignment) {
             expr = ImmutableList.of(((StmtAssignment) stmt).getExpression());
@@ -239,56 +276,106 @@ public class SsaPhase implements Phase {
         return expr;
     }
 
-    //TODO check all cases which expr are needed or not
+    //TODO check for all cases if expr are needed or not
     //TODO check if potential infinite loops
-    private static List<ExprVariable> recFindExpr(Expression expr) {
+    private static List<ExprVariable> recFindExprVar(Expression expr) {
         List<ExprVariable> exprVar = new LinkedList<>();
-        List<Expression> scrutExpr = new LinkedList<>();
+        List<Expression> subExpr = new LinkedList<>();
 
         if (expr instanceof ExprApplication) {
-            scrutExpr.addAll(((ExprApplication) expr).getArgs());
+            subExpr.addAll(((ExprApplication) expr).getArgs());
+
         } else if (expr instanceof ExprBinaryOp) {
-            scrutExpr.addAll(((ExprBinaryOp) expr).getOperands());
+            subExpr.addAll(((ExprBinaryOp) expr).getOperands());
+
         } else if (expr instanceof ExprCase) {
-            scrutExpr.add(((ExprCase) expr).getScrutinee());
-            ((ExprCase) expr).getAlternatives().forEach(a -> scrutExpr.add(a.getExpression()));
+            subExpr.add(((ExprCase) expr).getScrutinee());
+            ((ExprCase) expr).getAlternatives().forEach(a -> subExpr.add(a.getExpression()));
+
         } else if (expr instanceof ExprComprehension) { //TODO check collection
-            scrutExpr.addAll(((ExprComprehension) expr).getFilters());
+            subExpr.addAll(((ExprComprehension) expr).getFilters());
+
         } else if (expr instanceof ExprDeref) {
-            scrutExpr.forEach(arg -> exprVar.addAll(recFindExpr(arg)));
-        } //TODO continue
-        return null;
+            subExpr.add(((ExprDeref) expr).getReference());
+
+        } else if (expr instanceof ExprIf) {
+            subExpr.addAll(new ArrayList<>(Arrays.asList(((ExprIf) expr).getCondition(), ((ExprIf) expr).getElseExpr(), ((ExprIf) expr).getThenExpr())));
+
+        } else if (expr instanceof ExprLambda) {
+            subExpr.add(((ExprLambda) expr).getBody());
+
+        } else if (expr instanceof ExprList) {
+            subExpr.addAll(((ExprList) expr).getElements());
+
+        } else if (expr instanceof ExprSet) {
+            subExpr.addAll(((ExprSet) expr).getElements());
+
+        } else if (expr instanceof ExprTuple) {
+            subExpr.addAll(((ExprTuple) expr).getElements());
+
+        } else if (expr instanceof ExprTypeConstruction) {
+            subExpr.addAll(((ExprTypeConstruction) expr).getArgs());
+
+        } else if (expr instanceof ExprUnaryOp) {
+            subExpr.add(((ExprUnaryOp) expr).getOperand());
+
+        } else if (expr instanceof ExprVariable) {
+            exprVar.add((ExprVariable) expr);
+            return exprVar;
+
+        }//TODO check all necessary cases;
+        else if (expr instanceof ExprLet) {
+            //TODO
+        } else if (expr instanceof ExprRef) {
+            //TODO
+        }
+        subExpr.forEach(e -> exprVar.addAll(recFindExprVar(e)));
+        return exprVar;
     }
 
     private static List<ExprVariable> findExprVar(List<Expression> expr) {
         List<ExprVariable> exprVar = new LinkedList<>();
+        //TODO useless operations
         expr.forEach(e -> {
             if (e instanceof ExprVariable) exprVar.add((ExprVariable) e);
+            else exprVar.addAll(recFindExprVar(e));
         });
         return exprVar;
     }
 
 //--------------- SSA Algorithm ---------------//
 
-    private static Expression readVar(StmtLabeled stmt, LValue var) {
+    //TODO check which type of "var" to look for. Tried with Variable
+    private static Expression readVar(StmtLabeled stmt, Variable var) {
         Statement originalStmt = stmt.getOriginalStmt();
+
         if (originalStmt instanceof StmtAssignment) {
             LValue v = ((StmtAssignment) originalStmt).getLValue();
-            if (v.equals(var)) {
-                return ((StmtAssignment) originalStmt).getExpression();
+            if (v instanceof LValueVariable) {
+                if (((LValueVariable) v).getVariable().equals(var)) {
+                    return ((StmtAssignment) originalStmt).getExpression();
+                }
             }
         } else if (originalStmt instanceof StmtBlock) {
             ImmutableList<LocalVarDecl> localVarDecls = ((StmtBlock) originalStmt).getVarDecls();
             for (LocalVarDecl v : localVarDecls) {
-                if (v.getName().equals(((LValueVariable) var).getVariable().getName())) {
+                if (v.getName().equals(var.getName())) {
                     return v.getValue();
                 }
             }
+            //Check if phi already exists for this variable
+        } else if (stmt.getPhiExprs().size() != 0) {
+            for (ExprPhi phi : stmt.getPhiExprs()) {
+                if (phi.getlValue().equals(var)) {
+                    return phi;
+                }
+            }
         }
+        //No def found in current Statement
         return readVarRec(stmt, var);
     }
 
-    private static Expression readVarRec(StmtLabeled stmt, LValue var) {
+    private static Expression readVarRec(StmtLabeled stmt, Variable var) {
         //Statement originalStmt = stmt.getOriginalStmt();
         if (stmt.getPredecessors().size() == 1) {
             return readVar(stmt.getPredecessors().get(0), var);
@@ -299,7 +386,7 @@ public class SsaPhase implements Phase {
         }
     }
 
-    private static Expression addPhiOperands(ExprPhi phi, LValue var, List<StmtLabeled> predecessors) {
+    private static Expression addPhiOperands(ExprPhi phi, Variable var, List<StmtLabeled> predecessors) {
         LinkedList<Expression> phiOperands = new LinkedList<>();
 
         for (StmtLabeled stmt : predecessors) {

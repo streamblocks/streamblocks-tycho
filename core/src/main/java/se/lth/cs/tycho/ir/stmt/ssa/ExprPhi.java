@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.stmt.ssa;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -12,14 +13,18 @@ import java.util.function.Consumer;
 public class ExprPhi extends Expression {
 
     private ImmutableList<Expression> operands;
-    private final LValue lValue;
+    private final Variable lValue;
     private LinkedList<Expression> users;
 
-    private ExprPhi(IRNode original, LValue lValue, List<Expression> operands, List<ExprPhi> users){
+    private ExprPhi(IRNode original, Variable lValue, List<Expression> operands, List<ExprPhi> users){
         super(original);
         this.users = new LinkedList<>(users);
         this.lValue = lValue;
         this.operands = ImmutableList.from(operands);
+    }
+
+    public Variable getlValue() {
+        return lValue;
     }
 
     public void setOperands(List<Expression> operands) {
@@ -34,7 +39,7 @@ public class ExprPhi extends Expression {
         this.users.addAll(users);
     }
 
-    public ExprPhi(LValue lValue, List<Expression> operands){
+    public ExprPhi(Variable lValue, List<Expression> operands){
         this(null, lValue, operands, ImmutableList.empty());
     }
 

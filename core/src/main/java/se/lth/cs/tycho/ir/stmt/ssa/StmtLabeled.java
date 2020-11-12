@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 public class StmtLabeled extends Statement {
 
     private final String label;
-    private final Statement originalStmt;
+    private Statement originalStmt;
     private ImmutableList<StmtLabeled> predecessors;
     private ImmutableList<StmtLabeled> successors;
     private StmtLabeled exit;
@@ -33,6 +33,13 @@ public class StmtLabeled extends Statement {
         this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new LinkedList<>());
     }
 
+    private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<ExprPhi> currentPhiExprs){
+        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs);
+    }
+
+    public StmtLabeled copy(Statement originalStmt){
+        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.currentPhiExprs);
+    }
     public void addPhiExprs(ExprPhi phiExprs) {
         this.currentPhiExprs.add(phiExprs);
     }
@@ -44,6 +51,11 @@ public class StmtLabeled extends Statement {
     public Statement getOriginalStmt() {
         return originalStmt;
     }
+
+    public void setPredecessors(ImmutableList<StmtLabeled> predecessors) {
+        this.predecessors = predecessors;
+    }
+
 
     public void setRelations(List<StmtLabeled> predecessors, List<StmtLabeled> successors) {
         this.setPredecessors(predecessors);
