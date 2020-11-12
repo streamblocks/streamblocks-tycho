@@ -17,16 +17,16 @@ public class StmtLabeled extends Statement {
     private ImmutableList<StmtLabeled> predecessors;
     private ImmutableList<StmtLabeled> successors;
     private StmtLabeled exit;
-    private LinkedList<ExprPhi> phiExprs;
+    private final LinkedList<ExprPhi> currentPhiExprs;
 
-    private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<ExprPhi> phiExprs) {
+    private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<ExprPhi> currentPhiExprs) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
         this.successors = successors;
         this.originalStmt = originalStmt;
         this.exit = exit;
-        this.phiExprs = phiExprs;
+        this.currentPhiExprs = currentPhiExprs;
     }
 
     public StmtLabeled(String label, Statement originalStmt) {
@@ -34,11 +34,11 @@ public class StmtLabeled extends Statement {
     }
 
     public void addPhiExprs(ExprPhi phiExprs) {
-        this.phiExprs.add(phiExprs);
+        this.currentPhiExprs.add(phiExprs);
     }
 
     public List<ExprPhi> getPhiExprs() {
-        return phiExprs;
+        return currentPhiExprs;
     }
 
     public Statement getOriginalStmt() {
