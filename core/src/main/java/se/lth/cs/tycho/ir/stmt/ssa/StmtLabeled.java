@@ -5,6 +5,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -51,11 +52,6 @@ public class StmtLabeled extends Statement {
     public Statement getOriginalStmt() {
         return originalStmt;
     }
-
-    public void setPredecessors(ImmutableList<StmtLabeled> predecessors) {
-        this.predecessors = predecessors;
-    }
-
 
     public void setRelations(List<StmtLabeled> predecessors, List<StmtLabeled> successors) {
         this.setPredecessors(predecessors);

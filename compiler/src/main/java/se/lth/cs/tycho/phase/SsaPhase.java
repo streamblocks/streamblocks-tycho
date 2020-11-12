@@ -7,6 +7,7 @@ import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
@@ -211,8 +212,14 @@ public class SsaPhase implements Phase {
 
     //--------------- SSA Algorithm Application ---------------//
 
-    private static void recApplySSA(StmtLabeled exit) {
-        List<StmtLabeled> preds = exit.getPredecessors();
+    private static void recApplySSA(StmtLabeled stmtLabeled) {
+        //Stop recursion at the top of the cfg
+        if(stmtLabeled.getPredecessors().size() == 0){
+            return;
+        }
+        List<StmtLabeled> preds = stmtLabeled.getPredecessors();
+        LinkedList<Statement> phiStmts = new LinkedList<>();
+
         for (StmtLabeled pred : preds) {
             Statement originalStmt = pred.getOriginalStmt();
             if(originalStmt == null){
@@ -222,11 +229,13 @@ public class SsaPhase implements Phase {
                 List<Expression> expr = getExpressions(originalStmt);
                 List<ExprVariable> exprVar = findExprVar(expr);
                 List<Expression> ssaResult = exprVar.stream().map(ev -> readVar(pred, ev.getVariable())).collect(Collectors.toList());
-                //TODO reset relations?
-                pred.copy(setSsaResult(originalStmt, ssaResult));
+                //TODO reset relations?è
+                //TODO cannot read literals
+                phiStmts.add(pred.copy(setSsaResult(originalStmt, ssaResult)));
                 pred.getPredecessors().forEach(SsaPhase::recApplySSA);
             }
         }
+        preds.stream().map(p->phiStmts.removeFirst()).collect(Collectors.toList());
     }
 
     private static Statement setSsaResult(Statement stmt, List<Expression> ssaExpr) {
@@ -352,7 +361,8 @@ public class SsaPhase implements Phase {
         if (originalStmt instanceof StmtAssignment) {
             LValue v = ((StmtAssignment) originalStmt).getLValue();
             if (v instanceof LValueVariable) {
-                if (((LValueVariable) v).getVariable().equals(var)) {
+                //Try testing name
+                if (((LValueVariable) v).getVariable().getName().equals(var.getName())) {
                     return ((StmtAssignment) originalStmt).getExpression();
                 }
             }
