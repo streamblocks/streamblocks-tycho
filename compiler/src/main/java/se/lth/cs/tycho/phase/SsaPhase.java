@@ -7,7 +7,6 @@ import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.entity.am.ctrl.State;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
@@ -59,10 +58,16 @@ public class SsaPhase implements Phase {
 
     private static StmtLabeled create_CFG(ExprProcReturn proc, ReturnNode node) {
         StmtBlock body = (StmtBlock) proc.getBody().get(0);
-        ImmutableList<Statement> stmts = body.getStatements();
+        ImmutableList<Statement> stmts;
+        if (!body.getVarDecls().isEmpty() || !body.getTypeDecls().isEmpty()) {
+            StmtBlock startingBlock = new StmtBlock(body.getTypeDecls(), body.getVarDecls(), body.getStatements());
+            stmts = ImmutableList.of(startingBlock);
+        } else {
+            stmts = body.getStatements();
+        }
 
-        StmtLabeled entry = new StmtLabeled("entry", null);
-        StmtLabeled exit = new StmtLabeled("exit", null);
+        StmtLabeled entry = new StmtLabeled("ProgramEntry", null);
+        StmtLabeled exit = new StmtLabeled("ProgramExit", null);
 
         LinkedList<StmtLabeled> sub = iterateSubStmts(stmts);
         wireRelations(sub, entry, exit);
@@ -78,6 +83,12 @@ public class SsaPhase implements Phase {
     //TODO define labeling convention
     private static String assignLabel(Statement stmt) {
         return stmt.getClass().toString().substring(30);
+    }
+
+    private static String assignBufferLabel(Statement type, boolean isEntry) {
+        if (isEntry) return assignLabel(type) + "Entry";
+        else return assignLabel(type) + "Exit";
+
     }
 
     private static LinkedList<StmtLabeled> iterateSubStmts(List<Statement> stmts) {
@@ -138,7 +149,7 @@ public class SsaPhase implements Phase {
     private static StmtLabeled create_IfBlock(StmtIf stmt) {
 
         StmtLabeled stmtIfLabeled = new StmtLabeled(assignLabel(stmt), stmt);
-        StmtLabeled ifExitBuffer = new StmtLabeled("ExitBuffer", null);
+        StmtLabeled ifExitBuffer = new StmtLabeled(assignBufferLabel(stmt, false), null);
 
         LinkedList<StmtLabeled> ifBlocks = iterateSubStmts(stmt.getThenBranch());
         LinkedList<StmtLabeled> elseBlocks = iterateSubStmts(stmt.getElseBranch());
@@ -159,8 +170,8 @@ public class SsaPhase implements Phase {
         //Add the while stmt as both predecessors and successor of its body
         wireRelations(currentBlocks, stmtWhileLabeled, stmtWhileLabeled);
 
-        StmtLabeled entryWhile = new StmtLabeled("WhileEntry", null);
-        StmtLabeled exitWhile = new StmtLabeled("WhileExit", null);
+        StmtLabeled entryWhile = new StmtLabeled(assignBufferLabel(stmt, true), null);
+        StmtLabeled exitWhile = new StmtLabeled(assignBufferLabel(stmt, false), null);
 
         LinkedList<StmtLabeled> whileStmt = new LinkedList<>();
         whileStmt.add(stmtWhileLabeled);
@@ -180,14 +191,16 @@ public class SsaPhase implements Phase {
         LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(body);
 
         StmtLabeled stmtBlockLabeled = new StmtLabeled(assignLabel(stmt), stmt);
+        StmtLabeled stmtBlockexit = new StmtLabeled(assignBufferLabel(stmt, false), null);
 
-        wireRelations(currentBlocks, stmtBlockLabeled, null);
+        wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockexit);
+        stmtBlockLabeled.setExit(stmtBlockexit);
         return stmtBlockLabeled;
     }
 
     private static StmtLabeled create_CaseBlock(StmtCase stmt) {
         StmtLabeled stmtCaseLabeled = new StmtLabeled(assignLabel(stmt), stmt);
-        StmtLabeled stmtCaseExit = new StmtLabeled("CaseExit", null);
+        StmtLabeled stmtCaseExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
         for (StmtCase.Alternative alt : stmt.getAlternatives()) {
             LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(alt.getStatements());
             wireRelations(currentBlocks, stmtCaseLabeled, stmtCaseExit);
@@ -214,29 +227,31 @@ public class SsaPhase implements Phase {
 
     private static void recApplySSA(StmtLabeled stmtLabeled) {
         //Stop recursion at the top of the cfg
-        if(stmtLabeled.getPredecessors().size() == 0){
+        if (stmtLabeled.getPredecessors().isEmpty()) {
             return;
         }
-        List<StmtLabeled> preds = stmtLabeled.getPredecessors();
-        LinkedList<Statement> phiStmts = new LinkedList<>();
 
-        for (StmtLabeled pred : preds) {
-            Statement originalStmt = pred.getOriginalStmt();
-            if(originalStmt == null){
-                continue;
-            }
-            if (containsExpression(originalStmt)) {
-                List<Expression> expr = getExpressions(originalStmt);
+        Statement originalStmt = stmtLabeled.getOriginalStmt();
+
+        if (containsExpression(originalStmt)) {
+
+            //get expression and verify if it's an ExprLiteral
+            List<Expression> expr = getExpressions(originalStmt);
+            if (!(expr.size() == 1 && expr.get(0) instanceof ExprLiteral)) {
                 List<ExprVariable> exprVar = findExprVar(expr);
-                List<Expression> ssaResult = exprVar.stream().map(ev -> readVar(pred, ev.getVariable())).collect(Collectors.toList());
+                List<Expression> ssaResult = exprVar.stream().map(ev -> readVar(stmtLabeled, ev.getVariable())).collect(Collectors.toList());
+
                 //TODO reset relations?è
                 //TODO cannot read literals
-                phiStmts.add(pred.copy(setSsaResult(originalStmt, ssaResult)));
-                pred.getPredecessors().forEach(SsaPhase::recApplySSA);
+                //TODO create new stmtlabeled with new original stmt containing ssa result
+                //stmtLabeled.withNewOriginal(setSsaResult(originalStmt, ssaResult));
+                stmtLabeled.setOriginalStmt(setSsaResult(originalStmt, ssaResult));
             }
         }
-        preds.stream().map(p->phiStmts.removeFirst()).collect(Collectors.toList());
+        //recursively apply ssa for all predecessors
+        stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
     }
+
 
     private static Statement setSsaResult(Statement stmt, List<Expression> ssaExpr) {
         if (stmt instanceof StmtAssignment) {

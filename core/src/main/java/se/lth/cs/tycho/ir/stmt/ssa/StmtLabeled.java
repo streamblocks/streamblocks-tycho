@@ -38,7 +38,7 @@ public class StmtLabeled extends Statement {
         this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs);
     }
 
-    public StmtLabeled copy(Statement originalStmt){
+    public StmtLabeled withNewOriginal(Statement originalStmt){
         return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.currentPhiExprs);
     }
     public void addPhiExprs(ExprPhi phiExprs) {
@@ -51,6 +51,11 @@ public class StmtLabeled extends Statement {
 
     public Statement getOriginalStmt() {
         return originalStmt;
+    }
+
+
+    public void setOriginalStmt(Statement originalStmt) {
+        this.originalStmt = originalStmt;
     }
 
     public void setRelations(List<StmtLabeled> predecessors, List<StmtLabeled> successors) {
