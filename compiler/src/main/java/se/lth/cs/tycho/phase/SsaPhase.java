@@ -43,8 +43,6 @@ public class SsaPhase implements Phase {
         }
 
         default IRNode apply(ExprProcReturn proc) {
-            //ImmutableList<ParameterVarDecl> paramVarDecl = proc.getValueParameters();
-            ImmutableList<Statement> stmts = proc.getBody();
             StmtLabeled rootCFG = create_CFG(proc, ReturnNode.ROOT);
             StmtLabeled exitCFG = create_CFG(proc, ReturnNode.EXIT);
             recApplySSA(exitCFG);
@@ -232,27 +230,34 @@ public class SsaPhase implements Phase {
         }
 
         Statement originalStmt = stmtLabeled.getOriginalStmt();
-
         if (containsExpression(originalStmt)) {
 
-            //get expression and verify if it's an ExprLiteral
+            //get expression and verify that it's not an ExprLiteral
             List<Expression> expr = getExpressions(originalStmt);
-            if (!(expr.size() == 1 && expr.get(0) instanceof ExprLiteral)) {
-                List<ExprVariable> exprVar = findExprVar(expr);
+            //Remove ExprLiterals as they are terminal
+            removeLiterals(expr);
+
+            List<ExprVariable> exprVar = findExprVar(expr);
+
+            //If ExprVar were found, apply SSA
+            if(!exprVar.isEmpty()) {
                 List<Expression> ssaResult = exprVar.stream().map(ev -> readVar(stmtLabeled, ev.getVariable())).collect(Collectors.toList());
 
-                //TODO reset relations?è
-                //TODO cannot read literals
                 //TODO create new stmtlabeled with new original stmt containing ssa result
                 //stmtLabeled.withNewOriginal(setSsaResult(originalStmt, ssaResult));
                 stmtLabeled.setOriginalStmt(setSsaResult(originalStmt, ssaResult));
             }
         }
+
         //recursively apply ssa for all predecessors
         stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
     }
 
+    private static void removeLiterals(List<Expression> expr) {
+        expr.removeIf(expression -> expression instanceof ExprLiteral);
+    }
 
+    //Respects Statements immutability
     private static Statement setSsaResult(Statement stmt, List<Expression> ssaExpr) {
         if (stmt instanceof StmtAssignment) {
             return ((StmtAssignment) stmt).copy(((StmtAssignment) stmt).getLValue(), ssaExpr.get(0));
@@ -283,7 +288,7 @@ public class SsaPhase implements Phase {
     }
 
     private static List<Expression> getExpressions(Statement stmt) {
-        ImmutableList<Expression> expr = ImmutableList.empty();
+       /* ImmutableList<Expression> expr = ImmutableList.empty();
         if (stmt instanceof StmtAssignment) {
             expr = ImmutableList.of(((StmtAssignment) stmt).getExpression());
         } else if (stmt instanceof StmtCall) {
@@ -296,6 +301,21 @@ public class SsaPhase implements Phase {
             expr = ImmutableList.of(((StmtReturn) stmt).getExpression());
         } else if (stmt instanceof StmtWhile) {
             expr = ImmutableList.of(((StmtWhile) stmt).getCondition());
+        }
+        return expr;*/
+        LinkedList<Expression> expr = new LinkedList<>();
+        if (stmt instanceof StmtAssignment) {
+            expr.add(((StmtAssignment) stmt).getExpression());
+        } else if (stmt instanceof StmtCall) {
+            expr.addAll(((StmtCall) stmt).getArgs());
+        } else if (stmt instanceof StmtForeach) {
+            expr.addAll(((StmtForeach) stmt).getFilters());
+        } else if (stmt instanceof StmtIf) {
+            expr.add(((StmtIf) stmt).getCondition());
+        } else if (stmt instanceof StmtReturn) {
+            expr.add(((StmtReturn) stmt).getExpression());
+        } else if (stmt instanceof StmtWhile) {
+            expr.add(((StmtWhile) stmt).getCondition());
         }
         return expr;
     }
@@ -389,7 +409,7 @@ public class SsaPhase implements Phase {
                 }
             }
             //Check if phi already exists for this variable
-        } else if (stmt.getPhiExprs().size() != 0) {
+        } else if (!stmt.getPhiExprs().isEmpty()) {
             for (ExprPhi phi : stmt.getPhiExprs()) {
                 if (phi.getlValue().equals(var)) {
                     return phi;
