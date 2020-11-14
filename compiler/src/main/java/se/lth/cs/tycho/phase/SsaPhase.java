@@ -57,7 +57,7 @@ public class SsaPhase implements Phase {
     private static StmtLabeled create_CFG(ExprProcReturn proc, ReturnNode node) {
         StmtBlock body = (StmtBlock) proc.getBody().get(0);
         ImmutableList<Statement> stmts;
-        if (!body.getVarDecls().isEmpty() || !body.getTypeDecls().isEmpty()) {
+        if (!(body.getVarDecls().isEmpty() && body.getTypeDecls().isEmpty())){
             StmtBlock startingBlock = new StmtBlock(body.getTypeDecls(), body.getVarDecls(), body.getStatements());
             stmts = ImmutableList.of(startingBlock);
         } else {
@@ -84,9 +84,15 @@ public class SsaPhase implements Phase {
     }
 
     private static String assignBufferLabel(Statement type, boolean isEntry) {
-        if (isEntry) return assignLabel(type) + "Entry";
-        else return assignLabel(type) + "Exit";
+        return assignLabel(type) + ((isEntry) ? "Entry" : "Exit");
+    }
 
+    private static boolean isTerminalStmt(Statement stmt) {
+        return stmt instanceof StmtAssignment ||
+                stmt instanceof StmtCall ||
+                stmt instanceof StmtConsume ||
+                stmt instanceof StmtWrite ||
+                stmt instanceof StmtRead;
     }
 
     private static LinkedList<StmtLabeled> iterateSubStmts(List<Statement> stmts) {
@@ -96,17 +102,17 @@ public class SsaPhase implements Phase {
 
             //TODO add cases
             if (isTerminalStmt(currentStmt)) {
-                currentBlocks.add(create_TerminalBlock(currentStmt));
+                currentBlocks.add(createTerminalBlock(currentStmt));
             } else if (currentStmt instanceof StmtWhile) {
-                currentBlocks.add(create_WhileBlock((StmtWhile) currentStmt));
+                currentBlocks.add(createWhileBlock((StmtWhile) currentStmt));
             } else if (currentStmt instanceof StmtIf) {
-                currentBlocks.add(create_IfBlock((StmtIf) currentStmt));
+                currentBlocks.add(createIfBlock((StmtIf) currentStmt));
             } else if (currentStmt instanceof StmtBlock) {
-                currentBlocks.add(create_StmtBlock((StmtBlock) currentStmt));
+                currentBlocks.add(createStmtBlock((StmtBlock) currentStmt));
             } else if (currentStmt instanceof StmtCase) {
-                currentBlocks.add(create_CaseBlock((StmtCase) currentStmt));
+                currentBlocks.add(createCaseBlock((StmtCase) currentStmt));
             } else if (currentStmt instanceof StmtForeach) {
-                currentBlocks.add(create_ForEachBlock((StmtForeach) currentStmt));
+                currentBlocks.add(createForEachBlock((StmtForeach) currentStmt));
             } else if (currentStmt instanceof StmtReturn) {
                 //TODO is a return always at the end of a stmtsList?
             } else throw new NoClassDefFoundError("Unknown Stmt type");
@@ -144,7 +150,7 @@ public class SsaPhase implements Phase {
         succ.setPredecessors(ImmutableList.concat(succ.getPredecessors(), ImmutableList.of(currentBlocks.getLast().getExitBlock())));
     }
 
-    private static StmtLabeled create_IfBlock(StmtIf stmt) {
+    private static StmtLabeled createIfBlock(StmtIf stmt) {
 
         StmtLabeled stmtIfLabeled = new StmtLabeled(assignLabel(stmt), stmt);
         StmtLabeled ifExitBuffer = new StmtLabeled(assignBufferLabel(stmt, false), null);
@@ -159,7 +165,7 @@ public class SsaPhase implements Phase {
         return stmtIfLabeled;
     }
 
-    private static StmtLabeled create_WhileBlock(StmtWhile stmt) {
+    private static StmtLabeled createWhileBlock(StmtWhile stmt) {
         ImmutableList<Statement> stmts = stmt.getBody();
         LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmts);
 
@@ -171,34 +177,32 @@ public class SsaPhase implements Phase {
         StmtLabeled entryWhile = new StmtLabeled(assignBufferLabel(stmt, true), null);
         StmtLabeled exitWhile = new StmtLabeled(assignBufferLabel(stmt, false), null);
 
-        LinkedList<StmtLabeled> whileStmt = new LinkedList<>();
-        whileStmt.add(stmtWhileLabeled);
-        wireRelations(whileStmt, entryWhile, exitWhile);
+        wireRelations(new LinkedList<>(Collections.singletonList(stmtWhileLabeled)), entryWhile, exitWhile);
         entryWhile.setExit(exitWhile);
 
         return entryWhile;
     }
 
-    private static StmtLabeled create_TerminalBlock(Statement stmt) {
-        StmtLabeled ret = new StmtLabeled(assignLabel(stmt), stmt);
-        return ret;
+    private static StmtLabeled createTerminalBlock(Statement stmt) {
+        return new StmtLabeled(assignLabel(stmt), stmt);
     }
 
-    private static StmtLabeled create_StmtBlock(StmtBlock stmt) {
+    private static StmtLabeled createStmtBlock(StmtBlock stmt) {
         List<Statement> body = stmt.getStatements();
         LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(body);
 
         StmtLabeled stmtBlockLabeled = new StmtLabeled(assignLabel(stmt), stmt);
-        StmtLabeled stmtBlockexit = new StmtLabeled(assignBufferLabel(stmt, false), null);
+        StmtLabeled stmtBlockExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
 
-        wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockexit);
-        stmtBlockLabeled.setExit(stmtBlockexit);
+        wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockExit);
+        stmtBlockLabeled.setExit(stmtBlockExit);
         return stmtBlockLabeled;
     }
 
-    private static StmtLabeled create_CaseBlock(StmtCase stmt) {
+    private static StmtLabeled createCaseBlock(StmtCase stmt) {
         StmtLabeled stmtCaseLabeled = new StmtLabeled(assignLabel(stmt), stmt);
         StmtLabeled stmtCaseExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
+
         for (StmtCase.Alternative alt : stmt.getAlternatives()) {
             LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(alt.getStatements());
             wireRelations(currentBlocks, stmtCaseLabeled, stmtCaseExit);
@@ -207,17 +211,9 @@ public class SsaPhase implements Phase {
         return stmtCaseLabeled;
     }
 
-    private static StmtLabeled create_ForEachBlock(StmtForeach stmt) {
+    private static StmtLabeled createForEachBlock(StmtForeach stmt) {
         //TODO check
-        return create_StmtBlock(new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), stmt.getBody()));
-    }
-
-    private static boolean isTerminalStmt(Statement stmt) {
-        return stmt instanceof StmtAssignment ||
-                stmt instanceof StmtCall ||
-                stmt instanceof StmtConsume ||
-                stmt instanceof StmtWrite ||
-                stmt instanceof StmtRead;
+        return createStmtBlock(new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), stmt.getBody()));
     }
 
 
@@ -232,14 +228,12 @@ public class SsaPhase implements Phase {
         Statement originalStmt = stmtLabeled.getOriginalStmt();
         if (containsExpression(originalStmt)) {
 
-            //get expression and verify that it's not an ExprLiteral
+            //Get expression and verify that it's not an ExprLiteral as they are terminal
             List<Expression> expr = getExpressions(originalStmt);
-            //Remove ExprLiterals as they are terminal
             removeLiterals(expr);
 
-            List<ExprVariable> exprVar = findExprVar(expr);
-
             //If ExprVar were found, apply SSA
+            List<ExprVariable> exprVar = findExprVar(expr);
             if(!exprVar.isEmpty()) {
                 List<Expression> ssaResult = exprVar.stream().map(ev -> readVar(stmtLabeled, ev.getVariable())).collect(Collectors.toList());
 
@@ -248,7 +242,6 @@ public class SsaPhase implements Phase {
                 stmtLabeled.setOriginalStmt(setSsaResult(originalStmt, ssaResult));
             }
         }
-
         //recursively apply ssa for all predecessors
         stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
     }
@@ -379,11 +372,7 @@ public class SsaPhase implements Phase {
 
     private static List<ExprVariable> findExprVar(List<Expression> expr) {
         List<ExprVariable> exprVar = new LinkedList<>();
-        //TODO useless operations
-        expr.forEach(e -> {
-            if (e instanceof ExprVariable) exprVar.add((ExprVariable) e);
-            else exprVar.addAll(recFindExprVar(e));
-        });
+        expr.forEach(e -> exprVar.addAll(recFindExprVar(e)));
         return exprVar;
     }
 
@@ -411,7 +400,7 @@ public class SsaPhase implements Phase {
             //Check if phi already exists for this variable
         } else if (!stmt.getPhiExprs().isEmpty()) {
             for (ExprPhi phi : stmt.getPhiExprs()) {
-                if (phi.getlValue().equals(var)) {
+                if (phi.getlValue().getName().equals(var.getName())) {
                     return phi;
                 }
             }
