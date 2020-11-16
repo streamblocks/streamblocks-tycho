@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.stmt.ssa;
 
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
@@ -18,35 +19,49 @@ public class StmtLabeled extends Statement {
     private ImmutableList<StmtLabeled> predecessors;
     private ImmutableList<StmtLabeled> successors;
     private StmtLabeled exit;
-    private final LinkedList<ExprPhi> currentPhiExprs;
+    private final LinkedList<LocalVarDecl> valueNumbering;
 
-    private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<ExprPhi> currentPhiExprs) {
+    //TODO make immutable
+    private boolean ssaHasBeenVisted;
+
+    private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<LocalVarDecl> valueNumbering, boolean ssaHasBeenVisted) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
         this.successors = successors;
         this.originalStmt = originalStmt;
         this.exit = exit;
-        this.currentPhiExprs = currentPhiExprs;
+        this.valueNumbering = valueNumbering;
+        this.ssaHasBeenVisted = ssaHasBeenVisted;
     }
 
     public StmtLabeled(String label, Statement originalStmt) {
-        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new LinkedList<>());
+        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new LinkedList<>(), false);
     }
 
-    private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<ExprPhi> currentPhiExprs){
-        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs);
+    private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<LocalVarDecl> currentPhiExprs){
+        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, false);
     }
 
     public StmtLabeled withNewOriginal(Statement originalStmt){
-        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.currentPhiExprs);
-    }
-    public void addPhiExprs(ExprPhi phiExprs) {
-        this.currentPhiExprs.add(phiExprs);
+        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering);
     }
 
-    public List<ExprPhi> getPhiExprs() {
-        return currentPhiExprs;
+
+    public boolean hasBeenVisted() {
+        return ssaHasBeenVisted;
+    }
+
+    public void setHasBeenVisted() {
+        ssaHasBeenVisted = true;
+    }
+
+    public void addLocalValueNumber(LocalVarDecl localValueNumber) {
+        this.valueNumbering.add(localValueNumber);
+    }
+
+    public List<LocalVarDecl> getLocalValueNumbers() {
+        return valueNumbering;
     }
 
     public Statement getOriginalStmt() {

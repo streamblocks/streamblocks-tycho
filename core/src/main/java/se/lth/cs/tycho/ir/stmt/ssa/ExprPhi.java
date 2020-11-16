@@ -15,12 +15,23 @@ public class ExprPhi extends Expression {
     private ImmutableList<Expression> operands;
     private final Variable lValue;
     private LinkedList<Expression> users;
+    private  boolean isUndefined;
+    private LinkedList<Expression> originalVar;
 
-    private ExprPhi(IRNode original, Variable lValue, List<Expression> operands, List<ExprPhi> users){
+    private ExprPhi(IRNode original, Variable lValue, List<Expression> operands, List<ExprPhi> users, boolean isUndefined){
         super(original);
         this.users = new LinkedList<>(users);
         this.lValue = lValue;
         this.operands = ImmutableList.from(operands);
+        this.isUndefined = isUndefined;
+    }
+
+    public void becomesUndefined(){
+        this.isUndefined = true;
+    }
+
+    public boolean isUndefined(){
+        return isUndefined;
     }
 
     public Variable getlValue() {
@@ -40,7 +51,7 @@ public class ExprPhi extends Expression {
     }
 
     public ExprPhi(Variable lValue, List<Expression> operands){
-        this(null, lValue, operands, ImmutableList.empty());
+        this(null, lValue, operands, ImmutableList.empty(), false);
     }
 
     public ImmutableList<Expression> getOperands() {

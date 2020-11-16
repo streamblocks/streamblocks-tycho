@@ -13,6 +13,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.stmt.ssa.ExprPhi;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
+import se.lth.cs.tycho.ir.stmt.ssa.ValueNumber;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
@@ -57,7 +58,7 @@ public class SsaPhase implements Phase {
     private static StmtLabeled create_CFG(ExprProcReturn proc, ReturnNode node) {
         StmtBlock body = (StmtBlock) proc.getBody().get(0);
         ImmutableList<Statement> stmts;
-        if (!(body.getVarDecls().isEmpty() && body.getTypeDecls().isEmpty())){
+        if (!(body.getVarDecls().isEmpty() && body.getTypeDecls().isEmpty())) {
             StmtBlock startingBlock = new StmtBlock(body.getTypeDecls(), body.getVarDecls(), body.getStatements());
             stmts = ImmutableList.of(startingBlock);
         } else {
@@ -88,8 +89,7 @@ public class SsaPhase implements Phase {
     }
 
     private static boolean isTerminalStmt(Statement stmt) {
-        return stmt instanceof StmtAssignment ||
-                stmt instanceof StmtCall ||
+        return stmt instanceof StmtCall ||
                 stmt instanceof StmtConsume ||
                 stmt instanceof StmtWrite ||
                 stmt instanceof StmtRead;
@@ -115,7 +115,9 @@ public class SsaPhase implements Phase {
                 currentBlocks.add(createForEachBlock((StmtForeach) currentStmt));
             } else if (currentStmt instanceof StmtReturn) {
                 //TODO is a return always at the end of a stmtsList?
-            } else throw new NoClassDefFoundError("Unknown Stmt type");
+            } else if (currentStmt instanceof StmtAssignment){
+                currentBlocks.add(createStmtAssignment((StmtAssignment) currentStmt));
+            }else throw new NoClassDefFoundError("Unknown Stmt type");
         }
         return currentBlocks;
     }
@@ -137,10 +139,11 @@ public class SsaPhase implements Phase {
                 next = succ;
             }
             if (current.lastIsNull()) {
-                current.setRelations(ImmutableList.of(prev), ImmutableList.of(next));
+                current.setRelations(ImmutableList.concat(ImmutableList.of(prev), ImmutableList.from(current.getPredecessors())),
+                        ImmutableList.concat(ImmutableList.of(next), ImmutableList.from(current.getSuccessors())));
                 prev = current;
             } else {
-                current.setPredecessors(ImmutableList.of(prev));
+                current.setPredecessors(ImmutableList.concat(ImmutableList.of(prev), ImmutableList.from(current.getPredecessors())));
                 current.getExitBlock().setSuccessors(ImmutableList.of(next));
                 prev = current.getExitBlock();
             }
@@ -188,15 +191,34 @@ public class SsaPhase implements Phase {
     }
 
     private static StmtLabeled createStmtBlock(StmtBlock stmt) {
+
+        StmtLabeled stmtBlockLabeled = new StmtLabeled(assignLabel(stmt), stmt);
+
+        List<LocalVarDecl> localVarDecls = stmt.getVarDecls();
+        localVarDecls.forEach(SsaPhase::createNewLocalVar);
+        localVarDecls.forEach(v -> stmtBlockLabeled.addLocalValueNumber(v.withName(getNewLocalValueName(v.getOriginalName()))));
+
         List<Statement> body = stmt.getStatements();
         LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(body);
 
-        StmtLabeled stmtBlockLabeled = new StmtLabeled(assignLabel(stmt), stmt);
         StmtLabeled stmtBlockExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
-
         wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockExit);
         stmtBlockLabeled.setExit(stmtBlockExit);
+
+
         return stmtBlockLabeled;
+    }
+
+    private static StmtLabeled createStmtAssignment(StmtAssignment stmt) {
+        StmtLabeled stmtAssignLabeled = new StmtLabeled(assignLabel(stmt), stmt);
+        LValue v = stmt.getLValue();
+        if (v instanceof LValueVariable) {
+            String varName = ((LValueVariable) v).getVariable().getOriginalName();
+            LocalVarDecl currentVarDecl = originalLVD.get(varName);
+            LocalVarDecl newVarDecl = currentVarDecl.withName(getNewLocalValueName(varName)).withValue(stmt.getExpression());
+            stmtAssignLabeled.addLocalValueNumber(newVarDecl);
+        }
+        return stmtAssignLabeled;
     }
 
     private static StmtLabeled createCaseBlock(StmtCase stmt) {
@@ -216,12 +238,11 @@ public class SsaPhase implements Phase {
         return createStmtBlock(new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), stmt.getBody()));
     }
 
-
     //--------------- SSA Algorithm Application ---------------//
 
     private static void recApplySSA(StmtLabeled stmtLabeled) {
         //Stop recursion at the top of the cfg
-        if (stmtLabeled.getPredecessors().isEmpty()) {
+        if (stmtLabeled.getPredecessors().isEmpty() || stmtLabeled.hasBeenVisted()) {
             return;
         }
 
@@ -234,12 +255,14 @@ public class SsaPhase implements Phase {
 
             //If ExprVar were found, apply SSA
             List<ExprVariable> exprVar = findExprVar(expr);
-            if(!exprVar.isEmpty()) {
+            if (!exprVar.isEmpty()) {
+
                 List<Expression> ssaResult = exprVar.stream().map(ev -> readVar(stmtLabeled, ev.getVariable())).collect(Collectors.toList());
 
                 //TODO create new stmtlabeled with new original stmt containing ssa result
                 //stmtLabeled.withNewOriginal(setSsaResult(originalStmt, ssaResult));
                 stmtLabeled.setOriginalStmt(setSsaResult(originalStmt, ssaResult));
+                stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
             }
         }
         //recursively apply ssa for all predecessors
@@ -269,6 +292,7 @@ public class SsaPhase implements Phase {
         }
     }
 
+
     //TODO check if additions are needed
 
     private static boolean containsExpression(Statement stmt) {
@@ -281,21 +305,6 @@ public class SsaPhase implements Phase {
     }
 
     private static List<Expression> getExpressions(Statement stmt) {
-       /* ImmutableList<Expression> expr = ImmutableList.empty();
-        if (stmt instanceof StmtAssignment) {
-            expr = ImmutableList.of(((StmtAssignment) stmt).getExpression());
-        } else if (stmt instanceof StmtCall) {
-            expr = ImmutableList.from(((StmtCall) stmt).getArgs());
-        } else if (stmt instanceof StmtForeach) {
-            expr = ImmutableList.from(((StmtForeach) stmt).getFilters());
-        } else if (stmt instanceof StmtIf) {
-            expr = ImmutableList.of(((StmtIf) stmt).getCondition());
-        } else if (stmt instanceof StmtReturn) {
-            expr = ImmutableList.of(((StmtReturn) stmt).getExpression());
-        } else if (stmt instanceof StmtWhile) {
-            expr = ImmutableList.of(((StmtWhile) stmt).getCondition());
-        }
-        return expr;*/
         LinkedList<Expression> expr = new LinkedList<>();
         if (stmt instanceof StmtAssignment) {
             expr.add(((StmtAssignment) stmt).getExpression());
@@ -376,7 +385,27 @@ public class SsaPhase implements Phase {
         return exprVar;
     }
 
+
 //--------------- SSA Algorithm ---------------//
+
+    private static HashMap<String, LocalVarDecl> originalLVD = new HashMap<>();
+    private static HashMap<String, Integer> localValueCounter = new HashMap<>();
+
+    private static void createNewLocalVar(LocalVarDecl v) {
+        originalLVD.put(v.getOriginalName(), v);
+    }
+
+    private static String getNewLocalValueName(String var) {
+        if (localValueCounter.containsKey(var)) {
+            Integer prev = localValueCounter.get(var);
+            ++prev;
+            localValueCounter.replace(var, prev);
+            return var + "_" + prev.toString();
+        } else {
+            localValueCounter.put(var, 0);
+            return var + "_0";
+        }
+    }
 
     //TODO check which type of "var" to look for. Tried with Variable
     private static Expression readVar(StmtLabeled stmt, Variable var) {
@@ -387,6 +416,7 @@ public class SsaPhase implements Phase {
             if (v instanceof LValueVariable) {
                 //Try testing name
                 if (((LValueVariable) v).getVariable().getName().equals(var.getName())) {
+                    //TODO access variable declaration
                     return ((StmtAssignment) originalStmt).getExpression();
                 }
             }
@@ -394,14 +424,12 @@ public class SsaPhase implements Phase {
             ImmutableList<LocalVarDecl> localVarDecls = ((StmtBlock) originalStmt).getVarDecls();
             for (LocalVarDecl v : localVarDecls) {
                 if (v.getName().equals(var.getName())) {
-                    return v.getValue();
-                }
-            }
-            //Check if phi already exists for this variable
-        } else if (!stmt.getPhiExprs().isEmpty()) {
-            for (ExprPhi phi : stmt.getPhiExprs()) {
-                if (phi.getlValue().getName().equals(var.getName())) {
-                    return phi;
+                    Expression value = v.getValue();
+                    LocalVarDecl lvn = v.withName(getNewLocalValueName(v.getOriginalName()));
+                    stmt.addLocalValueNumber(lvn);
+                    if (value != null) {
+                        return value;
+                    }
                 }
             }
         }
@@ -415,7 +443,7 @@ public class SsaPhase implements Phase {
             return readVar(stmt.getPredecessors().get(0), var);
         } else {
             ExprPhi phi = new ExprPhi(var, ImmutableList.empty());
-            stmt.addPhiExprs(phi);
+            //stmt.addLocalValueNumber(phi);
             return addPhiOperands(phi, var, stmt.getPredecessors());
         }
     }
@@ -448,7 +476,9 @@ public class SsaPhase implements Phase {
             }
             currentOp = op;
         }
-        //TODO set currentOp to undefined value?
+        if (currentOp == null) {
+            phi.becomesUndefined();
+        }
 
         LinkedList<Expression> phiUsers = phi.getUsers();
         phiUsers.remove(phi);
@@ -466,6 +496,6 @@ public class SsaPhase implements Phase {
                 tryRemoveTrivialPhi((ExprPhi) user);
             }
         }
-        return currentOp;
+        return (phi.isUndefined()) ? phi : currentOp;
     }
 }
