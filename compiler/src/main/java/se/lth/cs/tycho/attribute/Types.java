@@ -811,23 +811,26 @@ public interface Types {
 
         default Type computeType(ExprGlobalVariable var) {
             VarDecl decl = globalNames().varDecl(var.getGlobalName(), true);
-            if(decl == null){
-                return new ErrorType(new Diagnostic(Diagnostic.Kind.ERROR, "Internal Error: Variable declaration is null!", getSourceUnit(var), var));
-            }
             return declaredType(decl);
         }
 
         default Type computeType(ExprBinaryOp binary) {
             switch (binary.getOperations().get(0)) {
                 case "&":
+                    return greatestLowerBound(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
                 case "|":
                 case "^":
-                case "/":
-                case "div":
                 case "**":
                 case "-":
+                    return leastUpperBound(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
+                case "/":
+                case "div":
+
+                case ">>":
+                    return type(binary.getOperands().get(0));
                 case "%":
                 case "mod":
+                    return type(binary.getOperands().get(1));
                 case "+": {
                     if ("+".equals(binary.getOperations().get(0))) {
                         Type lhs = type(binary.getOperands().get(0));
@@ -841,11 +844,12 @@ public interface Types {
                             return StringType.INSTANCE;
                         }
                     }
+                    return leastUpperBoundPlus1(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
                 }
-                case "<<":
-                case ">>":
                 case "*":
-                    return leastUpperBound(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
+                    return leastUpperBoundSum(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
+                case "<<":
+                    return leastUpperBoundSumPow(type(binary.getOperands().get(0)), type(binary.getOperands().get(1)));
                 case "&&":
                 case "and":
                 case "||":
@@ -1134,7 +1138,7 @@ public interface Types {
         }
 
         default Type leastUpperBound(RealType a, IntType b) {
-            return b;
+            return a;
         }
 
         default Type leastUpperBound(AlgebraicType a, AlgebraicType b) {
@@ -1155,6 +1159,62 @@ public interface Types {
 
         default Type leastUpperBound(Type a, AliasType b) {
             return leastUpperBound(a, b.getType());
+        }
+
+
+        default Type leastUpperBoundSum(Type a, Type b) {
+            return leastUpperBound(a, b);
+        }
+
+        default Type leastUpperBoundSum(IntType a, IntType b) {
+            if (a.getSize().isPresent() && b.getSize().isPresent()) {
+                int sum =  a.getSize().getAsInt() + b.getSize().getAsInt();
+                return new IntType(OptionalInt.of(sum), a.isSigned() || b.isSigned());
+            } else {
+                return new IntType(OptionalInt.empty(), a.isSigned() || b.isSigned());
+            }
+        }
+
+        default Type leastUpperBoundSum(RealType a, RealType b) {
+            return leastUpperBound(a, b);
+        }
+
+        default Type leastUpperBoundSum(RealType a, IntType b) {
+            return RealType.of(a.getSize());
+        }
+
+        default Type leastUpperBoundSum(IntType a, RealType b) {
+            return RealType.of(b.getSize());
+        }
+
+        default Type leastUpperBoundSumPow(Type a, Type b) {
+            return leastUpperBound(a, b);
+        }
+
+        default Type leastUpperBoundSumPow(IntType a, IntType b) {
+            if (a.getSize().isPresent() && b.getSize().isPresent()) {
+                int shift = b.getSize().getAsInt();
+                if(shift >= 6){
+                    // -- limits type size to 64 bits
+                    shift = 6;
+                }
+                int size = a.getSize().getAsInt() + (1 << shift) - 1;
+                return new IntType(OptionalInt.of(size), a.isSigned() || b.isSigned());
+            } else {
+                return new IntType(OptionalInt.empty(), a.isSigned() || b.isSigned());
+            }
+        }
+
+        default Type leastUpperBoundPlus1(Type a, Type b) {
+            return leastUpperBound(a, b);
+        }
+
+        default Type leastUpperBoundPlus1(IntType a, IntType b) {
+            IntType type = (IntType) leastUpperBound(a, b);
+            if(type.getSize().isPresent()){
+                return new IntType(OptionalInt.of(type.getSize().getAsInt() + 1), a.isSigned() || b.isSigned());
+            }
+            return type;
         }
 
         default int positiveBits(IntType t) {
