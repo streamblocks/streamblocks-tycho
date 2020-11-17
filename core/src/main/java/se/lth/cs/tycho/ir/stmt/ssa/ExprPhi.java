@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.stmt.ssa;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -12,13 +13,13 @@ import java.util.function.Consumer;
 
 public class ExprPhi extends Expression {
 
-    private ImmutableList<Expression> operands;
+    private ImmutableList<LocalVarDecl> operands;
     private final Variable lValue;
-    private LinkedList<Expression> users;
+    private LinkedList<LocalVarDecl> users;
     private  boolean isUndefined;
     private LinkedList<Expression> originalVar;
 
-    private ExprPhi(IRNode original, Variable lValue, List<Expression> operands, List<ExprPhi> users, boolean isUndefined){
+    private ExprPhi(IRNode original, Variable lValue, List<LocalVarDecl> operands, List<LocalVarDecl> users, boolean isUndefined){
         super(original);
         this.users = new LinkedList<>(users);
         this.lValue = lValue;
@@ -38,23 +39,23 @@ public class ExprPhi extends Expression {
         return lValue;
     }
 
-    public void setOperands(List<Expression> operands) {
+    public void setOperands(List<LocalVarDecl> operands) {
         this.operands = ImmutableList.from(operands);
     }
 
-    public LinkedList<Expression> getUsers() {
+    public LinkedList<LocalVarDecl> getUsers() {
         return users;
     }
 
-    public void addUser(List<Expression> users) {
+    public void addUser(List<LocalVarDecl> users) {
         this.users.addAll(users);
     }
 
-    public ExprPhi(Variable lValue, List<Expression> operands){
+    public ExprPhi(Variable lValue, List<LocalVarDecl> operands){
         this(null, lValue, operands, ImmutableList.empty(), false);
     }
 
-    public ImmutableList<Expression> getOperands() {
+    public ImmutableList<LocalVarDecl> getOperands() {
         return operands;
     }
 

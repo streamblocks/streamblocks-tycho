@@ -39,11 +39,11 @@ public class StmtLabeled extends Statement {
         this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new LinkedList<>(), false);
     }
 
-    private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<LocalVarDecl> currentPhiExprs){
+    private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<LocalVarDecl> currentPhiExprs) {
         this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, false);
     }
 
-    public StmtLabeled withNewOriginal(Statement originalStmt){
+    public StmtLabeled withNewOriginal(Statement originalStmt) {
         return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering);
     }
 
@@ -57,10 +57,12 @@ public class StmtLabeled extends Statement {
     }
 
     public void addLocalValueNumber(LocalVarDecl localValueNumber) {
-        this.valueNumbering.add(localValueNumber);
+        valueNumbering.removeIf(v -> v.getName().equals(localValueNumber.getName()));
+        valueNumbering.add(localValueNumber);
     }
 
     public List<LocalVarDecl> getLocalValueNumbers() {
+
         return valueNumbering;
     }
 
