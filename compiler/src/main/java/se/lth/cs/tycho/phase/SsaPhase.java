@@ -15,10 +15,8 @@ import se.lth.cs.tycho.ir.stmt.ssa.ExprPhi;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
-import sun.awt.image.ImageWatched;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static se.lth.cs.tycho.ir.Variable.variable;
 
@@ -52,7 +50,6 @@ public class SsaPhase implements Phase {
 
             return proc;
         }
-
     }
 
     //--------------- CFG Generation ---------------//
@@ -240,10 +237,48 @@ public class SsaPhase implements Phase {
         return createStmtBlock(new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), stmt.getBody()));
     }
 
+
+    //--------------- SSA Algorithm Application ---------------//
+
+    private static void recApplySSA(StmtLabeled stmtLabeled) {
+        //Stop recursion at the top of the cfg
+        if (stmtLabeled.getPredecessors().isEmpty() || stmtLabeled.hasBeenVisted()) {
+            return;
+        }
+
+        //if in Assignment or Block
+        LinkedList<LocalVarDecl> lvd = new LinkedList<>(stmtLabeled.getLocalValueNumbers());
+        lvd.removeIf(lv -> lv.getValue() instanceof ExprPhi);
+        if (!lvd.isEmpty()) {
+            lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(recReadLocalVarExpr(l.getValue(), stmtLabeled))));
+        }
+        stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
+        stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
+
+    /*    Statement originalStmt = stmtLabeled.getOriginalStmt();
+        if (containsExpression(originalStmt)) {
+
+            //Get expression and verify that it's not an ExprLiteral as they are terminal
+            List<Expression> expr = getExpressions(originalStmt);
+
+            removeLiterals(expr);
+
+            //If ExprVar were found, apply SSA
+            List<ExprVariable> exprVar = findExprVar(expr);
+
+            if (!exprVar.isEmpty()) {
+
+                List<LocalVarDecl> ssaResult = exprVar.stream().map(ev -> readVar(stmtLabeled, ev.getVariable())).collect(Collectors.toList());
+
+                //TODO create new stmtlabeled with new original stmt containing ssa result
+                //stmtLabeled.withNewOriginal(setSsaResult(originalStmt, ssaResult));
+                //stmtLabeled.setOriginalStmt(setSsaResult(originalStmt, ssaResult));
+            }
+        }*/
+        //recursively apply ssa for all predecessors
+    }
+
     private static Expression recReadLocalVarExpr(Expression expr, StmtLabeled stmtLabeled) {
-
-        //READVAR() ONLY RETURNS A VARIABLE. HANDLE DATA STRUCTURE WHEN APPLYING ALGORITHM
-
 
         if (expr instanceof ExprLiteral) {
             return expr;
@@ -270,45 +305,6 @@ public class SsaPhase implements Phase {
         } else {
             return null;
         }
-    }
-
-    //--------------- SSA Algorithm Application ---------------//
-
-    private static void recApplySSA(StmtLabeled stmtLabeled) {
-        //Stop recursion at the top of the cfg
-        if (stmtLabeled.getPredecessors().isEmpty() || stmtLabeled.hasBeenVisted()) {
-            return;
-        }
-
-        //if in Assignment or Block
-        LinkedList<LocalVarDecl> lvd = new LinkedList<>(stmtLabeled.getLocalValueNumbers());
-        if (!lvd.isEmpty()) {
-            lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(recReadLocalVarExpr(l.getValue(), stmtLabeled))));
-        }
-
-    /*    Statement originalStmt = stmtLabeled.getOriginalStmt();
-        if (containsExpression(originalStmt)) {
-
-            //Get expression and verify that it's not an ExprLiteral as they are terminal
-            List<Expression> expr = getExpressions(originalStmt);
-
-            removeLiterals(expr);
-
-            //If ExprVar were found, apply SSA
-            List<ExprVariable> exprVar = findExprVar(expr);
-
-            if (!exprVar.isEmpty()) {
-
-                List<LocalVarDecl> ssaResult = exprVar.stream().map(ev -> readVar(stmtLabeled, ev.getVariable())).collect(Collectors.toList());
-
-                //TODO create new stmtlabeled with new original stmt containing ssa result
-                //stmtLabeled.withNewOriginal(setSsaResult(originalStmt, ssaResult));
-                //stmtLabeled.setOriginalStmt(setSsaResult(originalStmt, ssaResult));
-            }
-        }*/
-        //recursively apply ssa for all predecessors
-        stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
-        stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
     }
 
     private static void removeLiterals(List<Expression> expr) {
@@ -479,8 +475,13 @@ public class SsaPhase implements Phase {
             ExprPhi phiExpr = new ExprPhi(var, ImmutableList.empty());
             //Add Phi to Global value numbering
             LocalVarDecl localVarPhi = createLVDWithVNAndExpr(var, phiExpr);
-            stmt.addLocalValueNumber(localVarPhi);
-            return addPhiOperands(localVarPhi, var, stmt.getPredecessors());
+            localVarPhi = addPhiOperands(localVarPhi, var, stmt.getPredecessors());
+
+            Expression phiResult = localVarPhi.getValue();
+            if (phiResult instanceof ExprPhi && !((ExprPhi) phiResult).isUndefined()) {
+                stmt.addLocalValueNumber(localVarPhi);
+            }
+            return localVarPhi;
         }
     }
 
@@ -508,8 +509,8 @@ public class SsaPhase implements Phase {
                 if (currentOp != null) {
                     return phi;
                 }
-                currentOp = op;
             }
+            currentOp = op;
         }
 
         if (currentOp == null) {
@@ -528,8 +529,8 @@ public class SsaPhase implements Phase {
 
         for (LocalVarDecl user : phiUsers) {
             tryRemoveTrivialPhi(user);
-
         }
+
         return (((ExprPhi) phi.getValue()).isUndefined()) ? phi : currentOp;
     }
 }
