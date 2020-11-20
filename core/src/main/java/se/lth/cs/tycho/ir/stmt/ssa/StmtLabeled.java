@@ -61,15 +61,18 @@ public class StmtLabeled extends Statement {
         valueNumbering.add(localValueNumber);
     }
 
+    public void addLocalValueNumber(List<LocalVarDecl> lvnList){
+        lvnList.forEach(this::addLocalValueNumber);
+    }
+
     public List<LocalVarDecl> getLocalValueNumbers() {
 
-        return valueNumbering;
+        return new LinkedList<>(valueNumbering);
     }
 
     public Statement getOriginalStmt() {
         return originalStmt;
     }
-
 
     public void setOriginalStmt(Statement originalStmt) {
         this.originalStmt = originalStmt;

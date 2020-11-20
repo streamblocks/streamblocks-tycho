@@ -278,12 +278,15 @@ public class SsaPhase implements Phase {
         //recursively apply ssa for all predecessors
     }
 
+
     private static Expression recReadLocalVarExpr(Expression expr, StmtLabeled stmtLabeled) {
 
         if (expr instanceof ExprLiteral) {
             return expr;
 
         } else if (expr instanceof ExprVariable) {
+
+            //TODO Handle self reference
             LocalVarDecl result = readVar(stmtLabeled, ((ExprVariable) expr).getVariable());
             //result = result.withValue(new ExprVariable(variable(result.getName())));
             ExprVariable newVar = ((ExprVariable) expr).copy(variable(result.getName()), ((ExprVariable) expr).getOld());
@@ -305,10 +308,6 @@ public class SsaPhase implements Phase {
         } else {
             return null;
         }
-    }
-
-    private static void removeLiterals(List<Expression> expr) {
-        expr.removeIf(expression -> expression instanceof ExprLiteral);
     }
 
     //Respects Statements immutability
@@ -435,7 +434,7 @@ public class SsaPhase implements Phase {
 
     private static String getNewLocalValueName(String var) {
         if (localValueCounter.containsKey(var)) {
-            localValueCounter.put(var, localValueCounter.get(var) + 1);
+            localValueCounter.merge(var, 1, Integer::sum);
             return var + "_SSA_" + (localValueCounter.get(var)).toString();
         } else {
             localValueCounter.put(var, 0);
@@ -452,11 +451,49 @@ public class SsaPhase implements Phase {
 
 //--------------- SSA Algorithm ---------------//
 
+    private static Expression replaceVariableInExpr(Expression originalExpr, LocalVarDecl varToReplace) {
+        return null;
+    }
+
+    private static LocalVarDecl handleSelfReference(StmtLabeled stmt, Variable var, LocalVarDecl selfAssignedVar) {
+
+        //TODO check for multiple self references
+
+        LocalVarDecl temp = new LocalVarDecl(selfAssignedVar.getAnnotations(), selfAssignedVar.getType(), "u", null, selfAssignedVar.isConstant());
+        createNewLocalVar(temp);
+
+        Variable loopStartVarName = variable(temp.getName());
+        LocalVarDecl loopStartVar = temp.withName(getNewLocalValueName(temp.getOriginalName()));  //u0
+        LocalVarDecl exitVar = temp.withName(getNewLocalValueName(temp.getName())).withValue(new ExprVariable(variable(loopStartVar.getName()))); //u1
+
+        //replace problematic reference
+        Expression oldExpr = selfAssignedVar.getValue();
+        Expression newExpr = replaceVariableInExpr(oldExpr, exitVar);
+        LocalVarDecl updatedSelfAssignedVar = selfAssignedVar.withValue(newExpr);
+
+        LocalVarDecl loopEndVar = temp.withName(getNewLocalValueName(temp.getName())).withValue(new ExprVariable(variable(updatedSelfAssignedVar.getName()))); //u2
+
+        LocalVarDecl predecessorVariable = readVarRec(stmt, var);
+        ExprPhi phiWithSelf = new ExprPhi(loopStartVarName, ImmutableList.from(Arrays.asList(predecessorVariable, loopEndVar)));
+        loopStartVar = loopStartVar.withValue(phiWithSelf);
+
+        //add all localVarDeclarations resulting from the operation
+        stmt.addLocalValueNumber(Arrays.asList(loopStartVar, loopEndVar, updatedSelfAssignedVar, exitVar));
+
+        //redirect to exitVar
+        return exitVar;
+    }
 
     //TODO check which type of "var" to look for. Tried with Variable
     private static LocalVarDecl readVar(StmtLabeled stmt, Variable var) {
 
-        //Locally found
+        List<LocalVarDecl> localVarDecls = stmt.getLocalValueNumbers();
+        localVarDecls.removeIf(l -> !(l.getName().equals(var.getName())));
+        //variable assignment contains self reference
+        if (!localVarDecls.isEmpty()) {
+            return handleSelfReference(stmt, var, localVarDecls.get(0));
+        }
+            //Locally found
         List<LocalVarDecl> localValueNumbers = stmt.getLocalValueNumbers();
         for (LocalVarDecl lvd : localValueNumbers) {
             if (var.getOriginalName().equals(lvd.getOriginalName())) {
@@ -524,7 +561,6 @@ public class SsaPhase implements Phase {
             LinkedList<LocalVarDecl> userPhiUsers = ((ExprPhi) userPhi.getValue()).getUsers();
             userPhiUsers.set(userPhiUsers.indexOf(phi), currentOp);
             ((ExprPhi) userPhi.getValue()).addUser(userPhiUsers);
-
         }
 
         for (LocalVarDecl user : phiUsers) {

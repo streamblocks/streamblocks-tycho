@@ -43,6 +43,10 @@ public class ExprPhi extends Expression {
         this.operands = ImmutableList.from(operands);
     }
 
+    public void addSingleOperand(LocalVarDecl op){
+        this.operands = ImmutableList.concat(operands, ImmutableList.of(op));
+    }
+
     public LinkedList<LocalVarDecl> getUsers() {
         return users;
     }
