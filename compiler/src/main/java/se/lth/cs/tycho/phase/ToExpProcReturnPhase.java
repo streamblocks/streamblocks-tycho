@@ -88,7 +88,9 @@ public class ToExpProcReturnPhase implements Phase {
                 Expression expression = lambda.getBody().deepClone();
                 StmtReturn ret = new StmtReturn(expression);
 
-                ExprProcReturn proc = new ExprProcReturn(builderParameters.build(), ImmutableList.of(ret), typeExpr);
+                StmtBlock block = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.of(ret));
+
+                ExprProcReturn proc = new ExprProcReturn(builderParameters.build(), ImmutableList.of(block), typeExpr);
                 return proc;
             }
         }
