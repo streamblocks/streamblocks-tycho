@@ -6,10 +6,9 @@ import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 public class StmtLabeled extends Statement {
@@ -19,12 +18,12 @@ public class StmtLabeled extends Statement {
     private ImmutableList<StmtLabeled> predecessors;
     private ImmutableList<StmtLabeled> successors;
     private StmtLabeled exit;
-    private final LinkedList<LocalVarDecl> valueNumbering;
+    private final Map<LocalVarDecl, Boolean> valueNumbering;
 
     //TODO make immutable
     private boolean ssaHasBeenVisted;
 
-    private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<LocalVarDecl> valueNumbering, boolean ssaHasBeenVisted) {
+    private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, Map<LocalVarDecl, Boolean> valueNumbering, boolean ssaHasBeenVisted) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
@@ -36,10 +35,10 @@ public class StmtLabeled extends Statement {
     }
 
     public StmtLabeled(String label, Statement originalStmt) {
-        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new LinkedList<>(), false);
+        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), false);
     }
 
-    private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, LinkedList<LocalVarDecl> currentPhiExprs) {
+    private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, Map<LocalVarDecl, Boolean> currentPhiExprs) {
         this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, false);
     }
 
@@ -56,18 +55,23 @@ public class StmtLabeled extends Statement {
         ssaHasBeenVisted = true;
     }
 
-    public void addLocalValueNumber(LocalVarDecl localValueNumber) {
+    public void addLocalValueNumber(LocalVarDecl localValueNumber, boolean hasBeenVisited) {
+        List<LocalVarDecl> containedVar = valueNumbering.keySet().stream().filter(lv->lv.getName().equals(localValueNumber.getName())).collect(Collectors.toList());
+        if(!containedVar.isEmpty()){
+            valueNumbering.remove(containedVar.get(0));
+        }
+        valueNumbering.put(localValueNumber, hasBeenVisited);/*
         valueNumbering.removeIf(v -> v.getName().equals(localValueNumber.getName()));
-        valueNumbering.add(localValueNumber);
+        valueNumbering.add(localValueNumber);*/
     }
 
-    public void addLocalValueNumber(List<LocalVarDecl> lvnList){
+    public void addLocalValueNumber(Map<LocalVarDecl, Boolean> lvnList){
         lvnList.forEach(this::addLocalValueNumber);
     }
 
-    public List<LocalVarDecl> getLocalValueNumbers() {
+    public Map<LocalVarDecl, Boolean> getLocalValueNumbers() {
 
-        return new LinkedList<>(valueNumbering);
+        return new HashMap<>(valueNumbering);
     }
 
     public Statement getOriginalStmt() {
