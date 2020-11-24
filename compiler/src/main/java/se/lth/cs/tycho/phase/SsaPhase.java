@@ -268,8 +268,6 @@ public class SsaPhase implements Phase {
 
             LocalVarDecl result = readVar(stmtLabeled, ((ExprVariable) expr).getVariable());
             ExprVariable newVar = ((ExprVariable) expr).copy(variable(result.getName()), ((ExprVariable) expr).getOld());
-            //replace old value
-            //stmtLabeled.addLocalValueNumber(result);
             return newVar;
 
         } else if (expr instanceof ExprBinaryOp) {
@@ -438,11 +436,12 @@ public class SsaPhase implements Phase {
 //--------------- SSA Algorithm ---------------//
 
     private static Expression replaceVariableInExpr(Expression originalExpr, LocalVarDecl varToReplace, LocalVarDecl replacementVar, StmtLabeled stmt) {
-        //TODO add cases for other types of ExprVariables
+        //TODO add cases for other types of Expressions
+        //Should work for interlocked ExprBinary
         if (originalExpr instanceof ExprBinaryOp) {
             List<Expression> operands = ((ExprBinaryOp) originalExpr).getOperands();
             ExprVariable updatedVariable = new ExprVariable(variable(replacementVar.getName()));
-            //replace with new ExprVariable
+            //find and replace variable looked for, apply algorithm to all other operands
             List<Expression> newOperands = operands.stream()
                     .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : recReadLocalVarExpr(o, stmt))
                     .collect(Collectors.toList());
@@ -473,7 +472,7 @@ public class SsaPhase implements Phase {
         loopStartVar = loopStartVar.withValue(phiWithSelf);
 
         //add all localVarDeclarations resulting from the operation
-        stmt.addLocalValueNumber(Stream.of(loopStartVar, loopEndVar, updatedSelfAssignedVar, exitVar).collect(Collectors.toMap(lv->lv, lv->true)));
+        stmt.addLocalValueNumber(Stream.of(loopStartVar, loopEndVar, updatedSelfAssignedVar, exitVar).collect(Collectors.toMap(lv -> lv, lv -> true)));
 
         //redirect to exitVar
         return exitVar;
