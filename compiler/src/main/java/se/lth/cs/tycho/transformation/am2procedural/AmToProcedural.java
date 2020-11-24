@@ -44,6 +44,7 @@ public class AmToProcedural {
         ImmutableList.Builder<VarDecl> builder = ImmutableList.builder();
         builder.addAll(proceduralFunctions.createConditionDecls());
         builder.addAll(proceduralFunctions.createTransitionDecls());
+        builder.addAll(proceduralFunctions.createScopeDecls());
         //builder.add(proceduralFunctions.createControllerDecl());
         this.functions = builder.build();
 
@@ -51,7 +52,7 @@ public class AmToProcedural {
     }
 
     public Procedural buildProcedural() {
-        return new Procedural(actor.getAnnotations(), actor.getInputPorts(), actor.getOutputPorts(), actor.getTypeParameters(), actor.getValueParameters(), actor.getScopes(), functions);
+        return new Procedural(actor.getAnnotations(), actor.getInputPorts(), actor.getOutputPorts(), actor.getTypeParameters(), actor.getValueParameters(), functions);
     }
 
 
@@ -96,9 +97,11 @@ public class AmToProcedural {
 
                 StmtReturn ret = new StmtReturn(expression);
 
+                StmtBlock block = new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.of(ret));
+
                 NominalTypeExpr boolType = new NominalTypeExpr("bool");
 
-                ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), ImmutableList.of(ret), boolType);
+                ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), ImmutableList.of(block), boolType);
 
                 VarDecl condDecl = new LocalVarDecl(Collections.emptyList(), boolType, name, proc, false);
                 declarations.add(condDecl);
@@ -116,7 +119,7 @@ public class AmToProcedural {
             List<VarDecl> declarations = new ArrayList<>();
 
             for (Transition transition : actorMachine.getTransitions()) {
-                String name = "transition_" + actorMachine.getConditions().indexOf(transition);
+                String name = "transition_" + actorMachine.getTransitions().indexOf(transition);
                 ImmutableList.Builder<Statement> builder = ImmutableList.builder();
 
                 builder.addAll(transition.getBody());
@@ -126,12 +129,30 @@ public class AmToProcedural {
                 ImmutableList.Builder<Statement> stmtblockBuilder = ImmutableList.builder();
                 stmtblockBuilder.add(stmtblock);
 
-                ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), builder.build(), null);
+                ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), stmtblockBuilder.build(), null);
                 LocalVarDecl decl = new LocalVarDecl(Collections.emptyList(), null, name, proc, true);
 
                 declarations.add(decl);
             }
 
+            return declarations;
+        }
+
+        public List<VarDecl> createScopeDecls(){
+            List<VarDecl> declarations = new ArrayList<>();
+
+            for(Scope scope : actorMachine.getScopes()){
+                String name = "scope_" + actorMachine.getScopes().indexOf(scope);
+                if(scope.getDeclarations().size() > 1){
+                    ImmutableList.Builder<LocalVarDecl> scopeDeclarations = ImmutableList.builder();
+                    scopeDeclarations.addAll(scope.getDeclarations());
+
+                    StmtBlock block = new StmtBlock(ImmutableList.empty(), scopeDeclarations.build(), ImmutableList.empty());
+                    ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), ImmutableList.of(block), null);
+                    LocalVarDecl decl = new LocalVarDecl(Collections.emptyList(), null, name, proc, true);
+                    declarations.add(decl);
+                }
+            }
             return declarations;
         }
 
