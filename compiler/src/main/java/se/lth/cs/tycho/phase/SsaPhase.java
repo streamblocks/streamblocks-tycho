@@ -1,5 +1,8 @@
 package se.lth.cs.tycho.phase;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.CompilationTask;
@@ -16,6 +19,7 @@ import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,6 +27,14 @@ import java.util.stream.Stream;
 import static se.lth.cs.tycho.ir.Variable.variable;
 
 public class SsaPhase implements Phase {
+
+    private final CollectStatements collector;
+    private final CollectExpressions exprCollector;
+
+    public SsaPhase() {
+        this.collector = MultiJ.from(CollectStatements.class).instance();
+        this.exprCollector = MultiJ.from(CollectExpressions.class).instance();
+    }
 
     @Override
     public String getDescription() {
@@ -32,14 +44,130 @@ public class SsaPhase implements Phase {
 
     @Override
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
+        CollectStatements collector = MultiJ.from(CollectStatements.class).instance();
+
         Transformation transformation = MultiJ.from(SsaPhase.Transformation.class)
+                .bind("collector").to(collector)
                 .instance();
 
         return task.transformChildren(transformation);
     }
 
     @Module
+    interface CollectStatements {
+
+        List<Expression> collect(Statement s);
+
+        default List<Expression> collect(StmtCall call) {
+            return new LinkedList<>(call.getArgs());
+        }
+
+        default List<Expression> collect(StmtIf iff) {
+            return new LinkedList<>(Collections.singletonList(iff.getCondition()));
+        }
+
+        default List<Expression> collect(StmtCase casee) {
+            return new LinkedList<>(Collections.singletonList(casee.getScrutinee()));
+        }
+
+        default List<Expression> collect(StmtAssignment assignment) {
+            return new LinkedList<>(Collections.singletonList(assignment.getExpression()));
+        }
+
+        default List<Expression> collect(StmtForeach forEach) {
+            return new LinkedList<>(forEach.getFilters());
+        }
+
+        default List<Expression> collect(StmtReturn ret) {
+            return new LinkedList<>(Collections.singletonList(ret.getExpression()));
+        }
+
+        default List<Expression> collect(StmtWhile whilee) {
+            return new LinkedList<>(Collections.singletonList(whilee.getCondition()));
+        }
+        //TODO localvardecl in stmtblock
+
+    }
+
+    @Module
+    interface CollectExpressions{
+        List<Expression>collectInternalExpr(Expression e);
+        default List<Expression> collectInternalExpr(ExprApplication app) {
+            return new LinkedList<>(app.getArgs());
+        }
+        default List<Expression> collectInternalExpr(ExprBinaryOp bin){
+            return new LinkedList<>(bin.getOperands());
+        }
+        default List<Expression> collectInternalExpr(ExprCase casee){
+            return new LinkedList<>(Collections.singletonList(casee.getScrutinee()));
+        }
+        default List<Expression>collectInternalExpr(ExprCase.Alternative alt){
+            return new LinkedList<>(Collections.singletonList(alt.getExpression()));
+        }
+        default List<Expression>collectInternalExpr(ExprComprehension comp){
+            return new LinkedList<>(comp.getFilters());
+        }
+        default List<Expression>collectInternalExpr(ExprDeref deref){
+            return new LinkedList<>(Collections.singletonList(deref.getReference()));
+        }
+        default List<Expression>collectInternalExpr(ExprIf eif){
+            return new LinkedList<>(Arrays.asList(eif.getCondition(), eif.getElseExpr(), eif.getThenExpr()));
+        }
+        default List<Expression>collectInternalExpr(ExprLambda lambda){
+            return new LinkedList<>(Collections.singletonList(lambda.getBody()));
+        }
+        default List<Expression>collectInternalExpr(ExprList list){
+            return new LinkedList<>(list.getElements());
+        }
+        default List<Expression>collectInternalExpr(ExprSet set){
+            return new LinkedList<>(set.getElements());
+        }
+        default List<Expression>collectInternalExpr(ExprTuple tuple){
+            return new LinkedList<>(tuple.getElements());
+        }
+        default List<Expression>collectInternalExpr(ExprTypeConstruction typeConstr){
+            return new LinkedList<>(typeConstr.getArgs());
+        }
+        default List<Expression>collectInternalExpr(ExprUnaryOp unary){
+            return new LinkedList<>(Collections.singletonList(unary.getOperand()));
+        }
+
+        default List<Expression>collectInternalExpr(ExprVariable var){
+            return new LinkedList<>();
+        }
+        default List<Expression>collectInternalExpr(ExprField field){
+            return new LinkedList<>(Collections.singletonList(field.getStructure()));
+        }
+        default List<Expression>collectInternalExpr(ExprNth nth){
+            return new LinkedList<>(Collections.singletonList(nth.getStructure()));
+        }
+        default List<Expression>collectInternalExpr(ExprTypeAssertion typeAssert){
+            return new LinkedList<>(Collections.singletonList(typeAssert.getExpression()));
+        }
+        //TODO check
+        default List<Expression>collectInternalExpr(ExprIndexer indexer){
+            //TODO
+            return new LinkedList<>(Arrays.asList(indexer.getStructure(), indexer.getStructure()));
+        }
+        default List<Expression>collectInternalExpr(ExprLet let){
+            //TODO
+            return new LinkedList<>();
+        }
+        default List<Expression>collectInternalExpr(ExprMap map){
+            //TODO
+            return new LinkedList<>();
+        }
+    }
+
+    @Module
     interface Transformation extends IRNode.Transformation {
+
+        @Binding(BindingKind.INJECTED)
+        CollectStatements collector();
+
+        @Binding(BindingKind.INJECTED)
+        CollectExpressions collectInternalExpr();
+
         @Override
         default IRNode apply(IRNode node) {
             return node.transformChildren(this);
@@ -69,7 +197,7 @@ public class SsaPhase implements Phase {
         StmtLabeled entry = new StmtLabeled("ProgramEntry", null);
         StmtLabeled exit = new StmtLabeled("ProgramExit", null);
 
-        LinkedList<StmtLabeled> sub = iterateSubStmts(stmts);
+        LinkedList<StmtLabeled> sub = iterateSubStmts(stmts, exit);
         wireRelations(sub, entry, exit);
 
         return (node == ReturnNode.ROOT) ? entry : exit;
@@ -96,7 +224,7 @@ public class SsaPhase implements Phase {
                 stmt instanceof StmtRead;
     }
 
-    private static LinkedList<StmtLabeled> iterateSubStmts(List<Statement> stmts) {
+    private static LinkedList<StmtLabeled> iterateSubStmts(List<Statement> stmts, StmtLabeled exitBlock) {
         LinkedList<StmtLabeled> currentBlocks = new LinkedList<>();
 
         for (Statement currentStmt : stmts) {
@@ -105,17 +233,17 @@ public class SsaPhase implements Phase {
             if (isTerminalStmt(currentStmt)) {
                 currentBlocks.add(createTerminalBlock(currentStmt));
             } else if (currentStmt instanceof StmtWhile) {
-                currentBlocks.add(createWhileBlock((StmtWhile) currentStmt));
+                currentBlocks.add(createWhileBlock((StmtWhile) currentStmt, exitBlock));
             } else if (currentStmt instanceof StmtIf) {
-                currentBlocks.add(createIfBlock((StmtIf) currentStmt));
+                currentBlocks.add(createIfBlock((StmtIf) currentStmt, exitBlock));
             } else if (currentStmt instanceof StmtBlock) {
-                currentBlocks.add(createStmtBlock((StmtBlock) currentStmt));
+                currentBlocks.add(createStmtBlock((StmtBlock) currentStmt, exitBlock));
             } else if (currentStmt instanceof StmtCase) {
-                currentBlocks.add(createCaseBlock((StmtCase) currentStmt));
+                currentBlocks.add(createCaseBlock((StmtCase) currentStmt, exitBlock));
             } else if (currentStmt instanceof StmtForeach) {
-                currentBlocks.add(createForEachBlock((StmtForeach) currentStmt));
+                currentBlocks.add(createForEachBlock((StmtForeach) currentStmt, exitBlock));
             } else if (currentStmt instanceof StmtReturn) {
-                //TODO is a return always at the end of a stmtsList?
+                currentBlocks.add(createReturnBlock((StmtReturn) currentStmt, exitBlock));
             } else if (currentStmt instanceof StmtAssignment) {
                 currentBlocks.add(createStmtAssignment((StmtAssignment) currentStmt));
             } else throw new NoClassDefFoundError("Unknown Stmt type");
@@ -138,7 +266,8 @@ public class SsaPhase implements Phase {
                 next = it.next();
                 it.previous();
             } else {
-                next = succ;
+                //if last stmt is a return stmt, go to the end of the program
+                next = (current.getOriginalStmt() instanceof StmtReturn) ? current.getSuccessors().get(0) : succ;
             }
             if (current.lastIsNull()) {
                 current.setRelations(ImmutableList.concat(ImmutableList.of(prev), ImmutableList.from(current.getPredecessors())),
@@ -155,24 +284,30 @@ public class SsaPhase implements Phase {
         succ.setPredecessors(ImmutableList.concat(succ.getPredecessors(), ImmutableList.of(currentBlocks.getLast().getExitBlock())));
     }
 
-    private static StmtLabeled createIfBlock(StmtIf stmt) {
+    private static StmtLabeled createReturnBlock(StmtReturn stmt, StmtLabeled exitBlock) {
+        StmtLabeled stmtRet = new StmtLabeled(assignLabel(stmt), stmt);
+        stmtRet.setSuccessors(ImmutableList.of(exitBlock));
+        return stmtRet;
+    }
+
+    private static StmtLabeled createIfBlock(StmtIf stmt, StmtLabeled exitBlock) {
 
         StmtLabeled stmtIfLabeled = new StmtLabeled(assignLabel(stmt), stmt);
         StmtLabeled ifExitBuffer = new StmtLabeled(assignBufferLabel(stmt, false), null);
 
-        LinkedList<StmtLabeled> ifBlocks = iterateSubStmts(stmt.getThenBranch());
-        LinkedList<StmtLabeled> elseBlocks = iterateSubStmts(stmt.getElseBranch());
+        LinkedList<StmtLabeled> ifBlocks = iterateSubStmts(stmt.getThenBranch(), exitBlock);
+        LinkedList<StmtLabeled> elseBlocks = iterateSubStmts(stmt.getElseBranch(), exitBlock);
 
         wireRelations(ifBlocks, stmtIfLabeled, ifExitBuffer);
         wireRelations(elseBlocks, stmtIfLabeled, ifExitBuffer);
         stmtIfLabeled.setExit(ifExitBuffer);
-        //TODO make immutable
+
         return stmtIfLabeled;
     }
 
-    private static StmtLabeled createWhileBlock(StmtWhile stmt) {
+    private static StmtLabeled createWhileBlock(StmtWhile stmt, StmtLabeled exitBlock) {
         ImmutableList<Statement> stmts = stmt.getBody();
-        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmts);
+        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmts, exitBlock);
 
         StmtLabeled stmtWhileLabeled = new StmtLabeled(assignLabel(stmt), stmt);
 
@@ -192,7 +327,7 @@ public class SsaPhase implements Phase {
         return new StmtLabeled(assignLabel(stmt), stmt);
     }
 
-    private static StmtLabeled createStmtBlock(StmtBlock stmt) {
+    private static StmtLabeled createStmtBlock(StmtBlock stmt, StmtLabeled exitBlock) {
 
         StmtLabeled stmtBlockLabeled = new StmtLabeled(assignLabel(stmt), stmt);
 
@@ -201,7 +336,7 @@ public class SsaPhase implements Phase {
         localVarDecls.forEach(v -> stmtBlockLabeled.addLocalValueNumber(v.withName(getNewLocalValueName(v.getOriginalName())), false));
 
         List<Statement> body = stmt.getStatements();
-        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(body);
+        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(body, exitBlock);
 
         StmtLabeled stmtBlockExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
         wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockExit);
@@ -222,21 +357,27 @@ public class SsaPhase implements Phase {
         return stmtAssignLabeled;
     }
 
-    private static StmtLabeled createCaseBlock(StmtCase stmt) {
+    private static StmtLabeled createCaseBlock(StmtCase stmt, StmtLabeled exitBlock) {
         StmtLabeled stmtCaseLabeled = new StmtLabeled(assignLabel(stmt), stmt);
         StmtLabeled stmtCaseExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
 
         for (StmtCase.Alternative alt : stmt.getAlternatives()) {
-            LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(alt.getStatements());
+            LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(alt.getStatements(), exitBlock);
             wireRelations(currentBlocks, stmtCaseLabeled, stmtCaseExit);
         }
         stmtCaseLabeled.setExit(stmtCaseExit);
         return stmtCaseLabeled;
     }
 
-    private static StmtLabeled createForEachBlock(StmtForeach stmt) {
-        //TODO check
-        return createStmtBlock(new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), stmt.getBody()));
+    private static StmtLabeled createForEachBlock(StmtForeach stmt, StmtLabeled exitBlock) {
+        StmtLabeled stmtFELabeled = new StmtLabeled(assignLabel(stmt), stmt);
+        StmtLabeled stmtFEExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
+
+        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmt.getBody(), exitBlock);
+        wireRelations(currentBlocks, stmtFELabeled, stmtFEExit);
+
+        stmtFELabeled.setExit(stmtFEExit);
+        return stmtFELabeled;
     }
 
 
@@ -290,10 +431,11 @@ public class SsaPhase implements Phase {
 
     private static Variable findSelfReference(List<Expression> operands, LocalVarDecl originalStmt) {
         //find variable corresponding to local var declaration in operands of BinaryExpr or return null
-        Optional<Expression> selfVar = operands.stream().filter(o -> (o instanceof ExprVariable && originalStmt.getOriginalName().equals(((ExprVariable) o).getVariable().getOriginalName()))).findAny();
-        return selfVar.map(expression -> ((ExprVariable) expression).getVariable()).orElse(null);
-        //oneliner
-        //return operands.stream().filter(o -> (o instanceof ExprVariable && originalStmt.getOriginalName().equals(((ExprVariable) o).getVariable().getOriginalName()))).findAny().map(expression -> ((ExprVariable) expression).getVariable()).orElse(null);
+        return operands.stream()
+                .filter(o -> (o instanceof ExprVariable && originalStmt.getOriginalName().equals(((ExprVariable) o).getVariable().getOriginalName())))
+                .findAny()
+                .map(expression -> ((ExprVariable) expression).getVariable())
+                .orElse(null);
     }
 
     //Respects Statements immutability
@@ -325,25 +467,6 @@ public class SsaPhase implements Phase {
                 stmt instanceof StmtWhile;
     }
 
-    private static List<Expression> getExpressions(Statement stmt) {
-        LinkedList<Expression> expr = new LinkedList<>();
-        if (stmt instanceof StmtAssignment) {
-            expr.add(((StmtAssignment) stmt).getExpression());
-        } else if (stmt instanceof StmtCall) {
-            expr.addAll(((StmtCall) stmt).getArgs());
-        } else if (stmt instanceof StmtForeach) {
-            expr.addAll(((StmtForeach) stmt).getFilters());
-        } else if (stmt instanceof StmtIf) {
-            expr.add(((StmtIf) stmt).getCondition());
-        } else if (stmt instanceof StmtReturn) {
-            expr.add(((StmtReturn) stmt).getExpression());
-        } else if (stmt instanceof StmtWhile) {
-            expr.add(((StmtWhile) stmt).getCondition());
-        } else if (stmt instanceof StmtBlock) {
-            ((StmtBlock) stmt).getVarDecls().forEach(vd -> expr.add(vd.getValue()));
-        }
-        return expr;
-    }
 
     //TODO check for all cases if expr are needed or not
     //TODO check if potential infinite loops
