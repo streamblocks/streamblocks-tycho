@@ -1,5 +1,0 @@
-MyWire
-Sinking A : 10
-Sinking B : 5
-double free or corruption (fasttop)
-Aborted (core dumped)

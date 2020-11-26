@@ -1,11 +1,6 @@
 {
     "description": "Namespace with template actors test",
     "source-paths": ["src"],
-    "entity": "net.SourceSink",
-    "test-data": [
-        {
-            "input": [],
-            "reference": ["data/ref.txt"]
-        }
-    ]
+    "check-paths": ["check"],
+    "entity": "net.SourceSink"
 }

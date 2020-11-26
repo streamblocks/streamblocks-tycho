@@ -498,6 +498,10 @@ public interface Types {
 
         Type computeLValueType(LValue lvalue);
 
+        default Type computeLValueType(LValuePortIndexer writeIndexer){
+            return portType(writeIndexer.getPort());
+        }
+
         default Type computeLValueType(LValueVariable var) {
             return declaredType(variables().declaration(var.getVariable()));
         }
@@ -812,6 +816,12 @@ public interface Types {
         default Type computeType(ExprGlobalVariable var) {
             VarDecl decl = globalNames().varDecl(var.getGlobalName(), true);
             return declaredType(decl);
+        }
+
+        default Type computeType(ExprPortIndexer inputIndexer){
+            Port port = inputIndexer.getPort();
+            PortDecl decl = ports().declaration(port);
+            return declaredPortType(decl);
         }
 
         default Type computeType(ExprBinaryOp binary) {

@@ -50,7 +50,7 @@ public class LiftScopesPhase implements Phase {
 
     @Override
     public String getDescription() {
-        return "Lifts actor machien scopes to conditions or transitions when only used from one place.";
+        return "Lifts actor machine scopes to conditions or transitions when only used from one place.";
     }
 
     @Override
