@@ -47,6 +47,10 @@ public class StmtLabeled extends Statement {
     }
 
 
+    public String getLabel() {
+        return label;
+    }
+
     public boolean hasBeenVisted() {
         return ssaHasBeenVisted;
     }
@@ -65,6 +69,10 @@ public class StmtLabeled extends Statement {
         valueNumbering.add(localValueNumber);*/
     }
 
+    public boolean hasPredecessors(){
+        return !predecessors.isEmpty();
+    }
+
     public void addLocalValueNumber(Map<LocalVarDecl, Boolean> lvnList){
         lvnList.forEach(this::addLocalValueNumber);
     }
@@ -72,6 +80,19 @@ public class StmtLabeled extends Statement {
     public Map<LocalVarDecl, Boolean> getLocalValueNumbers() {
 
         return new HashMap<>(valueNumbering);
+    }
+
+    public LocalVarDecl containsVarDef(String originalName){
+        boolean contained = false;
+        int i = 0;
+        List<LocalVarDecl> lvd = new LinkedList<>(valueNumbering.keySet());
+        while (i < valueNumbering.size() && !contained) {
+            if (lvd.get(i).getOriginalName().equals(originalName)) {
+                contained = true;
+            }
+            ++i;
+        }
+        return (contained) ? lvd.get(i) : null;
     }
 
     public Statement getOriginalStmt() {

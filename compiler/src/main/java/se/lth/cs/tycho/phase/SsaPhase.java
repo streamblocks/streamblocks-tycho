@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.phase;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import javafx.util.Pair;
 import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
@@ -19,7 +19,6 @@ import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,12 +27,12 @@ import static se.lth.cs.tycho.ir.Variable.variable;
 
 public class SsaPhase implements Phase {
 
-    private final CollectStatements collector;
-    private final CollectExpressions exprCollector;
+    private static CollectStatements collector = null;
+    private static CollectExpressions exprCollector = null;
 
     public SsaPhase() {
-        this.collector = MultiJ.from(CollectStatements.class).instance();
-        this.exprCollector = MultiJ.from(CollectExpressions.class).instance();
+        collector = MultiJ.from(CollectStatements.class).instance();
+        exprCollector = MultiJ.from(CollectExpressions.class).instance();
     }
 
     @Override
@@ -45,9 +44,11 @@ public class SsaPhase implements Phase {
     @Override
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
         CollectStatements collector = MultiJ.from(CollectStatements.class).instance();
+        CollectExpressions exprCollector = MultiJ.from(CollectExpressions.class).instance();
 
         Transformation transformation = MultiJ.from(SsaPhase.Transformation.class)
                 .bind("collector").to(collector)
+                .bind("exprCollector").to(exprCollector)
                 .instance();
 
         return task.transformChildren(transformation);
@@ -90,70 +91,89 @@ public class SsaPhase implements Phase {
     }
 
     @Module
-    interface CollectExpressions{
-        List<Expression>collectInternalExpr(Expression e);
+    interface CollectExpressions {
+        List<Expression> collectInternalExpr(Expression e);
+
         default List<Expression> collectInternalExpr(ExprApplication app) {
             return new LinkedList<>(app.getArgs());
         }
-        default List<Expression> collectInternalExpr(ExprBinaryOp bin){
+
+        default List<Expression> collectInternalExpr(ExprBinaryOp bin) {
             return new LinkedList<>(bin.getOperands());
         }
-        default List<Expression> collectInternalExpr(ExprCase casee){
+
+        default List<Expression> collectInternalExpr(ExprCase casee) {
             return new LinkedList<>(Collections.singletonList(casee.getScrutinee()));
         }
-        default List<Expression>collectInternalExpr(ExprCase.Alternative alt){
+
+        default List<Expression> collectInternalExpr(ExprCase.Alternative alt) {
             return new LinkedList<>(Collections.singletonList(alt.getExpression()));
         }
-        default List<Expression>collectInternalExpr(ExprComprehension comp){
+
+        default List<Expression> collectInternalExpr(ExprComprehension comp) {
             return new LinkedList<>(comp.getFilters());
         }
-        default List<Expression>collectInternalExpr(ExprDeref deref){
+
+        default List<Expression> collectInternalExpr(ExprDeref deref) {
             return new LinkedList<>(Collections.singletonList(deref.getReference()));
         }
-        default List<Expression>collectInternalExpr(ExprIf eif){
+
+        default List<Expression> collectInternalExpr(ExprIf eif) {
             return new LinkedList<>(Arrays.asList(eif.getCondition(), eif.getElseExpr(), eif.getThenExpr()));
         }
-        default List<Expression>collectInternalExpr(ExprLambda lambda){
+
+        default List<Expression> collectInternalExpr(ExprLambda lambda) {
             return new LinkedList<>(Collections.singletonList(lambda.getBody()));
         }
-        default List<Expression>collectInternalExpr(ExprList list){
+
+        default List<Expression> collectInternalExpr(ExprList list) {
             return new LinkedList<>(list.getElements());
         }
-        default List<Expression>collectInternalExpr(ExprSet set){
+
+        default List<Expression> collectInternalExpr(ExprSet set) {
             return new LinkedList<>(set.getElements());
         }
-        default List<Expression>collectInternalExpr(ExprTuple tuple){
+
+        default List<Expression> collectInternalExpr(ExprTuple tuple) {
             return new LinkedList<>(tuple.getElements());
         }
-        default List<Expression>collectInternalExpr(ExprTypeConstruction typeConstr){
+
+        default List<Expression> collectInternalExpr(ExprTypeConstruction typeConstr) {
             return new LinkedList<>(typeConstr.getArgs());
         }
-        default List<Expression>collectInternalExpr(ExprUnaryOp unary){
+
+        default List<Expression> collectInternalExpr(ExprUnaryOp unary) {
             return new LinkedList<>(Collections.singletonList(unary.getOperand()));
         }
 
-        default List<Expression>collectInternalExpr(ExprVariable var){
+        default List<Expression> collectInternalExpr(ExprVariable var) {
             return new LinkedList<>();
         }
-        default List<Expression>collectInternalExpr(ExprField field){
+
+        default List<Expression> collectInternalExpr(ExprField field) {
             return new LinkedList<>(Collections.singletonList(field.getStructure()));
         }
-        default List<Expression>collectInternalExpr(ExprNth nth){
+
+        default List<Expression> collectInternalExpr(ExprNth nth) {
             return new LinkedList<>(Collections.singletonList(nth.getStructure()));
         }
-        default List<Expression>collectInternalExpr(ExprTypeAssertion typeAssert){
+
+        default List<Expression> collectInternalExpr(ExprTypeAssertion typeAssert) {
             return new LinkedList<>(Collections.singletonList(typeAssert.getExpression()));
         }
+
         //TODO check
-        default List<Expression>collectInternalExpr(ExprIndexer indexer){
+        default List<Expression> collectInternalExpr(ExprIndexer indexer) {
             //TODO
             return new LinkedList<>(Arrays.asList(indexer.getStructure(), indexer.getStructure()));
         }
-        default List<Expression>collectInternalExpr(ExprLet let){
+
+        default List<Expression> collectInternalExpr(ExprLet let) {
             //TODO
             return new LinkedList<>();
         }
-        default List<Expression>collectInternalExpr(ExprMap map){
+
+        default List<Expression> collectInternalExpr(ExprMap map) {
             //TODO
             return new LinkedList<>();
         }
@@ -383,6 +403,80 @@ public class SsaPhase implements Phase {
 
     //--------------- SSA Algorithm Application ---------------//
 
+    private static void recApplySSAExpr(StmtLabeled stmtLabeled) {
+        if (stmtLabeled.hasPredecessors() || stmtLabeled.hasBeenVisted()) {
+            return;
+        }
+        //TODO^
+/*
+        Statement originalStmt = stmtLabeled.getOriginalStmt();
+        if (originalStmt != null) {
+            List<Expression> stmtExpr = collector.collect(originalStmt);
+            stmtExpr.forEach(e -> {
+                List<Expression> internalExpr = exprCollector.collectInternalExpr(e);
+                internalExpr.forEach(resolveSSAName(e)););
+            });
+        }
+        List<Expression> expr =*/
+
+
+    }
+
+    private static Pair<LocalVarDecl, Integer> resolveSSAName(StmtLabeled stmt, Expression e, int recLvl) {
+        if (stmt.getLabel().equals("ProgramEntry")) {
+            //Reaches top without finding definition
+            return new Pair<>(null, -1);
+        }
+
+        if (e instanceof ExprVariable) {
+            String originalVarRef = ((ExprVariable) e).getVariable().getOriginalName();
+            LocalVarDecl localVarDecl = stmt.containsVarDef(originalVarRef);
+            if (localVarDecl == null) {
+
+                //TODO handle case where no assignment of a variable happen to a phi situation variable. This means there's no SSA available
+
+                List<Pair<LocalVarDecl, Integer>> prevVarFound = new LinkedList<>();
+                stmt.getPredecessors().forEach(pred -> prevVarFound.add(resolveSSAName(pred, e, recLvl + 1)));
+
+                //TODO check logic
+                boolean foundPhi = false;
+                int nb_found = 0;
+                int smallest = Integer.MAX_VALUE;
+                for (Pair p : prevVarFound) {
+                    int recValue = (int) p.getValue();
+                    if (recValue <= smallest) {
+                        if (recValue == smallest) {
+                            foundPhi = false;
+                        } else {
+                            smallest = recValue;
+                            foundPhi = ((LocalVarDecl) p.getKey()).getValue() instanceof ExprPhi;
+                        }
+
+                        if (recValue != -1) {
+                            ++nb_found;
+                        }
+
+                    }
+                }
+            if (nb_found > 0){
+                if(!foundPhi){
+                //TODO must apply algorithm
+                } else {
+                    //TODO return what's been found
+                }
+            } else {
+                //TODO nothing found, return error
+            }
+
+            //found locally
+        } else {
+            return new Pair<>(localVarDecl, recLvl);
+        }
+    }
+        return null;
+}
+
+
     private static void recApplySSA(StmtLabeled stmtLabeled) {
         //Stop recursion at the top of the cfg
         if (stmtLabeled.getPredecessors().isEmpty() || stmtLabeled.hasBeenVisted()) {
@@ -469,7 +563,7 @@ public class SsaPhase implements Phase {
 
 
     //TODO check for all cases if expr are needed or not
-    //TODO check if potential infinite loops
+//TODO check if potential infinite loops
     private static List<ExprVariable> recFindExprVar(Expression expr) {
         List<ExprVariable> exprVar = new LinkedList<>();
         List<Expression> subExpr = new LinkedList<>();
