@@ -186,7 +186,7 @@ public class SsaPhase implements Phase {
         CollectStatements collector();
 
         @Binding(BindingKind.INJECTED)
-        CollectExpressions collectInternalExpr();
+        CollectExpressions exprCollector();
 
         @Override
         default IRNode apply(IRNode node) {
@@ -196,6 +196,7 @@ public class SsaPhase implements Phase {
         default IRNode apply(ExprProcReturn proc) {
             //StmtLabeled rootCFG = create_CFG(proc, ReturnNode.ROOT);
             StmtLabeled exitCFG = create_CFG(proc, ReturnNode.EXIT);
+            //recApplySSAComplete(exitCFG);
             recApplySSA(exitCFG);
 
             return proc;
@@ -403,78 +404,109 @@ public class SsaPhase implements Phase {
 
     //--------------- SSA Algorithm Application ---------------//
 
-    private static void recApplySSAExpr(StmtLabeled stmtLabeled) {
+    private static void recApplySSAComplete(StmtLabeled stmtLabeled) {
+        //Stop recursion at the top of the cfg
         if (stmtLabeled.hasPredecessors() || stmtLabeled.hasBeenVisted()) {
             return;
         }
-        //TODO^
-/*
-        Statement originalStmt = stmtLabeled.getOriginalStmt();
-        if (originalStmt != null) {
-            List<Expression> stmtExpr = collector.collect(originalStmt);
-            stmtExpr.forEach(e -> {
-                List<Expression> internalExpr = exprCollector.collectInternalExpr(e);
-                internalExpr.forEach(resolveSSAName(e)););
-            });
+
+        //read variable in declarations and assignments
+        LinkedList<LocalVarDecl> lvd = new LinkedList<>(stmtLabeled.getLocalValueNumbers().keySet());
+        lvd.removeIf(lv -> lv.getValue() instanceof ExprPhi || stmtLabeled.getLocalValueNumbers().get(lv)); //if ExprPhi or lvd has already been visited
+        if (!lvd.isEmpty()) {
+            lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(recReadLocalVarExpr(l.getValue(), stmtLabeled)), true));
         }
-        List<Expression> expr =*/
 
+        //read variables in expressions
+        List<Expression> exprInStmt = collector.collect(stmtLabeled.getOriginalStmt());
+        exprInStmt.forEach(e -> readSubExpr(e, stmtLabeled));
 
+        stmtLabeled.setFinalLVNResults();
+        stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
+        stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
     }
 
-    private static Pair<LocalVarDecl, Integer> resolveSSAName(StmtLabeled stmt, Expression e, int recLvl) {
+    private static void readSubExpr(Expression expr, StmtLabeled stmtLabeled) {
+        List<Expression> subExpr = exprCollector.collectInternalExpr(expr);
+        if (subExpr.isEmpty()) {
+            if (expr instanceof ExprVariable) {
+                Pair<LocalVarDecl, Integer> resPair = resolveSSAName(stmtLabeled, (ExprVariable) expr, 0);
+                if (resPair.getKey() != null && resPair.getValue() >= 0) {
+                    // stmtLabeled.addLVNResult((ExprVariable) expr, resPair.getKey());
+                } //TODO check if error handling is needed
+            }
+            //Expression has no sub expressions and is not a variable
+        } else {
+            //recursively look through each sub expressions
+            subExpr.forEach(subE -> readSubExpr(subE, stmtLabeled));
+        }
+    }
+
+
+    private static Pair<LocalVarDecl, Integer> resolveSSAName(StmtLabeled stmt, ExprVariable exprVariable, int recLvl) {
+        //Reaches top without finding definition
         if (stmt.getLabel().equals("ProgramEntry")) {
-            //Reaches top without finding definition
             return new Pair<>(null, -1);
         }
 
-        if (e instanceof ExprVariable) {
-            String originalVarRef = ((ExprVariable) e).getVariable().getOriginalName();
-            LocalVarDecl localVarDecl = stmt.containsVarDef(originalVarRef);
-            if (localVarDecl == null) {
+        String originalVarRef = exprVariable.getVariable().getOriginalName();
+        LocalVarDecl localVarDecl = stmt.containsVarDef(originalVarRef);
 
-                //TODO handle case where no assignment of a variable happen to a phi situation variable. This means there's no SSA available
+        //found locally
+        if (localVarDecl != null) {
+            /*if (recLvl == 0) {
+                stmt.addLVNResult(exprVariable, localVarDecl);
+            }*/
+            return new Pair<>(localVarDecl, recLvl);
+        } else {
+            //TODO handle case where no assignment of a variable happen to a phi situation variable. This means there's no SSA available
+            List<Pair<LocalVarDecl, Integer>> prevVarFound = new LinkedList<>();
+            stmt.getPredecessors().forEach(pred -> prevVarFound.add(resolveSSAName(pred, exprVariable, recLvl + 1)));
 
-                List<Pair<LocalVarDecl, Integer>> prevVarFound = new LinkedList<>();
-                stmt.getPredecessors().forEach(pred -> prevVarFound.add(resolveSSAName(pred, e, recLvl + 1)));
+            //TODO check logic
+            boolean foundPhi = false;
+            int nb_found = 0;
+            int smallest = Integer.MAX_VALUE;
+            int resIndex = -1;
 
-                //TODO check logic
-                boolean foundPhi = false;
-                int nb_found = 0;
-                int smallest = Integer.MAX_VALUE;
-                for (Pair p : prevVarFound) {
-                    int recValue = (int) p.getValue();
+            for (int i = 0; i < prevVarFound.size(); ++i) {
+                Pair<LocalVarDecl, Integer> currentPair = prevVarFound.get(i);
+                int recValue = currentPair.getValue();
+                //found a definition
+                if (recValue != -1) {
                     if (recValue <= smallest) {
+                        //found two definitions in direct predecessors, meaning no phi was available in original block
                         if (recValue == smallest) {
                             foundPhi = false;
                         } else {
+                            //found two definitions in different levels of predecessors, so must check if closest to original block is already a phi
                             smallest = recValue;
-                            foundPhi = ((LocalVarDecl) p.getKey()).getValue() instanceof ExprPhi;
+                            foundPhi = currentPair.getKey().getValue() instanceof ExprPhi;
                         }
-
-                        if (recValue != -1) {
-                            ++nb_found;
-                        }
-
+                        resIndex = i;
                     }
+                    ++nb_found;
                 }
-            if (nb_found > 0){
-                if(!foundPhi){
-                //TODO must apply algorithm
-                } else {
-                    //TODO return what's been found
-                }
-            } else {
-                //TODO nothing found, return error
             }
 
-            //found locally
-        } else {
-            return new Pair<>(localVarDecl, recLvl);
+            if (nb_found > 0) {
+                Pair<LocalVarDecl, Integer> resultPair = prevVarFound.get(resIndex);
+                if (!foundPhi) {
+                    //had to add get a new lvd
+                    LocalVarDecl lvd = readVar(stmt, exprVariable.getVariable());
+                    stmt.addLocalValueNumber(lvd, true);
+                    //stmt.addLVNResult(exprVariable, lvd);
+                    return new Pair<>(lvd, resultPair.getValue());
+                } else {
+                    //stmt.addLVNResult(exprVariable, resultPair.getKey());
+                    return resultPair;
+                }
+            } else {
+                //nothing found
+                throw new IllegalStateException("No definitions for this variable found in the program up to this expression");
+            }
         }
     }
-        return null;
-}
 
 
     private static void recApplySSA(StmtLabeled stmtLabeled) {
@@ -503,6 +535,7 @@ public class SsaPhase implements Phase {
 
             LocalVarDecl result = readVar(stmtLabeled, ((ExprVariable) expr).getVariable());
             ExprVariable newVar = ((ExprVariable) expr).copy(variable(result.getName()), ((ExprVariable) expr).getOld());
+            stmtLabeled.addLVNResult((ExprVariable)expr, null);
             return newVar;
 
         } else if (expr instanceof ExprBinaryOp) {
@@ -517,7 +550,7 @@ public class SsaPhase implements Phase {
             Expression newOperand = recReadLocalVarExpr(((ExprUnaryOp) expr).getOperand(), stmtLabeled);
             ExprUnaryOp newVar = ((ExprUnaryOp) expr).copy(((ExprUnaryOp) expr).getOperation(), newOperand);
             return newVar;
-            //TODO
+            //TODO ExprIf
         } else {
             return null;
         }
@@ -532,98 +565,7 @@ public class SsaPhase implements Phase {
                 .orElse(null);
     }
 
-    //Respects Statements immutability
-    private static Statement setSsaResult(Statement stmt, List<Expression> ssaExpr) {
-        if (stmt instanceof StmtAssignment) {
-            return ((StmtAssignment) stmt).copy(((StmtAssignment) stmt).getLValue(), ssaExpr.get(0));
-        } else if (stmt instanceof StmtCall) {
-            return ((StmtCall) stmt).copy(((StmtCall) stmt).getProcedure(), ssaExpr);
-        } else if (stmt instanceof StmtForeach) {
-            return ((StmtForeach) stmt).copy(((StmtForeach) stmt).getGenerator(), ssaExpr, ((StmtForeach) stmt).getBody());
-        } else if (stmt instanceof StmtIf) {
-            return ((StmtIf) stmt).copy(ssaExpr.get(0), ((StmtIf) stmt).getThenBranch(), ((StmtIf) stmt).getElseBranch());
-        } else if (stmt instanceof StmtReturn) {
-            return ((StmtReturn) stmt).copy(ssaExpr.get(0));
-        } else if (stmt instanceof StmtWhile) {
-            return ((StmtWhile) stmt).copy(ssaExpr.get(0), ((StmtWhile) stmt).getBody());
-        } else {
-            return stmt;
-        }
-    }
 
-    //TODO check if additions are needed
-    private static boolean containsExpression(Statement stmt) {
-        return stmt instanceof StmtAssignment ||
-                stmt instanceof StmtCall ||
-                stmt instanceof StmtForeach ||
-                stmt instanceof StmtIf ||
-                stmt instanceof StmtReturn ||
-                stmt instanceof StmtWhile;
-    }
-
-
-    //TODO check for all cases if expr are needed or not
-//TODO check if potential infinite loops
-    private static List<ExprVariable> recFindExprVar(Expression expr) {
-        List<ExprVariable> exprVar = new LinkedList<>();
-        List<Expression> subExpr = new LinkedList<>();
-
-        if (expr instanceof ExprApplication) {
-            subExpr.addAll(((ExprApplication) expr).getArgs());
-
-        } else if (expr instanceof ExprBinaryOp) {
-            subExpr.addAll(((ExprBinaryOp) expr).getOperands());
-
-        } else if (expr instanceof ExprCase) {
-            subExpr.add(((ExprCase) expr).getScrutinee());
-            ((ExprCase) expr).getAlternatives().forEach(a -> subExpr.add(a.getExpression()));
-
-        } else if (expr instanceof ExprComprehension) { //TODO check collection
-            subExpr.addAll(((ExprComprehension) expr).getFilters());
-
-        } else if (expr instanceof ExprDeref) {
-            subExpr.add(((ExprDeref) expr).getReference());
-
-        } else if (expr instanceof ExprIf) {
-            subExpr.addAll(new ArrayList<>(Arrays.asList(((ExprIf) expr).getCondition(), ((ExprIf) expr).getElseExpr(), ((ExprIf) expr).getThenExpr())));
-
-        } else if (expr instanceof ExprLambda) {
-            subExpr.add(((ExprLambda) expr).getBody());
-
-        } else if (expr instanceof ExprList) {
-            subExpr.addAll(((ExprList) expr).getElements());
-
-        } else if (expr instanceof ExprSet) {
-            subExpr.addAll(((ExprSet) expr).getElements());
-
-        } else if (expr instanceof ExprTuple) {
-            subExpr.addAll(((ExprTuple) expr).getElements());
-
-        } else if (expr instanceof ExprTypeConstruction) {
-            subExpr.addAll(((ExprTypeConstruction) expr).getArgs());
-
-        } else if (expr instanceof ExprUnaryOp) {
-            subExpr.add(((ExprUnaryOp) expr).getOperand());
-
-        } else if (expr instanceof ExprVariable) {
-            exprVar.add((ExprVariable) expr);
-            return exprVar;
-
-        }//TODO check all necessary cases;
-        else if (expr instanceof ExprLet) {
-            //TODO
-        } else if (expr instanceof ExprRef) {
-            //TODO
-        }
-        subExpr.forEach(e -> exprVar.addAll(recFindExprVar(e)));
-        return exprVar;
-    }
-
-    private static List<ExprVariable> findExprVar(List<Expression> expr) {
-        List<ExprVariable> exprVar = new LinkedList<>();
-        expr.forEach(e -> exprVar.addAll(recFindExprVar(e)));
-        return exprVar;
-    }
 
     //--------------- Local Value Numbering ---------------//
     private static HashMap<String, LocalVarDecl> originalLVD = new HashMap<>();
@@ -652,7 +594,8 @@ public class SsaPhase implements Phase {
 
 //--------------- SSA Algorithm ---------------//
 
-    private static Expression replaceVariableInExpr(Expression originalExpr, LocalVarDecl varToReplace, LocalVarDecl replacementVar, StmtLabeled stmt) {
+    private static Expression replaceVariableInExpr(Expression originalExpr, LocalVarDecl
+            varToReplace, LocalVarDecl replacementVar, StmtLabeled stmt) {
         //TODO add cases for other types of Expressions
         //Should work for interlocked ExprBinary
         if (originalExpr instanceof ExprBinaryOp) {
