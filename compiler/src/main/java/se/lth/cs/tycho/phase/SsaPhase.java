@@ -444,8 +444,11 @@ public class SsaPhase implements Phase {
 
     private static void readSubExpr(Expression expr, StmtLabeled stmtLabeled) {
         List<Expression> subExpr = exprCollector.collectInternalExpr(expr);
+
         if (subExpr.isEmpty()) {
-            if (expr instanceof ExprVariable && !stmtLabeled.varHasBeenVistied((ExprVariable) expr)) {
+            if (expr instanceof ExprVariable && !stmtLabeled.varHasBeenVisited((ExprVariable) expr)) {
+
+                //TODO handle name of variable put in final result to avoid duplicates
                 stmtLabeled.addNewLVNPair((ExprVariable) expr, null);
                 Pair<LocalVarDecl, Integer> resPair = resolveSSAName(stmtLabeled, (ExprVariable) expr, 0);
                 if (resPair.getKey() != null && resPair.getValue() >= 0) {
@@ -465,20 +468,18 @@ public class SsaPhase implements Phase {
             return new Pair<>(null, -1);
         }
 
-        if (stmt.varHasBeenVistied(exprVariable) && recLvl != 0) {
+        //self reference due to a loop
+        if (stmt.varHasBeenVisited(exprVariable) && recLvl != 0) {
             return new Pair<>(null, -2);
         }
-        //stmt.addNewLVNPair(exprVariable, null, true);
 
         String originalVarRef = exprVariable.getVariable().getOriginalName();
         LocalVarDecl localVarDecl = stmt.containsVarDef(originalVarRef);
 
         //found locally
         if (localVarDecl != null) {
-            /*if (recLvl == 0) {
-                stmt.addLVNResult(exprVariable, localVarDecl);
-            }*/
             return new Pair<>(localVarDecl, recLvl);
+
         } else {
             //TODO handle case where no assignment of a variable happen to a phi situation variable. This means there's no SSA available
             List<Pair<LocalVarDecl, Integer>> prevVarFound = new LinkedList<>();
@@ -557,7 +558,6 @@ public class SsaPhase implements Phase {
 
             LocalVarDecl result = readVar(stmtLabeled, ((ExprVariable) expr).getVariable());
             ExprVariable newVar = ((ExprVariable) expr).copy(variable(result.getName()), ((ExprVariable) expr).getOld());
-            //stmtLabeled.addLVNResult((ExprVariable) expr, null);
             return newVar;
 
         } else if (expr instanceof ExprBinaryOp) {

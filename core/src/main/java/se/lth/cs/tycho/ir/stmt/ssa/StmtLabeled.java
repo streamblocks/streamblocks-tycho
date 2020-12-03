@@ -23,12 +23,11 @@ public class StmtLabeled extends Statement {
     private ImmutableList<StmtLabeled> successors;
     private StmtLabeled exit;
     private final Map<LocalVarDecl, Boolean> valueNumbering;
-    private Map<ExprVariable, LocalVarDecl> valueNumberingResult;
-    private final Map<ExprVariable, LocalVarDecl> valueNumberingTest;
+    private final Map<ExprVariable, LocalVarDecl> valueNumberingResult;
     private boolean ssaHasBeenVisted;
 
     private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit,
-                        Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> valueNumberingResult, Map<ExprVariable, LocalVarDecl> valueNumberingTest, boolean ssaHasBeenVisted) {
+                        Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> valueNumberingResult, boolean ssaHasBeenVisted) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
@@ -38,15 +37,14 @@ public class StmtLabeled extends Statement {
         this.valueNumbering = valueNumbering;
         this.valueNumberingResult = valueNumberingResult;
         this.ssaHasBeenVisted = ssaHasBeenVisted;
-        this.valueNumberingTest = valueNumberingTest;
     }
 
     public StmtLabeled(String label, Statement originalStmt) {
-        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), new HashMap<>(), false);
+        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false);
     }
 
     private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit, Map<LocalVarDecl, Boolean> currentPhiExprs) {
-        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, new HashMap<>(), new HashMap<>(), false);
+        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, new HashMap<>(), false);
     }
 
     public StmtLabeled withNewOriginal(Statement originalStmt) {
@@ -70,32 +68,27 @@ public class StmtLabeled extends Statement {
         if(!containedVar.isEmpty()){
             valueNumbering.remove(containedVar.get(0));
         }
-        valueNumbering.put(localValueNumber, hasBeenVisited);/*
-        valueNumbering.removeIf(v -> v.getName().equals(localValueNumber.getName()));
-        valueNumbering.add(localValueNumber);*/
+        valueNumbering.put(localValueNumber, hasBeenVisited);
     }
 
-    public void addLVNResult(ExprVariable var, LocalVarDecl ssaResult){
-        valueNumberingResult.putIfAbsent(var, ssaResult);
-    }
 
     public void setFinalLVNResults(){
         List<LocalVarDecl> lvd = new LinkedList<>(valueNumbering.keySet());
         lvd.forEach(l -> valueNumberingResult.putIfAbsent(new ExprVariable(variable(l.getOriginalName())), l));
-        valueNumbering.clear();
+        //valueNumbering.clear();
     }
 
     public void addNewLVNPair(ExprVariable var, LocalVarDecl lvd) {
-        valueNumberingTest.putIfAbsent(var, lvd);
+        valueNumberingResult.putIfAbsent(var, lvd);
     }
 
     public void updateLVNPair(ExprVariable var, LocalVarDecl lvd){
-        valueNumberingTest.remove(var);
-        valueNumberingTest.put(var, lvd);
+        valueNumberingResult.remove(var);
+        valueNumberingResult.put(var, lvd);
     }
 
-    public boolean varHasBeenVistied(ExprVariable e){
-        return valueNumberingTest.containsKey(e) && valueNumberingTest.get(e) == null;
+    public boolean varHasBeenVisited(ExprVariable e){
+        return valueNumberingResult.containsKey(e) && valueNumberingResult.get(e) == null;
     }
 
     public boolean hasNoPredecessors(){
