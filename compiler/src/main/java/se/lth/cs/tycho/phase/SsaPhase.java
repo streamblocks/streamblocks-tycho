@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.phase;
 
-import javafx.util.Pair;
 import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
@@ -18,6 +17,7 @@ import se.lth.cs.tycho.ir.stmt.ssa.ExprPhi;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
+import se.lth.cs.tycho.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -89,7 +89,7 @@ public class SsaPhase implements Phase {
         //TODO localvardecl in stmtblock
 
     }
-
+    //--------------- Utils ---------------//
     @Module
     interface CollectExpressions {
         List<Expression> collectInternalExpr(Expression e);
@@ -206,6 +206,20 @@ public class SsaPhase implements Phase {
             return proc;
         }
     }
+
+    // -- Collect ExprInput
+    private static List<ExprVariable> collectExprVar(IRNode node) {
+        List<ExprVariable> reads = new ArrayList<>();
+        node.forEachChild(child -> reads.addAll(collectExprVar(child)));
+        return reads;
+    }
+
+    private static List<Statement> collectStmt(IRNode node){
+        List<Statement> reads = new ArrayList<>();
+        node.forEachChild(child -> reads.addAll(collectStmt(child)));
+        return reads;
+    }
+
 
     //--------------- CFG Generation ---------------//
 
@@ -437,22 +451,21 @@ public class SsaPhase implements Phase {
             }
         }
 
-        //stmtLabeled.setFinalLVNResults();
         stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
         stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSAComplete);
     }
 
     private static void readSubExpr(Expression expr, StmtLabeled stmtLabeled) {
-        List<Expression> subExpr = exprCollector.collectInternalExpr(expr);
 
+        List<Expression> subExpr = exprCollector.collectInternalExpr(expr);
         if (subExpr.isEmpty()) {
             if (expr instanceof ExprVariable && !stmtLabeled.varHasBeenVisited((ExprVariable) expr)) {
 
                 //TODO handle name of variable put in final result to avoid duplicates
                 stmtLabeled.addNewLVNPair((ExprVariable) expr, null);
                 Pair<LocalVarDecl, Integer> resPair = resolveSSAName(stmtLabeled, (ExprVariable) expr, 0);
-                if (resPair.getKey() != null && resPair.getValue() >= 0) {
-                    stmtLabeled.updateLVNPair((ExprVariable) expr, resPair.getKey());
+                if (resPair.getFirst() != null && resPair.getSecond() >= 0) {
+                    stmtLabeled.updateLVNPair((ExprVariable) expr, resPair.getFirst());
                 } //TODO check if error handling is needed
             }
             //Expression has no sub expressions and is not a variable
@@ -493,7 +506,7 @@ public class SsaPhase implements Phase {
 
             for (int i = 0; i < prevVarFound.size(); ++i) {
                 Pair<LocalVarDecl, Integer> currentPair = prevVarFound.get(i);
-                int recValue = currentPair.getValue();
+                int recValue = currentPair.getSecond();
                 //found a definition
                 if (recValue >= 0) {
                     if (recValue <= smallest) {
@@ -503,7 +516,7 @@ public class SsaPhase implements Phase {
                         } else {
                             //found two definitions in different levels of predecessors, so must check if closest to original block is already a phi
                             smallest = recValue;
-                            foundPhi = currentPair.getKey().getValue() instanceof ExprPhi;
+                            foundPhi = currentPair.getFirst().getValue() instanceof ExprPhi;
                         }
                         resIndex = i;
                     }
@@ -518,12 +531,12 @@ public class SsaPhase implements Phase {
                     LocalVarDecl lvd = readVar(stmt, exprVariable.getVariable());
                     stmt.addLocalValueNumber(lvd, true);
                     //stmt.addLVNResult(exprVariable, lvd);
-                    return new Pair<>(lvd, resultPair.getValue());
+                    return new Pair<>(lvd, resultPair.getSecond());
                 } else {
                     //stmt.addLVNResult(exprVariable, resultPair.getKey());
                     return resultPair;
                 }
-            } else if (prevVarFound.get(0).getValue() == -2) {
+            } else if (prevVarFound.get(0).getSecond() == -2) {
                 //self reference
                 return prevVarFound.get(0);
             } else {
@@ -572,9 +585,9 @@ public class SsaPhase implements Phase {
             return ((ExprUnaryOp) expr).copy(((ExprUnaryOp) expr).getOperation(), newOperand);
             //TODO ExprIf
         } else {
+    }
             return null;
         }
-    }
 
     private static Variable findSelfReference(List<Expression> operands, LocalVarDecl originalStmt) {
         //find variable corresponding to local var declaration in operands of BinaryExpr or return null
@@ -585,8 +598,13 @@ public class SsaPhase implements Phase {
                 .orElse(null);
     }
 
+    private static Statement applySSATransformation(StmtLabeled exit){
+
+    }
+
 
     //--------------- Local Value Numbering ---------------//
+
     private static HashMap<String, LocalVarDecl> originalLVD = new HashMap<>();
     private static HashMap<String, Integer> localValueCounter = new HashMap<>();
 
