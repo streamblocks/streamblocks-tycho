@@ -27,12 +27,14 @@ import static se.lth.cs.tycho.ir.Variable.variable;
 
 public class SsaPhase implements Phase {
 
-    private static CollectStatements collector = null;
+    private static CollectOrReplaceExprInStmt stmtCollector = null;
     private static CollectExpressions exprCollector = null;
+    private static ReplaceExprVar replaceExprVar = null;
 
     public SsaPhase() {
-        collector = MultiJ.from(CollectStatements.class).instance();
+        stmtCollector = MultiJ.from(CollectOrReplaceExprInStmt.class).instance();
         exprCollector = MultiJ.from(CollectExpressions.class).instance();
+        replaceExprVar = MultiJ.from(ReplaceExprVar.class).instance();
     }
 
     @Override
@@ -40,26 +42,37 @@ public class SsaPhase implements Phase {
         return "Applies SsaPhase transformation to ExprProcReturn";
     }
 
-
     @Override
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
-        CollectStatements collector = MultiJ.from(CollectStatements.class).instance();
+        CollectOrReplaceExprInStmt stmtCollector = MultiJ.from(CollectOrReplaceExprInStmt.class).instance();
         CollectExpressions exprCollector = MultiJ.from(CollectExpressions.class).instance();
+        ReplaceExprVar replaceExprVar = MultiJ.from(ReplaceExprVar.class).instance();
 
         Transformation transformation = MultiJ.from(SsaPhase.Transformation.class)
-                .bind("collector").to(collector)
+                .bind("stmtCollector").to(stmtCollector)
                 .bind("exprCollector").to(exprCollector)
+                .bind("replaceExprVar").to(replaceExprVar)
                 .instance();
 
         return task.transformChildren(transformation);
     }
 
+
+    //--------------- Utils ---------------//
+
     @Module
-    interface CollectStatements {
+    interface CollectOrReplaceExprInStmt {
+
+        Pair<List<? extends IRNode>, Expression> collectMultipleExpr(Statement s);
+
+        //TODO check if procedure can contain variable
+        default Pair<List<? extends IRNode>, Expression> collectMultipleExpr(StmtCall call){
+            return new Pair<>(call.getArgs(), call.getProcedure());
+        }
 
         List<Expression> collect(Statement s);
 
-        default List<Expression> collect(StmtCall call) {
+        default List<Expression> collect(StmtCall call){
             return new LinkedList<>(call.getArgs());
         }
 
@@ -67,12 +80,12 @@ public class SsaPhase implements Phase {
             return new LinkedList<>(Collections.singletonList(iff.getCondition()));
         }
 
-        default List<Expression> collect(StmtCase casee) {
-            return new LinkedList<>(Collections.singletonList(casee.getScrutinee()));
-        }
-
         default List<Expression> collect(StmtAssignment assignment) {
             return new LinkedList<>(Collections.singletonList(assignment.getExpression()));
+        }
+
+        default List<Expression> collect(StmtCase casee){
+            return new LinkedList<>(Collections.singletonList(casee.getScrutinee()));
         }
 
         default List<Expression> collect(StmtForeach forEach) {
@@ -86,10 +99,36 @@ public class SsaPhase implements Phase {
         default List<Expression> collect(StmtWhile whilee) {
             return new LinkedList<>(Collections.singletonList(whilee.getCondition()));
         }
-        //TODO localvardecl in stmtblock
 
+        Statement replaceSingleExpr(Statement s, Expression e);
+        Statement replaceListExpr(Statement s, List<Expression> e);
+        Statement replaceListAndSingleExpr(Statement s, Expression e, List<Expression> l);
+
+        default Statement replaceSingleExpr(StmtReturn ret, Expression retVal) {
+            return ret.copy(retVal);
+        }
+
+        default Statement replaceSingleExpr(StmtWhile whilee, Expression cond) {
+            return whilee.withCondition(cond);
+        }
+
+        default Statement replaceSingleExpr(StmtIf iff, Expression condition) {
+            return iff.withCondition(condition);
+        }
+
+        default Statement replaceSingelExpr(StmtCase casee, Expression scrut) {
+            return casee.copy(scrut, casee.getAlternatives());
+        }
+
+        default Statement replaceListExpr(StmtForeach foreach, List<Expression> filters) {
+            return foreach.withFilters(filters);
+        }
+
+        default Statement replaceListAndSingleExpr(StmtCall call, Expression procedure, List<Expression> args) {
+            return call.copy(procedure, args);
+        }
     }
-    //--------------- Utils ---------------//
+
     @Module
     interface CollectExpressions {
         List<Expression> collectInternalExpr(Expression e);
@@ -111,7 +150,9 @@ public class SsaPhase implements Phase {
         }
 
         default List<Expression> collectInternalExpr(ExprComprehension comp) {
-            return new LinkedList<>(comp.getFilters());
+            List<Expression> expr = new LinkedList<>(comp.getFilters());
+            expr.add(comp.getCollection());
+            return expr;
         }
 
         default List<Expression> collectInternalExpr(ExprDeref deref) {
@@ -184,13 +225,136 @@ public class SsaPhase implements Phase {
     }
 
     @Module
+    interface ReplaceExprVar {
+        //Expression replaceExprVar(Expression original, Map<ExprVariable, LocalVarDecl> replacements);
+
+        default Expression replaceExprVar(Expression original, Map<ExprVariable, LocalVarDecl> replacements) {
+            return original;
+        }
+
+        default Expression replaceExprVar(ExprVariable var, Map<ExprVariable, LocalVarDecl> replacements) {
+            //check that var is contained in the new mapping
+            if (replacements.containsKey(var)) {
+                ExprVariable res = var.copy(variable(replacements.get(var).getName()), var.getOld());
+                return res;
+            } else
+                throw new IllegalStateException("Local Value Numbering missed this variable or the replacement mapping argument is incomplete");
+        }
+
+        default Expression replaceExprVar(ExprIf iff, Map<ExprVariable, LocalVarDecl> replacements) {
+            Expression cond = replaceExprVar(iff.getCondition(), replacements);
+            Expression then = replaceExprVar(iff.getThenExpr(), replacements);
+            Expression elze = replaceExprVar(iff.getElseExpr(), replacements);
+            return new ExprIf(cond, then, elze);
+        }
+
+        default Expression replaceExprVar(ExprApplication app, Map<ExprVariable, LocalVarDecl> replacements) {
+            List<Expression> args = new LinkedList<>(app.getArgs());
+            args.replaceAll(arg -> replaceExprVar(arg, replacements));
+            return new ExprApplication(app.getFunction(), ImmutableList.from(args));
+        }
+
+        default Expression replaceExprVar(ExprBinaryOp binOp, Map<ExprVariable, LocalVarDecl> replacements) {
+            List<Expression> newOp = exprCollector.collectInternalExpr(binOp);
+            newOp.replaceAll(op -> replaceExprVar(op, replacements));
+            return new ExprBinaryOp(binOp.getOperations(), ImmutableList.from(newOp));
+        }
+
+        default Expression replaceExprVar(ExprCase casee, Map<ExprVariable, LocalVarDecl> replacements) {
+            List<Expression> scrut = exprCollector.collectInternalExpr(casee);
+            Expression newScrut = replaceExprVar(scrut.get(0), replacements);
+
+            List<ExprCase.Alternative> alts = casee.getAlternatives();
+            alts.replaceAll(alt -> new ExprCase.Alternative(alt.getPattern(), alt.getGuards(), replaceExprVar(exprCollector.collectInternalExpr(alt).get(0), replacements)));
+
+            return new ExprCase(newScrut, alts);
+        }
+
+        //default Expression replaceExprVar(ExprCase.Alternative alt, Map<ExprVariable, LocalVarDecl> replacements){}
+        default Expression replaceExprVar(ExprComprehension comp, Map<ExprVariable, LocalVarDecl> replacements) {
+            Expression collection = replaceExprVar(comp.getCollection(), replacements);
+            List<Expression> filters = comp.getFilters();
+            filters.replaceAll(f -> replaceExprVar(f, replacements));
+            return comp.copy(comp.getGenerator(), filters, collection);
+        }
+
+        default Expression replaceExprVar(ExprDeref deref, Map<ExprVariable, LocalVarDecl> replacements) {
+            return deref.withReference(replaceExprVar(deref.getReference(), replacements));
+        }
+
+        default Expression replaceExprVar(ExprLambda lambda, Map<ExprVariable, LocalVarDecl> replacements) {
+            return lambda.copy(lambda.getValueParameters(), replaceExprVar(lambda.getBody(), replacements), lambda.getReturnType());
+        }
+
+        default Expression replaceExprVar(ExprList list, Map<ExprVariable, LocalVarDecl> replacements) {
+            List<Expression> elems = list.getElements();
+            elems.replaceAll(e -> replaceExprVar(e, replacements));
+            return list.withElements(elems);
+        }
+
+        default Expression replaceExprVar(ExprSet set, Map<ExprVariable, LocalVarDecl> replacements) {
+            List<Expression> elems = set.getElements();
+            elems.replaceAll(e -> replaceExprVar(e, replacements));
+            return set.withElements(elems);
+        }
+
+        default Expression replaceExprVar(ExprTuple tuple, Map<ExprVariable, LocalVarDecl> replacements) {
+            List<Expression> elems = tuple.getElements();
+            elems.replaceAll(e -> replaceExprVar(e, replacements));
+            return tuple.copy(elems);
+        }
+
+        default Expression replaceExprVar(ExprTypeConstruction typeConstruction, Map<ExprVariable, LocalVarDecl> replacements) {
+            List<Expression> elems = typeConstruction.getArgs();
+            elems.replaceAll(e -> replaceExprVar(e, replacements));
+            return typeConstruction.copy(typeConstruction.getConstructor(), typeConstruction.getTypeParameters(), typeConstruction.getValueParameters(), elems);
+        }
+
+        default Expression replaceExprVar(ExprUnaryOp unOp, Map<ExprVariable, LocalVarDecl> replacements) {
+            return unOp.copy(unOp.getOperation(), replaceExprVar(unOp.getOperand(), replacements));
+        }
+
+        default Expression replaceExprVar(ExprField field, Map<ExprVariable, LocalVarDecl> replacements) {
+            return field.copy(replaceExprVar(field.getStructure(), replacements), field.getField());
+        }
+
+        default Expression replaceExprVar(ExprNth nth, Map<ExprVariable, LocalVarDecl> replacements) {
+            return nth.copy(replaceExprVar(nth.getStructure(), replacements), nth.getNth());
+        }
+
+        default Expression replaceExprVar(ExprTypeAssertion exprTypeAssertion, Map<ExprVariable, LocalVarDecl> replacements) {
+            return exprTypeAssertion.copy(replaceExprVar(exprTypeAssertion.getExpression(), replacements), exprTypeAssertion.getType());
+        }
+
+        default Expression replaceExprVar(ExprIndexer indexer, Map<ExprVariable, LocalVarDecl> replacements) {
+            Expression newStruct = replaceExprVar(indexer.getStructure(), replacements);
+            Expression newIndex = replaceExprVar(indexer.getIndex(), replacements);
+            return indexer.copy(newStruct, newIndex);
+        }
+
+        default Expression replaceExprVar(ExprLet let, Map<ExprVariable, LocalVarDecl> replacements) {
+            //TODO
+            List<LocalVarDecl> lvd = let.getVarDecls();
+            return null;
+        }
+
+        default Expression replaceExprVar(ExprMap map, Map<ExprVariable, LocalVarDecl> replacements) {
+            //TOOD
+            return null;
+        }
+    }
+
+    @Module
     interface Transformation extends IRNode.Transformation {
 
         @Binding(BindingKind.INJECTED)
-        CollectStatements collector();
+        CollectOrReplaceExprInStmt stmtCollector();
 
         @Binding(BindingKind.INJECTED)
         CollectExpressions exprCollector();
+
+        @Binding(BindingKind.INJECTED)
+        ReplaceExprVar replaceExprVar();
 
         @Override
         default IRNode apply(IRNode node) {
@@ -207,14 +371,14 @@ public class SsaPhase implements Phase {
         }
     }
 
-    // -- Collect ExprInput
+
     private static List<ExprVariable> collectExprVar(IRNode node) {
         List<ExprVariable> reads = new ArrayList<>();
         node.forEachChild(child -> reads.addAll(collectExprVar(child)));
         return reads;
     }
 
-    private static List<Statement> collectStmt(IRNode node){
+    private static List<Statement> collectStmt(IRNode node) {
         List<Statement> reads = new ArrayList<>();
         node.forEachChild(child -> reads.addAll(collectStmt(child)));
         return reads;
@@ -446,12 +610,14 @@ public class SsaPhase implements Phase {
         if (!stmtLabeled.isBufferBlock()) {
             Statement originalStmt = stmtLabeled.getOriginalStmt();
             if (!modifiesVar(originalStmt)) {
-                List<Expression> exprInStmt = collector.collect(originalStmt);
+                List<Expression> exprInStmt = stmtCollector.collect(originalStmt);
                 exprInStmt.forEach(e -> readSubExpr(e, stmtLabeled));
             }
         }
 
-        stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
+        Statement ssaStmt = applySsaToStatements(stmtLabeled);
+        stmtLabeled.setOriginalStmt(ssaStmt);
+        stmtLabeled.setHasBeenVisted();
         stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSAComplete);
     }
 
@@ -546,22 +712,6 @@ public class SsaPhase implements Phase {
         }
     }
 
-    private static void recApplySSA(StmtLabeled stmtLabeled) {
-        //Stop recursion at the top of the cfg
-        if (stmtLabeled.getPredecessors().isEmpty() || stmtLabeled.hasBeenVisted()) {
-            return;
-        }
-
-        //if in Assignment or Block
-        LinkedList<LocalVarDecl> lvd = new LinkedList<>(stmtLabeled.getLocalValueNumbers().keySet());
-        lvd.removeIf(lv -> lv.getValue() instanceof ExprPhi || stmtLabeled.getLocalValueNumbers().get(lv)); //if ExprPhi or lvd has already been visited
-        if (!lvd.isEmpty()) {
-            lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(recReadLocalVarExpr(l.getValue(), stmtLabeled)), true));
-        }
-        stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
-        stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
-    }
-
     private static Expression recReadLocalVarExpr(Expression expr, StmtLabeled stmtLabeled) {
 
         if (expr instanceof ExprLiteral) {
@@ -585,22 +735,71 @@ public class SsaPhase implements Phase {
             return ((ExprUnaryOp) expr).copy(((ExprUnaryOp) expr).getOperation(), newOperand);
             //TODO ExprIf
         } else {
+        }
+        return null;
     }
-            return null;
+
+    private static Statement applySsaToStatements(StmtLabeled stmtLabeled) {
+        if (stmtLabeled.getOriginalStmt() == null || stmtLabeled.lvnIsEmpty()) {
+            return stmtLabeled;
+        } else {
+            Statement originalStmt = stmtLabeled.getOriginalStmt();
+            Set<LocalVarDecl> ssaLocalVarDecls = stmtLabeled.getLocalValueNumbers().keySet();
+            Statement ssaBlock;
+
+            if (originalStmt instanceof StmtBlock) {
+                //Replace LocalVarDecls in statement block
+                ssaBlock = ((StmtBlock) originalStmt).withVarDecls(new LinkedList<>(ssaLocalVarDecls));
+
+            } else if (originalStmt instanceof StmtAssignment) {
+                //Replace ssa result to LValue in assignment
+                String assignedVarName = ((LValueVariable) ((StmtAssignment) originalStmt).getLValue()).getVariable().getOriginalName();
+                LocalVarDecl varDecl = getLocalVarDecl(assignedVarName, ssaLocalVarDecls);
+                ssaBlock = ((StmtAssignment) originalStmt).copy(new LValueVariable(variable(varDecl.getName())), varDecl.getValue());
+
+            } else {
+                //Collect all expressions in originalStmt
+                Map<ExprVariable, LocalVarDecl> ssaLocalValueNumbering = stmtLabeled.getExprValueNumbering();
+                List<Expression> stmtExpr = stmtCollector.collect(originalStmt);
+                //Apply ssa result
+                stmtExpr.replaceAll(e -> replaceExprVar.replaceExprVar(e, ssaLocalValueNumbering));
+                //Write the results back
+                if (stmtExpr.size() == 1) {
+                    ssaBlock = stmtCollector.replaceSingleExpr(originalStmt, stmtExpr.get(0));
+                } else {
+                    ssaBlock = stmtCollector.replaceListExpr(originalStmt, stmtExpr);
+                }
+            }
+        //Return statement with renamed variable
+        return ssaBlock;
+        }
+    }
+
+    private static LocalVarDecl getLocalVarDecl(String originalVarName, Set<LocalVarDecl> localVarDecls) {
+        for (LocalVarDecl lvd : localVarDecls) {
+            if (lvd.getOriginalName().equals(originalVarName)) {
+                return lvd;
+            }
+        }
+        throw new IllegalStateException("Missing ssa result for given variable");
+    }
+
+    private static void recApplySSA(StmtLabeled stmtLabeled) {
+        //Stop recursion at the top of the cfg
+        if (stmtLabeled.getPredecessors().isEmpty() || stmtLabeled.hasBeenVisted()) {
+            return;
         }
 
-    private static Variable findSelfReference(List<Expression> operands, LocalVarDecl originalStmt) {
-        //find variable corresponding to local var declaration in operands of BinaryExpr or return null
-        return operands.stream()
-                .filter(o -> (o instanceof ExprVariable && originalStmt.getOriginalName().equals(((ExprVariable) o).getVariable().getOriginalName())))
-                .findAny()
-                .map(expression -> ((ExprVariable) expression).getVariable())
-                .orElse(null);
+        //if in Assignment or Block
+        LinkedList<LocalVarDecl> lvd = new LinkedList<>(stmtLabeled.getLocalValueNumbers().keySet());
+        lvd.removeIf(lv -> lv.getValue() instanceof ExprPhi || stmtLabeled.getLocalValueNumbers().get(lv)); //if ExprPhi or lvd has already been visited
+        if (!lvd.isEmpty()) {
+            lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(recReadLocalVarExpr(l.getValue(), stmtLabeled)), true));
+        }
+        stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
+        stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
     }
 
-    private static Statement applySSATransformation(StmtLabeled exit){
-
-    }
 
 
     //--------------- Local Value Numbering ---------------//
@@ -629,23 +828,18 @@ public class SsaPhase implements Phase {
     }
 
 
+
 //--------------- Lost Copy Problem Handling---------------//
 
-    private static Expression replaceVariableInExpr(Expression originalExpr, LocalVarDecl
-            varToReplace, LocalVarDecl replacementVar, StmtLabeled stmt) {
-        //TODO add cases for other types of Expressions
-        //Should work for interlocked ExprBinary
-        if (originalExpr instanceof ExprBinaryOp) {
-            List<Expression> operands = ((ExprBinaryOp) originalExpr).getOperands();
-            ExprVariable updatedVariable = new ExprVariable(variable(replacementVar.getName()));
-            //find and replace variable looked for, apply algorithm to all other operands
-            List<Expression> newOperands = operands.stream()
-                    .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : recReadLocalVarExpr(o, stmt))
-                    .collect(Collectors.toList());
-            return new ExprBinaryOp(((ExprBinaryOp) originalExpr).getOperations(), ImmutableList.from(newOperands));
-        }
-        return null;
-    }
+    private static Variable findSelfReference(List<Expression> operands, LocalVarDecl originalStmt) {
+    //TODO interlocked binaryOps
+    //find variable corresponding to local var declaration in operands of BinaryExpr or return null
+    return operands.stream()
+            .filter(o -> (o instanceof ExprVariable && originalStmt.getOriginalName().equals(((ExprVariable) o).getVariable().getOriginalName())))
+            .findAny()
+            .map(expression -> ((ExprVariable) expression).getVariable())
+            .orElse(null);
+}
 
     private static LocalVarDecl handleSelfReference(StmtLabeled stmt, Variable var, LocalVarDecl selfAssignedVar) {
 
@@ -673,6 +867,22 @@ public class SsaPhase implements Phase {
 
         //redirect to exitVar
         return exitVar;
+    }
+
+    private static Expression replaceVariableInExpr(Expression originalExpr, LocalVarDecl
+            varToReplace, LocalVarDecl replacementVar, StmtLabeled stmt) {
+        //TODO add cases for other types of Expressions
+        //Should work for interlocked ExprBinary
+        if (originalExpr instanceof ExprBinaryOp) {
+            List<Expression> operands = ((ExprBinaryOp) originalExpr).getOperands();
+            ExprVariable updatedVariable = new ExprVariable(variable(replacementVar.getName()));
+            //find and replace variable looked for, apply algorithm to all other operands
+            List<Expression> newOperands = operands.stream()
+                    .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : recReadLocalVarExpr(o, stmt))
+                    .collect(Collectors.toList());
+            return new ExprBinaryOp(((ExprBinaryOp) originalExpr).getOperations(), ImmutableList.from(newOperands));
+        }
+        return null;
     }
 
 
@@ -747,6 +957,7 @@ public class SsaPhase implements Phase {
             currentOp = op;
         }
 
+        //TODO make empty block
         if (currentOp == null) {
             ((ExprPhi) phi.getValue()).becomesUndefined();
         }
