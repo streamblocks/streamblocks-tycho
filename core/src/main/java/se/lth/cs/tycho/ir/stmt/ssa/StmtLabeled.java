@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static se.lth.cs.tycho.ir.Variable.variable;
-
 
 public class StmtLabeled extends Statement {
 
@@ -27,9 +25,10 @@ public class StmtLabeled extends Statement {
     private final Map<LocalVarDecl, Boolean> valueNumbering;
     private final Map<ExprVariable, LocalVarDecl> exprValueNumbering;
     private boolean ssaHasBeenVisted;
+    private final boolean isWithinLoop;
 
     private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit,
-                        Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted) {
+                        Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, boolean isWithinLoop) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
@@ -39,23 +38,28 @@ public class StmtLabeled extends Statement {
         this.valueNumbering = valueNumbering;
         this.exprValueNumbering = exprValueNumbering;
         this.ssaHasBeenVisted = ssaHasBeenVisted;
+        this.isWithinLoop = isWithinLoop;
     }
 
-    public StmtLabeled(String label, Statement originalStmt) {
-        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false);
+    public StmtLabeled(String label, Statement originalStmt, boolean isWithinLoop) {
+        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false, isWithinLoop);
     }
 
     private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit,
-                        Map<LocalVarDecl, Boolean> currentPhiExprs, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted) {
-        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, exprValueNumbering, ssaHasBeenVisted);
+                        Map<LocalVarDecl, Boolean> currentPhiExprs, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, boolean isWithinLoop) {
+        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, exprValueNumbering, ssaHasBeenVisted, isWithinLoop);
     }
 
     public StmtLabeled withNewOriginal(Statement originalStmt) {
-        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.hasBeenVisted());
+        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.hasBeenVisted(), this.isWithinLoop);
     }
 
     public String getLabel() {
         return label;
+    }
+
+    public boolean isWithinLoop() {
+        return isWithinLoop;
     }
 
     public boolean hasBeenVisted() {
@@ -80,13 +84,6 @@ public class StmtLabeled extends Statement {
             valueNumbering.remove(containedVar.get(0));
         }
         valueNumbering.put(localValueNumber, hasBeenVisited);
-    }
-
-
-    public void setFinalLVNResults(){
-        List<LocalVarDecl> lvd = new LinkedList<>(valueNumbering.keySet());
-        lvd.forEach(l -> exprValueNumbering.putIfAbsent(new ExprVariable(variable(l.getOriginalName())), l));
-        //valueNumbering.clear();
     }
 
     public void addNewLVNPair(ExprVariable var, LocalVarDecl lvd) {

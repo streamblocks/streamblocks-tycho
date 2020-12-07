@@ -66,13 +66,13 @@ public class SsaPhase implements Phase {
         Pair<List<? extends IRNode>, Expression> collectMultipleExpr(Statement s);
 
         //TODO check if procedure can contain variable
-        default Pair<List<? extends IRNode>, Expression> collectMultipleExpr(StmtCall call){
+        default Pair<List<? extends IRNode>, Expression> collectMultipleExpr(StmtCall call) {
             return new Pair<>(call.getArgs(), call.getProcedure());
         }
 
         List<Expression> collect(Statement s);
 
-        default List<Expression> collect(StmtCall call){
+        default List<Expression> collect(StmtCall call) {
             return new LinkedList<>(call.getArgs());
         }
 
@@ -84,7 +84,7 @@ public class SsaPhase implements Phase {
             return new LinkedList<>(Collections.singletonList(assignment.getExpression()));
         }
 
-        default List<Expression> collect(StmtCase casee){
+        default List<Expression> collect(StmtCase casee) {
             return new LinkedList<>(Collections.singletonList(casee.getScrutinee()));
         }
 
@@ -101,7 +101,9 @@ public class SsaPhase implements Phase {
         }
 
         Statement replaceSingleExpr(Statement s, Expression e);
+
         Statement replaceListExpr(Statement s, List<Expression> e);
+
         Statement replaceListAndSingleExpr(Statement s, Expression e, List<Expression> l);
 
         default Statement replaceSingleExpr(StmtReturn ret, Expression retVal) {
@@ -397,10 +399,10 @@ public class SsaPhase implements Phase {
             stmts = body.getStatements();
         }
 
-        StmtLabeled entry = new StmtLabeled("ProgramEntry", null);
-        StmtLabeled exit = new StmtLabeled("ProgramExit", null);
+        StmtLabeled entry = new StmtLabeled("ProgramEntry", null, false);
+        StmtLabeled exit = new StmtLabeled("ProgramExit", null, false);
 
-        LinkedList<StmtLabeled> sub = iterateSubStmts(stmts, exit);
+        LinkedList<StmtLabeled> sub = iterateSubStmts(stmts, exit, false);
         wireRelations(sub, entry, exit);
 
         return (node == ReturnNode.ROOT) ? entry : exit;
@@ -426,28 +428,28 @@ public class SsaPhase implements Phase {
                 stmt instanceof StmtRead;
     }
 
-    private static LinkedList<StmtLabeled> iterateSubStmts(List<Statement> stmts, StmtLabeled exitBlock) {
+    private static LinkedList<StmtLabeled> iterateSubStmts(List<Statement> stmts, StmtLabeled exitBlock, boolean areWithinLoop) {
         LinkedList<StmtLabeled> currentBlocks = new LinkedList<>();
 
         for (Statement currentStmt : stmts) {
 
             //TODO add cases
             if (isTerminalStmt(currentStmt)) {
-                currentBlocks.add(createTerminalBlock(currentStmt));
+                currentBlocks.add(createTerminalBlock(currentStmt, areWithinLoop));
             } else if (currentStmt instanceof StmtWhile) {
-                currentBlocks.add(createWhileBlock((StmtWhile) currentStmt, exitBlock));
+                currentBlocks.add(createWhileBlock((StmtWhile) currentStmt, exitBlock, areWithinLoop));
             } else if (currentStmt instanceof StmtIf) {
-                currentBlocks.add(createIfBlock((StmtIf) currentStmt, exitBlock));
+                currentBlocks.add(createIfBlock((StmtIf) currentStmt, exitBlock, areWithinLoop));
             } else if (currentStmt instanceof StmtBlock) {
-                currentBlocks.add(createStmtBlock((StmtBlock) currentStmt, exitBlock));
+                currentBlocks.add(createStmtBlock((StmtBlock) currentStmt, exitBlock, areWithinLoop));
             } else if (currentStmt instanceof StmtCase) {
-                currentBlocks.add(createCaseBlock((StmtCase) currentStmt, exitBlock));
+                currentBlocks.add(createCaseBlock((StmtCase) currentStmt, exitBlock, areWithinLoop));
             } else if (currentStmt instanceof StmtForeach) {
-                currentBlocks.add(createForEachBlock((StmtForeach) currentStmt, exitBlock));
+                currentBlocks.add(createForEachBlock((StmtForeach) currentStmt, exitBlock, areWithinLoop));
             } else if (currentStmt instanceof StmtReturn) {
-                currentBlocks.add(createReturnBlock((StmtReturn) currentStmt, exitBlock));
+                currentBlocks.add(createReturnBlock((StmtReturn) currentStmt, exitBlock, areWithinLoop));
             } else if (currentStmt instanceof StmtAssignment) {
-                currentBlocks.add(createStmtAssignment((StmtAssignment) currentStmt));
+                currentBlocks.add(createStmtAssignment((StmtAssignment) currentStmt, areWithinLoop));
             } else throw new NoClassDefFoundError("Unknown Stmt type");
         }
         return currentBlocks;
@@ -490,19 +492,19 @@ public class SsaPhase implements Phase {
         succ.setPredecessors(ImmutableList.concat(succ.getPredecessors(), ImmutableList.of(currentBlocks.getLast().getExitBlock())));
     }
 
-    private static StmtLabeled createReturnBlock(StmtReturn stmt, StmtLabeled exitBlock) {
-        StmtLabeled stmtRet = new StmtLabeled(assignLabel(stmt), stmt);
+    private static StmtLabeled createReturnBlock(StmtReturn stmt, StmtLabeled exitBlock, boolean isWithinLoop) {
+        StmtLabeled stmtRet = new StmtLabeled(assignLabel(stmt), stmt, isWithinLoop);
         stmtRet.setSuccessors(ImmutableList.of(exitBlock));
         return stmtRet;
     }
 
-    private static StmtLabeled createIfBlock(StmtIf stmt, StmtLabeled exitBlock) {
+    private static StmtLabeled createIfBlock(StmtIf stmt, StmtLabeled exitBlock, boolean isWithinLoop) {
 
-        StmtLabeled stmtIfLabeled = new StmtLabeled(assignLabel(stmt), stmt);
-        StmtLabeled ifExitBuffer = new StmtLabeled(assignBufferLabel(stmt, false), null);
+        StmtLabeled stmtIfLabeled = new StmtLabeled(assignLabel(stmt), stmt, isWithinLoop);
+        StmtLabeled ifExitBuffer = new StmtLabeled(assignBufferLabel(stmt, false), null, isWithinLoop);
 
-        LinkedList<StmtLabeled> ifBlocks = iterateSubStmts(stmt.getThenBranch(), exitBlock);
-        LinkedList<StmtLabeled> elseBlocks = iterateSubStmts(stmt.getElseBranch(), exitBlock);
+        LinkedList<StmtLabeled> ifBlocks = iterateSubStmts(stmt.getThenBranch(), exitBlock, isWithinLoop);
+        LinkedList<StmtLabeled> elseBlocks = iterateSubStmts(stmt.getElseBranch(), exitBlock, isWithinLoop);
 
         wireRelations(ifBlocks, stmtIfLabeled, ifExitBuffer);
         wireRelations(elseBlocks, stmtIfLabeled, ifExitBuffer);
@@ -511,17 +513,17 @@ public class SsaPhase implements Phase {
         return stmtIfLabeled;
     }
 
-    private static StmtLabeled createWhileBlock(StmtWhile stmt, StmtLabeled exitBlock) {
+    private static StmtLabeled createWhileBlock(StmtWhile stmt, StmtLabeled exitBlock, boolean isWithinLoop) {
         ImmutableList<Statement> stmts = stmt.getBody();
-        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmts, exitBlock);
+        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmts, exitBlock, true);
 
-        StmtLabeled stmtWhileLabeled = new StmtLabeled(assignLabel(stmt), stmt);
+        StmtLabeled stmtWhileLabeled = new StmtLabeled(assignLabel(stmt), stmt, isWithinLoop);
 
         //Add the while stmt as both predecessors and successor of its body
         wireRelations(currentBlocks, stmtWhileLabeled, stmtWhileLabeled);
 
-        StmtLabeled entryWhile = new StmtLabeled(assignBufferLabel(stmt, true), null);
-        StmtLabeled exitWhile = new StmtLabeled(assignBufferLabel(stmt, false), null);
+        StmtLabeled entryWhile = new StmtLabeled(assignBufferLabel(stmt, true), null, isWithinLoop);
+        StmtLabeled exitWhile = new StmtLabeled(assignBufferLabel(stmt, false), null, isWithinLoop);
 
         wireRelations(new LinkedList<>(Collections.singletonList(stmtWhileLabeled)), entryWhile, exitWhile);
         entryWhile.setExit(exitWhile);
@@ -529,30 +531,30 @@ public class SsaPhase implements Phase {
         return entryWhile;
     }
 
-    private static StmtLabeled createTerminalBlock(Statement stmt) {
-        return new StmtLabeled(assignLabel(stmt), stmt);
+    private static StmtLabeled createTerminalBlock(Statement stmt, boolean isWithinLoop) {
+        return new StmtLabeled(assignLabel(stmt), stmt, isWithinLoop);
     }
 
-    private static StmtLabeled createStmtBlock(StmtBlock stmt, StmtLabeled exitBlock) {
+    private static StmtLabeled createStmtBlock(StmtBlock stmt, StmtLabeled exitBlock, boolean isWithinLoop) {
 
-        StmtLabeled stmtBlockLabeled = new StmtLabeled(assignLabel(stmt), stmt);
+        StmtLabeled stmtBlockLabeled = new StmtLabeled(assignLabel(stmt), stmt, isWithinLoop);
 
         List<LocalVarDecl> localVarDecls = stmt.getVarDecls();
         localVarDecls.forEach(SsaPhase::createNewLocalVar);
         localVarDecls.forEach(v -> stmtBlockLabeled.addLocalValueNumber(v.withName(getNewLocalValueName(v.getOriginalName())), false));
 
         List<Statement> body = stmt.getStatements();
-        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(body, exitBlock);
+        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(body, exitBlock, isWithinLoop);
 
-        StmtLabeled stmtBlockExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
+        StmtLabeled stmtBlockExit = new StmtLabeled(assignBufferLabel(stmt, false), null, isWithinLoop);
         wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockExit);
         stmtBlockLabeled.setExit(stmtBlockExit);
 
         return stmtBlockLabeled;
     }
 
-    private static StmtLabeled createStmtAssignment(StmtAssignment stmt) {
-        StmtLabeled stmtAssignLabeled = new StmtLabeled(assignLabel(stmt), stmt);
+    private static StmtLabeled createStmtAssignment(StmtAssignment stmt, boolean isWithinLoop) {
+        StmtLabeled stmtAssignLabeled = new StmtLabeled(assignLabel(stmt), stmt, isWithinLoop);
         LValue v = stmt.getLValue();
         if (v instanceof LValueVariable) {
             String varName = ((LValueVariable) v).getVariable().getOriginalName();
@@ -563,23 +565,23 @@ public class SsaPhase implements Phase {
         return stmtAssignLabeled;
     }
 
-    private static StmtLabeled createCaseBlock(StmtCase stmt, StmtLabeled exitBlock) {
-        StmtLabeled stmtCaseLabeled = new StmtLabeled(assignLabel(stmt), stmt);
-        StmtLabeled stmtCaseExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
+    private static StmtLabeled createCaseBlock(StmtCase stmt, StmtLabeled exitBlock, boolean isWithinLoop) {
+        StmtLabeled stmtCaseLabeled = new StmtLabeled(assignLabel(stmt), stmt, isWithinLoop);
+        StmtLabeled stmtCaseExit = new StmtLabeled(assignBufferLabel(stmt, false), null, isWithinLoop);
 
         for (StmtCase.Alternative alt : stmt.getAlternatives()) {
-            LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(alt.getStatements(), exitBlock);
+            LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(alt.getStatements(), exitBlock, isWithinLoop);
             wireRelations(currentBlocks, stmtCaseLabeled, stmtCaseExit);
         }
         stmtCaseLabeled.setExit(stmtCaseExit);
         return stmtCaseLabeled;
     }
 
-    private static StmtLabeled createForEachBlock(StmtForeach stmt, StmtLabeled exitBlock) {
-        StmtLabeled stmtFELabeled = new StmtLabeled(assignLabel(stmt), stmt);
-        StmtLabeled stmtFEExit = new StmtLabeled(assignBufferLabel(stmt, false), null);
+    private static StmtLabeled createForEachBlock(StmtForeach stmt, StmtLabeled exitBlock, boolean isWithinLoop) {
+        StmtLabeled stmtFELabeled = new StmtLabeled(assignLabel(stmt), stmt, isWithinLoop);
+        StmtLabeled stmtFEExit = new StmtLabeled(assignBufferLabel(stmt, false), null, isWithinLoop);
 
-        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmt.getBody(), exitBlock);
+        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmt.getBody(), exitBlock, isWithinLoop);
         wireRelations(currentBlocks, stmtFELabeled, stmtFEExit);
 
         stmtFELabeled.setExit(stmtFEExit);
@@ -588,10 +590,6 @@ public class SsaPhase implements Phase {
 
 
     //--------------- SSA Algorithm Application ---------------//
-
-    private static boolean modifiesVar(Statement stmt) {
-        return stmt instanceof StmtAssignment || stmt instanceof StmtBlock;
-    }
 
     private static void recApplySSAComplete(StmtLabeled stmtLabeled) {
         //Stop recursion at the top of the cfg
@@ -619,6 +617,10 @@ public class SsaPhase implements Phase {
         stmtLabeled.setOriginalStmt(ssaStmt);
         stmtLabeled.setHasBeenVisted();
         stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSAComplete);
+    }
+
+    private static boolean modifiesVar(Statement stmt) {
+        return stmt instanceof StmtAssignment || stmt instanceof StmtBlock;
     }
 
     private static void readSubExpr(Expression expr, StmtLabeled stmtLabeled) {
@@ -712,6 +714,15 @@ public class SsaPhase implements Phase {
         }
     }
 
+    private static LocalVarDecl getLocalVarDecl(String originalVarName, Set<LocalVarDecl> localVarDecls) {
+        for (LocalVarDecl lvd : localVarDecls) {
+            if (lvd.getOriginalName().equals(originalVarName)) {
+                return lvd;
+            }
+        }
+        throw new IllegalStateException("Missing ssa result for given variable");
+    }
+
     private static Expression recReadLocalVarExpr(Expression expr, StmtLabeled stmtLabeled) {
 
         if (expr instanceof ExprLiteral) {
@@ -770,36 +781,10 @@ public class SsaPhase implements Phase {
                     ssaBlock = stmtCollector.replaceListExpr(originalStmt, stmtExpr);
                 }
             }
-        //Return statement with renamed variable
-        return ssaBlock;
+            //Return statement with renamed variable
+            return ssaBlock;
         }
     }
-
-    private static LocalVarDecl getLocalVarDecl(String originalVarName, Set<LocalVarDecl> localVarDecls) {
-        for (LocalVarDecl lvd : localVarDecls) {
-            if (lvd.getOriginalName().equals(originalVarName)) {
-                return lvd;
-            }
-        }
-        throw new IllegalStateException("Missing ssa result for given variable");
-    }
-
-    private static void recApplySSA(StmtLabeled stmtLabeled) {
-        //Stop recursion at the top of the cfg
-        if (stmtLabeled.getPredecessors().isEmpty() || stmtLabeled.hasBeenVisted()) {
-            return;
-        }
-
-        //if in Assignment or Block
-        LinkedList<LocalVarDecl> lvd = new LinkedList<>(stmtLabeled.getLocalValueNumbers().keySet());
-        lvd.removeIf(lv -> lv.getValue() instanceof ExprPhi || stmtLabeled.getLocalValueNumbers().get(lv)); //if ExprPhi or lvd has already been visited
-        if (!lvd.isEmpty()) {
-            lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(recReadLocalVarExpr(l.getValue(), stmtLabeled)), true));
-        }
-        stmtLabeled.setHasBeenVisted(); //TODO Problem for While EDIT : Fix with whileExitBlock
-        stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSA);
-    }
-
 
 
     //--------------- Local Value Numbering ---------------//
@@ -828,49 +813,60 @@ public class SsaPhase implements Phase {
     }
 
 
-
 //--------------- Lost Copy Problem Handling---------------//
 
     private static Variable findSelfReference(List<Expression> operands, LocalVarDecl originalStmt) {
-    //TODO interlocked binaryOps
-    //find variable corresponding to local var declaration in operands of BinaryExpr or return null
-    return operands.stream()
-            .filter(o -> (o instanceof ExprVariable && originalStmt.getOriginalName().equals(((ExprVariable) o).getVariable().getOriginalName())))
-            .findAny()
-            .map(expression -> ((ExprVariable) expression).getVariable())
-            .orElse(null);
-}
-
-    private static LocalVarDecl handleSelfReference(StmtLabeled stmt, Variable var, LocalVarDecl selfAssignedVar) {
-
-        //TODO check for multiple self references
-        LocalVarDecl temp = new LocalVarDecl(selfAssignedVar.getAnnotations(), selfAssignedVar.getType(), "u", null, selfAssignedVar.isConstant());
-        createNewLocalVar(temp);
-
-        Variable loopStartVarName = variable(temp.getName());
-        LocalVarDecl loopStartVar = temp.withName(getNewLocalValueName(temp.getOriginalName()));  //u0
-        LocalVarDecl exitVar = temp.withName(getNewLocalValueName(temp.getName())).withValue(new ExprVariable(variable(loopStartVar.getName()))); //u1
-
-        //replace problematic reference
-        Expression oldExpr = selfAssignedVar.getValue();
-        Expression newExpr = replaceVariableInExpr(oldExpr, selfAssignedVar, exitVar, stmt);
-        LocalVarDecl updatedSelfAssignedVar = selfAssignedVar.withValue(newExpr);
-
-        LocalVarDecl loopEndVar = temp.withName(getNewLocalValueName(temp.getName())).withValue(new ExprVariable(variable(updatedSelfAssignedVar.getName()))); //u2
-
-        LocalVarDecl predecessorVariable = readVarRec(stmt, var);
-        ExprPhi phiWithSelf = new ExprPhi(loopStartVarName, ImmutableList.from(Arrays.asList(predecessorVariable, loopEndVar)));
-        loopStartVar = loopStartVar.withValue(phiWithSelf);
-
-        //add all localVarDeclarations resulting from the operation
-        stmt.addLocalValueNumber(Stream.of(loopStartVar, loopEndVar, updatedSelfAssignedVar, exitVar).collect(Collectors.toMap(lv -> lv, lv -> true)));
-
-        //redirect to exitVar
-        return exitVar;
+        //TODO interlocked binaryOps
+        //find variable corresponding to local var declaration in operands of BinaryExpr or return null
+        return operands.stream()
+                .filter(o -> (o instanceof ExprVariable && originalStmt.getOriginalName().equals(((ExprVariable) o).getVariable().getOriginalName())))
+                .findAny()
+                .map(expression -> ((ExprVariable) expression).getVariable())
+                .orElse(null);
     }
 
-    private static Expression replaceVariableInExpr(Expression originalExpr, LocalVarDecl
-            varToReplace, LocalVarDecl replacementVar, StmtLabeled stmt) {
+    private static LocalVarDecl handleSelfRefWithinLoop(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled stmtLabeled) {
+        /*u1*/Variable beforeLoop = variable("u1");
+        /*u0*/Variable loopEntry = variable("u0");;
+        /*x2*/Variable loopExit = variable("x2");
+        /*u2*/Variable loopNextIter = variable("u2");
+
+        LocalVarDecl u1 = selfAssignedVar.withName("u1").withValue(new ExprVariable(deriveOldVarName(selfAssignedVar)));
+        LocalVarDecl u0 = u1.withName("u0").withValue(null); //u0 = phi(u1)
+        LocalVarDecl x2 = u1.withName("x2").withValue(new ExprVariable(loopEntry)); //x2 = u0
+        Expression replacementExpr = replaceVariableInExpr(selfAssignedVar.getValue(), var, loopExit, stmtLabeled);
+        LocalVarDecl x3 = selfAssignedVar.withValue(replacementExpr);
+        LocalVarDecl u2 = u1.withName("u2").withValue(new ExprVariable(variable(x3.getName())));
+        u0 = u0.withValue(new ExprPhi(loopEntry, ImmutableList.of(u1, u2)));
+        stmtLabeled.addLocalValueNumber(Stream.of(u1, u0, x2, x3, u2).collect(Collectors.toMap(lv -> lv, lv -> true)));
+        return x2;
+    }
+
+    private static Variable deriveOldVarName(LocalVarDecl oldVar) {
+        //a_i => a_(i-1)
+
+        String oldName = oldVar.getName();
+        //get current variable number
+        int oldNb = Integer.parseInt(oldName.substring(oldName.length() - 1, oldName.length()));
+        //replace name with previous number
+        String replacementName = oldName.substring(0, oldName.length() - 1) + String.valueOf((oldNb - 1));
+        return variable(replacementName);
+    }
+
+    private static LocalVarDecl handleSimpleSelfReference(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled stmtLabeled) {
+
+        //if outside loop : a = a + 1 become a_i = a_(i-1) + 1
+        Variable replacementVar = deriveOldVarName(selfAssignedVar);
+        Expression replacementExpr = replaceVariableInExpr(selfAssignedVar.getValue(), var, replacementVar, stmtLabeled);
+        return selfAssignedVar.withValue(replacementExpr);
+    }
+
+    private static LocalVarDecl handleSelfReference(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled stmtLabeled) {
+        return (stmtLabeled.isWithinLoop()) ? handleSelfRefWithinLoop(selfAssignedVar, var, stmtLabeled) : handleSimpleSelfReference(selfAssignedVar, var, stmtLabeled);
+    }
+
+    private static Expression replaceVariableInExpr(Expression originalExpr, Variable
+            varToReplace, Variable replacementVar, StmtLabeled stmt) {
         //TODO add cases for other types of Expressions
         //Should work for interlocked ExprBinary
         if (originalExpr instanceof ExprBinaryOp) {
@@ -899,7 +895,7 @@ public class SsaPhase implements Phase {
             if (lvExpr instanceof ExprBinaryOp) {
                 Variable selfRefVar = findSelfReference(((ExprBinaryOp) lvExpr).getOperands(), lv);
                 if (selfRefVar != null) {
-                    return handleSelfReference(stmt, selfRefVar, lv);
+                    return handleSelfReference(lv, selfRefVar, stmt);
                 }
             }
             //no self reference
