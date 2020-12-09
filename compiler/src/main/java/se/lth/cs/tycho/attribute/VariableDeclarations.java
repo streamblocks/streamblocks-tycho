@@ -15,9 +15,12 @@ import se.lth.cs.tycho.ir.decl.SingleImport;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface VariableDeclarations {
@@ -37,6 +40,8 @@ public interface VariableDeclarations {
     VarDecl declaration(LValueVariable var);
 
     VarDecl declaration(ExprGlobalVariable var);
+
+    List<VarDecl> declarations(IRNode var);
 
     @Module
     interface Implementation extends VariableDeclarations {
@@ -108,6 +113,17 @@ public interface VariableDeclarations {
         default VarDecl globalDeclaration(QID name) {
             return globalNames().varDecl(name, false);
         }
+
+        default List<VarDecl> declarations(IRNode node) {
+            ImmutableList.Builder<VarDecl> decls = ImmutableList.builder();
+            node.forEachChild(child -> decls.addAll(declarations(child)));
+            return decls.build();
+        }
+
+        default List<VarDecl> declarations(ExprVariable exprVariable) {
+            return ImmutableList.of(declaration(exprVariable));
+        }
+
     }
 
 }
