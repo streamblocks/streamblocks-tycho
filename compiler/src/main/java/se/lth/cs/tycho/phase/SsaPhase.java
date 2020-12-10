@@ -601,7 +601,7 @@ public class SsaPhase implements Phase {
         LinkedList<LocalVarDecl> lvd = new LinkedList<>(stmtLabeled.getLocalValueNumbers().keySet());
         lvd.removeIf(lv -> lv.getValue() instanceof ExprPhi || stmtLabeled.getLocalValueNumbers().get(lv)); //if ExprPhi or lvd has already been visited
         if (!lvd.isEmpty()) {
-            lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(recReadLocalVarExpr(l.getValue(), stmtLabeled)), true));
+            lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(recReadLocalVarExpr(l.getValue(), stmtLabeled).getFirst()), true));
         }
 
         //read variables in expressions
@@ -696,7 +696,7 @@ public class SsaPhase implements Phase {
                 Pair<LocalVarDecl, Integer> resultPair = prevVarFound.get(resIndex);
                 if (nb_found > 1 && !foundPhi) {
                     //had to add get a new lvd
-                    LocalVarDecl lvd = readVar(stmt, exprVariable.getVariable());
+                    LocalVarDecl lvd = readVar(stmt, exprVariable.getVariable()).getFirst();
                     stmt.addLocalValueNumber(lvd, true);
                     //stmt.addLVNResult(exprVariable, lvd);
                     return new Pair<>(lvd, resultPair.getSecond());
@@ -723,32 +723,45 @@ public class SsaPhase implements Phase {
         throw new IllegalStateException("Missing ssa result for given variable");
     }
 
-    private static Expression recReadLocalVarExpr(Expression expr, StmtLabeled stmtLabeled) {
+    private static Pair<Expression, Boolean> recReadLocalVarExpr(Expression expr, StmtLabeled stmtLabeled) {
 
         if (expr instanceof ExprLiteral) {
-            return expr;
+            return new Pair<>(expr, false);
 
         } else if (expr instanceof ExprVariable) {
-
-            LocalVarDecl result = readVar(stmtLabeled, ((ExprVariable) expr).getVariable());
-            ExprVariable newVar = ((ExprVariable) expr).copy(variable(result.getName()), ((ExprVariable) expr).getOld());
-            return newVar;
+            Pair<LocalVarDecl, Boolean> result = readVar(stmtLabeled, ((ExprVariable) expr).getVariable());
+            ExprVariable ret = ((ExprVariable) expr).copy(variable(result.getFirst().getName()), ((ExprVariable) expr).getOld());
+            return new Pair<>(ret, result.getSecond()) ;
 
         } else if (expr instanceof ExprBinaryOp) {
 
-            List<Expression> newOperands = new LinkedList<>(((ExprBinaryOp) expr).getOperands());
-            //TODO Handle self reference
-            newOperands.replaceAll(o -> recReadLocalVarExpr(o, stmtLabeled));
-            return ((ExprBinaryOp) expr).copy(((ExprBinaryOp) expr).getOperations(), ImmutableList.from(newOperands));
+            List<Pair<Expression, Boolean>> results = ((ExprBinaryOp) expr).getOperands().stream().map(o -> recReadLocalVarExpr(o, stmtLabeled)).collect(Collectors.toList());
+            List<Pair<Expression, Boolean>> newOperands = new LinkedList<>(results);
+
+            Expression selfRef = results.stream().filter(Pair::getSecond).findAny().map(Pair::getFirst).orElse(null);
+            //self ref exist and binaryOp must be replaced
+            if(selfRef != null){
+                return new Pair<>(selfRef, true);
+            } else {
+                List<Expression> newOps = newOperands.stream().map(Pair::getFirst).collect(Collectors.toList());
+                return new Pair<>(((ExprBinaryOp) expr).copy(((ExprBinaryOp) expr).getOperations(), ImmutableList.from(newOps)), false);
+            }
 
         } else if (expr instanceof ExprUnaryOp) {
-            Expression newOperand = recReadLocalVarExpr(((ExprUnaryOp) expr).getOperand(), stmtLabeled);
-            return ((ExprUnaryOp) expr).copy(((ExprUnaryOp) expr).getOperation(), newOperand);
-            //TODO ExprIf
-        } else {
+
+            Expression newOperand = Objects.requireNonNull(recReadLocalVarExpr(((ExprUnaryOp) expr).getOperand(), stmtLabeled)).getFirst();
+            return new Pair<>(((ExprUnaryOp) expr).copy(((ExprUnaryOp) expr).getOperation(), newOperand), false);
+
+        } else if (expr instanceof ExprIf) {
+
+         List<Expression> ifOrElse = exprCollector.collectInternalExpr(expr);
+            ifOrElse.remove(0);
+            ifOrElse.replaceAll(e -> recReadLocalVarExpr(e, stmtLabeled).getFirst());
+            return new Pair<>(((ExprIf) expr).copy(((ExprIf) expr).getCondition(), ifOrElse.get(0), ifOrElse.get(1)), false);
         }
-        return null;
+        return new Pair<>(null, false);
     }
+
 
     private static Statement applySsaToStatements(StmtLabeled stmtLabeled) {
         if (stmtLabeled.getOriginalStmt() == null || stmtLabeled.lvnIsEmpty()) {
@@ -763,10 +776,15 @@ public class SsaPhase implements Phase {
                 ssaBlock = ((StmtBlock) originalStmt).withVarDecls(new LinkedList<>(ssaLocalVarDecls));
 
             } else if (originalStmt instanceof StmtAssignment) {
-                //Replace ssa result to LValue in assignment
-                String assignedVarName = ((LValueVariable) ((StmtAssignment) originalStmt).getLValue()).getVariable().getOriginalName();
-                LocalVarDecl varDecl = getLocalVarDecl(assignedVarName, ssaLocalVarDecls);
-                ssaBlock = ((StmtAssignment) originalStmt).copy(new LValueVariable(variable(varDecl.getName())), varDecl.getValue());
+                //Lost copy blocks are already ssa
+                if (stmtLabeled.isLostCopyBlock()) {
+                    ssaBlock = originalStmt;
+                } else {
+                    //Replace ssa result to LValue in assignment
+                    String assignedVarName = ((LValueVariable) ((StmtAssignment) originalStmt).getLValue()).getVariable().getOriginalName();
+                    LocalVarDecl varDecl = getLocalVarDecl(assignedVarName, ssaLocalVarDecls);
+                    ssaBlock = ((StmtAssignment) originalStmt).copy(new LValueVariable(variable(varDecl.getName())), varDecl.getValue());
+                }
 
             } else {
                 //Collect all expressions in originalStmt
@@ -826,28 +844,75 @@ public class SsaPhase implements Phase {
     }
 
     private static LocalVarDecl handleSelfRefWithinLoop(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled stmtLabeled) {
-        /*u1*/Variable beforeLoop = variable("u1");
-        /*u0*/Variable loopEntry = variable("u0");;
-        /*x2*/Variable loopExit = variable("x2");
-        /*u2*/Variable loopNextIter = variable("u2");
+        /*u1*/
+        Variable beforeLoop = variable("u1");
+        /*u0*/
+        Variable loopEntry = variable("u0");
+        /*x2*/
+        Variable loopExit = variable("x2");
+        /*u2*/
+        Variable loopNextIter = variable("u2");
+        Variable loopSelfRef = variable("x3");
 
+
+        //TODO handle acquisition of previous variable def
         LocalVarDecl u1 = selfAssignedVar.withName("u1").withValue(new ExprVariable(deriveOldVarName(selfAssignedVar)));
-        LocalVarDecl u0 = u1.withName("u0").withValue(null); //u0 = phi(u1)
+        //LocalVarDecl u1 = readVarRec(stmtLabeled, var);
+        LocalVarDecl u0 = u1.withName("u0").withValue(null); //u0 = null
         LocalVarDecl x2 = u1.withName("x2").withValue(new ExprVariable(loopEntry)); //x2 = u0
         Expression replacementExpr = replaceVariableInExpr(selfAssignedVar.getValue(), var, loopExit, stmtLabeled);
         LocalVarDecl x3 = selfAssignedVar.withValue(replacementExpr);
-        LocalVarDecl u2 = u1.withName("u2").withValue(new ExprVariable(variable(x3.getName())));
+        LocalVarDecl u2 = u1.withName("u2").withValue(new ExprVariable(loopSelfRef));
         u0 = u0.withValue(new ExprPhi(loopEntry, ImmutableList.of(u1, u2)));
-        stmtLabeled.addLocalValueNumber(Stream.of(u1, u0, x2, x3, u2).collect(Collectors.toMap(lv -> lv, lv -> true)));
-        return x2;
+        //stmtLabeled.addLocalValueNumber(Stream.of(u1, u0, x2, x3, u2).collect(Collectors.toMap(lv -> lv, lv -> true)));
+        LocalVarDecl newOriginalVar = x2.withName(selfAssignedVar.getName());
+        stmtLabeled.addLocalValueNumber(newOriginalVar, true);
+        //stmtLabeled.withNewOriginal(new StmtAssignment(new LValueVariable(var), newOriginalVar.getValue()));
+
+
+        //Generate new StmtAssignment for all temporary variables
+        StmtAssignment beforeLoopStmt = new StmtAssignment(new LValueVariable(beforeLoop), u1.getValue());
+        StmtAssignment loopEntryPhiStmt = new StmtAssignment(new LValueVariable(loopEntry), u0.getValue());
+        StmtAssignment loopSelfRefStmt = new StmtAssignment(new LValueVariable(loopSelfRef), x3.getValue());
+        StmtAssignment loopNextIterStmt = new StmtAssignment(new LValueVariable(loopNextIter), u2.getValue());
+
+        //label them
+        StmtLabeled first = stmtLabeled.withNewOriginal(beforeLoopStmt);
+        StmtLabeled second = stmtLabeled.withNewOriginal(loopEntryPhiStmt);
+        StmtLabeled fourth = stmtLabeled.withNewOriginal(loopSelfRefStmt);
+        StmtLabeled fifth = stmtLabeled.withNewOriginal(loopNextIterStmt);
+
+        //reset their relations and their local value numbering
+        Stream.of(first, second, fourth, fifth).forEach(sl -> {
+            sl.setRelations(Collections.emptyList(), Collections.emptyList());
+            sl.lostCopyName();
+        });
+
+        //save predecessor and successor of original block and resets its relations empty
+        StmtLabeled blockPred = stmtLabeled.getPredecessors().get(0);
+        StmtLabeled blockSucc = stmtLabeled.getSuccessors().get(0);
+        stmtLabeled.setRelations(Collections.emptyList(), Collections.emptyList());
+
+        //rewire original block predecessor and successor to the new blocks
+        List<StmtLabeled> predNewSucc = new LinkedList<>(blockPred.getSuccessors());
+        List<StmtLabeled> succNewPred = new LinkedList<>(blockSucc.getPredecessors());
+        predNewSucc.remove(stmtLabeled);
+        succNewPred.remove(stmtLabeled);
+        blockPred.setSuccessors(predNewSucc);
+        blockSucc.setPredecessors(succNewPred);
+
+        //wire the new blocks between them and to the original successor and predecessor
+        wireRelations(new LinkedList<>(Arrays.asList(first, second)), blockPred, stmtLabeled);
+        wireRelations(new LinkedList<>(Arrays.asList(fourth, fifth)), stmtLabeled, blockSucc);
+
+        return u2;
     }
 
     private static Variable deriveOldVarName(LocalVarDecl oldVar) {
         //a_i => a_(i-1)
-
         String oldName = oldVar.getName();
         //get current variable number
-        int oldNb = Integer.parseInt(oldName.substring(oldName.length() - 1, oldName.length()));
+        int oldNb = Integer.parseInt(oldName.substring(oldName.length() - 1));
         //replace name with previous number
         String replacementName = oldName.substring(0, oldName.length() - 1) + String.valueOf((oldNb - 1));
         return variable(replacementName);
@@ -874,7 +939,7 @@ public class SsaPhase implements Phase {
             ExprVariable updatedVariable = new ExprVariable(variable(replacementVar.getName()));
             //find and replace variable looked for, apply algorithm to all other operands
             List<Expression> newOperands = operands.stream()
-                    .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : recReadLocalVarExpr(o, stmt))
+                    .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : Objects.requireNonNull(recReadLocalVarExpr(o, stmt)).getFirst())
                     .collect(Collectors.toList());
             return new ExprBinaryOp(((ExprBinaryOp) originalExpr).getOperations(), ImmutableList.from(newOperands));
         }
@@ -884,7 +949,7 @@ public class SsaPhase implements Phase {
 
 //--------------- SSA Algorithm ---------------//
 
-    private static LocalVarDecl readVar(StmtLabeled stmt, Variable var) {
+    private static Pair<LocalVarDecl, Boolean> readVar(StmtLabeled stmt, Variable var) {
 
         //look for self reference
         Optional<LocalVarDecl> matchingLVD = stmt.getLocalValueNumbers().keySet().stream().filter(l -> l.getOriginalName().equals(var.getOriginalName())).findAny();
@@ -892,21 +957,24 @@ public class SsaPhase implements Phase {
             //Locally found
             LocalVarDecl lv = matchingLVD.get();
             Expression lvExpr = lv.getValue();
-            if (lvExpr instanceof ExprBinaryOp) {
-                Variable selfRefVar = findSelfReference(((ExprBinaryOp) lvExpr).getOperands(), lv);
+            if (lvExpr instanceof ExprBinaryOp || lvExpr instanceof ExprUnaryOp || lvExpr instanceof ExprIf) {
+                List<Expression> internalExpr = exprCollector.collectInternalExpr(lvExpr);
+                if (lvExpr instanceof ExprIf) internalExpr.remove(0);
+
+                Variable selfRefVar = findSelfReference(internalExpr, lv);
                 if (selfRefVar != null) {
-                    return handleSelfReference(lv, selfRefVar, stmt);
+                    return new Pair<>(handleSelfReference(lv, selfRefVar, stmt), true);
                 }
             }
             //no self reference
-            return lv;
+            return new Pair<>(lv,false);
         } else {
             //No def found in current Statement
             return readVarRec(stmt, var);
         }
     }
 
-    private static LocalVarDecl readVarRec(StmtLabeled stmt, Variable var) {
+    private static Pair<LocalVarDecl, Boolean> readVarRec(StmtLabeled stmt, Variable var) {
 
         if (stmt.getPredecessors().size() == 1) {
             return readVar(stmt.getPredecessors().get(0), var);
@@ -921,7 +989,7 @@ public class SsaPhase implements Phase {
             if (phiResult instanceof ExprPhi && !((ExprPhi) phiResult).isUndefined()) {
                 stmt.addLocalValueNumber(localVarPhi, true);
             }
-            return localVarPhi;
+            return new Pair<>(localVarPhi, false);
         }
     }
 
@@ -929,7 +997,7 @@ public class SsaPhase implements Phase {
         LinkedList<LocalVarDecl> phiOperands = new LinkedList<>();
 
         for (StmtLabeled stmt : predecessors) {
-            LocalVarDecl lookedUpVar = readVar(stmt, var);
+            LocalVarDecl lookedUpVar = readVar(stmt, var).getFirst();
             phiOperands.add(lookedUpVar);
             //add Phi to list of users of its operands
             if (lookedUpVar.getValue() instanceof ExprPhi) {

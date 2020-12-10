@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class StmtLabeled extends Statement {
 
-    private final String label;
+    private String label;
     private Statement originalStmt;
     private ImmutableList<StmtLabeled> predecessors;
     private ImmutableList<StmtLabeled> successors;
@@ -51,7 +51,19 @@ public class StmtLabeled extends Statement {
     }
 
     public StmtLabeled withNewOriginal(Statement originalStmt) {
-        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.hasBeenVisted(), this.isWithinLoop);
+        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisted, this.isWithinLoop);
+    }
+
+    public void lostCopyName(){
+        this.label += "_lostCopyVar";
+    }
+
+    public boolean isLostCopyBlock(){
+        return label.endsWith("_lostCopyVar");
+    }
+
+    public void resetLVN(){
+        this.valueNumbering.clear();
     }
 
     public String getLabel() {
@@ -105,6 +117,10 @@ public class StmtLabeled extends Statement {
 
     public boolean isBufferBlock(){
         return originalStmt == null;
+    }
+
+    public void setAllLVNToVisited(){
+        valueNumbering.forEach((k, v)-> valueNumbering.replace(k, true));
     }
 
     public void addLocalValueNumber(Map<LocalVarDecl, Boolean> lvnList){
