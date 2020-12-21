@@ -124,6 +124,11 @@ public class StmtCase extends Statement {
 
     @Override
     public Statement transformChildren(Transformation transformation) {
-        return copy(annotations, (Expression) transformation.apply(getScrutinee()), transformation.mapChecked(Alternative.class, getAlternatives()));
+        return copy(transformation.mapChecked(Annotation.class, annotations), (Expression) transformation.apply(getScrutinee()), transformation.mapChecked(Alternative.class, getAlternatives()));
+    }
+
+    @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, scrutinee, alternatives);
     }
 }

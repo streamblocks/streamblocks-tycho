@@ -94,7 +94,7 @@ public class Transition extends AbstractIRNode {
     @Override
     public Transition transformChildren(Transformation transformation) {
         return copy(
-                annotations,
+                transformation.mapChecked(Annotation.class, annotations),
                 transformRates(inputRates, transformation),
                 transformRates(outputRates, transformation),
                 kill,

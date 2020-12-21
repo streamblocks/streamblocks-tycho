@@ -1425,9 +1425,11 @@ TypeAndName VarDeclTypeName() :
 Statement Statement() :
 {
 	Statement stmt;
+	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+    Annotation annotation;
 }
 {
-	( Annotation() )*
+	( annotation = Annotation() {annotations.add(annotation);} )*
 	(
 		LOOKAHEAD(<ID> ("[" | ":="))
 		stmt = AssignmentStmt()
@@ -1443,7 +1445,7 @@ Statement Statement() :
 		stmt = ForeachStmt()
 	)
 	{
-		return stmt;
+		return (stmt != null) ? stmt.withAnnotations(annotations.build()) : null;
 	}
 }
 

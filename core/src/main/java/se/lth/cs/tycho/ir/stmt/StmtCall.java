@@ -85,6 +85,11 @@ public class StmtCall extends Statement {
         return annotations;
     }
 
+    @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, procedure, args);
+    }
+
     private Expression procedure;
     private ImmutableList<Expression> args;
     private ImmutableList<Annotation> annotations;
@@ -99,6 +104,6 @@ public class StmtCall extends Statement {
     @Override
     @SuppressWarnings("unchecked")
     public StmtCall transformChildren(Transformation transformation) {
-        return copy(annotations, (Expression) transformation.apply(procedure), (ImmutableList) args.map(transformation));
+        return copy(transformation.mapChecked(Annotation.class, annotations), (Expression) transformation.apply(procedure), (ImmutableList) args.map(transformation));
     }
 }

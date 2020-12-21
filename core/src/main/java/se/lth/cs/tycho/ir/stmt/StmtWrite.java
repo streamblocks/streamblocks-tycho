@@ -38,7 +38,7 @@ public class StmtWrite extends Statement {
         if (Objects.equals(this.annotations, annotations) && this.port == port && Lists.sameElements(this.values, values) && this.repeatExpression == repeatExpression) {
             return this;
         } else {
-            return new StmtWrite(this,annotations,  port, values, repeatExpression);
+            return new StmtWrite(this, annotations, port, values, repeatExpression);
         }
     }
 
@@ -59,6 +59,11 @@ public class StmtWrite extends Statement {
     }
 
     @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, port, values, repeatExpression);
+    }
+
+    @Override
     public void forEachChild(Consumer<? super IRNode> action) {
         annotations.forEach(action);
         action.accept(port);
@@ -70,7 +75,7 @@ public class StmtWrite extends Statement {
     @SuppressWarnings("unchecked")
     public StmtWrite transformChildren(Transformation transformation) {
         return copy(
-                annotations,
+                transformation.mapChecked(Annotation.class, annotations),
                 (Port) transformation.apply(port),
                 (ImmutableList) values.map(transformation),
                 repeatExpression == null ? null : (Expression) transformation.apply(repeatExpression)

@@ -78,6 +78,11 @@ public class StmtAssignment extends Statement {
 
     @Override
     public StmtAssignment transformChildren(Transformation transformation) {
-        return copy(annotations, (LValue) transformation.apply(lvalue), (Expression) transformation.apply(expression));
+        return copy(transformation.mapChecked(Annotation.class, annotations), (LValue) transformation.apply(lvalue), (Expression) transformation.apply(expression));
+    }
+
+    @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, lvalue, expression);
     }
 }

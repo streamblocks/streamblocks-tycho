@@ -115,6 +115,11 @@ public class StmtIf extends Statement {
         return copy(annotations, condition, thenBranch, elseBranch);
     }
 
+    @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, condition, thenBranch, elseBranch);
+    }
+
     public ImmutableList<Annotation> getAnnotations() {
         return annotations;
     }
@@ -135,7 +140,7 @@ public class StmtIf extends Statement {
     @Override
     public StmtIf transformChildren(Transformation transformation) {
         return copy(
-                annotations,
+                transformation.mapChecked(Annotation.class, annotations),
                 transformation.applyChecked(Expression.class, condition),
                 transformation.mapChecked(Statement.class, thenBranch),
                 transformation.mapChecked(Statement.class, elseBranch)

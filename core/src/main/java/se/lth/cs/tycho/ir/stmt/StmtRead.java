@@ -59,6 +59,11 @@ public class StmtRead extends Statement {
     }
 
     @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, port, lvalues, repeatExpression);
+    }
+
+    @Override
     public void forEachChild(Consumer<? super IRNode> action) {
         annotations.forEach(action);
         action.accept(port);
@@ -70,7 +75,7 @@ public class StmtRead extends Statement {
     @SuppressWarnings("unchecked")
     public StmtRead transformChildren(Transformation transformation) {
         return copy(
-                annotations,
+                transformation.mapChecked(Annotation.class, annotations),
                 (Port) transformation.apply(port),
                 (ImmutableList) lvalues.map(transformation),
                 repeatExpression == null ? null : (Expression) transformation.apply(repeatExpression)

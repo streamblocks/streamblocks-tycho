@@ -97,6 +97,11 @@ public class StmtWhile extends Statement {
         return annotations;
     }
 
+    @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, condition, body);
+    }
+
     private Expression condition;
     private ImmutableList<Statement> body;
     private ImmutableList<Annotation> annotations;
@@ -111,7 +116,7 @@ public class StmtWhile extends Statement {
     @Override
     public StmtWhile transformChildren(Transformation transformation) {
         return copy(
-                annotations,
+                transformation.mapChecked(Annotation.class, annotations),
                 transformation.applyChecked(Expression.class, condition),
                 transformation.mapChecked(Statement.class, body));
     }

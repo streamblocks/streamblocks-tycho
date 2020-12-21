@@ -40,6 +40,9 @@ ENDCOPYRIGHT
 package se.lth.cs.tycho.ir.stmt;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.Annotation;
+
+import java.util.List;
 
 /**
  * Statements, such as assignments, procedure calls, or loops, may cause side
@@ -55,5 +58,7 @@ public abstract class Statement extends AbstractIRNode {
 
 	@Override
 	public abstract Statement transformChildren(Transformation transformation);
+
+	public abstract Statement withAnnotations(List<Annotation> annotations);
 
 }

@@ -108,6 +108,12 @@ public class StmtBlock extends Statement {
         }
     }
 
+    @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, typeDecls, varDecls, statements);
+    }
+
+
     private ImmutableList<Annotation> annotations;
     private ImmutableList<TypeDecl> typeDecls;
     private ImmutableList<LocalVarDecl> varDecls;

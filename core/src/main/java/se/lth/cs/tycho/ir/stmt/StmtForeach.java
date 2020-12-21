@@ -71,6 +71,11 @@ public class StmtForeach extends Statement {
     }
 
     @Override
+    public Statement withAnnotations(List<Annotation> annotations) {
+        return copy(annotations, generator, filters, body);
+    }
+
+    @Override
     public void forEachChild(Consumer<? super IRNode> action) {
         action.accept(generator);
         filters.forEach(action);
@@ -81,7 +86,7 @@ public class StmtForeach extends Statement {
     @SuppressWarnings("unchecked")
     public StmtForeach transformChildren(Transformation transformation) {
         return copy(
-                annotations,
+                transformation.mapChecked(Annotation.class, annotations),
                 transformation.applyChecked(Generator.class, generator),
                 transformation.mapChecked(Expression.class, filters),
                 transformation.mapChecked(Statement.class, body));
