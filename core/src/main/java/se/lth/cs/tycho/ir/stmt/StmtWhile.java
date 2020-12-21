@@ -39,12 +39,14 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.stmt;
 
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -53,52 +55,64 @@ import java.util.function.Consumer;
 
 public class StmtWhile extends Statement {
 
-	public StmtWhile(Expression condition, List<Statement> body) {
-		this(null, condition, body);
-	}
+    public StmtWhile(List<Annotation> annotations, Expression condition, List<Statement> body) {
+        this(null, annotations, condition, body);
+    }
 
-	private StmtWhile(StmtWhile original, Expression condition, List<Statement> body) {
-		super(original);
-		this.condition = condition;
-		this.body = ImmutableList.from(body);
-	}
-	
-	public StmtWhile copy(Expression condition, List<Statement> body) {
-		if (this.condition == condition && Lists.sameElements(this.body, body)) {
-			return this;
-		}
-		return new StmtWhile(this, condition, body);
-	}
+    public StmtWhile(Expression condition, List<Statement> body) {
+        this(null, ImmutableList.empty(), condition, body);
+    }
 
-	public Expression getCondition() {
-		return condition;
-	}
+    private StmtWhile(StmtWhile original, List<Annotation> annotations, Expression condition, List<Statement> body) {
+        super(original);
+        this.annotations = ImmutableList.from(annotations);
+        this.condition = condition;
+        this.body = ImmutableList.from(body);
+    }
 
-	public StmtWhile withCondition(Expression condition) {
-		return copy(condition, body);
-	}
+    public StmtWhile copy(List<Annotation> annotations, Expression condition, List<Statement> body) {
+        if (Objects.equals(this.annotations, annotations) && this.condition == condition && Lists.sameElements(this.body, body)) {
+            return this;
+        }
+        return new StmtWhile(this, annotations, condition, body);
+    }
 
-	public ImmutableList<Statement> getBody() {
-		return body;
-	}
+    public Expression getCondition() {
+        return condition;
+    }
 
-	public StmtWhile withBody(List<Statement> body) {
-		return copy(condition, body);
-	}
+    public StmtWhile withCondition(Expression condition) {
+        return copy(annotations, condition, body);
+    }
 
-	private Expression condition;
-	private ImmutableList<Statement> body;
+    public ImmutableList<Statement> getBody() {
+        return body;
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(condition);
-		body.forEach(action);
-	}
+    public StmtWhile withBody(List<Statement> body) {
+        return copy(annotations, condition, body);
+    }
 
-	@Override
-	public StmtWhile transformChildren(Transformation transformation) {
-		return copy(
-				transformation.applyChecked(Expression.class, condition),
-				transformation.mapChecked(Statement.class, body));
-	}
+    public ImmutableList<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    private Expression condition;
+    private ImmutableList<Statement> body;
+    private ImmutableList<Annotation> annotations;
+
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        annotations.forEach(action);
+        action.accept(condition);
+        body.forEach(action);
+    }
+
+    @Override
+    public StmtWhile transformChildren(Transformation transformation) {
+        return copy(
+                annotations,
+                transformation.applyChecked(Expression.class, condition),
+                transformation.mapChecked(Statement.class, body));
+    }
 }

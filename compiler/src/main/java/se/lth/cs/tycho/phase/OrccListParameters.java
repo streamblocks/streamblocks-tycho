@@ -83,7 +83,7 @@ public class OrccListParameters implements Phase {
         }
 
         default StmtCall apply(StmtCall call) {
-            return call.copy(apply(call.getProcedure()), call.getArgs().map(this::transformArg));
+            return call.copy(call.getAnnotations(), apply(call.getProcedure()), call.getArgs().map(this::transformArg));
         }
 
         default Expression transformArg(Expression expr) {

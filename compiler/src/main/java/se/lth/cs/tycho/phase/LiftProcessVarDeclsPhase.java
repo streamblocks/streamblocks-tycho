@@ -60,16 +60,17 @@ public class LiftProcessVarDeclsPhase implements Phase {
 		}
 		default Statement transform(StmtBlock stmt) {
 			builder().addAll(stmt.getVarDecls());
-			return stmt.copy(stmt.getTypeDecls(), ImmutableList.empty(), stmt.getStatements().map(this::transform));
+			return stmt.copy(stmt.getAnnotations(), stmt.getTypeDecls(), ImmutableList.empty(), stmt.getStatements().map(this::transform));
 		}
 		default Statement transform(StmtIf stmt) {
 			return stmt.copy(
+					stmt.getAnnotations(),
 					stmt.getCondition(),
 					stmt.getThenBranch().map(this::transform),
 					stmt.getElseBranch().map(this::transform));
 		}
 		default Statement transform(StmtWhile stmt) {
-			return stmt.copy(stmt.getCondition(), stmt.getBody().map(this::transform));
+			return stmt.copy(stmt.getAnnotations(), stmt.getCondition(), stmt.getBody().map(this::transform));
 		}
 	}
 }

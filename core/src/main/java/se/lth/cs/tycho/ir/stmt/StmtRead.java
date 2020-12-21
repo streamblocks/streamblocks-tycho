@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.ir.stmt;
 
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -11,56 +12,68 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class StmtRead extends Statement {
-	private final Port port;
-	private final ImmutableList<LValue> lvalues;
-	private final Expression repeatExpression;
+    private final Port port;
+    private final ImmutableList<LValue> lvalues;
+    private final Expression repeatExpression;
+    private final ImmutableList<Annotation> annotations;
 
-	public StmtRead(Port port, ImmutableList<LValue> lvalues, Expression repeatExpression) {
-		this(null, port, lvalues, repeatExpression);
-	}
+    public StmtRead(List<Annotation> annotations, Port port, ImmutableList<LValue> lvalues, Expression repeatExpression) {
+        this(null, annotations, port, lvalues, repeatExpression);
+    }
 
-	private StmtRead(StmtRead original, Port port, List<LValue> lvalues, Expression repeatExpression) {
-		super(original);
-		assert port != null;
-		this.port = port;
-		this.lvalues = ImmutableList.from(lvalues);
-		this.repeatExpression = repeatExpression;
-	}
+    public StmtRead(Port port, ImmutableList<LValue> lvalues, Expression repeatExpression) {
+        this(null, ImmutableList.empty(), port, lvalues, repeatExpression);
+    }
 
-	public StmtRead copy(Port port, List<LValue> lvalues, Expression repeatExpression) {
-		if (this.port == port && Lists.sameElements(this.lvalues, lvalues) && this.repeatExpression == repeatExpression) {
-			return this;
-		} else {
-			return new StmtRead(this, port, lvalues, repeatExpression);
-		}
-	}
+    private StmtRead(StmtRead original, List<Annotation> annotations, Port port, List<LValue> lvalues, Expression repeatExpression) {
+        super(original);
+        assert port != null;
+        this.annotations = ImmutableList.from(annotations);
+        this.port = port;
+        this.lvalues = ImmutableList.from(lvalues);
+        this.repeatExpression = repeatExpression;
+    }
 
-	public Port getPort() {
-		return port;
-	}
+    public StmtRead copy(List<Annotation> annotations, Port port, List<LValue> lvalues, Expression repeatExpression) {
+        if (this.port == port && Lists.sameElements(this.lvalues, lvalues) && this.repeatExpression == repeatExpression) {
+            return this;
+        } else {
+            return new StmtRead(this, annotations, port, lvalues, repeatExpression);
+        }
+    }
 
-	public ImmutableList<LValue> getLValues() {
-		return lvalues;
-	}
+    public Port getPort() {
+        return port;
+    }
 
-	public Expression getRepeatExpression() {
-		return repeatExpression;
-	}
+    public ImmutableList<LValue> getLValues() {
+        return lvalues;
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(port);
-		lvalues.forEach(action);
-		if (repeatExpression != null) action.accept(repeatExpression);
-	}
+    public Expression getRepeatExpression() {
+        return repeatExpression;
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public StmtRead transformChildren(Transformation transformation) {
-		return copy(
-				(Port) transformation.apply(port),
-				(ImmutableList) lvalues.map(transformation),
-				repeatExpression == null ? null : (Expression) transformation.apply(repeatExpression)
-		);
-	}
+    public ImmutableList<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        annotations.forEach(action);
+        action.accept(port);
+        lvalues.forEach(action);
+        if (repeatExpression != null) action.accept(repeatExpression);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public StmtRead transformChildren(Transformation transformation) {
+        return copy(
+                annotations,
+                (Port) transformation.apply(port),
+                (ImmutableList) lvalues.map(transformation),
+                repeatExpression == null ? null : (Expression) transformation.apply(repeatExpression)
+        );
+    }
 }

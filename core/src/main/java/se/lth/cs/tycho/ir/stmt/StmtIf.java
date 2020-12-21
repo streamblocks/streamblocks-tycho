@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -54,78 +55,90 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class StmtIf extends Statement {
 
-	public StmtIf(Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
-		this(null, condition, thenBranch, elseBranch);
-	}
+    public StmtIf(Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
+        this(null, ImmutableList.empty(), condition, thenBranch, elseBranch);
+    }
 
-	public StmtIf(Expression condition, List<Statement> thenBranch) {
-		this(condition, thenBranch, null);
-	}
+    public StmtIf(List<Annotation> annotations, Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
+        this(null, annotations, condition, thenBranch, elseBranch);
+    }
 
-	private StmtIf(StmtIf original, Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
-		super(original);
-		this.condition = condition;
-		this.thenBranch = ImmutableList.from(thenBranch);
-		this.elseBranch = ImmutableList.from(elseBranch);
-	}
+    public StmtIf(List<Annotation> annotations, Expression condition, List<Statement> thenBranch) {
+        this(annotations, condition, thenBranch, null);
+    }
 
-	public StmtIf copy(Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
-		if (this.condition == condition && Lists.sameElements(this.thenBranch, thenBranch)
-				&& Lists.sameElements(this.elseBranch, elseBranch)) {
-			return this;
-		}
-		return new StmtIf(this, condition, thenBranch, elseBranch);
-	}
+    private StmtIf(StmtIf original, List<Annotation> annotations, Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
+        super(original);
+        this.annotations = ImmutableList.from(annotations);
+        this.condition = condition;
+        this.thenBranch = ImmutableList.from(thenBranch);
+        this.elseBranch = ImmutableList.from(elseBranch);
+    }
 
-	public StmtIf copy(Expression condition, List<Statement> thenBranch) {
-		if (Objects.equals(this.condition, condition) && Objects.equals(this.thenBranch, thenBranch)
-				&& this.elseBranch == null) {
-			return this;
-		}
-		return new StmtIf(this, condition, thenBranch, null);
-	}
+    public StmtIf copy(List<Annotation> annotations, Expression condition, List<Statement> thenBranch, List<Statement> elseBranch) {
+        if (Objects.equals(this.annotations, annotations) && this.condition == condition && Lists.sameElements(this.thenBranch, thenBranch)
+                && Lists.sameElements(this.elseBranch, elseBranch)) {
+            return this;
+        }
+        return new StmtIf(this, annotations, condition, thenBranch, elseBranch);
+    }
 
-	public Expression getCondition() {
-		return condition;
-	}
+    public StmtIf copy(List<Annotation> annotations, Expression condition, List<Statement> thenBranch) {
+        if (Objects.equals(this.annotations, annotations) && Objects.equals(this.condition, condition) && Objects.equals(this.thenBranch, thenBranch)
+                && this.elseBranch == null) {
+            return this;
+        }
+        return new StmtIf(this, annotations, condition, thenBranch, null);
+    }
 
-	public StmtIf withCondition(Expression condition) {
-		return copy(condition, thenBranch, elseBranch);
-	}
+    public Expression getCondition() {
+        return condition;
+    }
 
-	public ImmutableList<Statement> getThenBranch() {
-		return thenBranch;
-	}
+    public StmtIf withCondition(Expression condition) {
+        return copy(annotations, condition, thenBranch, elseBranch);
+    }
 
-	public StmtIf withThenBranch(List<Statement> thenBranch) {
-		return copy(condition, thenBranch, elseBranch);
-	}
+    public ImmutableList<Statement> getThenBranch() {
+        return thenBranch;
+    }
 
-	public ImmutableList<Statement> getElseBranch() {
-		return elseBranch;
-	}
+    public StmtIf withThenBranch(List<Statement> thenBranch) {
+        return copy(annotations, condition, thenBranch, elseBranch);
+    }
 
-	public StmtIf withElseBranch(List<Statement> elseBranch) {
-		return copy(condition, thenBranch, elseBranch);
-	}
+    public ImmutableList<Statement> getElseBranch() {
+        return elseBranch;
+    }
 
-	private Expression condition;
-	private ImmutableList<Statement> thenBranch;
-	private ImmutableList<Statement> elseBranch;
+    public StmtIf withElseBranch(List<Statement> elseBranch) {
+        return copy(annotations, condition, thenBranch, elseBranch);
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(condition);
-		thenBranch.forEach(action);
-		elseBranch.forEach(action);
-	}
+    public ImmutableList<Annotation> getAnnotations() {
+        return annotations;
+    }
 
-	@Override
-	public StmtIf transformChildren(Transformation transformation) {
-		return copy(
-				transformation.applyChecked(Expression.class, condition),
-				transformation.mapChecked(Statement.class, thenBranch),
-				transformation.mapChecked(Statement.class, elseBranch)
-		);
-	}
+    private Expression condition;
+    private ImmutableList<Statement> thenBranch;
+    private ImmutableList<Statement> elseBranch;
+    private ImmutableList<Annotation> annotations;
+
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        annotations.forEach(action);
+        action.accept(condition);
+        thenBranch.forEach(action);
+        elseBranch.forEach(action);
+    }
+
+    @Override
+    public StmtIf transformChildren(Transformation transformation) {
+        return copy(
+                annotations,
+                transformation.applyChecked(Expression.class, condition),
+                transformation.mapChecked(Statement.class, thenBranch),
+                transformation.mapChecked(Statement.class, elseBranch)
+        );
+    }
 }

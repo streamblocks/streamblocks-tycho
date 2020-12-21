@@ -85,6 +85,7 @@ public class Transition extends AbstractIRNode {
 
     @Override
     public void forEachChild(Consumer<? super IRNode> action) {
+        annotations.forEach(action);
         inputRates.keySet().forEach(action);
         outputRates.keySet().forEach(action);
         body.forEach(action);

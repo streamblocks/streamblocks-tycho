@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.stmt;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.expr.pattern.Pattern;
@@ -13,93 +14,116 @@ import java.util.function.Consumer;
 
 public class StmtCase extends Statement {
 
-	public static class Alternative extends AbstractIRNode {
+    public static class Alternative extends AbstractIRNode {
 
-		private Pattern pattern;
-		private ImmutableList<Expression> guards;
-		private ImmutableList<Statement> statements;
+        private Pattern pattern;
+        private ImmutableList<Expression> guards;
+        private ImmutableList<Statement> statements;
+        private ImmutableList<Annotation> annotations;
 
-		public Alternative(Pattern pattern, List<Expression> guards, List<Statement> statements) {
-			this(null, pattern, guards, statements);
-		}
 
-		public Alternative(IRNode original, Pattern pattern, List<Expression> guards, List<Statement> statements) {
-			super(original);
-			this.pattern = pattern;
-			this.guards = ImmutableList.from(guards);
-			this.statements = ImmutableList.from(statements);
-		}
+        public Alternative(Pattern pattern, List<Expression> guards, List<Statement> statements) {
+            this(null, ImmutableList.empty(), pattern, guards, statements);
+        }
 
-		public Pattern getPattern() {
-			return pattern;
-		}
+        public Alternative(List<Annotation> annotations, Pattern pattern, List<Expression> guards, List<Statement> statements) {
+            this(null, annotations, pattern, guards, statements);
+        }
 
-		public ImmutableList<Expression> getGuards() {
-			return guards;
-		}
+        public Alternative(IRNode original, List<Annotation> annotations, Pattern pattern, List<Expression> guards, List<Statement> statements) {
+            super(original);
+            this.annotations = ImmutableList.from(annotations);
+            this.pattern = pattern;
+            this.guards = ImmutableList.from(guards);
+            this.statements = ImmutableList.from(statements);
+        }
 
-		public ImmutableList<Statement> getStatements() {
-			return statements;
-		}
+        public Pattern getPattern() {
+            return pattern;
+        }
 
-		public Alternative copy(Pattern pattern, List<Expression> guards, List<Statement> statements) {
-			if (Objects.equals(getPattern(), pattern) && Lists.sameElements(getGuards(), guards) && Lists.sameElements(getStatements(), statements)) {
-				return this;
-			} else {
-				return new Alternative(this, pattern, guards, statements);
-			}
-		}
+        public ImmutableList<Expression> getGuards() {
+            return guards;
+        }
 
-		@Override
-		public void forEachChild(Consumer<? super IRNode> action) {
-			action.accept(getPattern());
-			guards.forEach(action);
-			statements.forEach(action);
-		}
+        public ImmutableList<Statement> getStatements() {
+            return statements;
+        }
 
-		@Override
-		public IRNode transformChildren(Transformation transformation) {
-			return copy((Pattern) transformation.apply(getPattern()), transformation.mapChecked(Expression.class, getGuards()), transformation.mapChecked(Statement.class, getStatements()));
-		}
-	}
+        public ImmutableList<Annotation> getAnnotations() {
+            return annotations;
+        }
 
-	private Expression scrutinee;
-	private ImmutableList<Alternative> alternatives;
+        public Alternative copy(List<Annotation> annotations, Pattern pattern, List<Expression> guards, List<Statement> statements) {
+            if (Objects.equals(this.annotations, annotations) && Objects.equals(getPattern(), pattern) && Lists.sameElements(getGuards(), guards) && Lists.sameElements(getStatements(), statements)) {
+                return this;
+            } else {
+                return new Alternative(this, annotations, pattern, guards, statements);
+            }
+        }
 
-	public StmtCase(Expression scrutinee, List<Alternative> alternatives) {
-		this(null, scrutinee, alternatives);
-	}
+        @Override
+        public void forEachChild(Consumer<? super IRNode> action) {
+            annotations.forEach(action);
+            action.accept(getPattern());
+            guards.forEach(action);
+            statements.forEach(action);
+        }
 
-	public StmtCase(Statement original, Expression scrutinee, List<Alternative> alternatives) {
-		super(original);
-		this.scrutinee = scrutinee;
-		this.alternatives = ImmutableList.from(alternatives);
-	}
+        @Override
+        public IRNode transformChildren(Transformation transformation) {
+            return copy(annotations, (Pattern) transformation.apply(getPattern()), transformation.mapChecked(Expression.class, getGuards()), transformation.mapChecked(Statement.class, getStatements()));
+        }
+    }
 
-	public Expression getScrutinee() {
-		return scrutinee;
-	}
+    private Expression scrutinee;
+    private ImmutableList<Alternative> alternatives;
+    private ImmutableList<Annotation> annotations;
 
-	public ImmutableList<Alternative> getAlternatives() {
-		return alternatives;
-	}
+    public StmtCase(Expression scrutinee, List<Alternative> alternatives) {
+        this(null, ImmutableList.empty(), scrutinee, alternatives);
+    }
 
-	public StmtCase copy(Expression scrutinee, List<Alternative> alternatives) {
-		if (Objects.equals(getScrutinee(), scrutinee) && Lists.sameElements(getAlternatives(), alternatives)) {
-			return this;
-		} else {
-			return new StmtCase(this, scrutinee, alternatives);
-		}
-	}
+    public StmtCase(List<Annotation> annotations, Expression scrutinee, List<Alternative> alternatives) {
+        this(null, annotations, scrutinee, alternatives);
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(getScrutinee());
-		getAlternatives().forEach(action);
-	}
+    public StmtCase(Statement original, List<Annotation> annotations, Expression scrutinee, List<Alternative> alternatives) {
+        super(original);
+        this.annotations = ImmutableList.from(annotations);
+        this.scrutinee = scrutinee;
+        this.alternatives = ImmutableList.from(alternatives);
+    }
 
-	@Override
-	public Statement transformChildren(Transformation transformation) {
-		return copy((Expression) transformation.apply(getScrutinee()), transformation.mapChecked(Alternative.class, getAlternatives()));
-	}
+    public Expression getScrutinee() {
+        return scrutinee;
+    }
+
+    public ImmutableList<Alternative> getAlternatives() {
+        return alternatives;
+    }
+
+    public ImmutableList<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    public StmtCase copy(List<Annotation> annotations, Expression scrutinee, List<Alternative> alternatives) {
+        if (Objects.equals(this.annotations, annotations) && Objects.equals(getScrutinee(), scrutinee) && Lists.sameElements(getAlternatives(), alternatives)) {
+            return this;
+        } else {
+            return new StmtCase(this, annotations, scrutinee, alternatives);
+        }
+    }
+
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        annotations.forEach(action);
+        action.accept(getScrutinee());
+        getAlternatives().forEach(action);
+    }
+
+    @Override
+    public Statement transformChildren(Transformation transformation) {
+        return copy(annotations, (Expression) transformation.apply(getScrutinee()), transformation.mapChecked(Alternative.class, getAlternatives()));
+    }
 }

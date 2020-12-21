@@ -130,7 +130,7 @@ public class Composer {
         }
 
         default IRNode rename(StmtWrite write) {
-            return write.copy(outputPort(write.getPort()), write.getValues(), write.getRepeatExpression());
+            return write.copy(write.getAnnotations(), outputPort(write.getPort()), write.getValues(), write.getRepeatExpression());
         }
 
         default IRNode rename(Transition transition) {

@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -50,43 +51,54 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class StmtCall extends Statement {
 
-	public StmtCall(Expression procedure, List<Expression> args) {
-		this(null, procedure, args);
-	}
+    public StmtCall(Expression procedure, List<Expression> args) {
+        this(null, ImmutableList.empty(), procedure, args);
+    }
 
-	private StmtCall(StmtCall original, Expression procedure, List<Expression> args) {
-		super(original);
-		this.procedure = procedure;
-		this.args = ImmutableList.from(args);
-	}
+    public StmtCall(List<Annotation> annotations, Expression procedure, List<Expression> args) {
+        this(null, annotations, procedure, args);
+    }
 
-	public StmtCall copy(Expression procedure, List<Expression> args) {
-		if (Objects.equals(this.procedure, procedure) && Lists.equals(this.args, args)) {
-			return this;
-		}
-		return new StmtCall(this, procedure, args);
-	}
+    private StmtCall(StmtCall original, List<Annotation> annotations, Expression procedure, List<Expression> args) {
+        super(original);
+        this.annotations = ImmutableList.from(annotations);
+        this.procedure = procedure;
+        this.args = ImmutableList.from(args);
+    }
 
-	public Expression getProcedure() {
-		return procedure;
-	}
+    public StmtCall copy(List<Annotation> annotations, Expression procedure, List<Expression> args) {
+        if (Objects.equals(this.annotations, annotations) && Objects.equals(this.procedure, procedure) && Lists.equals(this.args, args)) {
+            return this;
+        }
+        return new StmtCall(this, annotations, procedure, args);
+    }
 
-	public ImmutableList<Expression> getArgs() {
-		return args;
-	}
+    public Expression getProcedure() {
+        return procedure;
+    }
 
-	private Expression procedure;
-	private ImmutableList<Expression> args;
+    public ImmutableList<Expression> getArgs() {
+        return args;
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(procedure);
-		args.forEach(action);
-	}
+    public ImmutableList<Annotation> getAnnotations() {
+        return annotations;
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public StmtCall transformChildren(Transformation transformation) {
-		return copy((Expression) transformation.apply(procedure), (ImmutableList) args.map(transformation));
-	}
+    private Expression procedure;
+    private ImmutableList<Expression> args;
+    private ImmutableList<Annotation> annotations;
+
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        annotations.forEach(action);
+        action.accept(procedure);
+        args.forEach(action);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public StmtCall transformChildren(Transformation transformation) {
+        return copy(annotations, (Expression) transformation.apply(procedure), (ImmutableList) args.map(transformation));
+    }
 }

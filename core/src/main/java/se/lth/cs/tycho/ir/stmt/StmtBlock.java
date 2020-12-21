@@ -39,6 +39,7 @@ ENDCOPYRIGHT
 
 package se.lth.cs.tycho.ir.stmt;
 
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
@@ -46,6 +47,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -54,70 +56,83 @@ import java.util.function.Consumer;
 
 public class StmtBlock extends Statement {
 
-	public StmtBlock(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
-			List<Statement> statements) {
-		this(null, typeDecls, varDecls, statements);
-	}
-	
-	private StmtBlock(StmtBlock original, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
-			List<Statement> statements) {
-		super(original);
-		this.typeDecls = ImmutableList.from(typeDecls);
-		this.varDecls = ImmutableList.from(varDecls);
-		this.statements = ImmutableList.from(statements);
-	}
+    public StmtBlock(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
+                     List<Statement> statements) {
+        this(null, ImmutableList.empty(), typeDecls, varDecls, statements);
+    }
 
-	public StmtBlock copy(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
-			List<Statement> statements) {
-		if (Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
-				&& Lists.equals(this.statements, statements)) {
-			return this;
-		}
-		return new StmtBlock(this, typeDecls, varDecls, statements);
-	}
+    public StmtBlock(List<Annotation> annotations, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
+                     List<Statement> statements) {
+        this(null, annotations, typeDecls, varDecls, statements);
+    }
 
-	public ImmutableList<TypeDecl> getTypeDecls() {
-		return typeDecls;
-	}
+    private StmtBlock(StmtBlock original, List<Annotation> annotations, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
+                      List<Statement> statements) {
+        super(original);
+        this.annotations = ImmutableList.from(annotations);
+        this.typeDecls = ImmutableList.from(typeDecls);
+        this.varDecls = ImmutableList.from(varDecls);
+        this.statements = ImmutableList.from(statements);
+    }
 
-	public ImmutableList<LocalVarDecl> getVarDecls() {
-		return varDecls;
-	}
+    public StmtBlock copy(List<Annotation> annotations, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
+                          List<Statement> statements) {
+        if (Objects.equals(this.annotations, annotations) && Lists.equals(this.typeDecls, typeDecls) && Lists.equals(this.varDecls, varDecls)
+                && Lists.equals(this.statements, statements)) {
+            return this;
+        }
+        return new StmtBlock(this, annotations, typeDecls, varDecls, statements);
+    }
 
-	public ImmutableList<Statement> getStatements() {
-		return statements;
-	}
+    public ImmutableList<TypeDecl> getTypeDecls() {
+        return typeDecls;
+    }
 
-	public StmtBlock withVarDecls(List<LocalVarDecl> varDecls) {
-		if (Lists.sameElements(this.varDecls, varDecls)) {
-			return this;
-		} else {
-			return new StmtBlock(this, typeDecls, ImmutableList.from(varDecls), statements);
-		}
-	}
+    public ImmutableList<LocalVarDecl> getVarDecls() {
+        return varDecls;
+    }
 
-	private ImmutableList<TypeDecl> typeDecls;
-	private ImmutableList<LocalVarDecl> varDecls;
-	private ImmutableList<Statement> statements;
+    public ImmutableList<Statement> getStatements() {
+        return statements;
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		typeDecls.forEach(action);
-		varDecls.forEach(action);
-		statements.forEach(action);
-	}
+    public ImmutableList<Annotation> getAnnotations() {
+        return annotations;
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public StmtBlock transformChildren(Transformation transformation) {
-		return copy(
-				(ImmutableList) typeDecls.map(transformation),
-				(ImmutableList) varDecls.map(transformation),
-				(ImmutableList) statements.map(transformation)
-		);
-	}
+    public StmtBlock withVarDecls(List<LocalVarDecl> varDecls) {
+        if (Lists.sameElements(this.varDecls, varDecls)) {
+            return this;
+        } else {
+            return new StmtBlock(this, annotations, typeDecls, ImmutableList.from(varDecls), statements);
+        }
+    }
 
-	public StmtBlock withStatements(List<Statement> statements) {
-		return copy(typeDecls, varDecls, statements);
-	}
+    private ImmutableList<Annotation> annotations;
+    private ImmutableList<TypeDecl> typeDecls;
+    private ImmutableList<LocalVarDecl> varDecls;
+    private ImmutableList<Statement> statements;
+
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        annotations.forEach(action);
+        typeDecls.forEach(action);
+        varDecls.forEach(action);
+        statements.forEach(action);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public StmtBlock transformChildren(Transformation transformation) {
+        return copy(
+                (ImmutableList) annotations.map(transformation),
+                (ImmutableList) typeDecls.map(transformation),
+                (ImmutableList) varDecls.map(transformation),
+                (ImmutableList) statements.map(transformation)
+        );
+    }
+
+    public StmtBlock withStatements(List<Statement> statements) {
+        return copy(annotations, typeDecls, varDecls, statements);
+    }
 }
