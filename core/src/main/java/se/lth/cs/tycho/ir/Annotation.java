@@ -1,14 +1,12 @@
 package se.lth.cs.tycho.ir;
 
+import se.lth.cs.tycho.ir.util.ImmutableList;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-
-import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.util.ImmutableEntry;
-import se.lth.cs.tycho.ir.util.ImmutableList;
+import java.util.stream.Collectors;
 
 /**
  * This class represents annotation nodes in the abstract syntax trees.
@@ -61,6 +59,18 @@ public class Annotation extends AbstractIRNode {
      */
     public static Optional<Annotation> getAnnotationWithName(String name, List<Annotation> annotations) {
         return annotations.stream().filter(ann -> ann.getName().equals(name)).findAny();
+    }
+
+
+    /**
+     * Get all annotations from a given annotation name
+     *
+     * @param name        the annotation name to search
+     * @param annotations the list of annotations
+     * @return an optional annotation
+     */
+    public static List<Annotation> getAnnotationsWithName(String name, List<Annotation> annotations) {
+        return annotations.stream().filter(ann -> ann.getName().equals(name)).collect(Collectors.toList());
     }
 
     /**
