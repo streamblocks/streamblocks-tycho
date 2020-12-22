@@ -25,10 +25,10 @@ public class StmtLabeled extends Statement {
     private final Map<LocalVarDecl, Boolean> valueNumbering;
     private final Map<ExprVariable, LocalVarDecl> exprValueNumbering;
     private boolean ssaHasBeenVisted;
-    private final boolean isWithinLoop;
+    private final int nestedLoopLevel;
 
     private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit,
-                        Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, boolean isWithinLoop) {
+                        Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
@@ -38,20 +38,20 @@ public class StmtLabeled extends Statement {
         this.valueNumbering = valueNumbering;
         this.exprValueNumbering = exprValueNumbering;
         this.ssaHasBeenVisted = ssaHasBeenVisted;
-        this.isWithinLoop = isWithinLoop;
+        this.nestedLoopLevel = nestedLoopLevel;
     }
 
-    public StmtLabeled(String label, Statement originalStmt, boolean isWithinLoop) {
-        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false, isWithinLoop);
+    public StmtLabeled(String label, Statement originalStmt, int nestedLoopLevel) {
+        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false, nestedLoopLevel);
     }
 
     private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit,
-                        Map<LocalVarDecl, Boolean> currentPhiExprs, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, boolean isWithinLoop) {
-        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, exprValueNumbering, ssaHasBeenVisted, isWithinLoop);
+                        Map<LocalVarDecl, Boolean> currentPhiExprs, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel) {
+        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, exprValueNumbering, ssaHasBeenVisted, nestedLoopLevel);
     }
 
     public StmtLabeled withNewOriginal(Statement originalStmt) {
-        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisted, this.isWithinLoop);
+        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisted, this.nestedLoopLevel);
     }
 
     public void lostCopyName(){
@@ -70,8 +70,8 @@ public class StmtLabeled extends Statement {
         return label;
     }
 
-    public boolean isWithinLoop() {
-        return isWithinLoop;
+    public int loopLevel() {
+        return nestedLoopLevel;
     }
 
     public boolean hasBeenVisted() {
