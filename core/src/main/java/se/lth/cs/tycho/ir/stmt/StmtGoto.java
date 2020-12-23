@@ -1,7 +1,6 @@
-package se.lth.cs.tycho.ir.stmt.ssa;
+package se.lth.cs.tycho.ir.stmt;
 
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.stmt.Statement;
 
 import java.util.function.Consumer;
 

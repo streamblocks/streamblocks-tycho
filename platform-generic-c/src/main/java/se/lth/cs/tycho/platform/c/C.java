@@ -25,10 +25,10 @@ public class C implements Platform {
 			.addAll(Compiler.nameAndTypeAnalysis())
 			.addAll(Compiler.actorMachinePhases())
 			.add(new RemoveUnusedEntityDeclsPhase())
-			.add(new AmToProceduralPhase())
+			//.add(new AmToProceduralPhase())
 			.add(new ToExpProcReturnPhase())
 			.add(new SsaPhase())
-			//.add(new CBackendPhase())
+			.add(new CBackendPhase())
 			.build();
 
 	@Override
