@@ -178,6 +178,8 @@ public interface Code {
 
 	default String declaration(BoolType type, String name) { return "_Bool " + name; }
 
+	default String declaration(VoidType type, String name) { return "void " + name; }
+
 	default String declaration(StringType type, String name) { return type(type) + " " + name; }
 
 	default String declaration(SetType type, String name) { return type(type) + " " + name; }
@@ -240,6 +242,8 @@ public interface Code {
 	}
 
 	default String type(BoolType type) { return "_Bool"; }
+
+	default String type(VoidType type) { return "void"; }
 
 	default String type(CharType type) { return "char"; }
 
@@ -1159,6 +1163,23 @@ public interface Code {
 		return funPtr;
 	}
 
+	default String evaluate(ExprProcReturn procReturn) {
+		backend().emitter().emit("// begin evaluate(ExprLambda)");
+		String functionName = backend().callables().functionName(procReturn);
+		String env = backend().callables().environmentName(procReturn);
+		for (VarDecl var : backend().callables().closure(procReturn)) {
+			emitter().emit("%s.%s = %s;", env, variables().declarationName(var), variables().reference(var));
+		}
+
+		Type type = backend().types().type(procReturn);
+		String typeName = backend().callables().mangle(type).encode();
+		String funPtr = backend().variables().generateTemp();
+		backend().emitter().emit("%s %s = { &%s, &%s };", typeName, funPtr, functionName, env);
+
+		backend().emitter().emit("// end evaluate(ExprLambda)");
+		return funPtr;
+	}
+
 	default String evaluate(ExprProc proc) {
 		backend().emitter().emit("// begin evaluate(ExprProc)");
 		String functionName = backend().callables().functionName(proc);
@@ -1343,6 +1364,10 @@ public interface Code {
 		trackable().exit();
 		emitter().decreaseIndentation();
 		emitter().emit("}");
+	}
+
+	default void execute(StmtReturn stmtReturn){
+		emitter().emit("return %s;", evaluate(stmtReturn.getExpression()));
 	}
 
 	default void execute(StmtCase caseStmt) {

@@ -19,10 +19,7 @@ import se.lth.cs.tycho.ir.decl.ProductTypeDecl;
 import se.lth.cs.tycho.ir.decl.SumTypeDecl;
 import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
-import se.lth.cs.tycho.ir.expr.ExprCase;
-import se.lth.cs.tycho.ir.expr.ExprLambda;
-import se.lth.cs.tycho.ir.expr.ExprLet;
-import se.lth.cs.tycho.ir.expr.ExprProc;
+import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -150,6 +147,10 @@ public class DeclarationAnalysisPhase implements Phase {
 		}
 
 		default void visit(ExprProc node) {
+			check(node.getValueParameters().stream());
+		}
+
+		default void visit(ExprProcReturn node) {
 			check(node.getValueParameters().stream());
 		}
 

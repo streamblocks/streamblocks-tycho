@@ -9,6 +9,7 @@ import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.expr.ExprLambda;
 import se.lth.cs.tycho.ir.expr.ExprProc;
+import se.lth.cs.tycho.ir.expr.ExprProcReturn;
 import se.lth.cs.tycho.phase.TreeShadow;
 
 public interface Closures {
@@ -56,6 +57,10 @@ public interface Closures {
 
         default IRNode environmentBoundary(ExprLambda lambda) {
             return lambda;
+        }
+
+        default IRNode environmentBoundary(ExprProcReturn procReturn) {
+            return procReturn;
         }
 
         default IRNode environmentBoundary(Entity entity) {

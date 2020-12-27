@@ -9,11 +9,7 @@ import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.Scope;
-import se.lth.cs.tycho.ir.expr.ExprLambda;
-import se.lth.cs.tycho.ir.expr.ExprLet;
-import se.lth.cs.tycho.ir.expr.ExprProc;
-import se.lth.cs.tycho.ir.expr.ExprVariable;
-import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.backend.c.util.NameExpression;
@@ -84,6 +80,10 @@ public interface Callables {
 		collector.accept((LambdaType) backend().types().type(lambda));
 	}
 
+	default void collectCallableTypes(ExprProcReturn proc, Consumer<CallableType> collector) {
+		collector.accept((LambdaType) backend().types().type(proc));
+	}
+
 	default void collectCallableTypes(ExprProc proc, Consumer<CallableType> collector) {
 		collector.accept((ProcType) backend().types().type(proc));
 	}
@@ -121,6 +121,11 @@ public interface Callables {
 	default void collectCallablesInScope(ExprProc proc, Consumer<Expression> collector) {
 		collector.accept(proc);
 	}
+
+	default void collectCallablesInScope(ExprProcReturn proc, Consumer<Expression> collector) {
+		collector.accept(proc);
+	}
+
 
 	default void collectCallablesInScope(ExprLet let, Consumer<Expression> collector) { }
 	default void collectCallablesInScope(StmtBlock block, Consumer<Expression> collector) { }
@@ -164,6 +169,10 @@ public interface Callables {
 
 	default NameExpression mangle(BoolType type) {
 		return name("bool");
+	}
+
+	default NameExpression mangle(VoidType type) {
+		return name("void");
 	}
 
 	default NameExpression mangle(CharType type) {
@@ -227,6 +236,12 @@ public interface Callables {
 		backend().emitter().emit("%s;", lambdaHeader(lambda));
 	}
 
+	default void callablePrototype(ExprProcReturn proc) {
+		String name = functionName(proc);
+		closureTypedef(closure(proc), name);
+		backend().emitter().emit("%s;", lambdaHeader(proc));
+	}
+
 	default void callablePrototype(ExprProc proc) {
 		String name = functionName(proc);
 		closureTypedef(closure(proc), name);
@@ -278,6 +293,20 @@ public interface Callables {
 		backend().emitter().emit("}");
 	}
 
+	default void callableDefinition(ExprProcReturn proc) {
+		String name = functionName(proc);
+		backend().emitter().emit("%s {", lambdaHeader(proc));
+		backend().emitter().increaseIndentation();
+		proc.forEachChild(this::declareEnvironmentForCallablesInScope);
+		backend().emitter().emit("envt_%s *env = (envt_%s*) e;", name, name);
+		backend().trackable().enter();
+		proc.getBody().forEach(backend().code()::execute);
+		backend().trackable().exit();
+		backend().emitter().decreaseIndentation();
+		backend().emitter().emit("}");
+	}
+
+
 	default String envField(VarDecl decl) {
 		String name = backend().variables().declarationName(decl);
 		Type originalType = new RefType(backend().types().declaredType(decl));
@@ -298,7 +327,7 @@ public interface Callables {
 
 	/** The name of the C-function */
 	default String functionName(Expression callable) {
-		assert callable instanceof ExprLambda || callable instanceof ExprProc;
+		assert callable instanceof ExprLambda || callable instanceof ExprProc || callable instanceof ExprProcReturn;
 		if (!callablesNames().containsKey(callable)) {
 			IRNode parent = backend().tree().parent(callable);
 			String candidate;
@@ -326,6 +355,9 @@ public interface Callables {
 		return lambda;
 	}
 	default IRNode environmentScope(ExprProc proc) {
+		return proc;
+	}
+	default IRNode environmentScope(ExprProcReturn proc) {
 		return proc;
 	}
 	default IRNode environmentScope(Scope scope) {
@@ -410,6 +442,14 @@ public interface Callables {
 		ImmutableList<String> parameterNames = lambda.getValueParameters().map(backend().variables()::declarationName);
 		return callableHeader(name, type, parameterNames, true);
 	}
+
+	default String lambdaHeader(ExprProcReturn procReturn) {
+		String name = functionName(procReturn);
+		LambdaType type = (LambdaType) backend().types().type(procReturn);
+		ImmutableList<String> parameterNames = procReturn.getValueParameters().map(backend().variables()::declarationName);
+		return callableHeader(name, type, parameterNames, true);
+	}
+
 
 	default String procHeader(ExprProc proc) {
 		String name = functionName(proc);

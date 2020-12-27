@@ -17,6 +17,7 @@ import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtReturn;
 import se.lth.cs.tycho.ir.type.TypeExpr;
+import se.lth.cs.tycho.ir.type.VoidTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 
@@ -60,7 +61,7 @@ public class ToExpProcReturnPhase implements Phase {
             ImmutableList.Builder<Statement> builderBody = ImmutableList.builder();
             builderBody.addAll(proc.getBody());
 
-            ExprProcReturn procReturn = new ExprProcReturn(builderParameters.build(), builderBody.build(), null);
+            ExprProcReturn procReturn = new ExprProcReturn(builderParameters.build(), builderBody.build(), new VoidTypeExpr());
             return procReturn;
         }
 

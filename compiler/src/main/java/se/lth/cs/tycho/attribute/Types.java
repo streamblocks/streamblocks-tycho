@@ -30,11 +30,7 @@ import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.stmt.lvalue.*;
-import se.lth.cs.tycho.ir.type.FunctionTypeExpr;
-import se.lth.cs.tycho.ir.type.NominalTypeExpr;
-import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
-import se.lth.cs.tycho.ir.type.TupleTypeExpr;
-import se.lth.cs.tycho.ir.type.TypeExpr;
+import se.lth.cs.tycho.ir.type.*;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.CaseAnalysisPhase;
@@ -554,6 +550,10 @@ public interface Types {
 			return new TupleType(t.getTypes().map(this::convert));
 		}
 
+		default VoidType convert(VoidTypeExpr v){
+			return VoidType.INSTANCE;
+		}
+
 		default LambdaType convert(FunctionTypeExpr t) {
 			return new LambdaType(t.getParameterTypes().map(this::convert), convert(t.getReturnType()));
 		}
@@ -925,6 +925,10 @@ public interface Types {
 
 		default Type computeType(ExprLambda lambda) {
 			return new LambdaType(lambda.getValueParameters().map(this::declaredType), convert(lambda.getReturnType()));
+		}
+
+		default Type computeType(ExprProcReturn procReturn) {
+			return new LambdaType(procReturn.getValueParameters().map(this::declaredType), convert(procReturn.getReturnType()));
 		}
 
 		default Type computeType(ExprProc lambda) {
