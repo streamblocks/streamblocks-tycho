@@ -1,16 +1,12 @@
 package se.lth.cs.tycho.ir.stmt.ssa;
 
-
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.stmt.Statement;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -132,7 +128,7 @@ public class StmtLabeled extends Statement {
         return new HashMap<>(valueNumbering);
     }
 
-    public LocalVarDecl containsVarDef(String originalName){
+    public Optional<LocalVarDecl> containsVarDef(String originalName){
         boolean contained = false;
         int i = 0;
         List<LocalVarDecl> lvd = new LinkedList<>(valueNumbering.keySet());
@@ -142,7 +138,7 @@ public class StmtLabeled extends Statement {
             }
             ++i;
         }
-        return (contained) ? lvd.get(--i) : null;
+        return (contained) ? Optional.of(lvd.get(--i)) : Optional.empty();
     }
 
     public Statement getOriginalStmt() {

@@ -515,7 +515,7 @@ public class SsaPhase implements Phase {
 
     private static StmtLabeled createWhileBlock(StmtWhile stmt, StmtLabeled exitBlock, int nestedLoopLevel) {
         ImmutableList<Statement> stmts = stmt.getBody();
-        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmts, exitBlock, nestedLoopLevel+1);
+        LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmts, exitBlock, nestedLoopLevel + 1);
 
         StmtLabeled stmtWhileLabeled = new StmtLabeled(assignLabel(stmt), stmt, nestedLoopLevel);
 
@@ -631,7 +631,7 @@ public class SsaPhase implements Phase {
 
                 //TODO handle name of variable put in final result to avoid duplicates
                 stmtLabeled.addNewLVNPair((ExprVariable) expr, null);
-                Pair<LocalVarDecl, Integer> resPair = resolveSSAName(stmtLabeled, (ExprVariable) expr, 0);
+                Pair<LocalVarDecl, Integer> resPair = resolveSSAName(stmtLabeled, (ExprVariable) expr, 0, new HashSet<>());
                 if (resPair.getFirst() != null && resPair.getSecond() >= 0) {
                     stmtLabeled.updateLVNPair((ExprVariable) expr, resPair.getFirst());
                 } //TODO check if error handling is needed
@@ -643,7 +643,7 @@ public class SsaPhase implements Phase {
         }
     }
 
-    private static Pair<LocalVarDecl, Integer> resolveSSAName(StmtLabeled stmt, ExprVariable exprVariable, int recLvl) {
+    private static Pair<LocalVarDecl, Integer> resolveSSAName(StmtLabeled stmt, ExprVariable exprVariable, int recLvl, Set<StmtLabeled> visited) {
         //Reaches top without finding definition
         if (stmt.getLabel().equals("ProgramEntry")) {
             return new Pair<>(null, -1);
@@ -655,16 +655,30 @@ public class SsaPhase implements Phase {
         }
 
         String originalVarRef = exprVariable.getVariable().getOriginalName();
-        LocalVarDecl localVarDecl = stmt.containsVarDef(originalVarRef);
+        Optional<LocalVarDecl> localVarDecl = stmt.containsVarDef(originalVarRef);
 
         //found locally
-        if (localVarDecl != null) {
-            return new Pair<>(localVarDecl, recLvl);
+        if (localVarDecl.isPresent()) {
+            return new Pair<>(localVarDecl.get(), recLvl);
 
         } else {
             //TODO handle case where no assignment of a variable happen to a phi situation variable. This means there's no SSA available
             List<Pair<LocalVarDecl, Integer>> prevVarFound = new LinkedList<>();
-            stmt.getPredecessors().forEach(pred -> prevVarFound.add(resolveSSAName(pred, exprVariable, recLvl + 1)));
+            stmt.getPredecessors().forEach(pred -> {
+                        if (!visited.contains(pred)) {
+                            visited.add(pred);
+                            prevVarFound.add(resolveSSAName(pred, exprVariable, recLvl + 1, visited));
+                        }
+                    }
+            );
+
+            if (prevVarFound.isEmpty()) {
+                if (recLvl == 0) {
+                    throw new IllegalStateException("No definitions for this variable found in the program up to this expression");
+                } else {
+                    return new Pair<>(null, -2);
+                }
+            }
 
             //TODO check logic
             boolean foundPhi = false;
@@ -696,7 +710,7 @@ public class SsaPhase implements Phase {
                 Pair<LocalVarDecl, Integer> resultPair = prevVarFound.get(resIndex);
                 if (nb_found > 1 && !foundPhi) {
                     //had to add get a new lvd
-                    LocalVarDecl lvd = readVar(stmt, exprVariable.getVariable(), 0).getFirst();
+                    LocalVarDecl lvd = readVar(stmt, exprVariable.getVariable(), 0, Optional.empty()).getFirst();
                     stmt.addLocalValueNumber(lvd, true);
                     //stmt.addLVNResult(exprVariable, lvd);
                     return new Pair<>(lvd, resultPair.getSecond());
@@ -729,7 +743,7 @@ public class SsaPhase implements Phase {
             return new Pair<>(expr, false);
 
         } else if (expr instanceof ExprVariable) {
-            Pair<LocalVarDecl, Boolean> result = readVar(stmtLabeled, ((ExprVariable) expr).getVariable(), 0);
+            Pair<LocalVarDecl, Boolean> result = readVar(stmtLabeled, ((ExprVariable) expr).getVariable(), 0, Optional.empty());
             ExprVariable ret = ((ExprVariable) expr).copy(variable(result.getFirst().getName()), ((ExprVariable) expr).getOld());
             return new Pair<>(ret, result.getSecond());
 
@@ -854,13 +868,21 @@ public class SsaPhase implements Phase {
         //TODO handle acquisition of previous variable def
         //LocalVarDecl u1 = selfAssignedVar.withName("u1").withValue(new ExprVariable(deriveOldVarName(selfAssignedVar)));
         //LocalVarDecl u1 = readVarRec(stmtLabeled, var).getFirst();
-        LocalVarDecl u1 = findVarPredFromLoop(selfAssignedVar, stmtLabeled);
+        LocalVarDecl u1 = selfAssignedVar.withName("u1").withValue(new ExprVariable(variable(findVarPredFromLoop(selfAssignedVar, stmtLabeled).getName())));
         LocalVarDecl u0 = u1.withName("u0").withValue(null); //u0 = null
         LocalVarDecl x2 = u1.withName("x2").withValue(new ExprVariable(loopEntry)); //x2 = u0
         Expression replacementExpr = replaceVariableInExpr(selfAssignedVar.getValue(), var, loopExit, stmtLabeled);
         LocalVarDecl x3 = selfAssignedVar.withValue(replacementExpr);
         LocalVarDecl u2 = u1.withName("u2").withValue(new ExprVariable(loopSelfRef));
         u0 = u0.withValue(new ExprPhi(loopEntry, ImmutableList.of(u1, u2)));
+
+        StmtLabeled loopExitStmt = findStatementLabeled(stmtLabeled, "StmtWhileExit", false);
+
+        //Set u2 correctly
+        Optional<LocalVarDecl> succWithinLoop = findVarSuccFromLoop(selfAssignedVar, loopExitStmt, stmtLabeled);
+        if(succWithinLoop.isPresent()){
+            u2 = u2.withValue(new ExprVariable(variable(succWithinLoop.get().getName())));
+        }
 
         LocalVarDecl newOriginalVar = x2.withName(selfAssignedVar.getName());
         stmtLabeled.addLocalValueNumber(newOriginalVar, true);
@@ -904,33 +926,81 @@ public class SsaPhase implements Phase {
         return u2;
     }
 
-    private static LocalVarDecl findVarPredFromLoop(LocalVarDecl varToFind, StmtLabeled stmtLabeled) {
-        StmtLabeled pred = stmtLabeled.getPredecessors().get(0);
-        LocalVarDecl resUntilLoopStart = readVar(pred, variable(varToFind.getOriginalName()), 1).getFirst();
+    private static LocalVarDecl findVarPredFromLoop(LocalVarDecl varToFind, StmtLabeled originalStmt) {
+        StmtLabeled pred = originalStmt.getPredecessors().get(0);
+        LocalVarDecl resUntilLoopStart = readVar(pred, variable(varToFind.getOriginalName()), 1, Optional.empty()).getFirst();
+
         if (resUntilLoopStart != null && !(resUntilLoopStart.getValue() instanceof ExprPhi && ((ExprPhi) resUntilLoopStart.getValue()).getOperands().isEmpty())) {
             return resUntilLoopStart;
         } else {
             //Only keep loop entry block
-            StmtLabeled loopEntry = findStatementLabeled(stmtLabeled, "StmtWhile");
+            StmtLabeled loopEntry = findStatementLabeled(originalStmt, "StmtWhile", true);
             List<StmtLabeled> loopEntryPreds = new LinkedList<>(loopEntry.getPredecessors());
             loopEntryPreds.removeIf(p -> p.loopLevel() > loopEntry.loopLevel());
 
             //Not outside nestedLoops
             if (loopEntry.loopLevel() != 0) {
                 LocalVarDecl outerLoopRes = findVarPredFromLoop(varToFind, loopEntryPreds.get(0));
-                return outerLoopRes;
+
+                StmtLabeled loopExit = findStatementLabeled(originalStmt, "StmtWhileEntry", true);
+                Optional<LocalVarDecl> succRes = findVarSuccFromLoop(varToFind, loopExit, originalStmt);
+                if (succRes.isPresent()) {
+                    return varToFind.withValue(new ExprPhi(variable(varToFind.getName()), Arrays.asList(outerLoopRes, succRes.get())));
+                } else {
+                    return outerLoopRes;
+                }
             } else {
-                LocalVarDecl resFromOutsideLoops = readVar(loopEntryPreds.get(0), variable(varToFind.getOriginalName()), 0).getFirst();
-                return resFromOutsideLoops;
+                // result from outside nested loops
+                return readVar(loopEntryPreds.get(0), variable(varToFind.getOriginalName()), 0, Optional.empty()).getFirst();
             }
         }
     }
 
-    private static StmtLabeled findStatementLabeled(StmtLabeled stmtLabeled, String label) {
+    private static Optional<LocalVarDecl> findVarSuccFromLoop(LocalVarDecl varToFind, StmtLabeled startStmt, StmtLabeled originalStmt) {
+
+        StmtLabeled loopExit = findStatementLabeled(originalStmt, "StmtWhile", false);
+        List<StmtLabeled> loopExitPredecessors = new LinkedList<>(loopExit.getPredecessors());
+        loopExitPredecessors.removeIf(p -> p.loopLevel() <= loopExit.loopLevel());
+        StmtLabeled lastLoopStmt = loopExitPredecessors.get(0);
+
+        if(lastLoopStmt.equals(originalStmt)){
+            return Optional.empty();
+        }
+
+        LocalVarDecl resFromStmtToLoopEnd = readVar(lastLoopStmt, variable(varToFind.getOriginalName()), 3, Optional.of(originalStmt)).getFirst();
+        return (resFromStmtToLoopEnd == null) ? Optional.empty() : Optional.of(resFromStmtToLoopEnd);
+
+     /*   LocalVarDecl resUntilVar = readVar(startStmt, variable(varToFind.getOriginalName()), 2, Optional.empty()).getFirst();
+        LocalVarDecl resUntilLoopStart = readVar(startStmt, variable(varToFind.getOriginalName()), 3, Optional.of(originalStmt)).getFirst();
+        LocalVarDecl resFromOrigToLoopStart = readVar(originalStmt.getPredecessors().get(0), variable(varToFind.getOriginalName()), 2, Optional.empty()).getFirst();
+
+        if (resUntilVar == null || resUntilVar.equals(varToFind)) {
+            if (resUntilLoopStart.equals(varToFind) || resFromOrigToLoopStart.equals(resUntilLoopStart)) {
+                //nothing found
+                return Optional.empty();
+            } else {
+                //same level but different branching
+                return Optional.of(resUntilLoopStart);
+            }
+        } else {
+            if (!resUntilLoopStart.equals(varToFind) && !resUntilLoopStart.equals(resFromOrigToLoopStart)) {
+                return Optional.of(varToFind.withValue(new ExprPhi(variable(varToFind.getName()), Arrays.asList(resUntilLoopStart, resUntilVar))));
+            } else {
+                return Optional.of(resUntilVar);
+            }
+        }*/
+    }
+
+    private static StmtLabeled findStatementLabeled(StmtLabeled stmtLabeled, String label, boolean dir) {
+        //if dir is false = successors
         if (stmtLabeled.getLabel().equals(label)) {
             return stmtLabeled;
         } else {
-            return findStatementLabeled(stmtLabeled.getPredecessors().get(0), label);
+            if (dir) {
+                return findStatementLabeled(stmtLabeled.getPredecessors().get(0), label, dir);
+            } else {
+                return findStatementLabeled(stmtLabeled.getSuccessors().get(0), label, dir);
+            }
         }
     }
 
@@ -975,7 +1045,7 @@ public class SsaPhase implements Phase {
 
 //--------------- SSA Algorithm ---------------//
 
-    private static boolean generateStopCondition(StmtLabeled stmtLabeled, int condType) {
+    private static boolean generateStopCondition(StmtLabeled stmtLabeled, int condType, Optional<StmtLabeled> self) {
 
         boolean res;
         switch (condType) {
@@ -985,13 +1055,20 @@ public class SsaPhase implements Phase {
             case 2:
                 res = stmtLabeled.getLabel().equals("StmtWhileExit");
                 break;
+            case 3:
+                if (self.isPresent()) {
+                    res = stmtLabeled.equals(self.get());
+                    break;
+                } else {
+                    throw new IllegalArgumentException("if condType is 3, a StatementLabeled must be provided");
+                }
             default:
                 res = false;
         }
         return res;
     }
 
-    private static Pair<LocalVarDecl, Boolean> readVar(StmtLabeled stmt, Variable var, int stopCondType) {
+    private static Pair<LocalVarDecl, Boolean> readVar(StmtLabeled stmt, Variable var, int stopCondType, Optional<StmtLabeled> stopStmt) {
 
         //look for self reference
         Optional<LocalVarDecl> matchingLVD = stmt.getLocalValueNumbers().keySet().stream().filter(l -> l.getOriginalName().equals(var.getOriginalName())).findAny();
@@ -1011,7 +1088,7 @@ public class SsaPhase implements Phase {
             //no self reference
             return new Pair<>(lv, false);
         } else {
-            boolean hasToStop = generateStopCondition(stmt, stopCondType);
+            boolean hasToStop = generateStopCondition(stmt, stopCondType, stopStmt);
             //No def found in current Statement
             Optional<Pair<LocalVarDecl, Boolean>> recRes = readVarRec(stmt, var, hasToStop);
             return recRes.orElseGet(() -> new Pair<>(null, false));
@@ -1024,7 +1101,7 @@ public class SsaPhase implements Phase {
             return Optional.empty();
         }
         if (stmt.getPredecessors().size() == 1) {
-            return Optional.of(readVar(stmt.getPredecessors().get(0), var, 0));
+            return Optional.of(readVar(stmt.getPredecessors().get(0), var, 0, Optional.empty()));
         } else {
             ExprPhi phiExpr = new ExprPhi(var, ImmutableList.empty());
             //Add Phi to Global value numbering
@@ -1044,7 +1121,7 @@ public class SsaPhase implements Phase {
         LinkedList<LocalVarDecl> phiOperands = new LinkedList<>();
 
         for (StmtLabeled stmt : predecessors) {
-            LocalVarDecl lookedUpVar = readVar(stmt, var, 0).getFirst();
+            LocalVarDecl lookedUpVar = readVar(stmt, var, 0, Optional.empty()).getFirst();
             phiOperands.add(lookedUpVar);
             //add Phi to list of users of its operands
             if (lookedUpVar.getValue() instanceof ExprPhi) {
