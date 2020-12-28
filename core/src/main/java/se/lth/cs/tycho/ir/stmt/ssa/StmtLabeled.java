@@ -20,11 +20,13 @@ public class StmtLabeled extends Statement {
     private StmtLabeled exit;
     private final Map<LocalVarDecl, Boolean> valueNumbering;
     private final Map<ExprVariable, LocalVarDecl> exprValueNumbering;
-    private boolean ssaHasBeenVisted;
+    private boolean ssaHasBeenVisited;
     private final int nestedLoopLevel;
+    private Statement ssaModifiedStmt;
+    private boolean hasBeenRebuilt = false;
 
     private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit,
-                        Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel) {
+                        Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel, Statement ssaModifiedStmt) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
@@ -33,21 +35,22 @@ public class StmtLabeled extends Statement {
         this.exit = exit;
         this.valueNumbering = valueNumbering;
         this.exprValueNumbering = exprValueNumbering;
-        this.ssaHasBeenVisted = ssaHasBeenVisted;
+        this.ssaHasBeenVisited = ssaHasBeenVisted;
         this.nestedLoopLevel = nestedLoopLevel;
+        this.ssaModifiedStmt = ssaModifiedStmt;
     }
 
     public StmtLabeled(String label, Statement originalStmt, int nestedLoopLevel) {
-        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false, nestedLoopLevel);
+        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false, nestedLoopLevel, null);
     }
 
     private StmtLabeled(String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit,
-                        Map<LocalVarDecl, Boolean> currentPhiExprs, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel) {
-        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, exprValueNumbering, ssaHasBeenVisted, nestedLoopLevel);
+                        Map<LocalVarDecl, Boolean> currentPhiExprs, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel, Statement ssaModifiedStmt) {
+        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, exprValueNumbering, ssaHasBeenVisted, nestedLoopLevel, ssaModifiedStmt);
     }
 
-    public StmtLabeled withNewOriginal(Statement originalStmt) {
-        return new StmtLabeled(this.label, originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisted, this.nestedLoopLevel);
+    public StmtLabeled withNewOriginal(Statement ssaModifiedStmt) {
+        return new StmtLabeled(this.label, this.originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisited, this.nestedLoopLevel, ssaModifiedStmt);
     }
 
     public void lostCopyName(){
@@ -71,11 +74,11 @@ public class StmtLabeled extends Statement {
     }
 
     public boolean hasBeenVisted() {
-        return ssaHasBeenVisted;
+        return ssaHasBeenVisited;
     }
 
     public void setHasBeenVisted() {
-        ssaHasBeenVisted = true;
+        ssaHasBeenVisited = true;
     }
 
     public Map<ExprVariable, LocalVarDecl> getExprValueNumbering() {
@@ -104,7 +107,7 @@ public class StmtLabeled extends Statement {
     }
 
     public boolean varHasBeenVisited(ExprVariable e){
-        return exprValueNumbering.containsKey(e) && exprValueNumbering.get(e) == null;
+        return exprValueNumbering.containsKey(e) && exprValueNumbering.get(e) != null; //TODO revert to == ?
     }
 
     public boolean hasNoPredecessors(){
@@ -145,8 +148,20 @@ public class StmtLabeled extends Statement {
         return originalStmt;
     }
 
-    public void setOriginalStmt(Statement originalStmt) {
-        this.originalStmt = originalStmt;
+    public void setNewOriginal(Statement ssaModifiedStmt) {
+        this.ssaModifiedStmt = ssaModifiedStmt;
+    }
+
+    public boolean hasBeenRebuilt() {
+        return hasBeenRebuilt;
+    }
+
+    public void setHasBeenRebuilt() {
+        hasBeenRebuilt = true;
+    }
+
+    public Statement getSsaModified(){
+        return ssaModifiedStmt;
     }
 
     public void setRelations(List<StmtLabeled> predecessors, List<StmtLabeled> successors) {
