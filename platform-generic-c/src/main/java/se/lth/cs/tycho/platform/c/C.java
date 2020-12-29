@@ -28,7 +28,7 @@ public class C implements Platform {
 			.add(new AmToProceduralPhase())
 			.add(new ToExpProcReturnPhase())
 			.add(new SsaPhase())
-			.add(new CBackendPhase())
+			//.add(new CBackendPhase())
 			.build();
 
 	@Override

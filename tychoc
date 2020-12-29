@@ -22,5 +22,5 @@ then
 	java -cp "$comp:$platforms:$libs" se.lth.cs.tycho.compiler.Main "$@"
 else
 	echo "StreamBlocks-Tycho is not compiled. Please, run \"mvn install\" to compile StreamBlocks Tycho."
-	exit 1
+	shortCutToExit 1
 fi

@@ -444,9 +444,10 @@ public class SsaPhase implements Phase {
 
         default IRNode apply(ExprProcReturn proc) {
             //StmtLabeled rootCFG = create_CFG(proc, ReturnNode.ROOT);
-            StmtLabeled exitCFG = create_CFG(proc, ReturnNode.EXIT);
+            Pair<StmtLabeled, StmtLabeled> entryAndExit = create_CFG(proc);
             //recApplySSA(exitCFG);
-            recApplySSAComplete(exitCFG);
+            //recApplySSAComplete(exitCFG);
+            applySSa(entryAndExit);
 
             return proc;
         }
@@ -468,7 +469,7 @@ public class SsaPhase implements Phase {
 
     //--------------- CFG Generation ---------------//
 
-    private static StmtLabeled create_CFG(ExprProcReturn proc, ReturnNode node) {
+    private static Pair<StmtLabeled, StmtLabeled> create_CFG(ExprProcReturn proc) {
         StmtBlock body = (StmtBlock) proc.getBody().get(0);
         ImmutableList<Statement> stmts;
         if (!(body.getVarDecls().isEmpty() && body.getTypeDecls().isEmpty())) {
@@ -484,12 +485,7 @@ public class SsaPhase implements Phase {
         LinkedList<StmtLabeled> sub = iterateSubStmts(stmts, exit, 0);
         wireRelations(sub, entry, exit);
 
-        return (node == ReturnNode.ROOT) ? entry : exit;
-    }
-
-    private enum ReturnNode {
-        ROOT,
-        EXIT
+        return new Pair<>(entry, exit);
     }
 
     private static String assignLabel(Statement stmt) {
@@ -501,6 +497,10 @@ public class SsaPhase implements Phase {
     }
 
     private static boolean isTerminalStmt(Statement stmt) {
+        return isSimpleBlock(stmt) || stmt instanceof StmtCall || stmt instanceof StmtAssignment;
+    }
+
+    private static boolean isSimpleBlock(Statement stmt) {
         return stmt instanceof StmtConsume || stmt instanceof StmtWrite || stmt instanceof StmtRead;
     }
 
@@ -510,8 +510,8 @@ public class SsaPhase implements Phase {
         for (Statement currentStmt : stmts) {
 
             //TODO add cases
-            if (isTerminalStmt(currentStmt)) {
-                currentBlocks.add(createTerminalBlock(currentStmt, nestedLoopLevel));
+            if (isSimpleBlock(currentStmt)) {
+                currentBlocks.add(createSimpleBlock(currentStmt, nestedLoopLevel));
             } else if (currentStmt instanceof StmtWhile) {
                 currentBlocks.add(createWhileBlock((StmtWhile) currentStmt, exitBlock, nestedLoopLevel));
             } else if (currentStmt instanceof StmtIf) {
@@ -587,7 +587,7 @@ public class SsaPhase implements Phase {
 
         wireRelations(ifBlocks, stmtIfLabeled, ifExitBuffer);
         wireRelations(elseBlocks, stmtIfLabeled, ifExitBuffer);
-        stmtIfLabeled.setExit(ifExitBuffer);
+        stmtIfLabeled.setShortCutToExit(ifExitBuffer);
 
         return stmtIfLabeled;
     }
@@ -605,12 +605,11 @@ public class SsaPhase implements Phase {
         StmtLabeled exitWhile = new StmtLabeled(assignBufferLabel(stmt, false), null, nestedLoopLevel);
 
         wireRelations(new LinkedList<>(Collections.singletonList(stmtWhileLabeled)), entryWhile, exitWhile);
-        entryWhile.setExit(exitWhile);
-
+        entryWhile.setShortCutToExit(exitWhile);
         return entryWhile;
     }
 
-    private static StmtLabeled createTerminalBlock(Statement stmt, int nestedLoopLevel) {
+    private static StmtLabeled createSimpleBlock(Statement stmt, int nestedLoopLevel) {
         return new StmtLabeled(assignLabel(stmt), stmt, nestedLoopLevel);
     }
 
@@ -627,7 +626,7 @@ public class SsaPhase implements Phase {
 
         StmtLabeled stmtBlockExit = new StmtLabeled(assignBufferLabel(stmt, false), null, nestedLoopLevel);
         wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockExit);
-        stmtBlockLabeled.setExit(stmtBlockExit);
+        stmtBlockLabeled.setShortCutToExit(stmtBlockExit);
 
         return stmtBlockLabeled;
     }
@@ -652,7 +651,7 @@ public class SsaPhase implements Phase {
             LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(alt.getStatements(), exitBlock, nestedLoopLevel);
             wireRelations(currentBlocks, stmtCaseLabeled, stmtCaseExit);
         }
-        stmtCaseLabeled.setExit(stmtCaseExit);
+        stmtCaseLabeled.setShortCutToExit(stmtCaseExit);
         return stmtCaseLabeled;
     }
 
@@ -663,7 +662,7 @@ public class SsaPhase implements Phase {
         LinkedList<StmtLabeled> currentBlocks = iterateSubStmts(stmt.getBody(), exitBlock, nestedLoopLevel);
         wireRelations(currentBlocks, stmtFELabeled, stmtFEExit);
 
-        stmtFELabeled.setExit(stmtFEExit);
+        stmtFELabeled.setShortCutToExit(stmtFEExit);
         return stmtFELabeled;
     }
 
@@ -686,6 +685,11 @@ public class SsaPhase implements Phase {
 
 
     //--------------- SSA Algorithm Application ---------------//
+
+    private static void applySSa(Pair<StmtLabeled, StmtLabeled> cfg) {
+        recApplySSAComplete(cfg.getSecond());
+        recRebuildStmt(cfg.getFirst());
+    }
 
     private static void recApplySSAComplete(StmtLabeled stmtLabeled) {
         //Stop recursion at the top of the cfg
@@ -713,6 +717,7 @@ public class SsaPhase implements Phase {
         stmtLabeled.setNewOriginal(ssaStmt);
         stmtLabeled.setHasBeenVisted();
         stmtLabeled.getPredecessors().forEach(SsaPhase::recApplySSAComplete);
+
     }
 
     private static boolean modifiesVar(Statement stmt) {
@@ -921,43 +926,78 @@ public class SsaPhase implements Phase {
                 }
             }
             //Return statement with renamed variable
-            if(!stmtLabeled.isBufferBlock() && !stmtLabeled.hasBeenRebuilt()){
-                ssaBlock = rebuildStatement(stmtLabeled.withNewOriginal(ssaBlock));
-            }
             return ssaBlock;
         }
     }
 
+    private static void recRebuildStmt(StmtLabeled stmtLabeled) {
+        if (stmtLabeled.getLabel().equals("ProgramExit") || stmtLabeled.hasBeenRebuilt()) {
+            return;
+        }
+
+        if (!stmtLabeled.isBufferBlock() && !isTerminalStmt(stmtLabeled.getOriginalStmt())) {
+            stmtLabeled.setNewOriginal(rebuildStatement(stmtLabeled));
+        }
+        stmtLabeled.getSuccessors().forEach(SsaPhase::recRebuildStmt);
+    }
+
     private static Statement rebuildStatement(StmtLabeled stmtLabeled) {
-        Statement originalStmt = stmtLabeled.getOriginalStmt();
+        Statement originalStmt = stmtLabeled.getSsaModified();
 
         List<LinkedList<Statement>> stmtLists = subStmtCollector.collect(originalStmt);
         List<List<Statement>> newBodies = new LinkedList<>();
-        for(List<Statement> l : stmtLists){
+        for (List<Statement> l : stmtLists) {
             AtomicInteger order = new AtomicInteger();
             Map<Statement, Integer> oldBody = l.stream().collect(Collectors.toMap(s -> s, s -> order.getAndIncrement()));
-            Map<Statement, Integer> newBodyMap = recFindBody(stmtLabeled, new HashMap<>(), oldBody);
+            Map<Statement, Integer> newBodyMap = recFindBody(stmtLabeled, new HashMap<>(), oldBody, 0);
             List<Statement> newBody = new LinkedList<>(newBodyMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new)).keySet());
             newBodies.add(newBody);
         }
+        stmtLabeled.setHasBeenRebuilt();
         return subStmtCollector.replace(originalStmt, newBodies);
     }
 
-    private static Map<Statement, Integer> recFindBody(StmtLabeled stmt, Map<Statement, Integer> newBody, Map<Statement, Integer> oldBody) {
+    private static Map<Statement, Integer> recFindBody(StmtLabeled stmt, Map<Statement, Integer> newBody, Map<Statement, Integer> oldBody, int recLvl) {
 
         if (stmt.getLabel().equals("ProgramExit")) {
             return newBody;
         }
 
         Statement original = stmt.getOriginalStmt();
-        if (oldBody.keySet().contains(original)) {
-            newBody.putIfAbsent(stmt.getSsaModified(), oldBody.get(original));
-            oldBody.remove(original);
+        StmtLabeled next = stmt;
+        StmtLabeled scrutinee = stmt;
+
+        if (recLvl != 0) {
+            if (stmt.containSubStmts()) {
+                if (stmt.isBufferBlock()) {
+                    StmtLabeled wrappedStmt = stmt.getSuccessors().get(0);
+                    scrutinee = wrappedStmt;
+                    original = wrappedStmt.getOriginalStmt();
+                }
+
+                next = stmt.getShortCutToExit();
+            }
+
+            if (oldBody.containsKey(original)) {
+                if (!isTerminalStmt(scrutinee.getOriginalStmt()) && !scrutinee.hasBeenRebuilt()) {
+                    scrutinee.setNewOriginal(rebuildStatement(scrutinee));
+                }
+                newBody.putIfAbsent(scrutinee.getSsaModified(), oldBody.get(original));
+                oldBody.remove(original);
+            } else {
+                //wrong path at a fork
+                return newBody;
+            }
         }
 
-        if (newBody.size() != oldBody.size()) {
-            stmt.getSuccessors().forEach(succ -> newBody.putAll(recFindBody(succ, newBody, oldBody)));
+        if (oldBody.size() != 0) {
+            List<StmtLabeled> successors = new LinkedList<>(next.getSuccessors());
+            if (recLvl == 0 && stmt.getOriginalStmt() instanceof StmtWhile) {
+                successors.removeIf(StmtLabeled::isBufferBlock);
+            }
+            successors.forEach(succ -> newBody.putAll(recFindBody(succ, newBody, oldBody, recLvl + 1)));
         }
+
         return newBody;
     }
 
@@ -1000,7 +1040,8 @@ public class SsaPhase implements Phase {
                 .orElse(null);
     }
 
-    private static LocalVarDecl handleSelfRefWithinLoop(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled stmtLabeled) {
+    private static LocalVarDecl handleSelfRefWithinLoop(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled
+            stmtLabeled) {
 
         Variable beforeLoop = variable("u1");
         Variable loopEntry = variable("u0");
@@ -1020,7 +1061,7 @@ public class SsaPhase implements Phase {
         LocalVarDecl u2 = u1.withName("u2").withValue(new ExprVariable(loopSelfRef));
         u0 = u0.withValue(new ExprPhi(loopEntry, ImmutableList.of(u1, u2)));
 
-        StmtLabeled loopExitStmt = findStatementLabeled(stmtLabeled, "StmtWhileExit", Direction.UP);
+        StmtLabeled loopExitStmt = findStatementLabeled(stmtLabeled, "StmtWhileExit", Direction.DOWN);
 
         //Set u2 correctly
         Optional<LocalVarDecl> succWithinLoop = findVarSuccFromLoop(selfAssignedVar, loopExitStmt, stmtLabeled);
@@ -1100,7 +1141,8 @@ public class SsaPhase implements Phase {
         }
     }
 
-    private static Optional<LocalVarDecl> findVarSuccFromLoop(LocalVarDecl varToFind, StmtLabeled startStmt, StmtLabeled originalStmt) {
+    private static Optional<LocalVarDecl> findVarSuccFromLoop(LocalVarDecl varToFind, StmtLabeled
+            startStmt, StmtLabeled originalStmt) {
 
         StmtLabeled loopExit = findStatementLabeled(originalStmt, "StmtWhile", Direction.UP);
         List<StmtLabeled> loopExitPredecessors = new LinkedList<>(loopExit.getPredecessors());
@@ -1160,7 +1202,8 @@ public class SsaPhase implements Phase {
         return variable(replacementName);
     }
 
-    private static LocalVarDecl handleSimpleSelfReference(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled stmtLabeled) {
+    private static LocalVarDecl handleSimpleSelfReference(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled
+            stmtLabeled) {
 
         //if outside loop : a = a + 1 become a_i = a_(i-1) + 1
         Variable replacementVar = deriveOldVarName(selfAssignedVar);
@@ -1168,7 +1211,8 @@ public class SsaPhase implements Phase {
         return selfAssignedVar.withValue(replacementExpr);
     }
 
-    private static LocalVarDecl handleSelfReference(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled stmtLabeled) {
+    private static LocalVarDecl handleSelfReference(LocalVarDecl selfAssignedVar, Variable var, StmtLabeled
+            stmtLabeled) {
         return (stmtLabeled.loopLevel() > 0) ? handleSelfRefWithinLoop(selfAssignedVar, var, stmtLabeled) : handleSimpleSelfReference(selfAssignedVar, var, stmtLabeled);
     }
 
@@ -1214,7 +1258,8 @@ public class SsaPhase implements Phase {
         return res;
     }
 
-    private static Pair<LocalVarDecl, Boolean> readVar(StmtLabeled stmt, Variable var, int stopCondType, Optional<StmtLabeled> stopStmt) {
+    private static Pair<LocalVarDecl, Boolean> readVar(StmtLabeled stmt, Variable var, int stopCondType, Optional<
+            StmtLabeled> stopStmt) {
 
         //look for self reference
         Optional<LocalVarDecl> matchingLVD = stmt.getLocalValueNumbers().keySet().stream().filter(l -> l.getOriginalName().equals(var.getOriginalName())).findAny();
@@ -1241,7 +1286,8 @@ public class SsaPhase implements Phase {
         }
     }
 
-    private static Optional<Pair<LocalVarDecl, Boolean>> readVarRec(StmtLabeled stmt, Variable var, boolean hasToStop) {
+    private static Optional<Pair<LocalVarDecl, Boolean>> readVarRec(StmtLabeled stmt, Variable var,
+                                                                    boolean hasToStop) {
 
         if (hasToStop) {
             return Optional.empty();

@@ -3,7 +3,7 @@ package se.lth.cs.tycho.ir.stmt.ssa;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
-import se.lth.cs.tycho.ir.stmt.Statement;
+import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.*;
@@ -17,7 +17,7 @@ public class StmtLabeled extends Statement {
     private Statement originalStmt;
     private ImmutableList<StmtLabeled> predecessors;
     private ImmutableList<StmtLabeled> successors;
-    private StmtLabeled exit;
+    private StmtLabeled shortCutToExit;
     private final Map<LocalVarDecl, Boolean> valueNumbering;
     private final Map<ExprVariable, LocalVarDecl> exprValueNumbering;
     private boolean ssaHasBeenVisited;
@@ -32,7 +32,7 @@ public class StmtLabeled extends Statement {
         this.predecessors = predecessors;
         this.successors = successors;
         this.originalStmt = originalStmt;
-        this.exit = exit;
+        this.shortCutToExit = exit;
         this.valueNumbering = valueNumbering;
         this.exprValueNumbering = exprValueNumbering;
         this.ssaHasBeenVisited = ssaHasBeenVisted;
@@ -50,7 +50,7 @@ public class StmtLabeled extends Statement {
     }
 
     public StmtLabeled withNewOriginal(Statement ssaModifiedStmt) {
-        return new StmtLabeled(this.label, this.originalStmt, this.predecessors, this.successors, this.exit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisited, this.nestedLoopLevel, ssaModifiedStmt);
+        return new StmtLabeled(this.label, this.originalStmt, this.predecessors, this.successors, this.shortCutToExit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisited, this.nestedLoopLevel, ssaModifiedStmt);
     }
 
     public void lostCopyName(){
@@ -116,6 +116,14 @@ public class StmtLabeled extends Statement {
 
     public boolean isBufferBlock(){
         return originalStmt == null;
+    }
+
+    public boolean containSubStmts(){
+        return shortCutToExit != null;
+    }
+
+    public StmtLabeled getShortCutToExit() {
+        return shortCutToExit;
     }
 
     public void setAllLVNToVisited(){
@@ -186,15 +194,15 @@ public class StmtLabeled extends Statement {
     }
 
     public boolean lastIsNull() {
-        return exit == null;
+        return shortCutToExit == null;
     }
 
-    public void setExit(StmtLabeled exit) {
-        this.exit = exit;
+    public void setShortCutToExit(StmtLabeled shortCutToExit) {
+        this.shortCutToExit = shortCutToExit;
     }
 
     public StmtLabeled getExitBlock() {
-        return (exit != null) ? exit : this;
+        return (shortCutToExit != null) ? shortCutToExit : this;
     }
 
     @Override

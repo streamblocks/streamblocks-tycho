@@ -1025,9 +1025,9 @@ Expression Expression() :
 			if (operatorPriorities == null) {
 				ExprBinaryOp result = new ExprBinaryOp(opList, exprList);
 				Expression first = exprList.get(0);
-				Expression exit = exprList.get(exprList.size()-1);
-				if (first.hasPosition() && exit.hasPosition()) {
-					result.setPosition(first.getFromLineNumber(), first.getFromColumnNumber(), exit.getToLineNumber(), exit.getToColumnNumber());
+				Expression shortCutToExit = exprList.get(exprList.size()-1);
+				if (first.hasPosition() && shortCutToExit.hasPosition()) {
+					result.setPosition(first.getFromLineNumber(), first.getFromColumnNumber(), shortCutToExit.getToLineNumber(), shortCutToExit.getToColumnNumber());
 				}
 				return result;
 			} else {

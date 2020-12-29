@@ -877,7 +877,7 @@ EntityInstanceExpr InstanceExprEntity() :
     EntityInstanceExpr expr;
     Token entityName;
     Token parameterName;
-    Token exit;
+    Token shortCutToExit;
     Expression parameter;
     ImmutableList.Builder<ValueParameter> valueParameters;
     ImmutableList.Builder<TypeParameter> typeParameters;
@@ -892,10 +892,10 @@ EntityInstanceExpr InstanceExprEntity() :
         entityName = <ID>
         "("
         ParameterAssignments(typeParameters, valueParameters)
-        exit = ")"
+        shortCutToExit = ")"
         toolAttrs = OptToolAttributes()
     {
-        return setPosition(new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), typeParameters.build(), valueParameters.build()).withAttributes(toolAttrs), entityName, exit);
+        return setPosition(new EntityInstanceExpr(new EntityReferenceLocal(entityName.image), typeParameters.build(), valueParameters.build()).withAttributes(toolAttrs), entityName, shortCutToExit);
     }
 }
 
@@ -1593,7 +1593,7 @@ ImmutableList<OutputExpression> OutputExpressions() :
 OutputExpression OutputExpression() :
 {
 	Token first;
-	Token exit;
+	Token shortCutToExit;
 	Token id = null;
 	Port port = null;
 	ImmutableList<Expression> exprs;
@@ -1603,7 +1603,7 @@ OutputExpression OutputExpression() :
 	( id = <ID> ":" { port = new Port(id.image); })?
 	first = "["
 	exprs = ExpressionList()
-	exit = "]"
+	shortCutToExit = "]"
 	( "repeat" repeat = Expression() )?
 	{
 		OutputExpression out = new OutputExpression(port, exprs, repeat);
@@ -1611,7 +1611,7 @@ OutputExpression OutputExpression() :
 		if (repeat != null) {
 			return setPosition(out, first, repeat);
 		} else {
-			return setPosition(out, first, exit);
+			return setPosition(out, first, shortCutToExit);
 		}
 	}
 }
@@ -1912,7 +1912,7 @@ ExprLiteral ExpressionLiteral() :
 ExprTypeAssertion TypeAssertionExpression() :
 {
     Token first;
-    Token exit;
+    Token shortCutToExit;
     Expression expression;
 	TypeExpr type;
 }
@@ -1921,8 +1921,8 @@ ExprTypeAssertion TypeAssertionExpression() :
 	expression = Expression()
     "::"
     type = Type()
-    exit = ")"
-    { return setPosition(new ExprTypeAssertion(expression, type), first, exit); }
+    shortCutToExit = ")"
+    { return setPosition(new ExprTypeAssertion(expression, type), first, shortCutToExit); }
 }
 
 ImmutableList<Expression> ExpressionList() :
@@ -1972,7 +1972,7 @@ String UnaryOperator() :
 ExprCase CaseExpression() :
 {
     Token first;
-    Token exit;
+    Token shortCutToExit;
     Expression scrutinee;
     ExprCase.Alternative alternative;
     ImmutableList.Builder<ExprCase.Alternative> alternatives = ImmutableList.builder();
@@ -1987,8 +1987,8 @@ ExprCase CaseExpression() :
             alternative = CaseExprAlternative() { alternatives.add(alternative); }
         )*
     )?
-    exit = "end"
-    { return setPosition(new ExprCase(scrutinee, alternatives.build()), first, exit); }
+    shortCutToExit = "end"
+    { return setPosition(new ExprCase(scrutinee, alternatives.build()), first, shortCutToExit); }
 }
 
 ExprCase.Alternative CaseExprAlternative() :
@@ -1997,7 +1997,7 @@ ExprCase.Alternative CaseExprAlternative() :
     Expression guard;
     ImmutableList.Builder<Expression> guards = ImmutableList.builder();
     Expression expression;
-    Token exit;
+    Token shortCutToExit;
 }
 {
     pattern = Pattern()
@@ -2010,8 +2010,8 @@ ExprCase.Alternative CaseExprAlternative() :
     )?
     ":"
     expression = Expression()
-    exit = "end"
-    { return setPosition(new ExprCase.Alternative(pattern, guards.build(), expression), pattern, exit); }
+    shortCutToExit = "end"
+    { return setPosition(new ExprCase.Alternative(pattern, guards.build(), expression), pattern, shortCutToExit); }
 }
 
 Pattern Pattern() :
@@ -2061,7 +2061,7 @@ PatternAlternative PatternAlternative() :
 {
   Pattern pattern;
   Pattern first;
-  Pattern exit;
+  Pattern shortCutToExit;
   ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
 }
 {
@@ -2073,12 +2073,12 @@ PatternAlternative PatternAlternative() :
   (
     "|"
     (
-      pattern = PatternLiteral() { patterns.add(pattern); exit = pattern; }
+      pattern = PatternLiteral() { patterns.add(pattern); shortCutToExit = pattern; }
     |
-      pattern = PatternExpression() { patterns.add(pattern); exit = pattern; }
+      pattern = PatternExpression() { patterns.add(pattern); shortCutToExit = pattern; }
     )
   )+
-  { return setPosition(new PatternAlternative(patterns.build()), first, exit); }
+  { return setPosition(new PatternAlternative(patterns.build()), first, shortCutToExit); }
 }
 
 PatternAlias PatternAlias() :
@@ -2096,7 +2096,7 @@ PatternAlias PatternAlias() :
 PatternList PatternList() :
 {
 	Token first;
-	Token exit;
+	Token shortCutToExit;
 	Pattern pattern;
 	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
 }
@@ -2108,8 +2108,8 @@ PatternList PatternList() :
 			"," pattern = Pattern() { patterns.add(pattern); }
 		)*
 	)?
-	exit = "]"
-	{ return setPosition(new PatternList(patterns.build()), first, exit); }
+	shortCutToExit = "]"
+	{ return setPosition(new PatternList(patterns.build()), first, shortCutToExit); }
 }
 
 PatternLiteral PatternLiteral() :
@@ -2124,7 +2124,7 @@ PatternLiteral PatternLiteral() :
 PatternExpression PatternExpression() :
 {
 	Token first;
-	Token exit;
+	Token shortCutToExit;
 	Expression expression;
 }
 {
@@ -2132,8 +2132,8 @@ PatternExpression PatternExpression() :
   (
     "("
     expression = Expression()
-    exit = ")"
-    { return setPosition(new PatternExpression(expression), first, exit); }
+    shortCutToExit = ")"
+    { return setPosition(new PatternExpression(expression), first, shortCutToExit); }
   |
     expression = VariableExpression()
     { return setPosition(new PatternExpression(expression), first, expression); }
@@ -2143,7 +2143,7 @@ PatternExpression PatternExpression() :
 PatternDeconstruction PatternDeconstruction() :
 {
 	Token id;
-	Token exit;
+	Token shortCutToExit;
 	Pattern pattern;
 	ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
 	ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
@@ -2165,14 +2165,14 @@ PatternDeconstruction PatternDeconstruction() :
 			"," pattern = Pattern() { patterns.add(pattern); }
 		)*
 	)?
-	exit = ")"
-	{ return setPosition(new PatternDeconstruction(id.image, types.build(), vals.build(), patterns.build()), id, exit); }
+	shortCutToExit = ")"
+	{ return setPosition(new PatternDeconstruction(id.image, types.build(), vals.build(), patterns.build()), id, shortCutToExit); }
 }
 
 PatternTuple PatternTuple() :
 {
 	Token first;
-	Token exit;
+	Token shortCutToExit;
 	Pattern pattern;
 	ImmutableList.Builder<Pattern> patterns = ImmutableList.builder();
 }
@@ -2182,8 +2182,8 @@ PatternTuple PatternTuple() :
 	(
 		"," pattern = Pattern() { patterns.add(pattern); }
 	)+
-	exit = ")"
-	{ return setPosition(new PatternTuple(patterns.build()), first, exit); }
+	shortCutToExit = ")"
+	{ return setPosition(new PatternTuple(patterns.build()), first, shortCutToExit); }
 }
 
 ExprIf IfExpression() :
@@ -2357,7 +2357,7 @@ ExprProc ProcExpression() :
 Expression MapExpression() :
 {
 	Token first;
-	Token exit;
+	Token shortCutToExit;
 	Expression result;
 	ImmutableList<ImmutableEntry<Expression, Expression>> mappings;
 }
@@ -2370,9 +2370,9 @@ Expression MapExpression() :
 		":"
 		result = ComprehensionFor(result)
 	)?
-	exit = "}"
+	shortCutToExit = "}"
 	{
-		return setPosition(result, first, exit);
+		return setPosition(result, first, shortCutToExit);
 	}
 }
 
@@ -2397,7 +2397,7 @@ ImmutableList<ImmutableEntry<Expression, Expression>> Mappings() :
 Expression SetExpression() :
 {
 	Token first;
-	Token exit;
+	Token shortCutToExit;
 	Expression result;
 	ImmutableList<Expression> exprs;
 }
@@ -2409,16 +2409,16 @@ Expression SetExpression() :
 		":"
 		result = ComprehensionFor(result)
 	)?
-	exit = "}"
+	shortCutToExit = "}"
 	{
-		return setPosition(result, first, exit);
+		return setPosition(result, first, shortCutToExit);
 	}
 }
 
 Expression ListExpression() :
 {
 	Token first;
-	Token exit;
+	Token shortCutToExit;
     Expression result;
 	ImmutableList<Expression> exprs;
 }
@@ -2430,16 +2430,16 @@ Expression ListExpression() :
 		":"
 		result = ComprehensionFor(result)
 	)?
-	exit = "]"
+	shortCutToExit = "]"
 	{
-		return setPosition(result, first, exit);
+		return setPosition(result, first, shortCutToExit);
 	}
 }
 
 Expression TupleExpression() :
 {
   Token first;
-  Token exit;
+  Token shortCutToExit;
   Expression expr;
   ImmutableList.Builder<Expression> exprs = ImmutableList.builder();
 }
@@ -2450,8 +2450,8 @@ Expression TupleExpression() :
     ","
     expr = Expression() { exprs.add(expr); }
   )+
-  exit = ")"
-  { return setPosition(new ExprTuple(exprs.build()), first, exit); }
+  shortCutToExit = ")"
+  { return setPosition(new ExprTuple(exprs.build()), first, shortCutToExit); }
 }
 
 Expression ComprehensionFor(Expression contents) :
@@ -2503,7 +2503,7 @@ TypeExpr Type() :
 {
   TypeExpr type;
   Expression expr = null;
-  Token exit = null;
+  Token shortCutToExit = null;
   ImmutableList.Builder<TypeExpr> builder = ImmutableList.builder();
 }
 {
@@ -2514,7 +2514,7 @@ TypeExpr Type() :
   (
     "["
     expr = Expression()
-    exit = "]"
+    shortCutToExit = "]"
   )?
   {
     ImmutableList<TypeExpr> types = builder.build();
@@ -2526,7 +2526,7 @@ TypeExpr Type() :
     if (expr == null) {
       return type;
     } else {
-      return setPosition(new NominalTypeExpr("List", ImmutableList.of(setPosition(new TypeParameter("type", type), type, type)), ImmutableList.of(setPosition(new ValueParameter("size", expr), expr, expr))), type, exit);
+      return setPosition(new NominalTypeExpr("List", ImmutableList.of(setPosition(new TypeParameter("type", type), type, type)), ImmutableList.of(setPosition(new ValueParameter("size", expr), expr, expr))), type, shortCutToExit);
     }
   }
 }
@@ -2549,7 +2549,7 @@ TypeExpr SimpleType() :
 TupleTypeExpr TupleType() :
 {
   Token first;
-  Token exit;
+  Token shortCutToExit;
   TypeExpr type;
   ImmutableList.Builder<TypeExpr> types = ImmutableList.builder();
 }
@@ -2559,8 +2559,8 @@ TupleTypeExpr TupleType() :
   (
     "," type = Type() { types.add(type); }
   )+
-  exit = ")"
-  { return setPosition(new TupleTypeExpr(types.build()), first, exit); }
+  shortCutToExit = ")"
+  { return setPosition(new TupleTypeExpr(types.build()), first, shortCutToExit); }
 }
 
 NominalTypeExpr NominalType() :
@@ -2568,25 +2568,25 @@ NominalTypeExpr NominalType() :
   Token name;
   ImmutableList.Builder<TypeParameter> types = ImmutableList.builder();
   ImmutableList.Builder<ValueParameter> vals = ImmutableList.builder();
-  Token exit;
+  Token shortCutToExit;
 }
 {
   name = <ID>
-  { exit = name; }
+  { shortCutToExit = name; }
   (
     "("
     ParameterAssignments(types, vals)
-    exit = ")"
+    shortCutToExit = ")"
   )?
   {
-    return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, exit);
+    return setPosition(new NominalTypeExpr(name.image, types.build(), vals.build()), name, shortCutToExit);
   }
 }
 
 TypeExpr LambdaType() :
 {
   Token first;
-  Token exit;
+  Token shortCutToExit;
   TypeExpr type;
   TypeExpr retType = null;
   ImmutableList.Builder<TypeExpr> types = ImmutableList.builder();
@@ -2603,12 +2603,12 @@ TypeExpr LambdaType() :
   (
     retType = Type()
   )?
-  exit = "]"
+  shortCutToExit = "]"
   {
     if (retType == null) {
-      return setPosition(new ProcedureTypeExpr(types.build()), first, exit);
+      return setPosition(new ProcedureTypeExpr(types.build()), first, shortCutToExit);
     } else {
-      return setPosition(new FunctionTypeExpr(types.build(), retType), first, exit);
+      return setPosition(new FunctionTypeExpr(types.build(), retType), first, shortCutToExit);
     }
   }
 }
@@ -2634,7 +2634,7 @@ GlobalTypeDecl GlobalTypeDecl() :
 AliasTypeDecl AliasType(Availability availability) :
 {
   Token first;
-  Token exit;
+  Token shortCutToExit;
   Token name;
   TypeExpr type;
 }
@@ -2643,14 +2643,14 @@ AliasTypeDecl AliasType(Availability availability) :
   name = <ID>
   ":"
   type = Type()
-  exit = "end"
-  { return setPosition(new AliasTypeDecl(name.image, availability, type), first, exit); }
+  shortCutToExit = "end"
+  { return setPosition(new AliasTypeDecl(name.image, availability, type), first, shortCutToExit); }
 }
 
 AlgebraicTypeDecl AlgebraicType(Availability availability) :
 {
   Token first;
-  Token exit;
+  Token shortCutToExit;
   Token name;
   AlgebraicTypeDecl declaration;
   ImmutableList.Builder<ParameterTypeDecl> typeDecls = ImmutableList.builder();
@@ -2670,14 +2670,14 @@ AlgebraicTypeDecl AlgebraicType(Availability availability) :
   |
       declaration = SumTypeDecl(availability, name, typeDecls.build(), varDecls.build())
   )
-  exit = "end"
-  { return setPosition(declaration, first, exit); }
+  shortCutToExit = "end"
+  { return setPosition(declaration, first, shortCutToExit); }
 }
 
 ProductTypeDecl ProductTypeDecl(Availability availability, Token name, List<ParameterTypeDecl> typeDecls, List<ParameterVarDecl> varDecls) :
 {
     Token first;
-    Token exit;
+    Token shortCutToExit;
     FieldDecl field;
     ImmutableList.Builder<FieldDecl> fields = ImmutableList.builder();
 }
@@ -2687,8 +2687,8 @@ ProductTypeDecl ProductTypeDecl(Availability availability, Token name, List<Para
         field = FieldDecl() { fields.add(field); }
         ( "," field = FieldDecl() { fields.add(field); } )*
     )?
-    exit = ")"
-    { return setPosition(new ProductTypeDecl(name.image, availability, typeDecls, varDecls, fields.build()), first, exit); }
+    shortCutToExit = ")"
+    { return setPosition(new ProductTypeDecl(name.image, availability, typeDecls, varDecls, fields.build()), first, shortCutToExit); }
 }
 
 FieldDecl FieldDecl() :
@@ -2705,38 +2705,38 @@ FieldDecl FieldDecl() :
 SumTypeDecl SumTypeDecl(Availability availability, Token name, List<ParameterTypeDecl> typeDecls, List<ParameterVarDecl> varDecls) :
 {
     SumTypeDecl.VariantDecl first;
-    SumTypeDecl.VariantDecl exit;
+    SumTypeDecl.VariantDecl shortCutToExit;
     SumTypeDecl.VariantDecl variant;
     ImmutableList.Builder<SumTypeDecl.VariantDecl> variants = ImmutableList.builder();
 }
 {
     variant = VariantDecl() { variants.add(variant); }
-    { exit = first = variant; }
+    { shortCutToExit = first = variant; }
     (
         "|"
         variant = VariantDecl() { variants.add(variant); }
-        { exit = variant; }
+        { shortCutToExit = variant; }
     )*
-    { return setPosition(new SumTypeDecl(name.image, availability, typeDecls, varDecls, variants.build()), first, exit); }
+    { return setPosition(new SumTypeDecl(name.image, availability, typeDecls, varDecls, variants.build()), first, shortCutToExit); }
 }
 
 SumTypeDecl.VariantDecl VariantDecl() :
 {
 	Token name;
-	Token exit;
+	Token shortCutToExit;
 	FieldDecl field;
 	ImmutableList.Builder<FieldDecl> fields = ImmutableList.builder();
 }
 {
     name = <ID>
-    { exit = name; }
+    { shortCutToExit = name; }
     (
         "("
         field = FieldDecl() { fields.add(field); }
         ( "," field = FieldDecl() { fields.add(field); } )*
-        exit = ")"
+        shortCutToExit = ")"
     )?
-    { return setPosition(new SumTypeDecl.VariantDecl(name.image, fields.build()), name, exit); }
+    { return setPosition(new SumTypeDecl.VariantDecl(name.image, fields.build()), name, shortCutToExit); }
 }
 
 /* Statements */
@@ -2953,7 +2953,7 @@ StmtCall CallStmt() :
 StmtCase CaseStmt() :
 {
     Token first;
-    Token exit;
+    Token shortCutToExit;
     Expression scrutinee;
     StmtCase.Alternative alternative;
     ImmutableList.Builder<StmtCase.Alternative> alternatives = ImmutableList.builder();
@@ -2968,8 +2968,8 @@ StmtCase CaseStmt() :
             alternative = CaseStmtAlternative() { alternatives.add(alternative); }
         )*
     )?
-    exit = "end"
-    { return setPosition(new StmtCase(scrutinee, alternatives.build()), first, exit); }
+    shortCutToExit = "end"
+    { return setPosition(new StmtCase(scrutinee, alternatives.build()), first, shortCutToExit); }
 }
 
 StmtCase.Alternative CaseStmtAlternative() :
@@ -2978,7 +2978,7 @@ StmtCase.Alternative CaseStmtAlternative() :
     Expression guard;
     ImmutableList.Builder<Expression> guards = ImmutableList.builder();
     ImmutableList<Statement> statements;
-    Token exit;
+    Token shortCutToExit;
 }
 {
     pattern = Pattern()
@@ -2991,8 +2991,8 @@ StmtCase.Alternative CaseStmtAlternative() :
     )?
     "do"
     statements = Statements()
-    exit = "end"
-    { return setPosition(new StmtCase.Alternative(pattern, guards.build(), statements), pattern, exit); }
+    shortCutToExit = "end"
+    { return setPosition(new StmtCase.Alternative(pattern, guards.build(), statements), pattern, shortCutToExit); }
 }
 
 StmtBlock BlockStmt() :
