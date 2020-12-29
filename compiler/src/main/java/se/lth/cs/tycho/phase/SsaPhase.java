@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.stmt.ssa.ExprPhi;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.util.Pair;
@@ -689,6 +690,7 @@ public class SsaPhase implements Phase {
     private static void applySSa(Pair<StmtLabeled, StmtLabeled> cfg) {
         recApplySSAComplete(cfg.getSecond());
         recRebuildStmt(cfg.getFirst());
+
     }
 
     private static void recApplySSAComplete(StmtLabeled stmtLabeled) {
@@ -877,6 +879,46 @@ public class SsaPhase implements Phase {
         return new Pair<>(null, false);
     }
 
+    private static void createPhiBlock(StmtLabeled stmtLabeled){
+        Statement original = stmtLabeled.getOriginalStmt();
+        if(!(original instanceof StmtAssignment) && !(original instanceof StmtBlock)) {
+            if (!stmtLabeled.getLocalValueNumbers().isEmpty()) {
+                List<StmtPhi> phiStmts = new LinkedList<>();
+                for(LocalVarDecl lvd : stmtLabeled.getLocalValueNumbers().keySet()) {
+                    LValueVariable phiLValue = new LValueVariable(variable(lvd.getName()));
+                    List<Expression> phiOperands = ((ExprPhi)lvd.getValue()).getOperands().map(op -> new ExprVariable(variable(op.getName())));
+                    phiStmts.add(new StmtPhi(phiLValue, phiOperands));
+                }
+                List<StmtLabeled> phiLabeled = phiStmts.stream().map(phi-> new StmtLabeled(assignLabel(phi), phi, stmtLabeled.loopLevel())).collect(Collectors.toList());
+                wirePhiStmts(stmtLabeled, phiLabeled);
+                stmtLabeled.setPhiBlockToCreated();
+            }
+        }
+    }
+
+    private static void wirePhiStmts(StmtLabeled originalStmtLabeled, List<StmtLabeled> phis){
+        String label = originalStmtLabeled.getLabel();
+        switch (label){
+            case "StmtIfExit":
+            case "StmtCaseExit":{
+                StmtLabeled originalSucc = originalStmtLabeled.getSuccessors().get(0);
+                wireRelations(new LinkedList<>(phis), originalStmtLabeled, originalSucc);
+            }
+            break;
+            case "StmtWhile":{
+                List<StmtLabeled> preds = new LinkedList<>(originalStmtLabeled.getPredecessors());
+                preds.removeIf(p -> !p.isBufferBlock());
+                StmtLabeled whileEntry = preds.get(0);
+                wireRelations(new LinkedList<>(phis), whileEntry, originalStmtLabeled);
+            }
+            break;
+            default: {
+                wireRelations(new LinkedList<>(phis), originalStmtLabeled.getPredecessors().get(0), originalStmtLabeled.getSuccessors().get(0));
+            }
+        }
+                //StmtWhileExit, StmtIf always has a single predecessor
+    }
+
     private static Statement applySsaToStatements(StmtLabeled stmtLabeled) {
         if (stmtLabeled.getOriginalStmt() == null || stmtLabeled.lvnIsEmpty()) {
             return stmtLabeled;
@@ -931,13 +973,20 @@ public class SsaPhase implements Phase {
     }
 
     private static void recRebuildStmt(StmtLabeled stmtLabeled) {
-        if (stmtLabeled.getLabel().equals("ProgramExit") || stmtLabeled.hasBeenRebuilt()) {
+
+
+        if (stmtLabeled.getLabel().equals("ProgramExit") || (stmtLabeled.havePhiBlocksBeenCreated() && stmtLabeled.hasBeenRebuilt())) {
             return;
         }
 
-        if (!stmtLabeled.isBufferBlock() && !isTerminalStmt(stmtLabeled.getOriginalStmt())) {
+        if(!stmtLabeled.havePhiBlocksBeenCreated()){
+            createPhiBlock(stmtLabeled);
+        }
+
+        if (!stmtLabeled.hasBeenRebuilt() && !stmtLabeled.isBufferBlock() && !isTerminalStmt(stmtLabeled.getOriginalStmt())) {
             stmtLabeled.setNewOriginal(rebuildStatement(stmtLabeled));
         }
+
         stmtLabeled.getSuccessors().forEach(SsaPhase::recRebuildStmt);
     }
 
@@ -1061,10 +1110,8 @@ public class SsaPhase implements Phase {
         LocalVarDecl u2 = u1.withName("u2").withValue(new ExprVariable(loopSelfRef));
         u0 = u0.withValue(new ExprPhi(loopEntry, ImmutableList.of(u1, u2)));
 
-        StmtLabeled loopExitStmt = findStatementLabeled(stmtLabeled, "StmtWhileExit", Direction.DOWN);
-
         //Set u2 correctly
-        Optional<LocalVarDecl> succWithinLoop = findVarSuccFromLoop(selfAssignedVar, loopExitStmt, stmtLabeled);
+        Optional<LocalVarDecl> succWithinLoop = findVarSuccFromLoop(selfAssignedVar, stmtLabeled);
         if (succWithinLoop.isPresent()) {
             u2 = u2.withValue(new ExprVariable(variable(succWithinLoop.get().getName())));
         }
@@ -1127,8 +1174,7 @@ public class SsaPhase implements Phase {
             if (loopEntry.loopLevel() != 0) {
                 LocalVarDecl outerLoopRes = findVarPredFromLoop(varToFind, loopEntryPreds.get(0));
 
-                StmtLabeled loopExit = findStatementLabeled(originalStmt, "StmtWhileEntry", Direction.DOWN);
-                Optional<LocalVarDecl> succRes = findVarSuccFromLoop(varToFind, loopExit, originalStmt);
+                Optional<LocalVarDecl> succRes = findVarSuccFromLoop(varToFind, originalStmt);
                 if (succRes.isPresent()) {
                     return varToFind.withValue(new ExprPhi(variable(varToFind.getName()), Arrays.asList(outerLoopRes, succRes.get())));
                 } else {
@@ -1141,8 +1187,7 @@ public class SsaPhase implements Phase {
         }
     }
 
-    private static Optional<LocalVarDecl> findVarSuccFromLoop(LocalVarDecl varToFind, StmtLabeled
-            startStmt, StmtLabeled originalStmt) {
+    private static Optional<LocalVarDecl> findVarSuccFromLoop(LocalVarDecl varToFind, StmtLabeled originalStmt) {
 
         StmtLabeled loopExit = findStatementLabeled(originalStmt, "StmtWhile", Direction.UP);
         List<StmtLabeled> loopExitPredecessors = new LinkedList<>(loopExit.getPredecessors());
@@ -1258,8 +1303,7 @@ public class SsaPhase implements Phase {
         return res;
     }
 
-    private static Pair<LocalVarDecl, Boolean> readVar(StmtLabeled stmt, Variable var, int stopCondType, Optional<
-            StmtLabeled> stopStmt) {
+    private static Pair<LocalVarDecl, Boolean> readVar(StmtLabeled stmt, Variable var, int stopCondType, Optional<StmtLabeled> stopStmt) {
 
         //look for self reference
         Optional<LocalVarDecl> matchingLVD = stmt.getLocalValueNumbers().keySet().stream().filter(l -> l.getOriginalName().equals(var.getOriginalName())).findAny();

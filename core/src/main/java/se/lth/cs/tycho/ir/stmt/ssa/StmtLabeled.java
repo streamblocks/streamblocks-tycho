@@ -24,6 +24,7 @@ public class StmtLabeled extends Statement {
     private final int nestedLoopLevel;
     private Statement ssaModifiedStmt;
     private boolean hasBeenRebuilt = false;
+    private boolean phiBlockCreated = false;
 
     private StmtLabeled(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeled> predecessors, ImmutableList<StmtLabeled> successors, StmtLabeled exit,
                         Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel, Statement ssaModifiedStmt) {
@@ -52,6 +53,15 @@ public class StmtLabeled extends Statement {
     public StmtLabeled withNewOriginal(Statement ssaModifiedStmt) {
         return new StmtLabeled(this.label, this.originalStmt, this.predecessors, this.successors, this.shortCutToExit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisited, this.nestedLoopLevel, ssaModifiedStmt);
     }
+
+    public boolean havePhiBlocksBeenCreated() {
+        return phiBlockCreated;
+    }
+
+    public void setPhiBlockToCreated() {
+        this.phiBlockCreated = true;
+    }
+
 
     public void lostCopyName(){
         this.label += "_lostCopyVar";
@@ -82,7 +92,7 @@ public class StmtLabeled extends Statement {
     }
 
     public Map<ExprVariable, LocalVarDecl> getExprValueNumbering() {
-        return exprValueNumbering;
+        return new HashMap<>(exprValueNumbering);
     }
 
     public boolean lvnIsEmpty(){
@@ -135,7 +145,6 @@ public class StmtLabeled extends Statement {
     }
 
     public Map<LocalVarDecl, Boolean> getLocalValueNumbers() {
-
         return new HashMap<>(valueNumbering);
     }
 
