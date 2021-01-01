@@ -1030,10 +1030,6 @@ public class SsaPhase implements Phase {
         return res;
     }
 
-    private static Map<StmtLabeledSSA, Pair<List<StmtLabeledSSA>, List<StmtLabeledSSA>>> findPredAndSucc(Set<StmtLabeledSSA> allStmt) {
-        return allStmt.stream().collect(Collectors.toMap(s -> s, s -> new Pair<>(s.getPredecessors(), s.getSuccessors()), (a, b) -> a));
-    }
-
     private static Map<StmtLabeledSSA, StmtLabeled> collectAllStmtLabeledSSA(StmtLabeledSSA stmtLabeledSSA, Map<StmtLabeledSSA, StmtLabeled> currentMap) {
         currentMap.putIfAbsent(stmtLabeledSSA, new StmtLabeled(stmtLabeledSSA.getLabel(), stmtLabeledSSA.getOriginalStmt(), stmtLabeledSSA.getSsaModified(), ImmutableList.empty(), ImmutableList.empty()));
         stmtLabeledSSA.getSuccessors().stream().filter(s -> !(currentMap.keySet().contains(s))).forEach(s -> {
@@ -1045,37 +1041,27 @@ public class SsaPhase implements Phase {
 
 
     private static Map<StmtLabeledSSA, StmtLabeled> updateRelations(StmtLabeledSSA stmtLabeledSSA, Map<StmtLabeledSSA, StmtLabeled> elements, Set<StmtLabeledSSA> visited, Direction dir) {
-        if (dir == Direction.UP) {
-            StmtLabeled stmt = elements.get(stmtLabeledSSA);
-            Map<StmtLabeledSSA, StmtLabeled> updatedMap = elements;
-            for (StmtLabeledSSA pred : stmtLabeledSSA.getPredecessors()) {
-                updatedMap.replace(pred, updatedMap.get(pred).updateSuccs(stmt));
-            }
-            visited.add(stmtLabeledSSA);
-            for (StmtLabeledSSA pred : stmtLabeledSSA.getPredecessors()) {
-                if (!visited.contains(pred)) {
-                    updatedMap = updateRelations(pred, updatedMap, visited, Direction.UP);
-                } else {
-                    updatedMap.replace(pred, updatedMap.get(pred).updateSuccs(stmt));
-                }
-            }
-            return updatedMap;
-        } else {
-            StmtLabeled stmt = elements.get(stmtLabeledSSA);
-            Map<StmtLabeledSSA, StmtLabeled> updatedMap = elements;
-            for (StmtLabeledSSA succ : stmtLabeledSSA.getSuccessors()) {
-                updatedMap.replace(succ, updatedMap.get(succ).updatePreds(stmt));
-            }
-            visited.add(stmtLabeledSSA);
-            for (StmtLabeledSSA succ : stmtLabeledSSA.getSuccessors()) {
-                if (!visited.contains(succ)) {
-                    updatedMap = updateRelations(succ, updatedMap, visited, Direction.DOWN);
-                } else {
-                    updatedMap.replace(succ, updatedMap.get(succ).updatePreds(stmt));
-                }
-            }
-            return updatedMap;
+        List<StmtLabeledSSA> related = (dir == Direction.UP) ? stmtLabeledSSA.getPredecessors() : stmtLabeledSSA.getSuccessors();
+        StmtLabeled stmt = elements.get(stmtLabeledSSA);
+        Map<StmtLabeledSSA, StmtLabeled> updatedMap = elements;
+
+        for (StmtLabeledSSA labeledSSA : related) {
+            updatedMap.replace(labeledSSA, updatedMap.get(labeledSSA).updateSuccs(stmt));
         }
+
+        visited.add(stmtLabeledSSA);
+        for (StmtLabeledSSA rel : stmtLabeledSSA.getPredecessors()) {
+            if (!visited.contains(rel)) {
+                updatedMap = updateRelations(rel, updatedMap, visited, dir);
+            } else {
+                if (dir == Direction.UP) {
+                    updatedMap.replace(rel, updatedMap.get(rel).updateSuccs(stmt));
+                } else {
+                    updatedMap.replace(rel, updatedMap.get(rel).updatePreds(stmt));
+                }
+            }
+        }
+        return updatedMap;
     }
 
     //------ Helper -----//
