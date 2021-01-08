@@ -234,6 +234,10 @@ public final class QID extends AbstractIRNode{
 		return String.join(".", parts);
 	}
 
+	public String nameWithUnderscore() {
+		return String.join("_", parts);
+	}
+
 	@Override
 	public int hashCode() {
 		return parts.hashCode();

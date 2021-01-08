@@ -4,6 +4,7 @@ import se.lth.cs.tycho.attribute.*;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.Transformations;
+import se.lth.cs.tycho.ir.Annotation;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.transformation.cal2am.CalToAm;
@@ -21,7 +22,8 @@ public class CalToAmPhase implements Phase {
     @Override
     public CompilationTask execute(CompilationTask task, Context context) {
         return Transformations.transformEntityDecls(task, decl -> {
-            if (decl.getEntity() instanceof CalActor) {
+            boolean hasNoActorMachine = Annotation.hasAnnotationWithName("no_actor_machine", decl.getEntity().getAnnotations());
+            if (decl.getEntity() instanceof CalActor && !hasNoActorMachine) {
                 CalToAm translator = new CalToAm((CalActor) decl.getEntity(), context.getConfiguration(),
                         task.getModule(ConstantEvaluator.key),
                         task.getModule(Types.key),
