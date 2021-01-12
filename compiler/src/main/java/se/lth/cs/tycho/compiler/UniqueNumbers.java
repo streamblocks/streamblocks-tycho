@@ -14,6 +14,10 @@ public final class UniqueNumbers implements LongSupplier {
         return number++;
     }
 
+    public void reset() {
+        number = 0;
+    }
+
     @Override
     public long getAsLong() {
         return next();

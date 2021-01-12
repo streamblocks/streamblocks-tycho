@@ -67,6 +67,7 @@ public class ScheduleUntaggedPhase implements Phase {
 			if (actor.getActions().stream().noneMatch(action -> action.getTag() == null)) {
 				return actor;
 			}
+			numbers().reset();
 			List<QID> untagged = new ArrayList<>();
 			ImmutableList<Action> actions = actor.getActions().stream()
 					.map(action -> {
