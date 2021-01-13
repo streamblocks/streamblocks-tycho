@@ -8,6 +8,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.AbstractDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
+import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
@@ -140,7 +141,7 @@ public class SsaPhase implements Phase {
             return new Pair<>(call.getArgs(), call.getProcedure());
         }
 
-        List<Expression> collect(Statement s);
+        default List<Expression> collect(Statement s){return new LinkedList<>();}
 
         default List<Expression> collect(StmtCall call) {
             return new LinkedList<>(call.getArgs());
@@ -203,7 +204,10 @@ public class SsaPhase implements Phase {
 
     @Module
     interface CollectExpressions {
-        List<Expression> collectInternalExpr(Expression e);
+
+        default List<Expression> collectInternalExpr(Expression e){
+            return new LinkedList<>();
+        }
 
         default List<Expression> collectInternalExpr(ExprApplication app) {
             return new LinkedList<>(app.getArgs());
@@ -459,6 +463,8 @@ public class SsaPhase implements Phase {
 
             wireRelations(new LinkedList<>(Collections.singletonList(stmtWhileLabeled)), entryWhile, exitWhile);
             entryWhile.setShortCutToExit(exitWhile);
+            exitWhile.setShortCutToExit(entryWhile);
+
             return entryWhile;
         }
 
@@ -474,6 +480,7 @@ public class SsaPhase implements Phase {
             wireRelations(ifBlocks, stmtIfLabeled, ifExitBuffer);
             wireRelations(elseBlocks, stmtIfLabeled, ifExitBuffer);
             stmtIfLabeled.setShortCutToExit(ifExitBuffer);
+            ifExitBuffer.setShortCutToExit(stmtIfLabeled);
 
             return stmtIfLabeled;
         }
@@ -487,6 +494,7 @@ public class SsaPhase implements Phase {
             wireRelations(currentBlocks, stmtFELabeled, stmtFEExit);
 
             stmtFELabeled.setShortCutToExit(stmtFEExit);
+            stmtFEExit.setShortCutToExit(stmtFELabeled);
             return stmtFELabeled;
         }
 
@@ -517,6 +525,7 @@ public class SsaPhase implements Phase {
             StmtLabeledSSA stmtBlockExit = new StmtLabeledSSA(assignBufferLabel(stmt, false), null, nestedLoopLevel);
             wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockExit);
             stmtBlockLabeled.setShortCutToExit(stmtBlockExit);
+            stmtBlockExit.setShortCutToExit(stmtBlockLabeled);
 
             return stmtBlockLabeled;
         }
@@ -589,6 +598,20 @@ public class SsaPhase implements Phase {
             stmts = body.getStatements();
         }
 
+        List<ParameterVarDecl> paramDecl = proc.getValueParameters();
+        if(!paramDecl.isEmpty()){
+            List<LocalVarDecl> pvdToLvd = paramDecl.stream().map(p -> new LocalVarDecl(p.getAnnotations(), p.getType(), p.getName(), p.getDefaultValue(), false)).collect(Collectors.toList());
+            StmtBlock updatedStmt;
+            if(stmts.size() == 1 && stmts.get(0) instanceof StmtBlock){
+                StmtBlock original = (StmtBlock) stmts.get(0);
+                updatedStmt = original.withVarDecls(ImmutableList.concat(original.getVarDecls(), ImmutableList.from(pvdToLvd)));
+            } else {
+                updatedStmt = new StmtBlock(ImmutableList.empty(), pvdToLvd, stmts);
+            }
+            stmts = ImmutableList.of(updatedStmt);
+        }
+
+
         StmtLabeledSSA entry = new StmtLabeledSSA("ProgramEntry", null, 0);
         StmtLabeledSSA exit = new StmtLabeledSSA("ProgramExit", null, 0);
         entry.setShortCutToExit(exit);
@@ -608,7 +631,6 @@ public class SsaPhase implements Phase {
         }
         return currentBlocks;
     }
-
 
     private static void wireRelations(LinkedList<StmtLabeledSSA> currentBlocks, StmtLabeledSSA pred, StmtLabeledSSA succ) {
 
@@ -1026,13 +1048,13 @@ public class SsaPhase implements Phase {
     //------ Transform to StmtLabeled ------//
     private static StmtLabeled transformIntoStmtLabeled(Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit) {
         Map<StmtLabeledSSA, StmtLabeled> mapping = collectAllStmtLabeledSSA(entryAndExit.getFirst(), new HashMap<>());
-        //Map<StmtLabeledSSA, Pair<List<StmtLabeledSSA>, List<StmtLabeledSSA>>> allMappings = findPredAndSucc(mapping.keySet());
+
         StmtLabeledSSA exit = entryAndExit.getSecond();
         StmtLabeledSSA entry = entryAndExit.getFirst();
+
         Map<StmtLabeledSSA, StmtLabeled> updatedMap = updateRelations(exit, mapping, new HashSet<>(), Direction.UP);
         updatedMap = updateRelations(entry, updatedMap, new HashSet<>(), Direction.DOWN);
-        StmtLabeled res = updatedMap.get(exit);
-        return res;
+        return updatedMap.get(exit);
     }
 
     private static Map<StmtLabeledSSA, StmtLabeled> collectAllStmtLabeledSSA(StmtLabeledSSA stmtLabeledSSA, Map<StmtLabeledSSA, StmtLabeled> currentMap) {
@@ -1050,6 +1072,9 @@ public class SsaPhase implements Phase {
         List<StmtLabeledSSA> relations = (dir == Direction.UP) ? stmtLabeledSSA.getPredecessors() : stmtLabeledSSA.getSuccessors();
         if (dir == Direction.UP) {
             for (StmtLabeledSSA pred : relations) {
+                if(!updatedMap.containsKey(pred) && pred.isBufferBlock()){
+                    continue;
+                }
                 updatedMap.replace(pred, updatedMap.get(pred).updateSuccs(stmt));
             }
         } else {
