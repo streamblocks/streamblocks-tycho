@@ -591,6 +591,7 @@ public class SsaPhase implements Phase {
 
         StmtLabeledSSA entry = new StmtLabeledSSA("ProgramEntry", null, 0);
         StmtLabeledSSA exit = new StmtLabeledSSA("ProgramExit", null, 0);
+        entry.setShortCutToExit(exit);
 
         LinkedList<StmtLabeledSSA> sub = iterateSubStmts(stmts, exit, 0);
         wireRelations(sub, entry, exit);
@@ -631,7 +632,7 @@ public class SsaPhase implements Phase {
                 //if last stmt is a return stmt, go to the end of the program. program exit is already the successor of return
                 next = (current.getOriginalStmt() instanceof StmtReturn) ? current.getSuccessors().get(0) : succ;
             }
-            if (current.lastIsNull()) {
+            if (current.hasNoShortCut()) {
                 current.setRelations(ImmutableList.concat(ImmutableList.of(prev), ImmutableList.from(current.getPredecessors())),
                         ImmutableList.concat(ImmutableList.of(next), ImmutableList.from(current.getSuccessors())));
                 prev = current;
@@ -687,22 +688,26 @@ public class SsaPhase implements Phase {
         //read variables in expressions
         if (!stmtLabeled.isBufferBlock()) {
             Statement originalStmt = stmtLabeled.getOriginalStmt();
-            if (!doesModifyVar(originalStmt)) {
+            if (!doesModifyVar(originalStmt)) { //TODO check with stmtcall
                 List<Expression> exprInStmt = stmtExprCollector.collect(originalStmt);
                 exprInStmt.forEach(e -> readSubExpr(e, stmtLabeled));
             }
         }
 
         Statement ssaStmt = applySSAToStatements(stmtLabeled);
-        stmtLabeled.setNewOriginal(ssaStmt);
+        stmtLabeled.setSSAStatement(ssaStmt);
         stmtLabeled.setHasBeenVisted();
         stmtLabeled.getPredecessors().forEach(SsaPhase::applySSAToVar);
 
     }
 
     private static Statement applySSAToStatements(StmtLabeledSSA stmtLabeled) {
-        if (stmtLabeled.getOriginalStmt() == null || stmtLabeled.lvnIsEmpty()) {
+        if (stmtLabeled.isBufferBlock()) {
+            return null;
+        } else if (stmtLabeled.lvnIsEmpty()) {
             return stmtLabeled;
+        } else if (stmtLabeled.isLostCopyBlock()) {
+            return stmtLabeled.getSsaModified();
         } else {
             Statement originalStmt = stmtLabeled.getOriginalStmt();
             Set<LocalVarDecl> ssaLocalVarDecls = stmtLabeled.getLocalValueNumbers().keySet();
@@ -911,7 +916,7 @@ public class SsaPhase implements Phase {
         }
 
         if (!stmtLabeled.hasBeenRebuilt() && !stmtLabeled.isBufferBlock() && isNotTerminal(stmtLabeled.getOriginalStmt())) {
-            stmtLabeled.setNewOriginal(rebuildSingleStmt(stmtLabeled));
+            stmtLabeled.setSSAStatement(rebuildSingleStmt(stmtLabeled));
         }
 
         stmtLabeled.getSuccessors().forEach(SsaPhase::recRebuildStmts);
@@ -956,7 +961,7 @@ public class SsaPhase implements Phase {
 
             if (oldBody.containsKey(original)) {
                 if (isNotTerminal(scrutinee.getOriginalStmt()) && !scrutinee.hasBeenRebuilt()) {
-                    scrutinee.setNewOriginal(rebuildSingleStmt(scrutinee));
+                    scrutinee.setSSAStatement(rebuildSingleStmt(scrutinee));
                 }
                 newBody.putIfAbsent(scrutinee.getSsaModified(), oldBody.get(original));
                 oldBody.remove(original);
@@ -1039,25 +1044,34 @@ public class SsaPhase implements Phase {
         return currentMap;
     }
 
-
     private static Map<StmtLabeledSSA, StmtLabeled> updateRelations(StmtLabeledSSA stmtLabeledSSA, Map<StmtLabeledSSA, StmtLabeled> elements, Set<StmtLabeledSSA> visited, Direction dir) {
-        List<StmtLabeledSSA> related = (dir == Direction.UP) ? stmtLabeledSSA.getPredecessors() : stmtLabeledSSA.getSuccessors();
         StmtLabeled stmt = elements.get(stmtLabeledSSA);
         Map<StmtLabeledSSA, StmtLabeled> updatedMap = elements;
-
-        for (StmtLabeledSSA labeledSSA : related) {
-            updatedMap.replace(labeledSSA, updatedMap.get(labeledSSA).updateSuccs(stmt));
+        List<StmtLabeledSSA> relations = (dir == Direction.UP) ? stmtLabeledSSA.getPredecessors() : stmtLabeledSSA.getSuccessors();
+        if (dir == Direction.UP) {
+            for (StmtLabeledSSA pred : relations) {
+                updatedMap.replace(pred, updatedMap.get(pred).updateSuccs(stmt));
+            }
+        } else {
+            for (StmtLabeledSSA pred : relations) {
+                updatedMap.replace(pred, updatedMap.get(pred).updatePreds(stmt));
+            }
         }
-
         visited.add(stmtLabeledSSA);
-        for (StmtLabeledSSA rel : stmtLabeledSSA.getPredecessors()) {
-            if (!visited.contains(rel)) {
-                updatedMap = updateRelations(rel, updatedMap, visited, dir);
-            } else {
-                if (dir == Direction.UP) {
-                    updatedMap.replace(rel, updatedMap.get(rel).updateSuccs(stmt));
+        if (dir == Direction.UP) {
+            for (StmtLabeledSSA pred : relations) {
+                if (!visited.contains(pred)) {
+                    updatedMap = updateRelations(pred, updatedMap, visited, Direction.UP);
                 } else {
-                    updatedMap.replace(rel, updatedMap.get(rel).updatePreds(stmt));
+                    updatedMap.replace(pred, updatedMap.get(pred).updateSuccs(stmt));
+                }
+            }
+        } else {
+            for (StmtLabeledSSA pred : relations) {
+                if (!visited.contains(pred)) {
+                    updatedMap = updateRelations(pred, updatedMap, visited, Direction.DOWN);
+                } else {
+                    updatedMap.replace(pred, updatedMap.get(pred).updateSuccs(stmt));
                 }
             }
         }
@@ -1166,11 +1180,11 @@ public class SsaPhase implements Phase {
         //label them
         StmtLabeledSSA first = stmtLabeled.withNewOriginal(beforeLoopStmt);
         StmtLabeledSSA second = stmtLabeled.withNewOriginal(loopEntryPhiStmt);
-        StmtLabeledSSA fourth = stmtLabeled.withNewOriginal(loopSelfRefStmt);
-        StmtLabeledSSA fifth = stmtLabeled.withNewOriginal(loopNextIterStmt);
+        StmtLabeledSSA third = stmtLabeled.withNewOriginal(loopSelfRefStmt);
+        StmtLabeledSSA fourth = stmtLabeled.withNewOriginal(loopNextIterStmt);
 
         //reset their relations and their local value numbering
-        Stream.of(first, second, fourth, fifth).forEach(sl -> {
+        Stream.of(first, second, third, fourth).forEach(sl -> {
             sl.setRelations(Collections.emptyList(), Collections.emptyList());
             sl.lostCopyName();
         });
@@ -1189,35 +1203,42 @@ public class SsaPhase implements Phase {
         blockSucc.setPredecessors(succNewPred);
 
         //wire the new blocks between them and to the original successor and predecessor
-        wireRelations(new LinkedList<>(Arrays.asList(first, second)), blockPred, stmtLabeled);
-        wireRelations(new LinkedList<>(Arrays.asList(fourth, fifth)), stmtLabeled, blockSucc);
+        wireRelations(new LinkedList<>(Arrays.asList(first, second, third, fourth)), blockPred, blockSucc);
 
         return u2;
     }
 
     private static Expression replaceVariableInExpr(Expression originalExpr, Variable varToReplace, Variable
             replacementVar, StmtLabeledSSA stmt) {
-        //TODO add cases for other types of Expressions
-        //Should work for interlocked ExprBinary
-        if (originalExpr instanceof ExprBinaryOp) {
+        ExprVariable updatedVariable = new ExprVariable(variable(replacementVar.getName()));
+        //TODO make copies
+        if (originalExpr instanceof ExprUnaryOp) {
+            Expression updatedVar = replaceVariableInExpr(((ExprUnaryOp) originalExpr).getOperand(), varToReplace, replacementVar, stmt);
+            return ((ExprUnaryOp) originalExpr).copy(((ExprUnaryOp) originalExpr).getOperation(), updatedVar);
+
+        } else if (originalExpr instanceof ExprVariable) {
+            return (((ExprVariable) originalExpr).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : readLocalVarExpr(originalExpr, stmt).getFirst();
+
+        } else if (originalExpr instanceof ExprBinaryOp) {
+            //Should work for interlocked ExprBinary
             List<Expression> operands = ((ExprBinaryOp) originalExpr).getOperands();
-            ExprVariable updatedVariable = new ExprVariable(variable(replacementVar.getName()));
             //find and replace variable looked for, apply algorithm to all other operands
             List<Expression> newOperands = operands.stream()
-                    .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : Objects.requireNonNull(readLocalVarExpr(o, stmt)).getFirst())
+                    .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable :
+                            Objects.requireNonNull(replaceVariableInExpr(o, varToReplace, replacementVar, stmt)))
                     .collect(Collectors.toList());
             return new ExprBinaryOp(((ExprBinaryOp) originalExpr).getOperations(), ImmutableList.from(newOperands));
 
         } else if (originalExpr instanceof ExprIf) {
             List<Expression> operands = new LinkedList<>(Arrays.asList(((ExprIf) originalExpr).getThenExpr(), ((ExprIf) originalExpr).getElseExpr()));
-            ExprVariable updatedVariable = new ExprVariable(variable(replacementVar.getName()));
             //find and replace variable looked for, apply algorithm to all other operands
             List<Expression> newOperands = operands.stream()
-                    .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : Objects.requireNonNull(readLocalVarExpr(o, stmt)).getFirst())
+                    .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable :
+                            Objects.requireNonNull(replaceVariableInExpr(o, varToReplace, replacementVar, stmt)))
                     .collect(Collectors.toList());
             return new ExprIf(((ExprIf) originalExpr).getCondition(), newOperands.get(0), newOperands.get(1));
         }
-        return null;
+        return originalExpr;
     }
 
     private static LocalVarDecl findVarPredFromLoop(LocalVarDecl varToFind, StmtLabeledSSA originalStmt) {
@@ -1276,7 +1297,9 @@ public class SsaPhase implements Phase {
         return variable(replacementName);
     }
 
-    private enum Direction {UP, DOWN}
+    private enum Direction {
+        UP, DOWN
+    }
 
     private static StmtLabeledSSA findStatementLabeled(StmtLabeledSSA stmtLabeled, String label, Direction dir) {
         //if dir is false = successors
@@ -1385,16 +1408,24 @@ public class SsaPhase implements Phase {
     }
 
     private static LocalVarDecl tryRemoveTrivialPhi(LocalVarDecl phi) {
-        LocalVarDecl currentOp = null;
         ImmutableList<LocalVarDecl> operands = ((ExprPhi) phi.getValue()).getOperands();
+        //Problem in logic if first operand is right, but second is null or a phi
+        List<LocalVarDecl> validOperands = new LinkedList<>();
+        LocalVarDecl currentOp = null;
         for (LocalVarDecl op : operands) {
             //Unique value or self reference
-            if (!op.equals(currentOp) && !op.equals(phi)) {
-                if (currentOp != null) {
-                    return phi;
-                }
+            if (op.equals(currentOp) || op.equals(phi)) {
+                continue;
+            }
+            if (currentOp != null) {
+                return phi;
             }
             currentOp = op;
+            validOperands.add(op);
+        }
+
+        if (validOperands.size() == 1) {
+            return validOperands.get(0);
         }
 
         //TODO make empty block

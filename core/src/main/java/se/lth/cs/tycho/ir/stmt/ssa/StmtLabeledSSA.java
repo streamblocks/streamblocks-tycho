@@ -13,15 +13,18 @@ import java.util.stream.Collectors;
 public class StmtLabeledSSA extends Statement {
 
     private String label;
+    //cfg
     private Statement originalStmt;
     private ImmutableList<StmtLabeledSSA> predecessors;
     private ImmutableList<StmtLabeledSSA> successors;
     private StmtLabeledSSA shortCutToExit;
+    private final int nestedLoopLevel;
+    //ssa
     private final Map<LocalVarDecl, Boolean> valueNumbering;
     private final Map<ExprVariable, LocalVarDecl> exprValueNumbering;
     private boolean ssaHasBeenVisited;
-    private final int nestedLoopLevel;
     private Statement ssaModifiedStmt;
+    //reconstruction
     private boolean hasBeenRebuilt = false;
     private boolean phiBlockCreated = false;
 
@@ -151,7 +154,7 @@ public class StmtLabeledSSA extends Statement {
         return originalStmt;
     }
 
-    public void setNewOriginal(Statement ssaModifiedStmt) {
+    public void setSSAStatement(Statement ssaModifiedStmt) {
         this.ssaModifiedStmt = ssaModifiedStmt;
     }
 
@@ -173,11 +176,13 @@ public class StmtLabeledSSA extends Statement {
     }
 
     public void setPredecessors(List<StmtLabeledSSA> predecessors) {
-        this.predecessors = ImmutableList.from(predecessors);
+        List<StmtLabeledSSA> preds = predecessors.stream().distinct().collect(Collectors.toList());
+        this.predecessors = ImmutableList.from(preds);
     }
 
     public void setSuccessors(List<StmtLabeledSSA> successors) {
-        this.successors = ImmutableList.from(successors);
+        List<StmtLabeledSSA> succs = successors.stream().distinct().collect(Collectors.toList());
+        this.successors = ImmutableList.from(succs);
     }
 
     public ImmutableList<StmtLabeledSSA> getPredecessors() {
@@ -188,7 +193,7 @@ public class StmtLabeledSSA extends Statement {
         return successors;
     }
 
-    public boolean lastIsNull() {
+    public boolean hasNoShortCut() {
         return shortCutToExit == null;
     }
 
