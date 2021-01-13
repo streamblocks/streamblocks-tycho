@@ -1349,8 +1349,8 @@ public class SsaPhase implements Phase {
         if (matchingLVD.isPresent()) {
             //Locally found
             LocalVarDecl lv = matchingLVD.get();
-            Expression lvExpr = lv.getValue();
-            if (lvExpr instanceof ExprBinaryOp || lvExpr instanceof ExprUnaryOp || lvExpr instanceof ExprIf) {
+            if(stmt.getOriginalStmt() instanceof StmtAssignment){
+                Expression lvExpr = lv.getValue();
                 List<Expression> internalExpr = subExprCollector.collectInternalExpr(lvExpr);
                 if (lvExpr instanceof ExprIf) internalExpr.remove(0);
 
