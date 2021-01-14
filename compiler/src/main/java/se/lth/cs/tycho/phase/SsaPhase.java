@@ -2,6 +2,7 @@ package se.lth.cs.tycho.phase;
 
 import org.multij.Module;
 import org.multij.MultiJ;
+import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
@@ -9,6 +10,7 @@ import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.AbstractDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
+import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
@@ -36,6 +38,7 @@ public class SsaPhase implements Phase {
     private static ReplaceExprVar exprVarReplacer = null;
     private static CollectOrReplaceSubStmts subStmtCollector = null;
     private static CreateControlFlowGraphBlocks cfgCreator = null;
+    private static VariableDeclarations declarations = null;
 
     public SsaPhase() {
         stmtExprCollector = MultiJ.from(CollectOrReplaceExprInStmt.class).instance();
@@ -52,10 +55,11 @@ public class SsaPhase implements Phase {
 
     @Override
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
+        declarations = task.getModule(VariableDeclarations.key);
+
         Transformation transformation = MultiJ.from(SsaPhase.Transformation.class).instance();
         return task.transformChildren(transformation);
     }
-
 
     //--------------- Utils ---------------//
 
@@ -141,7 +145,9 @@ public class SsaPhase implements Phase {
             return new Pair<>(call.getArgs(), call.getProcedure());
         }
 
-        default List<Expression> collect(Statement s){return new LinkedList<>();}
+        default List<Expression> collect(Statement s) {
+            return new LinkedList<>();
+        }
 
         default List<Expression> collect(StmtCall call) {
             return new LinkedList<>(call.getArgs());
@@ -205,7 +211,7 @@ public class SsaPhase implements Phase {
     @Module
     interface CollectExpressions {
 
-        default List<Expression> collectInternalExpr(Expression e){
+        default List<Expression> collectInternalExpr(Expression e) {
             return new LinkedList<>();
         }
 
@@ -320,8 +326,11 @@ public class SsaPhase implements Phase {
             if (replacements.containsKey(var)) {
                 ExprVariable res = var.copy(variable(replacements.get(var).getName()), var.getOld());
                 return res;
-            } else
+            } else if (!functionScopeVars.containsKey(var.getVariable().getOriginalName())) {
+                return var;
+            } else {
                 throw new IllegalStateException("Local Value Numbering missed this variable or the replacement mapping argument is incomplete");
+            }
         }
 
         default Expression replaceExprVar(ExprIf iff, Map<ExprVariable, LocalVarDecl> replacements) {
@@ -531,15 +540,22 @@ public class SsaPhase implements Phase {
         }
 
         default StmtLabeledSSA createBlock(StmtAssignment stmt, StmtLabeledSSA exitBlock, int nestedLoopLevel) {
-            StmtLabeledSSA stmtAssignLabeled = new StmtLabeledSSA(assignLabel(stmt), stmt, nestedLoopLevel);
+            StmtLabeledSSA stmtAssignmentLabeled = new StmtLabeledSSA(assignLabel(stmt), stmt, nestedLoopLevel);
             LValue v = stmt.getLValue();
             if (v instanceof LValueVariable) {
                 String varName = ((LValueVariable) v).getVariable().getOriginalName();
-                LocalVarDecl currentVarDecl = originalLVD.get(varName);
-                LocalVarDecl newVarDecl = currentVarDecl.withName(getNewUniqueVarName(varName)).withValue(stmt.getExpression());
-                stmtAssignLabeled.addLocalValueNumber(newVarDecl, false);
+                if (originalLVD.containsKey(varName)) {
+                    LocalVarDecl currentVarDecl = originalLVD.get(varName);
+                    LocalVarDecl newVarDecl = currentVarDecl.withName(getNewUniqueVarName(varName)).withValue(stmt.getExpression());
+                    stmtAssignmentLabeled.addLocalValueNumber(newVarDecl, false);
+                } else {
+                    VarDecl decl = declarations.declaration((LValueVariable) v);
+                    if (functionScopeVars.containsKey(decl.getOriginalName())) {
+                        throw new IllegalStateException("Variable in the scope of the program but definition missing in the local variable declaration map");
+                    }
+                }
             }
-            return stmtAssignLabeled;
+            return stmtAssignmentLabeled;
         }
 
         default StmtLabeledSSA createBlock(StmtCall stmt, StmtLabeledSSA exitBlock, int nestedLoopLevel) {
@@ -575,6 +591,7 @@ public class SsaPhase implements Phase {
             return node.transformChildren(this);
         }
 
+
         default IRNode apply(ExprProcReturn proc) {
             //StmtLabeledSSA rootCFG = generateCFG(proc, ReturnNode.ROOT);
             Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit = generateCFG(proc);
@@ -598,11 +615,13 @@ public class SsaPhase implements Phase {
             stmts = body.getStatements();
         }
 
+        //Transform ParamVarDecl into LocalVarDecl for SSA
         List<ParameterVarDecl> paramDecl = proc.getValueParameters();
-        if(!paramDecl.isEmpty()){
+        if (!paramDecl.isEmpty()) {
+
             List<LocalVarDecl> pvdToLvd = paramDecl.stream().map(p -> new LocalVarDecl(p.getAnnotations(), p.getType(), p.getName(), p.getDefaultValue(), false)).collect(Collectors.toList());
             StmtBlock updatedStmt;
-            if(stmts.size() == 1 && stmts.get(0) instanceof StmtBlock){
+            if (stmts.size() == 1 && stmts.get(0) instanceof StmtBlock) {
                 StmtBlock original = (StmtBlock) stmts.get(0);
                 updatedStmt = original.withVarDecls(ImmutableList.concat(original.getVarDecls(), ImmutableList.from(pvdToLvd)));
             } else {
@@ -637,6 +656,7 @@ public class SsaPhase implements Phase {
         if (currentBlocks.isEmpty()) {
             pred.setSuccessors(ImmutableList.concat(pred.getSuccessors(), ImmutableList.of(succ)));
             succ.setPredecessors(ImmutableList.concat(succ.getPredecessors(), ImmutableList.of(pred)));
+            return;
         }
 
         final ListIterator<StmtLabeledSSA> it = currentBlocks.listIterator();
@@ -689,6 +709,9 @@ public class SsaPhase implements Phase {
     private static void applySSA(Pair<StmtLabeledSSA, StmtLabeledSSA> cfg) {
         applySSAToVar(cfg.getSecond());
         recRebuildStmts(cfg.getFirst());
+        originalLVD.clear();
+        localValueCounter.clear();
+        functionScopeVars.clear();
         StmtLabeled start = transformIntoStmtLabeled(cfg);
         int a = 0;
     }
@@ -791,11 +814,14 @@ public class SsaPhase implements Phase {
         List<Expression> subExpr = subExprCollector.collectInternalExpr(expr);
         if (subExpr.isEmpty()) {
             if (expr instanceof ExprVariable && !stmtLabeled.varHasBeenVisited((ExprVariable) expr)) {
+                VarDecl exprVarDecl = declarations.declaration((ExprVariable) expr);
 
-                stmtLabeled.addNewLVNPair((ExprVariable) expr, null);
-                Pair<LocalVarDecl, Integer> resPair = resolveSSAName(stmtLabeled, (ExprVariable) expr, 0, new HashSet<>());
-                if (resPair.getFirst() != null && resPair.getSecond() >= 0) {
-                    stmtLabeled.updateLVNPair((ExprVariable) expr, resPair.getFirst());
+                if (originalLVD.containsKey(exprVarDecl.getOriginalName())) {
+                    stmtLabeled.addNewLVNPair((ExprVariable) expr, null);
+                    Pair<LocalVarDecl, Integer> resPair = resolveSSAName(stmtLabeled, (ExprVariable) expr, 0, new HashSet<>());
+                    if (resPair.getFirst() != null && resPair.getSecond() >= 0) {
+                        stmtLabeled.updateLVNPair((ExprVariable) expr, resPair.getFirst());
+                    }
                 }
             }
             //Expression has no sub expressions and is not a variable
@@ -1072,7 +1098,7 @@ public class SsaPhase implements Phase {
         List<StmtLabeledSSA> relations = (dir == Direction.UP) ? stmtLabeledSSA.getPredecessors() : stmtLabeledSSA.getSuccessors();
         if (dir == Direction.UP) {
             for (StmtLabeledSSA pred : relations) {
-                if(!updatedMap.containsKey(pred) && pred.isBufferBlock()){
+                if (!updatedMap.containsKey(pred) && pred.isBufferBlock()) {
                     continue;
                 }
                 updatedMap.replace(pred, updatedMap.get(pred).updateSuccs(stmt));
@@ -1115,6 +1141,12 @@ public class SsaPhase implements Phase {
     private static HashMap<String, LocalVarDecl> originalLVD = new HashMap<>();
     //Keeps track of how many times a variables has been renamed
     private static HashMap<String, Integer> localValueCounter = new HashMap<>();
+
+    private static HashMap<String, VarDecl> functionScopeVars = new HashMap<>();
+
+    private static void addVarInScope(VarDecl var) {
+        functionScopeVars.putIfAbsent(var.getOriginalName(), var);
+    }
 
     private static void addNewLocalVarMapping(LocalVarDecl lvd) {
         originalLVD.put(lvd.getOriginalName(), lvd);
@@ -1374,7 +1406,7 @@ public class SsaPhase implements Phase {
         if (matchingLVD.isPresent()) {
             //Locally found
             LocalVarDecl lv = matchingLVD.get();
-            if(stmt.getOriginalStmt() instanceof StmtAssignment){
+            if (stmt.getOriginalStmt() instanceof StmtAssignment) {
                 Expression lvExpr = lv.getValue();
                 List<Expression> internalExpr = subExprCollector.collectInternalExpr(lvExpr);
                 if (lvExpr instanceof ExprIf) internalExpr.remove(0);
