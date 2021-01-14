@@ -31,17 +31,24 @@ import java.util.stream.Stream;
 
 import static se.lth.cs.tycho.ir.Variable.variable;
 
+/**
+ * The Ssa phase.
+ */
 public class SsaPhase implements Phase {
 
     private static final CollectOrReplaceExprInStmt stmtExprCollector = MultiJ.from(CollectOrReplaceExprInStmt.class).instance();
-    private static final CollectExpressions subExprCollector = MultiJ.from(CollectExpressions.class).instance();
-    private static final ReplaceExprVar exprVarReplacer = MultiJ.from(ReplaceExprVar.class).instance();
+    private static final CollectOrReplaceExpressions subExprCollectorOrReplacer = MultiJ.from(CollectOrReplaceExpressions.class).instance();
     private static final CollectOrReplaceSubStmts subStmtCollector = MultiJ.from(CollectOrReplaceSubStmts.class).instance();
     private static final CreateControlFlowGraphBlocks cfgCreator = MultiJ.from(CreateControlFlowGraphBlocks.class).instance();
     private static VariableDeclarations declarations = null;
     private static final Pair<Integer, Optional<StmtLabeledSSA>> noStoppingCond = new Pair<>(0, Optional.empty());
     private static boolean cfgOnly;
 
+    /**
+     * Instantiates a new Ssa phase.
+     *
+     * @param cfgOnly only build cfg
+     */
     public SsaPhase(boolean cfgOnly) {
         SsaPhase.cfgOnly = cfgOnly;
     }
@@ -58,11 +65,20 @@ public class SsaPhase implements Phase {
         return task.transformChildren(transformation);
     }
 
-    //--------------- Utils ---------------//
+    //----------------------------------------------------------------Statement and Expression Collection/Replacement ---------------------------------------------------------------//
 
+    /**
+     * The interface used to collect or replace Statements inside another Statement.
+     */
     @Module
     interface CollectOrReplaceSubStmts {
 
+        /**
+         * Collect list.
+         *
+         * @param s the Statement to collect from
+         * @return a List containing Lists of Statements
+         */
         default List<LinkedList<Statement>> collect(Statement s) {
             return new LinkedList<>(new LinkedList<>());
         }
@@ -98,7 +114,13 @@ public class SsaPhase implements Phase {
             return res;
         }
 
-
+        /**
+         * Replace statement.
+         *
+         * @param s the statement to have its body replace
+         * @param l the new body containing the replaced Statements
+         * @return the statement with the updated body
+         */
         default Statement replace(Statement s, List<List<Statement>> l) {
             return s;
         }
@@ -133,15 +155,30 @@ public class SsaPhase implements Phase {
 
     }
 
+    /**
+     * The interface used to collect or replace Expressions in a Statement.
+     */
     @Module
     interface CollectOrReplaceExprInStmt {
 
+        /**
+         * Collect multiple Expressions if a Statement contains multiple Expressions of the same type as well as other Expressions in other fields
+         *
+         * @param s the Statement
+         * @return a pair composed of the list of similar Expressions and the unique one
+         */
         Pair<List<? extends IRNode>, Expression> collectMultipleExpr(Statement s);
 
         default Pair<List<? extends IRNode>, Expression> collectMultipleExpr(StmtCall call) {
             return new Pair<>(call.getArgs(), call.getProcedure());
         }
 
+        /**
+         * Collect a List containing all the expression in a Statement.
+         *
+         * @param s the Statement
+         * @return the List of Expressions
+         */
         default List<Expression> collect(Statement s) {
             return new LinkedList<>();
         }
@@ -174,11 +211,23 @@ public class SsaPhase implements Phase {
             return new LinkedList<>(Collections.singletonList(whilee.getCondition()));
         }
 
+        /**
+         * Replace a single Expression in a Statement.
+         *
+         * @param s the Statement
+         * @param e the Expression
+         * @return the updated Statement
+         */
         Statement replaceSingleExpr(Statement s, Expression e);
 
+        /**
+         * Replace a List of Expressions in a statement.
+         *
+         * @param s the Statement
+         * @param e the Expression's List
+         * @return the updated Statement
+         */
         Statement replaceListExpr(Statement s, List<Expression> e);
-
-        Statement replaceListAndSingleExpr(Statement s, Expression e, List<Expression> l);
 
         default Statement replaceSingleExpr(StmtReturn ret, Expression retVal) {
             return ret.copy(retVal);
@@ -205,9 +254,18 @@ public class SsaPhase implements Phase {
         }
     }
 
+    /**
+     * The interface used to collect the Expressions contained in another Expression.
+     */
     @Module
-    interface CollectExpressions {
+    interface CollectOrReplaceExpressions {
 
+        /**
+         * Collect all the internal Expressions of an Expression.
+         *
+         * @param e the Expression
+         * @return the List of all contained Expressions
+         */
         default List<Expression> collectInternalExpr(Expression e) {
             return new LinkedList<>();
         }
@@ -300,11 +358,14 @@ public class SsaPhase implements Phase {
         default List<Expression> collectInternalExpr(ExprLiteral lit) {
             return new LinkedList<>();
         }
-    }
 
-    @Module
-    interface ReplaceExprVar {
-
+        /**
+         * Gets local var decl.
+         *
+         * @param originalVarName the original var name
+         * @param localVarDecls   the local var decls
+         * @return the local var decl
+         */
         default LocalVarDecl getLocalVarDecl(String originalVarName, Set<LocalVarDecl> localVarDecls) {
             for (LocalVarDecl lvd : localVarDecls) {
                 if (lvd.getOriginalName().equals(originalVarName)) {
@@ -314,6 +375,13 @@ public class SsaPhase implements Phase {
             throw new IllegalStateException("Missing ssa result for given variable");
         }
 
+        /**
+         * Replace all variables inside an Expression.
+         *
+         * @param original     the original Expression
+         * @param replacements the Map containing the replacement for each Variable
+         * @return the updated Expression
+         */
         default Expression replaceExprVar(Expression original, Map<ExprVariable, LocalVarDecl> replacements) {
             return original;
         }
@@ -344,17 +412,17 @@ public class SsaPhase implements Phase {
         }
 
         default Expression replaceExprVar(ExprBinaryOp binOp, Map<ExprVariable, LocalVarDecl> replacements) {
-            List<Expression> newOp = subExprCollector.collectInternalExpr(binOp);
+            List<Expression> newOp = subExprCollectorOrReplacer.collectInternalExpr(binOp);
             newOp.replaceAll(op -> replaceExprVar(op, replacements));
             return new ExprBinaryOp(binOp.getOperations(), ImmutableList.from(newOp));
         }
 
         default Expression replaceExprVar(ExprCase casee, Map<ExprVariable, LocalVarDecl> replacements) {
-            List<Expression> scrut = subExprCollector.collectInternalExpr(casee);
+            List<Expression> scrut = subExprCollectorOrReplacer.collectInternalExpr(casee);
             Expression newScrut = replaceExprVar(scrut.get(0), replacements);
 
             List<ExprCase.Alternative> alts = casee.getAlternatives();
-            alts.replaceAll(alt -> new ExprCase.Alternative(alt.getPattern(), alt.getGuards(), replaceExprVar(subExprCollector.collectInternalExpr(alt).get(0), replacements)));
+            alts.replaceAll(alt -> new ExprCase.Alternative(alt.getPattern(), alt.getGuards(), replaceExprVar(subExprCollectorOrReplacer.collectInternalExpr(alt).get(0), replacements)));
 
             return new ExprCase(newScrut, alts);
         }
@@ -438,9 +506,21 @@ public class SsaPhase implements Phase {
         }
     }
 
+
+    /**
+     * The interface used to create control flow graph blocks.
+     */
     @Module
     interface CreateControlFlowGraphBlocks {
 
+        /**
+         * Transforms a Statement into a StatementLabeledSSA, connecting it with its sub Statements and creating buffer blocks if needed
+         *
+         * @param stmt            the original stmt
+         * @param exitBlock       the exit block of the cfg
+         * @param nestedLoopLevel the nested loop level
+         * @return the stmt labeled ssa
+         */
         StmtLabeledSSA createBlock(Statement stmt, StmtLabeledSSA exitBlock, int nestedLoopLevel);
 
         default StmtLabeledSSA createBlock(StmtConsume stmt, StmtLabeledSSA exitBlock, int nestedLoopLevel) {
@@ -580,6 +660,9 @@ public class SsaPhase implements Phase {
 
     }
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+
+
     @Module
     interface Transformation extends IRNode.Transformation {
 
@@ -588,7 +671,12 @@ public class SsaPhase implements Phase {
             return node.transformChildren(this);
         }
 
-
+        /**
+         * Creates a CFG and applies SSA to an ExprProcReturn
+         *
+         * @param proc the ExprProcReturn
+         * @return the updated ExprProcReturn
+         */
         default IRNode apply(ExprProcReturn proc) {
 
             Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit = generateCFG(proc);
@@ -601,8 +689,14 @@ public class SsaPhase implements Phase {
         }
     }
 
-    //--------------- CFG Generation Utils ---------------//
 
+    //--------------------------------------------------------------------------- CFG Generation Utils ---------------------------------------------------------------------------//
+
+    /**
+     * Create a Control Flow Graph from an ExprProcReturn
+     * @param proc the ExprProcReturn
+     * @return a pair containing the Entry and Exit of the CFG
+     */
     private static Pair<StmtLabeledSSA, StmtLabeledSSA> generateCFG(ExprProcReturn proc) {
         StmtBlock body = (StmtBlock) proc.getBody().get(0);
         ImmutableList<Statement> stmts;
@@ -628,7 +722,6 @@ public class SsaPhase implements Phase {
             stmts = ImmutableList.of(updatedStmt);
         }
 
-
         StmtLabeledSSA entry = new StmtLabeledSSA("Entry", null, 0);
         StmtLabeledSSA exit = new StmtLabeledSSA("Exit", null, 0);
         entry.setShortCutToExit(exit);
@@ -639,16 +732,23 @@ public class SsaPhase implements Phase {
         return new Pair<>(entry, exit);
     }
 
-    //------ Connect Blocks Together -----//
+    /**
+     * Recursively create CFG blocks for each Statement's sub Statements
+     * @param stmts The sub Statement
+     * @param exitBlock The CFG exit
+     * @param nestedLoopLevel The nested loop level of the original Statement
+     * @return The sub CFG composed of the sub Statements
+     */
     private static LinkedList<StmtLabeledSSA> iterateSubStmts(List<Statement> stmts, StmtLabeledSSA exitBlock, int nestedLoopLevel) {
-        LinkedList<StmtLabeledSSA> currentBlocks = new LinkedList<>();
-
-        for (Statement currentStmt : stmts) {
-            currentBlocks.add(cfgCreator.createBlock(currentStmt, exitBlock, nestedLoopLevel));
-        }
-        return currentBlocks;
+        return stmts.stream().map(currentStmt -> cfgCreator.createBlock(currentStmt, exitBlock, nestedLoopLevel)).collect(Collectors.toCollection(LinkedList::new));
     }
 
+    /**
+     * Connect a List of Statement in a linked way (successor <-> predecessor), in the order of the List. Add pred as head and succ at the end of the tail.
+     * @param currentBlocks The list of statement to link
+     * @param pred the head
+     * @param succ the last element
+     */
     private static void wireRelations(LinkedList<StmtLabeledSSA> currentBlocks, StmtLabeledSSA pred, StmtLabeledSSA succ) {
 
         if (currentBlocks.isEmpty()) {
@@ -687,31 +787,56 @@ public class SsaPhase implements Phase {
         succ.setPredecessors(ImmutableList.concat(succ.getPredecessors(), ImmutableList.of(currentBlocks.getLast().getExitBlock())));
     }
 
-    //------ Helpers -----//
+    //-------------------------------------- CFG Helpers --------------------------------------//
+
+    /**
+     * Check whether a Statement has sub Statements
+     * @param stmt the Statement
+     * @return true if has sub Statements
+     */
     private static boolean isNotTerminal(Statement stmt) {
         return !(stmt instanceof StmtConsume) && !(stmt instanceof StmtWrite) && !(stmt instanceof StmtRead) && !(stmt instanceof StmtCall) && !(stmt instanceof StmtAssignment);
     }
 
+    /**
+     * Assign a label to a Statement. Currently takes the name of the Statement
+     * @param stmt the statement to assign a label to
+     * @return the label
+     */
     private static String assignLabel(Statement stmt) {
         return stmt.getClass().toString().substring(30);
     }
 
-    private static String assignBufferLabel(Statement type, boolean isEntry) {
-        return assignLabel(type) + ((isEntry) ? "Entry" : "Exit");
+    /**
+     * Assign a label for buffer Statements
+     * @param stmt the original Statement
+     * @param isEntry Whether this is an entry label or an exit
+     * @return the buffer label
+     */
+    private static String assignBufferLabel(Statement stmt, boolean isEntry) {
+        return assignLabel(stmt) + ((isEntry) ? "Entry" : "Exit");
     }
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
-    //--------------- SSA Algorithm Application ---------------//
 
-    //------ Put everything together -----//
+    //------------------------------------------------------------------------- SSA Algorithm Application ------------------------------------------------------------------------//
+
+    /**
+     * Takes a CFG and applies SSA to all variables declared within the scope of the ExprProcReturn
+     * @param cfg the CFG
+     */
     private static void applySSA(Pair<StmtLabeledSSA, StmtLabeledSSA> cfg) {
-        applySSAToVar(cfg.getSecond());
+        applySSAToVariables(cfg.getSecond());
         recRebuildStmts(cfg.getFirst());
         clearAllVarMaps();
     }
 
-    //------ Replace all variables with ssa names in all Statement and Expressions -----//
-    private static void applySSAToVar(StmtLabeledSSA stmtLabeled) {
+    /**
+     * Recursively apply the SSA algorithm from the bottom up
+     * @param stmtLabeled The Statement
+     */
+    private static void applySSAToVariables(StmtLabeledSSA stmtLabeled) {
         //Stop recursion at the top of the cfg
         if (stmtLabeled.hasNoPredecessors() || stmtLabeled.hasBeenVisted()) {
             return;
@@ -736,17 +861,25 @@ public class SsaPhase implements Phase {
         Statement ssaStmt = applySSAToStatements(stmtLabeled);
         stmtLabeled.setSSAStatement(ssaStmt);
         stmtLabeled.setHasBeenVisted();
-        stmtLabeled.getPredecessors().forEach(SsaPhase::applySSAToVar);
+        stmtLabeled.getPredecessors().forEach(SsaPhase::applySSAToVariables);
 
     }
 
+    /**
+     * Replace all variables with their SSA values in a Statement and to its predecessors
+     * @param stmtLabeled the statement
+     * @return The statement in SSA form
+     */
     private static Statement applySSAToStatements(StmtLabeledSSA stmtLabeled) {
         if (stmtLabeled.isBufferBlock()) {
             return null;
+
         } else if (stmtLabeled.lvnIsEmpty()) {
             return stmtLabeled.getOriginalStmt();
+
         } else if (stmtLabeled.isLostCopyBlock()) {
             return stmtLabeled.getSsaModified();
+
         } else {
             Statement originalStmt = stmtLabeled.getOriginalStmt();
             Set<LocalVarDecl> ssaLocalVarDecls = stmtLabeled.getLocalValueNumbers().keySet();
@@ -783,13 +916,13 @@ public class SsaPhase implements Phase {
                 //Statement is a StmtCall
                 if (!exprs.get(true).isEmpty()) {
                     List<Expression> stmtLetExpr = exprs.get(true);
-                    stmtLetExpr.replaceAll(e -> exprVarReplacer.replaceExprVarLet((ExprLet) e, stmtLabeled.getLocalValueNumbers()));
+                    stmtLetExpr.replaceAll(e -> subExprCollectorOrReplacer.replaceExprVarLet((ExprLet) e, stmtLabeled.getLocalValueNumbers()));
                     ssaBlock = stmtExprCollector.replaceListExpr(originalStmt, stmtLetExpr);
 
                 } else {
                     stmtExpr = exprs.get(false);
                     //Apply ssa result
-                    stmtExpr.replaceAll(e -> exprVarReplacer.replaceExprVar(e, ssaLocalValueNumbering));
+                    stmtExpr.replaceAll(e -> subExprCollectorOrReplacer.replaceExprVar(e, ssaLocalValueNumbering));
                     //Write the results back
                     if (stmtExpr.size() == 1) {
                         ssaBlock = stmtExprCollector.replaceSingleExpr(originalStmt, stmtExpr.get(0));
@@ -803,9 +936,14 @@ public class SsaPhase implements Phase {
         }
     }
 
+    /**
+     * Recursively find an Expression's sub Expressions and apply SSA
+     * @param expr the Expression
+     * @param stmtLabeled The statement containing the Expression
+     */
     private static void readSubExpr(Expression expr, StmtLabeledSSA stmtLabeled) {
 
-        List<Expression> subExpr = subExprCollector.collectInternalExpr(expr);
+        List<Expression> subExpr = subExprCollectorOrReplacer.collectInternalExpr(expr);
         if (subExpr.isEmpty()) {
             if (expr instanceof ExprVariable && !stmtLabeled.varHasBeenVisited((ExprVariable) expr)) {
                 VarDecl exprVarDecl = declarations.declaration((ExprVariable) expr);
@@ -825,6 +963,14 @@ public class SsaPhase implements Phase {
         }
     }
 
+    /**
+     * The algorithm used to retrieve the correct SSA value for the ExprVariable at the point found.
+     * @param stmtLabeled the statement labeled
+     * @param exprVariable the variable to retrieve SSA form for
+     * @param recLvl the current recursion level
+     * @param visited the Set of all StmtLabeled already visited
+     * @return a pair containing a potential definition for the variable and an integer only used for the algorithm inner workings
+     */
     private static Pair<LocalVarDecl, Integer> resolveSSAName(StmtLabeledSSA stmtLabeled, ExprVariable exprVariable, int recLvl, Set<StmtLabeledSSA> visited) {
         //Reaches top without finding definition
         if (stmtLabeled.isEntry()) {
@@ -906,6 +1052,12 @@ public class SsaPhase implements Phase {
         }
     }
 
+    /**
+     * Recursively apply SSA to all the variables found in an expression that is an assignment to or a declaration of a variable
+     * @param expr the expression
+     * @param stmtLabeled the StmtLabeled
+     * @return a pair made of the SSA variable and a boolean indicating whether the Expression has been transformed
+     */
     private static Pair<Expression, Boolean> readLocalVarExpr(Expression expr, StmtLabeledSSA stmtLabeled) {
 
         if (expr instanceof ExprLiteral) {
@@ -937,15 +1089,109 @@ public class SsaPhase implements Phase {
 
         } else if (expr instanceof ExprIf) {
 
-            List<Expression> ifOrElse = subExprCollector.collectInternalExpr(expr);
+            List<Expression> ifOrElse = subExprCollectorOrReplacer.collectInternalExpr(expr);
             ifOrElse.remove(0);
             ifOrElse.replaceAll(e -> readLocalVarExpr(e, stmtLabeled).getFirst());
             return new Pair<>(((ExprIf) expr).copy(((ExprIf) expr).getCondition(), ifOrElse.get(0), ifOrElse.get(1)), false);
         }
+        //TODO make an interface if a LocalVarDecl can have other types of Expressions as values
         return new Pair<>(null, false);
     }
 
-    //------ Rebuild Statements with new bodies ------//
+
+    /**
+     * Check whether the Statement can modify or declare variables
+     * @param stmt the Statement
+     * @return True if it does modify variables
+     */
+    private static boolean doesModifyVar(Statement stmt) {
+        return stmt instanceof StmtAssignment || stmt instanceof StmtBlock;
+    }
+
+
+    //--------------------------------------  Create and Add StmtPhi --------------------------------------//
+
+
+    /**
+     * Create and connect the StmtPhis containing the phi functions created during SSA transformation to the CFG.
+     * @param stmtLabeled the StmtLabeled containing the phi functions' definitions
+     */
+    private static void createPhiBlock(StmtLabeledSSA stmtLabeled) {
+        Statement original = stmtLabeled.getOriginalStmt();
+        if (!(original instanceof StmtAssignment) && !(original instanceof StmtBlock)) {
+            if (!stmtLabeled.getLocalValueNumbers().isEmpty()) {
+                List<StmtPhi> phiStmts = new LinkedList<>();
+                for (LocalVarDecl lvd : stmtLabeled.getLocalValueNumbers().keySet()) {
+                    LValueVariable phiLValue = new LValueVariable(variable(lvd.getName()));
+                    List<Expression> phiOperands = ((ExprPhi) lvd.getValue()).getOperands().map(op -> new ExprVariable(variable(op.getName())));
+                    phiStmts.add(new StmtPhi(phiLValue, phiOperands));
+                }
+                List<StmtLabeledSSA> phiLabeled = phiStmts.stream().map(phi -> new StmtLabeledSSA(assignLabel(phi), phi, stmtLabeled.loopLevel())).collect(Collectors.toList());
+                wirePhiStmts(stmtLabeled, phiLabeled);
+                stmtLabeled.setPhiBlockToCreated();
+            }
+        }
+    }
+
+    /**
+     * Link the StmtPhi "in parallel" to the Statement they've been created inside of in the CFG
+     * @param originalStmtLabeled the StmtLabeled containing the phi functions' definitions
+     * @param phis the phi Statements wrapped in StmtLabeledSSA
+     */
+    private static void wirePhiStmts(StmtLabeledSSA originalStmtLabeled, List<StmtLabeledSSA> phis) {
+        String label = originalStmtLabeled.getLabel();
+        switch (label) {
+            case "StmtIfExit":
+            case "StmtCaseExit": {
+                StmtLabeledSSA originalSucc = originalStmtLabeled.getSuccessors().get(0);
+                wireRelations(new LinkedList<>(phis), originalStmtLabeled, originalSucc);
+            }
+            break;
+            case "StmtWhile": {
+                List<StmtLabeledSSA> preds = new LinkedList<>(originalStmtLabeled.getPredecessors());
+                preds.removeIf(p -> !p.isBufferBlock());
+                StmtLabeledSSA whileEntry = preds.get(0);
+                wireRelations(new LinkedList<>(phis), whileEntry, originalStmtLabeled);
+            }
+            break;
+            default: {
+                wireRelations(new LinkedList<>(phis), originalStmtLabeled.getPredecessors().get(0), originalStmtLabeled.getSuccessors().get(0));
+            }
+        }
+        //StmtWhileExit, StmtIf always have a single predecessor
+    }
+
+
+    //-----------------------------------------------------------------------------------------------------//
+
+
+    //-----------------------------  Rebuild Statement's bodies with SSA form -----------------------------//
+
+    /**
+     * Recreates the original Statement with an updated body containing all variables in SSA form
+     * @param stmtLabeled the StmtLabeled containing the Statement to rebuild
+     * @return the rebuild Statement
+     */
+    private static Statement rebuildSingleStmt(StmtLabeledSSA stmtLabeled) {
+        Statement originalStmt = stmtLabeled.getSsaModified();
+
+        List<LinkedList<Statement>> stmtLists = subStmtCollector.collect(originalStmt);
+        List<List<Statement>> newBodies = new LinkedList<>();
+        for (List<Statement> l : stmtLists) {
+            AtomicInteger order = new AtomicInteger();
+            Map<Statement, Integer> oldBody = l.stream().collect(Collectors.toMap(s -> s, s -> order.getAndIncrement()));
+            Map<Statement, Integer> newBodyMap = findStmtBody(stmtLabeled, new HashMap<>(), oldBody, 0);
+            List<Statement> newBody = new LinkedList<>(newBodyMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new)).keySet());
+            newBodies.add(newBody);
+        }
+        stmtLabeled.setHasBeenRebuilt();
+        return subStmtCollector.replace(originalStmt, newBodies);
+    }
+
+    /**
+     * Recursively reconstruct all Statements in the CFG
+     * @param stmtLabeled the current StmtLabeled to rebuild
+     */
     private static void recRebuildStmts(StmtLabeledSSA stmtLabeled) {
 
         if (stmtLabeled.isExit() || (stmtLabeled.havePhiBlocksBeenCreated() && stmtLabeled.hasBeenRebuilt())) {
@@ -963,22 +1209,14 @@ public class SsaPhase implements Phase {
         stmtLabeled.getSuccessors().forEach(SsaPhase::recRebuildStmts);
     }
 
-    private static Statement rebuildSingleStmt(StmtLabeledSSA stmtLabeled) {
-        Statement originalStmt = stmtLabeled.getSsaModified();
-
-        List<LinkedList<Statement>> stmtLists = subStmtCollector.collect(originalStmt);
-        List<List<Statement>> newBodies = new LinkedList<>();
-        for (List<Statement> l : stmtLists) {
-            AtomicInteger order = new AtomicInteger();
-            Map<Statement, Integer> oldBody = l.stream().collect(Collectors.toMap(s -> s, s -> order.getAndIncrement()));
-            Map<Statement, Integer> newBodyMap = findStmtBody(stmtLabeled, new HashMap<>(), oldBody, 0);
-            List<Statement> newBody = new LinkedList<>(newBodyMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new)).keySet());
-            newBodies.add(newBody);
-        }
-        stmtLabeled.setHasBeenRebuilt();
-        return subStmtCollector.replace(originalStmt, newBodies);
-    }
-
+    /**
+     * Recursively updated the mapping from the Statement's old body of to the updated one
+     * @param stmtLabeled the current StmtLabeled
+     * @param newBody the Mapping from the old Statements and their position index in the sub Statement's List
+     * @param oldBody the Mapping from the new Statements and their position index in the sub Statement's List
+     * @param recLvl the recursion level
+     * @return the updated Mapping
+     */
     private static Map<Statement, Integer> findStmtBody(StmtLabeledSSA stmtLabeled, Map<Statement, Integer> newBody, Map<Statement, Integer> oldBody, int recLvl) {
 
         if (stmtLabeled.isExit()) {
@@ -1023,48 +1261,18 @@ public class SsaPhase implements Phase {
         return newBody;
     }
 
-    //------ Add PhiStmts to the Program ------//
-    private static void createPhiBlock(StmtLabeledSSA stmtLabeled) {
-        Statement original = stmtLabeled.getOriginalStmt();
-        if (!(original instanceof StmtAssignment) && !(original instanceof StmtBlock)) {
-            if (!stmtLabeled.getLocalValueNumbers().isEmpty()) {
-                List<StmtPhi> phiStmts = new LinkedList<>();
-                for (LocalVarDecl lvd : stmtLabeled.getLocalValueNumbers().keySet()) {
-                    LValueVariable phiLValue = new LValueVariable(variable(lvd.getName()));
-                    List<Expression> phiOperands = ((ExprPhi) lvd.getValue()).getOperands().map(op -> new ExprVariable(variable(op.getName())));
-                    phiStmts.add(new StmtPhi(phiLValue, phiOperands));
-                }
-                List<StmtLabeledSSA> phiLabeled = phiStmts.stream().map(phi -> new StmtLabeledSSA(assignLabel(phi), phi, stmtLabeled.loopLevel())).collect(Collectors.toList());
-                wirePhiStmts(stmtLabeled, phiLabeled);
-                stmtLabeled.setPhiBlockToCreated();
-            }
-        }
-    }
 
-    private static void wirePhiStmts(StmtLabeledSSA originalStmtLabeled, List<StmtLabeledSSA> phis) {
-        String label = originalStmtLabeled.getLabel();
-        switch (label) {
-            case "StmtIfExit":
-            case "StmtCaseExit": {
-                StmtLabeledSSA originalSucc = originalStmtLabeled.getSuccessors().get(0);
-                wireRelations(new LinkedList<>(phis), originalStmtLabeled, originalSucc);
-            }
-            break;
-            case "StmtWhile": {
-                List<StmtLabeledSSA> preds = new LinkedList<>(originalStmtLabeled.getPredecessors());
-                preds.removeIf(p -> !p.isBufferBlock());
-                StmtLabeledSSA whileEntry = preds.get(0);
-                wireRelations(new LinkedList<>(phis), whileEntry, originalStmtLabeled);
-            }
-            break;
-            default: {
-                wireRelations(new LinkedList<>(phis), originalStmtLabeled.getPredecessors().get(0), originalStmtLabeled.getSuccessors().get(0));
-            }
-        }
-        //StmtWhileExit, StmtIf always has a single predecessor
-    }
+    //-----------------------------------------------------------------------------------------------------//
 
-    //------ Transform to StmtLabeled ------//
+
+    //------------------------------  Transform StmtLabeledSSA to StmtLabeled -----------------------------//
+
+
+    /**
+     * The the CFG composed of StmtLabeledSSA and transform it into a CFG made of StmtLabeled
+     * @param entryAndExit the pair containing the CFG entry and exit
+     * @return the StmtLabeled CFG
+     */
     private static StmtLabeled transformIntoStmtLabeled(Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit) {
         Map<StmtLabeledSSA, StmtLabeled> mapping = collectAllStmtLabeledSSA(entryAndExit.getFirst(), new HashMap<>());
 
@@ -1076,6 +1284,12 @@ public class SsaPhase implements Phase {
         return updatedMap.get(exit);
     }
 
+    /**
+     * Collect all the StmtLabeledSSA in the CFG
+     * @param stmtLabeledSSA the current StmtLabeled
+     * @param currentMap The Map containing all StmtLabeledSSA and their corresponding StmtLabeled so far
+     * @return the complete Map containing all StmtLabeledSSA and their corresponding StmtLabeled
+     */
     private static Map<StmtLabeledSSA, StmtLabeled> collectAllStmtLabeledSSA(StmtLabeledSSA stmtLabeledSSA, Map<StmtLabeledSSA, StmtLabeled> currentMap) {
         currentMap.putIfAbsent(stmtLabeledSSA, new StmtLabeled(stmtLabeledSSA.getLabel(), stmtLabeledSSA.getOriginalStmt(), stmtLabeledSSA.getSsaModified(), ImmutableList.empty(), ImmutableList.empty()));
         stmtLabeledSSA.getSuccessors().stream().filter(s -> !(currentMap.keySet().contains(s))).forEach(s -> {
@@ -1085,6 +1299,14 @@ public class SsaPhase implements Phase {
         return currentMap;
     }
 
+    /**
+     * Recursively generate the successors or predecessors of the newly created StmtLabeled
+     * @param stmtLabeledSSA the current StmtLabeled
+     * @param elements the Mapping of StmtLabeledSSA to StmtLabeled
+     * @param visited the Set of visited Statements so far
+     * @param dir indicating whether traversing the CFG from top down or bottom up
+     * @return the  Map containing the StmtLabeledSSA and StmtLabeled
+     */
     private static Map<StmtLabeledSSA, StmtLabeled> updateRelations(StmtLabeledSSA stmtLabeledSSA, Map<StmtLabeledSSA, StmtLabeled> elements, Set<StmtLabeledSSA> visited, Direction dir) {
         StmtLabeled stmt = elements.get(stmtLabeledSSA);
         Map<StmtLabeledSSA, StmtLabeled> updatedMap = elements;
@@ -1122,29 +1344,49 @@ public class SsaPhase implements Phase {
         return updatedMap;
     }
 
-    //------ Helper -----//
-    private static boolean doesModifyVar(Statement stmt) {
-        return stmt instanceof StmtAssignment || stmt instanceof StmtBlock;
-    }
+
+    //-----------------------------------------------------------------------------------------------------//
 
 
-    //--------------- Local Value Numbering ---------------//
+    //--------------------------------------- Local Value Numbering ---------------------------------------//
 
-    //Keeps track of original variable names with their new declarations
+
+    /**
+     * Keeps track of original variable names with their original declarations
+     */
     private static HashMap<String, LocalVarDecl> originalLVD = new HashMap<>();
-    //Keeps track of how many times a variables has been renamed
+
+    /**
+     * Keeps track of how many times a variables has been encountered
+     */
     private static HashMap<String, Integer> localValueCounter = new HashMap<>();
 
+    /**
+     * Keeps track of the variables within the scope of the ExprProcReturn
+     */
     private static HashMap<String, VarDecl> functionScopeVars = new HashMap<>();
 
+    /**
+     * Add a variable to the scope
+     * @param var the variable to add
+     */
     private static void addVarInScope(VarDecl var) {
         functionScopeVars.putIfAbsent(var.getOriginalName(), var);
     }
 
+    /**
+     * Add a variable definition
+     * @param lvd the LocalVarDecl
+     */
     private static void addNewLocalVarMapping(LocalVarDecl lvd) {
         originalLVD.put(lvd.getOriginalName(), lvd);
     }
 
+    /**
+     * Create a new unique numbered name for a variable
+     * @param varName the variable to be renamed
+     * @return the new name
+     */
     private static String getNewUniqueVarName(String varName) {
         if (localValueCounter.containsKey(varName)) {
             localValueCounter.merge(varName, 1, Integer::sum);
@@ -1155,12 +1397,21 @@ public class SsaPhase implements Phase {
         }
     }
 
+    /**
+     * Create a variable with a new numbered name
+     * @param var the original variable
+     * @param expr the value of the variable
+     * @return a copy of the variable with a new name
+     */
     private static LocalVarDecl createLocalVarDecl(Variable var, Expression expr) {
         String newName = getNewUniqueVarName(var.getOriginalName());
         LocalVarDecl originalDef = originalLVD.get(var.getOriginalName());
         return originalDef.withName(newName).withValue(expr);
     }
 
+    /**
+     * Clear all the variable mappings to avoid conflicts between different ExprProcReturn
+     */
     private static void clearAllVarMaps() {
         originalLVD.clear();
         localValueCounter.clear();
@@ -1168,8 +1419,18 @@ public class SsaPhase implements Phase {
     }
 
 
-//--------------- Lost Copy Problem Handling---------------//
+    //-----------------------------------------------------------------------------------------------------//
 
+
+    //-------------------------------------- Self Reference Handling --------------------------------------//
+
+
+    /**
+     * Find a potential variable self reference in an Expression
+     * @param operands the sub Expressions
+     * @param originalVarDecl the variable to find a self reference for
+     * @return the self reference if exists
+     */
     private static Optional<Variable> findSelfReference(List<Expression> operands, LocalVarDecl originalVarDecl) {
         //find variable corresponding to local var declaration in operands of BinaryExpr or return null
         Optional<Expression> interLockedExpr = operands.stream().filter(o -> o instanceof ExprBinaryOp).findAny();
@@ -1186,11 +1447,25 @@ public class SsaPhase implements Phase {
 
     }
 
+    /**
+     * Transform the self reference to restore correctness in the value numbering and avoid having a Lost Copy Problem
+     * @param selfAssignedVar the self assigned variable
+     * @param var the self reference
+     * @param stmtLabeled the StmtLabeledSSA containing it
+     * @return The updated LocalVarDecl
+     */
     private static LocalVarDecl handleSelfReference(LocalVarDecl selfAssignedVar, Variable var, StmtLabeledSSA
             stmtLabeled) {
         return (stmtLabeled.loopLevel() > 0) ? handleSelfRefWithinLoop(selfAssignedVar, var, stmtLabeled) : handleSimpleSelfRef(selfAssignedVar, var, stmtLabeled);
     }
 
+    /**
+     * Handle self reference in a Statement outside of a loop
+     * @param selfAssignedVar the self assigned variable
+     * @param var the self reference
+     * @param stmtLabeled the StmtLabeledSSA containing it
+     * @return The updated LocalVarDecl
+     */
     private static LocalVarDecl handleSimpleSelfRef(LocalVarDecl selfAssignedVar, Variable var, StmtLabeledSSA
             stmtLabeled) {
 
@@ -1200,6 +1475,13 @@ public class SsaPhase implements Phase {
         return selfAssignedVar.withValue(replacementExpr);
     }
 
+    /**
+     * Handle self reference in a Statement within a loop
+     * @param selfAssignedVar the self assigned variable
+     * @param var the self reference
+     * @param stmtLabeled the StmtLabeledSSA containing it
+     * @return The updated LocalVarDecl
+     */
     private static LocalVarDecl handleSelfRefWithinLoop(LocalVarDecl selfAssignedVar, Variable var, StmtLabeledSSA
             stmtLabeled) {
 
@@ -1266,16 +1548,24 @@ public class SsaPhase implements Phase {
         return u2;
     }
 
+    /**
+     * Replace a variable in an Exprssion
+     * @param originalExpr the original Expression
+     * @param varToReplace the variable to replace
+     * @param replacementVar the replacement variable
+     * @param stmtLabeled the StmtLabeledSSA containing the Expression to modify
+     * @return the updated Expression
+     */
     private static Expression replaceVariableInExpr(Expression originalExpr, Variable varToReplace, Variable
-            replacementVar, StmtLabeledSSA stmt) {
+            replacementVar, StmtLabeledSSA stmtLabeled) {
         ExprVariable updatedVariable = new ExprVariable(variable(replacementVar.getName()));
         //TODO make copies
         if (originalExpr instanceof ExprUnaryOp) {
-            Expression updatedVar = replaceVariableInExpr(((ExprUnaryOp) originalExpr).getOperand(), varToReplace, replacementVar, stmt);
+            Expression updatedVar = replaceVariableInExpr(((ExprUnaryOp) originalExpr).getOperand(), varToReplace, replacementVar, stmtLabeled);
             return ((ExprUnaryOp) originalExpr).copy(((ExprUnaryOp) originalExpr).getOperation(), updatedVar);
 
         } else if (originalExpr instanceof ExprVariable) {
-            return (((ExprVariable) originalExpr).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : readLocalVarExpr(originalExpr, stmt).getFirst();
+            return (((ExprVariable) originalExpr).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable : readLocalVarExpr(originalExpr, stmtLabeled).getFirst();
 
         } else if (originalExpr instanceof ExprBinaryOp) {
             //Should work for interlocked ExprBinary
@@ -1283,7 +1573,7 @@ public class SsaPhase implements Phase {
             //find and replace variable looked for, apply algorithm to all other operands
             List<Expression> newOperands = operands.stream()
                     .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable :
-                            Objects.requireNonNull(replaceVariableInExpr(o, varToReplace, replacementVar, stmt)))
+                            Objects.requireNonNull(replaceVariableInExpr(o, varToReplace, replacementVar, stmtLabeled)))
                     .collect(Collectors.toList());
             return new ExprBinaryOp(((ExprBinaryOp) originalExpr).getOperations(), ImmutableList.from(newOperands));
 
@@ -1292,13 +1582,19 @@ public class SsaPhase implements Phase {
             //find and replace variable looked for, apply algorithm to all other operands
             List<Expression> newOperands = operands.stream()
                     .map(o -> (o instanceof ExprVariable && ((ExprVariable) o).getVariable().getOriginalName().equals(varToReplace.getOriginalName())) ? updatedVariable :
-                            Objects.requireNonNull(replaceVariableInExpr(o, varToReplace, replacementVar, stmt)))
+                            Objects.requireNonNull(replaceVariableInExpr(o, varToReplace, replacementVar, stmtLabeled)))
                     .collect(Collectors.toList());
             return new ExprIf(((ExprIf) originalExpr).getCondition(), newOperands.get(0), newOperands.get(1));
         }
         return originalExpr;
     }
 
+    /**
+     * Find the previous variable assignment/definition before the self referencing Statement
+     * @param varToFind the variable to look for
+     * @param originalStmt the original StmtLabeled
+     * @return the previous definition of the variable
+     */
     private static LocalVarDecl findVarPredFromLoop(LocalVarDecl varToFind, StmtLabeledSSA originalStmt) {
         StmtLabeledSSA pred = originalStmt.getPredecessors().get(0);
         LocalVarDecl resUntilLoopStart = readVar(pred, variable(varToFind.getOriginalName()), new Pair<>(3, Optional.of(originalStmt))).getFirst();
@@ -1328,6 +1624,12 @@ public class SsaPhase implements Phase {
         }
     }
 
+    /**
+     * Find a potential assignment to the self referenced var from the self-ref Statement up to the end of the loop
+     * @param varToFind the variable to look for
+     * @param originalStmt the original StmtLabeled
+     * @return the previous definition of the variable if it exists
+     */
     private static Optional<LocalVarDecl> findVarSuccFromLoop(LocalVarDecl varToFind, StmtLabeledSSA originalStmt) {
 
         StmtLabeledSSA loopExit = findStatementLabeled(originalStmt, "StmtWhile", Direction.UP);
@@ -1344,7 +1646,11 @@ public class SsaPhase implements Phase {
 
     }
 
-    //------ Helper -----//
+    /**
+     * Recreate a variable with its previous number according to the value numbering
+     * @param oldVar the variable
+     * @return the variable with the previous number
+     */
     private static Variable deriveOldVarName(LocalVarDecl oldVar) {
         //a_i => a_(i-1)
         String oldName = oldVar.getName();
@@ -1355,26 +1661,50 @@ public class SsaPhase implements Phase {
         return variable(replacementName);
     }
 
-    private enum Direction {
-        UP, DOWN
-    }
-
+    /**
+     * Recursively traverse the CFG to find a StmtLabeledSSA
+     * @param stmtLabeled the current StmtLabeled
+     * @param label the label of the StmtLabeled to find
+     * @param dir the direction of traversal
+     * @return the StmtLabeledSSA with the given label
+     */
     private static StmtLabeledSSA findStatementLabeled(StmtLabeledSSA stmtLabeled, String label, Direction dir) {
         //if dir is false = successors
         if (stmtLabeled.getLabel().equals(label)) {
             return stmtLabeled;
         } else {
-            if (dir == Direction.UP) {
-                return findStatementLabeled(stmtLabeled.getPredecessors().get(0), label, dir);
-            } else {
-                return findStatementLabeled(stmtLabeled.getSuccessors().get(0), label, dir);
-            }
+            StmtLabeledSSA related = (dir == Direction.UP) ? stmtLabeled.getPredecessors().get(0) : stmtLabeled.getSuccessors().get(0);
+            return findStatementLabeled(related, label, dir);
         }
     }
 
+    /**
+     * Simple Enum to avoid using boolean for direction.
+     */
+    private enum Direction {
+        /**
+         * Up direction.
+         */
+        UP,
+        /**
+         * Down direction.
+         */
+        DOWN
+    }
 
-//--------------- SSA Algorithm ---------------//
 
+    //-----------------------------------------------------------------------------------------------------//
+
+
+    //------------------------------------------- SSA Algorithm -------------------------------------------//
+
+
+    /**
+     * Generate a stopping condition for the algorithm
+     * @param stmtLabeled the Statement to evaluate
+     * @param stopCond a pair containing a integer representing a stopping code and a potential StmtLabeledSSA to compare to the current one
+     * @return true if the algorithm should stop at that point
+     */
     private static boolean generateStopCondition(StmtLabeledSSA stmtLabeled, Pair<Integer, Optional<StmtLabeledSSA>> stopCond) {
 
         boolean res;
@@ -1400,6 +1730,13 @@ public class SsaPhase implements Phase {
         return res;
     }
 
+    /**
+     * Recursively find the last assignment/declaration of a variable in the CFG
+     * @param stmt the current Stmt
+     * @param var the variable to look for
+     * @param stopCond a pair containing the elements necessary to generate a stopping condition
+     * @return the closest variable definition, can be a phi function
+     */
     private static Pair<LocalVarDecl, Boolean> readVar(StmtLabeledSSA stmt, Variable var, Pair<Integer, Optional<StmtLabeledSSA>> stopCond) {
         boolean hasToStop = generateStopCondition(stmt, stopCond);
         if (hasToStop) {
@@ -1413,7 +1750,7 @@ public class SsaPhase implements Phase {
             LocalVarDecl lv = matchingLVD.get();
             if (stmt.getOriginalStmt() instanceof StmtAssignment) {
                 Expression lvExpr = lv.getValue();
-                List<Expression> internalExpr = subExprCollector.collectInternalExpr(lvExpr);
+                List<Expression> internalExpr = subExprCollectorOrReplacer.collectInternalExpr(lvExpr);
                 if (lvExpr instanceof ExprIf) internalExpr.remove(0);
 
                 Optional<Variable> selfRefVar = findSelfReference(internalExpr, lv);
@@ -1430,6 +1767,14 @@ public class SsaPhase implements Phase {
         }
     }
 
+    /**
+     *  Recursively find the last assignment/declaration of a variable in the CFG if wasn't found in the initial StmtLabeled and creates a phi function (ExprPhi)
+     *  if predecessor join at the current StmtLabeled.
+     * @param stmt the current Stmt
+     * @param var the variable to look for
+     * @param stopCond a pair containing the elements necessary to generate a stopping condition
+     * @return the closest variable definition, can be a phi function
+     */
     private static Optional<Pair<LocalVarDecl, Boolean>> readVarRec(StmtLabeledSSA stmt, Variable var, Pair<Integer, Optional<StmtLabeledSSA>> stopCond) {
         boolean hasToStop = generateStopCondition(stmt, stopCond);
         if (hasToStop) {
@@ -1442,7 +1787,7 @@ public class SsaPhase implements Phase {
             //Add Phi to Global value numbering
             LocalVarDecl localVarPhi = createLocalVarDecl(var, phiExpr);
             stmt.addLocalValueNumber(localVarPhi, true);
-            localVarPhi = addPhiOperands(localVarPhi, var, stmt.getPredecessors(), stopCond);
+            localVarPhi = addPhiOperands(localVarPhi, var, stmt, stopCond);
 
             Expression phiResult = localVarPhi.getValue();
             if (phiResult instanceof ExprPhi && !((ExprPhi) phiResult).isUndefined()) {
@@ -1452,10 +1797,18 @@ public class SsaPhase implements Phase {
         }
     }
 
-    private static LocalVarDecl addPhiOperands(LocalVarDecl phi, Variable var, List<StmtLabeledSSA> predecessors, Pair<Integer, Optional<StmtLabeledSSA>> stopCond) {
+    /**
+     * Recursively look for the phi operands of a freshly inserted phi function
+     * @param phi the LocalVarDecl containing the ExprPhi
+     * @param var the variable being looked for
+     * @param stmtLabeled the current StmtLabeled
+     * @param stopCond a pair containing the elements necessary to generate a stopping condition
+     * @return phi the LocalVarDecl containing the ExprPhi with its operands
+     */
+    private static LocalVarDecl addPhiOperands(LocalVarDecl phi, Variable var, StmtLabeledSSA stmtLabeled, Pair<Integer, Optional<StmtLabeledSSA>> stopCond) {
         LinkedList<LocalVarDecl> phiOperands = new LinkedList<>();
 
-        for (StmtLabeledSSA stmt : predecessors) {
+        for (StmtLabeledSSA stmt : stmtLabeled.getPredecessors()) {
             LocalVarDecl lookedUpVar = readVar(stmt, var, stopCond).getFirst();
             phiOperands.add(lookedUpVar);
             //add Phi to list of users of its operands
@@ -1467,6 +1820,11 @@ public class SsaPhase implements Phase {
         return tryRemoveTrivialPhi(phi);
     }
 
+    /**
+     * Try to remove a phi function that is dead, meaning unreachable or unused. If it has a single valid operand return this operand
+     * @param phi the LocalVarDecl containing the ExprPhi to test
+     * @return the LocalVarDecl with a cleaned up ExprPhi
+     */
     private static LocalVarDecl tryRemoveTrivialPhi(LocalVarDecl phi) {
         ImmutableList<LocalVarDecl> operands = ((ExprPhi) phi.getValue()).getOperands();
         //Problem in logic if first operand is right, but second is null or a phi
@@ -1512,4 +1870,10 @@ public class SsaPhase implements Phase {
 
         return (((ExprPhi) phi.getValue()).isUndefined()) ? phi : currentOp;
     }
+
+
+    //-----------------------------------------------------------------------------------------------------//
+
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
 }
