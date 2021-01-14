@@ -28,11 +28,8 @@ public class StmtLabeledSSA extends Statement {
     private boolean hasBeenRebuilt = false;
     private boolean phiBlockCreated = false;
 
-    private Set<String> scopes;
-
     private StmtLabeledSSA(Statement original, String label, Statement originalStmt, ImmutableList<StmtLabeledSSA> predecessors, ImmutableList<StmtLabeledSSA> successors, StmtLabeledSSA exit,
-                           Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel, Statement ssaModifiedStmt,
-                           Set<String> scopes) {
+                           Map<LocalVarDecl, Boolean> valueNumbering, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel, Statement ssaModifiedStmt) {
         super(original);
         this.label = label;
         this.predecessors = predecessors;
@@ -44,20 +41,19 @@ public class StmtLabeledSSA extends Statement {
         this.ssaHasBeenVisited = ssaHasBeenVisted;
         this.nestedLoopLevel = nestedLoopLevel;
         this.ssaModifiedStmt = ssaModifiedStmt;
-        this.scopes = scopes;
     }
 
     public StmtLabeledSSA(String label, Statement originalStmt, int nestedLoopLevel) {
-        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false, nestedLoopLevel, null, new HashSet<>());
+        this(null, label, originalStmt, ImmutableList.empty(), ImmutableList.empty(), null, new HashMap<>(), new HashMap<>(), false, nestedLoopLevel, null);
     }
 
     private StmtLabeledSSA(String label, Statement originalStmt, ImmutableList<StmtLabeledSSA> predecessors, ImmutableList<StmtLabeledSSA> successors, StmtLabeledSSA exit,
-                           Map<LocalVarDecl, Boolean> currentPhiExprs, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel, Statement ssaModifiedStmt, Set<String> scopes) {
-        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, exprValueNumbering, ssaHasBeenVisted, nestedLoopLevel, ssaModifiedStmt, scopes);
+                           Map<LocalVarDecl, Boolean> currentPhiExprs, Map<ExprVariable, LocalVarDecl> exprValueNumbering, boolean ssaHasBeenVisted, int nestedLoopLevel, Statement ssaModifiedStmt) {
+        this(null, label, originalStmt, predecessors, successors, exit, currentPhiExprs, exprValueNumbering, ssaHasBeenVisted, nestedLoopLevel, ssaModifiedStmt);
     }
 
     public StmtLabeledSSA withNewOriginal(Statement ssaModifiedStmt) {
-        return new StmtLabeledSSA(this.label, this.originalStmt, this.predecessors, this.successors, this.shortCutToExit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisited, this.nestedLoopLevel, ssaModifiedStmt, this.scopes);
+        return new StmtLabeledSSA(this.label, this.originalStmt, this.predecessors, this.successors, this.shortCutToExit, this.valueNumbering, this.exprValueNumbering, this.ssaHasBeenVisited, this.nestedLoopLevel, ssaModifiedStmt);
     }
 
     public boolean havePhiBlocksBeenCreated() {
@@ -67,15 +63,6 @@ public class StmtLabeledSSA extends Statement {
     public void setPhiBlockToCreated() {
         this.phiBlockCreated = true;
     }
-
-    public Set<String> getScopes() {
-        return scopes;
-    }
-
-    public void addScope(String scope) {
-        this.scopes.add(scope);
-    }
-
 
     public void lostCopyName(){
         this.label += "_lostCopyVar";
