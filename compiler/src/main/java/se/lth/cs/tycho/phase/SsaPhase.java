@@ -33,31 +33,27 @@ import static se.lth.cs.tycho.ir.Variable.variable;
 
 public class SsaPhase implements Phase {
 
-    private static CollectOrReplaceExprInStmt stmtExprCollector = null;
-    private static CollectExpressions subExprCollector = null;
-    private static ReplaceExprVar exprVarReplacer = null;
-    private static CollectOrReplaceSubStmts subStmtCollector = null;
-    private static CreateControlFlowGraphBlocks cfgCreator = null;
+    private static final CollectOrReplaceExprInStmt stmtExprCollector = MultiJ.from(CollectOrReplaceExprInStmt.class).instance();
+    private static final CollectExpressions subExprCollector = MultiJ.from(CollectExpressions.class).instance();
+    private static final ReplaceExprVar exprVarReplacer = MultiJ.from(ReplaceExprVar.class).instance();
+    private static final CollectOrReplaceSubStmts subStmtCollector = MultiJ.from(CollectOrReplaceSubStmts.class).instance();
+    private static final CreateControlFlowGraphBlocks cfgCreator = MultiJ.from(CreateControlFlowGraphBlocks.class).instance();
     private static VariableDeclarations declarations = null;
-    private static Pair<Integer, Optional<StmtLabeledSSA>> noStoppingCond = new Pair<>(0, Optional.empty());
+    private static final Pair<Integer, Optional<StmtLabeledSSA>> noStoppingCond = new Pair<>(0, Optional.empty());
+    private static boolean cfgOnly;
 
-    public SsaPhase() {
-        stmtExprCollector = MultiJ.from(CollectOrReplaceExprInStmt.class).instance();
-        subExprCollector = MultiJ.from(CollectExpressions.class).instance();
-        exprVarReplacer = MultiJ.from(ReplaceExprVar.class).instance();
-        subStmtCollector = MultiJ.from(CollectOrReplaceSubStmts.class).instance();
-        cfgCreator = MultiJ.from(CreateControlFlowGraphBlocks.class).instance();
+    public SsaPhase(boolean cfgOnly) {
+        SsaPhase.cfgOnly = cfgOnly;
     }
 
     @Override
     public String getDescription() {
-        return "Applies SsaPhase transformation to ExprProcReturn";
+        return "Creates a CFG and optionally applies SSA transformation";
     }
 
     @Override
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
         declarations = task.getModule(VariableDeclarations.key);
-
         Transformation transformation = MultiJ.from(SsaPhase.Transformation.class).instance();
         return task.transformChildren(transformation);
     }
@@ -128,7 +124,7 @@ public class SsaPhase implements Phase {
 
         default Statement replace(StmtCase casee, List<List<Statement>> newBody) {
             if (newBody.size() != casee.getAlternatives().size()) {
-                throw new IllegalArgumentException("too few statement list given");
+                throw new IllegalArgumentException("too few statement lists given");
             }
             AtomicInteger i = new AtomicInteger();
             List<StmtCase.Alternative> newAlts = casee.getAlternatives().stream().map(alt -> alt.copy(alt.getPattern(), alt.getGuards(), newBody.get(i.getAndIncrement()))).collect(Collectors.toList());
@@ -594,13 +590,14 @@ public class SsaPhase implements Phase {
 
 
         default IRNode apply(ExprProcReturn proc) {
-            //StmtLabeledSSA rootCFG = generateCFG(proc, ReturnNode.ROOT);
-            Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit = generateCFG(proc);
-            //applySSAToVar(exitCFG);
-            //applySSAToVar(exitCFG);
-            applySSA(entryAndExit);
 
-            return proc;
+            Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit = generateCFG(proc);
+            if (!cfgOnly) {
+                applySSA(entryAndExit);
+            }
+            StmtLabeled entryLabeled = transformIntoStmtLabeled(entryAndExit);
+
+            return proc.withBody(ImmutableList.of(entryLabeled));
         }
     }
 
@@ -632,8 +629,8 @@ public class SsaPhase implements Phase {
         }
 
 
-        StmtLabeledSSA entry = new StmtLabeledSSA("ProgramEntry", null, 0);
-        StmtLabeledSSA exit = new StmtLabeledSSA("ProgramExit", null, 0);
+        StmtLabeledSSA entry = new StmtLabeledSSA("Entry", null, 0);
+        StmtLabeledSSA exit = new StmtLabeledSSA("Exit", null, 0);
         entry.setShortCutToExit(exit);
 
         LinkedList<StmtLabeledSSA> sub = iterateSubStmts(stmts, exit, 0);
@@ -710,9 +707,7 @@ public class SsaPhase implements Phase {
     private static void applySSA(Pair<StmtLabeledSSA, StmtLabeledSSA> cfg) {
         applySSAToVar(cfg.getSecond());
         recRebuildStmts(cfg.getFirst());
-        StmtLabeled start = transformIntoStmtLabeled(cfg);
-        clearAll();
-        int a = 0;
+        clearAllVarMaps();
     }
 
     //------ Replace all variables with ssa names in all Statement and Expressions -----//
@@ -832,7 +827,7 @@ public class SsaPhase implements Phase {
 
     private static Pair<LocalVarDecl, Integer> resolveSSAName(StmtLabeledSSA stmtLabeled, ExprVariable exprVariable, int recLvl, Set<StmtLabeledSSA> visited) {
         //Reaches top without finding definition
-        if (stmtLabeled.getLabel().equals("ProgramEntry")) {
+        if (stmtLabeled.isEntry()) {
             return new Pair<>(null, -1);
         }
 
@@ -953,7 +948,7 @@ public class SsaPhase implements Phase {
     //------ Rebuild Statements with new bodies ------//
     private static void recRebuildStmts(StmtLabeledSSA stmtLabeled) {
 
-        if (stmtLabeled.getLabel().equals("ProgramExit") || (stmtLabeled.havePhiBlocksBeenCreated() && stmtLabeled.hasBeenRebuilt())) {
+        if (stmtLabeled.isExit() || (stmtLabeled.havePhiBlocksBeenCreated() && stmtLabeled.hasBeenRebuilt())) {
             return;
         }
 
@@ -986,7 +981,7 @@ public class SsaPhase implements Phase {
 
     private static Map<Statement, Integer> findStmtBody(StmtLabeledSSA stmtLabeled, Map<Statement, Integer> newBody, Map<Statement, Integer> oldBody, int recLvl) {
 
-        if (stmtLabeled.getLabel().equals("ProgramExit")) {
+        if (stmtLabeled.isExit()) {
             return newBody;
         }
 
@@ -1166,7 +1161,7 @@ public class SsaPhase implements Phase {
         return originalDef.withName(newName).withValue(expr);
     }
 
-    private static void clearAll(){
+    private static void clearAllVarMaps() {
         originalLVD.clear();
         localValueCounter.clear();
         functionScopeVars.clear();
@@ -1399,12 +1394,6 @@ public class SsaPhase implements Phase {
                 } else {
                     throw new IllegalArgumentException("if condType is 3, a StatementLabeled must be provided");
                 }
-            case 13:
-                res = stmtLabeled.getLabel().equals("StmtWhile");
-                if (self.isPresent()) {
-                    res |= stmtLabeled.equals(self.get());
-                    break;
-                }
             default:
                 res = false;
         }
@@ -1485,7 +1474,7 @@ public class SsaPhase implements Phase {
         LocalVarDecl currentOp = null;
         for (LocalVarDecl op : operands) {
             //Unique value or self reference
-            if (op == currentOp|| op.equals(phi)) {
+            if (op == currentOp || op.equals(phi)) {
                 continue;
             }
             if (currentOp != null) {

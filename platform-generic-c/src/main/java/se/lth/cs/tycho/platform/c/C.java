@@ -27,7 +27,7 @@ public class C implements Platform {
 			.add(new RemoveUnusedEntityDeclsPhase())
 			//.add(new AmToProceduralPhase())
 			.add(new ToExpProcReturnPhase())
-			.add(new SsaPhase())
+			.add(new SsaPhase(false))
 			//.add(new CBackendPhase())
 			.build();
 

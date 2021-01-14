@@ -125,6 +125,14 @@ public class StmtLabeledSSA extends Statement {
         return originalStmt == null;
     }
 
+    public boolean isEntry(){
+        return label.equals("Entry");
+    }
+
+    public boolean isExit(){
+        return label.equals("Exit");
+    }
+
     public boolean containSubStmts(){
         return shortCutToExit != null;
     }
