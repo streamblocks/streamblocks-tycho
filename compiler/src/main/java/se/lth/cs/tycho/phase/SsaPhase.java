@@ -1282,7 +1282,7 @@ public class SsaPhase implements Phase {
 
         Map<StmtLabeledSSA, StmtLabeled> updatedMap = updateRelations(exit, mapping, new HashSet<>(), Direction.UP);
         updatedMap = updateRelations(entry, updatedMap, new HashSet<>(), Direction.DOWN);
-        return updatedMap.get((dir == Direction.UP) ? entry : exit);
+        return updatedMap.get((dir == Direction.UP) ? entry.getSuccessors().get(0) : exit.getSuccessors().get(0));
     }
 
     /**
