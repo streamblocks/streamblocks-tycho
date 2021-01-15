@@ -683,7 +683,7 @@ public class SsaPhase implements Phase {
             if (!cfgOnly) {
                 applySSA(entryAndExit);
             }
-            StmtLabeled entryLabeled = transformIntoStmtLabeled(entryAndExit);
+            StmtLabeled entryLabeled = transformIntoStmtLabeled(entryAndExit, Direction.UP);
 
             return proc.withBody(ImmutableList.of(entryLabeled));
         }
@@ -804,7 +804,8 @@ public class SsaPhase implements Phase {
      * @return the label
      */
     private static String assignLabel(Statement stmt) {
-        return stmt.getClass().toString().substring(30);
+        String res = stmt.getClass().toString();
+        return (stmt instanceof StmtPhi) ? res.substring(34) : res.substring(30);
     }
 
     /**
@@ -1273,7 +1274,7 @@ public class SsaPhase implements Phase {
      * @param entryAndExit the pair containing the CFG entry and exit
      * @return the StmtLabeled CFG
      */
-    private static StmtLabeled transformIntoStmtLabeled(Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit) {
+    private static StmtLabeled transformIntoStmtLabeled(Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit, Direction dir) {
         Map<StmtLabeledSSA, StmtLabeled> mapping = collectAllStmtLabeledSSA(entryAndExit.getFirst(), new HashMap<>());
 
         StmtLabeledSSA exit = entryAndExit.getSecond();
@@ -1281,7 +1282,7 @@ public class SsaPhase implements Phase {
 
         Map<StmtLabeledSSA, StmtLabeled> updatedMap = updateRelations(exit, mapping, new HashSet<>(), Direction.UP);
         updatedMap = updateRelations(entry, updatedMap, new HashSet<>(), Direction.DOWN);
-        return updatedMap.get(exit);
+        return updatedMap.get((dir == Direction.UP) ? entry : exit);
     }
 
     /**
