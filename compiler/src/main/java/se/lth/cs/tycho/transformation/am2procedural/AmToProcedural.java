@@ -97,7 +97,7 @@ public class AmToProcedural {
 
                 ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), ImmutableList.of(block), boolType);
 
-                VarDecl condDecl = new LocalVarDecl(Collections.emptyList(), boolType, name, proc, false);
+                VarDecl condDecl = new LocalVarDecl(Collections.emptyList(), boolType.deepClone() , name, proc, false);
                 declarations.add(condDecl);
             }
 
