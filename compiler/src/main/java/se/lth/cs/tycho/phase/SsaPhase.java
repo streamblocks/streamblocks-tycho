@@ -683,7 +683,7 @@ public class SsaPhase implements Phase {
             if (!cfgOnly) {
                 applySSA(entryAndExit);
             }
-            StmtLabeled entryLabeled = transformIntoStmtLabeled(entryAndExit, Direction.UP);
+            RenameActorVariablesPhase(),            StmtLabeled entryLabeled = transformIntoStmtLabeled(entryAndExit, Direction.UP);
 
             return proc.withBody(ImmutableList.of(entryLabeled));
         }

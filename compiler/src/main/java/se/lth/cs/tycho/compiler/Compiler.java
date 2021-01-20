@@ -1,35 +1,19 @@
 package se.lth.cs.tycho.compiler;
 
-import se.lth.cs.tycho.platform.Platform;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.*;
+import se.lth.cs.tycho.platform.Platform;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
-import se.lth.cs.tycho.settings.Configuration;
-import se.lth.cs.tycho.settings.OnOffSetting;
-import se.lth.cs.tycho.settings.PathListSetting;
-import se.lth.cs.tycho.settings.PathSetting;
-import se.lth.cs.tycho.settings.Setting;
-import se.lth.cs.tycho.settings.SettingsManager;
-import se.lth.cs.tycho.settings.StringSetting;
+import se.lth.cs.tycho.settings.*;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.ServiceLoader;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 public class Compiler {
@@ -118,7 +102,7 @@ public class Compiler {
     public static List<Phase> actorMachinePhases() {
         return ImmutableList.of(
                 new ActionCaseToActionsPhase(),
-                new RenameActorVariablesPhase(),
+                //new RenameActorVariablesPhase(),
                 new LiftProcessVarDeclsPhase(),
                 new ProcessToCalPhase(),
                 new AddSchedulePhase(),
