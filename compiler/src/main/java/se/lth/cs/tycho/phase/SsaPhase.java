@@ -557,7 +557,7 @@ public class SsaPhase implements Phase {
         default StmtLabeledSSA createBlock(StmtIf stmt, StmtLabeledSSA exitBlock, int nestedLoopLevel) {
 
             StmtLabeledSSA stmtIfLabeled = new StmtLabeledSSA(assignLabel(stmt), stmt, nestedLoopLevel);
-            StmtLabeledSSA ifExitBuffer = new StmtLabeledSSA(assignBufferLabel(stmt, false), null, nestedLoopLevel);
+            StmtLabeledSSA ifExitBuffer = new StmtLabeledSSA(assignBufferLabel(stmt, false), emptyStmtBlock(), nestedLoopLevel);
 
             List<LinkedList<Statement>> thenElse = subStmtCollector.collect(stmt);
             LinkedList<StmtLabeledSSA> ifBlocks = iterateSubStmts(thenElse.get(0), exitBlock, nestedLoopLevel);
@@ -608,7 +608,7 @@ public class SsaPhase implements Phase {
             List<Statement> body = subStmtCollector.collect(stmt).get(0);
             LinkedList<StmtLabeledSSA> currentBlocks = iterateSubStmts(body, exitBlock, nestedLoopLevel);
 
-            StmtLabeledSSA stmtBlockExit = new StmtLabeledSSA(assignBufferLabel(stmt, false), null, nestedLoopLevel);
+            StmtLabeledSSA stmtBlockExit = new StmtLabeledSSA(assignBufferLabel(stmt, false), emptyStmtBlock(), nestedLoopLevel);
             wireRelations(currentBlocks, stmtBlockLabeled, stmtBlockExit);
             stmtBlockLabeled.setShortCutToExit(stmtBlockExit);
             stmtBlockExit.setShortCutToExit(stmtBlockLabeled);
@@ -722,8 +722,8 @@ public class SsaPhase implements Phase {
             stmts = ImmutableList.of(updatedStmt);
         }
 
-        StmtLabeledSSA entry = new StmtLabeledSSA("Entry", null, 0);
-        StmtLabeledSSA exit = new StmtLabeledSSA("Exit", null, 0);
+        StmtLabeledSSA entry = new StmtLabeledSSA("Entry", emptyStmtBlock(), 0);
+        StmtLabeledSSA exit = new StmtLabeledSSA("Exit", emptyStmtBlock(), 0);
         entry.setShortCutToExit(exit);
 
         LinkedList<StmtLabeledSSA> sub = iterateSubStmts(stmts, exit, 0);
@@ -816,6 +816,10 @@ public class SsaPhase implements Phase {
      */
     private static String assignBufferLabel(Statement stmt, boolean isEntry) {
         return assignLabel(stmt) + ((isEntry) ? "Entry" : "Exit");
+    }
+
+    private static Statement emptyStmtBlock(){
+        return new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty());
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------//

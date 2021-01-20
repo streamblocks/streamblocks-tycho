@@ -4,6 +4,7 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.stmt.Statement;
+import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.*;
@@ -91,7 +92,7 @@ public class StmtLabeledSSA extends Statement {
     /**
      * Lost copy name.
      */
-    public void lostCopyName(){
+    public void lostCopyName() {
         this.label += "_lostCopyVar";
     }
 
@@ -100,7 +101,7 @@ public class StmtLabeledSSA extends Statement {
      *
      * @return the boolean
      */
-    public boolean isLostCopyBlock(){
+    public boolean isLostCopyBlock() {
         return label.endsWith("_lostCopyVar");
     }
 
@@ -152,7 +153,7 @@ public class StmtLabeledSSA extends Statement {
      *
      * @return the boolean
      */
-    public boolean lvnIsEmpty(){
+    public boolean lvnIsEmpty() {
         return exprValueNumbering.isEmpty() && valueNumbering.isEmpty();
     }
 
@@ -163,8 +164,8 @@ public class StmtLabeledSSA extends Statement {
      * @param hasBeenVisited   the has been visited
      */
     public void addLocalValueNumber(LocalVarDecl localValueNumber, boolean hasBeenVisited) {
-        List<LocalVarDecl> containedVar = valueNumbering.keySet().stream().filter(lv->lv.getName().equals(localValueNumber.getName())).collect(Collectors.toList());
-        if(!containedVar.isEmpty()){
+        List<LocalVarDecl> containedVar = valueNumbering.keySet().stream().filter(lv -> lv.getName().equals(localValueNumber.getName())).collect(Collectors.toList());
+        if (!containedVar.isEmpty()) {
             valueNumbering.remove(containedVar.get(0));
         }
         valueNumbering.put(localValueNumber, hasBeenVisited);
@@ -186,7 +187,7 @@ public class StmtLabeledSSA extends Statement {
      * @param var the var
      * @param lvd the lvd
      */
-    public void updateLVNPair(ExprVariable var, LocalVarDecl lvd){
+    public void updateLVNPair(ExprVariable var, LocalVarDecl lvd) {
         exprValueNumbering.remove(var);
         exprValueNumbering.put(var, lvd);
     }
@@ -197,7 +198,7 @@ public class StmtLabeledSSA extends Statement {
      * @param e the e
      * @return the boolean
      */
-    public boolean varHasBeenVisited(ExprVariable e){
+    public boolean varHasBeenVisited(ExprVariable e) {
         return exprValueNumbering.containsKey(e) && exprValueNumbering.get(e) != null; //TODO revert to == ?
     }
 
@@ -206,7 +207,7 @@ public class StmtLabeledSSA extends Statement {
      *
      * @return the boolean
      */
-    public boolean hasNoPredecessors(){
+    public boolean hasNoPredecessors() {
         return predecessors.isEmpty();
     }
 
@@ -215,8 +216,11 @@ public class StmtLabeledSSA extends Statement {
      *
      * @return the boolean
      */
-    public boolean isBufferBlock(){
-        return originalStmt == null;
+    public boolean isBufferBlock() {
+        return originalStmt instanceof StmtBlock &&
+                ((StmtBlock) originalStmt).getVarDecls().isEmpty() &&
+                ((StmtBlock) originalStmt).getTypeDecls().isEmpty() &&
+                ((StmtBlock) originalStmt).getStatements().isEmpty();
     }
 
     /**
@@ -224,7 +228,7 @@ public class StmtLabeledSSA extends Statement {
      *
      * @return the boolean
      */
-    public boolean isEntry(){
+    public boolean isEntry() {
         return label.equals("Entry");
     }
 
@@ -233,7 +237,7 @@ public class StmtLabeledSSA extends Statement {
      *
      * @return the boolean
      */
-    public boolean isExit(){
+    public boolean isExit() {
         return label.equals("Exit");
     }
 
@@ -242,7 +246,7 @@ public class StmtLabeledSSA extends Statement {
      *
      * @return the boolean
      */
-    public boolean containSubStmts(){
+    public boolean containSubStmts() {
         return shortCutToExit != null;
     }
 
@@ -270,7 +274,7 @@ public class StmtLabeledSSA extends Statement {
      * @param originalName the original name
      * @return the optional
      */
-    public Optional<LocalVarDecl> getVarDefIfExists(String originalName){
+    public Optional<LocalVarDecl> getVarDefIfExists(String originalName) {
         boolean contained = false;
         int i = 0;
         List<LocalVarDecl> lvd = new LinkedList<>(valueNumbering.keySet());
@@ -322,7 +326,7 @@ public class StmtLabeledSSA extends Statement {
      *
      * @return the statement
      */
-    public Statement getSsaModified(){
+    public Statement getSsaModified() {
         return ssaModifiedStmt;
     }
 
