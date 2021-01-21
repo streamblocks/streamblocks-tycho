@@ -902,7 +902,7 @@ public class SsaPhase implements Phase {
      */
     private static Statement applySSAToStatements(StmtLabeledSSA stmtLabeled) {
         if (stmtLabeled.isBufferBlock()) {
-            return null;
+            return emptyStmtBlock();
 
         } else if (stmtLabeled.lvnIsEmpty()) {
             return stmtLabeled.getOriginalStmt();
