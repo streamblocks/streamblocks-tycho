@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.stmt.ssa;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.stmt.Statement;
+import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -36,7 +37,7 @@ public class StmtLabeled extends Statement {
         super(original);
         this.label = label;
         this.originalStmt = originalStmt;
-        this.ssaStmt = ssaStmt;
+        this.ssaStmt = ssaStmt == null ? new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty()) : ssaStmt;
         this.predecessors = ImmutableList.from(predecessors);
         this.successors = ImmutableList.from(predecessors);
     }
@@ -144,10 +145,10 @@ public class StmtLabeled extends Statement {
 
     @Override
     public void forEachChild(Consumer<? super IRNode> action) {
-        action.accept(originalStmt);
+        //action.accept(originalStmt);
         action.accept(ssaStmt);
-        predecessors.forEach(action);
-        successors.forEach(action);
+        //predecessors.forEach(action);
+        //successors.forEach(action);
     }
 
     @Override
