@@ -167,7 +167,7 @@ public class SsaPhase implements Phase {
          * @param s the Statement
          * @return a pair composed of the list of similar Expressions and the unique one
          */
-        Pair<List<? extends IRNode>, Expression> collectMultipleExpr(Statement s);
+        Pair<List<Expression>, Expression> collectListAndSinglExpr(Statement s);
 
         default Pair<List<? extends IRNode>, Expression> collectMultipleExpr(StmtCall call) {
             return new Pair<>(call.getArgs(), call.getProcedure());
@@ -211,6 +211,16 @@ public class SsaPhase implements Phase {
             return new LinkedList<>(Collections.singletonList(whilee.getCondition()));
         }
 
+        default List<Expression> collect(StmtWrite write) {
+            List<Expression> e = new LinkedList<>(write.getValues());
+            e.add(write.getRepeatExpression());
+            return e;
+        }
+
+        default Pair<List<Expression>, Expression> collectListAndSinglExpr(StmtWrite write) {
+            return new Pair<>(new LinkedList<>(write.getValues()), write.getRepeatExpression());
+        }
+
         /**
          * Replace a single Expression in a Statement.
          *
@@ -228,6 +238,8 @@ public class SsaPhase implements Phase {
          * @return the updated Statement
          */
         Statement replaceListExpr(Statement s, List<Expression> e);
+
+        Statement replaceListAndSingleExpr(Statement s, List<Expression> le, Expression e);
 
         default Statement replaceSingleExpr(StmtReturn ret, Expression retVal) {
             return ret.copy(retVal);
@@ -251,6 +263,10 @@ public class SsaPhase implements Phase {
 
         default Statement replaceListExpr(StmtCall call, List<Expression> args) {
             return call.copy(call.getProcedure(), args);
+        }
+
+        default Statement replaceListAndSingleExpr(StmtWrite write, List<Expression> args, Expression repeatExpr) {
+            return write.copy(write.getPort(), args, repeatExpr);
         }
     }
 
@@ -660,7 +676,7 @@ public class SsaPhase implements Phase {
 
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
 
     @Module
@@ -694,6 +710,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Create a Control Flow Graph from an ExprProcReturn
+     *
      * @param proc the ExprProcReturn
      * @return a pair containing the Entry and Exit of the CFG
      */
@@ -734,8 +751,9 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively create CFG blocks for each Statement's sub Statements
-     * @param stmts The sub Statement
-     * @param exitBlock The CFG exit
+     *
+     * @param stmts           The sub Statement
+     * @param exitBlock       The CFG exit
      * @param nestedLoopLevel The nested loop level of the original Statement
      * @return The sub CFG composed of the sub Statements
      */
@@ -745,9 +763,10 @@ public class SsaPhase implements Phase {
 
     /**
      * Connect a List of Statement in a linked way (successor <-> predecessor), in the order of the List. Add pred as head and succ at the end of the tail.
+     *
      * @param currentBlocks The list of statement to link
-     * @param pred the head
-     * @param succ the last element
+     * @param pred          the head
+     * @param succ          the last element
      */
     private static void wireRelations(LinkedList<StmtLabeledSSA> currentBlocks, StmtLabeledSSA pred, StmtLabeledSSA succ) {
 
@@ -791,6 +810,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Check whether a Statement has sub Statements
+     *
      * @param stmt the Statement
      * @return true if has sub Statements
      */
@@ -800,6 +820,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Assign a label to a Statement. Currently takes the name of the Statement
+     *
      * @param stmt the statement to assign a label to
      * @return the label
      */
@@ -810,7 +831,8 @@ public class SsaPhase implements Phase {
 
     /**
      * Assign a label for buffer Statements
-     * @param stmt the original Statement
+     *
+     * @param stmt    the original Statement
      * @param isEntry Whether this is an entry label or an exit
      * @return the buffer label
      */
@@ -818,7 +840,7 @@ public class SsaPhase implements Phase {
         return assignLabel(stmt) + ((isEntry) ? "Entry" : "Exit");
     }
 
-    private static Statement emptyStmtBlock(){
+    private static Statement emptyStmtBlock() {
         return new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty());
     }
 
@@ -829,6 +851,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Takes a CFG and applies SSA to all variables declared within the scope of the ExprProcReturn
+     *
      * @param cfg the CFG
      */
     private static void applySSA(Pair<StmtLabeledSSA, StmtLabeledSSA> cfg) {
@@ -839,6 +862,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively apply the SSA algorithm from the bottom up
+     *
      * @param stmtLabeled The Statement
      */
     private static void applySSAToVariables(StmtLabeledSSA stmtLabeled) {
@@ -872,6 +896,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Replace all variables with their SSA values in a Statement and to its predecessors
+     *
      * @param stmtLabeled the statement
      * @return The statement in SSA form
      */
@@ -910,6 +935,14 @@ public class SsaPhase implements Phase {
                         throw new IllegalArgumentException("variable declarations not present");
                     }
                 }
+            } else if (originalStmt instanceof StmtWrite) {
+                Map<ExprVariable, LocalVarDecl> ssaLocalValueNumbering = stmtLabeled.getExprValueNumbering();
+                Pair<List<Expression>, Expression> stmtExpr = stmtExprCollector.collectListAndSinglExpr(originalStmt);
+
+                stmtExpr.getFirst().replaceAll(e->subExprCollectorOrReplacer.replaceExprVar(e, ssaLocalValueNumbering));
+                Expression updatedRepeat = subExprCollectorOrReplacer.replaceExprVar(stmtExpr.getSecond(), ssaLocalValueNumbering);
+
+                ssaBlock = stmtExprCollector.replaceListAndSingleExpr(originalStmt, stmtExpr.getFirst(), updatedRepeat);
 
             } else {
                 //Collect all expressions in originalStmt
@@ -943,7 +976,8 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively find an Expression's sub Expressions and apply SSA
-     * @param expr the Expression
+     *
+     * @param expr        the Expression
      * @param stmtLabeled The statement containing the Expression
      */
     private static void readSubExpr(Expression expr, StmtLabeledSSA stmtLabeled) {
@@ -970,10 +1004,11 @@ public class SsaPhase implements Phase {
 
     /**
      * The algorithm used to retrieve the correct SSA value for the ExprVariable at the point found.
-     * @param stmtLabeled the statement labeled
+     *
+     * @param stmtLabeled  the statement labeled
      * @param exprVariable the variable to retrieve SSA form for
-     * @param recLvl the current recursion level
-     * @param visited the Set of all StmtLabeled already visited
+     * @param recLvl       the current recursion level
+     * @param visited      the Set of all StmtLabeled already visited
      * @return a pair containing a potential definition for the variable and an integer only used for the algorithm inner workings
      */
     private static Pair<LocalVarDecl, Integer> resolveSSAName(StmtLabeledSSA stmtLabeled, ExprVariable exprVariable, int recLvl, Set<StmtLabeledSSA> visited) {
@@ -1059,7 +1094,8 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively apply SSA to all the variables found in an expression that is an assignment to or a declaration of a variable
-     * @param expr the expression
+     *
+     * @param expr        the expression
      * @param stmtLabeled the StmtLabeled
      * @return a pair made of the SSA variable and a boolean indicating whether the Expression has been transformed
      */
@@ -1106,6 +1142,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Check whether the Statement can modify or declare variables
+     *
      * @param stmt the Statement
      * @return True if it does modify variables
      */
@@ -1119,29 +1156,39 @@ public class SsaPhase implements Phase {
 
     /**
      * Create and connect the StmtPhis containing the phi functions created during SSA transformation to the CFG.
+     *
      * @param stmtLabeled the StmtLabeled containing the phi functions' definitions
      */
     private static void createPhiBlock(StmtLabeledSSA stmtLabeled) {
         Statement original = stmtLabeled.getOriginalStmt();
         if (!(original instanceof StmtAssignment) && !(original instanceof StmtBlock)) {
-            if (!stmtLabeled.getLocalValueNumbers().isEmpty()) {
+            if (!stmtLabeled.lvnIsEmpty()) {
+
                 List<StmtPhi> phiStmts = new LinkedList<>();
-                for (LocalVarDecl lvd : stmtLabeled.getLocalValueNumbers().keySet()) {
-                    LValueVariable phiLValue = new LValueVariable(variable(lvd.getName()));
-                    List<Expression> phiOperands = ((ExprPhi) lvd.getValue()).getOperands().map(op -> new ExprVariable(variable(op.getName())));
-                    phiStmts.add(new StmtPhi(phiLValue, phiOperands));
+                List<LocalVarDecl> phis = new LinkedList<>(stmtLabeled.getLocalValueNumbers().keySet());
+                phis.addAll(stmtLabeled.getExprValueNumbering().values().stream().filter(l -> l.getValue() instanceof ExprPhi).collect(Collectors.toList()));
+
+                if (!phis.isEmpty()) {
+
+                    for (LocalVarDecl lvd : phis) {
+                        LValueVariable phiLValue = new LValueVariable(variable(lvd.getName()));
+                        List<Expression> phiOperands = ((ExprPhi) lvd.getValue()).getOperands().map(op -> new ExprVariable(variable(op.getName())));
+                        phiStmts.add(new StmtPhi(phiLValue, phiOperands));
+                    }
+
+                    List<StmtLabeledSSA> phiLabeled = phiStmts.stream().map(phi -> new StmtLabeledSSA(assignLabel(phi), phi, stmtLabeled.loopLevel())).collect(Collectors.toList());
+                    wirePhiStmts(stmtLabeled, phiLabeled);
+                    stmtLabeled.setPhiBlockToCreated();
                 }
-                List<StmtLabeledSSA> phiLabeled = phiStmts.stream().map(phi -> new StmtLabeledSSA(assignLabel(phi), phi, stmtLabeled.loopLevel())).collect(Collectors.toList());
-                wirePhiStmts(stmtLabeled, phiLabeled);
-                stmtLabeled.setPhiBlockToCreated();
             }
         }
     }
 
     /**
      * Link the StmtPhi "in parallel" to the Statement they've been created inside of in the CFG
+     *
      * @param originalStmtLabeled the StmtLabeled containing the phi functions' definitions
-     * @param phis the phi Statements wrapped in StmtLabeledSSA
+     * @param phis                the phi Statements wrapped in StmtLabeledSSA
      */
     private static void wirePhiStmts(StmtLabeledSSA originalStmtLabeled, List<StmtLabeledSSA> phis) {
         String label = originalStmtLabeled.getLabel();
@@ -1174,6 +1221,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Recreates the original Statement with an updated body containing all variables in SSA form
+     *
      * @param stmtLabeled the StmtLabeled containing the Statement to rebuild
      * @return the rebuild Statement
      */
@@ -1195,6 +1243,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively reconstruct all Statements in the CFG
+     *
      * @param stmtLabeled the current StmtLabeled to rebuild
      */
     private static void recRebuildStmts(StmtLabeledSSA stmtLabeled) {
@@ -1216,10 +1265,11 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively updated the mapping from the Statement's old body of to the updated one
+     *
      * @param stmtLabeled the current StmtLabeled
-     * @param newBody the Mapping from the old Statements and their position index in the sub Statement's List
-     * @param oldBody the Mapping from the new Statements and their position index in the sub Statement's List
-     * @param recLvl the recursion level
+     * @param newBody     the Mapping from the old Statements and their position index in the sub Statement's List
+     * @param oldBody     the Mapping from the new Statements and their position index in the sub Statement's List
+     * @param recLvl      the recursion level
      * @return the updated Mapping
      */
     private static Map<Statement, Integer> findStmtBody(StmtLabeledSSA stmtLabeled, Map<Statement, Integer> newBody, Map<Statement, Integer> oldBody, int recLvl) {
@@ -1275,6 +1325,7 @@ public class SsaPhase implements Phase {
 
     /**
      * The the CFG composed of StmtLabeledSSA and transform it into a CFG made of StmtLabeled
+     *
      * @param entryAndExit the pair containing the CFG entry and exit
      * @return the StmtLabeled CFG
      */
@@ -1291,8 +1342,9 @@ public class SsaPhase implements Phase {
 
     /**
      * Collect all the StmtLabeledSSA in the CFG
+     *
      * @param stmtLabeledSSA the current StmtLabeled
-     * @param currentMap The Map containing all StmtLabeledSSA and their corresponding StmtLabeled so far
+     * @param currentMap     The Map containing all StmtLabeledSSA and their corresponding StmtLabeled so far
      * @return the complete Map containing all StmtLabeledSSA and their corresponding StmtLabeled
      */
     private static Map<StmtLabeledSSA, StmtLabeled> collectAllStmtLabeledSSA(StmtLabeledSSA stmtLabeledSSA, Map<StmtLabeledSSA, StmtLabeled> currentMap) {
@@ -1306,10 +1358,11 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively generate the successors or predecessors of the newly created StmtLabeled
+     *
      * @param stmtLabeledSSA the current StmtLabeled
-     * @param elements the Mapping of StmtLabeledSSA to StmtLabeled
-     * @param visited the Set of visited Statements so far
-     * @param dir indicating whether traversing the CFG from top down or bottom up
+     * @param elements       the Mapping of StmtLabeledSSA to StmtLabeled
+     * @param visited        the Set of visited Statements so far
+     * @param dir            indicating whether traversing the CFG from top down or bottom up
      * @return the  Map containing the StmtLabeledSSA and StmtLabeled
      */
     private static Map<StmtLabeledSSA, StmtLabeled> updateRelations(StmtLabeledSSA stmtLabeledSSA, Map<StmtLabeledSSA, StmtLabeled> elements, Set<StmtLabeledSSA> visited, Direction dir) {
@@ -1373,6 +1426,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Add a variable to the scope
+     *
      * @param var the variable to add
      */
     private static void addVarInScope(VarDecl var) {
@@ -1381,6 +1435,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Add a variable definition
+     *
      * @param lvd the LocalVarDecl
      */
     private static void addNewLocalVarMapping(LocalVarDecl lvd) {
@@ -1389,6 +1444,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Create a new unique numbered name for a variable
+     *
      * @param varName the variable to be renamed
      * @return the new name
      */
@@ -1404,7 +1460,8 @@ public class SsaPhase implements Phase {
 
     /**
      * Create a variable with a new numbered name
-     * @param var the original variable
+     *
+     * @param var  the original variable
      * @param expr the value of the variable
      * @return a copy of the variable with a new name
      */
@@ -1432,7 +1489,8 @@ public class SsaPhase implements Phase {
 
     /**
      * Find a potential variable self reference in an Expression
-     * @param operands the sub Expressions
+     *
+     * @param operands        the sub Expressions
      * @param originalVarDecl the variable to find a self reference for
      * @return the self reference if exists
      */
@@ -1454,9 +1512,10 @@ public class SsaPhase implements Phase {
 
     /**
      * Transform the self reference to restore correctness in the value numbering and avoid having a Lost Copy Problem
+     *
      * @param selfAssignedVar the self assigned variable
-     * @param var the self reference
-     * @param stmtLabeled the StmtLabeledSSA containing it
+     * @param var             the self reference
+     * @param stmtLabeled     the StmtLabeledSSA containing it
      * @return The updated LocalVarDecl
      */
     private static LocalVarDecl handleSelfReference(LocalVarDecl selfAssignedVar, Variable var, StmtLabeledSSA
@@ -1466,9 +1525,10 @@ public class SsaPhase implements Phase {
 
     /**
      * Handle self reference in a Statement outside of a loop
+     *
      * @param selfAssignedVar the self assigned variable
-     * @param var the self reference
-     * @param stmtLabeled the StmtLabeledSSA containing it
+     * @param var             the self reference
+     * @param stmtLabeled     the StmtLabeledSSA containing it
      * @return The updated LocalVarDecl
      */
     private static LocalVarDecl handleSimpleSelfRef(LocalVarDecl selfAssignedVar, Variable var, StmtLabeledSSA
@@ -1482,9 +1542,10 @@ public class SsaPhase implements Phase {
 
     /**
      * Handle self reference in a Statement within a loop
+     *
      * @param selfAssignedVar the self assigned variable
-     * @param var the self reference
-     * @param stmtLabeled the StmtLabeledSSA containing it
+     * @param var             the self reference
+     * @param stmtLabeled     the StmtLabeledSSA containing it
      * @return The updated LocalVarDecl
      */
     private static LocalVarDecl handleSelfRefWithinLoop(LocalVarDecl selfAssignedVar, Variable var, StmtLabeledSSA
@@ -1555,10 +1616,11 @@ public class SsaPhase implements Phase {
 
     /**
      * Replace a variable in an Exprssion
-     * @param originalExpr the original Expression
-     * @param varToReplace the variable to replace
+     *
+     * @param originalExpr   the original Expression
+     * @param varToReplace   the variable to replace
      * @param replacementVar the replacement variable
-     * @param stmtLabeled the StmtLabeledSSA containing the Expression to modify
+     * @param stmtLabeled    the StmtLabeledSSA containing the Expression to modify
      * @return the updated Expression
      */
     private static Expression replaceVariableInExpr(Expression originalExpr, Variable varToReplace, Variable
@@ -1596,7 +1658,8 @@ public class SsaPhase implements Phase {
 
     /**
      * Find the previous variable assignment/definition before the self referencing Statement
-     * @param varToFind the variable to look for
+     *
+     * @param varToFind    the variable to look for
      * @param originalStmt the original StmtLabeled
      * @return the previous definition of the variable
      */
@@ -1631,7 +1694,8 @@ public class SsaPhase implements Phase {
 
     /**
      * Find a potential assignment to the self referenced var from the self-ref Statement up to the end of the loop
-     * @param varToFind the variable to look for
+     *
+     * @param varToFind    the variable to look for
      * @param originalStmt the original StmtLabeled
      * @return the previous definition of the variable if it exists
      */
@@ -1653,6 +1717,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Recreate a variable with its previous number according to the value numbering
+     *
      * @param oldVar the variable
      * @return the variable with the previous number
      */
@@ -1668,9 +1733,10 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively traverse the CFG to find a StmtLabeledSSA
+     *
      * @param stmtLabeled the current StmtLabeled
-     * @param label the label of the StmtLabeled to find
-     * @param dir the direction of traversal
+     * @param label       the label of the StmtLabeled to find
+     * @param dir         the direction of traversal
      * @return the StmtLabeledSSA with the given label
      */
     private static StmtLabeledSSA findStatementLabeled(StmtLabeledSSA stmtLabeled, String label, Direction dir) {
@@ -1706,8 +1772,9 @@ public class SsaPhase implements Phase {
 
     /**
      * Generate a stopping condition for the algorithm
+     *
      * @param stmtLabeled the Statement to evaluate
-     * @param stopCond a pair containing a integer representing a stopping code and a potential StmtLabeledSSA to compare to the current one
+     * @param stopCond    a pair containing a integer representing a stopping code and a potential StmtLabeledSSA to compare to the current one
      * @return true if the algorithm should stop at that point
      */
     private static boolean generateStopCondition(StmtLabeledSSA stmtLabeled, Pair<Integer, Optional<StmtLabeledSSA>> stopCond) {
@@ -1737,8 +1804,9 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively find the last assignment/declaration of a variable in the CFG
-     * @param stmt the current Stmt
-     * @param var the variable to look for
+     *
+     * @param stmt     the current Stmt
+     * @param var      the variable to look for
      * @param stopCond a pair containing the elements necessary to generate a stopping condition
      * @return the closest variable definition, can be a phi function
      */
@@ -1773,10 +1841,11 @@ public class SsaPhase implements Phase {
     }
 
     /**
-     *  Recursively find the last assignment/declaration of a variable in the CFG if wasn't found in the initial StmtLabeled and creates a phi function (ExprPhi)
-     *  if predecessor join at the current StmtLabeled.
-     * @param stmt the current Stmt
-     * @param var the variable to look for
+     * Recursively find the last assignment/declaration of a variable in the CFG if wasn't found in the initial StmtLabeled and creates a phi function (ExprPhi)
+     * if predecessor join at the current StmtLabeled.
+     *
+     * @param stmt     the current Stmt
+     * @param var      the variable to look for
      * @param stopCond a pair containing the elements necessary to generate a stopping condition
      * @return the closest variable definition, can be a phi function
      */
@@ -1804,10 +1873,11 @@ public class SsaPhase implements Phase {
 
     /**
      * Recursively look for the phi operands of a freshly inserted phi function
-     * @param phi the LocalVarDecl containing the ExprPhi
-     * @param var the variable being looked for
+     *
+     * @param phi         the LocalVarDecl containing the ExprPhi
+     * @param var         the variable being looked for
      * @param stmtLabeled the current StmtLabeled
-     * @param stopCond a pair containing the elements necessary to generate a stopping condition
+     * @param stopCond    a pair containing the elements necessary to generate a stopping condition
      * @return phi the LocalVarDecl containing the ExprPhi with its operands
      */
     private static LocalVarDecl addPhiOperands(LocalVarDecl phi, Variable var, StmtLabeledSSA stmtLabeled, Pair<Integer, Optional<StmtLabeledSSA>> stopCond) {
@@ -1827,6 +1897,7 @@ public class SsaPhase implements Phase {
 
     /**
      * Try to remove a phi function that is dead, meaning unreachable or unused. If it has a single valid operand return this operand
+     *
      * @param phi the LocalVarDecl containing the ExprPhi to test
      * @return the LocalVarDecl with a cleaned up ExprPhi
      */
