@@ -151,7 +151,7 @@ public class InternalizeBuffersPhase implements Phase {
 		Map<String, LocalVarDecl> inputPortMap = targetPortVariables(outputPortMap, connections);
 
 		ImmutableList<Scope> scopes = transformScopes(actorMachine.getScopes(), inputPortMap, outputPortMap);
-		ImmutableList<Transition> transitions = transformTransitions(actorMachine.getTransitions(), inputPortMap.keySet(), outputPortMap);
+		ImmutableList<Transition> transitions = transformTransitions(actorMachine.getTransitions(), inputPortMap, outputPortMap);
 		return actorMachine.copy(
 				actorMachine.getAnnotations(),
 				inputPorts,
@@ -170,11 +170,13 @@ public class InternalizeBuffersPhase implements Phase {
 		return ImmutableList.<Scope> builder().addAll(transformed).add(ports).build();
 	}
 
-	private ImmutableList<Transition> transformTransitions(ImmutableList<Transition> transitions, Set<String> inputPorts, Map<String, LocalVarDecl> outputPortMap) {
+	private ImmutableList<Transition> transformTransitions(ImmutableList<Transition> transitions, Map<String, LocalVarDecl> inputPortMap, Map<String, LocalVarDecl> outputPortMap) {
+		IRNode.Transformation transformExprInput = new ExprInputToExprVariable(inputPortMap);
+		List<Transition> transformedExprInput = transformExprInput.mapChecked(Transition.class, transitions);
 		IRNode.Transformation removeConsume = MultiJ.from(RemoveStmtConsume.class)
-				.bind("inputPorts").to(inputPorts)
+				.bind("inputPorts").to(inputPortMap.keySet())
 				.instance();
-		List<Transition> withoutConsume = removeConsume.mapChecked(Transition.class, transitions);
+		List<Transition> withoutConsume = removeConsume.mapChecked(Transition.class, transformedExprInput);
 		IRNode.Transformation writeToAssign = new WriteToAssign(outputPortMap);
 		List<Transition> withoutWrite = writeToAssign.mapChecked(Transition.class, withoutConsume);
 		return ImmutableList.from(withoutWrite);
