@@ -123,8 +123,10 @@ public class AmToProcedural {
                 ImmutableList.Builder<Statement> stmtblockBuilder = ImmutableList.builder();
                 stmtblockBuilder.add(stmtblock);
 
-                ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), stmtblockBuilder.build(), null);
-                LocalVarDecl decl = new LocalVarDecl(Collections.emptyList(), null, name, proc, true);
+                NominalTypeExpr voidType = new NominalTypeExpr("Void");
+
+                ExprProcReturn proc = new ExprProcReturn(ImmutableList.empty(), stmtblockBuilder.build(), voidType);
+                LocalVarDecl decl = new LocalVarDecl(Collections.emptyList(), voidType.deepClone(), name, proc, true);
 
                 declarations.add(decl);
             }

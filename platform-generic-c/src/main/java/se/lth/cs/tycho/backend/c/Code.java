@@ -310,6 +310,14 @@ public interface Code {
 		}
 	}
 
+	default String evaluate(ExprAvailInput availInput){
+		return String.format("channel_has_data_%s(self->%s_channel)", inputPortTypeSize(availInput.getPort()), availInput.getPort().getName());
+	}
+
+	default String evaluate(ExprAvailOutput availoutput){
+		return String.format("channel_has_space_%s(self->%s_channel)", inputPortTypeSize(availoutput.getPort()), availoutput.getPort().getName());
+	}
+
 	default String evaluate(ExprInput input) {
 		String tmp = variables().generateTemp();
 		Type type = types().type(input);
