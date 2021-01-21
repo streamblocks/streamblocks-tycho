@@ -122,26 +122,26 @@ public class SsaPhase implements Phase {
          * @return the statement with the updated body
          */
         default Statement replace(Statement s, List<List<Statement>> l) {
-            return s;
+            return (Statement) s.deepClone();
         }
 
         default Statement replace(StmtBlock block, List<List<Statement>> newBody) {
-            return block.withStatements(newBody.get(0));
+            return (Statement) block.withStatements(newBody.get(0)).deepClone();
         }
 
         default Statement replace(StmtWhile whilee, List<List<Statement>> newBody) {
-            return whilee.withBody(newBody.get(0));
+            return (Statement) whilee.withBody(newBody.get(0)).deepClone();
         }
 
         default Statement replace(StmtForeach foreach, List<List<Statement>> newBody) {
-            return foreach.withBody(newBody.get(0));
+            return (Statement) foreach.withBody(newBody.get(0)).deepClone();
         }
 
         default Statement replace(StmtIf iff, List<List<Statement>> newBody) {
             if (newBody.size() < 2) {
                 throw new IllegalArgumentException("too few statement list given");
             }
-            return iff.withThenBranch(newBody.get(0)).withElseBranch(newBody.get(1));
+            return (Statement) iff.withThenBranch(newBody.get(0)).withElseBranch(newBody.get(1)).deepClone();
         }
 
         default Statement replace(StmtCase casee, List<List<Statement>> newBody) {
@@ -150,7 +150,7 @@ public class SsaPhase implements Phase {
             }
             AtomicInteger i = new AtomicInteger();
             List<StmtCase.Alternative> newAlts = casee.getAlternatives().stream().map(alt -> alt.copy(alt.getPattern(), alt.getGuards(), newBody.get(i.getAndIncrement()))).collect(Collectors.toList());
-            return casee.copy(casee.getScrutinee(), newAlts);
+            return (Statement) casee.copy(casee.getScrutinee(), newAlts).deepClone();
         }
 
     }
@@ -242,31 +242,31 @@ public class SsaPhase implements Phase {
         Statement replaceListAndSingleExpr(Statement s, List<Expression> le, Expression e);
 
         default Statement replaceSingleExpr(StmtReturn ret, Expression retVal) {
-            return ret.copy(retVal);
+            return (Statement)ret.copy(retVal).deepClone();
         }
 
         default Statement replaceSingleExpr(StmtWhile whilee, Expression cond) {
-            return whilee.withCondition(cond);
+            return (Statement)whilee.withCondition(cond).deepClone();
         }
 
         default Statement replaceSingleExpr(StmtIf iff, Expression condition) {
-            return iff.withCondition(condition);
+            return (Statement)iff.withCondition(condition).deepClone();
         }
 
         default Statement replaceSingleExpr(StmtCase casee, Expression scrut) {
-            return casee.copy(scrut, casee.getAlternatives());
+            return (Statement)casee.copy(scrut, casee.getAlternatives()).deepClone();
         }
 
         default Statement replaceListExpr(StmtForeach foreach, List<Expression> filters) {
-            return foreach.withFilters(filters);
+            return (Statement)foreach.withFilters(filters).deepClone();
         }
 
         default Statement replaceListExpr(StmtCall call, List<Expression> args) {
-            return call.copy(call.getProcedure(), args);
+            return (Statement)call.copy(call.getProcedure(), args).deepClone();
         }
 
         default Statement replaceListAndSingleExpr(StmtWrite write, List<Expression> args, Expression repeatExpr) {
-            return write.copy(write.getPort(), args, repeatExpr);
+            return (Statement)write.copy(write.getPort(), args, repeatExpr).deepClone();
         }
     }
 
@@ -399,16 +399,15 @@ public class SsaPhase implements Phase {
          * @return the updated Expression
          */
         default Expression replaceExprVar(Expression original, Map<ExprVariable, LocalVarDecl> replacements) {
-            return original;
+                return (original != null) ? original.deepClone() : null;
         }
 
         default Expression replaceExprVar(ExprVariable var, Map<ExprVariable, LocalVarDecl> replacements) {
             //check that var is contained in the new mapping
             if (replacements.containsKey(var)) {
-                ExprVariable res = var.copy(variable(replacements.get(var).getName()), var.getOld());
-                return res;
+                return var.copy(variable(replacements.get(var).getName()), var.getOld()).deepClone();
             } else if (!functionScopeVars.containsKey(var.getVariable().getOriginalName())) {
-                return var;
+                return var.deepClone();
             } else {
                 throw new IllegalStateException("Local Value Numbering missed this variable or the replacement mapping argument is incomplete");
             }
@@ -447,67 +446,67 @@ public class SsaPhase implements Phase {
             Expression collection = replaceExprVar(comp.getCollection(), replacements);
             List<Expression> filters = comp.getFilters();
             filters.replaceAll(f -> replaceExprVar(f, replacements));
-            return comp.copy(comp.getGenerator(), filters, collection);
+            return comp.copy(comp.getGenerator(), filters, collection).deepClone();
         }
 
         default Expression replaceExprVar(ExprDeref deref, Map<ExprVariable, LocalVarDecl> replacements) {
-            return deref.withReference(replaceExprVar(deref.getReference(), replacements));
+            return deref.withReference(replaceExprVar(deref.getReference(), replacements)).deepClone();
         }
 
         default Expression replaceExprVar(ExprLambda lambda, Map<ExprVariable, LocalVarDecl> replacements) {
-            return lambda.copy(lambda.getValueParameters(), replaceExprVar(lambda.getBody(), replacements), lambda.getReturnType());
+            return lambda.copy(lambda.getValueParameters(), replaceExprVar(lambda.getBody(), replacements), lambda.getReturnType()).deepClone();
         }
 
         default Expression replaceExprVar(ExprList list, Map<ExprVariable, LocalVarDecl> replacements) {
             List<Expression> elems = list.getElements();
             elems.replaceAll(e -> replaceExprVar(e, replacements));
-            return list.withElements(elems);
+            return list.withElements(elems).deepClone();
         }
 
         default Expression replaceExprVar(ExprSet set, Map<ExprVariable, LocalVarDecl> replacements) {
             List<Expression> elems = set.getElements();
             elems.replaceAll(e -> replaceExprVar(e, replacements));
-            return set.withElements(elems);
+            return set.withElements(elems).deepClone();
         }
 
         default Expression replaceExprVar(ExprTuple tuple, Map<ExprVariable, LocalVarDecl> replacements) {
             List<Expression> elems = tuple.getElements();
             elems.replaceAll(e -> replaceExprVar(e, replacements));
-            return tuple.copy(elems);
+            return tuple.copy(elems).deepClone();
         }
 
         default Expression replaceExprVar(ExprTypeConstruction typeConstruction, Map<ExprVariable, LocalVarDecl> replacements) {
             List<Expression> elems = typeConstruction.getArgs();
             elems.replaceAll(e -> replaceExprVar(e, replacements));
-            return typeConstruction.copy(typeConstruction.getConstructor(), typeConstruction.getTypeParameters(), typeConstruction.getValueParameters(), elems);
+            return typeConstruction.copy(typeConstruction.getConstructor(), typeConstruction.getTypeParameters(), typeConstruction.getValueParameters(), elems).deepClone();
         }
 
         default Expression replaceExprVar(ExprUnaryOp unOp, Map<ExprVariable, LocalVarDecl> replacements) {
-            return unOp.copy(unOp.getOperation(), replaceExprVar(unOp.getOperand(), replacements));
+            return unOp.copy(unOp.getOperation(), replaceExprVar(unOp.getOperand(), replacements)).deepClone();
         }
 
         default Expression replaceExprVar(ExprField field, Map<ExprVariable, LocalVarDecl> replacements) {
-            return field.copy(replaceExprVar(field.getStructure(), replacements), field.getField());
+            return field.copy(replaceExprVar(field.getStructure(), replacements), field.getField()).deepClone();
         }
 
         default Expression replaceExprVar(ExprNth nth, Map<ExprVariable, LocalVarDecl> replacements) {
-            return nth.copy(replaceExprVar(nth.getStructure(), replacements), nth.getNth());
+            return nth.copy(replaceExprVar(nth.getStructure(), replacements), nth.getNth()).deepClone();
         }
 
         default Expression replaceExprVar(ExprTypeAssertion exprTypeAssertion, Map<ExprVariable, LocalVarDecl> replacements) {
-            return exprTypeAssertion.copy(replaceExprVar(exprTypeAssertion.getExpression(), replacements), exprTypeAssertion.getType());
+            return exprTypeAssertion.copy(replaceExprVar(exprTypeAssertion.getExpression(), replacements), exprTypeAssertion.getType()).deepClone();
         }
 
         default Expression replaceExprVar(ExprIndexer indexer, Map<ExprVariable, LocalVarDecl> replacements) {
             Expression newStruct = replaceExprVar(indexer.getStructure(), replacements);
             Expression newIndex = replaceExprVar(indexer.getIndex(), replacements);
-            return indexer.copy(newStruct, newIndex);
+            return indexer.copy(newStruct, newIndex).deepClone();
         }
 
         default Expression replaceExprVarLet(ExprLet let, Map<LocalVarDecl, Boolean> replacements) {
             List<LocalVarDecl> lvd = let.getVarDecls();
             List<LocalVarDecl> newLvd = lvd.stream().map(lv -> getLocalVarDecl(lv.getOriginalName(), replacements.keySet())).collect(Collectors.toList());
-            return let.withVarDecls(newLvd);
+            return let.withVarDecls(newLvd).deepClone();
         }
 
         default Expression replaceExprVar(ExprMap map, Map<ExprVariable, LocalVarDecl> replacements) {
@@ -518,7 +517,7 @@ public class SsaPhase implements Phase {
                 ImmutableEntry<Expression, Expression> newEntry = ImmutableEntry.of(replaceExprVar(entry.getKey(), replacements), replaceExprVar(entry.getValue(), replacements));
                 newMappings.add(newEntry);
             }
-            return map.withMappings(newMappings);
+            return map.withMappings(newMappings).deepClone();
         }
     }
 
@@ -560,8 +559,8 @@ public class SsaPhase implements Phase {
             //Add the while stmt as both predecessors and successor of its body
             wireRelations(currentBlocks, stmtWhileLabeled, stmtWhileLabeled);
 
-            StmtLabeledSSA entryWhile = new StmtLabeledSSA(assignBufferLabel(stmt, true), null, nestedLoopLevel);
-            StmtLabeledSSA exitWhile = new StmtLabeledSSA(assignBufferLabel(stmt, false), null, nestedLoopLevel);
+            StmtLabeledSSA entryWhile = new StmtLabeledSSA(assignBufferLabel(stmt, true), emptyStmtBlock(), nestedLoopLevel);
+            StmtLabeledSSA exitWhile = new StmtLabeledSSA(assignBufferLabel(stmt, false), emptyStmtBlock(), nestedLoopLevel);
 
             wireRelations(new LinkedList<>(Collections.singletonList(stmtWhileLabeled)), entryWhile, exitWhile);
             entryWhile.setShortCutToExit(exitWhile);
@@ -589,7 +588,7 @@ public class SsaPhase implements Phase {
 
         default StmtLabeledSSA createBlock(StmtForeach stmt, StmtLabeledSSA exitBlock, int nestedLoopLevel) {
             StmtLabeledSSA stmtFELabeled = new StmtLabeledSSA(assignLabel(stmt), stmt, nestedLoopLevel);
-            StmtLabeledSSA stmtFEExit = new StmtLabeledSSA(assignBufferLabel(stmt, false), null, nestedLoopLevel);
+            StmtLabeledSSA stmtFEExit = new StmtLabeledSSA(assignBufferLabel(stmt, false), emptyStmtBlock(), nestedLoopLevel);
 
             List<Statement> body = subStmtCollector.collect(stmt).get(0);
             LinkedList<StmtLabeledSSA> currentBlocks = iterateSubStmts(body, exitBlock, nestedLoopLevel);
@@ -602,7 +601,7 @@ public class SsaPhase implements Phase {
 
         default StmtLabeledSSA createBlock(StmtCase stmt, StmtLabeledSSA exitBlock, int nestedLoopLevel) {
             StmtLabeledSSA stmtCaseLabeled = new StmtLabeledSSA(assignLabel(stmt), stmt, nestedLoopLevel);
-            StmtLabeledSSA stmtCaseExit = new StmtLabeledSSA(assignBufferLabel(stmt, false), null, nestedLoopLevel);
+            StmtLabeledSSA stmtCaseExit = new StmtLabeledSSA(assignBufferLabel(stmt, false), emptyStmtBlock(), nestedLoopLevel);
             List<LinkedList<Statement>> alts = subStmtCollector.collect(stmt);
             alts.forEach(altStmt -> {
                 LinkedList<StmtLabeledSSA> currentBlocks = iterateSubStmts(altStmt, exitBlock, nestedLoopLevel);
@@ -1173,10 +1172,11 @@ public class SsaPhase implements Phase {
                     for (LocalVarDecl lvd : phis) {
                         LValueVariable phiLValue = new LValueVariable(variable(lvd.getName()));
                         List<Expression> phiOperands = ((ExprPhi) lvd.getValue()).getOperands().map(op -> new ExprVariable(variable(op.getName())));
-                        phiStmts.add(new StmtPhi(phiLValue, phiOperands));
+                        phiStmts.add(new StmtPhi(emptyStmtBlock(), phiLValue, phiOperands));
                     }
 
                     List<StmtLabeledSSA> phiLabeled = phiStmts.stream().map(phi -> new StmtLabeledSSA(assignLabel(phi), phi, stmtLabeled.loopLevel())).collect(Collectors.toList());
+                    phiLabeled.forEach(phi -> phi.setSSAStatement(emptyStmtBlock()));
                     wirePhiStmts(stmtLabeled, phiLabeled);
                     stmtLabeled.setPhiBlockToCreated();
                 }
