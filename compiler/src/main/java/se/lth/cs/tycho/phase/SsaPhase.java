@@ -37,6 +37,7 @@ public class SsaPhase implements Phase {
     private static final CollectOrReplaceSubStmts subStmtCollector = MultiJ.from(CollectOrReplaceSubStmts.class).instance();
     private static final CreateControlFlowGraphBlocks cfgCreator = MultiJ.from(CreateControlFlowGraphBlocks.class).instance();
     private static VariableDeclarations declarations = null;
+    private static final List<LocalVarDecl> localVarDecl = new LinkedList<>();
     private static final Pair<Integer, Optional<StmtLabeledSSA>> noStoppingCond = new Pair<>(0, Optional.empty());
     private static boolean cfgOnly;
 
@@ -614,7 +615,7 @@ public class SsaPhase implements Phase {
 
             List<LocalVarDecl> localVarDecls = stmt.getVarDecls();
             localVarDecls.forEach(SsaPhase::addNewLocalVarMapping);
-            localVarDecls.forEach(v -> stmtBlockLabeled.addLocalValueNumber((LocalVarDecl)v.withName(getNewUniqueVarName(v.getOriginalName())).deepClone(), false));
+            localVarDecls.forEach(v -> stmtBlockLabeled.addLocalValueNumber((LocalVarDecl) v.withName(getNewUniqueVarName(v.getOriginalName())).deepClone(), false));
 
             List<Statement> body = subStmtCollector.collect(stmt).get(0);
             LinkedList<StmtLabeledSSA> currentBlocks = iterateSubStmts(body, exitBlock, nestedLoopLevel);
@@ -636,6 +637,7 @@ public class SsaPhase implements Phase {
                     LocalVarDecl currentVarDecl = originalLVD.get(varName);
                     LocalVarDecl newVarDecl = (LocalVarDecl) currentVarDecl.withName(getNewUniqueVarName(varName)).withValue(stmt.getExpression()).deepClone();
                     stmtAssignmentLabeled.addLocalValueNumber(newVarDecl, false);
+
                 } else {
                     VarDecl decl = declarations.declaration((LValueVariable) v);
                     if (functionScopeVars.containsKey(decl.getOriginalName())) {
@@ -743,6 +745,17 @@ public class SsaPhase implements Phase {
 
         return new Pair<>(entry, exit);
     }
+
+    private static void addAllLocalVarDecl(StmtLabeledSSA stmtBlock) {
+        if(stmtBlock.getOriginalStmt() instanceof StmtBlock) {
+            List<LocalVarDecl> allVarDecl = new LinkedList<>(localVarDecl);
+            StmtBlock stmtBlockSSA = (StmtBlock) stmtBlock.getSsaModified();
+            allVarDecl.addAll(stmtBlockSSA.getVarDecls());
+            stmtBlockSSA = (StmtBlock) stmtBlockSSA.withVarDecls(allVarDecl).deepClone();
+            stmtBlock.setSSAStatement(stmtBlockSSA);
+        }
+    }
+
 
     /**
      * Recursively create CFG blocks for each Statement's sub Statements
@@ -852,6 +865,7 @@ public class SsaPhase implements Phase {
     private static void applySSA(Pair<StmtLabeledSSA, StmtLabeledSSA> cfg) {
         applySSAToVariables(cfg.getSecond());
         recRebuildStmts(cfg.getFirst());
+        addAllLocalVarDecl(cfg.getFirst().getSuccessors().get(0));
         clearAllVarMaps();
     }
 
@@ -871,6 +885,7 @@ public class SsaPhase implements Phase {
         lvd.removeIf(lv -> lv.getValue() instanceof ExprPhi || stmtLabeled.getLocalValueNumbers().get(lv)); //if ExprPhi or lvd has already been visited
         if (!lvd.isEmpty()) {
             lvd.forEach(l -> stmtLabeled.addLocalValueNumber(l.withValue(readLocalVarExpr(l.getValue(), stmtLabeled).getFirst()), true));
+            localVarDecl.addAll((stmtLabeled.getLocalValueNumbers().keySet()));
         }
 
         //read variables in expressions
@@ -914,7 +929,7 @@ public class SsaPhase implements Phase {
                 //Replace LocalVarDecls in statement block
                 List<LocalVarDecl> updatedLocalVarDecl = new LinkedList<>(ssaLocalVarDecls);
                 updatedLocalVarDecl.removeIf(v -> !ssaLocalVarDecls.contains(v));
-                updatedLocalVarDecl = updatedLocalVarDecl.stream().map(v -> (LocalVarDecl)v.deepClone()).collect(Collectors.toList());
+                updatedLocalVarDecl = updatedLocalVarDecl.stream().map(v -> (LocalVarDecl) v.deepClone()).collect(Collectors.toList());
                 ssaBlock = ((StmtBlock) originalStmt).withVarDecls(new LinkedList<>(updatedLocalVarDecl));
 
             } else if (originalStmt instanceof StmtAssignment) {
@@ -926,7 +941,7 @@ public class SsaPhase implements Phase {
                     String assignedVarName = ((LValueVariable) ((StmtAssignment) originalStmt).getLValue()).getVariable().getOriginalName();
                     Optional<LocalVarDecl> varDecl = stmtLabeled.getVarDefIfExists(assignedVarName);
                     if (varDecl.isPresent()) {
-                        ssaBlock = ((StmtAssignment) originalStmt).copy(new LValueVariable(variable(varDecl.get().getName())), varDecl.get().getValue());
+                        ssaBlock = (Statement) ((StmtAssignment) originalStmt).copy(new LValueVariable(variable(varDecl.get().getName())), varDecl.get().getValue()).deepClone();
                     } else {
                         throw new IllegalArgumentException("variable declarations not present");
                     }
@@ -1130,7 +1145,8 @@ public class SsaPhase implements Phase {
             ifOrElse.remove(0);
             ifOrElse.replaceAll(e -> readLocalVarExpr(e, stmtLabeled).getFirst());
             return new Pair<>(((ExprIf) expr).copy(((ExprIf) expr).getCondition(), ifOrElse.get(0), ifOrElse.get(1)), false);
-        } else if (expr instanceof ExprInput){}
+        } else if (expr instanceof ExprInput) {
+        }
         //TODO make an interface if a LocalVarDecl can have other types of Expressions as values
         return new Pair<>(expr, false);
     }
@@ -1921,6 +1937,7 @@ public class SsaPhase implements Phase {
                 continue;
             }
             if (currentOp != null) {
+                localVarDecl.add(phi);
                 return phi;
             }
             currentOp = op;
