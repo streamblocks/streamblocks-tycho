@@ -39,6 +39,7 @@ public class SsaPhase implements Phase {
     private static final CreateControlFlowGraphBlocks cfgCreator = MultiJ.from(CreateControlFlowGraphBlocks.class).instance();
     private static VariableDeclarations declarations = null;
     private static final List<LocalVarDecl> localVarDecl = new LinkedList<>();
+    private static final Set<String> alreadyAddedPhis = new HashSet<>();
     private static final Pair<Integer, Optional<StmtLabeledSSA>> noStoppingCond = new Pair<>(0, Optional.empty());
     private static boolean cfgOnly;
 
@@ -112,6 +113,19 @@ public class SsaPhase implements Phase {
             return res;
         }
 
+        default List<LinkedList<Statement>> collect(StmtIfSSA s) {
+            List<LinkedList<Statement>> res = new LinkedList<>();
+            res.add(new LinkedList<>(s.getThenBranch()));
+            res.add(new LinkedList<>(s.getElseBranch()));
+            return res;
+        }
+
+        default List<LinkedList<Statement>> collect(StmtWhileSSA s) {
+            List<LinkedList<Statement>> res = new LinkedList<>();
+            res.add(new LinkedList<>(s.getBody()));
+            return res;
+        }
+
         /**
          * Replace statement.
          *
@@ -120,7 +134,7 @@ public class SsaPhase implements Phase {
          * @return the statement with the updated body
          */
         default Statement replace(Statement s, List<List<Statement>> l) {
-            return (Statement) s;
+            return s;
         }
 
         default Statement replace(StmtBlock block, List<List<Statement>> newBody) {
@@ -148,7 +162,18 @@ public class SsaPhase implements Phase {
             }
             AtomicInteger i = new AtomicInteger();
             List<StmtCase.Alternative> newAlts = casee.getAlternatives().stream().map(alt -> alt.copy(alt.getPattern(), alt.getGuards(), newBody.get(i.getAndIncrement()))).collect(Collectors.toList());
-            return (Statement) casee.copy(casee.getScrutinee(), newAlts);
+            return casee.copy(casee.getScrutinee(), newAlts);
+        }
+
+        default Statement replace(StmtIfSSA iff, List<List<Statement>> newBody) {
+            if (newBody.size() < 2) {
+                throw new IllegalArgumentException("too few statement list given");
+            }
+            return iff.withThenBranch(newBody.get(0)).withElseBranch(newBody.get(1));
+        }
+
+        default Statement replace(StmtWhileSSA whilee, List<List<Statement>> newBody) {
+            return whilee.withBody(newBody.get(0));
         }
 
     }
@@ -783,13 +808,12 @@ public class SsaPhase implements Phase {
         return new Pair<>(entry, exit);
     }
 
-
     private static void addAllLocalVarDecl(StmtLabeledSSA stmtBlock) {
         if (stmtBlock.getOriginalStmt() instanceof StmtBlock) {
-            List<LocalVarDecl> allVarDecl = new LinkedList<>(localVarDecl);
             StmtBlock stmtBlockSSA = (StmtBlock) stmtBlock.getSsaModified();
-            allVarDecl.addAll(stmtBlockSSA.getVarDecls());
-            stmtBlockSSA = (StmtBlock) stmtBlockSSA.withVarDecls(allVarDecl).deepClone();
+            //List<LocalVarDecl> allVarDecl = localVarDecl;
+            //Map<String, LocalVarDecl> distinctVarDecl = allVarDecl.stream().collect(Collectors.toMap(AbstractDecl::getName, vd -> vd, (vd1, vd2) -> vd2));
+            stmtBlockSSA = (StmtBlock) stmtBlockSSA.withVarDecls((localVarDecl)).deepClone();
             stmtBlock.setSSAStatement(stmtBlockSSA);
         }
     }
@@ -861,7 +885,8 @@ public class SsaPhase implements Phase {
      * @return true if has sub Statements
      */
     private static boolean isNotTerminal(Statement stmt) {
-        return !(stmt instanceof StmtConsume) && !(stmt instanceof StmtWrite) && !(stmt instanceof StmtRead) && !(stmt instanceof StmtCall) && !(stmt instanceof StmtAssignment);
+        return !(stmt instanceof StmtConsume) && !(stmt instanceof StmtWrite) && !(stmt instanceof StmtRead) && !(stmt instanceof StmtCall)
+                && !(stmt instanceof StmtAssignment) && !(stmt instanceof StmtIfSSA) && !(stmt instanceof StmtWhileSSA);
     }
 
     /**
@@ -886,6 +911,7 @@ public class SsaPhase implements Phase {
         return assignLabel(stmt) + ((isEntry) ? "Entry" : "Exit");
     }
 
+
     private static Statement emptyStmtBlock() {
         return new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty());
     }
@@ -902,6 +928,7 @@ public class SsaPhase implements Phase {
      */
     private static void applySSA(Pair<StmtLabeledSSA, StmtLabeledSSA> cfg) {
         applySSAToVariables(cfg.getSecond());
+        createAndAddPhiStmts(cfg.getSecond());
         recRebuildStmts(cfg.getFirst());
         addAllLocalVarDecl(cfg.getFirst().getSuccessors().get(0));
         clearAllVarMaps();
@@ -977,12 +1004,10 @@ public class SsaPhase implements Phase {
                 } else {
                     //Replace ssa result to LValue in assignment
                     String assignedVarName = ((LValueVariable) ((StmtAssignment) originalStmt).getLValue()).getVariable().getOriginalName();
-                    Optional<LocalVarDecl> varDecl = stmtLabeled.getVarDefIfExists(assignedVarName);
-                    if (varDecl.isPresent()) {
-                        ssaBlock = (Statement) ((StmtAssignment) originalStmt).copy(new LValueVariable(variable(varDecl.get().getName())), varDecl.get().getValue()).deepClone();
-                    } else {
-                        throw new IllegalArgumentException("variable declarations not present");
-                    }
+                    LinkedList<LocalVarDecl> updatedLocalVarDecl = new LinkedList<>(ssaLocalVarDecls);
+                    updatedLocalVarDecl.removeIf(v -> !v.getOriginalName().equals(assignedVarName));
+                    LocalVarDecl varDecl = updatedLocalVarDecl.getFirst();
+                    ssaBlock = (Statement) ((StmtAssignment) originalStmt).copy(new LValueVariable(variable(varDecl.getName())), varDecl.getValue()).deepClone();
                 }
             } else if (originalStmt instanceof StmtWrite) {
                 Map<ExprVariable, LocalVarDecl> ssaLocalValueNumbering = stmtLabeled.getExprValueNumbering();
@@ -1214,21 +1239,25 @@ public class SsaPhase implements Phase {
         List<Statement> phiStmts = new LinkedList<>();
         List<LocalVarDecl> phis = new LinkedList<>(stmtLabeled.getLocalValueNumbers().keySet());
         phis.addAll(stmtLabeled.getExprValueNumbering().values());
-        phis = phis.stream().filter(l -> l.getValue() instanceof ExprPhi).collect(Collectors.toList());
+        phis.removeIf(l -> !(l.getValue() instanceof ExprPhi));
 
         if (!phis.isEmpty()) {
 
             for (LocalVarDecl lvd : phis) {
-                LValueVariable phiLValue = new LValueVariable(variable(lvd.getName()));
-                List<Expression> phiOperands = ((ExprPhi) lvd.getValue()).getOperands().map(op -> new ExprVariable(variable(op.getName())));
-                phiStmts.add(new StmtPhi(emptyStmtBlock(), phiLValue, phiOperands));
-            }
+                //avoid duplicates
+                if(!alreadyAddedPhis.contains(lvd.getName())) {
+                    alreadyAddedPhis.add(lvd.getName());
 
-                   /* List<StmtLabeledSSA> phiLabeled = phiStmts.stream().map(phi -> new StmtLabeledSSA(assignLabel(phi), phi, stmtLabeled.loopLevel())).collect(Collectors.toList());
-                    phiLabeled.forEach(phi -> phi.setSSAStatement(emptyStmtBlock()));*/
-            wirePhiStmts(stmtLabeled, phiStmts);
-            stmtLabeled.setPhiBlockToCreated();
+                    LValueVariable phiLValue = new LValueVariable(variable(lvd.getName()));
+                    List<Expression> phiOperands = ((ExprPhi) lvd.getValue()).getOperands().map(op -> new ExprVariable(variable(op.getName())));
+                    phiStmts.add(new StmtPhi(emptyStmtBlock(), phiLValue, phiOperands));
+                }
+            }
+            if(!phiStmts.isEmpty()) {
+                incorporateStmtPhis(stmtLabeled, phiStmts);
+            }
         }
+        stmtLabeled.setPhiBlockToCreated();
     }
 
 
@@ -1238,34 +1267,39 @@ public class SsaPhase implements Phase {
      * @param originalStmtLabeled the StmtLabeled containing the phi functions' definitions
      * @param phis                the phi Statements wrapped in StmtLabeledSSA
      */
-    private static void wirePhiStmts(StmtLabeledSSA originalStmtLabeled, List<Statement> phis) {
+    private static void incorporateStmtPhis(StmtLabeledSSA originalStmtLabeled, List<Statement> phis) {
 
-        StmtLabeledSSA stmtLabeledSSAd = (originalStmtLabeled.isBufferBlock()) ? originalStmtLabeled.getShortCutToExit() : originalStmtLabeled;
-        Statement original = stmtLabeledSSAd.getOriginalStmt();
-        Statement ssaModified = stmtLabeledSSAd.getSsaModified();
+        StmtLabeledSSA stmtLabeledSSA = (originalStmtLabeled.isBufferBlock() && !originalStmtLabeled.hasNoShortCut()) ? originalStmtLabeled.getShortCutToExit() : originalStmtLabeled;
+        Statement original = stmtLabeledSSA.getOriginalStmt();
+        Statement ssaModified = stmtLabeledSSA.getSsaModified();
 
         if (original instanceof StmtWhile) {
             StmtWhile ssaWhile = (StmtWhile) ssaModified;
             Statement whileSSA = new StmtWhileSSA(ssaWhile.getCondition(), ssaWhile.getBody(), phis);
             originalStmtLabeled.setSSAStatement(whileSSA);
+
         } else if (original instanceof StmtIf) {
             StmtIf ssaIf = (StmtIf) ssaModified;
-            Statement whileSSA = new StmtIfSSA(ssaIf.getCondition(), ssaIf.getThenBranch(), ssaIf.getElseBranch(), phis);
-            originalStmtLabeled.setSSAStatement(whileSSA);
+            Statement newSSAIf = new StmtIfSSA(ssaIf.getCondition(), ssaIf.getThenBranch(), ssaIf.getElseBranch(), phis);
+            stmtLabeledSSA.setSSAStatement(newSSAIf);
+
         } else {
             StmtLabeledSSA nearestParent = findStatementLabeled(originalStmtLabeled, Arrays.asList("StmtBlock", "StmtCase", "StmtWhile"), Direction.UP);
             Statement ssaParent = nearestParent.getSsaModified();
+
             if (ssaParent instanceof StmtBlock) {
                 List<Statement> oldBody = new ArrayList<>(((StmtBlock) nearestParent.getOriginalStmt()).getStatements());
-
                 int indexOfOriginal = oldBody.indexOf(original);
                 List<Statement> newBody = new ArrayList<>(((StmtBlock) nearestParent.getSsaModified()).getStatements());
                 newBody.addAll(indexOfOriginal, phis);
-                nearestParent.setSSAStatement((Statement) ((StmtBlock) ssaParent).withStatements(newBody).deepClone());
+                nearestParent.setSSAStatement(((StmtBlock) ssaParent).withStatements(newBody));
             }
+
+            LinkedList<StmtLabeledSSA> phiLabeled = phis.stream().map(p -> new StmtLabeledSSA(assignLabel(p), p, originalStmtLabeled.loopLevel())).collect(Collectors.toCollection(LinkedList::new));
+            phiLabeled.forEach(pl -> {pl.setPhiBlockToCreated(); pl.setHasBeenRebuilt(); pl.setSSAStatement(pl.getOriginalStmt());});
+            wireRelations(phiLabeled, originalStmtLabeled.getPredecessors().get(0), originalStmtLabeled.getSuccessors().get(0));
         }
 
-        //StmtWhileExit, StmtIf always have a single predecessor
     }
 
 
@@ -1283,6 +1317,7 @@ public class SsaPhase implements Phase {
     private static Statement rebuildSingleStmt(StmtLabeledSSA stmtLabeled) {
         Statement originalStmt = stmtLabeled.getSsaModified();
 
+
         List<LinkedList<Statement>> stmtLists = subStmtCollector.collect(originalStmt);
         List<List<Statement>> newBodies = new LinkedList<>();
         for (List<Statement> l : stmtLists) {
@@ -1296,6 +1331,14 @@ public class SsaPhase implements Phase {
         return subStmtCollector.replace(originalStmt, newBodies);
     }
 
+
+    private static void createAndAddPhiStmts(StmtLabeledSSA stmtLabeledSSA){
+        if (!stmtLabeledSSA.havePhiBlocksBeenCreated()) {
+            createPhiBlock(stmtLabeledSSA);
+        }
+        stmtLabeledSSA.getPredecessors().forEach(SsaPhase::createAndAddPhiStmts);
+    }
+
     /**
      * Recursively reconstruct all Statements in the CFG
      *
@@ -1305,10 +1348,6 @@ public class SsaPhase implements Phase {
 
         if (stmtLabeled.isExit() || (stmtLabeled.havePhiBlocksBeenCreated() && stmtLabeled.hasBeenRebuilt())) {
             return;
-        }
-
-        if (!stmtLabeled.havePhiBlocksBeenCreated()) {
-            createPhiBlock(stmtLabeled);
         }
 
         if (!stmtLabeled.hasBeenRebuilt() && !stmtLabeled.isBufferBlock() && isNotTerminal(stmtLabeled.getOriginalStmt())) {
@@ -1348,8 +1387,7 @@ public class SsaPhase implements Phase {
 
                 next = stmtLabeled.getShortCutToExit();
             }
-
-            if (oldBody.containsKey(original)) {
+            if (oldBody.keySet().contains(original)) {
                 if (isNotTerminal(scrutinee.getOriginalStmt()) && !scrutinee.hasBeenRebuilt()) {
                     scrutinee.setSSAStatement(rebuildSingleStmt(scrutinee));
                 }
@@ -1537,6 +1575,8 @@ public class SsaPhase implements Phase {
         originalLVD.clear();
         localValueCounter.clear();
         functionScopeVars.clear();
+        localVarDecl.clear();
+        alreadyAddedPhis.clear();
     }
 
 
@@ -1596,7 +1636,9 @@ public class SsaPhase implements Phase {
         //if outside loop : a = a + 1 become a_i = a_(i-1) + 1
         Variable replacementVar = deriveOldVarName(selfAssignedVar);
         Expression replacementExpr = replaceVariableInExpr(selfAssignedVar.getValue(), var, replacementVar, stmtLabeled);
-        return selfAssignedVar.withValue(replacementExpr);
+        LocalVarDecl updatedVarDecl = selfAssignedVar.withValue(replacementExpr);
+        stmtLabeled.addLocalValueNumber(updatedVarDecl, true);
+        return updatedVarDecl;
     }
 
     /**

@@ -23,6 +23,7 @@ public class StmtLabeledSSA extends Statement {
     private ImmutableList<StmtLabeledSSA> successors;
     private StmtLabeledSSA shortCutToExit;
     private final int nestedLoopLevel;
+    private final String uniqueID = UUID.randomUUID().toString();
     //ssa
     private final Map<LocalVarDecl, Boolean> valueNumbering;
     private final Map<ExprVariable, LocalVarDecl> exprValueNumbering;
@@ -415,5 +416,9 @@ public class StmtLabeledSSA extends Statement {
     @Override
     public Statement transformChildren(Transformation transformation) {
         return null;
+    }
+
+    public String getUniqueID() {
+        return uniqueID;
     }
 }
