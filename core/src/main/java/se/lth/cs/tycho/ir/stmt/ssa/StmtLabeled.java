@@ -2,6 +2,7 @@ package se.lth.cs.tycho.ir.stmt.ssa;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.stmt.Statement;
+import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -35,8 +36,8 @@ public class StmtLabeled extends Statement {
     private StmtLabeled(Statement original, String label, Statement originalStmt, Statement ssaStmt, List<StmtLabeled> predecessors, List<StmtLabeled> successors) {
         super(original);
         this.label = label;
-        this.originalStmt = (Statement) originalStmt.deepClone();
-        this.ssaStmt = (Statement) ssaStmt.deepClone();
+        this.originalStmt = originalStmt;
+        this.ssaStmt = ssaStmt == null ? new StmtBlock(ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty()) : ssaStmt;
         this.predecessors = ImmutableList.from(predecessors);
         this.successors = ImmutableList.from(predecessors);
     }
@@ -53,7 +54,6 @@ public class StmtLabeled extends Statement {
     private StmtLabeled copy(List<StmtLabeled> predecessors, List<StmtLabeled> successors){
         return new StmtLabeled(this, this.label, this.originalStmt, this.ssaStmt, ImmutableList.from(predecessors), ImmutableList.from(successors));
     }
-
 
     /**
      * Equals boolean.

@@ -14,7 +14,10 @@ import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
-import se.lth.cs.tycho.ir.stmt.ssa.*;
+import se.lth.cs.tycho.ir.stmt.ssa.ExprPhi;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeled;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtLabeledSSA;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
@@ -118,26 +121,26 @@ public class SsaPhase implements Phase {
          * @return the statement with the updated body
          */
         default Statement replace(Statement s, List<List<Statement>> l) {
-            return (Statement) s;
+            return (Statement) s.deepClone();
         }
 
         default Statement replace(StmtBlock block, List<List<Statement>> newBody) {
-            return (Statement) block.withStatements(newBody.get(0));
+            return (Statement) block.withStatements(newBody.get(0)).deepClone();
         }
 
         default Statement replace(StmtWhile whilee, List<List<Statement>> newBody) {
-            return (Statement) whilee.withBody(newBody.get(0));
+            return (Statement) whilee.withBody(newBody.get(0)).deepClone();
         }
 
         default Statement replace(StmtForeach foreach, List<List<Statement>> newBody) {
-            return (Statement) foreach.withBody(newBody.get(0));
+            return (Statement) foreach.withBody(newBody.get(0)).deepClone();
         }
 
         default Statement replace(StmtIf iff, List<List<Statement>> newBody) {
             if (newBody.size() < 2) {
                 throw new IllegalArgumentException("too few statement list given");
             }
-            return (Statement) iff.withThenBranch(newBody.get(0)).withElseBranch(newBody.get(1));
+            return (Statement) iff.withThenBranch(newBody.get(0)).withElseBranch(newBody.get(1)).deepClone();
         }
 
         default Statement replace(StmtCase casee, List<List<Statement>> newBody) {
@@ -146,7 +149,7 @@ public class SsaPhase implements Phase {
             }
             AtomicInteger i = new AtomicInteger();
             List<StmtCase.Alternative> newAlts = casee.getAlternatives().stream().map(alt -> alt.copy(alt.getPattern(), alt.getGuards(), newBody.get(i.getAndIncrement()))).collect(Collectors.toList());
-            return (Statement) casee.copy(casee.getScrutinee(), newAlts);
+            return (Statement) casee.copy(casee.getScrutinee(), newAlts).deepClone();
         }
 
     }
@@ -238,31 +241,31 @@ public class SsaPhase implements Phase {
         Statement replaceListAndSingleExpr(Statement s, List<Expression> le, Expression e);
 
         default Statement replaceSingleExpr(StmtReturn ret, Expression retVal) {
-            return (Statement) ret.copy(retVal);
+            return (Statement)ret.copy(retVal).deepClone();
         }
 
         default Statement replaceSingleExpr(StmtWhile whilee, Expression cond) {
-            return (Statement) whilee.withCondition(cond);
+            return (Statement)whilee.withCondition(cond).deepClone();
         }
 
         default Statement replaceSingleExpr(StmtIf iff, Expression condition) {
-            return (Statement) iff.withCondition(condition);
+            return (Statement)iff.withCondition(condition).deepClone();
         }
 
         default Statement replaceSingleExpr(StmtCase casee, Expression scrut) {
-            return (Statement) casee.copy(scrut, casee.getAlternatives());
+            return (Statement)casee.copy(scrut, casee.getAlternatives()).deepClone();
         }
 
         default Statement replaceListExpr(StmtForeach foreach, List<Expression> filters) {
-            return (Statement) foreach.withFilters(filters);
+            return (Statement)foreach.withFilters(filters).deepClone();
         }
 
         default Statement replaceListExpr(StmtCall call, List<Expression> args) {
-            return (Statement) call.copy(call.getProcedure(), args);
+            return (Statement)call.copy(call.getProcedure(), args).deepClone();
         }
 
         default Statement replaceListAndSingleExpr(StmtWrite write, List<Expression> args, Expression repeatExpr) {
-            return (Statement) write.copy(write.getPort(), args, repeatExpr);
+            return (Statement)write.copy(write.getPort(), args, repeatExpr).deepClone();
         }
     }
 
@@ -395,7 +398,7 @@ public class SsaPhase implements Phase {
          * @return the updated Expression
          */
         default Expression replaceExprVar(Expression original, Map<ExprVariable, LocalVarDecl> replacements) {
-            return (original != null) ? original.deepClone() : null;
+                return (original != null) ? original.deepClone() : null;
         }
 
         default Expression replaceExprVar(ExprVariable var, Map<ExprVariable, LocalVarDecl> replacements) {
@@ -864,9 +867,6 @@ public class SsaPhase implements Phase {
     private static void applySSAToVariables(StmtLabeledSSA stmtLabeled) {
         //Stop recursion at the top of the cfg
         if (stmtLabeled.hasNoPredecessors() || stmtLabeled.hasBeenVisted()) {
-            if(stmtLabeled.isEntry()){
-                stmtLabeled.setSSAStatement(emptyStmtBlock());
-            }
             return;
         }
 
@@ -939,7 +939,7 @@ public class SsaPhase implements Phase {
                 Map<ExprVariable, LocalVarDecl> ssaLocalValueNumbering = stmtLabeled.getExprValueNumbering();
                 Pair<List<Expression>, Expression> stmtExpr = stmtExprCollector.collectListAndSinglExpr(originalStmt);
 
-                stmtExpr.getFirst().replaceAll(e -> subExprCollectorOrReplacer.replaceExprVar(e, ssaLocalValueNumbering));
+                stmtExpr.getFirst().replaceAll(e->subExprCollectorOrReplacer.replaceExprVar(e, ssaLocalValueNumbering));
                 Expression updatedRepeat = subExprCollectorOrReplacer.replaceExprVar(stmtExpr.getSecond(), ssaLocalValueNumbering);
 
                 ssaBlock = stmtExprCollector.replaceListAndSingleExpr(originalStmt, stmtExpr.getFirst(), updatedRepeat);
@@ -1165,7 +1165,7 @@ public class SsaPhase implements Phase {
         if (!(original instanceof StmtAssignment) && !(original instanceof StmtBlock)) {
             if (!stmtLabeled.lvnIsEmpty()) {
 
-                List<Statement> phiStmts = new LinkedList<>();
+                List<StmtPhi> phiStmts = new LinkedList<>();
                 List<LocalVarDecl> phis = new LinkedList<>(stmtLabeled.getLocalValueNumbers().keySet());
                 phis.addAll(stmtLabeled.getExprValueNumbering().values().stream().filter(l -> l.getValue() instanceof ExprPhi).collect(Collectors.toList()));
 
@@ -1177,7 +1177,9 @@ public class SsaPhase implements Phase {
                         phiStmts.add(new StmtPhi(emptyStmtBlock(), phiLValue, phiOperands));
                     }
 
-                    wirePhiStmts(stmtLabeled, phiStmts);
+                    List<StmtLabeledSSA> phiLabeled = phiStmts.stream().map(phi -> new StmtLabeledSSA(assignLabel(phi), phi, stmtLabeled.loopLevel())).collect(Collectors.toList());
+                    phiLabeled.forEach(phi -> phi.setSSAStatement(emptyStmtBlock()));
+                    wirePhiStmts(stmtLabeled, phiLabeled);
                     stmtLabeled.setPhiBlockToCreated();
                 }
             }
@@ -1190,35 +1192,25 @@ public class SsaPhase implements Phase {
      * @param originalStmtLabeled the StmtLabeled containing the phi functions' definitions
      * @param phis                the phi Statements wrapped in StmtLabeledSSA
      */
-    private static void wirePhiStmts(StmtLabeledSSA originalStmtLabeled, List<Statement> phis) {
-
-        Statement originalStmt = originalStmtLabeled.getOriginalStmt();
-        if (originalStmt instanceof StmtWhile) {
-            Statement oldSSAWhile = originalStmtLabeled.getSsaModified();
-            originalStmtLabeled.setSSAStatement(new StmtWhileSSA(((StmtWhile) oldSSAWhile).getCondition(), ((StmtWhile) oldSSAWhile).getBody(), ImmutableList.from(phis)));
-
-        } else if (originalStmt instanceof StmtIfSSA) {
-            Statement oldSSAIf = originalStmtLabeled.getSsaModified();
-            originalStmtLabeled.setSSAStatement(new StmtIfSSA(((StmtIf) oldSSAIf).getCondition(), ((StmtIf) oldSSAIf).getThenBranch(),
-                    ((StmtIf) oldSSAIf).getElseBranch(), ImmutableList.from(phis)));
-
-        } else {
-
-            //TODO: only one case implemented
-
-            StmtLabeledSSA nearestParent = findStatementLabeled(originalStmtLabeled, Arrays.asList("StmtBlock", "StmtForEach", "StmtCase"), Direction.UP);
-            String label = nearestParent.getLabel();
-
-            switch (label){
-                case "StmtBlock" : {
-                   List<Statement> updatedBody = new ArrayList<>(((StmtBlock) nearestParent.getSsaModified()).getStatements());
-                   updatedBody.addAll(updatedBody.indexOf(originalStmtLabeled.getSuccessors().get(0).getSsaModified()), phis);
-                   nearestParent.setSSAStatement(((StmtBlock) nearestParent.getSsaModified()).withStatements(updatedBody));
-                }
-                break;
-                default:
+    private static void wirePhiStmts(StmtLabeledSSA originalStmtLabeled, List<StmtLabeledSSA> phis) {
+        String label = originalStmtLabeled.getLabel();
+        switch (label) {
+            case "StmtIfExit":
+            case "StmtCaseExit": {
+                StmtLabeledSSA originalSucc = originalStmtLabeled.getSuccessors().get(0);
+                wireRelations(new LinkedList<>(phis), originalStmtLabeled, originalSucc);
             }
-
+            break;
+            case "StmtWhile": {
+                List<StmtLabeledSSA> preds = new LinkedList<>(originalStmtLabeled.getPredecessors());
+                preds.removeIf(p -> !p.isBufferBlock());
+                StmtLabeledSSA whileEntry = preds.get(0);
+                wireRelations(new LinkedList<>(phis), whileEntry, originalStmtLabeled);
+            }
+            break;
+            default: {
+                wireRelations(new LinkedList<>(phis), originalStmtLabeled.getPredecessors().get(0), originalStmtLabeled.getSuccessors().get(0));
+            }
         }
         //StmtWhileExit, StmtIf always have a single predecessor
     }
@@ -1681,7 +1673,7 @@ public class SsaPhase implements Phase {
             return resUntilLoopStart;
         } else {
             //Only keep loop entry block
-            StmtLabeledSSA loopEntry = findStatementLabeled(originalStmt, Collections.singletonList("StmtWhile"), Direction.DOWN);
+            StmtLabeledSSA loopEntry = findStatementLabeled(originalStmt, "StmtWhile", Direction.DOWN);
             List<StmtLabeledSSA> loopEntryPreds = new LinkedList<>(loopEntry.getPredecessors());
             loopEntryPreds.removeIf(p -> p.loopLevel() > loopEntry.loopLevel());
 
@@ -1711,7 +1703,7 @@ public class SsaPhase implements Phase {
      */
     private static Optional<LocalVarDecl> findVarSuccFromLoop(LocalVarDecl varToFind, StmtLabeledSSA originalStmt) {
 
-        StmtLabeledSSA loopExit = findStatementLabeled(originalStmt, Collections.singletonList("StmtWhile"), Direction.UP);
+        StmtLabeledSSA loopExit = findStatementLabeled(originalStmt, "StmtWhile", Direction.UP);
         List<StmtLabeledSSA> loopExitPredecessors = new LinkedList<>(loopExit.getPredecessors());
         loopExitPredecessors.removeIf(p -> p.loopLevel() <= loopExit.loopLevel());
         StmtLabeledSSA lastLoopStmt = loopExitPredecessors.get(0);
@@ -1749,9 +1741,9 @@ public class SsaPhase implements Phase {
      * @param dir         the direction of traversal
      * @return the StmtLabeledSSA with the given label
      */
-    private static StmtLabeledSSA findStatementLabeled(StmtLabeledSSA stmtLabeled, List<String> label, Direction dir) {
+    private static StmtLabeledSSA findStatementLabeled(StmtLabeledSSA stmtLabeled, String label, Direction dir) {
         //if dir is false = successors
-        if (label.contains(stmtLabeled.getLabel())) {
+        if (stmtLabeled.getLabel().equals(label)) {
             return stmtLabeled;
         } else {
             StmtLabeledSSA related = (dir == Direction.UP) ? stmtLabeled.getPredecessors().get(0) : stmtLabeled.getSuccessors().get(0);
