@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueNth;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.*;
@@ -1246,6 +1247,11 @@ public interface Code {
 	}
 
 	void execute(Statement stmt);
+
+	default void execute(StmtPhi phi){
+		emitter().emit("//%s = (%s, %s);", lvalue(phi.getLValue()), evaluate(phi.getOperands().get(0)), evaluate(phi.getOperands().get(1)));
+	}
+
 
 	default void execute(StmtConsume consume) {
 		emitter().emit("channel_consume_%s(self->%s_channel, %d);", inputPortTypeSize(consume.getPort()), consume.getPort().getName(), consume.getNumberOfTokens());

@@ -10,6 +10,7 @@ import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.entity.am.Transition;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
@@ -700,6 +701,17 @@ public class SsaPhase implements Phase {
 
             return proc.withBody(ImmutableList.of(entryLabeled.getSsaStmt()));
         }
+
+        default IRNode apply(Transition transition){
+            Pair<StmtLabeledSSA, StmtLabeledSSA> entryAndExit = generateCFG(transition);
+            if (!cfgOnly) {
+                applySSA(entryAndExit);
+            }
+            StmtLabeled entryLabeled = transformIntoStmtLabeled(entryAndExit, Direction.UP);
+
+            return transition.withBody(ImmutableList.of(entryLabeled.getSsaStmt()));
+        }
+
     }
 
 
@@ -745,6 +757,27 @@ public class SsaPhase implements Phase {
 
         return new Pair<>(entry, exit);
     }
+
+    private static Pair<StmtLabeledSSA, StmtLabeledSSA> generateCFG(Transition transition){
+        StmtBlock body = (StmtBlock) transition.getBody().get(0);
+        ImmutableList<Statement> stmts;
+        if (!(body.getVarDecls().isEmpty() && body.getTypeDecls().isEmpty())) {
+            StmtBlock startingBlock = new StmtBlock(body.getTypeDecls(), body.getVarDecls(), body.getStatements());
+            stmts = ImmutableList.of(startingBlock);
+        } else {
+            stmts = body.getStatements();
+        }
+
+        StmtLabeledSSA entry = new StmtLabeledSSA("Entry", emptyStmtBlock(), 0);
+        StmtLabeledSSA exit = new StmtLabeledSSA("Exit", emptyStmtBlock(), 0);
+        entry.setShortCutToExit(exit);
+
+        LinkedList<StmtLabeledSSA> sub = iterateSubStmts(stmts, exit, 0);
+        wireRelations(sub, entry, exit);
+
+        return new Pair<>(entry, exit);
+    }
+
 
     private static void addAllLocalVarDecl(StmtLabeledSSA stmtBlock) {
         if(stmtBlock.getOriginalStmt() instanceof StmtBlock) {
