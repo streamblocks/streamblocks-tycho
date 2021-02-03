@@ -10,123 +10,135 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class Connection extends AttributableIRNode {
-	private final End source;
-	private final End target;
+    private final End source;
+    private final End target;
 
-	public Connection(End source, End target) {
-		this(null, source, target);
-	}
+    public Connection(End source, End target) {
+        this(null, source, target);
+    }
 
-	private Connection(Connection original, End source, End target) {
-		super(original);
-		this.source = source;
-		this.target = target;
-	}
+    private Connection(Connection original, End source, End target) {
+        super(original);
+        this.source = source;
+        this.target = target;
+    }
 
-	public Connection copy(End source, End target) {
-		if (Objects.equals(this.source, source) && Objects.equals(this.target, target)) {
-			return this;
-		} else {
-			return new Connection(this, source, target);
-		}
-	}
+    public Connection copy(End source, End target) {
+        if (Objects.equals(this.source, source) && Objects.equals(this.target, target)) {
+            return this;
+        } else {
+            return new Connection(this, source, target);
+        }
+    }
 
-	public End getSource() {
-		return source;
-	}
+    public End getSource() {
+        return source;
+    }
 
-	public Connection withSource(End source) {
-		return copy(source, target);
-	}
+    public Connection withSource(End source) {
+        return copy(source, target);
+    }
 
-	public End getTarget() {
-		return target;
-	}
+    public End getTarget() {
+        return target;
+    }
 
-	public Connection withTarget(End target) {
-		return copy(source, target);
-	}
+    public Connection withTarget(End target) {
+        return copy(source, target);
+    }
 
-	@Override
-	public Connection withAttributes(List<ToolAttribute> attributes) {
-		return (Connection) super.withAttributes(attributes);
-	}
+    @Override
+    public Connection withAttributes(List<ToolAttribute> attributes) {
+        return (Connection) super.withAttributes(attributes);
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public Connection transformChildren(Transformation transformation) {
-		return withAttributes((List) getAttributes().map(transformation));
-	}
+    @Override
+    @SuppressWarnings("unchecked")
+    public Connection transformChildren(Transformation transformation) {
+        return withAttributes((List) getAttributes().map(transformation));
+    }
 
-	@Override
-	public void forEachChild(Consumer<? super IRNode> action) {
-		getAttributes().forEach(action);
-	}
+    @Override
+    public void forEachChild(Consumer<? super IRNode> action) {
+        getAttributes().forEach(action);
+    }
 
-	@Override
-	public Connection deepClone() {
-		return (Connection) super.deepClone();
-	}
+    @Override
+    public Connection deepClone() {
+        return (Connection) super.deepClone();
+    }
 
-	@Override
-	public Connection clone() {
-		return (Connection) super.clone();
-	}
+    @Override
+    public Connection clone() {
+        return (Connection) super.clone();
+    }
 
-	public static final class End {
-		private final Optional<String> instance;
-		private final String port;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		public End(Optional<String> instance, String port) {
-			this.instance = instance;
-			this.port = port;
-		}
+        Connection connection = (Connection) o;
 
-		public Optional<String> getInstance() {
-			return instance;
-		}
+        return Objects.equals(source, connection.source) &&
+                Objects.equals(target, connection.target);
+    }
 
-		public End withInstance(Optional<String> instance) {
-			if (this.instance.equals(instance)) {
-				return this;
-			} else {
-				return new End(instance, port);
-			}
-		}
+    public static final class End {
+        private final Optional<String> instance;
+        private final String port;
 
-		public String getPort() {
-			return port;
-		}
+        public End(Optional<String> instance, String port) {
+            this.instance = instance;
+            this.port = port;
+        }
 
-		public End withPort(String port) {
-			if (this.port.equals(port)) {
-				return this;
-			} else {
-				return new End(instance, port);
-			}
-		}
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-			End end = (End) o;
-			return Objects.equals(instance, end.instance) &&
-					Objects.equals(port, end.port);
-		}
+        public Optional<String> getInstance() {
+            return instance;
+        }
 
-		@Override
-		public int hashCode() {
-			return Objects.hash(instance, port);
-		}
+        public End withInstance(Optional<String> instance) {
+            if (this.instance.equals(instance)) {
+                return this;
+            } else {
+                return new End(instance, port);
+            }
+        }
 
-		@Override
-		public String toString() {
-			return String.format("End(instance = %s, port = %s)", instance.orElse(""), port);
-		}
-	}
+        public String getPort() {
+            return port;
+        }
 
-	@Override
-	public String toString() {
-		return String.format("Connection(source = %s, target = %s)", source, target);
-	}
+        public End withPort(String port) {
+            if (this.port.equals(port)) {
+                return this;
+            } else {
+                return new End(instance, port);
+            }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            End end = (End) o;
+            return Objects.equals(instance, end.instance) &&
+                    Objects.equals(port, end.port);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(instance, port);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("End(instance = %s, port = %s)", instance.orElse(""), port);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Connection(source = %s, target = %s)", source, target);
+    }
 }
