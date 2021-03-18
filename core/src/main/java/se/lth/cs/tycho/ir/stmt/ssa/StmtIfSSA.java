@@ -115,6 +115,10 @@ public class StmtIfSSA extends Statement {
         return copy(condition, thenBranch, elseBranch, join);
     }
 
+    public ImmutableList<Statement> getJoin() {
+        return join;
+    }
+
     private Expression condition;
     private ImmutableList<Statement> thenBranch;
     private ImmutableList<Statement> elseBranch;

@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueNth;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtIfSSA;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.attribute.Types;
@@ -1328,6 +1329,28 @@ public interface Code {
 			emitter().decreaseIndentation();
 		}
 		emitter().emit("}");
+		trackable().exit();
+	}
+
+	default void execute(StmtIfSSA stmt) {
+		trackable().enter();
+		emitter().emit("if (%s) {", evaluate(stmt.getCondition()));
+		emitter().increaseIndentation();
+		trackable().enter();
+		stmt.getThenBranch().forEach(this::execute);
+		trackable().exit();
+		emitter().decreaseIndentation();
+		if (stmt.getElseBranch() != null) {
+			emitter().emit("} else {");
+			emitter().increaseIndentation();
+			trackable().enter();
+			stmt.getElseBranch().forEach(this::execute);
+			trackable().exit();
+			emitter().decreaseIndentation();
+		}
+		emitter().emit("}");
+		stmt.getJoin().forEach(this::execute);
+
 		trackable().exit();
 	}
 
