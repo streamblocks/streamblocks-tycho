@@ -37,7 +37,7 @@ import static se.lth.cs.tycho.ir.Variable.variable;
 public class SsaPhase implements Phase {
 
     private static VariableDeclarations declarations = null;
-    private final Map<Variable, Map<StmtBlock, Expression>> currentDef = new HashMap<>();
+    //private final Map<Variable, Map<StmtBlock, Expression>> currentDef = new HashMap<>();
 
     /**
      * Instantiates a new Ssa phase.
@@ -105,31 +105,89 @@ public class SsaPhase implements Phase {
         return null;
     }*/
 
-    public List<Statement> fillBlock(List<Statement> statements, SSABlock block) {
+    public SSABlock fillBlock(List<Statement> statements, SSABlock block) {
 
-        int splitIndex = 0;
-        for (Statement statement: statements) {
+        //int splitIndex = 0;
+        LinkedList<Statement> stmtsIter = new LinkedList<>(statements);
+        ListIterator<Statement> it = stmtsIter.listIterator();
+        while(it.hasNext()) {
+            Statement statement = it.next();
+
             if (statement instanceof StmtAssignment) {
                 StmtAssignment assignment = (StmtAssignment) statement;
 
                 // To be fixed
                 Variable lValue = ((LValueVariable) assignment.getLValue()).getVariable();
-                LocalVarDecl originalDecl = block.getOriginalDefinition(lValue);
-                //String newNumberedVar = new Variable(originalDecl.getName() + "_" + block.getVariableNumber(lValue));
 
+                VarDecl originalDecl = null; // TODO: change
+                Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + block.getVariableNumber(lValue));
+                writeVariable(lValue, block, new ExprVariable(newNumberedVar));
+                LocalVarDecl numberedVarDecl = new LocalVarDecl(originalDecl.getAnnotations(), originalDecl.getType(),
+                        originalDecl.getName(), originalDecl.getValue(), originalDecl.isConstant());
+                block.addDecl(numberedVarDecl);
+
+                StmtAssignment updatedStmt;
                 if (assignment.getExpression() instanceof ExprVariable) {
                     Variable rValue = ((ExprVariable) assignment.getExpression()).getVariable();
                     Expression expr = readVariable(rValue, block);
-                    writeVariable(lValue, block, expr);
+                    updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), expr);
                 } else {
-                    writeVariable(lValue, block, assignment.getExpression());
+                    updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), assignment.getExpression());
                 }
+                it.set(updatedStmt);
             }
 
-            splitIndex++;
+            else if (statement instanceof StmtBlock) {
+                // We need to split the SSABlocks in order to retain correctness with respect to block predecessors
+                LinkedList<Statement> iteratedStmts = new LinkedList<>(stmtsIter.subList(0, it.previousIndex()));
+
+                StmtBlock stmtBlock = (StmtBlock) statement;
+                SSABlock innerBlockEntry = new SSABlock(stmtBlock.getTypeDecls(), stmtBlock.getVarDecls());
+                innerBlockEntry.addPredecessor(block);
+                innerBlockEntry.seal();
+                SSABlock innerBlockExit = fillBlock(stmtBlock.getStatements(), innerBlockEntry);
+
+                List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
+                SSABlock nextBlock = new SSABlock();
+                nextBlock.addPredecessor(innerBlockExit);
+                nextBlock.seal();
+
+                iteratedStmts.add(innerBlockEntry);
+                iteratedStmts.add(nextBlock);
+                block.setStatements(iteratedStmts); // We finished filling that block
+                return fillBlock(nextStmts, nextBlock);
+            }
+
+            else if (statement instanceof StmtIf) {
+                List<Statement> iteratedStmts = new ArrayList<>(stmtsIter.subList(0, it.previousIndex()));
+
+                StmtIf stmtIf = (StmtIf) statement;
+                SSABlock thenEntry = new SSABlock();
+                thenEntry.addPredecessor(block);
+                thenEntry.seal();
+                SSABlock thenExit = fillBlock(stmtIf.getThenBranch(), thenEntry);
+                SSABlock elseEntry = new SSABlock();
+                elseEntry.addPredecessor(block);
+                elseEntry.seal();
+                SSABlock elseExit = fillBlock(stmtIf.getElseBranch(), elseEntry);
+
+                List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
+                SSABlock nextBlock = new SSABlock();
+                nextBlock.addPredecessor(thenExit);
+                nextBlock.addPredecessor(elseExit);
+                nextBlock.seal();
+
+                Expression newCond = null; // TODO: replace stmtIf.getCondition() using readVariable
+                StmtIf updatedStmt = new StmtIf(newCond, Arrays.asList(thenEntry), Arrays.asList(elseEntry));
+                iteratedStmts.add(updatedStmt);
+                iteratedStmts.add(nextBlock);
+                block.setStatements(iteratedStmts);
+                return fillBlock(nextStmts, nextBlock);
+            }
         }
 
-        return null;
+        block.setStatements(stmtsIter);
+        return block;
     }
 
 
@@ -209,6 +267,10 @@ public class SsaPhase implements Phase {
 
         public void addDecl(LocalVarDecl decl) {
             varDecls.add(decl);
+        }
+
+        public void addPredecessor(SSABlock pred) {
+            predecessors.add(pred);
         }
 
         public void setStatements(List<Statement> statements) {
