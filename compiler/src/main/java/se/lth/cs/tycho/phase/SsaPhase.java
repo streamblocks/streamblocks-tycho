@@ -36,7 +36,7 @@ import static se.lth.cs.tycho.ir.Variable.variable;
  */
 public class SsaPhase implements Phase {
 
-    private static VariableDeclarations declarations = null;
+    private static VariableDeclarations declarations;
     //private final Map<Variable, Map<StmtBlock, Expression>> currentDef = new HashMap<>();
 
     /**
@@ -84,212 +84,24 @@ public class SsaPhase implements Phase {
         default IRNode apply(Transition transition) {
 
             StmtBlock body = (StmtBlock) transition.getBody().get(0);
-            List<Statement> statements;
+            /*List<Statement> statements;
             if (!(body.getVarDecls().isEmpty() && body.getTypeDecls().isEmpty())) {
                 StmtBlock startingBlock = new StmtBlock(body.getTypeDecls(), body.getVarDecls(), body.getStatements());
                 statements = ImmutableList.of(startingBlock);
             } else {
                 statements = body.getStatements();
             }
-            statements.forEach(stmt -> System.out.println(stmt.toString()));
+            statements.forEach(stmt -> System.out.println(stmt.toString()));*/
 
+            SSABlock programEntry = new SSABlock(body.getTypeDecls(), body.getVarDecls());
+            SSABlock exit = programEntry.fill(body.getStatements());
+            return transition.withBody(Arrays.asList(programEntry.getStmtBlock()));
 
             //return transition.withBody(ImmutableList.of(entryLabeled.getSsaStmt()));
-            return transition.withBody(statements);
         }
 
-    }
-
-    /*public StmtBlock fillBlock(StmtBlock block) {
-
-        return null;
-    }*/
-
-    public SSABlock fillBlock(List<Statement> statements, SSABlock block) {
-
-        //int splitIndex = 0;
-        LinkedList<Statement> stmtsIter = new LinkedList<>(statements);
-        ListIterator<Statement> it = stmtsIter.listIterator();
-        while(it.hasNext()) {
-            Statement statement = it.next();
-
-            if (statement instanceof StmtAssignment) {
-                StmtAssignment assignment = (StmtAssignment) statement;
-
-                // To be fixed
-                Variable lValue = ((LValueVariable) assignment.getLValue()).getVariable();
-
-                VarDecl originalDecl = null; // TODO: change
-                Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + block.getVariableNumber(lValue));
-                writeVariable(lValue, block, new ExprVariable(newNumberedVar));
-                LocalVarDecl numberedVarDecl = new LocalVarDecl(originalDecl.getAnnotations(), originalDecl.getType(),
-                        originalDecl.getName(), originalDecl.getValue(), originalDecl.isConstant());
-                block.addDecl(numberedVarDecl);
-
-                StmtAssignment updatedStmt;
-                if (assignment.getExpression() instanceof ExprVariable) {
-                    Variable rValue = ((ExprVariable) assignment.getExpression()).getVariable();
-                    Expression expr = readVariable(rValue, block);
-                    updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), expr);
-                } else {
-                    updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), assignment.getExpression());
-                }
-                it.set(updatedStmt);
-            }
-
-            else if (statement instanceof StmtBlock) {
-                // We need to split the SSABlocks in order to retain correctness with respect to block predecessors
-                LinkedList<Statement> iteratedStmts = new LinkedList<>(stmtsIter.subList(0, it.previousIndex()));
-
-                StmtBlock stmtBlock = (StmtBlock) statement;
-                SSABlock innerBlockEntry = new SSABlock(stmtBlock.getTypeDecls(), stmtBlock.getVarDecls());
-                innerBlockEntry.addPredecessor(block);
-                innerBlockEntry.seal();
-                SSABlock innerBlockExit = fillBlock(stmtBlock.getStatements(), innerBlockEntry);
-
-                List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
-                SSABlock nextBlock = new SSABlock();
-                nextBlock.addPredecessor(innerBlockExit);
-                nextBlock.seal();
-
-                iteratedStmts.add(innerBlockEntry);
-                iteratedStmts.add(nextBlock);
-                block.setStatements(iteratedStmts); // We finished filling that block
-                return fillBlock(nextStmts, nextBlock);
-            }
-
-            else if (statement instanceof StmtIf) {
-                List<Statement> iteratedStmts = new ArrayList<>(stmtsIter.subList(0, it.previousIndex()));
-
-                StmtIf stmtIf = (StmtIf) statement;
-                SSABlock thenEntry = new SSABlock();
-                thenEntry.addPredecessor(block);
-                thenEntry.seal();
-                SSABlock thenExit = fillBlock(stmtIf.getThenBranch(), thenEntry);
-                SSABlock elseEntry = new SSABlock();
-                elseEntry.addPredecessor(block);
-                elseEntry.seal();
-                SSABlock elseExit = fillBlock(stmtIf.getElseBranch(), elseEntry);
-
-                List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
-                SSABlock nextBlock = new SSABlock();
-                nextBlock.addPredecessor(thenExit);
-                nextBlock.addPredecessor(elseExit);
-                nextBlock.seal();
-
-                Expression newCond = null; // TODO: replace stmtIf.getCondition() using readVariable
-                StmtIf updatedStmt = new StmtIf(newCond, Arrays.asList(thenEntry), Arrays.asList(elseEntry));
-                iteratedStmts.add(updatedStmt);
-                iteratedStmts.add(nextBlock);
-                block.setStatements(iteratedStmts);
-                return fillBlock(nextStmts, nextBlock);
-            }
-        }
-
-        block.setStatements(stmtsIter);
-        return block;
-    }
 
 
-// ------------------------------------------------------ SSA algorithm core -------------------------------------------------------------
-
-    /*public void writeVariable(Variable variable, StmtBlock block, Expression value) {
-        currentDef.putIfAbsent(variable, new HashMap<>());
-        Map<StmtBlock, Expression> currentDefVar = currentDef.get(variable);
-        currentDefVar.put(block, value);
-    }
-
-    public Expression readVariable(Variable variable, StmtBlock block) {
-        if (currentDef.get(variable).containsKey(block)) {
-            currentDef.get(variable).get(block);
-        }
-        return readVariableRecursive(variable, block);
-    }
-
-    public Expression readVariableRecursive(Variable variable, StmtBlock block) {
-        throw new UnsupportedOperationException();
-    }*/
-
-    public void writeVariable(Variable variable, SSABlock block, Expression value) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Expression readVariable(Variable variable, SSABlock block) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Expression readVariableRecursive(Variable variable, SSABlock block) {
-        throw new UnsupportedOperationException();
-    }
-
-// ------------------------------------------------------ SSA data structure -------------------------------------------------------------
-
-    private class SSABlock extends Statement {
-
-        private List<TypeDecl> typeDecls;
-        private LinkedList<LocalVarDecl> varDecls;
-        private final List<SSABlock> predecessors = new LinkedList<>();
-        private final Map<Variable, Expression> currentDef = new HashMap<>();
-        private final Map<Variable, Integer> currentNumber = new HashMap<>();
-        private List<Statement> statements;
-        private List<StmtPhi> phis;
-        private boolean sealed = false;
-
-        private SSABlock(SSABlock original, List<TypeDecl> typeDecls, LinkedList<LocalVarDecl> varDecls) {
-            super(original);
-            this.typeDecls = typeDecls;
-            this.varDecls = varDecls;
-        }
-
-        public SSABlock(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls) {
-            this(null, typeDecls, new LinkedList<>(varDecls));
-        }
-
-        public SSABlock() {
-            this(new LinkedList<>(), new LinkedList<>());
-        }
-
-        public void seal() {
-            sealed = true;
-        }
-
-        public LocalVarDecl getOriginalDefinition(Variable variable) {
-            //varDecls.stream().fin
-            return null;
-        }
-
-        public int getVariableNumber(Variable variable) {
-            if (currentNumber.containsKey(variable)) {
-                return currentNumber.get(variable);
-            }
-            return predecessors.stream().map(blk -> blk.getVariableNumber(variable)).max(Integer::compare).get();
-        }
-
-        public void addDecl(LocalVarDecl decl) {
-            varDecls.add(decl);
-        }
-
-        public void addPredecessor(SSABlock pred) {
-            predecessors.add(pred);
-        }
-
-        public void setStatements(List<Statement> statements) {
-            this.statements = statements;
-        }
-
-        public StmtBlock getStmtBlock() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void forEachChild(Consumer<? super IRNode> action) {
-
-        }
-
-        @Override
-        public Statement transformChildren(Transformation transformation) {
-            return null;
-        }
     }
 
 }
