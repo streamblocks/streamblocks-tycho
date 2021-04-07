@@ -55,11 +55,6 @@ public class SSABlock extends Statement {
         sealed = true;
     }
 
-    public LocalVarDecl getOriginalDefinition(Variable variable) {
-        //varDecls.stream().fin
-        return null;
-    }
-
     public int getVariableNumber(Variable variable) {
         if (currentNumber.containsKey(variable.getName())) {
             return currentNumber.get(variable.getName());
@@ -98,8 +93,8 @@ public class SSABlock extends Statement {
         return predecessors.get(0).readVariable(variable);
     }
 
-    public SSABlock fill(List<Statement> statements, VariableDeclarations declarations) {
-        //CollectOrReplaceExpressions subExprCollectorOrReplacer;
+    // programEntry argument is temporary, a recursive solution is probably better (and will deal with shadowing problem)
+    public SSABlock fill(List<Statement> statements, VariableDeclarations declarations, SSABlock programEntry) {
         ReplaceVariablesInExpression replacer = MultiJ.from(ReplaceVariablesInExpression.class).instance();
 
         //int splitIndex = 0;
@@ -120,8 +115,8 @@ public class SSABlock extends Statement {
                 incrementVariableNumber(lValue);
                 writeVariable(lValue, new ExprVariable(newNumberedVar));
                 LocalVarDecl numberedVarDecl = new LocalVarDecl(originalDecl.getAnnotations(), originalDecl.getType(),
-                        newNumberedVar.getName(), originalDecl.getValue(), originalDecl.isConstant());
-                addDecl(numberedVarDecl);
+                        newNumberedVar.getName(), null, originalDecl.isConstant());
+                programEntry.addDecl(numberedVarDecl);
 
                 StmtAssignment updatedStmt;
                 /*if (assignment.getExpression() instanceof ExprVariable) {
@@ -144,7 +139,7 @@ public class SSABlock extends Statement {
                 SSABlock innerBlockEntry = new SSABlock(stmtBlock.getTypeDecls(), stmtBlock.getVarDecls());
                 innerBlockEntry.addPredecessor(this);
                 innerBlockEntry.seal();
-                SSABlock innerBlockExit = innerBlockEntry.fill(stmtBlock.getStatements(), declarations);
+                SSABlock innerBlockExit = innerBlockEntry.fill(stmtBlock.getStatements(), declarations, programEntry);
 
                 if (it.nextIndex() >= stmtsIter.size()) {
                     iteratedStmts.add(innerBlockEntry);
@@ -160,7 +155,7 @@ public class SSABlock extends Statement {
                 iteratedStmts.add(innerBlockEntry);
                 iteratedStmts.add(nextBlock);
                 setStatements(iteratedStmts); // We finished filling that block
-                return nextBlock.fill(nextStmts, declarations);
+                return nextBlock.fill(nextStmts, declarations, programEntry);
             }
 
             else if (statement instanceof StmtIf) {
@@ -170,11 +165,11 @@ public class SSABlock extends Statement {
                 SSABlock thenEntry = new SSABlock();
                 thenEntry.addPredecessor(this);
                 thenEntry.seal();
-                SSABlock thenExit = thenEntry.fill(stmtIf.getThenBranch(), declarations);
+                SSABlock thenExit = thenEntry.fill(stmtIf.getThenBranch(), declarations, programEntry);
                 SSABlock elseEntry = new SSABlock();
                 elseEntry.addPredecessor(this);
                 elseEntry.seal();
-                SSABlock elseExit = elseEntry.fill(stmtIf.getElseBranch(), declarations);
+                SSABlock elseExit = elseEntry.fill(stmtIf.getElseBranch(), declarations, programEntry);
 
                 List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
                 SSABlock nextBlock = new SSABlock();
@@ -187,7 +182,7 @@ public class SSABlock extends Statement {
                 iteratedStmts.add(updatedStmt);
                 iteratedStmts.add(nextBlock);
                 setStatements(iteratedStmts);
-                return nextBlock.fill(nextStmts, declarations);
+                return nextBlock.fill(nextStmts, declarations, programEntry);
             }
         }
 
