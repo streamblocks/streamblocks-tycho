@@ -4,6 +4,7 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.decl.AbstractDecl;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
@@ -113,7 +114,8 @@ public class SSABlock extends Statement {
                 // To be fixed
                 Variable lValue = ((LValueVariable) assignment.getLValue()).getVariable();
 
-                VarDecl originalDecl = declarations.declaration(lValue);
+                //VarDecl originalDecl = declarations.declaration(lValue);
+                VarDecl originalDecl = (VarDecl) declarations.declaration(lValue).deepClone();
                 Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + getVariableNumber(lValue));
                 incrementVariableNumber(lValue);
                 writeVariable(lValue, new ExprVariable(newNumberedVar));
@@ -144,7 +146,7 @@ public class SSABlock extends Statement {
                 innerBlockEntry.seal();
                 SSABlock innerBlockExit = innerBlockEntry.fill(stmtBlock.getStatements(), declarations);
 
-                if (it.nextIndex() >= iteratedStmts.size()) {
+                if (it.nextIndex() >= stmtsIter.size()) {
                     iteratedStmts.add(innerBlockEntry);
                     setStatements(iteratedStmts);
                     return innerBlockExit;

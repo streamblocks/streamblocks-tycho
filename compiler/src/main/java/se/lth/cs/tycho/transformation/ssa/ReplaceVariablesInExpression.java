@@ -19,7 +19,7 @@ public interface ReplaceVariablesInExpression {
 
     default Expression replaceVariables(ExprVariable expr, SSABlock block) {
         Variable var = expr.getVariable();
-        return block.readVariable(var);
+        return (Expression) block.readVariable(var).deepClone();
     }
 
     default Expression replaceVariables(ExprBinaryOp expr, SSABlock block) {

@@ -99,9 +99,8 @@ public class SsaPhase implements Phase {
             SSABlock programEntry = new SSABlock();
             SSABlock exit = programEntry.fill(transition.getBody(), declarations);
             List<Statement> res = programEntry.getStmtBlock().getStatements();
-            return transition.withBody(programEntry.getStmtBlock().getStatements());
-
-            //return transition.withBody(statements);
+            return transition.withBody(res);
+            //return transition.withBody(programEntry.getStmtBlock().getStatements());
         }
 
 
