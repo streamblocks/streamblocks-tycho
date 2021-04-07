@@ -1,5 +1,7 @@
-package se.lth.cs.tycho.ir.stmt.ssa;
+package se.lth.cs.tycho.transformation.ssa;
 
+import org.multij.MultiJ;
+import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
@@ -12,17 +14,19 @@ import se.lth.cs.tycho.ir.stmt.StmtAssignment;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtIf;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class SSABlock extends Statement {
 
     private List<TypeDecl> typeDecls;
     private LinkedList<LocalVarDecl> varDecls;
     private final List<SSABlock> predecessors = new LinkedList<>();
-    private final Map<Variable, Expression> currentDef = new HashMap<>();
-    private final Map<Variable, Integer> currentNumber = new HashMap<>();
+    private final Map<String, Expression> currentDef = new HashMap<>();
+    private final Map<String, Integer> currentNumber = new HashMap<>();
     private List<Statement> statements;
     private List<StmtPhi> phis;
     private boolean sealed = false;
@@ -31,6 +35,11 @@ public class SSABlock extends Statement {
         super(original);
         this.typeDecls = typeDecls;
         this.varDecls = varDecls;
+        for (LocalVarDecl decl: varDecls) {
+            Variable originalVar = Variable.variable(decl.getName());
+            writeVariable(originalVar, new ExprVariable(originalVar));
+            currentNumber.put(originalVar.getName(), 1);
+        }
     }
 
     public SSABlock(List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls) {
@@ -51,14 +60,14 @@ public class SSABlock extends Statement {
     }
 
     public int getVariableNumber(Variable variable) {
-        if (currentNumber.containsKey(variable)) {
-            return currentNumber.get(variable);
+        if (currentNumber.containsKey(variable.getName())) {
+            return currentNumber.get(variable.getName());
         }
-        return predecessors.stream().map(blk -> blk.getVariableNumber(variable)).max(Integer::compare).get();
+        return predecessors.get(0).getVariableNumber(variable);
     }
 
     public void incrementVariableNumber(Variable variable) {
-        currentNumber.put(variable, getVariableNumber(variable) + 1);
+        currentNumber.put(variable.getName(), getVariableNumber(variable) + 1);
     }
 
     public void addDecl(LocalVarDecl decl) {
@@ -74,21 +83,23 @@ public class SSABlock extends Statement {
     }
 
     public void writeVariable(Variable variable, Expression value) {
-        currentDef.put(variable, value);
+        currentDef.put(variable.getName(), value);
     }
 
     public Expression readVariable(Variable variable) {
-        if (currentDef.containsKey(variable)) {
-            return currentDef.get(variable);
+        if (currentDef.containsKey(variable.getName())) {
+            return currentDef.get(variable.getName());
         }
         return readVariableRecursive(variable);
     }
 
     public Expression readVariableRecursive(Variable variable) {
-        throw new UnsupportedOperationException();
+        return predecessors.get(0).readVariable(variable);
     }
 
-    public SSABlock fill(List<Statement> statements) {
+    public SSABlock fill(List<Statement> statements, VariableDeclarations declarations) {
+        //CollectOrReplaceExpressions subExprCollectorOrReplacer;
+        ReplaceVariablesInExpression replacer = MultiJ.from(ReplaceVariablesInExpression.class).instance();
 
         //int splitIndex = 0;
         LinkedList<Statement> stmtsIter = new LinkedList<>(statements);
@@ -102,22 +113,24 @@ public class SSABlock extends Statement {
                 // To be fixed
                 Variable lValue = ((LValueVariable) assignment.getLValue()).getVariable();
 
-                VarDecl originalDecl = null;//declarations.declaration(lValue); // TODO: change
+                VarDecl originalDecl = declarations.declaration(lValue);
                 Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + getVariableNumber(lValue));
                 incrementVariableNumber(lValue);
                 writeVariable(lValue, new ExprVariable(newNumberedVar));
                 LocalVarDecl numberedVarDecl = new LocalVarDecl(originalDecl.getAnnotations(), originalDecl.getType(),
-                        originalDecl.getName(), originalDecl.getValue(), originalDecl.isConstant());
+                        newNumberedVar.getName(), originalDecl.getValue(), originalDecl.isConstant());
                 addDecl(numberedVarDecl);
 
                 StmtAssignment updatedStmt;
-                if (assignment.getExpression() instanceof ExprVariable) {
+                /*if (assignment.getExpression() instanceof ExprVariable) {
                     Variable rValue = ((ExprVariable) assignment.getExpression()).getVariable();
                     Expression expr = readVariable(rValue);
                     updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), expr);
                 } else {
                     updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), assignment.getExpression());
-                }
+                }*/
+                Expression newExpr = replacer.replaceVariables(assignment.getExpression(), this);
+                updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), newExpr);
                 it.set(updatedStmt);
             }
 
@@ -129,7 +142,13 @@ public class SSABlock extends Statement {
                 SSABlock innerBlockEntry = new SSABlock(stmtBlock.getTypeDecls(), stmtBlock.getVarDecls());
                 innerBlockEntry.addPredecessor(this);
                 innerBlockEntry.seal();
-                SSABlock innerBlockExit = innerBlockEntry.fill(stmtBlock.getStatements());
+                SSABlock innerBlockExit = innerBlockEntry.fill(stmtBlock.getStatements(), declarations);
+
+                if (it.nextIndex() >= iteratedStmts.size()) {
+                    iteratedStmts.add(innerBlockEntry);
+                    setStatements(iteratedStmts);
+                    return innerBlockExit;
+                }
 
                 List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
                 SSABlock nextBlock = new SSABlock();
@@ -139,7 +158,7 @@ public class SSABlock extends Statement {
                 iteratedStmts.add(innerBlockEntry);
                 iteratedStmts.add(nextBlock);
                 setStatements(iteratedStmts); // We finished filling that block
-                return nextBlock.fill(nextStmts);
+                return nextBlock.fill(nextStmts, declarations);
             }
 
             else if (statement instanceof StmtIf) {
@@ -149,11 +168,11 @@ public class SSABlock extends Statement {
                 SSABlock thenEntry = new SSABlock();
                 thenEntry.addPredecessor(this);
                 thenEntry.seal();
-                SSABlock thenExit = thenEntry.fill(stmtIf.getThenBranch());
+                SSABlock thenExit = thenEntry.fill(stmtIf.getThenBranch(), declarations);
                 SSABlock elseEntry = new SSABlock();
                 elseEntry.addPredecessor(this);
                 elseEntry.seal();
-                SSABlock elseExit = elseEntry.fill(stmtIf.getElseBranch());
+                SSABlock elseExit = elseEntry.fill(stmtIf.getElseBranch(), declarations);
 
                 List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
                 SSABlock nextBlock = new SSABlock();
@@ -161,12 +180,12 @@ public class SSABlock extends Statement {
                 nextBlock.addPredecessor(elseExit);
                 nextBlock.seal();
 
-                Expression newCond = null; // TODO: replace stmtIf.getCondition() using readVariable
+                Expression newCond = replacer.replaceVariables(stmtIf.getCondition(), this); // TODO: replace stmtIf.getCondition() using readVariable
                 StmtIf updatedStmt = new StmtIf(newCond, Arrays.asList(thenEntry), Arrays.asList(elseEntry));
                 iteratedStmts.add(updatedStmt);
                 iteratedStmts.add(nextBlock);
                 setStatements(iteratedStmts);
-                return nextBlock.fill(nextStmts);
+                return nextBlock.fill(nextStmts, declarations);
             }
         }
 
@@ -175,7 +194,13 @@ public class SSABlock extends Statement {
     }
 
     public StmtBlock getStmtBlock() {
-        throw new UnsupportedOperationException();
+
+        List<Statement> completed = statements.stream().map(statement -> {
+            if (statement instanceof SSABlock) return ((SSABlock) statement).getStmtBlock();
+            else return statement;
+        }).collect(Collectors.toList());
+
+        return new StmtBlock(typeDecls, varDecls, completed);
     }
 
     @Override
@@ -188,3 +213,5 @@ public class SSABlock extends Statement {
         return null;
     }
 }
+
+

@@ -1,13 +1,11 @@
 package se.lth.cs.tycho.phase;
 
-import jdk.vm.ci.meta.Local;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.ir.IRNode;
-import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
@@ -21,6 +19,7 @@ import se.lth.cs.tycho.ir.stmt.ssa.*;
 import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
+import se.lth.cs.tycho.transformation.ssa.SSABlock;
 import se.lth.cs.tycho.util.Pair;
 
 import java.util.*;
@@ -38,6 +37,7 @@ public class SsaPhase implements Phase {
 
     private static VariableDeclarations declarations;
     //private final Map<Variable, Map<StmtBlock, Expression>> currentDef = new HashMap<>();
+    //private static final CollectOrReplaceExpressions subExprCollectorOrReplacer = MultiJ.from(CollectOrReplaceExpressions.class).instance();
 
     /**
      * Instantiates a new Ssa phase.
@@ -84,24 +84,31 @@ public class SsaPhase implements Phase {
         default IRNode apply(Transition transition) {
 
             StmtBlock body = (StmtBlock) transition.getBody().get(0);
-            /*List<Statement> statements;
+            List<Statement> statements;
             if (!(body.getVarDecls().isEmpty() && body.getTypeDecls().isEmpty())) {
                 StmtBlock startingBlock = new StmtBlock(body.getTypeDecls(), body.getVarDecls(), body.getStatements());
                 statements = ImmutableList.of(startingBlock);
             } else {
                 statements = body.getStatements();
             }
-            statements.forEach(stmt -> System.out.println(stmt.toString()));*/
+            statements.forEach(stmt -> System.out.println(stmt.toString()));
 
-            SSABlock programEntry = new SSABlock(body.getTypeDecls(), body.getVarDecls());
-            SSABlock exit = programEntry.fill(body.getStatements());
-            return transition.withBody(Arrays.asList(programEntry.getStmtBlock()));
+            //SSABlock programEntry = new SSABlock(body.getTypeDecls(), body.getVarDecls());
+            //SSABlock exit = programEntry.fill(body.getStatements(), declarations);
+            //return transition.withBody(Arrays.asList(programEntry.getStmtBlock()));
+            SSABlock programEntry = new SSABlock();
+            SSABlock exit = programEntry.fill(transition.getBody(), declarations);
+            List<Statement> res = programEntry.getStmtBlock().getStatements();
+            return transition.withBody(programEntry.getStmtBlock().getStatements());
 
-            //return transition.withBody(ImmutableList.of(entryLabeled.getSsaStmt()));
+            //return transition.withBody(statements);
         }
 
 
 
     }
+
+
+
 
 }
