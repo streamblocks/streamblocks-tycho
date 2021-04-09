@@ -170,18 +170,6 @@ public class TemplateInstantiationPhase implements Phase {
             return instantiate().apply(meta).transformChildren(this);
         }
 
-/*
-        default IRNode apply(MetaGlobalEntityDecl decl) {
-            QID identifier = task().getIdentifier();
-
-            Optional<QID> qid = globalNames().globalName(decl);
-            if (qid.isPresent()) {
-                if (qid.get().equals(identifier)) {
-                   // return instantiate().apply(decl).transformChildren(this);
-                }
-            }
-            return decl.transformChildren(this);
-        }*/
     }
 
     @Module

@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.phase;
 
+import org.multij.MultiJ;
 import se.lth.cs.tycho.compiler.*;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.decl.Availability;
@@ -11,6 +12,11 @@ import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.meta.interp.Environment;
+import se.lth.cs.tycho.meta.interp.Interpreter;
+import se.lth.cs.tycho.meta.interp.value.Value;
+import se.lth.cs.tycho.meta.interp.value.ValueString;
+import se.lth.cs.tycho.meta.interp.value.util.Convert;
 import se.lth.cs.tycho.transformation.composition.Composer;
 import se.lth.cs.tycho.transformation.composition.Connection;
 import se.lth.cs.tycho.transformation.composition.SourcePort;
@@ -73,11 +79,20 @@ public class CompositionPhase implements Phase {
 		return Arrays.asList(actorComposition, eagerTestSetting);
 	}
 
+	private Interpreter interp;
+	private Environment env;
+	private Convert convert;
+
+
 	@Override
 	public CompilationTask execute(CompilationTask task, Context context) {
 		if (!context.getConfiguration().get(actorComposition)) {
 			return task;
 		}
+		interp = task.getModule(Interpreter.key);
+		env = new Environment();
+		convert = MultiJ.from(Convert.class).instance();
+
 		Map<String, List<se.lth.cs.tycho.ir.network.Connection>> compositions =
 				task.getNetwork().getConnections().stream()
 						.filter(this::hasCompositionId)
@@ -203,9 +218,11 @@ public class CompositionPhase implements Phase {
 	private String compositionId(se.lth.cs.tycho.ir.network.Connection connection) {
 		Optional<ToolValueAttribute> attribute = connection.getValueAttribute("composition");
 		assert attribute.isPresent();
-		Expression value = attribute.get().getValue();
-		assert value instanceof ExprLiteral : "Composition attribute must be a constant.";
-		ExprLiteral literal = (ExprLiteral) value;
+		Expression expr = attribute.get().getValue();
+		Value value = interp.eval(expr, env);
+		assert value instanceof ValueString;
+		ExprLiteral literal = (ExprLiteral) convert.apply(value);
+		assert literal != null : "Composition attribute must be a constant.";
 		Optional<String> string = literal.asString();
 		assert string.isPresent() : "Composition attribute must be a string.";
 		return string.get();

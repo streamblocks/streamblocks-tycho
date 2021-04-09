@@ -7,6 +7,8 @@ public abstract class Operator {
 			case "!":
 			case "not":
 				return new OperatorNot();
+			case "~":
+				return new OperatorInverse();
 			case "#":
 				return new OperatorSize();
 			case "dom":
@@ -29,8 +31,10 @@ public abstract class Operator {
 				return new OperatorDisjunction();
 			case "&&":
 				return new OperatorConjunction();
+			case "or":
 			case "|":
 				return new OperatorOr();
+			case "and":
 			case "&":
 				return new OperatorAnd();
 			case "^":

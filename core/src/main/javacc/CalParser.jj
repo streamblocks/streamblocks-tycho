@@ -759,8 +759,8 @@ Import.Kind ImportKind() :
 GlobalEntityDecl NetworkDecl() :
 {
 	Token id;
-	ImmutableList<ParameterTypeDecl> typePars = ImmutableList.empty();
-	ImmutableList<ParameterVarDecl> valuePars;
+	ImmutableList.Builder<ParameterTypeDecl> typePars = ImmutableList.builder();
+	ImmutableList.Builder<ParameterVarDecl> valuePars = ImmutableList.builder();
 	ImmutableList<PortDecl> inputPorts;
 	ImmutableList<PortDecl> outputPorts;
 	ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
@@ -776,7 +776,7 @@ GlobalEntityDecl NetworkDecl() :
 	"network"
 	id = <ID>
 	"("
-	valuePars = FormalValuePars()
+	FormalParameters(typePars, valuePars)
 	")"
 	inputPorts = PortDecls()
 	"==>"
@@ -794,7 +794,7 @@ GlobalEntityDecl NetworkDecl() :
 	"end"
 
 
-	{ return GlobalEntityDecl.global(Availability.PUBLIC, id.image, new NlNetwork(annotations.build(), typePars, valuePars, typeDecls.build(), varDecls.build(), inputPorts, outputPorts,
+	{ return GlobalEntityDecl.global(Availability.PUBLIC, id.image, new NlNetwork(annotations.build(), typePars.build(), valuePars.build(), typeDecls.build(), varDecls.build(), inputPorts, outputPorts,
                  			instances, structure)); }
 }
 

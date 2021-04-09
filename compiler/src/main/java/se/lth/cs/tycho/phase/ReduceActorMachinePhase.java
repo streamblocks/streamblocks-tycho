@@ -47,7 +47,7 @@ public class ReduceActorMachinePhase implements Phase {
 
 		@Override
 		public Integer defaultValue(Configuration configuration) {
-			return 10; // As some point RVC_MPEG4_SP_Decoder needed 13 iterations to be fully reduced.
+			return 20; // As some point RVC_MPEG4_SP_Decoder needed 13 iterations to be fully reduced.
 		}
 	};
 
