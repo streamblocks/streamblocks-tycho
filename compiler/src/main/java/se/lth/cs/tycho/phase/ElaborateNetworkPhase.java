@@ -41,7 +41,7 @@ public class ElaborateNetworkPhase implements Phase {
 
     @Override
     public CompilationTask execute(CompilationTask task, Context context) {
-        return task.withNetwork(fullyElaborate(task, context, task.getNetwork(), new HashSet<>(), Optional.empty()));
+        return task.withNetwork(fullyElaborate(task, context, task.getNetwork(), new HashSet<>(), Collections.emptyList()));
     }
 
     public static final Setting<Boolean> experimentalNetworkElaboration = new OnOffSetting() {
@@ -66,21 +66,21 @@ public class ElaborateNetworkPhase implements Phase {
         return Arrays.asList(experimentalNetworkElaboration);
     }
 
-    public Network fullyElaborate(CompilationTask task, Context context, Network network, Set<String> names, Optional<ToolAttribute> partition) {
+    public Network fullyElaborate(CompilationTask task, Context context, Network network, Set<String> names, List<ToolAttribute> attributes) {
         Network result = uniqueNames(network, names);
         for (Instance instance : result.getInstances()) {
             GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
             Network elaborated;
             if (entity.getEntity() instanceof NlNetwork) {
-                Optional<ToolAttribute> instPartition = partition.isPresent() ? partition : getPartitionAttribute(instance);
+                attributes = instance.getAttributes();
                 if (context.getConfiguration().get(experimentalNetworkElaboration)) {
-                    NlToNetwork nlToNetwork = new NlToNetwork(task, (NlNetwork) entity.getEntity());
+                    NlToNetwork nlToNetwork = new NlToNetwork(task, (NlNetwork) entity.getEntity(), attributes);
                     nlToNetwork.evaluate(instance.getValueParameters());
                     elaborated = nlToNetwork.getNetwork();
                 } else {
-                    elaborated = elaborate(context, (NlNetwork) entity.getEntity(), instPartition);
+                    elaborated = elaborate(context, (NlNetwork) entity.getEntity(), attributes);
                 }
-                elaborated = fullyElaborate(task, context, elaborated, names, instPartition);
+                elaborated = fullyElaborate(task, context, elaborated, names, attributes);
                 result = connectElaboratedInstance(result, instance.getInstanceName(), elaborated);
             }
         }
@@ -193,7 +193,7 @@ public class ElaborateNetworkPhase implements Phase {
         return attributes.map(ToolAttribute::deepClone);
     }
 
-    private Network elaborate(Context context, NlNetwork network, Optional<ToolAttribute> partition) {
+    private Network elaborate(Context context, NlNetwork network, List<ToolAttribute> attributes) {
 //		assert network.getValueParameters().isEmpty();
 //		assert network.getTypeParameters().isEmpty();
 //		assert network.getVarDecls().isEmpty();
@@ -211,8 +211,8 @@ public class ElaborateNetworkPhase implements Phase {
                 QID entityName = ((EntityReferenceGlobal) expr.getEntityName()).getGlobalName();
 
                 ImmutableList.Builder<ToolAttribute> attrs = ImmutableList.builder();
-                if (partition.isPresent())
-                    attrs.add(partition.get().deepClone());
+
+                attrs.addAll(ImmutableList.from(attributes).map(ToolAttribute::deepClone));
                 attrs.addAll(expr.getAttributes().map(ToolAttribute::deepClone));
                 Instance instance = new Instance(
                         entity.getInstanceName(),

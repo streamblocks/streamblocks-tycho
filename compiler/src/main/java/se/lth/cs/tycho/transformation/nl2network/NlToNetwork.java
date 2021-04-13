@@ -47,10 +47,7 @@ import se.lth.cs.tycho.meta.interp.value.util.Convert;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, StructureStmtVisitor<StructureStatement, Environment> {
 
@@ -60,13 +57,15 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     private HashMap<InstanceDecl, EntityExpr> entities;
     private ArrayList<StructureStatement> structure;
     private boolean evaluated;
+    private final List<ToolAttribute> attributes;
 
     private CompilationTask task;
 
     private EntityDeclarations entityDeclarations;
 
-    public NlToNetwork(CompilationTask task, NlNetwork network) {
+    public NlToNetwork(CompilationTask task, NlNetwork network, List<ToolAttribute> attributes) {
         this.srcNetwork = network;
+        this.attributes = attributes;
         this.evaluated = false;
         this.task = task;
         this.entityDeclarations = task.getModule(EntityDeclarations.key);
@@ -124,7 +123,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         assert evaluated;
         ImmutableList<PortDecl> inputPorts = srcNetwork.getInputPorts().map(PortDecl::deepClone);
         ImmutableList<PortDecl> outputPorts = srcNetwork.getOutputPorts().map(PortDecl::deepClone);
-        NetworkInstanceBuilder nb = new NetworkInstanceBuilder();
+        NetworkInstanceBuilder nb = new NetworkInstanceBuilder(attributes);
         for (Map.Entry<InstanceDecl, EntityExpr> entry : entities.entrySet()) {
             entry.getValue().accept(nb, entry.getKey().getInstanceName());
         }
@@ -285,8 +284,16 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
 
     private class NetworkInstanceBuilder implements EntityExprVisitor<Void, String>, StructureStmtVisitor<Void, String> {
-        HashMap<String, Instance> instances = new HashMap<>();
-        ImmutableList.Builder<Connection> connections = new ImmutableList.Builder<Connection>();
+        private final HashMap<String, Instance> instances;
+        private final ImmutableList.Builder<Connection> connections;
+
+        private ImmutableList<ToolAttribute> attributes;
+
+        public NetworkInstanceBuilder(List<ToolAttribute> attributes ){
+            instances = new HashMap<>();
+            connections =  new ImmutableList.Builder<Connection>();
+            this.attributes = ImmutableList.from(attributes);
+        }
 
         public ImmutableList<Instance> getInstances() {
             return ImmutableList.copyOf(instances.values());
@@ -299,12 +306,15 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
         @Override
         public Void visitEntityInstanceExpr(EntityInstanceExpr e, String s) {
             QID entityName = ((EntityReferenceGlobal) e.getEntityName()).getGlobalName();
+            ImmutableList.Builder<ToolAttribute> attrs = ImmutableList.builder();
+            attrs.addAll(attributes.map(ToolAttribute::deepClone));
+            attrs.addAll(e.getAttributes().map(ToolAttribute::deepClone));
             Instance instance = new Instance(
                     s,
                     entityName,
                     e.getValueParameters().map(ValueParameter::deepClone),
                     ImmutableList.empty())
-                    .withAttributes(e.getAttributes().map(ToolAttribute::deepClone));
+                    .withAttributes(attrs.build());
             instances.put(instance.getInstanceName(), instance);
             return null;
         }
