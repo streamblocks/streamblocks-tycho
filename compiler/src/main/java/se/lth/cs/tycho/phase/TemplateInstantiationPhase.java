@@ -4,47 +4,27 @@ import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
-import se.lth.cs.tycho.attribute.EntityDeclarations;
-import se.lth.cs.tycho.attribute.GlobalNames;
-import se.lth.cs.tycho.attribute.ModuleKey;
-import se.lth.cs.tycho.attribute.TypeScopes;
-import se.lth.cs.tycho.attribute.VariableDeclarations;
-import se.lth.cs.tycho.compiler.CompilationTask;
-import se.lth.cs.tycho.compiler.Context;
-import se.lth.cs.tycho.compiler.GlobalDeclarations;
-import se.lth.cs.tycho.compiler.SourceUnit;
-import se.lth.cs.tycho.compiler.UniqueNumbers;
+import se.lth.cs.tycho.attribute.*;
+import se.lth.cs.tycho.compiler.*;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
-import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
-import se.lth.cs.tycho.ir.decl.Availability;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.GlobalTypeDecl;
-import se.lth.cs.tycho.ir.decl.GlobalVarDecl;
-import se.lth.cs.tycho.ir.decl.Import;
-import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
-import se.lth.cs.tycho.ir.decl.SingleImport;
-import se.lth.cs.tycho.ir.decl.SumTypeDecl;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.nl.EntityReference;
-import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
-import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
+import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.meta.core.Meta;
-import se.lth.cs.tycho.meta.core.MetaArgument;
-import se.lth.cs.tycho.meta.core.MetaArgumentType;
-import se.lth.cs.tycho.meta.core.MetaArgumentValue;
-import se.lth.cs.tycho.meta.core.MetaParameter;
+import se.lth.cs.tycho.meta.core.*;
+import se.lth.cs.tycho.meta.interp.Environment;
 import se.lth.cs.tycho.meta.interp.Interpreter;
 import se.lth.cs.tycho.meta.interp.op.Binary;
 import se.lth.cs.tycho.meta.interp.op.Unary;
 import se.lth.cs.tycho.meta.interp.value.Value;
+import se.lth.cs.tycho.meta.interp.value.ValueBool;
+import se.lth.cs.tycho.meta.interp.value.ValueList;
 import se.lth.cs.tycho.meta.interp.value.ValueUndefined;
 import se.lth.cs.tycho.meta.interp.value.util.Convert;
 import se.lth.cs.tycho.meta.ir.decl.MetaAlgebraicTypeDecl;
@@ -56,16 +36,9 @@ import se.lth.cs.tycho.meta.ir.expr.pattern.MetaPatternDeconstruction;
 import se.lth.cs.tycho.meta.ir.type.MetaNominalTypeExpr;
 import se.lth.cs.tycho.meta.ir.type.MetaTypeExpr;
 import se.lth.cs.tycho.reporting.CompilationException;
+import se.lth.cs.tycho.reporting.Diagnostic;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -159,15 +132,17 @@ public class TemplateInstantiationPhase implements Phase {
         default IRNode apply(Meta meta) {
             if (!instantiate().test(meta)) {
                 IRNode node = meta.transformChildren(this);
-                // -- FIXME : is this correct ?
-                // -- Correct but unnecessary since meta.transformChildren(this) calls apply
-                // -- which eventually calls instantiate().apply(meta).transformChildren(this)
-                //if (node instanceof Meta) {
-                //    return instantiate().apply((Meta) node).transformChildren(this);
-                //}
                 return node;
             }
             return instantiate().apply(meta).transformChildren(this);
+        }
+
+        default IRNode apply(EntityListExpr list){
+            return list.transformChildren(this);
+        }
+
+        default IRNode apply(EntityComprehensionExpr list){
+            return instantiate().apply(list).transformChildren(this);
         }
 
     }
@@ -312,7 +287,40 @@ public class TemplateInstantiationPhase implements Phase {
             return node;
         }
 
+        default IRNode apply(EntityComprehensionExpr comprEntity){
+            final ImmutableList.Builder<EntityExpr> builder = new ImmutableList.Builder<EntityExpr>();
+
+            Generator generator = comprEntity.getGenerator();
+
+            Value value = interpreter().apply(generator.getCollection());
+            if (!(value instanceof ValueList)) {
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot evaluate EntityComprehensionExpr"));
+            }
+
+            ValueList list = (ValueList) value;
+            for (int i = 0; i < list.elements().size(); i += generator.getVarDecls().size()) {
+                Map<String, Value> bindings = new HashMap<>();
+                for (int j = 0; j < generator.getVarDecls().size(); ++j) {
+                    bindings.put(generator.getVarDecls().get(j).getName(), list.elements().get(i));
+                }
+
+                final Environment newEnv = new Environment().with(bindings);
+
+                if (comprEntity.getFilters().stream().map(filter -> interpreter().eval(filter, newEnv)).allMatch(v -> (v instanceof ValueBool) && ((ValueBool) v).bool())) {
+                    EntityExpr entityExpr = (EntityExpr) evalMetaEntityInstance((MetaEntityInstanceExpr) comprEntity.getCollection(), newEnv);
+                    builder.add(entityExpr);
+                }
+            }
+
+
+            return new EntityListExpr(builder.build());
+        }
+
         default IRNode apply(MetaEntityInstanceExpr meta) {
+            return evalMetaEntityInstance(meta, new Environment());
+        }
+
+        default IRNode evalMetaEntityInstance(MetaEntityInstanceExpr meta, Environment env) {
             // Update staging context: mark changed
             boolean changed = staging().isChanged();
             staging().setChanged(true);
@@ -337,7 +345,7 @@ public class TemplateInstantiationPhase implements Phase {
             GlobalEntityDecl instance = template.clone();
 
             // Specialize instance
-            String symbolic = nameOf(meta);
+            String symbolic = nameWithEnv(meta, env);
             String logic = template.getName() + "_" + numbers().next();
 
             staging().symbolics().put(symbolic, logic);
@@ -377,7 +385,7 @@ public class TemplateInstantiationPhase implements Phase {
                 } else {
 
 
-                    Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
+                    Value value = interpreter().eval(((MetaArgumentValue) metaArg).getValue(), env);
 
                     String valueName = setValueName(sourceUnit(metaDecl), value);
 
@@ -423,7 +431,7 @@ public class TemplateInstantiationPhase implements Phase {
         default IRNode apply(MetaGlobalEntityDecl meta) {
             // Update staging context: mark changed
             boolean changed = staging().isChanged();
-            staging().setChanged(true);
+            //staging().setChanged(true);
 
             return meta;
         }
@@ -473,16 +481,20 @@ public class TemplateInstantiationPhase implements Phase {
             }
             return valueName;
         }
-        default String nameOf(Meta meta) {
+        default String nameWithEnv(Meta meta, Environment env) {
             return name(meta) + meta.getArguments().stream()
                     .map(arg -> {
                         if (arg instanceof MetaArgumentType) {
                             return ((NominalTypeExpr) (((MetaArgumentType) arg).getType())).getName();
                         } else {
-                            return interpreter().apply(((MetaArgumentValue) arg).getValue()).toString();
+                            return interpreter().eval(((MetaArgumentValue) arg).getValue(), env).toString();
                         }
                     })
                     .collect(Collectors.joining(", ", "(", ")"));
+        }
+
+        default String nameOf(Meta meta) {
+            return nameWithEnv(meta, new Environment());
         }
 
         default String name(IRNode node) {

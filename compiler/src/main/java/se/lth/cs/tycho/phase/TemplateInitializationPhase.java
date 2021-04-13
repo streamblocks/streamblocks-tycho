@@ -15,7 +15,10 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
+import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
@@ -70,6 +73,14 @@ public class TemplateInitializationPhase implements Phase {
 				}
 			}
 			return instance.transformChildren(this);
+		}
+
+		default IRNode apply(EntityListExpr entityList){
+			return entityList.transformChildren(this);
+		}
+
+		default IRNode apply(EntityComprehensionExpr comprehensionEntity){
+			return comprehensionEntity.transformChildren(this);
 		}
 
 		default IRNode apply(NominalTypeExpr expr) {

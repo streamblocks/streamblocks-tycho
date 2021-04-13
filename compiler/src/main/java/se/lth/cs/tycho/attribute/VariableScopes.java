@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.InputPattern;
 import se.lth.cs.tycho.ir.entity.cal.Match;
+import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
 import se.lth.cs.tycho.ir.expr.ExprCase;
@@ -75,6 +76,10 @@ public interface VariableScopes {
 
         default ImmutableList<VarDecl> declarations(ExprComprehension comp) {
             return ImmutableList.covariance(comp.getGenerator().getVarDecls());
+        }
+
+        default ImmutableList<VarDecl> declarations(EntityComprehensionExpr entityComprehensionExpr){
+            return ImmutableList.covariance(entityComprehensionExpr.getGenerator().getVarDecls());
         }
 
         // Statements

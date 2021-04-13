@@ -20,7 +20,9 @@ import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.cal.CalActor;
+import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
@@ -130,6 +132,14 @@ public class TemplateTransformationPhase implements Phase {
                     .withValueParameters(ImmutableList.empty())
                     .transformChildren(this)) {
             };
+        }
+
+        default IRNode apply(EntityListExpr entityList){
+            return entityList.transformChildren(this);
+        }
+
+        default IRNode apply(EntityComprehensionExpr comprehensionEntity){
+            return comprehensionEntity.transformChildren(this);
         }
 
         default IRNode apply(AlgebraicTypeDecl decl) {

@@ -16,7 +16,10 @@ import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
+import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
+import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
@@ -31,139 +34,149 @@ import java.util.stream.Collectors;
 
 public class TemplateAnalysisPhase implements Phase {
 
-	@Override
-	public String getDescription() {
-		return "Analyzes template parameters.";
-	}
+    @Override
+    public String getDescription() {
+        return "Analyzes template parameters.";
+    }
 
-	@Override
-	public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
-		Analysis analysis = MultiJ.from(Analysis.class)
-				.bind("types").to(task.getModule(TypeScopes.key))
-				.bind("entities").to(task.getModule(EntityDeclarations.key))
-				.bind("tree").to(task.getModule(TreeShadow.key))
-				.bind("reporter").to(context.getReporter())
-				.instance();
-		analysis.apply(task);
-		return task;
-	}
+    @Override
+    public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
+        Analysis analysis = MultiJ.from(Analysis.class)
+                .bind("types").to(task.getModule(TypeScopes.key))
+                .bind("entities").to(task.getModule(EntityDeclarations.key))
+                .bind("tree").to(task.getModule(TreeShadow.key))
+                .bind("reporter").to(context.getReporter())
+                .instance();
+        analysis.apply(task);
+        return task;
+    }
 
-	@Module
-	interface Analysis {
+    @Module
+    interface Analysis {
 
-		@Binding(BindingKind.INJECTED)
-		TypeScopes types();
+        @Binding(BindingKind.INJECTED)
+        TypeScopes types();
 
-		@Binding(BindingKind.INJECTED)
-		EntityDeclarations entities();
+        @Binding(BindingKind.INJECTED)
+        EntityDeclarations entities();
 
-		@Binding(BindingKind.INJECTED)
-		TreeShadow tree();
+        @Binding(BindingKind.INJECTED)
+        TreeShadow tree();
 
-		@Binding(BindingKind.INJECTED)
-		Reporter reporter();
+        @Binding(BindingKind.INJECTED)
+        Reporter reporter();
 
-		default void apply(IRNode node) {
-			analyze(node);
-			node.forEachChild(this::apply);
-		}
+        default void apply(IRNode node) {
+            analyze(node);
+            node.forEachChild(this::apply);
+        }
 
-		default void analyze(IRNode node) {
+        default void analyze(IRNode node) {
 
-		}
+        }
 
-		default void analyze(EntityInstanceExpr expr) {
-			GlobalEntityDecl decl = entities().declaration(expr.getEntityName());
-			if (decl != null) {
-				check(expr, expr.getTypeParameters(), expr.getValueParameters(), decl.getEntity());
-			}
-		}
+        default void analyze(EntityInstanceExpr expr) {
+            GlobalEntityDecl decl = entities().declaration(expr.getEntityName());
+            if (decl != null) {
+                check(expr, expr.getTypeParameters(), expr.getValueParameters(), decl.getEntity());
+            }
+        }
 
-		default void analyze(NominalTypeExpr expr) {
-			Optional<TypeDecl> decl = types().declaration(expr);
-			if (decl.isPresent()) {
-				check(expr, expr.getTypeParameters(), expr.getValueParameters(), decl.get());
-			}
-		}
+        default void analyze(EntityListExpr listExpr) {
+            for (EntityExpr entityExpr : listExpr.getEntityList()) {
+                analyze(entityExpr);
+            }
+        }
 
-		default void analyze(ExprTypeConstruction expr) {
-			Optional<TypeDecl> decl = types().declaration(expr);
-			if (decl.isPresent()) {
-				check(expr, expr.getTypeParameters(), expr.getValueParameters(), decl.get());
-			}
-		}
+        default void analyze(EntityComprehensionExpr comprehensionExpr) {
+            analyze(comprehensionExpr.getCollection());
+        }
 
-		default void analyze(PatternDeconstruction pattern) {
-			Optional<TypeDecl> decl = types().declaration(pattern);
-			if (decl.isPresent()) {
-				check(pattern, pattern.getTypeParameters(), pattern.getValueParameters(), decl.get());
-			}
-		}
+        default void analyze(NominalTypeExpr expr) {
+            Optional<TypeDecl> decl = types().declaration(expr);
+            if (decl.isPresent()) {
+                check(expr, expr.getTypeParameters(), expr.getValueParameters(), decl.get());
+            }
+        }
 
-		default void check(IRNode node, List<TypeParameter> typeArguments, List<ValueParameter> valueArguments, IRNode decl) {
+        default void analyze(ExprTypeConstruction expr) {
+            Optional<TypeDecl> decl = types().declaration(expr);
+            if (decl.isPresent()) {
+                check(expr, expr.getTypeParameters(), expr.getValueParameters(), decl.get());
+            }
+        }
 
-		}
+        default void analyze(PatternDeconstruction pattern) {
+            Optional<TypeDecl> decl = types().declaration(pattern);
+            if (decl.isPresent()) {
+                check(pattern, pattern.getTypeParameters(), pattern.getValueParameters(), decl.get());
+            }
+        }
 
-		default void check(IRNode node, List<TypeParameter> typeArguments, List<ValueParameter> valueArguments, AlgebraicTypeDecl decl) {
+        default void check(IRNode node, List<TypeParameter> typeArguments, List<ValueParameter> valueArguments, IRNode decl) {
 
-			decl.getTypeParameters().forEach(param -> {
-				if (typeArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing type argument " + param.getName() + ".", sourceUnit(node), node));
-				}
-			});
+        }
 
-			typeArguments.stream().collect(Collectors.groupingBy(TypeParameter::getName)).forEach((name, args) -> {
-				if (args.size() > 1) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Duplicate type argument "+ name + ".", sourceUnit(args.get(1)), args.get(1)));
-				}
-			});
+        default void check(IRNode node, List<TypeParameter> typeArguments, List<ValueParameter> valueArguments, AlgebraicTypeDecl decl) {
 
-			decl.getValueParameters().forEach(param -> {
-				if (valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing value argument " + param.getName() + ".", sourceUnit(node), node));
-				}
-			});
+            decl.getTypeParameters().forEach(param -> {
+                if (typeArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
+                    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing type argument " + param.getName() + ".", sourceUnit(node), node));
+                }
+            });
 
-			valueArguments.stream().collect(Collectors.groupingBy(ValueParameter::getName)).forEach((name, args) -> {
-				if (args.size() > 1) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Duplicate value argument "+ name + ".", sourceUnit(args.get(1)), args.get(1)));
-				}
-			});
-		}
+            typeArguments.stream().collect(Collectors.groupingBy(TypeParameter::getName)).forEach((name, args) -> {
+                if (args.size() > 1) {
+                    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Duplicate type argument " + name + ".", sourceUnit(args.get(1)), args.get(1)));
+                }
+            });
 
-		default void check(IRNode node, List<TypeParameter> typeArguments, List<ValueParameter> valueArguments, Entity entity) {
+            decl.getValueParameters().forEach(param -> {
+                if (valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
+                    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing value argument " + param.getName() + ".", sourceUnit(node), node));
+                }
+            });
 
-			entity.getTypeParameters().forEach(param -> {
-				if (typeArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing type argument " + param.getName() + ".", sourceUnit(node), node));
-				}
-			});
+            valueArguments.stream().collect(Collectors.groupingBy(ValueParameter::getName)).forEach((name, args) -> {
+                if (args.size() > 1) {
+                    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Duplicate value argument " + name + ".", sourceUnit(args.get(1)), args.get(1)));
+                }
+            });
+        }
 
-			typeArguments.stream().collect(Collectors.groupingBy(TypeParameter::getName)).forEach((name, args) -> {
-				if (args.size() > 1) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Duplicate type argument "+ name + ".", sourceUnit(args.get(1)), args.get(1)));
-				}
-			});
+        default void check(IRNode node, List<TypeParameter> typeArguments, List<ValueParameter> valueArguments, Entity entity) {
 
-			entity.getValueParameters().forEach(param -> {
-				if (valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing value argument " + param.getName() + ".", sourceUnit(node), node));
-				}
-			});
+            entity.getTypeParameters().forEach(param -> {
+                if (typeArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
+                    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing type argument " + param.getName() + ".", sourceUnit(node), node));
+                }
+            });
 
-			valueArguments.stream().collect(Collectors.groupingBy(ValueParameter::getName)).forEach((name, args) -> {
-				if (args.size() > 1) {
-					reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Duplicate value argument "+ name + ".", sourceUnit(args.get(1)), args.get(1)));
-				}
-			});
-		}
+            typeArguments.stream().collect(Collectors.groupingBy(TypeParameter::getName)).forEach((name, args) -> {
+                if (args.size() > 1) {
+                    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Duplicate type argument " + name + ".", sourceUnit(args.get(1)), args.get(1)));
+                }
+            });
 
-		default SourceUnit sourceUnit(IRNode node) {
-			return sourceUnit(tree().parent(node));
-		}
+            entity.getValueParameters().forEach(param -> {
+                if (valueArguments.stream().noneMatch(arg -> Objects.equals(arg.getName(), param.getName()))) {
+                    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Missing value argument " + param.getName() + ".", sourceUnit(node), node));
+                }
+            });
 
-		default SourceUnit sourceUnit(SourceUnit unit) {
-			return unit;
-		}
-	}
+            valueArguments.stream().collect(Collectors.groupingBy(ValueParameter::getName)).forEach((name, args) -> {
+                if (args.size() > 1) {
+                    reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Duplicate value argument " + name + ".", sourceUnit(args.get(1)), args.get(1)));
+                }
+            });
+        }
+
+        default SourceUnit sourceUnit(IRNode node) {
+            return sourceUnit(tree().parent(node));
+        }
+
+        default SourceUnit sourceUnit(SourceUnit unit) {
+            return unit;
+        }
+    }
 }
