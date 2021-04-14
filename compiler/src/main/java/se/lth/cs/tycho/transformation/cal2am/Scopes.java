@@ -1,8 +1,6 @@
 package se.lth.cs.tycho.transformation.cal2am;
 
-import se.lth.cs.tycho.attribute.Types;
-import se.lth.cs.tycho.attribute.VariableDeclarations;
-import se.lth.cs.tycho.attribute.VariableScopes;
+import se.lth.cs.tycho.attribute.*;
 import se.lth.cs.tycho.decoration.TypeToTypeExpr;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
@@ -23,7 +21,6 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.attribute.ConstantEvaluator;
 import se.lth.cs.tycho.phase.TreeShadow;
 import se.lth.cs.tycho.util.BitSets;
 
@@ -42,8 +39,9 @@ public class Scopes {
     private final TreeShadow tree;
     private final VariableDeclarations variableDecl;
     private final VariableScopes variableScopes;
+    private final FreeVariables freeVariables;
 
-    public Scopes(CalActor actor, ConstantEvaluator constants, Types types, TreeShadow tree, VariableDeclarations variableDecl, VariableScopes variableScopes) {
+    public Scopes(CalActor actor, ConstantEvaluator constants, Types types, TreeShadow tree, VariableDeclarations variableDecl, VariableScopes variableScopes, FreeVariables freeVariables) {
         this.actor = actor;
         initialized = false;
         this.constants = constants;
@@ -51,6 +49,7 @@ public class Scopes {
         this.tree = tree;
         this.variableDecl = variableDecl;
         this.variableScopes = variableScopes;
+        this.freeVariables = freeVariables;
     }
 
     private void init() {
@@ -73,7 +72,7 @@ public class Scopes {
         }
     }
 
-    private ImmutableList<InputPattern> pattersToBeUsedInScope(Action action) {
+    private ImmutableList<InputPattern> patternsToBeUsedInScope(Action action) {
         ImmutableList.Builder<InputPattern> declarations = ImmutableList.builder();
 
         List<VarDecl> declsUsedInGuards = new ArrayList<>();
@@ -81,9 +80,21 @@ public class Scopes {
             declsUsedInGuards.addAll(variableDecl.declarations(expression));
         }
 
+        // Used variables by the children of decl
+        List<VarDecl> childrenDeclUsedInGuards = new ArrayList<>();
+        for (VarDecl decl : declsUsedInGuards) {
+            if(decl !=null) {
+                childrenDeclUsedInGuards.addAll(freeVariables.freeVariables(decl).stream()
+                        .map(variableDecl::declaration)
+                        .collect(Collectors.toSet()));
+            }
+        }
+        declsUsedInGuards.addAll(childrenDeclUsedInGuards);
+
         for (InputPattern pattern : action.getInputPatterns()) {
             List<VarDecl> inputPatternDecls = new ArrayList<>();
             inputPatternDecls.addAll(variableScopes.declarations(pattern));
+
 
             if (!Collections.disjoint(inputPatternDecls, declsUsedInGuards)) {
                 declarations.add(pattern);
@@ -93,15 +104,15 @@ public class Scopes {
         return declarations.build();
     }
 
-    private ImmutableList<LocalVarDecl> actionVariablesUsedInGuards(Action action){
+    private ImmutableList<LocalVarDecl> actionVariablesUsedInGuards(Action action) {
         ImmutableList.Builder<LocalVarDecl> decls = ImmutableList.builder();
         List<VarDecl> declsUsedInGuards = new ArrayList<>();
         for (Expression expression : action.getGuards()) {
             declsUsedInGuards.addAll(variableDecl.declarations(expression));
         }
 
-        for(LocalVarDecl decl : action.getVarDecls()){
-            if(declsUsedInGuards.contains(decl)){
+        for (LocalVarDecl decl : action.getVarDecls()) {
+            if (declsUsedInGuards.contains(decl)) {
                 decls.add(decl);
             }
         }
@@ -109,7 +120,7 @@ public class Scopes {
     }
 
     private Scope createScope(Action action) {
-        ImmutableList<InputPattern> patternsUsedInScopes = pattersToBeUsedInScope(action);
+        ImmutableList<InputPattern> patternsUsedInScopes = patternsToBeUsedInScope(action);
 
         ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
         for (InputPattern input : action.getInputPatterns()) {

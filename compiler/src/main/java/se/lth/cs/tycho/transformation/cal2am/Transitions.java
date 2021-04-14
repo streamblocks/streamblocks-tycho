@@ -37,14 +37,16 @@ public class Transitions {
     private final Types types;
     private final VariableDeclarations variableDecl;
     private final VariableScopes variableScopes;
+    private final FreeVariables freeVariables;
     private final TreeShadow tree;
     private final Ports ports;
 
-    public Transitions(CalActor actor, ConstantEvaluator constants, Types types, TreeShadow tree, Scopes scopes, Ports ports, Conditions conditions, VariableDeclarations variableDecl, VariableScopes variableScopes) {
+    public Transitions(CalActor actor, ConstantEvaluator constants, Types types, TreeShadow tree, Scopes scopes, Ports ports, Conditions conditions, VariableDeclarations variableDecl, VariableScopes variableScopes, FreeVariables freeVariables) {
         this.actor = actor;
         this.conditions = conditions;
         this.variableDecl = variableDecl;
         this.variableScopes = variableScopes;
+        this.freeVariables = freeVariables;
         this.transientScopes = scopes.getTransientScopes().stream().boxed().collect(ImmutableList.collector());
         this.constants = constants;
         this.types = types;
@@ -90,13 +92,25 @@ public class Transitions {
         return new Transition(annotations.build(), getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()), transientScopes, ImmutableList.of(block));
     }
 
-    private ImmutableList<InputPattern> pattersToBeUsedInBody(Action action) {
+    private ImmutableList<InputPattern> patternsToBeUsedInBody(Action action) {
         ImmutableList.Builder<InputPattern> declarations = ImmutableList.builder();
 
         List<VarDecl> declsUsedInGuards = new ArrayList<>();
         for (Expression expression : action.getGuards()) {
             declsUsedInGuards.addAll(variableDecl.declarations(expression));
         }
+
+        // Used variables by the children of decl
+        List<VarDecl> childrenDeclUsedInGuards = new ArrayList<>();
+        for (VarDecl decl : declsUsedInGuards) {
+            if(decl !=null) {
+                childrenDeclUsedInGuards.addAll(freeVariables.freeVariables(decl).stream()
+                        .map(variableDecl::declaration)
+                        .collect(Collectors.toSet()));
+            }
+        }
+        declsUsedInGuards.addAll(childrenDeclUsedInGuards);
+
 
         for (InputPattern pattern : action.getInputPatterns()) {
             List<VarDecl> inputPatternDecls = new ArrayList<>();
@@ -120,15 +134,13 @@ public class Transitions {
         for(LocalVarDecl decl : action.getVarDecls()){
             if(!declsUsedInGuards.contains(decl)){
                 decls.add(decl);
-            }else{
-                System.out.println("oops");
             }
         }
         return decls.build();
     }
 
     ImmutableList<LocalVarDecl> createBodyLocalVarDecl(Action action) {
-        ImmutableList<InputPattern> bodyVarDecl = pattersToBeUsedInBody(action);
+        ImmutableList<InputPattern> bodyVarDecl = patternsToBeUsedInBody(action);
 
         ImmutableList.Builder<LocalVarDecl> varDecls = ImmutableList.builder();
         for (InputPattern input : action.getInputPatterns()) {

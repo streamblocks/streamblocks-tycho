@@ -30,7 +30,8 @@ public class CalToAmPhase implements Phase {
                         task.getModule(TreeShadow.key),
                         task.getModule(Ports.key),
                         task.getModule(VariableDeclarations.key),
-                        task.getModule(VariableScopes.key));
+                        task.getModule(VariableScopes.key),
+                        task.getModule(FreeVariables.key));
                 return decl.withEntity(translator.buildActorMachine());
             } else {
                 return decl;

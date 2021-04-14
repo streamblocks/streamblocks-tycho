@@ -45,15 +45,15 @@ public class CalToAm {
 
     private final Map<CalState, CalState> stateCache;
 
-    public CalToAm(CalActor actor, Configuration configuration, ConstantEvaluator constants, Types types, TreeShadow tree, Ports ports, VariableDeclarations variableDecl, VariableScopes variableScopes) {
+    public CalToAm(CalActor actor, Configuration configuration, ConstantEvaluator constants, Types types, TreeShadow tree, Ports ports, VariableDeclarations variableDecl, VariableScopes variableScopes, FreeVariables freeVar) {
         this.actor = actor;
         this.onWait = configuration.get(KnowledgeRemoval.forgetOnWait);
         this.onExec = configuration.get(KnowledgeRemoval.forgetOnExec);
         this.priorities = new Priorities(actor);
         this.schedule = new Schedule(actor);
         this.conditions = new Conditions(actor, constants);
-        this.scopes = new Scopes(actor, constants, types, tree, variableDecl, variableScopes);
-        this.transitions = new Transitions(actor, constants, types, tree, scopes, ports, conditions, variableDecl, variableScopes);
+        this.scopes = new Scopes(actor, constants, types, tree, variableDecl, variableScopes, freeVar);
+        this.transitions = new Transitions(actor, constants, types, tree, scopes, ports, conditions, variableDecl, variableScopes, freeVar);
         this.stateCache = new HashMap<>();
     }
 
