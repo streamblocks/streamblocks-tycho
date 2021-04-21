@@ -20,7 +20,6 @@ import se.lth.cs.tycho.ir.util.ImmutableEntry;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.transformation.ssa.SSABlock;
-import se.lth.cs.tycho.util.Pair;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -93,13 +92,11 @@ public class SsaPhase implements Phase {
             }
             statements.forEach(stmt -> System.out.println(stmt.toString()));
 
-            //SSABlock programEntry = new SSABlock(body.getTypeDecls(), body.getVarDecls());
-            //SSABlock exit = programEntry.fill(body.getStatements(), declarations);
-            //return transition.withBody(Arrays.asList(programEntry.getStmtBlock()));
-            SSABlock programEntry = new SSABlock();
-            SSABlock exit = programEntry.fill(transition.getBody(), declarations, programEntry);
-            //List<Statement> res = programEntry.getStmtBlock().getStatements();
+            SSABlock programEntry = new SSABlock(declarations);
+            SSABlock exit = programEntry.fill(transition.getBody());
             List<Statement> res = Arrays.asList(programEntry.getStmtBlock());
+            //List<Statement> res = Arrays.asList(new StmtBlock(
+            //        programEntry.getTypeDecls(), programEntry.getVarDecls(), programEntry.getStmts()));
             return transition.withBody(res);
             //return transition.withBody(programEntry.getStmtBlock().getStatements());
         }
