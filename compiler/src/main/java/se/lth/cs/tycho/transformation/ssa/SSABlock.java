@@ -28,7 +28,7 @@ public class SSABlock extends Statement {
     private final Map<String, Expression> currentDef = new HashMap<>();
     private final Map<String, Integer> currentNumber = new HashMap<>();
     private final Map<String, String> equivalentVariables = new HashMap<>();
-    private List<Statement> statements;
+    private List<Statement> statements = new LinkedList<>();
     private LinkedList<Phi> phis = new LinkedList<>();
     private boolean sealed = false;
     private final SSABlock programEntry;
@@ -110,7 +110,7 @@ public class SSABlock extends Statement {
     }
 
     public Expression readVariableRecursive(Variable variable) {
-        if (predecessors.size() == 1) {
+        if (predecessors.size() == 1 && sealed) {
             return predecessors.get(0).readVariable(variable);
         }
         Expression res;
@@ -120,16 +120,6 @@ public class SSABlock extends Statement {
         LocalVarDecl numberedVarDecl = new LocalVarDecl(originalDecl.getAnnotations(), originalDecl.getType(),
                 newNumberedVar.getName(), null, originalDecl.isConstant());
         programEntry.addDecl(numberedVarDecl);
-        /*if (!sealed) {
-            phis.add(new Phi(newNumberedVar, false));
-            res = new ExprVariable(newNumberedVar);
-        } else if (predecessors.size() == 1) {
-            res = predecessors.get(0).readVariable(variable);
-        } else {
-            phis.add(new Phi(newNumberedVar, true));
-            res = new ExprVariable(newNumberedVar);
-        }
-        writeVariable(variable, res);*/
         Phi phi = new Phi(newNumberedVar, variable);
         phis.add(phi);
         if (sealed) {
@@ -167,13 +157,6 @@ public class SSABlock extends Statement {
                 programEntry.addDecl(numberedVarDecl);
 
                 StmtAssignment updatedStmt;
-                /*if (assignment.getExpression() instanceof ExprVariable) {
-                    Variable rValue = ((ExprVariable) assignment.getExpression()).getVariable();
-                    Expression expr = readVariable(rValue);
-                    updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), expr);
-                } else {
-                    updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), assignment.getExpression());
-                }*/
                 updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), newExpr);
                 it.set(updatedStmt);
             }
@@ -255,6 +238,7 @@ public class SSABlock extends Statement {
                 StmtWhileSSA updatedStmt = new StmtWhileSSA(newCond, Arrays.asList(bodyEntry), Arrays.asList(header));
                 iteratedStmts.add(updatedStmt);
                 iteratedStmts.add(nextBlock);
+                setStatements(iteratedStmts);
                 return nextBlock.fill(nextStmts);
             }
         }
@@ -273,6 +257,12 @@ public class SSABlock extends Statement {
                 StmtBlock thenn = ((SSABlock) (stmtIf.getThenBranch().get(0))).getStmtBlock();
                 StmtBlock elze = ((SSABlock) (stmtIf.getElseBranch().get(0))).getStmtBlock();
                 return new StmtIf(stmtIf.getCondition(), Arrays.asList(thenn), Arrays.asList(elze));
+            }
+            if (statement instanceof StmtWhileSSA) {
+                StmtWhileSSA stmtWhileSSA = (StmtWhileSSA) statement;
+                StmtBlock header = ((SSABlock) (stmtWhileSSA.getHeader().get(0))).getStmtBlock();
+                StmtBlock body = ((SSABlock) (stmtWhileSSA.getBody().get(0))).getStmtBlock();
+                return new StmtWhileSSA(stmtWhileSSA.getCondition(), Arrays.asList(body), Arrays.asList(header));
             }
             else return statement;
         }).collect(Collectors.toList());
@@ -309,6 +299,11 @@ public class SSABlock extends Statement {
                 StmtIf stmtIf = (StmtIf) statement;
                 ((SSABlock) (stmtIf.getThenBranch().get(0))).removeTrivialPhis();
                 ((SSABlock) (stmtIf.getElseBranch().get(0))).removeTrivialPhis();
+            }
+            if (statement instanceof StmtWhileSSA) {
+                StmtWhileSSA stmtWhileSSA = (StmtWhileSSA) statement;
+                ((SSABlock) (stmtWhileSSA.getHeader().get(0))).removeTrivialPhis();
+                ((SSABlock) (stmtWhileSSA.getBody().get(0))).removeTrivialPhis();
             }
         });
     }

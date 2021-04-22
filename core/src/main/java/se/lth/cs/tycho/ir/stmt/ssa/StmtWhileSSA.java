@@ -44,6 +44,10 @@ public class StmtWhileSSA extends Statement {
         return copy(condition, body, header);
     }
 
+    public ImmutableList<Statement> getHeader() {
+        return header;
+    }
+
     public StmtWhileSSA withheader(List<Statement> header) {
         return copy(condition, body, header);
     }
