@@ -1252,15 +1252,15 @@ GlobalEntityDecl ActorDecl() :
 		(
 			(
 				LOOKAHEAD(( Annotation() )* (QID() ":")? "action" "case")
-				actionCase = ActionCase()
+				actionCase = ActionCase(inputPorts, outputPorts)
 				{ actionCases.add(actionCase); }
 			|
 				LOOKAHEAD( ( Annotation() )* (QID() ":")? "action")
-				action = Action()
+				action = Action(inputPorts, outputPorts)
 				{ actions.add(action); }
 			|
 				LOOKAHEAD( ( Annotation() )* (QID() ":")? "initialize")
-				action = InitializationAction()
+				action = InitializationAction(outputPorts)
 				{ initializers.add(action); }
 			|
 				varDecl = LocalVarDecl()
@@ -1359,7 +1359,7 @@ PortDecl PortDecl() :
 
 /* Actions */
 
-Action Action() :
+Action Action(ImmutableList<PortDecl> inputs, ImmutableList<PortDecl> outputs) :
 {
 	QID tag = null;
 	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
@@ -1385,9 +1385,9 @@ Action Action() :
 	    beginLine = token.beginLine;
 	    beginColumn = token.beginColumn;
 	}
-	inputPatterns = InputPatterns()
+	inputPatterns = InputPatterns(inputs)
 	"==>"
-	outputExpressions = OutputExpressions()
+	outputExpressions = OutputExpressions(outputs)
 	("guard" guards = ExpressionList())?
 //	("delay" delay = Expression())?
 	("var" varDecls = BlockVarDecls())?
@@ -1400,7 +1400,7 @@ Action Action() :
 	}
 }
 
-ActionCase ActionCase() :
+ActionCase ActionCase(ImmutableList<PortDecl> inputs, ImmutableList<PortDecl> outputs) :
 {
   QID tag = null;
   Action action;
@@ -1420,10 +1420,10 @@ ActionCase ActionCase() :
     beginColumn = token.beginColumn;
   }
   "case"
-  action = ActionLambda(annotations.build()) { actions.add(action); }
+  action = ActionLambda(annotations.build(), inputs, outputs) { actions.add(action); }
   (
     "else"
-    action = ActionLambda(annotations.build()) { actions.add(action); }
+    action = ActionLambda(annotations.build(), inputs, outputs) { actions.add(action); }
   )+
   ( "end" | "endcase")
   ( "end" | "endaction")
@@ -1434,7 +1434,7 @@ ActionCase ActionCase() :
   }
 }
 
-Action ActionLambda(ImmutableList<Annotation> annotations) :
+Action ActionLambda(ImmutableList<Annotation> annotations, ImmutableList<PortDecl> inputs, ImmutableList<PortDecl> outputs) :
 {
   QID tag = null;
   ImmutableList<InputPattern> inputPatterns;
@@ -1455,9 +1455,9 @@ Action ActionLambda(ImmutableList<Annotation> annotations) :
     beginColumn = token.beginColumn;
   }
 
-  inputPatterns = InputPatterns()
+  inputPatterns = InputPatterns(inputs)
   "==>"
-  outputExpressions = OutputExpressions()
+  outputExpressions = OutputExpressions(outputs)
   ("guard" guards = ExpressionList())?
 //  ("delay" delay = Expression())?
   ("var" varDecls = BlockVarDecls())?
@@ -1470,7 +1470,7 @@ Action ActionLambda(ImmutableList<Annotation> annotations) :
   }
 }
 
-Action InitializationAction() :
+Action InitializationAction(ImmutableList<PortDecl> outputs) :
 {
 	QID tag = null;
 	ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
@@ -1496,7 +1496,7 @@ Action InitializationAction() :
         beginColumn = token.beginColumn;
     }
 	"==>"
-	outputExpressions = OutputExpressions()
+	outputExpressions = OutputExpressions(outputs)
 	("guard" guards = ExpressionList())?
 	("var" varDecls = BlockVarDecls())?
 //	("delay" delay = Expression())?
@@ -1509,20 +1509,21 @@ Action InitializationAction() :
 	}
 }
 
-ImmutableList<InputPattern> InputPatterns() :
+ImmutableList<InputPattern> InputPatterns(ImmutableList<PortDecl> ports) :
 {
 	ImmutableList.Builder<InputPattern> builder = ImmutableList.builder();
 	InputPattern in;
+	int position = 0;
 }
 {
 	(
-		in = InputPattern() { builder.add(in); }
-		("," in = InputPattern() { builder.add(in); })*
+		in = InputPattern(ports, position) { builder.add(in); position++;}
+		("," in = InputPattern(ports, position) { builder.add(in); position++; })*
 	)?
 	{ return builder.build(); }
 }
 
-InputPattern InputPattern() :
+InputPattern InputPattern(ImmutableList<PortDecl> ports, int position) :
 {
 	Token id = null;
 	Port port = null;
@@ -1554,7 +1555,8 @@ InputPattern InputPattern() :
 	"]"
 	("repeat" repeat = Expression())?
 	{
-        InputPattern inputPattern = new InputPattern(port, matches.build(), repeat);
+        Port portResolution = port == null ? new Port(ports.get(position).getName()) : port;
+        InputPattern inputPattern = new InputPattern(portResolution, matches.build(), repeat);
         inputPattern.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
         return inputPattern;
     }
@@ -1577,20 +1579,21 @@ Match Match() :
     }
 }
 
-ImmutableList<OutputExpression> OutputExpressions() :
+ImmutableList<OutputExpression> OutputExpressions(ImmutableList<PortDecl> ports) :
 {
 	ImmutableList.Builder<OutputExpression> builder = ImmutableList.builder();
 	OutputExpression out;
+	int position = 0;
 }
 {
 	(
-		out = OutputExpression() { builder.add(out); }
-		("," out = OutputExpression() { builder.add(out); })*
+		out = OutputExpression(ports, position) { builder.add(out); position++;}
+		("," out = OutputExpression(ports, position) { builder.add(out); position++;})*
 	)?
 	{ return builder.build(); }
 }
 
-OutputExpression OutputExpression() :
+OutputExpression OutputExpression(ImmutableList<PortDecl> ports, int position) :
 {
 	Token first;
 	Token last;
@@ -1606,7 +1609,8 @@ OutputExpression OutputExpression() :
 	last = "]"
 	( "repeat" repeat = Expression() )?
 	{
-		OutputExpression out = new OutputExpression(port, exprs, repeat);
+		Port portResolution = port == null ? new Port(ports.get(position).getName()) : port;
+		OutputExpression out = new OutputExpression(portResolution, exprs, repeat);
 		if (port != null) { first = id; }
 		if (repeat != null) {
 			return setPosition(out, first, repeat);
