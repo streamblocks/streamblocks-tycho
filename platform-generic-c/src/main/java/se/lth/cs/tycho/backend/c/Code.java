@@ -17,6 +17,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueNth;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtIfSSA;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtWhileSSA;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.attribute.Types;
 import se.lth.cs.tycho.type.*;
@@ -1394,6 +1395,24 @@ public interface Code {
 
 	default void execute(StmtWhile stmt) {
 		emitter().emit("while (true) {");
+		emitter().increaseIndentation();
+		trackable().enter();
+		emitter().emit("if (!%s) break;", evaluate(stmt.getCondition()));
+		stmt.getBody().forEach(this::execute);
+		trackable().exit();
+		emitter().decreaseIndentation();
+		emitter().emit("}");
+	}
+
+	default void execute(StmtWhileSSA stmt) {
+		emitter().emit("while (");
+		emitter().increaseIndentation();
+		trackable().enter();
+		stmt.getHeader().forEach(this::execute);
+		emitter().emit("true");
+		trackable().exit();
+		emitter().decreaseIndentation();
+		emitter().emit(") {");
 		emitter().increaseIndentation();
 		trackable().enter();
 		emitter().emit("if (!%s) break;", evaluate(stmt.getCondition()));

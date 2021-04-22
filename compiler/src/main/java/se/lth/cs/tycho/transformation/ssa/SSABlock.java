@@ -234,7 +234,7 @@ public class SSABlock extends Statement {
                 nextBlock.addPredecessor(header);
                 nextBlock.seal();
 
-                Expression newCond = replacer.replaceVariables(stmtWhile.getCondition(), this);
+                Expression newCond = replacer.replaceVariables(stmtWhile.getCondition(), header);
                 StmtWhileSSA updatedStmt = new StmtWhileSSA(newCond, Arrays.asList(bodyEntry), Arrays.asList(header));
                 iteratedStmts.add(updatedStmt);
                 iteratedStmts.add(nextBlock);
