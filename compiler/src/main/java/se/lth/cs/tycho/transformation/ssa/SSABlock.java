@@ -10,12 +10,10 @@ import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.ir.stmt.Statement;
-import se.lth.cs.tycho.ir.stmt.StmtAssignment;
-import se.lth.cs.tycho.ir.stmt.StmtBlock;
-import se.lth.cs.tycho.ir.stmt.StmtIf;
+import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtWhileSSA;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -29,6 +27,7 @@ public class SSABlock extends Statement {
     private final List<SSABlock> predecessors = new LinkedList<>();
     private final Map<String, Expression> currentDef = new HashMap<>();
     private final Map<String, Integer> currentNumber = new HashMap<>();
+    private final Map<String, String> equivalentVariables = new HashMap<>();
     private List<Statement> statements;
     private LinkedList<Phi> phis = new LinkedList<>();
     private boolean sealed = false;
@@ -139,13 +138,7 @@ public class SSABlock extends Statement {
         res = new ExprVariable(newNumberedVar);
         writeVariable(variable, res);
         return res;
-
-        //return predecessors.get(0).readVariable(variable);
     }
-
-    /*public void addPhiOperands(Phi phi) {
-
-    }*/
 
     // programEntry argument is temporary, a recursive solution is probably better (and will deal with shadowing problem)
     public SSABlock fill(List<Statement> statements) {
@@ -238,6 +231,32 @@ public class SSABlock extends Statement {
                 setStatements(iteratedStmts);
                 return nextBlock.fill(nextStmts);
             }
+
+            else if (statement instanceof StmtWhile) {
+                List<Statement> iteratedStmts = new ArrayList<>(stmtsIter.subList(0, it.previousIndex()));
+
+                StmtWhile stmtWhile = (StmtWhile) statement;
+                SSABlock header = new SSABlock(programEntry, declarations);
+                header.addPredecessor(this);
+
+                SSABlock bodyEntry = new SSABlock(programEntry, declarations);
+                bodyEntry.addPredecessor(header);
+                bodyEntry.seal();
+                SSABlock bodyExit = bodyEntry.fill(stmtWhile.getBody());
+                header.addPredecessor(bodyExit);
+                header.seal();
+
+                List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
+                SSABlock nextBlock = new SSABlock(programEntry, declarations);
+                nextBlock.addPredecessor(header);
+                nextBlock.seal();
+
+                Expression newCond = replacer.replaceVariables(stmtWhile.getCondition(), this);
+                StmtWhileSSA updatedStmt = new StmtWhileSSA(newCond, Arrays.asList(bodyEntry), Arrays.asList(header));
+                iteratedStmts.add(updatedStmt);
+                iteratedStmts.add(nextBlock);
+                return nextBlock.fill(nextStmts);
+            }
         }
 
         setStatements(stmtsIter);
@@ -246,8 +265,7 @@ public class SSABlock extends Statement {
 
     public StmtBlock getStmtBlock() {
 
-        List<Statement> phiStmts = phis.stream()
-                .map(p -> new StmtPhi(new LValueVariable(p.assigned), p.operands)).collect(Collectors.toList());
+        List<Statement> phiStmts = phis.stream().map(Phi::getStatement).collect(Collectors.toList());
         List<Statement> completed = statements.stream().map(statement -> {
             if (statement instanceof SSABlock) return ((SSABlock) statement).getStmtBlock();
             if (statement instanceof StmtIf) {
@@ -283,6 +301,18 @@ public class SSABlock extends Statement {
         return statements;
     }*/
 
+    public void removeTrivialPhis() {
+        phis.forEach(Phi::removeTrivialPhi);
+        statements.forEach(statement -> {
+            if (statement instanceof SSABlock) ((SSABlock) statement).removeTrivialPhis();
+            if (statement instanceof StmtIf) {
+                StmtIf stmtIf = (StmtIf) statement;
+                ((SSABlock) (stmtIf.getThenBranch().get(0))).removeTrivialPhis();
+                ((SSABlock) (stmtIf.getElseBranch().get(0))).removeTrivialPhis();
+            }
+        });
+    }
+
     public List<TypeDecl> getTypeDecls() { return typeDecls; }
 
     public List<LocalVarDecl> getVarDecls() { return varDecls; }
@@ -316,6 +346,29 @@ public class SSABlock extends Statement {
                 return new StmtAssignment(new LValueVariable(assigned), operands.get(0));
             }
             return new StmtPhi(new LValueVariable(assigned), operands);
+        }
+
+        public void removeTrivialPhi() {
+            String same = null;
+            for (Expression op: operands) {
+                Variable v = ((ExprVariable) op).getVariable();
+                String equiv = getVariableEquivalence(v.getName());
+                if (equiv == same || equiv == assigned.getName())
+                    continue;
+                if (same != null)
+                    return;
+                same = equiv;
+            }
+            if (same == null)
+                throw new IllegalStateException();
+            programEntry.equivalentVariables.put(assigned.getName(), same);
+            operands = new LinkedList<>(Arrays.asList(new ExprVariable(Variable.variable(same))));
+        }
+
+        private String getVariableEquivalence(String var) {
+            while (programEntry.equivalentVariables.containsKey(var))
+                var = programEntry.equivalentVariables.get(var);
+            return var;
         }
     }
 

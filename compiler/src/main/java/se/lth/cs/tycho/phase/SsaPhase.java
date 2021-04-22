@@ -94,6 +94,7 @@ public class SsaPhase implements Phase {
 
             SSABlock programEntry = new SSABlock(declarations);
             SSABlock exit = programEntry.fill(transition.getBody());
+            programEntry.removeTrivialPhis();
             List<Statement> res = Arrays.asList(programEntry.getStmtBlock());
             //List<Statement> res = Arrays.asList(new StmtBlock(
             //        programEntry.getTypeDecls(), programEntry.getVarDecls(), programEntry.getStmts()));

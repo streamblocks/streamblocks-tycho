@@ -10,22 +10,22 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class StmtWhileSSA extends Statement {
-    public StmtWhileSSA(Expression condition, List<Statement> body, List<Statement> join) {
-        this(null, condition, body, join);
+    public StmtWhileSSA(Expression condition, List<Statement> body, List<Statement> header) {
+        this(null, condition, body, header);
     }
 
-    private StmtWhileSSA(StmtWhileSSA original, Expression condition, List<Statement> body, List<Statement> join) {
+    private StmtWhileSSA(StmtWhileSSA original, Expression condition, List<Statement> body, List<Statement> header) {
         super(original);
         this.condition = condition;
         this.body = ImmutableList.from(body);
-        this.join = ImmutableList.from(join);
+        this.header = ImmutableList.from(header);
     }
 
-    public StmtWhileSSA copy(Expression condition, List<Statement> body, List<Statement> join) {
-        if (this.condition == condition && Lists.sameElements(this.body, body) && Lists.sameElements(this.join, join)) {
+    public StmtWhileSSA copy(Expression condition, List<Statement> body, List<Statement> header) {
+        if (this.condition == condition && Lists.sameElements(this.body, body) && Lists.sameElements(this.header, header)) {
             return this;
         }
-        return new StmtWhileSSA(this, condition, body, join);
+        return new StmtWhileSSA(this, condition, body, header);
     }
 
     public Expression getCondition() {
@@ -33,7 +33,7 @@ public class StmtWhileSSA extends Statement {
     }
 
     public StmtWhileSSA withCondition(Expression condition) {
-        return copy(condition, body, join);
+        return copy(condition, body, header);
     }
 
     public ImmutableList<Statement> getBody() {
@@ -41,22 +41,22 @@ public class StmtWhileSSA extends Statement {
     }
 
     public StmtWhileSSA withBody(List<Statement> body) {
-        return copy(condition, body, join);
+        return copy(condition, body, header);
     }
 
-    public StmtWhileSSA withJoin(List<Statement> join) {
-        return copy(condition, body, join);
+    public StmtWhileSSA withheader(List<Statement> header) {
+        return copy(condition, body, header);
     }
 
     private Expression condition;
     private ImmutableList<Statement> body;
-    private ImmutableList<Statement> join;
+    private ImmutableList<Statement> header;
 
     @Override
     public void forEachChild(Consumer<? super IRNode> action) {
         action.accept(condition);
         body.forEach(action);
-        join.forEach(action);
+        header.forEach(action);
     }
 
     @Override
@@ -64,6 +64,6 @@ public class StmtWhileSSA extends Statement {
         return copy(
                 transformation.applyChecked(Expression.class, condition),
                 transformation.mapChecked(Statement.class, body),
-                transformation.mapChecked(Statement.class, join));
+                transformation.mapChecked(Statement.class, header));
     }
 }
