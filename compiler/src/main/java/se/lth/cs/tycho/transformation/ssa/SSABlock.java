@@ -24,12 +24,12 @@ public class SSABlock extends Statement {
 
     private List<TypeDecl> typeDecls;
     private LinkedList<LocalVarDecl> varDecls;
-    private final List<SSABlock> predecessors = new LinkedList<>();
-    private final Map<String, Expression> currentDef = new HashMap<>();
-    private final Map<String, Integer> currentNumber = new HashMap<>();
-    private final Map<String, String> equivalentVariables = new HashMap<>();
-    private List<Statement> statements = new LinkedList<>();
-    private LinkedList<Phi> phis = new LinkedList<>();
+    private final List<SSABlock> predecessors;
+    private final Map<String, Expression> currentDef;
+    private final Map<String, Integer> currentNumber;
+    private final Map<String, String> equivalentVariables;
+    private List<Statement> statements;
+    private LinkedList<Phi> phis;
     private boolean sealed = false;
     private final SSABlock programEntry;
     private final VariableDeclarations declarations;
@@ -41,6 +41,12 @@ public class SSABlock extends Statement {
         this.varDecls = varDecls;
         this.programEntry = programEntry;
         this.declarations = declarations;
+        this.predecessors = new LinkedList<>();
+        this.currentDef = new HashMap<>();
+        this.currentNumber = new HashMap<>();
+        this.equivalentVariables = new HashMap<>();
+        this.statements = new LinkedList<>();
+        this.phis = new LinkedList<>();
         for (LocalVarDecl decl: varDecls) {
             Variable originalVar = Variable.variable(decl.getName());
             writeVariable(originalVar, new ExprVariable(originalVar));
@@ -62,6 +68,12 @@ public class SSABlock extends Statement {
         this.declarations = declarations;
         this.typeDecls = new LinkedList<>();
         this.varDecls = new LinkedList<>();
+        this.predecessors = new LinkedList<>();
+        this.currentDef = new HashMap<>();
+        this.currentNumber = new HashMap<>();
+        this.equivalentVariables = new HashMap<>();
+        this.statements = new LinkedList<>();
+        this.phis = new LinkedList<>();
     }
 
     public SSABlock(VariableDeclarations declarations) {
@@ -337,6 +349,7 @@ public class SSABlock extends Statement {
         }
 
         public Statement getStatement() {
+            operands = new LinkedList<>(operands.stream().map(op -> op.deepClone()).collect(Collectors.toList()));
             if (operands.size() == 1) {
                 return new StmtAssignment(new LValueVariable(assigned), operands.get(0));
             }
