@@ -2,16 +2,15 @@ package se.lth.cs.tycho.transformation.ssa;
 
 import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
+import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
-import se.lth.cs.tycho.ir.decl.AbstractDecl;
-import se.lth.cs.tycho.ir.decl.LocalVarDecl;
-import se.lth.cs.tycho.ir.decl.TypeDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtForeachSSA;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtWhileSSA;
 
@@ -253,6 +252,39 @@ public class SSABlock extends Statement {
                 setStatements(iteratedStmts);
                 return nextBlock.fill(nextStmts);
             }
+
+            else if (statement instanceof StmtForeach) {
+                List<Statement> iteratedStmts = new ArrayList<>(stmtsIter.subList(0, it.previousIndex()));
+
+                StmtForeach stmtForeach = (StmtForeach) statement;
+                SSABlock header = new SSABlock(programEntry, declarations);
+                header.addPredecessor(this);
+                for (GeneratorVarDecl varDecl: stmtForeach.getGenerator().getVarDecls()) {
+                    Variable var = Variable.variable(varDecl.getName());
+                    header.writeVariable((Variable) var.deepClone(), new ExprVariable((Variable) var.deepClone()));
+                }
+
+                SSABlock bodyEntry = new SSABlock(programEntry, declarations);
+                bodyEntry.addPredecessor(header);
+                bodyEntry.seal();
+                SSABlock bodyExit = bodyEntry.fill(stmtForeach.getBody());
+                header.addPredecessor(bodyExit);
+                header.seal();
+
+                List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
+                SSABlock nextBlock = new SSABlock(programEntry, declarations);
+                nextBlock.addPredecessor(header);
+                nextBlock.seal();
+
+                Generator oldGen = stmtForeach.getGenerator();
+                Generator newGen = new Generator(oldGen.getType(), oldGen.getVarDecls(), replacer.replaceVariables(oldGen.getCollection(), header));
+                List<Expression> newFilters = stmtForeach.getFilters().map(e -> replacer.replaceVariables(e, header));
+                StmtForeachSSA updatedStmt = new StmtForeachSSA(newGen, newFilters, Arrays.asList(bodyEntry), Arrays.asList(header));
+                iteratedStmts.add(updatedStmt);
+                iteratedStmts.add(nextBlock);
+                setStatements(iteratedStmts);
+                return nextBlock.fill(nextStmts);
+            }
         }
 
         setStatements(stmtsIter);
@@ -275,6 +307,12 @@ public class SSABlock extends Statement {
                 StmtBlock header = ((SSABlock) (stmtWhileSSA.getHeader().get(0))).getStmtBlock();
                 StmtBlock body = ((SSABlock) (stmtWhileSSA.getBody().get(0))).getStmtBlock();
                 return new StmtWhileSSA(stmtWhileSSA.getCondition(), Arrays.asList(body), Arrays.asList(header));
+            }
+            if (statement instanceof StmtForeachSSA) {
+                StmtForeachSSA stmtForeachSSA = (StmtForeachSSA) statement;
+                StmtBlock header = ((SSABlock) (stmtForeachSSA.getHeader().get(0))).getStmtBlock();
+                StmtBlock body = ((SSABlock) (stmtForeachSSA.getBody().get(0))).getStmtBlock();
+                return new StmtForeachSSA(stmtForeachSSA.getGenerator(), stmtForeachSSA.getFilters(), Arrays.asList(body), Arrays.asList(header));
             }
             else return statement;
         }).collect(Collectors.toList());
@@ -316,6 +354,11 @@ public class SSABlock extends Statement {
                 StmtWhileSSA stmtWhileSSA = (StmtWhileSSA) statement;
                 ((SSABlock) (stmtWhileSSA.getHeader().get(0))).removeTrivialPhis();
                 ((SSABlock) (stmtWhileSSA.getBody().get(0))).removeTrivialPhis();
+            }
+            if (statement instanceof StmtForeachSSA) {
+                StmtForeachSSA stmtForeachSSA = (StmtForeachSSA) statement;
+                ((SSABlock) (stmtForeachSSA.getHeader().get(0))).removeTrivialPhis();
+                ((SSABlock) (stmtForeachSSA.getBody().get(0))).removeTrivialPhis();
             }
         });
     }

@@ -15,6 +15,7 @@ import se.lth.cs.tycho.ir.stmt.lvalue.LValueField;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueNth;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtForeachSSA;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtIfSSA;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtWhileSSA;
@@ -1356,6 +1357,24 @@ public interface Code {
 	}
 
 	default void execute(StmtForeach foreach) {
+		forEach(foreach.getGenerator().getCollection(), foreach.getGenerator().getVarDecls(), () -> {
+			for (Expression filter : foreach.getFilters()) {
+				emitter().emit("if (%s) {", evaluate(filter));
+				emitter().increaseIndentation();
+				trackable().enter();
+			}
+			foreach.getBody().forEach(this::execute);
+			for (Expression filter : foreach.getFilters()) {
+				trackable().exit();
+				emitter().decreaseIndentation();
+				emitter().emit("}");
+			}
+		});
+	}
+
+	default void execute(StmtForeachSSA foreach) {
+		// To improve this, a forEach code generator method which incorporates the header needs to be added.
+		foreach.getHeader().forEach(this::execute);
 		forEach(foreach.getGenerator().getCollection(), foreach.getGenerator().getVarDecls(), () -> {
 			for (Expression filter : foreach.getFilters()) {
 				emitter().emit("if (%s) {", evaluate(filter));
