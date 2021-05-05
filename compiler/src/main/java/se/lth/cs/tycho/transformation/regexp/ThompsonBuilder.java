@@ -33,6 +33,10 @@ public interface ThompsonBuilder {
 
     default Automaton nfa(RegExp regExp) {
         visit(regExp);
+        int initialGlobal = recursionStack().pop();
+        int finalGlobal = recursionStack().pop();
+        eNFA().setInitialState(initialGlobal);
+        eNFA().addFinalState(finalGlobal);
         return eNFA();
     }
 
@@ -74,7 +78,6 @@ public interface ThompsonBuilder {
         int finalChild = recursionStack().pop();
 
         int finalCurrent = index().get();
-        ;
         index().set(index().get() + 1);
         eNFA().addVertex(finalCurrent);
         // epsilon transition for 0 occurrences.

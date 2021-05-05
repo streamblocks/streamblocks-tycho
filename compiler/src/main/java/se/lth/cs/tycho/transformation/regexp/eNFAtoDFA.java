@@ -149,8 +149,10 @@ public class eNFAtoDFA {
             Set<SimpleEdge> succs = eNFA.outgoingEdgesOf(v);
             for (SimpleEdge e : succs) {
                 Integer target = eNFA.getEdgeTarget(e);
-                if (letter.equals(e.getObject())) {
-                    result.add(target);
+                if(e.getObject() !=null){
+                    if (letter.equals(e.getObject())) {
+                        result.add(target);
+                    }
                 }
             }
         }

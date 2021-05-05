@@ -31,9 +31,7 @@ public class RegExpConverter {
     public ScheduleFSM convert() {
         ThompsonBuilder builder = MultiJ.from(ThompsonBuilder.class).instance();
         Automaton eNFA = builder.nfa(scheduleRegExp);
-        printAutomaton(new BufferedWriter(new PrintWriter(System.out)), eNFA);
         Automaton DFA = new eNFAtoDFA(eNFA).convert();
-
         ImmutableList.Builder<Transition> transitions = ImmutableList.builder();
 
         // Convert the states to String and add them to the FSM.
