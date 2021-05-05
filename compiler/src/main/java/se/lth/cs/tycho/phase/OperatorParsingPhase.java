@@ -4,6 +4,8 @@ import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.SourceUnit;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.entity.cal.regexp.RegExp;
+import se.lth.cs.tycho.ir.entity.cal.regexp.RegExpBinary;
 import se.lth.cs.tycho.ir.expr.ExprBinaryOp;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.util.ImmutableList;
@@ -56,6 +58,12 @@ public class OperatorParsingPhase implements Phase {
 				if (binaryOp.getOperations().size() > 1) {
 					return helper.shuntingYard(binaryOp);
 				}
+			}else if(transformed instanceof RegExpBinary){
+				RegExpBinary binaryOp = (RegExpBinary) transformed;
+				helper.checkOperators(binaryOp);
+				if (binaryOp.getOperations().size() > 1) {
+					return helper.shuntingYard(binaryOp);
+				}
 			}
 			return transformed;
 		}
@@ -80,6 +88,12 @@ public class OperatorParsingPhase implements Phase {
 					.forEach(op -> reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Unknown operator: " + op, sourceUnit, binaryOp)));
 		}
 
+		private void checkOperators(RegExpBinary binaryOp){
+			binaryOp.getOperations().stream()
+					.filter(op -> !regExpOperators.containsKey(op))
+					.forEach(op -> reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Unknown operator: " + op, sourceUnit, binaryOp)));
+		}
+
 		private Expression shuntingYard(ExprBinaryOp binaryOp) {
 			List<String> operations = binaryOp.getOperations();
 			List<Expression> operands = binaryOp.getOperands();
@@ -88,6 +102,7 @@ public class OperatorParsingPhase implements Phase {
 			int i = 0;
 			out.add(operands.get(i));
 			while (i < operations.size()) {
+
 				int prec = operatorMap.get(operations.get(i)).precedence;
 				boolean rightAssoc = operatorMap.get(operations.get(i)).rightAssociative;
 				while (!ops.isEmpty() && (!rightAssoc && prec <= operatorMap.get(ops.getLast()).precedence || rightAssoc && prec < operatorMap.get(ops.getLast()).precedence)) {
@@ -104,11 +119,45 @@ public class OperatorParsingPhase implements Phase {
 			return out.getFirst();
 		}
 
+		private RegExp shuntingYard(RegExpBinary binaryOp) {
+			List<String> operations = binaryOp.getOperations();
+			List<RegExp> operands = binaryOp.getOperands();
+			LinkedList<RegExp> out = new LinkedList<>();
+			LinkedList<String> ops = new LinkedList<>();
+			int i = 0;
+			out.add(operands.get(i));
+			while (i < operations.size()) {
+				int prec = regExpOperators.get(operations.get(i)).precedence;
+				boolean rightAssoc = regExpOperators.get(operations.get(i)).rightAssociative;
+				while (!ops.isEmpty() && (!rightAssoc && prec <= regExpOperators.get(ops.getLast()).precedence || rightAssoc && prec < regExpOperators.get(ops.getLast()).precedence)) {
+					transformOperatorRegExp(out, ops);
+				}
+				ops.addLast(operations.get(i));
+				i += 1;
+				out.add(operands.get(i));
+			}
+			while (!ops.isEmpty()) {
+				transformOperatorRegExp(out, ops);
+			}
+			assert out.size() == 1;
+			return out.getFirst();
+		}
+
+
 		private void transformOperator(LinkedList<Expression> out, LinkedList<String> ops) {
 			String operator = ops.removeLast();
 			Expression right = out.removeLast();
 			Expression left = out.removeLast();
 			Expression expr = new ExprBinaryOp(ImmutableList.of(operator), ImmutableList.of(left, right));
+			expr.setPosition(left, right);
+			out.add(expr);
+		}
+
+		private void transformOperatorRegExp(LinkedList<RegExp> out, LinkedList<String> ops) {
+			String operator = ops.removeLast();
+			RegExp right = out.removeLast();
+			RegExp left = out.removeLast();
+			RegExpBinary expr = new RegExpBinary(ImmutableList.of(operator), ImmutableList.of(left, right));
 			expr.setPosition(left, right);
 			out.add(expr);
 		}
@@ -183,6 +232,11 @@ public class OperatorParsingPhase implements Phase {
 			new BinaryOperator(">>", -7, false),
 			new BinaryOperator("*", -5 , false),
 			new BinaryOperator("in", -7 , false)
+	).collect(Collectors.toMap(op -> op.name, Function.identity()));
+
+	private static final Map<String, BinaryOperator> regExpOperators = Stream.of(
+			new BinaryOperator("", -20 , false),
+			new BinaryOperator("|", -10 , false)
 	).collect(Collectors.toMap(op -> op.name, Function.identity()));
 
 	private static final Map<String, BinaryOperator> noOperators = Collections.emptyMap();

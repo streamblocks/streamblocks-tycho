@@ -1,42 +1,49 @@
 package se.lth.cs.tycho.ir.entity.cal.regexp;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.ir.util.Lists;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public class RegExpBinary extends RegExp {
 
-    private String operation;
-    private RegExp left;
-    private RegExp right;
+    private ImmutableList<String> operations;
+    private ImmutableList<RegExp> operands;
 
-    public RegExpBinary(String operation, RegExp left, RegExp right) {
-        this(null, operation, left, right);
+    public RegExpBinary(ImmutableList<String> operations, ImmutableList<RegExp> operands) {
+        this(null, operations, operands);
     }
 
-    private RegExpBinary(RegExpBinary original, String operation, RegExp left, RegExp right) {
+    private RegExpBinary(RegExpBinary original, ImmutableList<String> operations, ImmutableList<RegExp> operands) {
         super(original);
-        this.operation = operation;
-        this.left = left;
-        this.right = right;
+        assert (operations.size() == operands.size() - 1);
+        this.operations = operations;
+        this.operands = operands;
     }
 
-    public RegExpBinary copy(String operation, RegExp left, RegExp right) {
-        if (Objects.equals(this.operation, operation) && Objects.equals(this.left, left) && Objects.equals(this.right, right)) {
+    public ImmutableList<String> getOperations(){
+        return operations;
+    }
+
+    public ImmutableList<RegExp> getOperands(){
+        return operands;
+    }
+
+    public RegExpBinary copy(ImmutableList<String> operations, ImmutableList<RegExp> operands) {
+        if (Lists.equals(this.operations, operations) && Lists.equals(this.operands, operands)) {
             return this;
         }
-        return new RegExpBinary(this, operation, left, right);
+        return new RegExpBinary(this, operations, operands);
     }
 
     @Override
     public void forEachChild(Consumer<? super IRNode> action) {
-        action.accept(left);
-        action.accept(right);
+        operands.forEach(action);
     }
 
     @Override
-    public RegExp transformChildren(Transformation transformation) {
-        return copy(operation, (RegExp) transformation.apply(left), (RegExp) transformation.apply(right));
+    public RegExpBinary transformChildren(Transformation transformation) {
+        return copy(operations, (ImmutableList) operands.map(transformation));
     }
 }

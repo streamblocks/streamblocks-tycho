@@ -27,6 +27,7 @@ import se.lth.cs.tycho.ir.expr.pattern.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.*;
 import se.lth.cs.tycho.ir.entity.cal.*;
+import se.lth.cs.tycho.ir.entity.cal.regexp.*;
 import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.entity.*;
 import se.lth.cs.tycho.ir.ToolAttribute;
@@ -1225,6 +1226,7 @@ GlobalEntityDecl ActorDecl() :
 	ImmutableList.Builder<ActionCase> actionCases = ImmutableList.builder();
     ActionCase actionCase;
 	ScheduleFSM scheduleFSM = null;
+	RegExp scheduleRegExp = null;
 	ProcessDescription process = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
 	ImmutableList<Expression> invariants = ImmutableList.empty();
@@ -1278,6 +1280,13 @@ GlobalEntityDecl ActorDecl() :
 				}
 				scheduleFSM = ActionSchedule()
 			|
+			    scheduleRegExp = ActionScheduleRegExp()
+			    {
+			        if (scheduleFSM != null && scheduleRegExp != null) {
+                        throw new ParseException("Either a schedule fsm or schedule regexp can be defined.");
+                    }
+			    }
+			|
 				{
 					if (scheduleFSM != null || process != null) {
 						throw new ParseException("Only one action schedule or process description is allowed.");
@@ -1291,7 +1300,7 @@ GlobalEntityDecl ActorDecl() :
 		";"
 	)
 	{
-		CalActor a = new CalActor(annotations.build(), typePars.build(), valuePars.build(), typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, process, priorities.build(), invariants);
+		CalActor a = new CalActor(annotations.build(), typePars.build(), valuePars.build(), typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, scheduleRegExp, process, priorities.build(), invariants);
 		a.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
@@ -1641,12 +1650,12 @@ ScheduleFSM ActionSchedule() :
     int beginColumn = 0;
 }
 {
-	"schedule"
+	"schedule fsm"
 	{
 	    beginLine = token.beginLine;
 	    beginColumn = token.endColumn;
 	}
-	("fsm")?
+
 	init = <ID>
 	":"
 	trans = StateTransitions()
@@ -1655,6 +1664,118 @@ ScheduleFSM ActionSchedule() :
         ScheduleFSM fsm = new ScheduleFSM(trans, init.image);
         fsm.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
         return fsm;
+    }
+}
+
+RegExp ActionScheduleRegExp():
+{
+    Token init;
+    RegExp regExp = null;
+	int beginLine = 0;
+    int beginColumn = 0;
+}
+{
+    "schedule regexp"
+	{
+	    beginLine = token.beginLine;
+	    beginColumn = token.endColumn;
+	}
+
+	regExp = RegExp()
+	("end" | "endschedule")
+	{
+        regExp.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+        return regExp;
+	}
+}
+
+RegExp RegExp():
+{
+    RegExp regExp;
+    String op = "";
+    ImmutableList.Builder<String> ops = ImmutableList.builder();
+    ImmutableList.Builder<RegExp> exprs = ImmutableList.builder();
+}
+{
+    regExp = UnaryOperationRegExp() {exprs.add(regExp);}
+    (
+        ("|" {op="|";} )?
+        regExp = UnaryOperationRegExp()
+        { ops.add(op); exprs.add(regExp); op ="";}
+    )*
+    {
+        ImmutableList<String> opList = ops.build();
+        ImmutableList<RegExp> exprList = exprs.build();
+        if (opList.isEmpty()) {
+            return regExp;
+        } else {
+            return setPosition(new RegExpBinary(opList, exprList), exprList.get(0), exprList.get(exprList.size()-1));
+        }
+    }
+}
+
+RegExp RegExpTag():
+{
+    Token init;
+	int beginLine = 0;
+    int beginColumn = 0;
+    QID qid;
+}
+{
+    {
+    	    beginLine = token.beginLine;
+    	    beginColumn = token.endColumn;
+    }
+
+    qid = QID()
+
+    {
+        RegExpTag regExp = new RegExpTag(qid);
+        regExp.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+        return regExp;
+    }
+}
+
+
+RegExp UnaryOperationRegExp():
+{
+    String op = null;
+    RegExp regExp;
+    Token init;
+    int beginLine = 0;
+    int beginColumn = 0;
+}
+{
+    {
+        beginLine = token.beginLine;
+        beginColumn = token.endColumn;
+    }
+
+    regExp = SingleRegExpExpression()
+    (op = UnaryRegExpOperation())?
+
+    {
+        if(op == null){
+            return regExp;
+        }
+
+        regExp = new RegExpUnary(op, regExp);
+        regExp.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+        return regExp;
+    }
+}
+
+RegExp SingleRegExpExpression():
+{
+    RegExp regExp;
+}
+{
+    (
+        regExp = RegExpTag()
+        |
+        "(" regExp = RegExp() ")")
+    {
+        return regExp;
     }
 }
 
@@ -1971,6 +2092,15 @@ String UnaryOperator() :
 		| op = "not" | op = "dom" | op = "rng" | op = "#"
 	)
 	{ return op.image; }
+}
+
+String UnaryRegExpOperation() :
+{
+    Token op;
+}
+{
+    ( op = "*" | op = <OP> )
+    {return op.image;}
 }
 
 ExprCase CaseExpression() :
