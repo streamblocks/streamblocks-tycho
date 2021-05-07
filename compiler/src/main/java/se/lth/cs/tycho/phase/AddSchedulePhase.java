@@ -14,55 +14,61 @@ import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.cal.ScheduleFSM;
 import se.lth.cs.tycho.ir.entity.cal.Transition;
 import se.lth.cs.tycho.ir.util.ImmutableList;
+import se.lth.cs.tycho.transformation.regexp.RegExpConverter;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class AddSchedulePhase implements Phase {
-	@Override
-	public String getDescription() {
-		return "Adds a schedule to actors that doesn't have one.";
-	}
+    @Override
+    public String getDescription() {
+        return "Adds a schedule to actors that doesn't have one.";
+    }
 
-	@Override
-	public CompilationTask execute(CompilationTask task, Context context) {
-		return task.transformChildren(MultiJ.instance(AddSchedule.class));
-	}
+    @Override
+    public CompilationTask execute(CompilationTask task, Context context) {
+        return task.transformChildren(MultiJ.instance(AddSchedule.class));
+    }
 
-	@Module
-	interface AddSchedule extends IRNode.Transformation {
-		@Override
-		default IRNode apply(IRNode node) {
-			return node.transformChildren(this);
-		}
+    @Module
+    interface AddSchedule extends IRNode.Transformation {
+        @Override
+        default IRNode apply(IRNode node) {
+            return node.transformChildren(this);
+        }
 
-		default IRNode apply(Decl decl) {
-			return decl;
-		}
+        default IRNode apply(Decl decl) {
+            return decl;
+        }
 
-		default IRNode apply(GlobalEntityDecl entityDecl) {
-			return entityDecl.transformChildren(this);
-		}
+        default IRNode apply(GlobalEntityDecl entityDecl) {
+            return entityDecl.transformChildren(this);
+        }
 
-		default IRNode apply(Entity entity) {
-			return entity;
-		}
+        default IRNode apply(Entity entity) {
+            return entity;
+        }
 
-		default IRNode apply(CalActor actor) {
-			if (actor.getScheduleFSM() == null) {
-				Set<QID> tags = new LinkedHashSet<>();
-				for (Action a : actor.getActions()) {
-					if (a.getTag() != null) {
-						tags.add(a.getTag());
-					}
-				}
-				String state = "S";
-				Transition transition = new Transition(state, state, tags.stream().collect(ImmutableList.collector()));
-				ScheduleFSM schedule = new ScheduleFSM(ImmutableList.of(transition), state);
-				return actor.withScheduleFSM(schedule);
-			} else {
-				return actor;
-			}
-		}
-	}
+        default IRNode apply(CalActor actor) {
+            if (actor.getScheduleRegExp() != null) {
+                RegExpConverter converter = new RegExpConverter(actor.getScheduleRegExp());
+                ScheduleFSM schedule = converter.convert();
+
+                return actor.withScheduleFSM(schedule);
+            } else if (actor.getScheduleFSM() == null) {
+                Set<QID> tags = new LinkedHashSet<>();
+                for (Action a : actor.getActions()) {
+                    if (a.getTag() != null) {
+                        tags.add(a.getTag());
+                    }
+                }
+                String state = "S";
+                Transition transition = new Transition(state, state, tags.stream().collect(ImmutableList.collector()));
+                ScheduleFSM schedule = new ScheduleFSM(ImmutableList.of(transition), state);
+                return actor.withScheduleFSM(schedule);
+            } else {
+                return actor;
+            }
+        }
+    }
 }

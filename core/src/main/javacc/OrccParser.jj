@@ -739,7 +739,7 @@ GlobalEntityDecl ActorDecl() :
 		"end"
 	)
 	{
-		CalActor a = new CalActor(annotations.build(), typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases, scheduleFSM, null, priorities.build(), invariants.build());
+		CalActor a = new CalActor(annotations.build(), typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases, scheduleFSM, null, null, priorities.build(), invariants.build());
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
 }
