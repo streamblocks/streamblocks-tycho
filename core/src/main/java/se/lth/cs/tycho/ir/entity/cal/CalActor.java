@@ -263,4 +263,13 @@ public class CalActor extends Entity {
 			return new CalActor(this, annotations, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, ImmutableList.from(priorities), invariants);
 		}
 	}
+
+	public CalActor withAnnotations(List<Annotation> annotations) {
+		if (Lists.sameElements(this.annotations, annotations)) {
+			return this;
+		} else {
+			return new CalActor(this, ImmutableList.from(annotations),
+					typeParameters, valueParameters, typeDecls, varDecls, inputPorts, outputPorts, initializers, actions, actionCases, scheduleFSM, process, priorities, invariants);
+		}
+	}
 }
