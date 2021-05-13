@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.phase;
 
+import jdk.jshell.Diag;
 import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
@@ -14,7 +15,10 @@ import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
 import se.lth.cs.tycho.ir.entity.nl.EntityReferenceLocal;
 import se.lth.cs.tycho.attribute.EntityDeclarations;
 import se.lth.cs.tycho.attribute.GlobalNames;
+import se.lth.cs.tycho.reporting.CompilationException;
+import se.lth.cs.tycho.reporting.Diagnostic;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class ResolveGlobalEntityNamesPhase implements Phase {
@@ -29,7 +33,17 @@ public class ResolveGlobalEntityNamesPhase implements Phase {
 				.bind("entities").to(task.getModule(EntityDeclarations.key))
 				.bind("globalNames").to(task.getModule(GlobalNames.key))
 				.instance();
-		return task.transformChildren(transformation);
+        CompilationTask transformed_task = null;
+        try {
+        	transformed_task = task.transformChildren(transformation);
+		} catch (NoSuchElementException e) {
+        	context.getReporter().report(
+        			new Diagnostic(Diagnostic.Kind.ERROR, "Could not resolve global entity names!\n" +
+							e.getMessage())
+			);
+		}
+
+		return transformed_task;
 	}
 
 	@Module
@@ -46,9 +60,21 @@ public class ResolveGlobalEntityNamesPhase implements Phase {
 		}
 
 		default EntityReference apply(EntityReferenceLocal ref) {
-			GlobalEntityDecl entity = entities().declaration(ref);
-			Optional<QID> name = globalNames().globalName(entity);
-			return name.<EntityReference>map(EntityReferenceGlobal::new).orElse(ref);
+			try {
+				GlobalEntityDecl entity = entities().declaration(ref);
+				try {
+					Optional<QID> name = globalNames().globalName(entity);
+					return name.<EntityReference>map(EntityReferenceGlobal::new).orElse(ref);
+				} catch (Exception e) {
+					throw new CompilationException(
+							new Diagnostic(Diagnostic.Kind.ERROR, "Could not resolve global entity name" + entity.getName() + "\n" + e.getMessage()));
+				}
+			} catch (Exception e) {
+				throw new CompilationException(
+						new Diagnostic(Diagnostic.Kind.ERROR, "Failed looking up Entity reference " + ref.getName() + "\n" + e.getMessage()));
+			}
+
+
 		}
 	}
 }

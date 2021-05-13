@@ -228,13 +228,13 @@ public class TemplateInstantiationPhase implements Phase {
             // Substitute meta parameters
             List<MetaParameter> metaParameters = metaDecl.getParameters().stream().sorted(Comparator.comparing(MetaParameter::getName)).collect(Collectors.toList());
             List<MetaArgument> metArguments = meta.getArguments().stream().sorted(Comparator.comparing(MetaArgument::getName)).collect(Collectors.toList());
-            Map<String, String> tpes = new HashMap<>();
+            Map<String, NominalTypeExpr> tpes = new HashMap<>();
             Map<VarDecl, String> vals = new HashMap<>();
             for (int i = 0; i < metArguments.size(); ++i) {
                 MetaParameter metaParam = metaParameters.get(i);
                 MetaArgument metaArg = metArguments.get(i);
                 if (metaArg instanceof MetaArgumentType) {
-                    tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()).getName());
+                    tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()));
                 } else {
                     Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
 
@@ -375,13 +375,13 @@ public class TemplateInstantiationPhase implements Phase {
             // Substitute meta parameters
             List<MetaParameter> metaParameters = metaDecl.getParameters().stream().sorted(Comparator.comparing(MetaParameter::getName)).collect(Collectors.toList());
             List<MetaArgument> metArguments = meta.getArguments().stream().sorted(Comparator.comparing(MetaArgument::getName)).collect(Collectors.toList());
-            Map<String, String> tpes = new HashMap<>();
+            Map<String, NominalTypeExpr> tpes = new HashMap<>();
             Map<VarDecl, String> vals = new HashMap<>();
             for (int i = 0; i < metArguments.size(); ++i) {
                 MetaParameter metaParam = metaParameters.get(i);
                 MetaArgument metaArg = metArguments.get(i);
                 if (metaArg instanceof MetaArgumentType) {
-                    tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()).getName());
+                    tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()));
                 } else {
 
 
@@ -637,7 +637,8 @@ public class TemplateInstantiationPhase implements Phase {
 
         default IRNode apply(NominalTypeExpr expr) {
             if (substitution().mapping().containsKey(expr.getName())) {
-                return expr.withName(substitution().mapping().get(expr.getName())).transformChildren(this);
+                return substitution().mapping().get(expr.getName()).transformChildren(this);
+//                return expr.withName(substitution().mapping().get(expr.getName())).transformChildren(this);
             } else {
                 return expr.transformChildren(this);
             }
@@ -872,13 +873,13 @@ public class TemplateInstantiationPhase implements Phase {
 
     static class TypeSubstitution {
 
-        private final Map<String, String> mapping;
+        private final Map<String, NominalTypeExpr> mapping;
 
-        public TypeSubstitution(Map<String, String> mapping) {
+        public TypeSubstitution(Map<String, NominalTypeExpr> mapping) {
             this.mapping = mapping;
         }
 
-        public Map<String, String> mapping() {
+        public Map<String, NominalTypeExpr> mapping() {
             return mapping;
         }
     }
