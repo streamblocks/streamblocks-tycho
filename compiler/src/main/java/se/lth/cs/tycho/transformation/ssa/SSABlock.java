@@ -316,6 +316,14 @@ public class SSABlock extends Statement {
                 setStatements(iteratedStmts);
                 return nextBlock.fill(nextStmts);
             }
+
+            else if (statement instanceof StmtCall) {
+                StmtCall call = (StmtCall) statement;
+                List<Expression> newArgs = call.getArgs().stream().map(e -> replacer.replaceVariables(e, this)).collect(Collectors.toList());
+
+                StmtCall updatedStmt = new StmtCall(call.getProcedure(), newArgs);
+                it.set(updatedStmt);
+            }
         }
 
         setStatements(stmtsIter);
