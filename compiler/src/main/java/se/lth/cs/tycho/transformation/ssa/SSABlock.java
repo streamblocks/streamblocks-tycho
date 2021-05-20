@@ -6,13 +6,16 @@ import se.lth.cs.tycho.ir.Generator;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.*;
+import se.lth.cs.tycho.ir.expr.ExprCase;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.expr.pattern.Pattern;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtForeachSSA;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtPhi;
 import se.lth.cs.tycho.ir.stmt.ssa.StmtWhileSSA;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -277,9 +280,37 @@ public class SSABlock extends Statement {
                 nextBlock.seal();
 
                 Generator oldGen = stmtForeach.getGenerator();
+                //List<GeneratorVarDecl> decls = new LinkedList<>(oldGen.getVarDecls().map(decl -> (GeneratorVarDecl) decl.deepClone()));
                 Generator newGen = new Generator(oldGen.getType(), oldGen.getVarDecls(), replacer.replaceVariables(oldGen.getCollection(), header));
                 List<Expression> newFilters = stmtForeach.getFilters().map(e -> replacer.replaceVariables(e, header));
                 StmtForeachSSA updatedStmt = new StmtForeachSSA(newGen, newFilters, Arrays.asList(bodyEntry), Arrays.asList(header));
+                iteratedStmts.add(updatedStmt);
+                iteratedStmts.add(nextBlock);
+                setStatements(iteratedStmts);
+                return nextBlock.fill(nextStmts);
+            }
+
+            else if (statement instanceof StmtCase) {
+                List<Statement> iteratedStmts = new ArrayList<>(stmtsIter.subList(0, it.previousIndex()));
+
+                StmtCase stmtCase = (StmtCase) statement;
+                Expression newScrutinee = replacer.replaceVariables(stmtCase.getScrutinee(), this);
+                List<Statement> nextStmts = new ArrayList<>(stmtsIter.subList(it.nextIndex(), stmtsIter.size()));
+                SSABlock nextBlock = new SSABlock(programEntry, declarations);
+
+                List<StmtCase.Alternative> newAlternatives = stmtCase.getAlternatives().stream().map(alternative -> {
+                    Pattern newPattern = alternative.getPattern(); //TODO: handle patterns
+                    List<Expression> newGuards = alternative.getGuards().map(e -> replacer.replaceVariables(e, this));
+                    SSABlock entry = new SSABlock(programEntry, declarations);
+                    entry.addPredecessor(this);
+                    entry.seal();
+                    SSABlock exit = entry.fill(alternative.getStatements());
+                    nextBlock.addPredecessor(exit);
+                    return new StmtCase.Alternative(newPattern, newGuards, Arrays.asList(entry));
+                }).collect(Collectors.toList());
+                nextBlock.seal();
+
+                StmtCase updatedStmt = new StmtCase(newScrutinee, newAlternatives);
                 iteratedStmts.add(updatedStmt);
                 iteratedStmts.add(nextBlock);
                 setStatements(iteratedStmts);
@@ -314,11 +345,19 @@ public class SSABlock extends Statement {
                 StmtBlock body = ((SSABlock) (stmtForeachSSA.getBody().get(0))).getStmtBlock();
                 return new StmtForeachSSA(stmtForeachSSA.getGenerator(), stmtForeachSSA.getFilters(), Arrays.asList(body), Arrays.asList(header));
             }
+            if (statement instanceof StmtCase) {
+                StmtCase stmtCase = (StmtCase) statement;
+                List<StmtCase.Alternative> alternatives = stmtCase.getAlternatives().stream().map(alternative -> {
+                    StmtBlock statements = ((SSABlock) (alternative.getStatements().get(0))).getStmtBlock();
+                    return new StmtCase.Alternative(alternative.getPattern(), alternative.getGuards(), Arrays.asList(statements));
+                }).collect(Collectors.toList());
+                return new StmtCase(stmtCase.getScrutinee(), alternatives);
+            }
             else return statement;
         }).collect(Collectors.toList());
         List<Statement> statements = Stream.concat(phiStmts.stream(), completed.stream()).collect(Collectors.toList());
 
-        return new StmtBlock(typeDecls, varDecls, statements);
+        return new StmtBlock(typeDecls, varDecls.stream().map(decl -> (LocalVarDecl) decl.deepClone()).collect(Collectors.toList()), statements);
     }
 
     /*public List<Statement> getStmts() {
@@ -359,6 +398,11 @@ public class SSABlock extends Statement {
                 StmtForeachSSA stmtForeachSSA = (StmtForeachSSA) statement;
                 ((SSABlock) (stmtForeachSSA.getHeader().get(0))).removeTrivialPhis();
                 ((SSABlock) (stmtForeachSSA.getBody().get(0))).removeTrivialPhis();
+            }
+            if (statement instanceof StmtCase) {
+                StmtCase stmtCase = (StmtCase) statement;
+                for (StmtCase.Alternative alternative: stmtCase.getAlternatives())
+                    ((SSABlock) (alternative.getStatements().get(0))).removeTrivialPhis();
             }
         });
     }

@@ -27,6 +27,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.stmt.StmtBlock;
 import se.lth.cs.tycho.ir.stmt.StmtCase;
 import se.lth.cs.tycho.ir.stmt.StmtForeach;
+import se.lth.cs.tycho.ir.stmt.ssa.StmtForeachSSA;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
 
@@ -84,6 +85,10 @@ public interface VariableScopes {
         }
 
         default ImmutableList<VarDecl> declarations(StmtForeach foreach) {
+            return ImmutableList.covariance(foreach.getGenerator().getVarDecls());
+        }
+
+        default ImmutableList<VarDecl> declarations(StmtForeachSSA foreach) {
             return ImmutableList.covariance(foreach.getGenerator().getVarDecls());
         }
 

@@ -76,7 +76,7 @@ public class SsaPhase implements Phase {
          * @param proc the ExprProcReturn
          * @return the updated ExprProcReturn
          */
-        default IRNode apply(ExprProcReturn proc) {
+        default IRNode apply(ExprProc proc) {
             throw new UnsupportedOperationException();
         }
 
@@ -90,7 +90,6 @@ public class SsaPhase implements Phase {
             } else {
                 statements = body.getStatements();
             }
-            statements.forEach(stmt -> System.out.println(stmt.toString()));
 
             SSABlock programEntry = new SSABlock(declarations);
             SSABlock exit = programEntry.fill(transition.getBody());
