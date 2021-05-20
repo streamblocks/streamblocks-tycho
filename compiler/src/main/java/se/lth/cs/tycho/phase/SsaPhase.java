@@ -71,13 +71,18 @@ public class SsaPhase implements Phase {
         }
 
         /**
-         * Creates a CFG and applies SSA to an ExprProcReturn
+         * Applies SSA to an ExprProc
          *
-         * @param proc the ExprProcReturn
-         * @return the updated ExprProcReturn
+         * @param proc the ExprProc
+         * @return the updated ExprProc
          */
         default IRNode apply(ExprProc proc) {
-            throw new UnsupportedOperationException();
+            SSABlock programEntry = new SSABlock(declarations);
+            SSABlock exit = programEntry.fill(proc.getBody());
+            programEntry.removeTrivialPhis();
+            List<Statement> res = Arrays.asList(programEntry.getStmtBlock());
+
+            return proc.withBody(res);
         }
 
         default IRNode apply(Transition transition) {

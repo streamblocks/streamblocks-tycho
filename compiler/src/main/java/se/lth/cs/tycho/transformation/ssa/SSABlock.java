@@ -324,6 +324,12 @@ public class SSABlock extends Statement {
                 StmtCall updatedStmt = new StmtCall(call.getProcedure(), newArgs);
                 it.set(updatedStmt);
             }
+
+            else if (statement instanceof StmtReturn) {
+                StmtReturn stmtReturn = (StmtReturn) statement;
+                StmtReturn updatedStmt = new StmtReturn(replacer.replaceVariables(stmtReturn.getExpression(), this));
+                it.set(updatedStmt);
+            }
         }
 
         setStatements(stmtsIter);
