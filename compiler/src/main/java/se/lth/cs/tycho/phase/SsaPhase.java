@@ -1,5 +1,7 @@
 package se.lth.cs.tycho.phase;
 
+import org.multij.Binding;
+import org.multij.BindingKind;
 import org.multij.Module;
 import org.multij.MultiJ;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
@@ -11,6 +13,7 @@ import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.entity.am.Transition;
+import se.lth.cs.tycho.ir.entity.cal.Action;
 import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.stmt.*;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValue;
@@ -34,7 +37,6 @@ import static se.lth.cs.tycho.ir.Variable.variable;
  */
 public class SsaPhase implements Phase {
 
-    private static VariableDeclarations declarations;
     //private final Map<Variable, Map<StmtBlock, Expression>> currentDef = new HashMap<>();
     //private static final CollectOrReplaceExpressions subExprCollectorOrReplacer = MultiJ.from(CollectOrReplaceExpressions.class).instance();
 
@@ -53,8 +55,9 @@ public class SsaPhase implements Phase {
 
     @Override
     public CompilationTask execute(CompilationTask task, Context context) throws CompilationException {
-        declarations = task.getModule(VariableDeclarations.key);
-        Transformation transformation = MultiJ.from(SsaPhase.Transformation.class).instance();
+        Transformation transformation = MultiJ.from(SsaPhase.Transformation.class)
+                .bind("declarations").to(task.getModule(VariableDeclarations.key))
+                .instance();
         return task.transformChildren(transformation);
     }
 
@@ -64,6 +67,9 @@ public class SsaPhase implements Phase {
 
     @Module
     interface Transformation extends IRNode.Transformation {
+
+        @Binding(BindingKind.INJECTED)
+        VariableDeclarations declarations();
 
         @Override
         default IRNode apply(IRNode node) {
@@ -77,14 +83,14 @@ public class SsaPhase implements Phase {
          * @return the updated ExprProc
          */
         default IRNode apply(ExprProc proc) {
-            SSABlock programEntry = new SSABlock(declarations);
+            SSABlock programEntry = new SSABlock(declarations());
             SSABlock exit = programEntry.fill(proc.getBody());
             programEntry.removeTrivialPhis();
             List<Statement> res = Arrays.asList(programEntry.getStmtBlock());
 
             return proc.withBody(res);
         }
-
+/*
         default IRNode apply(Transition transition) {
 
             StmtBlock body = (StmtBlock) transition.getBody().get(0);
@@ -96,21 +102,28 @@ public class SsaPhase implements Phase {
                 statements = body.getStatements();
             }
 
-            SSABlock programEntry = new SSABlock(declarations);
+            SSABlock programEntry = new SSABlock(declarations());
             SSABlock exit = programEntry.fill(transition.getBody());
             programEntry.removeTrivialPhis();
-            List<Statement> res = Arrays.asList(programEntry.getStmtBlock());
+            List<Statement> res = ImmutableList.of(programEntry.getStmtBlock());
             //List<Statement> res = Arrays.asList(new StmtBlock(
             //        programEntry.getTypeDecls(), programEntry.getVarDecls(), programEntry.getStmts()));
             return transition.withBody(res);
             //return transition.withBody(programEntry.getStmtBlock().getStatements());
         }
+*/
 
+        default IRNode apply(Action action){
+            SSABlock programEntry = new SSABlock(action.getVarDecls(), declarations());
+            SSABlock exit = programEntry.fill(action.getBody());
+            programEntry.removeTrivialPhis();
+            List<Statement> res = ImmutableList.of(programEntry.getStmtBlock());
+
+            return action.withBody(res);
+        }
 
 
     }
-
-
 
 
 }

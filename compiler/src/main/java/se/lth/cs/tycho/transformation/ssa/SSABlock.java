@@ -64,23 +64,33 @@ public class SSABlock extends Statement {
         this(new LinkedList<>(), new LinkedList<>(), programEntry, declarations);
     }
 
-    private SSABlock(VariableDeclarations declarations, SSABlock original) {
+    private SSABlock(List<LocalVarDecl> varDecls, VariableDeclarations declarations, SSABlock original) {
         super(original);
         this.programEntry = this;
         this.declarations = declarations;
         this.typeDecls = new LinkedList<>();
-        this.varDecls = new LinkedList<>();
+        this.varDecls = new LinkedList<>(varDecls);
         this.predecessors = new LinkedList<>();
         this.currentDef = new HashMap<>();
         this.currentNumber = new HashMap<>();
         this.equivalentVariables = new HashMap<>();
         this.statements = new LinkedList<>();
         this.phis = new LinkedList<>();
+        for (LocalVarDecl decl: varDecls) {
+            Variable originalVar = Variable.variable(decl.getName());
+            writeVariable(originalVar, new ExprVariable(originalVar));
+            programEntry.currentNumber.put(originalVar.getName(), 1);
+        }
     }
 
     public SSABlock(VariableDeclarations declarations) {
-        this(declarations, null);
+        this(new ArrayList<>(), declarations, null);
     }
+
+    public SSABlock(List<LocalVarDecl> varDecls, VariableDeclarations declarations) {
+        this(varDecls, declarations, null);
+    }
+
 
     public void seal() {
         phis.forEach(Phi::addOperands);

@@ -23,11 +23,11 @@ public class C implements Platform {
 			.addAll(Compiler.templatePhases())
 			.addAll(Compiler.networkElaborationPhases())
 			.addAll(Compiler.nameAndTypeAnalysis())
+			.add(new SsaPhase(false))
 			.addAll(Compiler.actorMachinePhases())
 			.add(new RemoveUnusedEntityDeclsPhase())
 			//.add(new AmToProceduralPhase())
 			.add(new ToExpProcReturnPhase())
-			.add(new SsaPhase(false))
 			.add(new CBackendPhase())
 			.build();
 
