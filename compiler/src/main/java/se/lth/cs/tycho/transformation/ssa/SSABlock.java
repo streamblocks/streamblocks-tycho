@@ -27,7 +27,7 @@ public class SSABlock extends Statement {
     private List<TypeDecl> typeDecls;
     private LinkedList<LocalVarDecl> varDecls;
     private final List<SSABlock> predecessors;
-    private final Map<String, Expression> currentDef;
+    private final Map<String, String> currentDef;
     private final Map<String, Integer> currentNumber;
     private final Map<String, String> equivalentVariables;
     private List<Statement> statements;
@@ -51,7 +51,7 @@ public class SSABlock extends Statement {
         this.phis = new LinkedList<>();
         for (LocalVarDecl decl: varDecls) {
             Variable originalVar = Variable.variable(decl.getName());
-            writeVariable(originalVar, new ExprVariable(originalVar));
+            writeVariable(originalVar, originalVar.getName());
             programEntry.currentNumber.put(originalVar.getName(), 1);
         }
     }
@@ -122,13 +122,13 @@ public class SSABlock extends Statement {
         this.statements = statements;
     }
 
-    public void writeVariable(Variable variable, Expression value) {
-        currentDef.put(variable.getName(), value);
+    public void writeVariable(Variable variable, String currentVersion) {
+        currentDef.put(variable.getName(), currentVersion);
     }
 
     public Expression readVariable(Variable variable) {
         if (currentDef.containsKey(variable.getName())) {
-            return currentDef.get(variable.getName()).deepClone();
+            return new ExprVariable(Variable.variable(currentDef.get(variable.getName())));
         }
         return readVariableRecursive(variable);
     }
@@ -139,19 +139,19 @@ public class SSABlock extends Statement {
         }
         Expression res;
         VarDecl originalDecl = (VarDecl) declarations.declaration(variable).deepClone();
-        Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + getVariableNumber(variable));
+        //Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + getVariableNumber(variable));
+        String newNumberedVar = originalDecl.getName() + "_" + getVariableNumber(variable);
         incrementVariableNumber(variable);
         LocalVarDecl numberedVarDecl = new LocalVarDecl(originalDecl.getAnnotations(), originalDecl.getType(),
-                newNumberedVar.getName(), null, originalDecl.isConstant());
+                newNumberedVar, null, originalDecl.isConstant());
         programEntry.addDecl(numberedVarDecl);
         Phi phi = new Phi(newNumberedVar, variable);
         phis.add(phi);
         if (sealed) {
             phi.addOperands();
         }
-        res = new ExprVariable(newNumberedVar);
-        writeVariable(variable, res);
-        return res;
+        writeVariable(variable, newNumberedVar);
+        return new ExprVariable(Variable.variable(newNumberedVar));
     }
 
     // programEntry argument is temporary, a recursive solution is probably better (and will deal with shadowing problem)
@@ -173,15 +173,16 @@ public class SSABlock extends Statement {
                 Expression newExpr = replacer.replaceVariables(assignment.getExpression(), this);
                 //VarDecl originalDecl = declarations.declaration(lValue);
                 VarDecl originalDecl = (VarDecl) declarations.declaration(lValue).deepClone();
-                Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + getVariableNumber(lValue));
+                //Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + getVariableNumber(lValue));
+                String newNumberedVar = originalDecl.getName() + "_" + getVariableNumber(lValue);
                 incrementVariableNumber(lValue);
-                writeVariable(lValue, new ExprVariable(newNumberedVar));
+                writeVariable(lValue, newNumberedVar);
                 LocalVarDecl numberedVarDecl = new LocalVarDecl(originalDecl.getAnnotations(), originalDecl.getType(),
-                        newNumberedVar.getName(), null, originalDecl.isConstant());
+                        newNumberedVar, null, originalDecl.isConstant());
                 programEntry.addDecl(numberedVarDecl);
 
                 StmtAssignment updatedStmt;
-                updatedStmt = new StmtAssignment(new LValueVariable(newNumberedVar), newExpr);
+                updatedStmt = new StmtAssignment(new LValueVariable(Variable.variable(newNumberedVar)), newExpr);
                 it.set(updatedStmt);
             }
 
@@ -273,8 +274,9 @@ public class SSABlock extends Statement {
                 SSABlock header = new SSABlock(programEntry, declarations);
                 header.addPredecessor(this);
                 for (GeneratorVarDecl varDecl: stmtForeach.getGenerator().getVarDecls()) {
-                    Variable var = Variable.variable(varDecl.getName());
-                    header.writeVariable((Variable) var.deepClone(), new ExprVariable((Variable) var.deepClone()));
+                    //Variable var = Variable.variable(varDecl.getName());
+                    //header.writeVariable((Variable) var.deepClone(), ((Variable) var.deepClone()).getName());
+                    header.writeVariable(Variable.variable(varDecl.getName()), varDecl.getName());
                 }
 
                 SSABlock bodyEntry = new SSABlock(programEntry, declarations);
@@ -446,11 +448,11 @@ public class SSABlock extends Statement {
     }
 
     private class Phi {
-        private final Variable assigned;
+        private final String assigned;
         private final Variable target;
         private LinkedList<Expression> operands;
 
-        public Phi(Variable assigned, Variable target) {
+        public Phi(String assigned, Variable target) {
             this.assigned = assigned;
             this.target = target;
         }
@@ -461,10 +463,11 @@ public class SSABlock extends Statement {
 
         public Statement getStatement() {
             operands = new LinkedList<>(operands.stream().map(op -> op.deepClone()).collect(Collectors.toList()));
+            Variable assignedVariable = Variable.variable(assigned);
             if (operands.size() == 1) {
-                return new StmtAssignment(new LValueVariable(assigned), operands.get(0));
+                return new StmtAssignment(new LValueVariable(assignedVariable), operands.get(0));
             }
-            return new StmtPhi(new LValueVariable(assigned), operands);
+            return new StmtPhi(new LValueVariable(assignedVariable), operands);
         }
 
         public void removeTrivialPhi() {
@@ -472,7 +475,7 @@ public class SSABlock extends Statement {
             for (Expression op: operands) {
                 Variable v = ((ExprVariable) op).getVariable();
                 String equiv = getVariableEquivalence(v.getName());
-                if (equiv == same || equiv == assigned.getName())
+                if (equiv == same || equiv == assigned)
                     continue;
                 if (same != null)
                     return;
@@ -480,7 +483,7 @@ public class SSABlock extends Statement {
             }
             if (same == null)
                 throw new IllegalStateException();
-            programEntry.equivalentVariables.put(assigned.getName(), same);
+            programEntry.equivalentVariables.put(assigned, same);
             operands = new LinkedList<>(Arrays.asList(new ExprVariable(Variable.variable(same))));
         }
 
