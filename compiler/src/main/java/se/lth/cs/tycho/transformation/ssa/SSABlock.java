@@ -78,7 +78,7 @@ public class SSABlock extends Statement {
         this.phis = new LinkedList<>();
         for (LocalVarDecl decl: varDecls) {
             Variable originalVar = Variable.variable(decl.getName());
-            writeVariable(originalVar, new ExprVariable(originalVar));
+            writeVariable(originalVar, originalVar.getName());
             programEntry.currentNumber.put(originalVar.getName(), 1);
         }
     }
@@ -98,15 +98,10 @@ public class SSABlock extends Statement {
     }
 
     public int getVariableNumber(Variable variable) {
-        /*if (currentNumber.containsKey(variable.getName())) {
-            return currentNumber.get(variable.getName());
-        }
-        return predecessors.get(0).getVariableNumber(variable);*/
         return programEntry.currentNumber.get(variable.getName());
     }
 
     public void incrementVariableNumber(Variable variable) {
-        //currentNumber.put(variable.getName(), getVariableNumber(variable) + 1);
         programEntry.currentNumber.put(variable.getName(), getVariableNumber(variable) + 1);
     }
 
@@ -137,9 +132,7 @@ public class SSABlock extends Statement {
         if (predecessors.size() == 1 && sealed) {
             return predecessors.get(0).readVariable(variable);
         }
-        Expression res;
         VarDecl originalDecl = (VarDecl) declarations.declaration(variable).deepClone();
-        //Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + getVariableNumber(variable));
         String newNumberedVar = originalDecl.getName() + "_" + getVariableNumber(variable);
         incrementVariableNumber(variable);
         LocalVarDecl numberedVarDecl = new LocalVarDecl(originalDecl.getAnnotations(), originalDecl.getType(),
@@ -158,7 +151,6 @@ public class SSABlock extends Statement {
     public SSABlock fill(List<Statement> statements) {
         ReplaceVariablesInExpression replacer = MultiJ.from(ReplaceVariablesInExpression.class).instance();
 
-        //int splitIndex = 0;
         LinkedList<Statement> stmtsIter = new LinkedList<>(statements);
         ListIterator<Statement> it = stmtsIter.listIterator();
         while(it.hasNext()) {
@@ -173,7 +165,6 @@ public class SSABlock extends Statement {
                 Expression newExpr = replacer.replaceVariables(assignment.getExpression(), this);
                 //VarDecl originalDecl = declarations.declaration(lValue);
                 VarDecl originalDecl = (VarDecl) declarations.declaration(lValue).deepClone();
-                //Variable newNumberedVar = Variable.variable(originalDecl.getName() + "_" + getVariableNumber(lValue));
                 String newNumberedVar = originalDecl.getName() + "_" + getVariableNumber(lValue);
                 incrementVariableNumber(lValue);
                 writeVariable(lValue, newNumberedVar);
@@ -232,7 +223,7 @@ public class SSABlock extends Statement {
                 nextBlock.addPredecessor(elseExit);
                 nextBlock.seal();
 
-                Expression newCond = replacer.replaceVariables(stmtIf.getCondition(), this); // TODO: replace stmtIf.getCondition() using readVariable
+                Expression newCond = replacer.replaceVariables(stmtIf.getCondition(), this);
                 StmtIf updatedStmt = new StmtIf(newCond, Arrays.asList(thenEntry), Arrays.asList(elseEntry));
                 iteratedStmts.add(updatedStmt);
                 iteratedStmts.add(nextBlock);
@@ -274,8 +265,6 @@ public class SSABlock extends Statement {
                 SSABlock header = new SSABlock(programEntry, declarations);
                 header.addPredecessor(this);
                 for (GeneratorVarDecl varDecl: stmtForeach.getGenerator().getVarDecls()) {
-                    //Variable var = Variable.variable(varDecl.getName());
-                    //header.writeVariable((Variable) var.deepClone(), ((Variable) var.deepClone()).getName());
                     header.writeVariable(Variable.variable(varDecl.getName()), varDecl.getName());
                 }
 
