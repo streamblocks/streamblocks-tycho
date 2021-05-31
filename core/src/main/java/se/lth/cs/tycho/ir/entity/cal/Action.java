@@ -155,6 +155,14 @@ public class Action extends AbstractIRNode {
         }
     }
 
+    public Action withBody(List<Statement> body) {
+        if (Lists.sameElements(this.body, body)) {
+            return this;
+        } else {
+            return new Action(this, tag, annotations, inputPatterns, outputExpressions, typeDecls, varDecls, guards, ImmutableList.from(body), delay, preconditions, postconditions);
+        }
+    }
+
     private QID tag;
     private ImmutableList<Annotation> annotations;
     private ImmutableList<InputPattern> inputPatterns;
