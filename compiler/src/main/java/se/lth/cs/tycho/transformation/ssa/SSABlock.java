@@ -22,6 +22,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * This class defines the SSA blocks which represent the control flow blocks in the SSA algorithm.
+ * In addition it contains all the data structures necessary to apply the algorithm.
+ */
 public class SSABlock extends Statement {
 
     private List<TypeDecl> typeDecls;
@@ -91,7 +95,12 @@ public class SSABlock extends Statement {
         this(varDecls, declarations, null);
     }
 
-
+    /**
+     * A block is sealed when we know it will not have anymore predecessors. If the block is not filled yet it will be
+     * useful information when reading variables. If a block has already been filled (only happens in looping flow,
+     * e.g. StmtWhile or StmtForeach), then the phis don't have operands as we didn't have that information so it is
+     * time to add them.
+     */
     public void seal() {
         phis.forEach(Phi::addOperands);
         sealed = true;
@@ -113,14 +122,33 @@ public class SSABlock extends Statement {
         predecessors.add(pred);
     }
 
+    /**
+     * The statements that a SSABlock contain are set at the end of filling the block, because we iterate through
+     * the lists of statements and only stop when the blocks have to be divided (e.g. StmtIf)
+     * @param statements The list of statements the block contains
+     */
     public void setStatements(List<Statement> statements) {
         this.statements = statements;
     }
 
+    /**
+     * Performs the operation writeVariable from the SSA algorithm.
+     * In this implementation of the SSA algorithm, the latest version of a variable (from the original program) is
+     * identified by the numbered variable which contains its latest value.
+     *
+     * @param variable The variable from the original program
+     * @param currentVersion The name of the numbered variable which is the current version
+     */
     public void writeVariable(Variable variable, String currentVersion) {
         currentDef.put(variable.getName(), currentVersion);
     }
 
+    /**
+     * Performs the operation readVariable from the SSA algorithm.
+     *
+     * @param variable The variable from the original program
+     * @return The name of the numbered variable which is the current version
+     */
     public Expression readVariable(Variable variable) {
         if (currentDef.containsKey(variable.getName())) {
             return new ExprVariable(Variable.variable(currentDef.get(variable.getName())));
@@ -128,6 +156,12 @@ public class SSABlock extends Statement {
         return readVariableRecursive(variable);
     }
 
+    /**
+     * Performs the operation readVariableRecursive from the SSA algorithm.
+     *
+     * @param variable The variable from the original program
+     * @return The name of the numbered variable which is the current version
+     */
     public Expression readVariableRecursive(Variable variable) {
         if (predecessors.size() == 1 && sealed) {
             return predecessors.get(0).readVariable(variable);
@@ -147,7 +181,15 @@ public class SSABlock extends Statement {
         return new ExprVariable(Variable.variable(newNumberedVar));
     }
 
-    // programEntry argument is temporary, a recursive solution is probably better (and will deal with shadowing problem)
+    /**
+     * The main part of the algorithm. It fills a block (performs variable numbering). Additionally, it divides
+     * the program on the fly in blocks that make sense for the SSA algorithm.
+     * For example, a sequence of StmtAssignment will be regrouped in a single block while a StmtIf will create the
+     * necessary blocks for its handling
+     *
+     * @param statements The program tree
+     * @return The exit block, necessary to add the predecessors of the next SSA blocks
+     */
     public SSABlock fill(List<Statement> statements) {
         ReplaceVariablesInExpression replacer = MultiJ.from(ReplaceVariablesInExpression.class).instance();
 
@@ -337,6 +379,12 @@ public class SSABlock extends Statement {
         return this;
     }
 
+    /**
+     * After the SSA transformation is done all SSABlock are replaced with their corresponding StmtBlock as
+     * all data structures for SSA become unnecessary
+     *
+     * @return The StmtBlock corresponding with this SSABlock
+     */
     public StmtBlock getStmtBlock() {
 
         List<Statement> phiStmts = phis.stream().map(Phi::getStatement).collect(Collectors.toList());
@@ -395,6 +443,9 @@ public class SSABlock extends Statement {
         return statements;
     }*/
 
+    /**
+     * Recursively removes trivial phis in the program
+     */
     public void removeTrivialPhis() {
         phis.forEach(Phi::removeTrivialPhi);
         statements.forEach(statement -> {
@@ -436,6 +487,9 @@ public class SSABlock extends Statement {
         return null;
     }
 
+    /**
+     * This class represents a Phi function as it is being constructed
+     */
     private class Phi {
         private final String assigned;
         private final Variable target;
@@ -450,6 +504,11 @@ public class SSABlock extends Statement {
             operands = new LinkedList<>(predecessors.stream().map(p -> p.readVariable(target)).collect(Collectors.toList()));
         }
 
+        /**
+         * After the SSA transformation is done, all SSABlock are transformed to StmtBlock and all Phi are
+         * transformed to StmtPhi, its corresponding immutable class, to be inserted into the program.
+         * @return the corresponding StmtPhi, or a StmtAssignment if the Phi is trivial.
+         */
         public Statement getStatement() {
             operands = new LinkedList<>(operands.stream().map(op -> op.deepClone()).collect(Collectors.toList()));
             Variable assignedVariable = Variable.variable(assigned);
@@ -458,6 +517,7 @@ public class SSABlock extends Statement {
             }
             return new StmtPhi(new LValueVariable(assignedVariable), operands);
         }
+
 
         public void removeTrivialPhi() {
             String same = null;
@@ -476,6 +536,13 @@ public class SSABlock extends Statement {
             operands = new LinkedList<>(Arrays.asList(new ExprVariable(Variable.variable(same))));
         }
 
+        /**
+         * In this implementation of the SSA algorithm, it may happen that a numbered variable is trivially assigned
+         * to a previous numbered version of that variable. This method handles this case as it is important to remove
+         * trivial phis.
+         * @param var The numbered variable
+         * @return The earliest version of that variable which is equal to the argument
+         */
         private String getVariableEquivalence(String var) {
             while (programEntry.equivalentVariables.containsKey(var))
                 var = programEntry.equivalentVariables.get(var);

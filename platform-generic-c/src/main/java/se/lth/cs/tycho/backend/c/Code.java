@@ -1351,7 +1351,9 @@ public interface Code {
 
 	default void execute(StmtForeachSSA foreach) {
 		// To improve this, a forEach code generator method which incorporates the header needs to be added.
+		trackable().enter();
 		foreach.getHeader().forEach(this::execute);
+		trackable().exit();
 		forEach(foreach.getGenerator().getCollection(), foreach.getGenerator().getVarDecls(), () -> {
 			for (Expression filter : foreach.getFilters()) {
 				emitter().emit("if (%s) {", evaluate(filter));
