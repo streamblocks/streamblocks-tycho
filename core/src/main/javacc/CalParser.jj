@@ -1239,7 +1239,7 @@ GlobalEntityDecl ActorDecl() :
 	"actor"
 	{
 	    beginLine = token.beginLine;
-	    beginColumn = token.endColumn;
+	    beginColumn = token.beginColumn;
 	}
 	id = <ID> { name = id.image; }
 	"("
@@ -1359,10 +1359,18 @@ PortDecl PortDecl() :
 		LOOKAHEAD(2)
 		type = Type()
 		id = <ID>
-		{ return new PortDecl(id.image, type); }
+		{
+            PortDecl port = new PortDecl(id.image, type);
+            port.setPosition(id.beginLine, id.beginColumn, id.endLine, id.endColumn);
+            return port;
+        }
 	|
 		id = <ID>
-		{ return new PortDecl(id.image, null); }
+		{
+            PortDecl port = new PortDecl(id.image, type);
+            port.setPosition(token.beginLine, token.beginColumn, token.endLine, token.endColumn);
+            return port;
+        }
 	)
 }
 

@@ -58,7 +58,9 @@ public class CalToAm {
     }
 
     public ActorMachine buildActorMachine() {
-        return new ActorMachine(actor.getAnnotations(), actor.getInputPorts(), actor.getOutputPorts(), actor.getTypeParameters(), actor.getValueParameters(), scopes.getScopes(), new CalController(), transitions.getAllTransitions(), conditions.getAllConditions());
+        ActorMachine am = new ActorMachine(actor.getAnnotations(), actor.getInputPorts(), actor.getOutputPorts(), actor.getTypeParameters(), actor.getValueParameters(), scopes.getScopes(), new CalController(), transitions.getAllTransitions(), conditions.getAllConditions());
+        am.setPosition(actor);
+        return am;
     }
 
     private class CalController implements Controller {

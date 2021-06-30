@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.ir.decl;
 
+import jdk.nashorn.internal.objects.Global;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.Entity;
 
@@ -34,11 +35,16 @@ public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
     }
 
     public static GlobalEntityDecl global(Availability availability, String name, Entity entity, boolean external) {
-        return new GlobalEntityDecl(null, availability, name, entity, external);
+        GlobalEntityDecl entityDecl = new GlobalEntityDecl(null, availability, name, entity, external);
+        entityDecl.setPosition(entity);
+        return entityDecl;
     }
 
     public static GlobalEntityDecl global(Availability availability, String name, Entity entity) {
-        return new GlobalEntityDecl(null, availability, name, entity, false);
+
+        GlobalEntityDecl entityDecl =  new GlobalEntityDecl(null, availability, name, entity, false);
+        entityDecl.setPosition(entity);
+        return  entityDecl;
     }
 
     @Override

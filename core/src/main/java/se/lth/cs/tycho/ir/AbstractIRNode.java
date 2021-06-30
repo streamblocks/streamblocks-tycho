@@ -113,6 +113,15 @@ public abstract class AbstractIRNode implements IRNode {
 	}
 
 	/**
+	 * Set the position of this from the position given by the {@code node}
+	 * @param node the IRNode with position info
+	 */
+	public void setPosition(IRNode node) {
+		if (node.hasPosition()) {
+			setPosition(node.getFromLineNumber(), node.getFromColumnNumber(), node.getToLineNumber(), node.getToColumnNumber());
+		}
+	}
+	/**
 	 * Updates the position information to begin at the beginning of {@code from} and end at the end of {@code to}.
 	 *
 	 * @param from start position
