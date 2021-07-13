@@ -36,14 +36,14 @@ public class GlobalEntityDecl extends AbstractDecl implements GlobalDecl {
 
     public static GlobalEntityDecl global(Availability availability, String name, Entity entity, boolean external) {
         GlobalEntityDecl entityDecl = new GlobalEntityDecl(null, availability, name, entity, external);
-        entityDecl.setPosition(entity);
+
         return entityDecl;
     }
 
     public static GlobalEntityDecl global(Availability availability, String name, Entity entity) {
 
         GlobalEntityDecl entityDecl =  new GlobalEntityDecl(null, availability, name, entity, false);
-        entityDecl.setPosition(entity);
+
         return  entityDecl;
     }
 

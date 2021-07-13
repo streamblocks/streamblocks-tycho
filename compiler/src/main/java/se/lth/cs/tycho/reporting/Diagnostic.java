@@ -105,6 +105,10 @@ public class Diagnostic {
                         .skip(fromLine - 1)
                         .limit(toLine - fromLine + 1)
                         .collect(Collectors.toList());
+                if (lines.size() > 4) {
+                    lines = lines.subList(0, 4);
+                    lines.add("[...]");
+                }
                 int l = 0;
                 for (String line : lines) {
                     String converted = tabsToSpaces(line);

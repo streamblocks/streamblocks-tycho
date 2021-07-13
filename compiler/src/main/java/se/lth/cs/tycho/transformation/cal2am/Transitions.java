@@ -89,7 +89,9 @@ public class Transitions {
         bodyVarDecl.addAll(actionVariablesUsedInGuards(action));
 
         StmtBlock block = new StmtBlock(ImmutableList.empty(), bodyVarDecl.build(), builder.build());
-        return new Transition(annotations.build(), getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()), transientScopes, ImmutableList.of(block));
+        Transition  t = new Transition(annotations.build(), getInputRates(action.getInputPatterns()), getOutputRates(action.getOutputExpressions()), transientScopes, ImmutableList.of(block));
+        t.setPosition(action);
+        return t;
     }
 
     private ImmutableList<InputPattern> patternsToBeUsedInBody(Action action) {
