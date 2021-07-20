@@ -1330,7 +1330,7 @@ ProcessDescription ProcessDescription() :
 	}
 }
 
-ImmutableList<PortDecl> PortDecls() :
+ImmutableList<Port> PortDecls() :
 {
 	ImmutableList.Builder<PortDecl> decls = ImmutableList.builder();
 	PortDecl decl;

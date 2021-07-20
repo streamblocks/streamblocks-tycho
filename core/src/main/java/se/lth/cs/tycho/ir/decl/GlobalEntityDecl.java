@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.ir.decl;
 
-import jdk.nashorn.internal.objects.Global;
+
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.entity.Entity;
 

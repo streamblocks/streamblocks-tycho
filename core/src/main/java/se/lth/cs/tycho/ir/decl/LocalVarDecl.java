@@ -43,6 +43,7 @@ public class LocalVarDecl extends VarDecl {
                 isExternal());
     }
 
+    @Override
     public LocalVarDecl withType(TypeExpr type) {
         return copy(getAnnotations(), type, getName(), getValue(), isConstant(), isExternal());
     }

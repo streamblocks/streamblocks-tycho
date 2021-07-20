@@ -22,6 +22,10 @@ public class FieldDecl extends VarDecl {
 		return copy(getType(), name);
 	}
 
+	@Override
+	public FieldDecl withType(TypeExpr type) {
+		return copy(type, getName());
+	}
 	private FieldDecl copy(TypeExpr type, String name) {
 		if (getType() == type && Objects.equals(getName(), name)) {
 			return this;

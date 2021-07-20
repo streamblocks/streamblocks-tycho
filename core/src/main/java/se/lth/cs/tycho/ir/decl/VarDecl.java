@@ -47,6 +47,8 @@ public abstract class VarDecl extends AbstractDecl {
     @Override
     public abstract VarDecl withName(String name);
 
+    public abstract VarDecl withType(TypeExpr type);
+
     public TypeExpr getType() {
         return type;
     }

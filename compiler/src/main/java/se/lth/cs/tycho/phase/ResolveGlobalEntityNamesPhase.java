@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.phase;
 
-import jdk.jshell.Diag;
 import org.multij.Binding;
 import org.multij.BindingKind;
 import org.multij.Module;
