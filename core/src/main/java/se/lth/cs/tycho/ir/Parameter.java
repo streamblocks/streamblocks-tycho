@@ -71,7 +71,8 @@ public interface Parameter<T extends IRNode, P extends Parameter<T, P>> extends 
 	 */
 	@Override
 	default void forEachChild(Consumer<? super IRNode> action) {
-		action.accept(getValue());
+		if (getValue() != null)
+			action.accept(getValue());
 	}
 
 	/**
@@ -79,6 +80,9 @@ public interface Parameter<T extends IRNode, P extends Parameter<T, P>> extends 
 	 */
 	@Override
 	default IRNode transformChildren(Transformation transformation) {
-		return copy(getName(), (T) transformation.apply(getValue()));
+		if (getValue() != null)
+			return copy(getName(), (T) transformation.apply(getValue()));
+		else
+			return copy(getName(), null);
 	}
 }

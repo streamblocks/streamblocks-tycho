@@ -43,6 +43,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
 import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
+import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.meta.interp.op.Binary;
 import se.lth.cs.tycho.meta.interp.op.Unary;
 import se.lth.cs.tycho.meta.interp.op.operator.Operator;
@@ -87,29 +88,35 @@ public interface Interpreter {
 
     default Value eval(ExprApplication expr, Environment env) {
         Value value = eval(expr.getFunction(), env);
-        if (!(value instanceof ValueLambda)) {
-            return ValueUndefined.undefined();
-        }
 
-        ValueLambda lambda = (ValueLambda) value;
-        if (expr.getArgs().size() +
-                lambda.parameters().stream()
-                        .filter(param -> param.defaultValue().isPresent())
-                        .count() > lambda.parameters().size()) {
-            return ValueUndefined.undefined();
-        }
+        if (value instanceof ValueExternalVariable) {
+            ImmutableList<Value> args = expr.getArgs().map(arg -> eval(arg, env));
+            return new ValueExternalLambda(((ValueExternalVariable) value).getName(), args);
 
-        Map<String, Value> bindings = new HashMap<>();
-        for (int i = 0; i < lambda.parameters().size(); ++i) {
-            ValueParameter param = lambda.parameters().get(i);
-            if (i < expr.getArgs().size()) {
-                bindings.put(param.name(), eval(expr.getArgs().get(i), env));
-            } else {
-                bindings.put(param.name(), param.defaultValue().get());
+        } else if (value instanceof ValueLambda) {
+            ValueLambda lambda = (ValueLambda) value;
+            if (expr.getArgs().size() +
+                    lambda.parameters().stream()
+                            .filter(param -> param.defaultValue().isPresent())
+                            .count() > lambda.parameters().size()) {
+                return ValueUndefined.undefined();
             }
+
+            Map<String, Value> bindings = new HashMap<>();
+            for (int i = 0; i < lambda.parameters().size(); ++i) {
+                ValueParameter param = lambda.parameters().get(i);
+                if (i < expr.getArgs().size()) {
+                    bindings.put(param.name(), eval(expr.getArgs().get(i), env));
+                } else {
+                    bindings.put(param.name(), param.defaultValue().get());
+                }
+            }
+
+            return eval(lambda.body(), env.with(bindings));
+        } else {
+            return ValueUndefined.undefined();
         }
 
-        return eval(lambda.body(), env.with(bindings));
     }
 
     default Value eval(ExprBinaryOp expr, Environment env) {
@@ -417,13 +424,17 @@ public interface Interpreter {
         if (value.isPresent()) {
             return value.get();
         }
-
         Value result = ValueUndefined.undefined();
 
         VarDecl decl = variables().declaration(expr);
-        if (decl.isConstant() && decl.getValue() != null) {
-            result = eval(decl.getValue(), env);
+        if (decl.isConstant()) {
+            if (decl.getValue() != null) {
+                result = eval(decl.getValue(), env);
+            } else if (decl.isExternal()) {
+                result = new ValueExternalVariable(expr.getVariable().getName());
+            }
         }
+
         env.put(expr.getVariable().getName(), result);
 
         return result;

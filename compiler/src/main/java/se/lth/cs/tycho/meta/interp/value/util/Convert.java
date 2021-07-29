@@ -1,13 +1,9 @@
 package se.lth.cs.tycho.meta.interp.value.util;
 
 import org.multij.Module;
+import se.lth.cs.tycho.ir.Variable;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
-import se.lth.cs.tycho.ir.expr.ExprLambda;
-import se.lth.cs.tycho.ir.expr.ExprList;
-import se.lth.cs.tycho.ir.expr.ExprLiteral;
-import se.lth.cs.tycho.ir.expr.ExprTuple;
-import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
-import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.expr.*;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.meta.interp.value.*;
 import se.lth.cs.tycho.meta.interp.value.ValueLong;
@@ -59,5 +55,14 @@ public interface Convert {
 
 	default Expression apply(ValueTuple value) {
 		return new ExprTuple(value.elements().stream().map(this::apply).collect(Collectors.toList()));
+	}
+	default Expression apply(ValueExternalVariable value) {
+		return new ExprVariable(Variable.variable(value.getName()));
+	}
+	default Expression apply(ValueExternalLambda value) {
+		return new ExprApplication(
+				new ExprVariable(Variable.variable(value.getFunctionName())),
+					value.getArgs().map(this::apply)
+		);
 	}
 }

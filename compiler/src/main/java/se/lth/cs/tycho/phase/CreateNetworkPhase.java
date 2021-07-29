@@ -34,7 +34,12 @@ public class CreateNetworkPhase implements Phase {
         ImmutableList<ParameterVarDecl> parameters = entityDecl.getEntity().getValueParameters().map(ParameterVarDecl::deepClone);
 
         ImmutableList.Builder<ValueParameter> vp = ImmutableList.builder();
-        parameters.stream().map(p -> new ValueParameter(p.getName(), p.getDefaultValue().deepClone())).forEach(vp::add);
+        parameters.stream().map(p -> {
+            if (p.getDefaultValue() != null)
+                return new ValueParameter(p.getName(), p.getDefaultValue().deepClone());
+            else
+                return new ValueParameter(p.getName(), null);
+        }).forEach(vp::add);
 
         ImmutableList<Annotation> annotations = entityDecl.getEntity().getAnnotations().map(Annotation::deepClone);
         ImmutableList<PortDecl> inputPorts = entityDecl.getEntity().getInputPorts().map(PortDecl::deepClone);
