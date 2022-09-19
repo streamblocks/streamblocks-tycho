@@ -1,19 +1,7 @@
 package se.lth.cs.tycho.backend.c;
 
 import org.multij.Module;
-import se.lth.cs.tycho.type.AlgebraicType;
-import se.lth.cs.tycho.type.AliasType;
-import se.lth.cs.tycho.type.BoolType;
-import se.lth.cs.tycho.type.CallableType;
-import se.lth.cs.tycho.type.CharType;
-import se.lth.cs.tycho.type.IntType;
-import se.lth.cs.tycho.type.ListType;
-import se.lth.cs.tycho.type.MapType;
-import se.lth.cs.tycho.type.RealType;
-import se.lth.cs.tycho.type.SetType;
-import se.lth.cs.tycho.type.StringType;
-import se.lth.cs.tycho.type.TupleType;
-import se.lth.cs.tycho.type.Type;
+import se.lth.cs.tycho.type.*;
 
 @Module
 public interface DefaultValues {
@@ -66,6 +54,9 @@ public interface DefaultValues {
 		return "NULL";
 	}
 	default String defaultValue(StringType t) {
+		return "NULL";
+	}
+	default String defaultValue(TensorType t) {
 		return "NULL";
 	}
 }

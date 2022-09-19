@@ -158,6 +158,10 @@ public interface Callables {
 		return name("void");
 	}
 
+	default NameExpression mangle(TensorType type) {
+		return name("Tensor");
+	}
+
 	default NameExpression mangle(StringType type) {
 		return name("str");
 	}

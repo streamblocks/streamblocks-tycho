@@ -223,6 +223,12 @@ public interface Code {
 		return "void";
 	}
 
+
+	default String type(TensorType type) {
+		return "Tensor";
+	}
+
+
 	default String type(ListType type) {
 		return backend().callables().mangle(type).encode();
 	}

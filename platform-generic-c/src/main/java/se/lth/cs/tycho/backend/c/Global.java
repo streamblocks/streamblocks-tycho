@@ -103,7 +103,7 @@ public interface Global {
 		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			String d = code().declaration(type, backend().variables().declarationName(decl));
-			emitter().emit("%s;", d);
+			emitter().emit("extern %s;", d);
 		});
 	}
 

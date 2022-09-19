@@ -674,6 +674,9 @@ public interface Types {
                 case "String": {
                     return StringType.INSTANCE;
                 }
+                case "Tensor":{
+                    return new TensorType();
+                }
                 default:
                     Optional<TypeDecl> decl = typeScopes().declaration(t);
                     if (decl.isPresent()) {
