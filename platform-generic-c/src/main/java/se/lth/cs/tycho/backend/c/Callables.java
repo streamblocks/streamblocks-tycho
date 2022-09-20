@@ -162,6 +162,10 @@ public interface Callables {
 		return name("Tensor");
 	}
 
+	default NameExpression mangle(TorchIntArrayRef type) {
+		return name("IntArrayRef");
+	}
+
 	default NameExpression mangle(StringType type) {
 		return name("str");
 	}

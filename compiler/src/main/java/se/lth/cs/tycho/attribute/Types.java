@@ -677,6 +677,9 @@ public interface Types {
                 case "Tensor":{
                     return new TensorType();
                 }
+                case "IntArrayRef":{
+                    return new TorchIntArrayRef();
+                }
                 default:
                     Optional<TypeDecl> decl = typeScopes().declaration(t);
                     if (decl.isPresent()) {

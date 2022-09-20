@@ -34,6 +34,10 @@ public final class TypeToTypeExpr {
 			return new NominalTypeExpr("Tensor");
 		}
 
+		default NominalTypeExpr convert(TorchIntArrayRef type){
+			return new NominalTypeExpr("IntArrayRef");
+		}
+
 		default ValueParameter intParameter(String name, int value) {
 			return new ValueParameter(name, new ExprLiteral(ExprLiteral.Kind.Integer, Integer.toString(value)));
 		}

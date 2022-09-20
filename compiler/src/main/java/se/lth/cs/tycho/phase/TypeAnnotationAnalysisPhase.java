@@ -83,6 +83,7 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 					checkTypeParams(type);
 					checkValueParams(type);
 				case "Tensor":
+				case "IntArrayRef":
 					break;
 				default:
 					ImmutableList<TypeDecl> typeDecls = typeScopes().declarations(sourceUnit(type).getTree());

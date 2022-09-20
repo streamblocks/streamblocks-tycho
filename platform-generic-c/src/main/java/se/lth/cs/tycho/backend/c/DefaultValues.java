@@ -59,4 +59,7 @@ public interface DefaultValues {
 	default String defaultValue(TensorType t) {
 		return "NULL";
 	}
+	default String defaultValue(TorchIntArrayRef t) {
+		return "NULL";
+	}
 }

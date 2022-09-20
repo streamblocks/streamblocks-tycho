@@ -226,6 +226,13 @@ public class TypeAnalysisPhase implements Phase {
             return true;
         }
 
+        default boolean isAssignable(TorchIntArrayRef to, TorchIntArrayRef from) {
+            return true;
+        }
+        default boolean isAssignable(TorchIntArrayRef to, ListType from) {
+            return true;
+        }
+
         default boolean isAssignable(ListType to, ListType from) {
             if (!to.getSize().isPresent() || to.getSize().equals(from.getSize())) {
                 return isAssignable(to.getElementType(), from.getElementType());

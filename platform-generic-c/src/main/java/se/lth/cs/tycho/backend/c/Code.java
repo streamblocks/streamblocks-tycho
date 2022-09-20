@@ -228,6 +228,9 @@ public interface Code {
 		return "Tensor";
 	}
 
+	default String type(TorchIntArrayRef type) {
+		return "IntArrayRef ";
+	}
 
 	default String type(ListType type) {
 		return backend().callables().mangle(type).encode();
