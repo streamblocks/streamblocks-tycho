@@ -5,7 +5,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class ValueTuple implements Value {
+public class ValueTuple extends Value {
 
 	private final ImmutableList<Value> elements;
 

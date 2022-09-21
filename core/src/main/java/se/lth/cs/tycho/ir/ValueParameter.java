@@ -18,6 +18,10 @@ public class ValueParameter extends AbstractIRNode implements Parameter<Expressi
 		this(null, name, value);
 	}
 
+	public ValueParameter(Expression value) {
+		this(null, null, value);
+	}
+
 	@Override
 	public ValueParameter copy(String name, Expression value) {
 		if (Objects.equals(this.name, name) && this.value == value) {

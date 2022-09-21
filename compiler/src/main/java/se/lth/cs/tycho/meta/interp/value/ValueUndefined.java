@@ -1,6 +1,6 @@
 package se.lth.cs.tycho.meta.interp.value;
 
-public class ValueUndefined implements Value {
+public class ValueUndefined extends Value {
 
 	private static final ValueUndefined undefined = new ValueUndefined();
 	private ValueUndefined() {}

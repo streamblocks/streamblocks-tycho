@@ -43,6 +43,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternList;
 import se.lth.cs.tycho.ir.expr.pattern.PatternLiteral;
 import se.lth.cs.tycho.ir.expr.pattern.PatternTuple;
 import se.lth.cs.tycho.ir.expr.pattern.PatternWildcard;
+import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.meta.interp.op.Binary;
 import se.lth.cs.tycho.meta.interp.op.Unary;
 import se.lth.cs.tycho.meta.interp.op.operator.Operator;
@@ -320,7 +321,7 @@ public interface Interpreter {
         if (elements.size() > 0 && elements.subList(1, elements.size()).stream().allMatch(e -> e.getClass().equals(elements.get(0).getClass()))) {
             return new ValueList(elements);
         }
-        return ValueUndefined.undefined();
+        return new ValueList(elements);
     }
 
     default Value eval(ExprSet expr, Environment env) {
@@ -374,7 +375,10 @@ public interface Interpreter {
     }
 
     default Value eval(ExprTypeAssertion expr, Environment env) {
-        throw new RuntimeException("Not implemented yet");
+        TypeExpr type = expr.getType();
+        Value value = eval(expr.getExpression(), env);
+        value.setType((TypeExpr) type.deepClone());
+        return value;
     }
 
     default Value eval(ExprTypeConstruction expr, Environment env) {

@@ -5,7 +5,7 @@ import se.lth.cs.tycho.ir.type.TypeExpr;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ValueParameter implements Value {
+public class ValueParameter extends Value {
 
 	private final TypeExpr type;
 	private final String name;

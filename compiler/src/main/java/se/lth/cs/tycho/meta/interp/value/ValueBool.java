@@ -2,7 +2,7 @@ package se.lth.cs.tycho.meta.interp.value;
 
 import java.util.Objects;
 
-public class ValueBool implements Value {
+public class ValueBool extends Value {
 
 	private final boolean bool;
 

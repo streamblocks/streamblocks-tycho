@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public abstract class ValueAlgebraic implements Value {
+public abstract class ValueAlgebraic extends Value {
 
 	private final String name;
 	private final List<ValueField> fields;

@@ -767,7 +767,7 @@ public class TemplateInstantiationPhase implements Phase {
                     .flatMap(e -> e.getValue().stream())
                     .distinct()
                     .filter(namedVal -> namedVal.sameSource(sourceFile))
-                    .map(namedVal -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, null, namedVal.getName(), convert().apply(namedVal.getValue())));
+                    .map(namedVal -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, namedVal.getValue().getType(), namedVal.getName(), convert().apply(namedVal.getValue())));
             Stream<GlobalEntityDecl> instantiatedEntities = staging().entityInstances().entrySet().stream()
                     .filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
             Stream<GlobalEntityDecl> remainingEntities = decl.getEntityDecls().stream()

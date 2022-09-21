@@ -2,7 +2,7 @@ package se.lth.cs.tycho.meta.interp.value;
 
 import java.util.Objects;
 
-public class ValueChar implements Value {
+public class ValueChar extends Value {
 
 	private final char character;
 

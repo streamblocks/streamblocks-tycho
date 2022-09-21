@@ -5,7 +5,7 @@ import se.lth.cs.tycho.ir.util.ImmutableList;
 
 import java.util.stream.Collectors;
 
-public class ValueMap implements Value {
+public class ValueMap extends Value {
 
 	private final ImmutableList<ImmutableEntry<Value, Value>> mappings;
 

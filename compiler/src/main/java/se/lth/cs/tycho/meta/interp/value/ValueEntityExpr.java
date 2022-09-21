@@ -4,7 +4,7 @@ import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
 
 import java.util.Objects;
 
-public class ValueEntityExpr implements Value {
+public class ValueEntityExpr extends Value {
 
     private final EntityExpr entityExpr;
 

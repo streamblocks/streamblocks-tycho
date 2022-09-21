@@ -5,7 +5,7 @@ import se.lth.cs.tycho.ir.type.TypeExpr;
 
 import java.util.List;
 
-public class ValueLambda implements Value {
+public class ValueLambda extends Value {
 
 	private List<ValueParameter> parameters;
 	private Expression body;

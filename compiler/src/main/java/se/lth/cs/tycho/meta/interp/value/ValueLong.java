@@ -2,7 +2,7 @@ package se.lth.cs.tycho.meta.interp.value;
 
 import java.util.Objects;
 
-public class ValueLong implements Value {
+public class ValueLong extends Value {
 
 	private final long value;
 

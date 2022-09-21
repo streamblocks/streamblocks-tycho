@@ -2,7 +2,7 @@ package se.lth.cs.tycho.meta.interp.value;
 
 import java.util.Objects;
 
-public class ValueString implements Value {
+public class ValueString extends Value {
 
 	private final String string;
 
