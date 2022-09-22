@@ -553,7 +553,7 @@ public class TypeAnalysisPhase implements Phase {
             Type expected = types().type(expr.getType());
             Type actual = types().type(expr.getExpression());
             if (!isAssertable(expected, actual)) {
-                reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert " + actual + " to " + expected + ".", sourceUnit(expr), expr));
+                //reporter().report(new Diagnostic(Diagnostic.Kind.ERROR, "Cannot type assert " + actual + " to " + expected + ".", sourceUnit(expr), expr));
             }
         }
 

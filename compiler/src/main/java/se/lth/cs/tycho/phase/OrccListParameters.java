@@ -115,6 +115,10 @@ public class OrccListParameters implements Phase {
             return new ExprRef(var.getVariable());
         }
 
+        default Expression ref(ExprTypeAssertion expr){
+            return ref(expr.getExpression());
+        }
+
         default ParameterVarDecl apply(ParameterVarDecl parameter) {
             if (isListParameterDeclaration(parameter)) {
                 TypeExpr type = parameter.getType();
@@ -139,6 +143,7 @@ public class OrccListParameters implements Phase {
                 return var;
             }
         }
+
 
         default LValue apply(LValueVariable var) {
             if (isListParameter(var.getVariable())) {
