@@ -184,7 +184,7 @@ public interface Binary {
 	}
 
 	default Value apply(OperatorPlus op, ValueString lhs, ValueString rhs) {
-		return new ValueString(lhs.string() + rhs.string());
+		return new ValueString(lhs.string().replaceAll("\"", "") + rhs.string().replaceAll("\"", ""));
 	}
 
 	default Value apply(OperatorPlus op, ValueString lhs, ValueLong rhs) {
