@@ -388,8 +388,14 @@ public class TemplateInstantiationPhase implements Phase {
                     Value value = interpreter().eval(((MetaArgumentValue) metaArg).getValue(), env);
 
                     String valueName = setValueName(sourceUnit(metaDecl), value);
+                    ParameterVarDecl declaration = null;
+//                    if(value instanceof ValueUndefined){
+//                        declaration = new ParameterVarDecl()
+//                    }else{
+//                        declaration = metaDecl.getEntity().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
+//                    }
+                    declaration = metaDecl.getEntity().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
 
-                    ParameterVarDecl declaration = metaDecl.getEntity().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
                     vals.put(declaration, valueName);
 
                 }

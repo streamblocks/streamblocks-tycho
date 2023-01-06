@@ -24,6 +24,7 @@ import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -210,6 +211,13 @@ public class TemplateTransformationPhase implements Phase {
         }
 
         default MetaArgument convert(ValueParameter param) {
+            if (param.getValue() instanceof ExprApplication){
+                ExprVariable variable = (ExprVariable) ((ExprApplication) param.getValue()).getFunction();
+                VarDecl decl = declarations().declaration(variable);
+                boolean external = decl.isExternal();
+                return new MetaArgumentValue(param.getName(), (Expression) apply(param.getValue()), external);
+
+            }
             return new MetaArgumentValue(param.getName(), (Expression) apply(param.getValue()));
         }
 

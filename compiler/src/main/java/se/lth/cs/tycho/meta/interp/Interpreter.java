@@ -89,7 +89,8 @@ public interface Interpreter {
     default Value eval(ExprApplication expr, Environment env) {
         Value value = eval(expr.getFunction(), env);
         if (!(value instanceof ValueLambda)) {
-            return ValueUndefined.undefined();
+            return new ValueUndefined(expr.deepClone());
+            //return ValueUndefined.undefined();
         }
 
         ValueLambda lambda = (ValueLambda) value;
