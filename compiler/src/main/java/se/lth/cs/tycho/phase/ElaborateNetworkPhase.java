@@ -1,5 +1,6 @@
 package se.lth.cs.tycho.phase;
 
+import se.lth.cs.tycho.attribute.ConstantEvaluator;
 import se.lth.cs.tycho.compiler.CompilationTask;
 import se.lth.cs.tycho.compiler.Context;
 import se.lth.cs.tycho.compiler.GlobalDeclarations;
@@ -9,11 +10,11 @@ import se.lth.cs.tycho.ir.ValueParameter;
 import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.PortDecl;
 import se.lth.cs.tycho.ir.entity.nl.*;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Instance;
 import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 import se.lth.cs.tycho.reporting.Reporter;
 import se.lth.cs.tycho.settings.Configuration;
@@ -21,14 +22,7 @@ import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.Setting;
 import se.lth.cs.tycho.transformation.nl2network.NlToNetwork;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,6 +35,7 @@ public class ElaborateNetworkPhase implements Phase {
 
     @Override
     public CompilationTask execute(CompilationTask task, Context context) {
+        constants = task.getModule(ConstantEvaluator.key);
         return task.withNetwork(fullyElaborate(task, context, task.getNetwork(), new HashSet<>(), Collections.emptyList()));
     }
 
@@ -68,6 +63,7 @@ public class ElaborateNetworkPhase implements Phase {
 
     public Network fullyElaborate(CompilationTask task, Context context, Network network, Set<String> names, List<ToolAttribute> attributes) {
         Network result = uniqueNames(network, names);
+
         for (Instance instance : result.getInstances()) {
             GlobalEntityDecl entity = GlobalDeclarations.getEntity(task, instance.getEntityName());
             Network elaborated;
@@ -240,6 +236,33 @@ public class ElaborateNetworkPhase implements Phase {
     }
 
     private Connection.End convert(PortReference portReference) {
-        return new Connection.End(Optional.ofNullable(portReference.getEntityName()), portReference.getPortName());
+
+
+        // ----- Addition by Gareth Callanan on 14/12/2022 ------
+        // If the given PortReference object has an arrayIndexExpr then the index of the PortReference
+        // needs to be inserted into the name. Eg port X[1] is given the port name X__1__. If the object is just
+        // of parent class PortReference, then just the standard name is passed through.
+        String portName;
+        if(portReference.getArrayIndexExpr().size() != 0){
+            Expression expr = portReference.getArrayIndexExpr().get(0);
+            OptionalLong exprValueOpt = constants.intValue(expr);
+            if(!exprValueOpt.isPresent()){
+                throw new RuntimeException("For port array reference '" + portReference.getPortName() + "' within network entity structure '"+portReference.getEntityName()+"' - this is not expected and should not happen.");
+            }
+            long exprValue = exprValueOpt.getAsLong();
+            if(exprValue < 0){
+                throw new RuntimeException("For port array reference '" + portReference.getPortName() + "' within network entity structure '"+portReference.getEntityName()+"' we got a value of " + exprValue + " for the array index - value must be >= 0");
+            }
+            portName = PortArrayEnumeration.generatePortNameWithIndex(portReference.getPortName(),exprValue);
+        }else {
+            portName = portReference.getPortName();
+        }
+        // ----- End addition ------
+
+        return new Connection.End(Optional.ofNullable(portReference.getEntityName()), portName);
     }
+
+    // This gives us access to the evaluated constant values for the expressions that are part of the
+    // PortReference objects. We use this to get the index when selecting from an array of port references.
+    private ConstantEvaluator constants;
 }

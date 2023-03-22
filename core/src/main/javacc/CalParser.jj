@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Optional;
 import se.lth.cs.tycho.ir.*;
 import se.lth.cs.tycho.ir.type.*;
 import se.lth.cs.tycho.ir.decl.*;
@@ -166,6 +165,7 @@ TOKEN :
 |	< FOREACH: "foreach" >
 |	< FSM: "fsm" >
 |	< FUNCTION: "function" >
+|	< GENERATE: "generate" >
 |	< GUARD: "guard" >
 |	< IF: "if" >
 |	< IMPORT: "import" >
@@ -1056,16 +1056,71 @@ StructureConnectionStmt StructureConnectionStmt():
 
 PortReference EntityPort() :
 {
-    Token id;
-    Token idPort;
+    // Four temporary objects used for parsing but not for creating the AST nodes.
+    Token idToken1 = null; // Stores the first encountered token
+    ImmutableList<Expression> braces1 = null; // Stores the first encountered set of braces
+    Token idToken2 = null; // Stores the second encountered token
+    ImmutableList<Expression> braces2 = null; // Stores the second encountered set of braces
+
+    // These variables are used to create the AST nodes. The get there values from the temporary variables above
+    // based on logic described below.
+    Token id = null;
+    Token idPort = null;
+    Expression portIndexExpr = null;
     ImmutableList<Expression> index;
 }
 {
     {id = null; index = ImmutableList.empty();}
-    (LOOKAHEAD(2) id = <ID> index = EntityIndexing()  ".")?
-    idPort = <ID>
+    (
+        idToken1 = <ID>
+        braces1 = EntityIndexing()
+        ("." idToken2 = <ID> braces2 = EntityIndexing())?
+    )
     {
-        PortReference portRef = new PortReference(id == null ? null : id.image, id == null ? ImmutableList.empty() : index, idPort.image);
+        // Note by @Gareth Callanan: This parsing got a bit convoluted with the intermediate tokens idToken1, idToken2
+        // braces1, braces2 being used. The similarity between Port[...] and Entity[...]. Port created ambiguities when
+        // parsing certain patterns ('Port[1+2+3]' is one such example that could not be solved with a large lookahead)
+        // The current solution took a few rewrites to get correct, but it now works. There could be more elegant
+        // solutions out there.
+
+        // If idToken2 is not null then we expect that this EntityPort is of form:
+        // EntityName[EntityIndex].PortName[PortIndex] (with '[EntityIndex]' and
+        // '[PortIndex]' being optional).
+        //
+        // If idToken2 is null, then we expect that this EntityPort is of form:
+        // PortName[PortIndex] ('[PortIndex]' being optional)
+        if(idToken2 != null){
+            id = idToken1;
+            idPort = idToken2;
+            index = braces1;
+            if(braces2.size() == 1){
+                portIndexExpr = braces2.get(0);
+            }else if (braces2.size() > 1){
+                // Note by @Gareth Callanan: when I use throw ParseException(...) instead of generateParseException()
+                // the error message thrown is unintelligible. However, with generateParseException() I cannot create a
+                // custom  error message. This println is the simplest compromise I have for now.
+                System.out.println("ERROR: A port array may only have one set of braces - the current port has '" + braces2.size() + "' sets. Arrays of arrays are not supported");
+                throw generateParseException();
+            }
+        }else{
+            idPort = idToken1;
+            if(braces1.size() == 1){
+                portIndexExpr = braces1.get(0);
+            }else if (braces1.size() > 1){
+                // Note by @Gareth Callanan: when I use throw ParseException(...) instead of generateParseException()
+                // the error message thrown is unintelligible. However with generateParseException() I cannot create a
+                // custom  error message. This println is the simplest compromise I have for now.
+                System.out.println("ERROR: A port array may only have one set of braces - the current port has '" + braces1.size() + "' sets. Arrays of arrays are not supported");
+                throw generateParseException();
+            }
+        }
+
+        ImmutableList.Builder<Expression> portIndex = ImmutableList.builder();
+        if(portIndexExpr != null){
+            portIndex.add(portIndexExpr);
+        }
+
+        PortReference portRef = new PortReference(id == null ? null : id.image, id == null ? ImmutableList.empty() : index, idPort.image, portIndex.build());
         portRef = setPosition(portRef, id == null ? idPort : id, idPort);
         return portRef;
     }
@@ -1230,6 +1285,8 @@ GlobalEntityDecl ActorDecl() :
 	ProcessDescription process = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
 	ImmutableList<Expression> invariants = ImmutableList.empty();
+    ActionGeneratorStmt actionGeneratorStmt;
+    ImmutableList.Builder<ActionGeneratorStmt> actionGeneratorStmts = ImmutableList.builder();
 	int beginLine;
     int beginColumn;
 }
@@ -1293,6 +1350,9 @@ GlobalEntityDecl ActorDecl() :
 					}
 				}
 				process = ProcessDescription()
+			|
+			    actionGeneratorStmt = ActionGeneratorStmt(inputPorts, outputPorts)
+			    { actionGeneratorStmts.add(actionGeneratorStmt) ;}
 			)
 		)*
 		("end" | "endactor")
@@ -1300,7 +1360,7 @@ GlobalEntityDecl ActorDecl() :
 		";"
 	)
 	{
-		CalActor a = new CalActor(annotations.build(), typePars.build(), valuePars.build(), typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), scheduleFSM, scheduleRegExp, process, priorities.build(), invariants);
+		CalActor a = new CalActor(annotations.build(), typePars.build(), valuePars.build(), typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases.build(), actionGeneratorStmts.build(), scheduleFSM, scheduleRegExp, process, priorities.build(), invariants);
 		a.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
@@ -1338,6 +1398,7 @@ ImmutableList<PortDecl> PortDecls() :
 {
 	(
 		decl = PortDecl() { decls.add(decl); }
+
 		(
 			","
 			decl = PortDecl() { decls.add(decl); }
@@ -1350,6 +1411,7 @@ PortDecl PortDecl() :
 {
 	TypeExpr type = null;
 	Token id;
+    Expression expr = null;
 }
 {
 	(
@@ -1359,19 +1421,20 @@ PortDecl PortDecl() :
 		LOOKAHEAD(2)
 		type = Type()
 		id = <ID>
-		{
-            PortDecl port = new PortDecl(id.image, type);
-            port.setPosition(id.beginLine, id.beginColumn, id.endLine, id.endColumn);
-            return port;
-        }
 	|
 		id = <ID>
-		{
-            PortDecl port = new PortDecl(id.image, type);
+	)
+	(
+	"["
+        expr = Expression()
+    "]"
+    )?
+    {
+            PortDecl port = new PortDecl(id.image, type, expr);
             port.setPosition(token.beginLine, token.beginColumn, token.endLine, token.endColumn);
             return port;
-        }
-	)
+    }
+
 }
 
 /* Actions */
@@ -1540,18 +1603,96 @@ ImmutableList<InputPattern> InputPatterns(ImmutableList<PortDecl> ports) :
 	{ return builder.build(); }
 }
 
+ActionGeneratorStmt ActionGeneratorStmt(ImmutableList<PortDecl> inputPorts, ImmutableList<PortDecl> outputPorts) :
+{
+    TypeExpr type = null;
+    Token id;
+    ImmutableList.Builder<GeneratorVarDecl> varDecls = ImmutableList.builder();
+    Expression collection;
+    Expression filter;
+    Action action;
+    ActionCase actionCase;
+    ActionGeneratorStmt actionGeneratorStmt;
+    ImmutableList.Builder<Expression> filters = ImmutableList.builder();
+
+    ImmutableList.Builder<Action> actions = ImmutableList.builder();
+    ImmutableList.Builder<ActionCase> actionCases = ImmutableList.builder();
+    ImmutableList.Builder<ActionGeneratorStmt> actionGeneratorStmts = ImmutableList.builder();
+
+    int beginLine;
+    int beginColumn;
+}
+{
+    "foreach"
+    {
+        beginLine = token.beginLine;
+        beginColumn = token.beginColumn;
+    }
+    (
+        LOOKAHEAD(Type() <ID>)
+        type = Type()
+    )?
+    id = <ID>
+    {
+        varDecls.add(VarDecl.generator(id.image));
+    }
+    (
+        ","
+        id = <ID>
+        {
+            varDecls.add(VarDecl.generator(id.image));
+        }
+    )*
+    "in"
+    collection = Expression()
+    (
+        LOOKAHEAD(2)
+        ","
+        filter = Expression()
+        { filters.add(filter); }
+    )*
+    "generate"
+    (
+        (
+            LOOKAHEAD(( Annotation() )* (QID() ":")? "action" "case")
+            actionCase = ActionCase(inputPorts, outputPorts)
+            { actionCases.add(actionCase); }
+        |
+            LOOKAHEAD( ( Annotation() )* (QID() ":")? "action")
+            action = Action(inputPorts, outputPorts)
+            { actions.add(action); }
+        |
+            actionGeneratorStmt = ActionGeneratorStmt(inputPorts, outputPorts)
+            { actionGeneratorStmts.add(actionGeneratorStmt) ;}
+        )
+    )*
+    "end"
+    {
+        ActionGeneratorStmt actionGeneratorStmtRet = new ActionGeneratorStmt(new Generator(type, varDecls.build(), collection), filters.build(), actions.build(), actionCases.build(), actionGeneratorStmts.build());
+        actionGeneratorStmtRet.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
+        return actionGeneratorStmtRet;
+    }
+}
+
 InputPattern InputPattern(ImmutableList<PortDecl> ports, int position) :
 {
 	Token id = null;
 	Port port = null;
 	Match match;
 	ImmutableList.Builder<Match> matches = ImmutableList.builder();
+    Expression portIndexExpr = null;
 	Expression repeat = null;
 	int beginLine = 0;
     int beginColumn = 0;
 }
 {
-	( id = <ID> ":"
+	( id = <ID>
+        (
+        "["
+        portIndexExpr = Expression()
+        "]"
+        )?
+        ":"
         {
             if(id != null){
                 beginLine = id.beginLine;
@@ -1573,7 +1714,7 @@ InputPattern InputPattern(ImmutableList<PortDecl> ports, int position) :
 	("repeat" repeat = Expression())?
 	{
         Port portResolution = port == null ? new Port(ports.get(position).getName()) : port;
-        InputPattern inputPattern = new InputPattern(portResolution, matches.build(), repeat);
+        InputPattern inputPattern = new InputPattern(portResolution, matches.build(), repeat, portIndexExpr);
         inputPattern.setPosition(beginLine, beginColumn, token.endLine, token.endColumn);
         return inputPattern;
     }
@@ -1615,25 +1756,33 @@ OutputExpression OutputExpression(ImmutableList<PortDecl> ports, int position) :
 	Token first;
 	Token last;
 	Token id = null;
-	Port port = null;
+    Port port = null;
 	ImmutableList<Expression> exprs;
+    Expression portIndexExpr = null;
 	Expression repeat = null;
 }
 {
-	( id = <ID> ":" { port = new Port(id.image); })?
+	( id = <ID>
+	(
+        "["
+        portIndexExpr = Expression()
+        "]"
+    )?
+	":"
+	{ port = new Port(id.image); })?
 	first = "["
 	exprs = ExpressionList()
 	last = "]"
 	( "repeat" repeat = Expression() )?
 	{
-		Port portResolution = port == null ? new Port(ports.get(position).getName()) : port;
-		OutputExpression out = new OutputExpression(portResolution, exprs, repeat);
-		if (port != null) { first = id; }
-		if (repeat != null) {
-			return setPosition(out, first, repeat);
-		} else {
-			return setPosition(out, first, last);
-		}
+        Port portResolution = port == null ? new Port(ports.get(position).getName()) : port;
+        OutputExpression out = new OutputExpression(portResolution, exprs, repeat, portIndexExpr);
+        if (port != null) { first = id; }
+        if (repeat != null) {
+            return setPosition(out, first, repeat);
+        } else {
+            return setPosition(out, first, last);
+        }
 	}
 }
 
@@ -1972,6 +2121,7 @@ Expression SingleExpression() :
 		expr = TupleExpression()
 	|
 		"(" expr = Expression() ")"
+		{expr.setHasParenthesis(true);}
 	|
 		expr = CaseExpression()
 	|
@@ -1989,7 +2139,7 @@ Expression SingleExpression() :
 	|
 		expr = MapExpression()
 	)
-	{ return expr; }
+	{return expr; }
 }
 
 ExprVariable VariableExpression() :

@@ -1,11 +1,10 @@
 package se.lth.cs.tycho.ir;
 
+import se.lth.cs.tycho.ir.entity.cal.Action;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -252,6 +251,12 @@ public final class QID extends AbstractIRNode{
 		} else {
 			return false;
 		}
+	}
+
+	public QID withLast(String newName) {
+		List<String> newParts = new ArrayList<>(parts);
+		newParts.set(newParts.size() - 1, newName);
+		return new QID(newParts);
 	}
 
 	@Override

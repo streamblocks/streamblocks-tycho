@@ -51,24 +51,25 @@ import se.lth.cs.tycho.ir.util.Lists;
 
 public class OutputExpression extends AbstractIRNode {
 
-	public OutputExpression(Port port, ImmutableList<Expression> values, Expression repeatExpr) {
-		this(null, port, values, repeatExpr);
+	public OutputExpression(Port port, ImmutableList<Expression> values, Expression repeatExpr, Expression arrayIndexExpression) {
+		this(null, port, values, repeatExpr, arrayIndexExpression);
 	}
 
 	public OutputExpression(OutputExpression original, Port port, ImmutableList<Expression> values,
-			Expression repeatExpr) {
+			Expression repeatExpr, Expression arrayIndexExpression) {
 		super(original);
 		this.port = port;
 		this.values = ImmutableList.from(values);
 		this.repeatExpr = repeatExpr;
+		this.arrayIndexExpression = arrayIndexExpression;
 	}
 
-	public OutputExpression copy(Port port, ImmutableList<Expression> values, Expression repeatExpr) {
+	public OutputExpression copy(Port port, ImmutableList<Expression> values, Expression repeatExpr, Expression arrayIndexExpression) {
 		if (Objects.equals(this.port, port) && Lists.equals(this.values, values)
-				&& Objects.equals(this.repeatExpr, repeatExpr)) {
+				&& Objects.equals(this.repeatExpr, repeatExpr) && Objects.equals(this.arrayIndexExpression, arrayIndexExpression)) {
 			return this;
 		}
-		return new OutputExpression(this, port, values, repeatExpr);
+		return new OutputExpression(this, port, values, repeatExpr, arrayIndexExpression);
 	}
 
 	public Port getPort() {
@@ -83,15 +84,36 @@ public class OutputExpression extends AbstractIRNode {
 		return repeatExpr;
 	}
 
+	/**
+	 * @author Gareth Callanan
+	 *
+	 * Returns the expression representing the index within the port array that this port refers to.
+	 *
+	 * This is an output expression that has a firing action linked to an array port.
+	 * For example, in "action X:[x] ==> Z[0]:[x+1] end", Z[0]:[x+1] is an OutputExpression.
+	 * Where Z[...] is the corresponding array port.
+	 *
+	 * If null, then this is not an array port.
+	 */
+	public Expression getArrayIndexExpression(){
+		return arrayIndexExpression;
+	}
+
 	private Port port;
 	private ImmutableList<Expression> values;
 	private Expression repeatExpr;
+
+	// If this port actually represents an array of ports, then this expression
+	// indicates the index within the port array that this OutputExpression refers to.
+	// Null otherwise
+	private Expression arrayIndexExpression;
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(port);
 		values.forEach(action);
 		if (repeatExpr != null) action.accept(repeatExpr);
+		if (arrayIndexExpression != null) action.accept(arrayIndexExpression);
 	}
 
 	@Override
@@ -100,7 +122,42 @@ public class OutputExpression extends AbstractIRNode {
 		return copy(
 				(Port) transformation.apply(port),
 				(ImmutableList) values.map(transformation),
-				repeatExpr == null ? null : (Expression) transformation.apply(repeatExpr)
+				repeatExpr == null ? null : (Expression) transformation.apply(repeatExpr),
+				arrayIndexExpression == null ? null : (Expression) transformation.apply(arrayIndexExpression)
 		);
+	}
+
+	/**
+	 *  Replaces the port object within the OutputExpression.
+	 *
+	 *	@param newPort The newPort that will replace this objects current port.
+	 *
+	 *  @return The same OutputExpression object with the port replaced.
+	 */
+	public OutputExpression withPort(Port newPort){
+		return new OutputExpression(this, newPort, values, repeatExpr, arrayIndexExpression);
+	}
+
+	/**
+	 *  Replaces the port object within the OutputExpression and sets the arrayIndexExpression to null.
+	 *
+	 *	@param newPort The newPort that will replace this objects current port.
+	 *
+	 *  @return The same OutputExpression object with the port replaced.
+	 */
+	public OutputExpression withPortNoIndexExpression(Port newPort){
+		return new OutputExpression(this, newPort, values, repeatExpr, null);
+	}
+
+	/**
+	 * Apply a transformation to the arrayIndexExpression and repeatExpression only.
+	 *
+	 * @param transformation Transformation to apply.
+	 * @return Input pattern with the transformed port array index and repeat expressions.
+	 */
+	public OutputExpression transformPortArrayAndRepeat(Transformation transformation) {
+		return new OutputExpression(this, port, values, repeatExpr == null ? null :
+				(Expression) transformation.apply(repeatExpr), arrayIndexExpression == null ? null :
+				(Expression) transformation.apply(arrayIndexExpression));
 	}
 }

@@ -29,6 +29,9 @@ public class TestDescription {
 	private List<Path> xdfSourcePaths;
 	@SerializedName("external-sources")
 	private List<Path> externalSources;
+
+	@SerializedName("experimental-network-elaboration")
+	private String experimentalNetworkElaborationFlag;
 	private QID entity;
 	@SerializedName("test-data")
 	private List<TestData> testData;
@@ -39,6 +42,8 @@ public class TestDescription {
 	public String getDescription() {
 		return description;
 	}
+
+	public String getExperimentalNetworkElaborationFlag() { return experimentalNetworkElaborationFlag == null ? "off" : experimentalNetworkElaborationFlag;};
 
 	public List<Path> getSourcePaths() {
 		return sourcePaths == null ? Collections.emptyList() : sourcePaths;
@@ -79,6 +84,7 @@ public class TestDescription {
 		result.externalSources = getExternalSources().stream().map(directory::resolve).collect(Collectors.toList());
 		result.entity = entity;
 		result.testData = getTestData().stream().map(d -> d.resolvePaths(testFile)).collect(Collectors.toList());
+		result.experimentalNetworkElaborationFlag = getExperimentalNetworkElaborationFlag();
 		return result;
 	}
 

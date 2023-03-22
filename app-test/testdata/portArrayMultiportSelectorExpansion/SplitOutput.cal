@@ -1,0 +1,28 @@
+// Actor that multiple tokens from a single input port, scales them by 2 and then sends the tokens out split across an
+// array of output ports.
+//
+// This actor tests MultiportSelectors in OutputExpressions.
+numPorts := 2;
+actor Splitter () int(size=8) In ==> int(size=8) Out[numPorts]:
+	port1action: action In:[a] repeat numPorts ==> Out[0..numPorts-1]:[outValue]
+	var
+	    List(type: int(size = 8), size = numPorts) outValue
+	do
+        foreach uint i in 0..numPorts-1 do
+            outValue[i] := a[i] * 2;
+        end
+	end
+end
+
+network SplitterWrapper ()
+    int(size=8) In
+    ==>
+    int(size=8) Out[numPorts]:
+entities
+	splitter = Splitter();
+structure
+    In --> splitter.In;
+    foreach uint i in 0..numPorts-1 do
+        splitter.Out[i] --> Out[i];
+    end
+end

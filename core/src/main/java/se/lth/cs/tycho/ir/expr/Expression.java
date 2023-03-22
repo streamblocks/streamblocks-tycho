@@ -43,6 +43,7 @@ import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
 
 public abstract class Expression extends AbstractIRNode {
+	private boolean hasParenthesis = false;
 
 	public Expression(IRNode original) {
 		super(original);
@@ -50,9 +51,25 @@ public abstract class Expression extends AbstractIRNode {
 
 	@Override
 	public Expression deepClone() {
-		return (Expression) super.deepClone();
+		Expression expr = (Expression) super.deepClone();
+		expr.hasParenthesis = this.hasParenthesis;
+		return expr;
+	}
+
+	public Expression clone() {
+		Expression expr = (Expression) super.clone();
+		expr.hasParenthesis = this.hasParenthesis;
+		return expr;
 	}
 
 	@Override
 	public abstract Expression transformChildren(Transformation transformation);
+
+	public void setHasParenthesis(boolean hasParenthesis){
+		this.hasParenthesis = hasParenthesis;
+	}
+
+	public boolean hasParenthesis(){
+		return this.hasParenthesis;
+	}
 }

@@ -15,6 +15,8 @@ import se.lth.cs.tycho.type.StringType;
 import se.lth.cs.tycho.type.TupleType;
 import se.lth.cs.tycho.type.Type;
 
+import java.util.List;
+
 @Module
 public interface DefaultValues {
 	String defaultValue(Type type);
@@ -37,6 +39,12 @@ public interface DefaultValues {
 		if (t.getSize().isPresent()) {
 			StringBuilder builder = new StringBuilder();
 			String element = defaultValue(t.getElementType());
+
+			// If statement added by Gareth Callanan to fix compile error with nested lists. (Part 1 of 2)
+			if(t.getElementType() instanceof ListType){
+				builder.append("{");
+			}
+
 			builder.append("{");
 			for (int i = 0; i < t.getSize().getAsInt(); i++) {
 				if (i > 0) {
@@ -45,6 +53,12 @@ public interface DefaultValues {
 				builder.append(element);
 			}
 			builder.append("}");
+
+			// If statement added by Gareth Callanan to fix compile error with nested lists. (Part 2 of 2)
+			if(t.getElementType() instanceof ListType){
+				builder.append("}");
+			}
+
 			return builder.toString();
 		} else {
 			throw new UnsupportedOperationException("Not implemented");

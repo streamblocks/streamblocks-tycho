@@ -20,14 +20,7 @@ import se.lth.cs.tycho.backend.c.util.NameExpression;
 import se.lth.cs.tycho.backend.c.util.NameExpression.Seq;
 import se.lth.cs.tycho.type.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -366,6 +359,12 @@ public interface Callables {
 
 	default void externalCallableDeclaration(VarDecl varDecl) {
 		if (varDecl.isExternal()) {
+			List<String> mathLibraryFunctionNames = Arrays.asList("cos", "sin", "exp", "sqrt", "log");
+
+			if(mathLibraryFunctionNames.contains(varDecl.getName())){
+				backend().emitter().emit("%s;", "// External function " + varDecl.getOriginalName() + "(..) defined in <math.h>");
+				return;
+			}
 			Type type = backend().types().declaredType(varDecl);
 			assert type instanceof CallableType : "External declaration must be function or procedure";
 			CallableType callable = (CallableType) type;

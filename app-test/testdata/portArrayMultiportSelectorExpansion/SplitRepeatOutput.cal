@@ -1,0 +1,32 @@
+// Actor that multiple tokens from a single input port, scales them by 2 and then sends the tokens out split across an
+// array of output ports.
+//
+// This actor tests the repeat expression when using MultiportSelectors in OutputExpressions.
+
+uint numPorts_x := 2; // We call add _x as it is in the same namespace as SplitOutput.cal which also defines numPorts
+uint numRepeat := 2;
+actor SplitterRepeat () int(size=8) In ==> int(size=8) Out[numPorts_x]:
+	port1action: action In:[a] repeat numPorts_x*numRepeat ==> Out[0..numPorts_x-1]:[outValue] repeat numRepeat
+	var
+	    List(type: List(type: int(size = 8), size = numRepeat), size = numPorts_x) outValue
+	do
+        foreach uint i in 0..numPorts_x-1 do
+            foreach uint j in 0..numRepeat-1 do
+                outValue[i][j] := a[i*numRepeat + j] * 2;
+            end
+        end
+	end
+end
+
+network SplitterRepeatWrapper ()
+    int(size=8) In
+    ==>
+    int(size=8) Out[numPorts_x]:
+entities
+	splitter = SplitterRepeat();
+structure
+    In --> splitter.In;
+    foreach uint i in 0..numPorts_x-1 do
+        splitter.Out[i] --> Out[i];
+    end
+end

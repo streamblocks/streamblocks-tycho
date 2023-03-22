@@ -1,0 +1,12 @@
+{
+  "description": "Tests a standard implementation of the action generator statement.",
+  "source-paths": ["."],
+  "experimental-network-elaboration": "on",
+  "entity": "TransposeStandardAGWrapper",
+  "test-data": [
+    {
+      "input": ["in1","in2","in3","in4"],
+      "reference": ["out1","out2","out3","out4"]
+    }
+  ]
+}

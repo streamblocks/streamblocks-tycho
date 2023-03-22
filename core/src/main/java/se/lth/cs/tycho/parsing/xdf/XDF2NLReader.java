@@ -108,7 +108,7 @@ public class XDF2NLReader {
 			if (dst.isEmpty()) dst = null;
 			Port dstPort = new Port(conn.getAttribute("dst-port"));
 			ImmutableList<ToolAttribute> attributes = getAttributes(conn);
-			connections.add(new StructureConnectionStmt(new PortReference(src, ImmutableList.empty(), srcPort.getName()), new PortReference(dst, ImmutableList.empty(), dstPort.getName())).withAttributes(attributes));
+			connections.add(new StructureConnectionStmt(new PortReference(src, ImmutableList.empty(), srcPort.getName(), ImmutableList.empty()), new PortReference(dst, ImmutableList.empty(), dstPort.getName(), ImmutableList.empty())).withAttributes(attributes));
 		}
 		return connections.build();
 	}

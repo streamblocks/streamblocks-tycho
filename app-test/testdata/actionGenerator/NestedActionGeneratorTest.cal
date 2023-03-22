@@ -1,0 +1,52 @@
+// Actor designed for testing nested ActionGeneratorStmts. This actor performs the same functions as the
+// TransposeStandardAG actor in StandardActionGeneratorTest.cal. See the comments in that file for more details on
+// what is being tested.
+//
+// The difference in this test is that the single generator statement has been separated into two generator
+// statements.
+
+globalNumPorts_test2 := 4; // Must be a multiple of 2 to function correctly due to the way the nesting is implemented.
+
+actor TransposeNestedAG (uint nPorts) int(size=8) In[nPorts] ==> int(size=8) Out[nPorts]:
+    uint guardCounter := 0;
+
+    // We now have two generator statements. The value of the index equivalent to the original single statement is
+    // given by (i*nPorts/2+j)
+    foreach uint i in 0..nPorts/2-1 generate
+        foreach uint j in 0..nPorts/2-1 generate
+
+            transposeAction: action In[i*nPorts/2 + j]:[inList] repeat (i*nPorts/2 + j + 1) ==> Out[0..(i*nPorts/2 + j)]:[out]
+            guard
+                guardCounter = i*nPorts/2 + j
+            var
+                List(type: int(size = 8), size = (i*nPorts/2 + j + 1)) out
+            do
+                foreach uint k in 0..(i*nPorts/2 + j) do
+                    out[k] := inList[k];
+                end
+
+                guardCounter := guardCounter + 1;
+                if guardCounter = nPorts then
+                    guardCounter := 0;
+                end
+
+            end
+
+        end // generate j
+    end // generate i
+end
+
+// Wraps the TransposeNestedAG actor, passes globalNumPorts_test2 in as a parameter to TransposeNestedAGWrapper.
+network TransposeNestedAGWrapper ()
+    int(size=8) In0[globalNumPorts_test2]
+    ==>
+    int(size=8) Out0[globalNumPorts_test2]
+    :
+entities
+    transpose = TransposeNestedAG(nPorts=globalNumPorts_test2);
+structure
+    foreach uint i in 0..globalNumPorts_test2-1 do
+        In0[i] --> transpose.In[i];
+        transpose.Out[i] --> Out0[i];
+    end
+end

@@ -8,6 +8,7 @@ import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.decl.TypeDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
+import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.ir.util.Lists;
 
@@ -146,4 +147,19 @@ public class NlNetwork extends Entity {
     }
 
 
+    public NlNetwork withInputPorts(List<PortDecl> inputPorts) {
+        if (Lists.sameElements(this.inputPorts, inputPorts)) {
+            return this;
+        } else {
+            return new NlNetwork(this, annotations, typeParameters, valueParameters, typeDecls, varDecls, ImmutableList.from(inputPorts), outputPorts, entities, structure);
+        }
+    }
+
+    public NlNetwork withOutputPorts(List<PortDecl> outputPorts) {
+        if (Lists.sameElements(this.outputPorts, outputPorts)) {
+            return this;
+        } else {
+            return new NlNetwork(this, annotations, typeParameters, valueParameters, typeDecls, varDecls, inputPorts, ImmutableList.from(outputPorts), entities, structure);
+        }
+    }
 }

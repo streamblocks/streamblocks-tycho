@@ -1,0 +1,59 @@
+// Actor designed for testing scope issues in ActionGeneratorStmts. This actor performs the same functions as the
+// TransposeStandardAG actor in StandardActionGeneratorTest.cal. See the comments in that file for more details on
+// what is being tested.
+//
+// The difference in this test is that we have created a nested generator which declares a variable j with a single
+// value 7 and then in the transposeAction block of variable decls, we have declared another variable j with a
+// value of 1. Depending on where we use this j, we expect it to have either a value of 1 or 7. So in this test,
+// whenever (j - 7) appears, it is expected that the j declared by the actionGenerator is used and where (j - 1)
+// appears we expect the j declared in the block of variables for the transposeAction to be used.
+
+globalNumPorts_test3 := 4;
+
+actor TransposeAGScoping (uint nPorts) int(size=8) In[nPorts] ==> int(size=8) Out[nPorts]:
+    uint guardCounter := 0;
+
+    foreach uint i in 0..nPorts-1 generate
+        // j in i..globalNumPorts_test3*10, j=7 should always evaluate to 7, but by setting the range between i
+        // and globalNumPorts_test3*10 we check that both global variables and variables in hierarchies of case
+        // statements are evaluated. Additionally, the filtering is also tested, in this case only if j=7 will
+        // the actions be generated. So always consider j=7 in the actions
+        foreach uint j in i..globalNumPorts_test3*10, j=7 generate
+
+            // For port index and repeat expressions, we expect the j = 7
+            transposeAction: action In[i+ (j - 7)]:[inList] repeat i+1+(j-7) ==> Out[0..(i + j - 7)]:[out]
+            guard
+                guardCounter = i + (j - 1)
+            var
+                uint j := 1,
+                List(type: int(size = 8), size = i+1) out
+            do
+                // Within the action body, we expect j = 1
+                foreach uint k in 0..i do
+                    out[k] := inList[k] + (j - 1);
+                end
+
+                guardCounter := guardCounter + 1 + (j - 1); // Comment here
+                if guardCounter = nPorts then
+                    guardCounter := 0;
+                end
+            end
+        end // generate j
+    end // generate i
+end
+
+
+// Wraps the TransposeAGScoping actor, passes globalNumPorts_test3 in as a parameter to TransposeAGScoping.
+network TransposeAGScopingWrapper ()
+    int(size=8) In0[globalNumPorts_test3]
+    ==>
+    int(size=8) Out0[globalNumPorts_test3]
+    :
+entities
+    transpose = TransposeAGScoping(nPorts=globalNumPorts_test3);
+structure
+    foreach uint i in 0..globalNumPorts_test3-1 do
+        In0[i] --> transpose.In[i];
+        transpose.Out[i] --> Out0[i];
+    end
+end

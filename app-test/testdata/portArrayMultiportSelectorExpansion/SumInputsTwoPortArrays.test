@@ -1,0 +1,11 @@
+{
+  "description": "Tests the multiport selectors for multiple input ports on an action.",
+  "source-paths": ["."],
+  "entity": "SumInputsTwoPortArrayWrapper",
+  "test-data": [
+    {
+      "input": ["in1", "in2" , "in3", "in1", "in2" , "in3"],
+      "reference": ["out1", "out7"]
+    }
+  ]
+}

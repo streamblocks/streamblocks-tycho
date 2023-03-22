@@ -1,0 +1,38 @@
+// Actor that multiple tokens from a single input port, scales them by 2 and then sends the tokens out split across an
+// array of output ports. This actor has two input ports and performs this splitting process for both ports sending
+// the output to two different output port arrays.
+//
+// This actor tests MultiportSelectors in OutputExpressions for two port arrays.
+numPorts_2 := 2;
+actor SplitterDoublePortArray () int(size=8) In1, int(size=8) In2 ==> int(size=8) Out1[numPorts], int(size=8) Out2[numPorts]:
+	port1action: action In1:[a1] repeat numPorts_2, In2:[a2] repeat numPorts_2 ==> Out1[0..numPorts_2-1]:[outValue1], Out2[0..numPorts_2-1]:[outValue2]
+	var
+	    List(type: int(size = 8), size = numPorts_2) outValue1,
+	    List(type: int(size = 8), size = numPorts_2) outValue2
+	do
+        foreach uint i in 0..numPorts_2-1 do
+            outValue1[i] := a1[i] * 2;
+        end
+
+        foreach uint i in 0..numPorts_2-1 do
+            outValue2[i] := a2[i] * 2 + 2;
+        end
+	end
+end
+
+network SplitterDoublePortArrayWrapper ()
+    int(size=8) In1,
+    int(size=8) In2
+    ==>
+    int(size=8) Out1[numPorts_2],
+    int(size=8) Out2[numPorts_2]:
+entities
+	splitter = SplitterDoublePortArray();
+structure
+    In1 --> splitter.In1;
+    In2 --> splitter.In2;
+    foreach uint i in 0..numPorts_2-1 do
+        splitter.Out1[i] --> Out1[i];
+        splitter.Out2[i] --> Out2[i];
+    end
+end

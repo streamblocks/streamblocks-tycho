@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 
 /**
@@ -14,6 +15,12 @@ public class PortDecl extends AbstractIRNode {
 	private String name;
 	private TypeExpr type;
 
+	// This array initializer expression falls within the square brackets of the Port declaration and should specify
+	// the size of the array. As such we expect the value of this expression to be computable at compile time.
+	//
+	// If this value is null then the port is not an array of ports only a single port is represented.
+	private Expression arrayInitExpr;
+
 	/**
 	 * Constructs a port with a name.
 	 * 
@@ -21,7 +28,7 @@ public class PortDecl extends AbstractIRNode {
 	 *            the port name
 	 */
 	public PortDecl(String name) {
-		this(null, name, null);
+		this(null, name, null, null);
 	}
 
 	/**
@@ -33,20 +40,36 @@ public class PortDecl extends AbstractIRNode {
 	 *            the type of the tokens
 	 */
 	public PortDecl(String name, TypeExpr type) {
-		this(null, name, type);
+		this(null, name, type, null);
 	}
+
+	/**
+	 * Constructs a port with a name and a type.
+	 *
+	 * @param name
+	 *            the port name
+	 * @param type
+	 *            the type of the token
+	 * @param arrayInitExpr
+	 * 	 		  expression defining size of the port array
+	 */
+	public PortDecl(String name, TypeExpr type, Expression arrayInitExpr) {
+		this(null, name, type, arrayInitExpr);
+	}
+
 	
-	private PortDecl(PortDecl original, String name, TypeExpr type) {
+	private PortDecl(PortDecl original, String name, TypeExpr type, Expression arrayInitExpr) {
 		super(original);
 		this.name = name;
 		this.type = type;
+		this.arrayInitExpr = arrayInitExpr;
 	}
 	
-	public PortDecl copy(String name, TypeExpr type) {
-		if (Objects.equals(this.name, name) && this.type == type) {
+	public PortDecl copy(String name, TypeExpr type, Expression arrayInitExpr) {
+		if (Objects.equals(this.name, name) && this.type == type && Objects.equals(this.arrayInitExpr, arrayInitExpr)) {
 			return this;
 		}
-		return new PortDecl(this, name, type);
+		return new PortDecl(this, name, type, arrayInitExpr);
 	}
 
 	/**
@@ -73,11 +96,20 @@ public class PortDecl extends AbstractIRNode {
 		}else{
 			return name;
 		}
+	}
 
+	/**
+	 * Returns the array initialisation expression of the port.
+	 *
+	 * @return the array initialisation expression of the port.
+	 */
+
+	public Expression getArrayInitExpr() {
+		return arrayInitExpr;
 	}
 
 	public PortDecl withName(String name) {
-		return copy(name, type);
+		return copy(name, type, arrayInitExpr);
 	}
 
 	/**
@@ -90,17 +122,20 @@ public class PortDecl extends AbstractIRNode {
 	}
 
 	public PortDecl withType(TypeExpr type) {
-		return copy(name, type);
+		return copy(name, type, arrayInitExpr);
 	}
 
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		if (type != null) action.accept(type);
+		if (arrayInitExpr != null) action.accept(arrayInitExpr);
 	}
 
 	@Override
 	public PortDecl transformChildren(Transformation transformation) {
-		return copy(name, type == null ? null : (TypeExpr) transformation.apply(type));
+		return copy(name,
+				type == null ? null : (TypeExpr) transformation.apply(type),
+				arrayInitExpr == null ? null : (Expression) transformation.apply(arrayInitExpr));
 	}
 
 	@Override

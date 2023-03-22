@@ -64,7 +64,7 @@ public final class ProcessToCal {
             blockToCal.process(entryBlock);
             return process.copy(process.getAnnotations(), process.getTypeParameters(), process.getValueParameters(), process.getTypeDecls(),
                     process.getVarDecls(), process.getInputPorts(), process.getOutputPorts(), ImmutableList.empty(),
-                    blockToCal.actions().build(), Collections.emptyList(),
+                    blockToCal.actions().build(), Collections.emptyList(), ImmutableList.empty(),
                     new ScheduleFSM(blockToCal.transitions().build(), blockToCal.initialState().get()),null,  null,
                     blockToCal.priorities().build(), process.getInvariants());
         } else {
@@ -207,7 +207,7 @@ public final class ProcessToCal {
                     StmtRead read = (StmtRead) first;
                     ImmutableList<Map.Entry<LValue, Match>> varDecls = read.getLValues()
                             .map(lvalue -> ImmutableEntry.of(lvalue, match(VarDecl.input("t_" + uniqueNumbers().next()))));
-                    InputPattern input = new InputPattern(read.getPort(), varDecls.map(Map.Entry::getValue), read.getRepeatExpression());
+                    InputPattern input = new InputPattern(read.getPort(), varDecls.map(Map.Entry::getValue), read.getRepeatExpression(), null);
                     ImmutableList.Builder<Statement> bodyBuilder = ImmutableList.builder();
                     varDecls.forEach(entry -> bodyBuilder.add(new StmtAssignment(entry.getKey(),
                             new ExprVariable(Variable.variable(entry.getValue().getDeclaration().getName())))));
@@ -223,7 +223,7 @@ public final class ProcessToCal {
                         bodyBuilder.add(block.getStatements().get(i));
                     }
                     StmtWrite write = (StmtWrite) last;
-                    OutputExpression output = new OutputExpression(write.getPort(), write.getValues(), write.getRepeatExpression());
+                    OutputExpression output = new OutputExpression(write.getPort(), write.getValues(), write.getRepeatExpression(), null);
                     actions().add(new Action(QID.of(curr), ImmutableList.empty(), ImmutableList.empty(), ImmutableList.of(output),
                             ImmutableList.empty(), ImmutableList.empty(), ImmutableList.empty(),
                             bodyBuilder.build(), null, ImmutableList.empty(), ImmutableList.empty()));

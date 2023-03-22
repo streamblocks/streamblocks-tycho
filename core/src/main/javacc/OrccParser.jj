@@ -687,6 +687,7 @@ GlobalEntityDecl ActorDecl() :
 	ImmutableList.Builder<Action> actions = ImmutableList.builder();
 	Action action;
 	ImmutableList<ActionCase> actionCases = ImmutableList.empty();
+    ImmutableList<ActionGeneratorStmt> actionGeneratorStmts = ImmutableList.empty();
 	ScheduleFSM scheduleFSM = null;
 	ImmutableList.Builder<ImmutableList<QID>> priorities = ImmutableList.builder();
 	ImmutableList.Builder<Expression> invariants = ImmutableList.builder();
@@ -739,7 +740,7 @@ GlobalEntityDecl ActorDecl() :
 		"end"
 	)
 	{
-		CalActor a = new CalActor(annotations.build(), typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases, scheduleFSM, null, null, priorities.build(), invariants.build());
+		CalActor a = new CalActor(annotations.build(), typePars, valuePars, typeDecls, varDecls.build(), inputPorts, outputPorts, initializers.build(), actions.build(), actionCases, actionGeneratorStmts, scheduleFSM, null, null, priorities.build(), invariants.build());
 		return GlobalEntityDecl.global(Availability.PUBLIC, name, a, external);
 	}
 }
@@ -866,7 +867,7 @@ InputPattern InputPattern() :
 	)?
 	"]"
 	("repeat" repeat = Expression())?
-	{ return new InputPattern(port, matches.build(), repeat); }
+	{ return new InputPattern(port, matches.build(), repeat, null); }
 }
 
 Match Match() :
@@ -931,7 +932,7 @@ OutputExpression OutputExpression() :
 	"]"
 	( "repeat" repeat = Expression() )?
 	{
-		return new OutputExpression(port, exprs, repeat);
+		return new OutputExpression(port, exprs, repeat, null);
 	}
 }
 

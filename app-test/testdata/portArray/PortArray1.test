@@ -1,0 +1,12 @@
+{
+  "description": "An actor network with a arrays of ports - experimental network elaboration is used in this test.",
+  "source-paths": ["."],
+  "entity": "PortArrayNetworkNoElaboration",
+  "experimental-network-elaboration": "on",
+  "test-data": [
+    {
+      "input": ["in0", "in1" , "in2", "in3", "in4" , "in5", "inEmpty"],
+      "reference": ["out0", "out1", "out2", "out3", "out4", "out5", "outEmpty"]
+    }
+  ]
+}
