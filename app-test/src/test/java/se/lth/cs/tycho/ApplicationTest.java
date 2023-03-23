@@ -79,10 +79,10 @@ public class ApplicationTest {
             // do not compile. I do not have time to fix the broken tests, but I have instead printed out
             // the broken tests. This makes it easier to figure out if your new test works or just does not
             // compile.
-			//
-			// Additionally, at my last check, exactly EXPECTED_UNCOMPILED_TESTS unit tests were failing to compile.
-			// I track the number of failed compilations and throw an error if it exceeds the expected number,
-			// this should prevent additional failing tests from being added accidentally.
+            //
+            // Additionally, at my last check, exactly EXPECTED_UNCOMPILED_TESTS unit tests were failing to compile.
+            // I track the number of failed compilations and throw an error if it exceeds the expected number,
+            // this should prevent additional failing tests from being added accidentally.
             if (testsSkipped == 0) {
                 System.out.println("NOTE: We expect exactly " + EXPECTED_UNCOMPILED_TESTS +
                         " tests to fail compilation. Any more and an error will be thrown. See code comments by this " +
