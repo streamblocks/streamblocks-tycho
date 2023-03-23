@@ -55,23 +55,29 @@ public class InputPattern extends AbstractIRNode {
 	private ImmutableList<Match> matches;
 	private Expression repeatExpr;
 
-	public InputPattern(Port port, ImmutableList<Match> matches, Expression repeatExpr) {
-		this(null, port, matches, repeatExpr);
+	// If this port represents an array of ports, then this expression
+	// indicates the index within the port array that this InputPattern refers to.
+	// Null otherwise
+	private Expression arrayIndexExpression;
+
+	public InputPattern(Port port, ImmutableList<Match> matches, Expression repeatExpr, Expression arrayIndexExpression) {
+		this(null, port, matches, repeatExpr, arrayIndexExpression);
 	}
 
-	private InputPattern(InputPattern original, Port port, ImmutableList<Match> matches, Expression repeatExpr) {
+	protected InputPattern(InputPattern original, Port port, ImmutableList<Match> matches, Expression repeatExpr, Expression arrayIndexExpression) {
 		super(original);
 		this.port = port;
 		this.matches = ImmutableList.from(matches);
 		this.repeatExpr = repeatExpr;
+		this.arrayIndexExpression = arrayIndexExpression;
 	}
 
-	public InputPattern copy(Port port, ImmutableList<Match> matches, Expression repeatExpr) {
-		if (Objects.equals(this.port, port) && Lists.equals(this.matches, matches)
-				&& Objects.equals(this.repeatExpr, repeatExpr)) {
+	public InputPattern copy(Port port, ImmutableList<Match> matches, Expression repeatExpr , Expression arrayIndexExpression) {
+		if (Objects.equals(this.getPort(), port) && Lists.equals(this.getMatches(), matches)
+				&& Objects.equals(this.getRepeatExpr(), repeatExpr)  && Objects.equals(this.arrayIndexExpression, arrayIndexExpression) ) {
 			return this;
 		}
-		return new InputPattern(this, port, matches, repeatExpr);
+		return new InputPattern(this, port, matches, repeatExpr, arrayIndexExpression);
 	}
 
 	public Port getPort() {
@@ -86,11 +92,27 @@ public class InputPattern extends AbstractIRNode {
 		return repeatExpr;
 	}
 
+	/**
+	 * @author Gareth Callanan
+	 *
+	 * Returns the expression representing the index within the port array that this InputPattern object to.
+	 *
+	 * This is an InputPattern that has a firing action linked to an array port.
+	 * For example, in "action X[0]:[x] ==> Z:[x+1] end", X[0]:[x] is an array port input pattern.
+	 * Where X[...] is the corresponding array port.
+	 *
+	 * If null, then this is not an array port.
+	 */
+	public Expression getArrayIndexExpression(){
+		return arrayIndexExpression;
+	}
+
 	@Override
 	public void forEachChild(Consumer<? super IRNode> action) {
 		action.accept(port);
 		matches.forEach(action);
 		if (repeatExpr != null) action.accept(repeatExpr);
+		if (arrayIndexExpression != null) action.accept(arrayIndexExpression);
 	}
 
 	@Override
@@ -99,7 +121,42 @@ public class InputPattern extends AbstractIRNode {
 		return copy(
 				(Port) transformation.apply(port),
 				(ImmutableList) matches.map(transformation),
-				repeatExpr == null ? null : (Expression) transformation.apply(repeatExpr)
+				repeatExpr == null ? null : (Expression) transformation.apply(repeatExpr),
+				arrayIndexExpression == null ? null : (Expression) transformation.apply(arrayIndexExpression)
 		);
+	}
+
+	/**
+	 *  Replaces the port object within the InputPattern.
+	 *
+	 *	@param newPort The newPort that will replace this objects current port.
+	 *
+	 *  @return The same InputPattern object with the port replaced.
+	 */
+	public InputPattern withPort(Port newPort){
+		return new InputPattern(this, newPort, matches, repeatExpr, arrayIndexExpression);
+	}
+
+	/**
+	 *  Replaces the port object within the InputPattern and sets the arrayIndex expression to null.
+	 *
+	 *	@param newPort The newPort that will replace this objects current port.
+	 *
+	 *  @return The same InputPattern object with the port replaced.
+	 */
+	public InputPattern withPortNoIndexExpression(Port newPort){
+		return new InputPattern(this, newPort, matches, repeatExpr, null);
+	}
+
+	/**
+	 * Apply a transformation to the arrayIndexExpression and repeatExpression only.
+	 *
+	 * @param transformation Transformation to apply.
+	 * @return Input pattern with the transformed port array index and repeat expression.
+	 */
+	public InputPattern transformPortArrayAndRepeat(Transformation transformation) {
+		return new InputPattern(this, port, matches, repeatExpr == null ? null :
+				(Expression) transformation.apply(repeatExpr), arrayIndexExpression == null ? null :
+				(Expression) transformation.apply(arrayIndexExpression));
 	}
 }

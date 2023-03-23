@@ -2,6 +2,8 @@ package se.lth.cs.tycho;
 
 import org.apache.commons.io.IOUtils;
 import se.lth.cs.tycho.compiler.Compiler;
+import se.lth.cs.tycho.phase.ElaborateNetworkPhase;
+import se.lth.cs.tycho.phase.PrettyPrint;
 import se.lth.cs.tycho.platform.Platform;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.settings.Configuration;
@@ -37,7 +39,9 @@ public class ProgramTester {
 				.set(Compiler.orccSourcePaths, test.getOrccSourcePaths())
 				.set(Compiler.xdfSourcePaths, test.getXDFSourcePaths())
 				.set(Compiler.targetPath, target)
+				.set(ElaborateNetworkPhase.experimentalNetworkElaboration, test.getExperimentalNetworkElaborationFlag().equals("on"))
 				.build();
+
 		OutputCapturer capturer = new OutputCapturer();
 		capturer.start();
 		ProgramTester tester = null;

@@ -1,0 +1,28 @@
+// Actor that takes in one token from each input port, sums them up and outputs the sum as a token on a single
+// output port.
+//
+// This actor tests MultiportSelectors in the InputPatterns. This particular actor tests the multiple selector of
+// type Set.
+actor SumInputsSet () int(size=8) In[3] ==> int(size=8) Out:
+	port1action: action In[{0,2}]:[a] ==> Out:[outValue]
+	var
+	    int(size=8) outValue := 0
+	do
+        foreach uint i in 0..(#a)-1 do
+            outValue := a[i] + outValue;
+        end
+	end
+end
+
+network SumInputsWrapperSet ()
+    int(size=8) In[3]
+    ==>
+    int(size=8) Out:
+entities
+	sumInputs = SumInputsSet();
+structure
+    In[0] --> sumInputs.In[0];
+    In[1] --> sumInputs.In[1];
+    In[2] --> sumInputs.In[2];
+    sumInputs.Out --> Out;
+end

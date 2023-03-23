@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.transformation.nl2network;
 
 import org.multij.MultiJ;
+import se.lth.cs.tycho.attribute.ConstantEvaluator;
 import se.lth.cs.tycho.attribute.EntityDeclarations;
 import se.lth.cs.tycho.attribute.TypeScopes;
 import se.lth.cs.tycho.attribute.VariableDeclarations;
@@ -15,21 +16,7 @@ import se.lth.cs.tycho.ir.decl.LocalVarDecl;
 import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.PortDecl;
-import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityExprVisitor;
-import se.lth.cs.tycho.ir.entity.nl.EntityIfExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.EntityReferenceGlobal;
-import se.lth.cs.tycho.ir.entity.nl.InstanceDecl;
-import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
-import se.lth.cs.tycho.ir.entity.nl.PortReference;
-import se.lth.cs.tycho.ir.entity.nl.StructureConnectionStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureIfStmt;
-import se.lth.cs.tycho.ir.entity.nl.StructureStatement;
-import se.lth.cs.tycho.ir.entity.nl.StructureStmtVisitor;
+import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.expr.ExprLiteral;
 import se.lth.cs.tycho.ir.expr.Expression;
 import se.lth.cs.tycho.ir.network.Connection;
@@ -44,6 +31,7 @@ import se.lth.cs.tycho.meta.interp.value.Value;
 import se.lth.cs.tycho.meta.interp.value.ValueBool;
 import se.lth.cs.tycho.meta.interp.value.ValueList;
 import se.lth.cs.tycho.meta.interp.value.util.Convert;
+import se.lth.cs.tycho.phase.PortArrayEnumeration;
 import se.lth.cs.tycho.reporting.CompilationException;
 import se.lth.cs.tycho.reporting.Diagnostic;
 
@@ -54,6 +42,15 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     private NlNetwork srcNetwork;
     private final Interpreter interpreter;
     private final Convert convert;
+
+    // Added by Gareth Callanan. This gives us access to the evaluated constant values for the expressions that are
+    // part of the PortReference objects as done for similar operations in the PortArrayEnumerationPhase.
+    //
+    // NOTE: This class already has a way to access constants using the "interpreter.eval(...)" function, however it
+    // did not seem simple to do the same thing in the location of the code I was working with without adjusting its
+    // structure. So this method was used instead. I am not commited to this implementation, so making it more
+    // consistent in the future would be good.
+    private final ConstantEvaluator constants;
     private HashMap<InstanceDecl, EntityExpr> entities;
     private ArrayList<StructureStatement> structure;
     private boolean evaluated;
@@ -77,6 +74,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
                 .instance();
         this.convert = MultiJ.from(Convert.class)
                 .instance();
+        this.constants = task.getModule(ConstantEvaluator.key);
     }
 
     public void evaluate(ImmutableList<ValueParameter> parameterAssignments) throws CompilationException {
@@ -206,12 +204,17 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
     public StructureStatement visitStructureConnectionStmt(StructureConnectionStmt stmt, Environment environment) {
         PortReference src = stmt.getSrc();
         // -- src
-        ImmutableList.Builder<Expression> srcBuilder = new ImmutableList.Builder<>();
+        ImmutableList.Builder<Expression> srcBuilderEntityIndex = new ImmutableList.Builder<>();
         for (Expression expr : src.getEntityIndex()) {
             Value value = interpreter.eval(expr, environment);
-            srcBuilder.add(convert.apply(value));
+            srcBuilderEntityIndex.add(convert.apply(value));
         }
-        PortReference newSrc = src.copy(src.getEntityName(), srcBuilder.build(), src.getPortName());
+        ImmutableList.Builder<Expression> srcBuilderArrayIndex = new ImmutableList.Builder<>();
+        for (Expression expr : src.getArrayIndexExpr()) {
+            Value value = interpreter.eval(expr, environment);
+            srcBuilderArrayIndex.add(convert.apply(value));
+        }
+        PortReference newSrc = src.copy(src.getEntityName(), srcBuilderEntityIndex.build(), src.getPortName(), srcBuilderArrayIndex.build());
         // -- dst
         PortReference dst = stmt.getDst();
         ImmutableList.Builder<Expression> dstBuilder = new ImmutableList.Builder<Expression>();
@@ -219,7 +222,12 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             Value value = interpreter.eval(expr, environment);
             dstBuilder.add(convert.apply(value));
         }
-        PortReference newDst = dst.copy(dst.getEntityName(), dstBuilder.build(), dst.getPortName());
+        ImmutableList.Builder<Expression> dstBuilderArrayIndex = new ImmutableList.Builder<>();
+        for (Expression expr : dst.getArrayIndexExpr()) {
+            Value value = interpreter.eval(expr, environment);
+            dstBuilderArrayIndex.add(convert.apply(value));
+        }
+        PortReference newDst = dst.copy(dst.getEntityName(), dstBuilder.build(), dst.getPortName(), dstBuilderArrayIndex.build());
         return stmt.copy(newSrc, newDst);
     }
 
@@ -361,7 +369,6 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             String srcEntityName = null;
             String dstEntityName = null;
             ImmutableList<PortDecl> srcPortList, dstPortList;
-
             if (src.getEntityName() != null) {
                 // -- internal instance
                 srcEntityName = makeEntityName(src);
@@ -388,17 +395,22 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             } else {
                 dstPortList = srcNetwork.getOutputPorts();
             }
+
             // -- verify that the ports exists
-            srcPortIndex = findPortIndex(src.getPortName(), srcPortList);
+            String srcEnumeratedPortName = getEnumeratedPortName(src);
+            srcPortIndex = findPortIndex(srcEnumeratedPortName, srcPortList);
             if (srcPortIndex < 0) {
-                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "no port with name : " + src.getPortName() + " exists in: " + src.getEntityName()));
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "no port with name : " + srcEnumeratedPortName + " exists in: " + src.getEntityName()));
             }
-            dstPortIndex = findPortIndex(dst.getPortName(), dstPortList);
+
+            String dstEnumeratedPortName = getEnumeratedPortName(dst);
+            dstPortIndex = findPortIndex(dstEnumeratedPortName, dstPortList);
             if (dstPortIndex < 0) {
-                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "no port with name : " + dst.getPortName() + " exists in : " + dst.getEntityName()));
+                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "no port with name : " + dstEnumeratedPortName + " exists in : " + dst.getEntityName()));
             }
-            Connection.End srcConn = new Connection.End(Optional.ofNullable(srcEntityName), src.getPortName());
-            Connection.End dstConn = new Connection.End(Optional.ofNullable(dstEntityName), dst.getPortName());
+            //System.out.println(srcEnumeratedPortName + " --> " + dstEnumeratedPortName);
+            Connection.End srcConn = new Connection.End(Optional.ofNullable(srcEntityName), srcEnumeratedPortName);
+            Connection.End dstConn = new Connection.End(Optional.ofNullable(dstEntityName), dstEnumeratedPortName);
             Connection conn = new Connection(srcConn, dstConn);
             connections.add(conn);
 
@@ -417,6 +429,35 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
                 statement.accept(this, "");
             }
             return null;
+        }
+
+        /**
+         * @author Gareth Callanan
+         *
+         * Extracts the port name string from a PortReference object.
+         *
+         * If the given PortReference object has an arrayIndexExpr then the index of the PortReference
+         * needs to be inserted into the name. Eg port X[1] is given the port name X__1__. If the object is just
+         * of parent class PortReference, then just the standard name is returned.
+         *
+         * @param port The port where the port name is extracted from.
+         * @return Returns a string representing the port name.
+         */
+        private String getEnumeratedPortName(PortReference port){
+            if(port.getArrayIndexExpr().size() != 0){
+                Expression expr = port.getArrayIndexExpr().get(0);
+                OptionalLong exprValueOpt = constants.intValue(expr);
+                if(!exprValueOpt.isPresent()){
+                    throw new RuntimeException("For port array reference '" + port.getPortName() + "' within network entity structure '"+port.getEntityName()+"' - this is not expected and should not happen.");
+                }
+                long exprValue = exprValueOpt.getAsLong();
+                if(exprValue < 0){
+                    throw new RuntimeException("For port array reference '" + port.getPortName() + "' within network entity structure '"+port.getEntityName()+"' we got a value of " + exprValue + " for the array index - value must be >= 0");
+                }
+                return PortArrayEnumeration.generatePortNameWithIndex(port.getPortName(), exprValue);
+            }else {
+                return port.getPortName();
+            }
         }
     }
 

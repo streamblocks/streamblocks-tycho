@@ -155,6 +155,22 @@ public class Action extends AbstractIRNode {
         }
     }
 
+    public Action withInputPatterns(List<InputPattern> inputPatterns) {
+        if (Lists.sameElements(this.inputPatterns, inputPatterns)) {
+            return this;
+        } else {
+            return new Action(this, tag, annotations, ImmutableList.from(inputPatterns), outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+        }
+    }
+
+    public Action withOutputExpressions(List<OutputExpression> outputExpressions) {
+        if (Lists.sameElements(this.outputExpressions, outputExpressions)) {
+            return this;
+        } else {
+            return new Action(this, tag, annotations, inputPatterns, ImmutableList.from(outputExpressions), typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
+        }
+    }
+
     private QID tag;
     private ImmutableList<Annotation> annotations;
     private ImmutableList<InputPattern> inputPatterns;
@@ -217,5 +233,26 @@ public class Action extends AbstractIRNode {
         } else {
             return new Action(this, tag, annotations, inputPatterns, outputExpressions, typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
         }
+    }
+
+    /**
+     * Apply transformation to the port array indexes and repeat expressions in the input patterns and output
+     * expressions only.
+     *
+     * @param transformation Transformation to apply.
+     * @return New actor with transformed port array indexes and repeat expressions.
+     */
+    public Action transformPortArraysAndRepeats(Transformation transformation) {
+        ImmutableList.Builder<InputPattern> inputPatternBuilder = ImmutableList.builder();
+        ImmutableList.Builder<OutputExpression> outputExpressionBuilder = ImmutableList.builder();
+
+        for (InputPattern inputPattern: inputPatterns) {
+            inputPatternBuilder.add(inputPattern.transformPortArrayAndRepeat(transformation));
+        }
+        for (OutputExpression outputExpression: outputExpressions) {
+            outputExpressionBuilder.add(outputExpression.transformPortArrayAndRepeat(transformation));
+        }
+
+        return new Action(this, tag, annotations, inputPatternBuilder.build(), outputExpressionBuilder.build(), typeDecls, varDecls, guards, body, delay, preconditions, postconditions);
     }
 }

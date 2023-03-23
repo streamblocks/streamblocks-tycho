@@ -9,6 +9,7 @@ import se.lth.cs.tycho.reporting.Reporter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,13 +26,23 @@ public class PreludeLoader implements Loader {
 	public List<SourceUnit> loadNamespace(QID qid) {
 		if (qid.equals(prelude)) {
 			if (preludeUnits == null) {
-				InputStream stream = getPreludeInputStream();
+				InputStream preludeStream = getPreludeInputStream();
+
 				try {
-					PreludeUnit preludeUnit = new PreludeUnit(new CalParser(stream,"UTF-8").CompilationUnit());
-					preludeUnits = Collections.singletonList(preludeUnit);
+					PreludeUnit preludeUnit = new PreludeUnit(new CalParser(preludeStream,"UTF-8").CompilationUnit());
+					preludeUnits = new ArrayList<>();
+					preludeUnits.add(preludeUnit);
 				} catch (ParseException e) {
 					reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not parse the Cal prelude, " + e.getMessage()));
 					preludeUnits = Collections.emptyList();
+				}
+
+				InputStream mathStream = getMathInputStream();
+				try {
+					PreludeUnit mathUnit = new PreludeUnit(new CalParser(mathStream,"UTF-8").CompilationUnit());
+					preludeUnits.add(mathUnit);
+				} catch (ParseException e) {
+					reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not parse the Cal math prelude, " + e.getMessage()));
 				}
 			}
 			return preludeUnits;
@@ -42,6 +53,10 @@ public class PreludeLoader implements Loader {
 
 	private static InputStream getPreludeInputStream() {
 		return ClassLoader.getSystemResourceAsStream("cal_prelude/prelude.cal");
+	}
+
+	private static InputStream getMathInputStream() {
+		return ClassLoader.getSystemResourceAsStream("cal_prelude/math_prelude.cal");
 	}
 
 	public static class PreludeUnit implements SourceUnit {

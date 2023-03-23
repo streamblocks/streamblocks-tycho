@@ -74,7 +74,7 @@ public class CalToAm {
         return stateCache.computeIfAbsent(s, Function.identity());
     }
 
-    private class CalState implements State {
+    public class CalState implements State {
         private List<Instruction> instructions;
         private final Set<String> state;
         private final Map<Port, PortKnowledge> inputPorts;
@@ -333,7 +333,7 @@ public class CalToAm {
 
         }
 
-        private CalActor getActor() {
+        public CalActor getActor() {
             return actor;
         }
 

@@ -1,0 +1,63 @@
+// Actor designed for testing the ActionGeneratorStmts. This actor implements a toy example where a triangular matrix
+// is transposed. Each row of the triangle is received and transmitted on a different port. The actor first processes
+// the first row and transmits the input tokens out on the correct ports. It repeats this process for row 2, then 3
+// and so on until row N has been processed. In this example, N has been set to 4 (globalNumPorts_test1).
+//
+// This tests the most standard use of ActionGeneratorStmts. No nesting or scope conflicts are checked here.
+//
+//                 TransposeStandardAG actor
+// Tokens In               |-----------|                 Tokens Out
+// 1           ->    In[0]>|           |>Out[0]    ->    1 2 4 7
+// 2 3         ->    In[1]>|           |>Out[1]    ->      3 5 8
+// 4 5 6       ->    In[2]>|           |>Out[2]    ->        6 9
+// 7 8 9 10    ->    In[3]>|           |>Out[3]    ->          10
+//                         |-----------|
+
+globalNumPorts_test1 := 4;
+
+// Actor performing the transpose function.
+//
+// For globalNumPorts_test1 = 4, Four actions are generated:
+// 1. transposeAction_0 - Takes in 1 token from port In[0] and outputs it on port Out[0].
+// 2. transposeAction_1 - Takes in 2 tokens from port In[1] and outputs them on port Out[0] to Out[1].
+// 3. transposeAction_2 - Takes in 3 tokens from port In[2] and outputs them on port Out[0] to Out[2].
+// 4. transposeAction_3 - Takes in 4 tokens from port In[3] and outputs them on port Out[0] to Out[3].
+//
+// Additionally each of these actions is guarded by a counter variable that ensures these actions are executed in the
+// ascending order from transposeAction_0 to transposeAction_3.
+actor TransposeStandardAG (uint nPorts) int(size=8) In[nPorts] ==> int(size=8) Out[nPorts]:
+    uint guardCounter := 0;
+
+    foreach uint i in 0..nPorts-1 generate
+            transposeAction: action In[i]:[inList] repeat i+1 ==> Out[0..i]:[out]
+            guard
+                guardCounter = i
+            var
+                List(type: int(size = 8), size = i+1) out
+            do
+                foreach uint k in 0..i do
+                    out[k] := inList[k];
+                end
+
+                guardCounter := guardCounter + 1;
+                if guardCounter = nPorts then
+                    guardCounter := 0;
+                end
+            end
+    end // generate i
+end
+
+// Wraps the TransposeStandardAG actor, passes globalNumPorts_test1 in as a parameter to TransposeStandardAG.
+network TransposeStandardAGWrapper ()
+    int(size=8) In0[globalNumPorts_test1]
+    ==>
+    int(size=8) Out0[globalNumPorts_test1]
+    :
+entities
+    transpose = TransposeStandardAG(nPorts=globalNumPorts_test1);
+structure
+    foreach uint i in 0..globalNumPorts_test1-1 do
+        In0[i] --> transpose.In[i];
+        transpose.Out[i] --> Out0[i];
+    end
+end

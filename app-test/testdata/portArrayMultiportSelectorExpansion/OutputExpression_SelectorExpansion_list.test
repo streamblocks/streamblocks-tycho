@@ -1,0 +1,12 @@
+{
+  "description": "Tests the multiport selectors for output expressions on an action.",
+  "source-paths": ["."],
+  "experimental-network-elaboration": "on",
+  "entity": "SplitterWrapper",
+  "test-data": [
+    {
+      "input": ["in1"],
+      "reference": ["out3","out4"]
+    }
+  ]
+}

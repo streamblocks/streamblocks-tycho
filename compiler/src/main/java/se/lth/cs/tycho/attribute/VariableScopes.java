@@ -11,10 +11,7 @@ import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.Scope;
-import se.lth.cs.tycho.ir.entity.cal.Action;
-import se.lth.cs.tycho.ir.entity.cal.CalActor;
-import se.lth.cs.tycho.ir.entity.cal.InputPattern;
-import se.lth.cs.tycho.ir.entity.cal.Match;
+import se.lth.cs.tycho.ir.entity.cal.*;
 import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
 import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
 import se.lth.cs.tycho.ir.entity.nl.StructureForeachStmt;
@@ -90,6 +87,10 @@ public interface VariableScopes {
 
         default ImmutableList<VarDecl> declarations(StmtForeach foreach) {
             return ImmutableList.covariance(foreach.getGenerator().getVarDecls());
+        }
+
+        default ImmutableList<VarDecl> declarations(ActionGeneratorStmt actionGeneratorStmt) {
+            return ImmutableList.covariance(actionGeneratorStmt.getGenerator().getVarDecls());
         }
 
         // Cal

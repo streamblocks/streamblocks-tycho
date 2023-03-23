@@ -1,0 +1,40 @@
+// Actor that has two input port arrays. Each port array is summed up separately and the sum is output on a different
+// output port for each port array.
+//
+// This actor tests MultiportSelectors in the InputPatterns when there is more than one input port array.
+
+actor SumInputsTwoPortsArray () int(size=8) In1[3], int(size=8) In2[3] ==> int(size=8) Out1, int(size=8) Out2:
+	port1action: action In1[[0,2]]:[a1], In2[[0,2]]:[a2] ==> Out1:[outValue1], Out2:[outValue2]
+	var
+	    int(size=8) outValue1 := 0,
+	    int(size=8) outValue2 := 0
+	do
+        foreach uint i in 0..(#a1)-1 do
+            outValue1 := a1[i] + outValue1;
+        end
+
+        foreach uint i in 0..(#a2)-1 do
+            outValue2 := a2[i] + outValue2 + 1;
+        end
+	end
+end
+
+network SumInputsTwoPortArrayWrapper ()
+    int(size=8) In1[3],
+    int(size=8) In2[3]
+    ==>
+    int(size=8) Out1,
+    int(size=8) Out2:
+entities
+	sumInputs = SumInputsTwoPortsArray();
+structure
+    In1[0] --> sumInputs.In1[0];
+    In1[1] --> sumInputs.In1[1];
+    In1[2] --> sumInputs.In1[2];
+    sumInputs.Out1 --> Out1;
+
+    In2[0] --> sumInputs.In2[0];
+    In2[1] --> sumInputs.In2[1];
+    In2[2] --> sumInputs.In2[2];
+    sumInputs.Out2 --> Out2;
+end

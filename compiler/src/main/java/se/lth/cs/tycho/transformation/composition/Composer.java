@@ -49,13 +49,13 @@ public class Composer {
                 String name = port.getName() + "_" + index;
                 index++;
                 inputPortNames.put(port.getName(), name);
-                inputPorts.add(port.copy(name, port.getType()));
+                inputPorts.add(port.copy(name, port.getType(), null));
             }
             for (PortDecl port : actorMachine.getOutputPorts()) {
                 String name = port.getName() + "_" + index;
                 index++;
                 outputPortNames.put(port.getName(), name);
-                outputPorts.add(port.copy(name, port.getType()));
+                outputPorts.add(port.copy(name, port.getType(), null));
             }
         }
 

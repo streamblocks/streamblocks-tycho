@@ -1,0 +1,11 @@
+{
+  "description": "Tests the multiport selectors for input patterns on an action. The selectors have type 'set' in this test.",
+  "source-paths": ["."],
+  "entity": "SumInputsWrapperSet",
+  "test-data": [
+    {
+      "input": ["in1", "in2" , "in3"],
+      "reference": ["out1"]
+    }
+  ]
+}

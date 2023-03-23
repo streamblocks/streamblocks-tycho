@@ -1,4 +1,5 @@
 namespace prelude :
 	public external procedure println(String text) end
 	public external procedure print(String text) end
+	public external function randint(int n) --> int end
 end

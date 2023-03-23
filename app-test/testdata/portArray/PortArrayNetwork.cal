@@ -1,0 +1,80 @@
+// A PortArray network that simply takes in input token on input port at index i and outputs the same value
+// plus an offset on output port i. The purpose of this network is to test arrays of ports.
+//
+//                         PortArrayNetwork
+//          ------------------------------------------
+//          |              PassThroughActor          |
+//          |              ----------------          |
+//    In[0]>|--------In[0]>|              |>Out[0]---|>Out[0]
+//    In[1]>|--------In[1]>|              |>Out[1]---|>Out[1]
+//    In[2]>|--------In[2]>|              |>Out[2]---|>Out[2]
+//          |              ----------------          |
+//          ------------------------------------------
+//
+uint globalNumPorts = 3;
+
+// A very contrived parametarised actor - nPorts must be => 3 or else the port3 action
+// will become an error as there would be no In[2] and Out[2] ports. For nPorts >3, the
+// the ports that are not the first three are meaningless as there is no action attached
+// to them.
+//
+// The nPorts is still here to ensure that the In[nPorts] is evaluated at compile time.
+actor PassThroughActor (uint nPorts) int(size=8) In[nPorts] ==> int(size=8) Out[nPorts]:
+
+	// 0*nPorts evaluates to zero, so nPorts does not actually contribute anything. This expression is here to check
+	// that we can still evaluate a port index expression when it contains non-literal constant values.
+	port1: action In[0]:[a] ==> Out[0*nPorts]:[a+nPorts] end
+
+	port2: action In[1]:[a] ==> Out[1]:[a+nPorts+1] end
+
+	port3: action In[2]:[a] ==> Out[2]:[a+nPorts+2] end
+end
+
+network PortArrayNetworkNoElaboration ()
+    int(size=8) In0[globalNumPorts],
+    int(size=8) In1[globalNumPorts+1]
+    ==>
+    int(size=8) Out0[globalNumPorts],
+    int(size=8) Out1[globalNumPorts+1]:
+entities
+	passThrough0 = PassThroughActor(nPorts=globalNumPorts+0);
+	passThrough1 = PassThroughActor(nPorts=globalNumPorts+1);
+structure
+    // '0*2+3-4+1' evaluates to zero, but here we can check for some parsing
+    // ambiguities that were occurring previously.
+    In0[0*2+3-4+1] --> passThrough0.In[0*2+3-4+1];
+    passThrough0.Out[0] --> Out0[0];
+    In0[1] --> passThrough0.In[1];
+    passThrough0.Out[1] --> Out0[1];
+    In0[2] --> passThrough0.In[2];
+    passThrough0.Out[2] --> Out0[2];
+
+    In1[0] --> passThrough1.In[0];
+    passThrough1.Out[0] --> Out1[0];
+    In1[1] --> passThrough1.In[1];
+    passThrough1.Out[1] --> Out1[1];
+    In1[2] --> passThrough1.In[2];
+    passThrough1.Out[2] --> Out1[2];
+    In1[3] --> passThrough1.In[3];
+    passThrough1.Out[3] --> Out1[3];
+end
+
+network PortArrayNetworkElaboration ()
+    int(size=8) In0[globalNumPorts],
+    int(size=8) In1[globalNumPorts+1]
+    ==>
+    int(size=8) Out0[globalNumPorts],
+    int(size=8) Out1[globalNumPorts+1]:
+entities
+    passThrough = [PassThroughActor(nPorts=globalNumPorts+i): for i in 0..1];
+structure
+    foreach uint i in 0..globalNumPorts-1 do
+        In0[i] --> passThrough[0].In[i];
+        passThrough[0].Out[i] --> Out0[i];
+    end
+
+    foreach uint i in 0..(globalNumPorts+1)-1 do
+        In1[i] --> passThrough[1].In[i];
+        passThrough[1].Out[i] --> Out1[i];
+    end
+end

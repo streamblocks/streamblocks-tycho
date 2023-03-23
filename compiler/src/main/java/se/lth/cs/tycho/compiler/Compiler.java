@@ -13,8 +13,6 @@ import se.lth.cs.tycho.settings.OnOffSetting;
 import se.lth.cs.tycho.settings.PathListSetting;
 import se.lth.cs.tycho.settings.PathSetting;
 import se.lth.cs.tycho.settings.Setting;
-import se.lth.cs.tycho.settings.SettingsManager;
-import se.lth.cs.tycho.settings.StringSetting;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -78,7 +76,8 @@ public class Compiler {
                 new ConstantVariableImmutabilityPhase(),
                 new ConstantVariableInitializationPhase(),
                 new NameAnalysisPhase(),
-                new OldExprVariableSupportPhase()
+                new OldExprVariableSupportPhase(),
+                new PrettyPrint()
         );
     }
 
@@ -92,6 +91,15 @@ public class Compiler {
         );
     }
 
+    public static List<Phase> portEnumerationPhases() {
+        return ImmutableList.of(
+                new ActionGeneratorEnumeration(),
+                new PortArrayCollectionExpansion(),
+                new PortArrayEnumeration(),
+                new PostPortArrayEnumerationNameAnalysis()
+        );
+    }
+
 
     public static List<Phase> networkElaborationPhases() {
         return ImmutableList.of(
@@ -99,7 +107,8 @@ public class Compiler {
                 new ResolveGlobalEntityNamesPhase(),
                 new ResolveGlobalVariableNamesPhase(),
                 new ElaborateNetworkPhase(),
-                new RemoveUnusedGlobalDeclarations()
+                new RemoveUnusedGlobalDeclarations(),
+                new GenerateStandardCAL()
         );
     }
 
@@ -130,8 +139,10 @@ public class Compiler {
                 new AddMatchGuardsPhase(),
                 new MergeManyGuardsPhase(),
                 new CalToAmPhase(),
+                new AmCollectStatisticsPreReduction(),
                 new RemoveEmptyTransitionsPhase(),
                 new ReduceActorMachinePhase(),
+                new AmCollectStatisticsPostReduction(),
                 new CompositionEntitiesUniquePhase(),
                 new CompositionPhase(),
                 new InternalizeBuffersPhase(),

@@ -1,0 +1,21 @@
+// @author: Gareth Callanan
+// Adds some math functions that need access to underlying libraries. These functions will be added as needed.
+//
+// The intention here is for this prelude to bring some of the functions available in the
+// streamblocks-examples/system directory that work with the platforms in streamblocks-platforms in the
+// platform-generic-c platform.
+//
+// Function that are defined in the C <math.h> library need an extra level of work to prevent them
+// from being redefined twice. Refer to the "externalCallableDeclaration(VarDecl varDecl)" function in
+// se.lth.cs.tycho.backend.c.Callables. There should be a list defined there which just needs to be
+// updated with the name of the new function from the math library.
+
+namespace System.math :
+    public external function randInt(int n) --> int end
+    public external function sin(float f) --> float end
+    public external function cos(float f) --> float end
+    public external function sqrt(float f) --> float end
+    public external function exp(float f) --> float end
+    public external function log(float f) --> float end
+    float PI=3.14159265358979323846;
+end
