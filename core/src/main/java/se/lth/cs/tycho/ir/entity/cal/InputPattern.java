@@ -64,6 +64,10 @@ public class InputPattern extends AbstractIRNode {
 		this(null, port, matches, repeatExpr, arrayIndexExpression);
 	}
 
+	public InputPattern(Port port, ImmutableList<Match> matches, Expression repeatExpr) {
+		this(null, port, matches, repeatExpr, null);
+	}
+
 	protected InputPattern(InputPattern original, Port port, ImmutableList<Match> matches, Expression repeatExpr, Expression arrayIndexExpression) {
 		super(original);
 		this.port = port;

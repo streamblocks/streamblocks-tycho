@@ -62,9 +62,20 @@ public class CalActor extends Entity {
 			List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
 			List<PortDecl> inputPorts, List<PortDecl> outputPorts,
 			List<Action> initializers, List<Action> actions, List<ActionCase> actionCases,
-			List<ActionGeneratorStmt> actionGeneratorStmts,	ScheduleFSM scheduleFSM, RegExp scheduleRegExp,
+			ScheduleFSM scheduleFSM, RegExp scheduleRegExp,
 			ProcessDescription process, List<ImmutableList<QID>> priorities,
 			List<Expression> invariants) {
+		this(null, annotations, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
+				actions, actionCases, ImmutableList.empty(), scheduleFSM, scheduleRegExp, process, priorities, invariants);
+	}
+
+	public CalActor(List<Annotation> annotations, List<ParameterTypeDecl> typePars,
+					List<ParameterVarDecl> valuePars, List<TypeDecl> typeDecls, List<LocalVarDecl> varDecls,
+					List<PortDecl> inputPorts, List<PortDecl> outputPorts,
+					List<Action> initializers, List<Action> actions, List<ActionCase> actionCases,
+					List<ActionGeneratorStmt> actionGeneratorStmts,	ScheduleFSM scheduleFSM, RegExp scheduleRegExp,
+					ProcessDescription process, List<ImmutableList<QID>> priorities,
+					List<Expression> invariants) {
 		this(null, annotations, typePars, valuePars, typeDecls, varDecls, inputPorts, outputPorts, initializers,
 				actions, actionCases, actionGeneratorStmts, scheduleFSM, scheduleRegExp, process, priorities, invariants);
 	}

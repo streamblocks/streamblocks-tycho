@@ -55,6 +55,10 @@ public class OutputExpression extends AbstractIRNode {
 		this(null, port, values, repeatExpr, arrayIndexExpression);
 	}
 
+	public OutputExpression(Port port, ImmutableList<Expression> values, Expression repeatExpr) {
+		this(null, port, values, repeatExpr, null);
+	}
+
 	public OutputExpression(OutputExpression original, Port port, ImmutableList<Expression> values,
 			Expression repeatExpr, Expression arrayIndexExpression) {
 		super(original);
