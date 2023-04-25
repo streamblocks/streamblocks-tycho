@@ -16,7 +16,9 @@ public interface Loader {
 				new CalLoader(reporter, configuration.get(Compiler.sourcePaths), configuration.get(followLinks)),
 				new OrccLoader(reporter, configuration.get(Compiler.orccSourcePaths), configuration.get(followLinks)),
 				new XdfLoader(reporter, configuration.get(Compiler.xdfSourcePaths)),
-				new PreludeLoader(reporter)));
+				new PreludeLoader(reporter),
+				new MathLoader(reporter)
+			));
 	}
 
 	OnOffSetting followLinks = new OnOffSetting() {

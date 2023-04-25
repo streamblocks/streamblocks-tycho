@@ -60,6 +60,7 @@ public class Compiler {
                 // Parse
                 new LoadEntityPhase(),
                 new LoadPreludePhase(),
+                new LoadMathPhase(),
                 new LoadImportsPhase(),
 
                 // For debugging
