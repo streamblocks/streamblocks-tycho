@@ -81,6 +81,8 @@ public class CalToAm {
         private final Map<Port, PortKnowledge> outputPorts;
         private final Map<PredicateCondition, Boolean> predicateConditions;
 
+        private List<Action> validActions;
+
         public CalState(Set<String> state, Map<Port, PortKnowledge> inputPorts, Map<Port, PortKnowledge> outputPorts, Map<PredicateCondition, Boolean> predicateConditions) {
             this.state = state == null ? Collections.emptySet() : state;
             this.inputPorts = inputPorts == null ? Collections.emptyMap() : inputPorts;
@@ -101,6 +103,8 @@ public class CalToAm {
                     .filter(action -> inputConditions(action) != Knowledge.FALSE)
                     .filter(action -> predicateConditions(action) != Knowledge.FALSE)
                     .collect(Collectors.toList());
+
+            validActions = notDisabled;
 
             Set<QID> selectedTags = notDisabled.stream().map(Action::getTag).collect(Collectors.toSet());
 
@@ -124,6 +128,8 @@ public class CalToAm {
             List<Action> testable = highPrioNotDisabled.stream()
                     .filter(action -> outputConditions(action) != Knowledge.FALSE)
                     .collect(Collectors.toList());
+
+            validActions = testable;
 
             Stream<Instruction> inputTests = testable.stream()
                     .flatMap(action -> action.getInputPatterns().stream())
@@ -344,6 +350,16 @@ public class CalToAm {
             result = 31 * result + outputPorts.hashCode();
             result = 31 * result + predicateConditions.hashCode();
             return result;
+        }
+
+        public List<Action> getTestableActions(){
+            if (validActions == null) {
+                getInstructions();
+                if(validActions == null){
+                    throw new RuntimeException("We always expect valid actions to be initialised after getInstructions() called.");
+                }
+            }
+            return validActions;
         }
     }
 }
