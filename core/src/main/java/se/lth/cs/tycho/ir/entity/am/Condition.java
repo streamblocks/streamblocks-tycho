@@ -24,4 +24,13 @@ abstract public class Condition extends AbstractIRNode {
 		super(original);
 	}
 
+	private int knowledgePriority;
+
+	public int getKnowledgePriority() {
+		return knowledgePriority;
+	}
+
+	public void setKnowledgePriority(int knowledgePriority) {
+		this.knowledgePriority = knowledgePriority;
+	}
 }

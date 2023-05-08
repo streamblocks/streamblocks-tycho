@@ -8,10 +8,20 @@ public class Test extends Instruction {
 	private final State targetTrue;
 	private final State targetFalse;
 
-	public Test(int condition, State targetTrue, State targetFalse) {
+	private final int knowledgePriority;
+
+	/*public Test(int condition, State targetTrue, State targetFalse) {
 		this.condition = condition;
 		this.targetTrue = targetTrue;
 		this.targetFalse = targetFalse;
+		this.knowledgePriority = -1;
+	}*/
+
+	public Test(int condition, State targetTrue, State targetFalse, int knowledgePriority) {
+		this.condition = condition;
+		this.targetTrue = targetTrue;
+		this.targetFalse = targetFalse;
+		this.knowledgePriority = knowledgePriority;
 	}
 
 	@Override
@@ -45,5 +55,9 @@ public class Test extends Instruction {
 	public void forEachTarget(Consumer<State> action) {
 		action.accept(targetTrue());
 		action.accept(targetFalse());
+	}
+
+	public int getKnowledgePriority() {
+		return knowledgePriority;
 	}
 }

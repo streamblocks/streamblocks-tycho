@@ -259,19 +259,19 @@ public class CalToAm {
         private Test createTest(InputPattern input) {
             PortCondition portCondition = conditions.getCondition(input);
             int index = conditions.getConditionIndex(input);
-            return new Test(index, withCondition(portCondition, true), withCondition(portCondition, false));
+            return new Test(index, withCondition(portCondition, true), withCondition(portCondition, false), portCondition.getKnowledgePriority());
         }
 
         private Test createTest(OutputExpression output) {
             PortCondition portCondition = conditions.getCondition(output);
             int index = conditions.getConditionIndex(output);
-            return new Test(index, withCondition(portCondition, true), withCondition(portCondition, false));
+            return new Test(index, withCondition(portCondition, true), withCondition(portCondition, false), portCondition.getKnowledgePriority());
         }
 
         private Test createTest(Expression guard) {
             PredicateCondition condition = conditions.getCondition(guard);
             int index = conditions.getConditionIndex(guard);
-            return new Test(index, withCondition(condition, true), withCondition(condition, false));
+            return new Test(index, withCondition(condition, true), withCondition(condition, false), condition.getKnowledgePriority());
         }
 
         public Wait createWait() {

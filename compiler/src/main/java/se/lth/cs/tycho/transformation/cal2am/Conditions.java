@@ -38,6 +38,9 @@ public class Conditions {
 				if (!inputRateCond.containsKey(rate)) {
 					inputRateCond.put(rate, conditions.size());
 					conditions.add(new PortCondition(input.getPort(), rate.tokens, true));
+					int lastIndex = conditions.size() - 1;
+					conditions.get(lastIndex).setKnowledgePriority(lastIndex);
+					//System.out.println("New Input Condition: " + lastIndex + " " + conditions.get(lastIndex).getKnowledgePriority());
 				}
 				inputCond.put(input, inputRateCond.get(rate));
 			}
@@ -46,6 +49,9 @@ public class Conditions {
 				if (!outputRateCond.containsKey(rate)) {
 					outputRateCond.put(rate, conditions.size());
 					conditions.add(new PortCondition(output.getPort(), rate.tokens, false));
+					int lastIndex = conditions.size() - 1;
+					conditions.get(lastIndex).setKnowledgePriority(lastIndex);
+					//System.out.println("New Output Condition: " + lastIndex + " " + conditions.get(lastIndex).getKnowledgePriority());
 				}
 				outputCond.put(output, outputRateCond.get(rate));
 			}
@@ -59,6 +65,9 @@ public class Conditions {
 				} else {
 					predicateCond.put(guard, conditions.size());
 					conditions.add(new PredicateCondition(guard));
+					int lastIndex = conditions.size() - 1;
+					conditions.get(lastIndex).setKnowledgePriority(lastIndex);
+					//System.out.println("New Guard Condition: " + lastIndex + " " + conditions.get(lastIndex).getKnowledgePriority());
 				}
 			}
 		}

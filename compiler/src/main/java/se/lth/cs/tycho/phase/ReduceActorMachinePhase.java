@@ -47,7 +47,7 @@ public class ReduceActorMachinePhase implements Phase {
 	};
 
 	public enum ReductionAlgorithm {
-		FIRST, RANDOM, SHORTEST_PATH_TO_EXEC, INFORMATIVE_TESTS, INFORMATIVE_TESTS_IF_TRUE, INFORMATIVE_TESTS_IF_FALSE, SINGLE_ACTION_AT_A_TIME_TEST
+		FIRST, RANDOM, SHORTEST_PATH_TO_EXEC, INFORMATIVE_TESTS, INFORMATIVE_TESTS_IF_TRUE, INFORMATIVE_TESTS_IF_FALSE, SINGLE_ACTION_AT_A_TIME_TEST, KNOWLEDGE_PRIORITIES
 	}
 
 	private static final Setting<List<ReductionAlgorithm>> reductionAlgorithm = new ListSetting<ReductionAlgorithm>(
@@ -127,6 +127,9 @@ public class ReduceActorMachinePhase implements Phase {
 					break;
 				case SINGLE_ACTION_AT_A_TIME_TEST:
 					result.add(new SingleActionTests());
+					break;
+				case KNOWLEDGE_PRIORITIES:
+					result.add(new KnowledgePriorities());
 					break;
 				default:
 					throw new AssertionError();

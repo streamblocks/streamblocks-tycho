@@ -25,12 +25,20 @@ public class TransformedController implements Controller {
 
 	private Map<String, Integer> actionPriority;
 
+	private final int totalActions;
+
 	public TransformedController(Controller controller, Function<State, State> transformation) {
 		this.transformation = transformation;
 		this.transformationCache = new HashMap<>();
 		this.stateCache = new HashMap<>();
 		this.actionPriority = new HashMap<String, Integer>();
 		this.initialState = getState(controller.getInitialState());
+
+		if (controller.getInitialState() instanceof CalToAm.CalState) {
+			this.totalActions = ((CalToAm.CalState) controller.getInitialState()).getActor().getActions().size();
+		}else{
+			this.totalActions = -1;
+		}
 	}
 
 	@Override
@@ -110,6 +118,10 @@ public class TransformedController implements Controller {
 			return instructions;
 		}
 
+		public int getTotalActions() {
+			return totalActions;
+		}
+
 	}
 
 	private Instruction reroute(Instruction i) {
@@ -124,7 +136,7 @@ public class TransformedController implements Controller {
 
 		@Override
 		public Instruction visitTest(Test t, Void aVoid) {
-			return new Test(t.condition(), getState(t.targetTrue()), getState(t.targetFalse()));
+			return new Test(t.condition(), getState(t.targetTrue()), getState(t.targetFalse()), t.getKnowledgePriority());
 		}
 
 		@Override

@@ -181,7 +181,7 @@ public class CompositionController implements Controller {
 			State[] newStatesFalse = Arrays.copyOf(states, states.length);
 			newStatesTrue[actor] = test.targetTrue();
 			newStatesFalse[actor] = test.targetFalse();
-			return new Test(conditionIndex(actor, test.condition()), state(newStatesTrue, tokens), state(newStatesFalse, tokens));
+			return new Test(conditionIndex(actor, test.condition()), state(newStatesTrue, tokens), state(newStatesFalse, tokens), test.getKnowledgePriority());
 		}
 
 		private Wait generateWait() {
