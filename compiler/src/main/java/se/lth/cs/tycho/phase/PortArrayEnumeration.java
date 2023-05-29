@@ -317,6 +317,6 @@ public class PortArrayEnumeration implements Phase {
      * @return The new name generated from the portIndex and portName.
      */
     public static String generatePortNameWithIndex(String portName, long portIndex){
-        return portName + "__" + portIndex + "__";
+        return portName + "_array_" + portIndex + "_x";
     }
 }
