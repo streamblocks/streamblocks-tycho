@@ -1,3 +1,7 @@
+//  @author Gareh Callanan
+//
+//  This class is a straight copy from the PreludeLoader.java class. 
+
 package se.lth.cs.tycho.compiler;
 
 import se.lth.cs.tycho.ir.NamespaceDecl;
@@ -13,44 +17,42 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PreludeLoader implements Loader {
-	private static final QID prelude = QID.of("prelude");
+public class MathLoader implements Loader {
+	private static final QID math = QID.of("math");
 	private final Reporter reporter;
-	private List<SourceUnit> preludeUnits;
+	private List<SourceUnit> mathUnits;
 
-	public PreludeLoader(Reporter reporter) {
+	public MathLoader(Reporter reporter) {
 		this.reporter = reporter;
 	}
 
 	@Override
 	public List<SourceUnit> loadNamespace(QID qid) {
-		if (qid.equals(prelude)) {
-			if (preludeUnits == null) {
-				InputStream preludeStream = getPreludeInputStream();
-
+		if (qid.equals(math)) {
+			if (mathUnits == null) {
+				InputStream mathStream = getMathInputStream();
 				try {
-					PreludeUnit preludeUnit = new PreludeUnit(new CalParser(preludeStream,"UTF-8").CompilationUnit());
-					preludeUnits = new ArrayList<>();
-					preludeUnits.add(preludeUnit);
+					MathUnit mathUnit = new MathUnit(new CalParser(mathStream,"UTF-8").CompilationUnit());
+                    mathUnits = new ArrayList<>();
+					mathUnits.add(mathUnit);
 				} catch (ParseException e) {
-					reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not parse the Cal prelude, " + e.getMessage()));
-					preludeUnits = Collections.emptyList();
+					reporter.report(new Diagnostic(Diagnostic.Kind.ERROR, "Could not parse the Cal math prelude, " + e.getMessage()));
 				}
 			}
-			return preludeUnits;
+			return mathUnits;
 		} else {
 			return Collections.emptyList();
 		}
 	}
 
-	private static InputStream getPreludeInputStream() {
-		return ClassLoader.getSystemResourceAsStream("cal_prelude/prelude.cal");
+	private static InputStream getMathInputStream() {
+		return ClassLoader.getSystemResourceAsStream("cal_prelude/math_prelude.cal");
 	}
 
-	public static class PreludeUnit implements SourceUnit {
+    public static class MathUnit implements SourceUnit {
 		private final NamespaceDecl namespace;
 
-		public PreludeUnit(NamespaceDecl namespace) {
+		public MathUnit(NamespaceDecl namespace) {
 			this.namespace = namespace;
 		}
 
@@ -61,17 +63,17 @@ public class PreludeLoader implements Loader {
 
 		@Override
 		public SourceUnit withTree(NamespaceDecl ns) {
-			return namespace == ns ? this : new PreludeUnit(ns);
+			return namespace == ns ? this : new MathUnit(ns);
 		}
 
 		@Override
 		public String getLocation() {
-			return "<prelude>";
+			return "<math>";
 		}
 
 		@Override
 		public InputStream getInputStream() throws IOException {
-			return getPreludeInputStream();
+			return getMathInputStream();
 		}
 
 		@Override
@@ -85,9 +87,9 @@ public class PreludeLoader implements Loader {
 		}
 
 		@Override
-		public PreludeUnit clone() {
+		public MathUnit clone() {
 			try {
-				return (PreludeUnit) super.clone();
+				return (MathUnit) super.clone();
 			} catch (CloneNotSupportedException e) {
 				throw new RuntimeException(e);
 			}
