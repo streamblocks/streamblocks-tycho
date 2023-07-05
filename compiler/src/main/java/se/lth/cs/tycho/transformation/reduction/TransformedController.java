@@ -1,6 +1,5 @@
 package se.lth.cs.tycho.transformation.reduction;
 
-import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Controller;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Exec;
 import se.lth.cs.tycho.ir.entity.am.ctrl.Instruction;
@@ -136,7 +135,7 @@ public class TransformedController implements Controller {
 
 		@Override
 		public Instruction visitTest(Test t, Void aVoid) {
-			return new Test(t.condition(), getState(t.targetTrue()), getState(t.targetFalse()), t.getKnowledgePriority());
+			return new Test(t.condition(), getState(t.targetTrue()), getState(t.targetFalse()), t.getOrderNumber());
 		}
 
 		@Override

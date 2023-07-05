@@ -18,6 +18,10 @@ public class Schedule {
 	private final CalActor actor;
 	private final Map<String, List<Action>> eligible;
 
+	// For every action in the actor, this map stores all the FSM states that the action can execute within. This is
+	// the reverse of the eligible map.
+	private final Map<Action, Set<String>> actionToStateMapping;
+
 	public Schedule(CalActor actor) {
 		this.actor = actor;
 		this.eligible = new HashMap<>();
@@ -47,6 +51,39 @@ public class Schedule {
 				eligible.values().forEach(list -> list.add(action));
 			}
 		}
+
+		this.actionToStateMapping = setActionToStateMapping();
+	}
+
+	/**
+	 * Generate the map of action to sets of FSM states the action can execute within by reversing the eligible map.
+	 *
+	 * @return Return this generated map
+	 */
+	private Map<Action, Set<String>> setActionToStateMapping() {
+		Map<Action, Set<String>> actionToStateMappingRet = new HashMap<>();
+
+		for (Map.Entry<String, List<Action>> entry : this.eligible.entrySet()) {
+			for(Action action: entry.getValue()){
+				if(actionToStateMappingRet.containsKey(action)){
+					actionToStateMappingRet.get(action).add(entry.getKey());
+				}else{
+					actionToStateMappingRet.put(action, new HashSet<String>());
+					actionToStateMappingRet.get(action).add(entry.getKey());
+				}
+			}
+		}
+		return  actionToStateMappingRet;
+	}
+
+	/**
+	 * Get the set of all actor FSM states that a particular action within an actor is able to fire within.
+	 *
+	 * @param action The action to get all eligible FSM states for.
+	 * @return Set of strings with each string being the name of a different FSM state the action can execute in.
+	 */
+	public Set<String> getStates(Action action){
+		return actionToStateMapping.get(action);
 	}
 
 	public Set<String> getInitialState() {

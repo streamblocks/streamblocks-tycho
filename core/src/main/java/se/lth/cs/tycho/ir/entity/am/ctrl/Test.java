@@ -8,20 +8,16 @@ public class Test extends Instruction {
 	private final State targetTrue;
 	private final State targetFalse;
 
-	private final int knowledgePriority;
+	// When considering a MultiInstructionState and making use of the OrderedConditionChecking (OCC) reducer, a unique
+	// order number is assigned to each Test instruction. The OCC transforms the MultiInstructionState to a
+	// SingleInstructionState by selecting the Test instruction with the lowest order number.
+	private final int orderNumber;
 
-	/*public Test(int condition, State targetTrue, State targetFalse) {
+	public Test(int condition, State targetTrue, State targetFalse, int orderNumber) {
 		this.condition = condition;
 		this.targetTrue = targetTrue;
 		this.targetFalse = targetFalse;
-		this.knowledgePriority = -1;
-	}*/
-
-	public Test(int condition, State targetTrue, State targetFalse, int knowledgePriority) {
-		this.condition = condition;
-		this.targetTrue = targetTrue;
-		this.targetFalse = targetFalse;
-		this.knowledgePriority = knowledgePriority;
+		this.orderNumber = orderNumber;
 	}
 
 	@Override
@@ -57,7 +53,7 @@ public class Test extends Instruction {
 		action.accept(targetFalse());
 	}
 
-	public int getKnowledgePriority() {
-		return knowledgePriority;
+	public int getOrderNumber() {
+		return orderNumber;
 	}
 }

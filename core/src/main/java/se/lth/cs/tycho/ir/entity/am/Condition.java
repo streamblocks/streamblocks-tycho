@@ -24,13 +24,27 @@ abstract public class Condition extends AbstractIRNode {
 		super(original);
 	}
 
-	private int knowledgePriority;
+	// When considering a MultiInstructionState and making use of the OrderedConditionChecking (OCC) reducer, a unique
+	// order number is assigned to each Test instruction. The OCC transforms the MultiInstructionState to a
+	// SingleInstructionState by selecting the Test instruction with the lowest order number. The order number assigned
+	// to the Test instruction is based on the order number of this condition.
+	private int orderNumber = -1;
 
-	public int getKnowledgePriority() {
-		return knowledgePriority;
+	public int getOrderNumber() {
+		return orderNumber;
 	}
 
-	public void setKnowledgePriority(int knowledgePriority) {
-		this.knowledgePriority = knowledgePriority;
+	public void setOrderNumber(int orderNumber) {
+		this.orderNumber = orderNumber;
+	}
+
+	public int compareTo(Condition other){
+		if(this.getOrderNumber() == other.getOrderNumber()){
+			return 0;
+		}else if(this.getOrderNumber() < other.getOrderNumber()){
+			return -1;
+		}else{
+			return 1;
+		}
 	}
 }
