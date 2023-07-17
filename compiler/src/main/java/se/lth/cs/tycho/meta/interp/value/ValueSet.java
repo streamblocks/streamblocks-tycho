@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ValueSet implements Value {
+public class ValueSet extends Value {
 
 	private final Set<Value> elements;
 

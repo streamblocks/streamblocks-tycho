@@ -3,7 +3,7 @@ package se.lth.cs.tycho.meta.interp.value;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ValueList implements Value {
+public class ValueList extends Value {
 
 	private final List<Value> elements;
 

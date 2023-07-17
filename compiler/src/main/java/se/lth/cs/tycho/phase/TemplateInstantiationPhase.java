@@ -16,7 +16,6 @@ import se.lth.cs.tycho.ir.entity.nl.*;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
-import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.meta.core.*;
 import se.lth.cs.tycho.meta.interp.Environment;
@@ -239,8 +238,9 @@ public class TemplateInstantiationPhase implements Phase {
                 } else {
                     Value value = interpreter().apply(((MetaArgumentValue) metaArg).getValue());
 
+                    String valueName = setValueName(sourceUnit(metaDecl), value);
+
                     ParameterVarDecl declaration = metaDecl.getAlgebraicTypeDecl().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
-                    String valueName = setValueName(sourceUnit(metaDecl), value, (TypeExpr) declaration.getType().deepClone());
                     vals.put(declaration, valueName);
 
                 }
@@ -298,13 +298,10 @@ public class TemplateInstantiationPhase implements Phase {
             }
 
             ValueList list = (ValueList) value;
-            if (list.elements().size() % generator.getVarDecls().size() != 0) {
-                throw new CompilationException(new Diagnostic(Diagnostic.Kind.ERROR, "The number of values in the list of the EntityComprehensionExpr is not divisible by the number of variables the values are assigned to."));
-            }
             for (int i = 0; i < list.elements().size(); i += generator.getVarDecls().size()) {
                 Map<String, Value> bindings = new HashMap<>();
                 for (int j = 0; j < generator.getVarDecls().size(); ++j) {
-                    bindings.put(generator.getVarDecls().get(j).getName(), list.elements().get(i+j));
+                    bindings.put(generator.getVarDecls().get(j).getName(), list.elements().get(i));
                 }
 
                 final Environment newEnv = new Environment().with(bindings);
@@ -324,7 +321,6 @@ public class TemplateInstantiationPhase implements Phase {
         }
 
         default IRNode evalMetaEntityInstance(MetaEntityInstanceExpr meta, Environment env) {
-
             // Update staging context: mark changed
             boolean changed = staging().isChanged();
             staging().setChanged(true);
@@ -376,32 +372,27 @@ public class TemplateInstantiationPhase implements Phase {
 
             instance = (GlobalEntityDecl) rename.apply(instance);
 
-
             // Substitute meta parameters
             List<MetaParameter> metaParameters = metaDecl.getParameters().stream().sorted(Comparator.comparing(MetaParameter::getName)).collect(Collectors.toList());
             List<MetaArgument> metArguments = meta.getArguments().stream().sorted(Comparator.comparing(MetaArgument::getName)).collect(Collectors.toList());
-            Map<String, NominalTypeExpr> types = new HashMap<>();
+            Map<String, NominalTypeExpr> tpes = new HashMap<>();
             Map<VarDecl, String> vals = new HashMap<>();
-
             for (int i = 0; i < metArguments.size(); ++i) {
                 MetaParameter metaParam = metaParameters.get(i);
                 MetaArgument metaArg = metArguments.get(i);
                 if (metaArg instanceof MetaArgumentType) {
-                    types.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()));
+                    tpes.put(metaParam.getName(), ((NominalTypeExpr) ((MetaArgumentType) metaArg).getType()));
                 } else {
-
                     Value value = interpreter().eval(((MetaArgumentValue) metaArg).getValue(), env);
+                    String valueName = setValueName(sourceUnit(metaDecl), value);
 
                     ParameterVarDecl declaration = metaDecl.getEntity().getValueParameters().stream().filter(param -> param.getName().equals(metaArg.getName())).findAny().get();
-
-                    String valueName = setValueName(sourceUnit(metaDecl), value, (TypeExpr)declaration.getType().deepClone());
                     vals.put(declaration, valueName);
                 }
             }
 
-
             SubstituteType substituteType = MultiJ.from(SubstituteType.class)
-                    .bind("substitution").to(new TypeSubstitution(types))
+                    .bind("substitution").to(new TypeSubstitution(tpes))
                     .instance();
             instance = (GlobalEntityDecl) substituteType.apply(instance);
 
@@ -423,6 +414,7 @@ public class TemplateInstantiationPhase implements Phase {
 
             // Update staging context: save instance
             staging().entityDeclarations().put(instance.getName(), instance);
+
             if (staging().entityInstances().containsKey(metaDecl)) {
                 staging().entityInstances().get(metaDecl).add(instance);
             } else {
@@ -455,11 +447,10 @@ public class TemplateInstantiationPhase implements Phase {
          * namespace. Two equal values in two different namespace would have different names.
          * @param sourceUnit The sourceUnit that will possibly contain a named value given by Value argument
          * @param value the value to be named and staged
-         * @param type the type of the named value to be staged, can be null
          * @return a new unique name for the value in the namespace of the sourceUnit or a unique name for that value
          *         from a another sourceUnit spanning the same namespace
          */
-        default String setValueName(SourceUnit sourceUnit, Value value, TypeExpr type) {
+        default String setValueName(SourceUnit sourceUnit, Value value) {
 
             NamespaceDecl namespace = sourceUnit.getTree();
             // -- the first time encountering a namespace
@@ -479,7 +470,7 @@ public class TemplateInstantiationPhase implements Phase {
                 // -- the value has not been named yet
                 valueName = "$eval" + numbers().next();
                 // -- keep the new NamedValue in the set
-                namedVals.add(Staging.NamedValue.of(valueName, value, type ,sourceUnit));
+                namedVals.add(Staging.NamedValue.of(valueName, value, sourceUnit));
             } else {
                 // -- the value has already been named
                 valueName = sameValues.get(0).getName();
@@ -731,7 +722,6 @@ public class TemplateInstantiationPhase implements Phase {
             } else {
                 imports = decl.getImports();
             }
-
             return decl.withImports(imports).withTypeDecls(typeDecls).withEntityDecls(entityDecls);
         }
     }
@@ -768,14 +758,12 @@ public class TemplateInstantiationPhase implements Phase {
 //                    .distinct()
 //                    .filter(v -> staging().globalValueUnit().get(v).getLocation().equals(sourceFile.getLocation())) // Make sure the value comes from its original SourceUnit
 //                    .map(v -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, null, staging().globals1().get(v), convert().apply(v)));
-
             Stream<GlobalVarDecl> interpreted = staging().interpretedValues().entrySet().stream()
                     .filter(e -> decl.getQID().equals(e.getKey().getQID()))
                     .flatMap(e -> e.getValue().stream())
                     .distinct()
                     .filter(namedVal -> namedVal.sameSource(sourceFile))
-                    .map(namedVal -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, namedVal.type, namedVal.getName(), convert().apply(namedVal.getValue())));
-
+                    .map(namedVal -> new GlobalVarDecl(ImmutableList.empty(), Availability.PUBLIC, namedVal.getValue().getType(), namedVal.getName(), convert().apply(namedVal.getValue())));
             Stream<GlobalEntityDecl> instantiatedEntities = staging().entityInstances().entrySet().stream()
                     .filter(e -> decl.getEntityDecls().contains(e.getKey())).flatMap(e -> e.getValue().stream());
             Stream<GlobalEntityDecl> remainingEntities = decl.getEntityDecls().stream()
@@ -802,25 +790,19 @@ public class TemplateInstantiationPhase implements Phase {
             private final String name;
             private final Value value;
             private final SourceUnit sourceUnit;
-
-            private final TypeExpr type;
-            public NamedValue(String name, Value value, TypeExpr type, SourceUnit sourceUnit) {
+            public NamedValue(String name, Value value, SourceUnit sourceUnit) {
                 this.name = name;
                 this.value = value;
-                this.type = type;
                 this.sourceUnit = sourceUnit;
             }
-            static public NamedValue of(String name, Value value, TypeExpr type ,SourceUnit sourceUnit) {
-                return new NamedValue(name, value, type ,sourceUnit);
+            static public NamedValue of(String name, Value value, SourceUnit sourceUnit) {
+                return new NamedValue(name, value, sourceUnit);
             }
             public Value getValue() {
                 return this.value;
             }
             public String getName() {
                 return this.name;
-            }
-            public TypeExpr getType() {
-                return this.type;
             }
             public SourceUnit getSourceUnit() { return this.sourceUnit; }
             public boolean sameSource(SourceUnit thatSource) {

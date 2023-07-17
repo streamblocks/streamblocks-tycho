@@ -97,15 +97,15 @@ public class TemplateTransformationPhase implements Phase {
             Entity entity = decl.getEntity();
 
 
-			QID identifier = task().getIdentifier();
+            QID identifier = task().getIdentifier();
 
-			// If its Top return
-			Optional<QID> qid = globalNames().globalName(decl);
-			if (qid.isPresent()) {
-				if (qid.get().equals(identifier)) {
-					return decl.transformChildren(this);
-				}
-			}
+            // If its Top return
+            Optional<QID> qid = globalNames().globalName(decl);
+            if (qid.isPresent()) {
+                if (qid.get().equals(identifier)) {
+                    return decl.transformChildren(this);
+                }
+            }
 
             if ((decl.getExternal()) || (entity.getTypeParameters().isEmpty() && entity.getValueParameters().isEmpty())) {
                 return decl.transformChildren(this);
@@ -134,11 +134,11 @@ public class TemplateTransformationPhase implements Phase {
             };
         }
 
-        default IRNode apply(EntityListExpr entityList){
+        default IRNode apply(EntityListExpr entityList) {
             return entityList.transformChildren(this);
         }
 
-        default IRNode apply(EntityComprehensionExpr comprehensionEntity){
+        default IRNode apply(EntityComprehensionExpr comprehensionEntity) {
             return comprehensionEntity.transformChildren(this);
         }
 
@@ -200,7 +200,9 @@ public class TemplateTransformationPhase implements Phase {
         }
 
         default MetaParameter convert(ParameterVarDecl decl) {
-            return new MetaParameterValue(decl.getName(), decl.getDefaultValue() == null ? null : (Expression) apply(decl.getDefaultValue()));
+            return new MetaParameterValue(decl.getName(),
+                    decl.getDefaultValue() == null ? null : (Expression) apply(decl.getDefaultValue()),
+                    decl.getType() == null ? null : (TypeExpr) apply(decl.getType()));
         }
 
         default MetaArgument convert(TypeParameter param) {

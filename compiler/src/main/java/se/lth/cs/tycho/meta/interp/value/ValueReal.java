@@ -2,7 +2,7 @@ package se.lth.cs.tycho.meta.interp.value;
 
 import java.util.Objects;
 
-public class ValueReal implements Value {
+public class ValueReal extends Value {
 
 	private final double real;
 
