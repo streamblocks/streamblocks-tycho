@@ -21,6 +21,10 @@ public interface Convert {
 		return null;
 	}
 
+	default Expression apply(ValueUndefined undef){
+		return undef.getUndefinedExpression().deepClone();
+	}
+
 	default Expression apply(ValueAlgebraic value) {
 		return new ExprTypeConstruction(value.name(), ImmutableList.empty(), ImmutableList.empty(), value.fields().stream().map(this::apply).collect(Collectors.toList()));
 	}

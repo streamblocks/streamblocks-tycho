@@ -13,17 +13,12 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.TypeParameter;
 import se.lth.cs.tycho.ir.ValueParameter;
-import se.lth.cs.tycho.ir.decl.AlgebraicTypeDecl;
-import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
-import se.lth.cs.tycho.ir.decl.ParameterTypeDecl;
-import se.lth.cs.tycho.ir.decl.ParameterVarDecl;
-import se.lth.cs.tycho.ir.decl.VarDecl;
+import se.lth.cs.tycho.ir.decl.*;
 import se.lth.cs.tycho.ir.entity.Entity;
-import se.lth.cs.tycho.ir.entity.cal.CalActor;
 import se.lth.cs.tycho.ir.entity.nl.EntityComprehensionExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityInstanceExpr;
 import se.lth.cs.tycho.ir.entity.nl.EntityListExpr;
-import se.lth.cs.tycho.ir.entity.nl.NlNetwork;
+import se.lth.cs.tycho.ir.expr.ExprApplication;
 import se.lth.cs.tycho.ir.expr.ExprTypeConstruction;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
 import se.lth.cs.tycho.ir.expr.Expression;
@@ -31,12 +26,7 @@ import se.lth.cs.tycho.ir.expr.pattern.PatternDeconstruction;
 import se.lth.cs.tycho.ir.type.NominalTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.meta.core.MetaArgument;
-import se.lth.cs.tycho.meta.core.MetaArgumentType;
-import se.lth.cs.tycho.meta.core.MetaArgumentValue;
-import se.lth.cs.tycho.meta.core.MetaParameter;
-import se.lth.cs.tycho.meta.core.MetaParameterType;
-import se.lth.cs.tycho.meta.core.MetaParameterValue;
+import se.lth.cs.tycho.meta.core.*;
 import se.lth.cs.tycho.meta.ir.decl.MetaAlgebraicTypeDecl;
 import se.lth.cs.tycho.meta.ir.decl.MetaGlobalEntityDecl;
 import se.lth.cs.tycho.meta.ir.entity.nl.MetaEntityInstanceExpr;
@@ -210,6 +200,13 @@ public class TemplateTransformationPhase implements Phase {
         }
 
         default MetaArgument convert(ValueParameter param) {
+            if (param.getValue() instanceof ExprApplication){
+                ExprVariable variable = (ExprVariable) ((ExprApplication) param.getValue()).getFunction();
+                VarDecl decl = declarations().declaration(variable);
+                boolean external = decl.isExternal();
+                return new MetaArgumentValue(param.getName(), (Expression) apply(param.getValue()), external);
+
+            }
             return new MetaArgumentValue(param.getName(), (Expression) apply(param.getValue()));
         }
 
