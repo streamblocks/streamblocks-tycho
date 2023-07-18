@@ -43,6 +43,10 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
+		backend().callables().declareEnvironmentForCallablesInScopeBody(backend().task(), false);
+		emitter().emit("");
+		globalVariableDeclarations(getGlobalVarDecls(), false);
+		emitter().emit("");
 		globalVariableInitializer(getGlobalVarDecls());
 		emitter().emit("");
 		globalVariableDestructor(getGlobalVarDecls());
@@ -86,9 +90,9 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().declareCallables();
 		emitter().emit("");
-		backend().callables().declareEnvironmentForCallablesInScope(backend().task());
+		backend().callables().declareEnvironmentForCallablesInScopeBody(backend().task(), true);
 		emitter().emit("");
-		globalVariableDeclarations(getGlobalVarDecls());
+		globalVariableDeclarations(getGlobalVarDecls(), true);
 		emitter().emit("");
 		emitter().emit("#endif");
 	}
@@ -99,11 +103,15 @@ public interface Global {
 					.flatMap(unit -> unit.getTree().getVarDecls().stream());
 	}
 
-	default void globalVariableDeclarations(Stream<VarDecl> varDecls) {
+	default void globalVariableDeclarations(Stream<VarDecl> varDecls, boolean isHeader) {
 		varDecls.forEach(decl -> {
 			Type type = types().declaredType(decl);
 			String d = code().declaration(type, backend().variables().declarationName(decl));
-			emitter().emit("%s;", d);
+			if(isHeader) {
+				emitter().emit("extern %s;", d);
+			}else{
+				emitter().emit("%s;", d);
+			}
 		});
 	}
 

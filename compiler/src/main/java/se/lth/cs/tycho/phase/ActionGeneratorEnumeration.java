@@ -275,7 +275,8 @@ public class ActionGeneratorEnumeration implements Phase {
 
                 // 2.2 Update the action name with the generated suffix.
                 if (action.getTag() != null)
-                    newAction = newAction.withTag(appendToTag(action.getTag(), suffix));
+                    newAction = newAction.withTag(action.getTag().concat(QID.of(suffix)));
+                    //newAction = newAction.withTag(appendToTag(action.getTag(), suffix));
                 actionRet.add((Action) newAction.deepClone());
             }
             return actionRet;
@@ -312,7 +313,8 @@ public class ActionGeneratorEnumeration implements Phase {
 
                 Action newActionCase = (Action) transformation.apply(actionCase);
                 if (actionCase.getTag() != null)
-                    newActionCase = newActionCase.withTag(appendToTag(actionCase.getTag(), suffix));
+                    newActionCase = newActionCase.withTag(actionCase.getTag().concat(QID.of(suffix)));
+                    //newActionCase = newActionCase.withTag(appendToTag(actionCase.getTag(), suffix));
                 actionCasesRet.add((ActionCase) newActionCase.deepClone());
             }
 

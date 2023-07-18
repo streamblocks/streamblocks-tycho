@@ -91,9 +91,17 @@ public interface Callables {
 	}
 
 	default void declareEnvironmentForCallablesInScope(IRNode scope) {
+		declareEnvironmentForCallablesInScopeBody(scope, false);
+	}
+
+	default void declareEnvironmentForCallablesInScopeBody(IRNode scope, boolean isHeader) {
 		for (Expression callable : callablesInScope(scope)) {
 			String functionName = functionName(callable);
-			backend().emitter().emit("envt_%s env_%s;", functionName, functionName);
+			if(isHeader) {
+				backend().emitter().emit("extern envt_%s env_%s;", functionName, functionName);
+			} else{
+				backend().emitter().emit("envt_%s env_%s;", functionName, functionName);
+			}
 		}
 	}
 
