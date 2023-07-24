@@ -327,8 +327,9 @@ public class ActionGeneratorEnumeration implements Phase {
          * @return The updated tag.
          */
         default QID appendToTag(QID qid, String suffix) {
-            String last = qid.getLast().toString() + suffix;
-            return qid.withLast(last);
+            //String last = qid.getLast().toString() + suffix;
+            QID last = QID.parse(suffix);
+            return qid.concat(last);
         }
 
         /**
