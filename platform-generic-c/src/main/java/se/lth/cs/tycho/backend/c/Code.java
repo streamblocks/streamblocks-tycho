@@ -219,6 +219,16 @@ public interface Code {
 		}
 	}
 
+	default String type(ComplexType type) {
+			if(type.getElementType() instanceof RealType){
+				return "complex_" + type(type.getElementType());
+			}else if(type.getElementType() instanceof IntType){
+				return "complex_" + type(type.getElementType());
+			}else{
+				throw new UnsupportedOperationException(type.toString() + ": " + type.getElementType().toString() + " is not a valid type within a complex type.");
+			}
+	}
+
 	default String type(UnitType type) {
 		return "void";
 	}
@@ -293,6 +303,11 @@ public interface Code {
 				return "false";
 			case Real:
 				return literal.getText();
+			case Complex_Real:
+				return literal.getText();
+			case Complex_Int:
+				throw new UnsupportedOperationException(literal.getText() + " Complex literals for integer types not yet supported");
+				//return "(complex_uint32_t){.real=3, .imag=2}"; this would work but need a way to find the type
 			case String: {
 				String tmp = variables().generateTemp();
 				trackable().track(tmp, StringType.INSTANCE);
@@ -332,6 +347,7 @@ public interface Code {
 		Type lhs = types().type(binaryOp.getOperands().get(0));
 		Type rhs = types().type(binaryOp.getOperands().get(1));
 		String operation = binaryOp.getOperations().get(0);
+
 		switch (operation) {
 			case "+":
 				return evaluateBinaryAdd(lhs, rhs, binaryOp);
@@ -381,7 +397,7 @@ public interface Code {
 				throw new UnsupportedOperationException(operation);
 		}
 	}
-	
+
 	default String evaluateBinaryAdd(Type lhs, Type rhs, ExprBinaryOp binaryOp) {
 		throw new UnsupportedOperationException(binaryOp.getOperations().get(0));
 	}

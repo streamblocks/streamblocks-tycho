@@ -1,19 +1,7 @@
 package se.lth.cs.tycho.backend.c;
 
 import org.multij.Module;
-import se.lth.cs.tycho.type.AlgebraicType;
-import se.lth.cs.tycho.type.AliasType;
-import se.lth.cs.tycho.type.BoolType;
-import se.lth.cs.tycho.type.CallableType;
-import se.lth.cs.tycho.type.CharType;
-import se.lth.cs.tycho.type.IntType;
-import se.lth.cs.tycho.type.ListType;
-import se.lth.cs.tycho.type.MapType;
-import se.lth.cs.tycho.type.RealType;
-import se.lth.cs.tycho.type.SetType;
-import se.lth.cs.tycho.type.StringType;
-import se.lth.cs.tycho.type.TupleType;
-import se.lth.cs.tycho.type.Type;
+import se.lth.cs.tycho.type.*;
 
 import java.util.List;
 
@@ -28,6 +16,13 @@ public interface DefaultValues {
 	}
 	default String defaultValue(CharType t) {
 		return "0";
+	}
+
+	default String defaultValue(ComplexType t) {
+		if(t.getElementType() instanceof IntType){
+			return "{0,0}";
+		}
+		return "0" + t.getElementType();
 	}
 	default String defaultValue(RealType t) {
 		return "0.0";

@@ -7,12 +7,7 @@ import org.multij.MultiJ;
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.Expression;
-import se.lth.cs.tycho.type.BoolType;
-import se.lth.cs.tycho.type.CharType;
-import se.lth.cs.tycho.type.IntType;
-import se.lth.cs.tycho.type.RealType;
-import se.lth.cs.tycho.type.StringType;
-import se.lth.cs.tycho.type.Type;
+import se.lth.cs.tycho.type.*;
 
 import java.util.OptionalInt;
 import java.util.stream.Stream;
@@ -625,6 +620,24 @@ public interface Strings {
 
 			emitter().emit("%1$s concat_%2$s_%1$s(const %2$s lhs, const %1$s rhs);", utils().name(type), code().type(new IntType(OptionalInt.empty(), false)));
 			emitter().emit("");
+
+			emitter().emit("%1$s concat_%1$s_%2$s(const %1$s lhs, const %2$s rhs);", utils().name(type), code().type(new ComplexType(RealType.f32)));
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%2$s_%1$s(const %2$s lhs, const %1$s rhs);", utils().name(type), code().type(new ComplexType(RealType.f32)));
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%1$s_%2$s(const %1$s lhs, const %2$s rhs);", utils().name(type), code().type(new ComplexType(RealType.f64)));
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%2$s_%1$s(const %2$s lhs, const %1$s rhs);", utils().name(type), code().type(new ComplexType(RealType.f64)));
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%2$s_%1$s(const %2$s lhs, const %1$s rhs);", utils().name(type), code().type(new IntType(OptionalInt.empty(), false)));
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%1$s_%2$s(const %1$s lhs, const %2$s rhs);", utils().name(type), code().type(new IntType(OptionalInt.empty(), false)));
+			emitter().emit("");
 		}
 
 		default void definition(StringType type) {
@@ -778,6 +791,70 @@ public interface Strings {
 			emitter().emit("if (rhs == NULL) return NULL;");
 			emitter().emit("char buffer[256] = {0};");
 			emitter().emit("sprintf(buffer, \"%%u\", lhs);");
+			emitter().emit("size_t buf_len = strlen(buffer);");
+			emitter().emit("size_t str_len = strlen(rhs);");
+			emitter().emit("%s result = calloc(1, buf_len + str_len  + 1);", utils().name(type));
+			emitter().emit("if (result == NULL) return NULL;");
+			emitter().emit("strcpy(result, buffer);");
+			emitter().emit("strcpy(result + buf_len, rhs);");
+			emitter().emit("return result;");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%1$s_%2$s(const %1$s lhs, const %2$s rhs) {", utils().name(type), code().type(new ComplexType(RealType.f64)));
+			emitter().increaseIndentation();
+			emitter().emit("if (lhs == NULL) return NULL;");
+			emitter().emit("char buffer[256] = {0};");
+			emitter().emit("sprintf(buffer, \"%%g + %%gi\", creal(rhs), cimag(rhs));");
+			emitter().emit("size_t str_len = strlen(lhs);");
+			emitter().emit("size_t buf_len = strlen(buffer);");
+			emitter().emit("%s result = calloc(1, str_len + buf_len + 1);", utils().name(type));
+			emitter().emit("if (result == NULL) return NULL;");
+			emitter().emit("strcpy(result, lhs);");
+			emitter().emit("strcpy(result + str_len, buffer);");
+			emitter().emit("return result;");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%2$s_%1$s(const %2$s lhs, const %1$s rhs) {", utils().name(type), code().type(new ComplexType(RealType.f64)));
+			emitter().increaseIndentation();
+			emitter().emit("if (rhs == NULL) return NULL;");
+			emitter().emit("char buffer[256] = {0};");
+			emitter().emit("sprintf(buffer, \"%%g + %%gi\", creal(lhs), cimag(lhs));");
+			emitter().emit("size_t buf_len = strlen(buffer);");
+			emitter().emit("size_t str_len = strlen(rhs);");
+			emitter().emit("%s result = calloc(1, buf_len + str_len  + 1);", utils().name(type));
+			emitter().emit("if (result == NULL) return NULL;");
+			emitter().emit("strcpy(result, buffer);");
+			emitter().emit("strcpy(result + buf_len, rhs);");
+			emitter().emit("return result;");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%1$s_%2$s(const %1$s lhs, const %2$s rhs) {", utils().name(type), code().type(new ComplexType(RealType.f32)));
+			emitter().increaseIndentation();
+			emitter().emit("if (lhs == NULL) return NULL;");
+			emitter().emit("char buffer[256] = {0};");
+			emitter().emit("sprintf(buffer, \"%%g + %%gi\", creal(rhs), cimag(rhs));");
+			emitter().emit("size_t str_len = strlen(lhs);");
+			emitter().emit("size_t buf_len = strlen(buffer);");
+			emitter().emit("%s result = calloc(1, str_len + buf_len + 1);", utils().name(type));
+			emitter().emit("if (result == NULL) return NULL;");
+			emitter().emit("strcpy(result, lhs);");
+			emitter().emit("strcpy(result + str_len, buffer);");
+			emitter().emit("return result;");
+			emitter().decreaseIndentation();
+			emitter().emit("}");
+			emitter().emit("");
+
+			emitter().emit("%1$s concat_%2$s_%1$s(const %2$s lhs, const %1$s rhs) {", utils().name(type), code().type(new ComplexType(RealType.f32)));
+			emitter().increaseIndentation();
+			emitter().emit("if (rhs == NULL) return NULL;");
+			emitter().emit("char buffer[256] = {0};");
+			emitter().emit("sprintf(buffer, \"%%g + %%gi\", creal(lhs), cimag(lhs));");
 			emitter().emit("size_t buf_len = strlen(buffer);");
 			emitter().emit("size_t str_len = strlen(rhs);");
 			emitter().emit("%s result = calloc(1, buf_len + str_len  + 1);", utils().name(type));
