@@ -11,20 +11,7 @@ import se.lth.cs.tycho.ir.type.ProcedureTypeExpr;
 import se.lth.cs.tycho.ir.type.TupleTypeExpr;
 import se.lth.cs.tycho.ir.type.TypeExpr;
 import se.lth.cs.tycho.ir.util.ImmutableList;
-import se.lth.cs.tycho.type.AlgebraicType;
-import se.lth.cs.tycho.type.AliasType;
-import se.lth.cs.tycho.type.BoolType;
-import se.lth.cs.tycho.type.CharType;
-import se.lth.cs.tycho.type.IntType;
-import se.lth.cs.tycho.type.LambdaType;
-import se.lth.cs.tycho.type.ListType;
-import se.lth.cs.tycho.type.MapType;
-import se.lth.cs.tycho.type.ProcType;
-import se.lth.cs.tycho.type.RealType;
-import se.lth.cs.tycho.type.SetType;
-import se.lth.cs.tycho.type.StringType;
-import se.lth.cs.tycho.type.TupleType;
-import se.lth.cs.tycho.type.Type;
+import se.lth.cs.tycho.type.*;
 
 import java.util.List;
 import java.util.OptionalInt;
@@ -120,6 +107,11 @@ public final class TypeToTypeExpr {
 		default NominalTypeExpr convert(SetType type) {
 			TypeParameter elementType = new TypeParameter("type", convert(type.getElementType()));
 			return new NominalTypeExpr("Set", ImmutableList.of(elementType), ImmutableList.empty());
+		}
+
+		default NominalTypeExpr convert(ComplexType type) {
+			TypeParameter elementType = new TypeParameter("type", convert(type.getElementType()));
+			return new NominalTypeExpr("complex", ImmutableList.of(elementType), ImmutableList.empty());
 		}
 
 		default NominalTypeExpr convert(MapType type) {

@@ -65,6 +65,7 @@ public class TypeAnnotationAnalysisPhase implements Phase {
 					checkValueParams(type, "size");
 					break;
 				case "Set":
+				case "complex":
 					checkTypeParams(type, "type");
 					break;
 				case "Map":

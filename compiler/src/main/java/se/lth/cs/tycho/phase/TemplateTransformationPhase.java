@@ -156,7 +156,7 @@ public class TemplateTransformationPhase implements Phase {
         }
 
         default IRNode apply(NominalTypeExpr expr) {
-            if (Arrays.asList("Set", "List", "Map", "int", "uint").contains(expr.getName())
+            if (Arrays.asList("Set", "List", "Map", "int", "uint", "complex").contains(expr.getName())
                     || (expr.getTypeParameters().isEmpty() && expr.getValueParameters().isEmpty())) {
                 return expr.transformChildren(this);
             }

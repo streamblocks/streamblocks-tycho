@@ -4,6 +4,15 @@
 #include <time.h>
 #include <stdlib.h>
 #include <math.h>
+#include <complex.h>
+
+#define complex_float complex float
+#define complex_double complex double
+
+typedef struct complex_int32_t {
+   int32_t real;
+   int32_t imag;
+} complex_int32_t;
 
 static void print(char *text) {
 	fputs(text, stdout);

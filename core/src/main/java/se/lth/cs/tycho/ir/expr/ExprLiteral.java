@@ -107,7 +107,7 @@ public class ExprLiteral extends Expression {
     }
 
     public enum Kind {
-        Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), String(null), Function(null);
+        Null("Null"), True("True"), False("False"), Char(null), Integer(null), Real(null), Complex_Real(null), Complex_Int(null) ,String(null), Function(null);
 
         private final String fixedText;
 

@@ -278,6 +278,15 @@ TOKEN: {
 	<REAL:
 			(<DECIMAL_DIGIT>)+ "." (<DECIMAL_DIGIT>)+ (<EXPONENT>)?
 		|	(<DECIMAL_DIGIT>)+ "." <EXPONENT> >
+|
+	<COMPLEX_REAL:
+	        (<REAL>) ["+", "-"] (<REAL>) ["i", "j"]
+	    |   (<INTEGER>) ["+", "-"] (<REAL>) ["i", "j"]
+	    |   (<REAL>) ["+", "-"] (<INTEGER>) ["i", "j"]
+	    >
+|
+	<COMPLEX_INT:
+    	        (<INTEGER>) ["+", "-"] (<INTEGER>) ["i", "j"]>
 //|
 //	< REAL:
 //			(<DECIMAL_DIGIT>)+ "." (<DECIMAL_DIGIT>)* (<EXPONENT>)?
@@ -2175,7 +2184,11 @@ ExprLiteral ExpressionLiteral() :
 		lit = <INTEGER> { result = new ExprLiteral(ExprLiteral.Kind.Integer, lit.image); }
 	|
 		lit = <REAL> { result = new ExprLiteral(ExprLiteral.Kind.Real, lit.image); }
+    |
+        lit = <COMPLEX_REAL> { result = new ExprLiteral(ExprLiteral.Kind.Complex_Real, lit.image); }
 	|
+        lit = <COMPLEX_INT> { result = new ExprLiteral(ExprLiteral.Kind.Complex_Int, lit.image); }
+    |
 		lit = <TRUE> { result = new ExprLiteral(ExprLiteral.Kind.True); }
 	|
 		lit = <FALSE> { result = new ExprLiteral(ExprLiteral.Kind.False); }

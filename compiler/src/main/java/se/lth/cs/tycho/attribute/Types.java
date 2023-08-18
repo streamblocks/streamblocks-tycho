@@ -656,6 +656,14 @@ public interface Types {
                         return new IntType(OptionalInt.empty(), false);
                     }
                 }
+                case "complex": {
+                    Optional<TypeExpr> e = findParameter(t.getTypeParameters(), "type");
+                    Optional<Type> elements = e.map(this::convert);
+                    if (elements.isPresent()) {
+                        return new ComplexType(elements.get());
+                    }
+                    return BottomType.INSTANCE;
+                }
                 case "bool": {
                     return BoolType.INSTANCE;
                 }
@@ -1087,6 +1095,11 @@ public interface Types {
             return new SetType(elementLub);
         }
 
+        default Type leastUpperBound(ComplexType a, ComplexType b) {
+            Type elementLub = leastUpperBound(a.getElementType(), b.getElementType());
+            return new ComplexType(elementLub);
+        }
+
         default Type leastUpperBound(MapType a, MapType b) {
             Type keyLub = leastUpperBound(a.getKeyType(), b.getKeyType());
             Type valueLub = leastUpperBound(a.getValueType(), b.getValueType());
@@ -1149,6 +1162,22 @@ public interface Types {
 
         default Type leastUpperBound(RealType a, IntType b) {
             return a;
+        }
+
+        default Type leastUpperBound(ComplexType a, IntType b) {
+            return a;
+        }
+
+        default Type leastUpperBound(IntType a, ComplexType b) {
+            return b;
+        }
+
+        default Type leastUpperBound(ComplexType a, RealType b) {
+            return a;
+        }
+
+        default Type leastUpperBound(RealType a, ComplexType b) {
+            return b;
         }
 
         default Type leastUpperBound(AlgebraicType a, AlgebraicType b) {
@@ -1278,6 +1307,10 @@ public interface Types {
 
         default Type greatestLowerBound(SetType a, SetType b) {
             return new SetType(greatestLowerBound(a.getElementType(), b.getElementType()));
+        }
+
+        default Type greatestLowerBound(ComplexType a, ComplexType b) {
+            return new ComplexType(greatestLowerBound(a.getElementType(), b.getElementType()));
         }
 
         default Type greatestLowerBound(MapType a, MapType b) {
