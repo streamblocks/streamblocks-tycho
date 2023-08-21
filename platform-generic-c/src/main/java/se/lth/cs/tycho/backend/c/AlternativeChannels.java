@@ -411,18 +411,21 @@ public interface AlternativeChannels extends Channels {
 
 		emitter().emit("static _Bool output_actor_run_%s(output_actor_%1$s* actor) {", typeSize);
 		emitter().emit("    channel_%s *channel = actor->channel;", typeSize);
-		emitter().emit("    if (channel->write > 0) {");
 		if(type instanceof ComplexType && ((ComplexType) type).getElementType() instanceof IntType) {
 			String complexTokenType = backend().code().type(((ComplexType) type).getElementType());
+			emitter().emit("    if (channel->write - channel->read > 0) {");
 			emitter().emit("        // Complex integers in CAL are stored as doubles in C. Need to be converted back for the output.");
-			emitter().emit("        while (channel->write > 0) {");
-			emitter().emit("            complex_double temp = channel_peek_first_complex_double_D(actor->channel);");
+			emitter().emit("        while (channel_has_data_complex_double_D(channel,1)) {");
+			emitter().emit("            complex_double temp = channel_peek_first_complex_double_D(channel);");
 			emitter().emit("            %s tempConverted[2] = {(%s) creal(temp),(%s)cimag(temp)};", complexTokenType, complexTokenType, complexTokenType);
+			emitter().emit("            printf(\"a %%g + %%g i\\n\", creal(temp),cimag(temp));");
+			emitter().emit("            printf(\"b %%i + %%i i\\n\", (int)tempConverted[0],(int)tempConverted[1]);");
 			emitter().emit("            fwrite(tempConverted, sizeof(%s), 2, actor->stream);", complexTokenType);
-			emitter().emit("            channel->write --;");
+			emitter().emit("            channel_consume_complex_double_D(channel, 1);");
 			emitter().emit("        }");
 			emitter().emit("        return true;");
 		}else {
+			emitter().emit("    if (channel->write > 0) {");
 			emitter().emit("        fwrite(channel->buffer, sizeof(%s), channel->write, actor->stream);", tokenType);
 			emitter().emit("        channel->write = 0;");
 			emitter().emit("        return true;");
