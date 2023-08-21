@@ -223,7 +223,7 @@ public interface Code {
 			if(type.getElementType() instanceof RealType){
 				return "complex_" + type(type.getElementType());
 			}else if(type.getElementType() instanceof IntType){
-				return "complex_" + type(type.getElementType());
+				return "complex_double";
 			}else{
 				throw new UnsupportedOperationException(type.toString() + ": " + type.getElementType().toString() + " is not a valid type within a complex type.");
 			}
@@ -306,8 +306,9 @@ public interface Code {
 			case Complex_Real:
 				return literal.getText();
 			case Complex_Int:
-				throw new UnsupportedOperationException(literal.getText() + " Complex literals for integer types not yet supported");
-				//return "(complex_uint32_t){.real=3, .imag=2}"; this would work but need a way to find the type
+				return literal.getText();
+				// throw new UnsupportedOperationException(literal.getText() + " Complex literals for integer types not yet supported");
+				// return "(complex_uint32_t){.real=3, .imag=2}"; this would work but need a way to find the type
 			case String: {
 				String tmp = variables().generateTemp();
 				trackable().track(tmp, StringType.INSTANCE);

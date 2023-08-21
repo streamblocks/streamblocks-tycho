@@ -5,9 +5,7 @@ import org.multij.BindingKind;
 import org.multij.Module;
 import se.lth.cs.tycho.ir.network.Connection;
 import se.lth.cs.tycho.ir.network.Network;
-import se.lth.cs.tycho.type.AlgebraicType;
-import se.lth.cs.tycho.type.AliasType;
-import se.lth.cs.tycho.type.Type;
+import se.lth.cs.tycho.type.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -359,12 +357,30 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("static _Bool input_actor_run_%s(input_actor_%1$s *actor) {", typeSize);
 		emitter().emit("	size_t space_before = channel_space_%s(actor->channel_list);", typeSize);
 		emitter().emit("	size_t space = space_before;");
-		emitter().emit("	while (space > 0 && !feof(actor->stream)) {");
-		emitter().emit("		%s v[1024];", tokenType);
-		emitter().emit("		size_t read = fread(&v, sizeof(%s), space > 1024 ? 1024 : space, actor->stream);", tokenType);
-		emitter().emit("		channel_write_%s(actor->channel_list, v, read);", typeSize);
-		emitter().emit("		space -= read;");
-		emitter().emit("	}");
+
+		if(type instanceof ComplexType && ((ComplexType) type).getElementType() instanceof IntType){
+			String complexTokenType = backend().code().type(((ComplexType) type).getElementType());
+			emitter().emit(" // Complex integers in CAL are stored as doubles in C.");
+			emitter().emit("	while (space > 0 && !feof(actor->stream)) {");
+			emitter().emit("		%s v[1024];", tokenType);
+			emitter().emit("		%s inTemp[2] = {0,0};", complexTokenType);
+			emitter().emit("		size_t read = fread(inTemp, sizeof(%s), 2, actor->stream);", complexTokenType);
+			emitter().emit("		if(read == 0) continue;");
+			emitter().emit("		%s convertedInTemp = inTemp[0] + I * inTemp[1];", tokenType);
+			//emitter().emit("		printf(\"InTemp %%x + %%x i\\n\",inTemp[0], inTemp[1]);");
+			//emitter().emit("		printf(\"InTempConverted %%g + %%g i\\n\",creal(convertedInTemp),cimag(convertedInTemp));");
+			emitter().emit("		channel_write_%s(actor->channel_list, &convertedInTemp, 1);", typeSize);
+			emitter().emit("		space -= read;");
+			emitter().emit("	}");
+		}else {
+			emitter().emit("	while (space > 0 && !feof(actor->stream)) {");
+			emitter().emit("		%s v[1024];", tokenType);
+			emitter().emit("		size_t read = fread(&v, sizeof(%s), space > 1024 ? 1024 : space, actor->stream);", tokenType);
+			emitter().emit("		channel_write_%s(actor->channel_list, v, read);", typeSize);
+			emitter().emit("		space -= read;");
+			emitter().emit("	}");
+		}
+
 		emitter().emit("	return space != space_before;");
 		emitter().emit("}");
 		emitter().emit("");
@@ -396,9 +412,21 @@ public interface AlternativeChannels extends Channels {
 		emitter().emit("static _Bool output_actor_run_%s(output_actor_%1$s* actor) {", typeSize);
 		emitter().emit("    channel_%s *channel = actor->channel;", typeSize);
 		emitter().emit("    if (channel->write > 0) {");
-		emitter().emit("        fwrite(channel->buffer, sizeof(%s), channel->write, actor->stream);", tokenType);
-		emitter().emit("        channel->write = 0;");
-		emitter().emit("        return true;");
+		if(type instanceof ComplexType && ((ComplexType) type).getElementType() instanceof IntType) {
+			String complexTokenType = backend().code().type(((ComplexType) type).getElementType());
+			emitter().emit("        // Complex integers in CAL are stored as doubles in C. Need to be converted back for the output.");
+			emitter().emit("        while (channel->write > 0) {");
+			emitter().emit("            complex_double temp = channel_peek_first_complex_double_D(actor->channel);");
+			emitter().emit("            %s tempConverted[2] = {(%s) creal(temp),(%s)cimag(temp)};", complexTokenType, complexTokenType, complexTokenType);
+			emitter().emit("            fwrite(tempConverted, sizeof(%s), 2, actor->stream);", complexTokenType);
+			emitter().emit("            channel->write --;");
+			emitter().emit("        }");
+			emitter().emit("        return true;");
+		}else {
+			emitter().emit("        fwrite(channel->buffer, sizeof(%s), channel->write, actor->stream);", tokenType);
+			emitter().emit("        channel->write = 0;");
+			emitter().emit("        return true;");
+		}
 		emitter().emit("    } else {");
 		emitter().emit("        return false;");
 		emitter().emit("    }");

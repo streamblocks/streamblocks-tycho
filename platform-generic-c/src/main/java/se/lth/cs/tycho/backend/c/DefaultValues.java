@@ -19,10 +19,10 @@ public interface DefaultValues {
 	}
 
 	default String defaultValue(ComplexType t) {
-		if(t.getElementType() instanceof IntType){
-			return "{0,0}";
-		}
-		return "0" + t.getElementType();
+		//if(t.getElementType() instanceof IntType){
+		//	return "{0,0}";
+		//}
+		return "0";
 	}
 	default String defaultValue(RealType t) {
 		return "0.0";
