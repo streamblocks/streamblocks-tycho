@@ -1,0 +1,14 @@
+actor complex32BitIntsAddActor () complex(type: int) X, complex(type: int) Y ==> complex(type: int) Z:
+    action X:[x], Y:[y] ==> Z:[x+y]
+    end
+end
+
+actor complexFloatAddActor () complex(type: float) X, complex(type: float) Y ==> complex(type: float) Z:
+    action X:[x], Y:[y] ==> Z:[x+y]
+    end
+end
+
+actor complex8BitIntsAddActor () complex(type: int(size=8)) X, complex(type: int(size=8)) Y ==> complex(type: int(size=8)) Z:
+    action X:[x], Y:[y] ==> Z:[x+y]
+    end
+end

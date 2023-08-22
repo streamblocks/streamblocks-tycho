@@ -1,0 +1,11 @@
+{
+  "description": "Tests that complex floats add correctly.",
+  "source-paths": ["."],
+  "entity": "complexFloatAddActor",
+  "test-data": [
+    {
+      "input": ["in5","in6"],
+      "reference": ["out3"]
+    }
+  ]
+}

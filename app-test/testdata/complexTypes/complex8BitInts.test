@@ -1,0 +1,11 @@
+{
+  "description": "Tests that 8 bit complex integers add correctly.",
+  "source-paths": ["."],
+  "entity": "complex8BitIntsAddActor",
+  "test-data": [
+    {
+      "input": ["in3","in4"],
+      "reference": ["out2"]
+    }
+  ]
+}

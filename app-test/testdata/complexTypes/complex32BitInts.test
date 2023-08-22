@@ -1,0 +1,11 @@
+{
+  "description": "Tests that 32 bit complex integers add correctly.",
+  "source-paths": ["."],
+  "entity": "complex32BitIntsAddActor",
+  "test-data": [
+    {
+      "input": ["in1","in2"],
+      "reference": ["out1"]
+    }
+  ]
+}
