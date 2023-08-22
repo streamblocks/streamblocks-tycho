@@ -375,7 +375,7 @@ public class PortArrayCollectionExpansion implements Phase {
          */
         default void collectionErrorChecks(CollectionType type, Action action) {
             Type internalType = null;
-            OptionalInt lengthOpt = null;
+            OptionalLong lengthOpt = null;
 
             if (type instanceof RangeType) {
                 RangeType range = (RangeType) type;
@@ -388,7 +388,7 @@ public class PortArrayCollectionExpansion implements Phase {
             } else if (type instanceof SetType) {
                 SetType set = (SetType) type;
                 internalType = set.getElementType();
-                lengthOpt = OptionalInt.of(1); // Sets don't have sizes - we set this to one so the error conditions below are not triggered.
+                lengthOpt = OptionalLong.of(1); // Sets don't have sizes - we set this to one so the error conditions below are not triggered.
             } else {
                 String entityParentName = ((GlobalEntityDecl) treeShadow().parent(treeShadow().parent(action))).getName();
                 throw new RuntimeException("For action '" + action.getTag() + "' of entity '" + entityParentName + "' we were unable to evaluate the MultiportSelector as the collection type '" + type.toString() + "' is not currently supported for multiport selectors..");
@@ -406,7 +406,7 @@ public class PortArrayCollectionExpansion implements Phase {
                 throw new RuntimeException("For action '" + action.getTag() + "' of entity '" + entityParentName + "' we could not calculate the values in the input pattern port selector range expression at compile time.");
             }
 
-            long exprValue = lengthOpt.getAsInt();
+            long exprValue = lengthOpt.getAsLong();
             if (exprValue < 0) {
                 String entityParentName = ((GlobalEntityDecl) treeShadow().parent(treeShadow().parent(action))).getName();
                 throw new RuntimeException("For action '" + action.getTag() + "' of entity '" + entityParentName + "' the length of the range expression '" + exprValue + "'. We expect a value greater than 0.");

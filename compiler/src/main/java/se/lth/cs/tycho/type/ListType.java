@@ -1,13 +1,13 @@
 package se.lth.cs.tycho.type;
 
 import java.util.Objects;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 public final class ListType implements CollectionType {
 	private final Type elementType;
-	private final OptionalInt size;
+	private final OptionalLong size;
 
-	public ListType(Type elementType, OptionalInt size) {
+	public ListType(Type elementType, OptionalLong size) {
 		this.elementType = elementType;
 		this.size = size;
 	}
@@ -16,13 +16,13 @@ public final class ListType implements CollectionType {
 		return elementType;
 	}
 
-	public OptionalInt getSize() {
+	public OptionalLong getSize() {
 		return size;
 	}
 
 	@Override
 	public String toString() {
-		return "List(type:" + elementType + (size.isPresent() ? ", size=" + size.getAsInt() : "") + ")";
+		return "List(type:" + elementType + (size.isPresent() ? ", size=" + size.getAsLong() : "") + ")";
 	}
 
 	@Override

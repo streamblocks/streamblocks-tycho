@@ -28,6 +28,7 @@ import se.lth.cs.tycho.type.Type;
 
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
 public final class TypeToTypeExpr {
@@ -47,8 +48,8 @@ public final class TypeToTypeExpr {
 			return new NominalTypeExpr("bool");
 		}
 
-		default ValueParameter intParameter(String name, int value) {
-			return new ValueParameter(name, new ExprLiteral(ExprLiteral.Kind.Integer, Integer.toString(value)));
+		default ValueParameter intParameter(String name, long value) {
+			return new ValueParameter(name, new ExprLiteral(ExprLiteral.Kind.Integer, Long.toString(value)));
 		}
 
 		default NominalTypeExpr convert(IntType type) {
@@ -89,9 +90,9 @@ public final class TypeToTypeExpr {
 		default NominalTypeExpr convert(ListType type) {
 			TypeParameter elementType = new TypeParameter("type", convert(type.getElementType()));
 			ImmutableList<ValueParameter> size;
-			OptionalInt optionalSize = type.getSize();
+			OptionalLong optionalSize = type.getSize();
 			if (optionalSize.isPresent()) {
-				size = ImmutableList.of(intParameter("size", optionalSize.getAsInt()));
+				size = ImmutableList.of(intParameter("size", optionalSize.getAsLong()));
 			} else {
 				size = ImmutableList.empty();
 			}

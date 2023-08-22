@@ -46,7 +46,7 @@ public interface DefaultValues {
 			}
 
 			builder.append("{");
-			for (int i = 0; i < t.getSize().getAsInt(); i++) {
+			for (int i = 0; i < t.getSize().getAsLong(); i++) {
 				if (i > 0) {
 					builder.append(", ");
 				}

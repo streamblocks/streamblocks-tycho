@@ -15,6 +15,20 @@ public final class CheckedCasts {
 		}
 	}
 
+	public static OptionalLong toOptLong(OptionalLong value){
+		return value.isPresent() ? OptionalLong.of(toLong(value.getAsLong())) : OptionalLong.empty();
+	}
+
+
+	public static long toLong(long value) {
+		if (value < Long.MIN_VALUE || value > Long.MAX_VALUE) {
+			throw outOfRange();
+		} else {
+			return value;
+		}
+	}
+
+
 	private static AssertionError outOfRange() {
 		return new AssertionError("Value is out of range");
 	}

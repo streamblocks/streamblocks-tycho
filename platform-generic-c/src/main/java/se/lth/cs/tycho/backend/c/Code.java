@@ -63,7 +63,7 @@ public interface Code {
 			emitter().emit("%s = %s;", lvalue, rvalue);
 		} else {
 			String index = variables().generateTemp();
-			emitter().emit("for (size_t %1$s = 0; %1$s < %2$s; %1$s++) {", index, lvalueType.getSize().getAsInt());
+			emitter().emit("for (size_t %1$s = 0; %1$s < %2$s; %1$s++) {", index, lvalueType.getSize().getAsLong());
 			emitter().increaseIndentation();
 			copy(lvalueType.getElementType(), String.format("%s.data[%s]", lvalue, index), rvalueType.getElementType(), String.format("%s.data[%s]", rvalue, index));
 			emitter().decreaseIndentation();
@@ -115,7 +115,7 @@ public interface Code {
 		String tmp = variables().generateTemp();
 		String index = variables().generateTemp();
 		emitter().emit("%s = true;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("for (size_t %1$s = 0; (%1$s < %2$s) && %3$s; %1$s++) {", index, lvalueType.getSize().getAsInt(), tmp);
+		emitter().emit("for (size_t %1$s = 0; (%1$s < %2$s) && %3$s; %1$s++) {", index, lvalueType.getSize().getAsLong(), tmp);
 		emitter().increaseIndentation();
 		emitter().emit("%s &= %s;", tmp, compare(lvalueType.getElementType(), String.format("%s.data[%s]", lvalue, index), rvalueType.getElementType(), String.format("%s.data[%s]", rvalue, index)));
 		emitter().decreaseIndentation();
@@ -782,7 +782,7 @@ public interface Code {
 		String elem = evaluate(binaryOp.getOperands().get(0));
 		String list = evaluate(binaryOp.getOperands().get(1));
 		emitter().emit("%s = false;", declaration(BoolType.INSTANCE, tmp));
-		emitter().emit("for (size_t %1$s = 0; (%1$s < %2$s) && !(%3$s); %1$s++) {", index, rhs.getSize().getAsInt(), tmp);
+		emitter().emit("for (size_t %1$s = 0; (%1$s < %2$s) && !(%3$s); %1$s++) {", index, rhs.getSize().getAsLong(), tmp);
 		emitter().increaseIndentation();
 		emitter().emit("%s |= %s;", tmp, compare(lhs, elem, rhs.getElementType(), String.format("%s.data[%s]", list, index)));
 		emitter().decreaseIndentation();
@@ -886,7 +886,7 @@ public interface Code {
 	}
 
 	default String evaluateUnarySize(ListType type, ExprUnaryOp expr) {
-		return "" + type.getSize().getAsInt();
+		return "" + type.getSize().getAsLong();
 	}
 
 	default String evaluateUnarySize(SetType type, ExprUnaryOp expr) {

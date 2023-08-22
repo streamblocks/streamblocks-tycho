@@ -535,7 +535,8 @@ public class CaseAnalysisPhase implements Phase {
 		default Space apply(PatternList pattern) {
 			ListType type = (ListType) types().type(pattern);
 			int provided = pattern.getPatterns().size();
-			int expected = type.getSize().getAsInt();
+			// -- FIXME: possible loss of data
+			int expected = (int) type.getSize().getAsLong();
 			Stream<Space> remaining = Stream.empty();
 			if (provided < expected) {
 				remaining = Collections.nCopies(expected - provided, Space.Universe.of(type.getElementType())).stream().map(Space.class::cast);
@@ -978,7 +979,7 @@ public class CaseAnalysisPhase implements Phase {
 		List<Type> apply(Type apply);
 
 		default List<Type> apply(ListType type) {
-			return Collections.nCopies(type.getSize().getAsInt(), type.getElementType());
+			return Collections.nCopies((int) type.getSize().getAsLong(), type.getElementType());
 		}
 
 		default List<Type> apply(TupleType type) {
@@ -1132,7 +1133,7 @@ public class CaseAnalysisPhase implements Phase {
 			if (type instanceof TypeUtils.ConstantType) {
 				return "" + ((TypeUtils.ConstantType) type).value();
 			} else if (type instanceof ListType && ((ListType) type).getSize().isPresent()) {
-				return Collections.nCopies(((ListType) type).getSize().getAsInt(), "_").stream().collect(Collectors.joining(", ", "[", "]"));
+				return Collections.nCopies((int)((ListType) type).getSize().getAsLong(), "_").stream().collect(Collectors.joining(", ", "[", "]"));
 			} else if (type instanceof TupleType) {
 				return ((TupleType) type).getTypes().stream().map(t -> "_").collect(Collectors.joining(", ", "(", ")"));
 			} else if (type instanceof TypeUtils.ActionCaseType) {

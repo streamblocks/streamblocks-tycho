@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static se.lth.cs.tycho.util.CheckedCasts.toOptInt;
+import static se.lth.cs.tycho.util.CheckedCasts.toOptLong;
 
 public interface Types {
 
@@ -194,25 +195,25 @@ public interface Types {
                     .map(this::type)
                     .reduce(BottomType.INSTANCE, this::leastUpperBound);
             int size = patterns.size();
-            return new ListType(type, OptionalInt.of(size));
+            return new ListType(type, OptionalLong.of(size));
         }
 
         default Type infer(PatternList pattern) {
             Type inferred = computeInferableType(pattern);
             if (!(inferred instanceof ListType)) {
-                return new ListType(TopType.INSTANCE, OptionalInt.of(pattern.getPatterns().size()));
+                return new ListType(TopType.INSTANCE, OptionalLong.of(pattern.getPatterns().size()));
             }
             ListType listType = (ListType) inferred;
             ImmutableList<Pattern> patterns = pattern.getPatterns();
             Type type = patterns.stream().filter(this::typable).findFirst().map(this::type).orElse(listType.getElementType());
-            int size = patterns.size();
+            long size = patterns.size();
             if (listType.getSize().isPresent()) {
-                int listSize = listType.getSize().getAsInt();
-                if (listSize > size && size > 0 && patterns.get(size - 1) instanceof PatternWildcard) {
+                long listSize = listType.getSize().getAsLong();
+                if (listSize > size && size > 0 && patterns.get((int) (size - 1)) instanceof PatternWildcard) {
                     size = listSize;
                 }
             }
-            return new ListType(type, OptionalInt.of(size));
+            return new ListType(type, OptionalLong.of(size));
         }
 
         default Type type(PatternTuple pattern) {
@@ -378,7 +379,7 @@ public interface Types {
             Type result = convert(port.getType());
             if (input.getRepeatExpr() != null) {
                 OptionalLong size = constants().intValue(input.getRepeatExpr());
-                return new ListType(result, toOptInt(size));
+                return new ListType(result, toOptLong(size));
             } else {
                 return result;
             }
@@ -473,7 +474,7 @@ public interface Types {
         default Type portTypeRepeated(Port port, Expression repeat) {
             Type element = portType(port);
             OptionalLong size = constants().intValue(repeat);
-            return new ListType(element, toOptInt(size));
+            return new ListType(element, toOptLong(size));
         }
 
         default Type connectionType(Network network, Connection conn) {
@@ -585,10 +586,10 @@ public interface Types {
                         if (s.isPresent()) {
                             OptionalLong size = constants().intValue(s.get());
                             if (size.isPresent()) {
-                                return new ListType(elements.get(), toOptInt(size));
+                                return new ListType(elements.get(), toOptLong(size));
                             }
                         }
-                        return new ListType(elements.get(), OptionalInt.empty());
+                        return new ListType(elements.get(), OptionalLong.empty());
                     }
                     return BottomType.INSTANCE;
                 }
@@ -737,40 +738,40 @@ public interface Types {
             }
         }
 
-        default OptionalInt collectionSize(Type t) {
-            return OptionalInt.empty();
+        default OptionalLong collectionSize(Type t) {
+            return OptionalLong.empty();
         }
 
-        default OptionalInt collectionSize(ListType t) {
+        default OptionalLong collectionSize(ListType t) {
             return t.getSize();
         }
 
-        default OptionalInt collectionSize(RangeType t) {
+        default OptionalLong collectionSize(RangeType t) {
             return t.getLength();
         }
 
-        Type withCollectionSize(Type t, OptionalInt size);
+        Type withCollectionSize(Type t, OptionalLong size);
 
-        default Type withCollectionSize(ListType t, OptionalInt size) {
+        default Type withCollectionSize(ListType t, OptionalLong size) {
             return new ListType(t.getElementType(), size);
         }
 
-        default Type withCollectionSize(SetType t, OptionalInt size) {
+        default Type withCollectionSize(SetType t, OptionalLong size) {
             return t;
         }
 
         default Type computeType(ExprComprehension comprehension) {
             Type collectionType = type(comprehension.getCollection());
-            OptionalInt collectionSize = collectionSize(collectionType);
+            OptionalLong collectionSize = collectionSize(collectionType);
             Type generatorType = type(comprehension.getGenerator().getCollection());
-            OptionalInt generatorSize = collectionSize(generatorType);
-            OptionalInt size;
+            OptionalLong generatorSize = collectionSize(generatorType);
+            OptionalLong size;
             if (collectionSize.isPresent() && generatorSize.isPresent() && comprehension.getFilters().isEmpty()) {
-                int s = collectionSize.getAsInt() *
-                        (int) Math.pow(generatorSize.getAsInt(), comprehension.getGenerator().getVarDecls().size());
-                size = OptionalInt.of(s);
+                long s = collectionSize.getAsLong() *
+                        (int) Math.pow(generatorSize.getAsLong(), comprehension.getGenerator().getVarDecls().size());
+                size = OptionalLong.of(s);
             } else {
-                size = OptionalInt.empty();
+                size = OptionalLong.empty();
             }
             return withCollectionSize(collectionType, size);
         }
@@ -783,7 +784,7 @@ public interface Types {
             Type elementType = list.getElements().stream()
                     .map(this::type)
                     .reduce(BottomType.INSTANCE, this::leastUpperBound);
-            return new ListType(elementType, OptionalInt.of(list.getElements().size()));
+            return new ListType(elementType, OptionalLong.of(list.getElements().size()));
         }
 
         default Type computeType(ExprSet set) {
@@ -883,7 +884,7 @@ public interface Types {
                     } else {
                         length = OptionalLong.empty();
                     }
-                    return new RangeType(type, toOptInt(length));
+                    return new RangeType(type, toOptLong(length));
                 default:
                     return BottomType.INSTANCE;
             }
@@ -1078,7 +1079,7 @@ public interface Types {
 
         default Type leastUpperBound(ListType a, ListType b) {
             Type elementLub = leastUpperBound(a.getElementType(), b.getElementType());
-            OptionalInt size = a.getSize().equals(b.getSize()) ? a.getSize() : OptionalInt.empty();
+            OptionalLong size = a.getSize().equals(b.getSize()) ? a.getSize() : OptionalLong.empty();
             return new ListType(elementLub, size);
         }
 

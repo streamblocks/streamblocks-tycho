@@ -1,12 +1,13 @@
 package se.lth.cs.tycho.type;
 
 import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 public class RangeType implements CollectionType {
 	private final Type type;
-	private final OptionalInt length;
+	private final OptionalLong length;
 
-	public RangeType(Type type, OptionalInt length) {
+	public RangeType(Type type, OptionalLong length) {
 		this.type = type;
 		this.length = length;
 	}
@@ -15,7 +16,7 @@ public class RangeType implements CollectionType {
 		return type;
 	}
 
-	public OptionalInt getLength() {
+	public OptionalLong getLength() {
 		return length;
 	}
 
@@ -26,7 +27,7 @@ public class RangeType implements CollectionType {
 		builder.append(type.toString());
 		if (length.isPresent()) {
 			builder.append("length=");
-			builder.append(length.getAsInt());
+			builder.append(length.getAsLong());
 		}
 		builder.append(")");
 		return builder.toString();

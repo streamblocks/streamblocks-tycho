@@ -53,7 +53,7 @@ public interface Lists {
         String elementType = backend().code().type(type.getElementType());
         if (type.getElementType() instanceof AlgebraicType || backend().alias().isAlgebraicType(type.getElementType()))
             elementType += "*";
-        int size = type.getSize().getAsInt();
+        long size = type.getSize().getAsLong();
 
         emitter().emit("typedef struct {");
         emitter().increaseIndentation();

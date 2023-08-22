@@ -172,7 +172,7 @@ public interface Callables {
 	}
 
 	default NameExpression mangle(ListType type) {
-		String size = type.getSize().isPresent() ? Integer.toString(type.getSize().getAsInt()) : "X";
+		String size = type.getSize().isPresent() ? Long.toString(type.getSize().getAsLong()) : "X";
 		return seq(name("list"), mangle(type.getElementType()), name(size));
 	}
 
