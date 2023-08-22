@@ -196,6 +196,16 @@ public interface Callables {
 		return seq(name("real"), name(Integer.toString(type.getSize())));
 	}
 
+	default NameExpression mangle(ComplexType type) {
+		if (type.getElementType() instanceof RealType){
+			return seq(name("complex"), mangle(type.getElementType()));
+		}else if(type.getElementType() instanceof IntType){
+			return name("complex_double");
+		}else{
+			throw new UnsupportedOperationException(type.toString() + ": " + type.getElementType().toString() + " is not a valid type within a complex type.");
+		}
+	}
+
 	default NameExpression mangle(AlgebraicType type) {
 		return name(backend().algebraic().utils().name(type));
 	}

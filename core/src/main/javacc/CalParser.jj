@@ -283,10 +283,13 @@ TOKEN: {
 	        (<REAL>) ["+", "-"] (<REAL>) ["i", "j"]
 	    |   (<INTEGER>) ["+", "-"] (<REAL>) ["i", "j"]
 	    |   (<REAL>) ["+", "-"] (<INTEGER>) ["i", "j"]
+	    |   (["+", "-"])? (<REAL>) ["i", "j"]
 	    >
 |
 	<COMPLEX_INT:
-    	        (<INTEGER>) ["+", "-"] (<INTEGER>) ["i", "j"]>
+            (<INTEGER>) ["+", "-"] (<INTEGER>) ["i", "j"]
+    	|   (["+", "-"])? (<INTEGER>) ["i", "j"]
+        >
 //|
 //	< REAL:
 //			(<DECIMAL_DIGIT>)+ "." (<DECIMAL_DIGIT>)* (<EXPONENT>)?

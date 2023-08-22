@@ -739,6 +739,12 @@ public interface Types {
                 case String: {
                     return StringType.INSTANCE;
                 }
+                case Complex_Int: {
+                    return new ComplexType(new IntType(OptionalInt.empty(),true));
+                }
+                case Complex_Real: {
+                    return new ComplexType(RealType.f32);
+                }
                 default: {
                     return BottomType.INSTANCE;
                 }
