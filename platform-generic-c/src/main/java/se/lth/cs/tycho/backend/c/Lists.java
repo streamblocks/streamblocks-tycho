@@ -10,6 +10,7 @@ import se.lth.cs.tycho.type.AlgebraicType;
 import se.lth.cs.tycho.type.ListType;
 import se.lth.cs.tycho.type.Type;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,11 +37,23 @@ public interface Lists {
         // 1. Get a list of all list declarations
         List<ListType> lists = listTypes().collect(Collectors.toList());
 
-        // 2. Sort the list using a lambda.
+        // 2. Need to search for nested list types created within lists as they are not found in part one.
+        // NOTE: Point 2 is clunky and can be made much neater.
+        List<ListType> nestedLists = new ArrayList<>();
+        for (ListType listType: lists) {
+            Type newType = listType.getElementType();
+            while(newType instanceof  ListType && !lists.contains(newType) && !nestedLists.contains(newType)){
+                nestedLists.add((ListType)newType);
+                newType = ((ListType) newType).getElementType();
+            }
+        }
+        lists.addAll(nestedLists);
+
+        // 3. Sort the list using a lambda.
         Collections.sort(lists, (o1, o2) -> (getListNestingDepth(o1) > getListNestingDepth(o2)) ? 1 :
                 (getListNestingDepth(o1) < getListNestingDepth(o2)) ? -1 : 0);
 
-        // 3. Declare the sorted lists
+        // 4. Declare the sorted lists
         for (ListType listType : lists) {
             declareType(listType);
         }
