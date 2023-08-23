@@ -370,11 +370,19 @@ public interface Callables {
 	default void externalCallableDeclaration(VarDecl varDecl) {
 		if (varDecl.isExternal()) {
 			List<String> mathLibraryFunctionNames = Arrays.asList("cos", "sin", "exp", "sqrt", "log");
+			List<String> complexFunctionNames = Arrays.asList("creal", "cimag");
 
 			if(mathLibraryFunctionNames.contains(varDecl.getName())){
 				backend().emitter().emit("%s;", "// External function " + varDecl.getOriginalName() + "(..) defined in <math.h>");
 				return;
 			}
+
+			if(complexFunctionNames.contains(varDecl.getName())){
+				backend().emitter().emit("%s;", "// External function " + varDecl.getOriginalName() + "(..) defined in <complex.h>");
+				return;
+			}
+
+
 			Type type = backend().types().declaredType(varDecl);
 			assert type instanceof CallableType : "External declaration must be function or procedure";
 			CallableType callable = (CallableType) type;

@@ -2,4 +2,7 @@ namespace prelude :
 	public external procedure println(String text) end
 	public external procedure print(String text) end
 	public external function randint(int n) --> int end
+
+	public external function creal(complex(type:float) n) --> float end
+	public external function cimag(complex(type:float) n) --> float end
 end
