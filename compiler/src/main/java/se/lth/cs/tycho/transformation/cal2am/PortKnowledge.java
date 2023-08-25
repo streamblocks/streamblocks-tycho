@@ -8,7 +8,7 @@ public final class PortKnowledge {
 
 	public PortKnowledge(int lowerBound, int upperBound) {
 		if (upperBound != INFINITY && upperBound < lowerBound || lowerBound < 0) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Port upper bound < port lower bound (" + upperBound + "<" + lowerBound + ")");
 		}
 		this.lowerBound = lowerBound;
 		this.upperBound = upperBound;

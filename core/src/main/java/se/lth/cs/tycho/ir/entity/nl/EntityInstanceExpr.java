@@ -37,7 +37,7 @@ public class EntityInstanceExpr extends AttributableIRNode implements EntityExpr
 				&& Lists.sameElements(this.valueParameters, valueParameters)) {
 			return this;
 		}
-		return new EntityInstanceExpr(this, entity, typeParameters, valueParameters);
+		return new EntityInstanceExpr(this, entity, typeParameters, valueParameters).withAttributes(getAttributes().map(ToolAttribute::deepClone));
 	}
 
 	public EntityReference getEntityName() {

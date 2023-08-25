@@ -8,10 +8,16 @@ public class Test extends Instruction {
 	private final State targetTrue;
 	private final State targetFalse;
 
-	public Test(int condition, State targetTrue, State targetFalse) {
+	// When considering a MultiInstructionState and making use of the OrderedConditionChecking (OCC) reducer, a unique
+	// order number is assigned to each Test instruction. The OCC transforms the MultiInstructionState to a
+	// SingleInstructionState by selecting the Test instruction with the lowest order number.
+	private final int orderNumber;
+
+	public Test(int condition, State targetTrue, State targetFalse, int orderNumber) {
 		this.condition = condition;
 		this.targetTrue = targetTrue;
 		this.targetFalse = targetFalse;
+		this.orderNumber = orderNumber;
 	}
 
 	@Override
@@ -45,5 +51,9 @@ public class Test extends Instruction {
 	public void forEachTarget(Consumer<State> action) {
 		action.accept(targetTrue());
 		action.accept(targetFalse());
+	}
+
+	public int getOrderNumber() {
+		return orderNumber;
 	}
 }

@@ -12,12 +12,7 @@ import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.entity.Entity;
 import se.lth.cs.tycho.ir.entity.am.ActorMachine;
 import se.lth.cs.tycho.ir.entity.am.ctrl.State;
-import se.lth.cs.tycho.transformation.reduction.MergeStates;
-import se.lth.cs.tycho.transformation.reduction.SelectFirstInstruction;
-import se.lth.cs.tycho.transformation.reduction.SelectInformativeTests;
-import se.lth.cs.tycho.transformation.reduction.SelectRandom;
-import se.lth.cs.tycho.transformation.reduction.ShortestPath;
-import se.lth.cs.tycho.transformation.reduction.TransformedController;
+import se.lth.cs.tycho.transformation.reduction.*;
 import se.lth.cs.tycho.settings.Configuration;
 import se.lth.cs.tycho.settings.EnumSetting;
 import se.lth.cs.tycho.settings.IntegerSetting;
@@ -52,10 +47,10 @@ public class ReduceActorMachinePhase implements Phase {
 	};
 
 	public enum ReductionAlgorithm {
-		FIRST, RANDOM, SHORTEST_PATH_TO_EXEC, INFORMATIVE_TESTS, INFORMATIVE_TESTS_IF_TRUE, INFORMATIVE_TESTS_IF_FALSE
+		FIRST, RANDOM, SHORTEST_PATH_TO_EXEC, INFORMATIVE_TESTS, INFORMATIVE_TESTS_IF_TRUE, INFORMATIVE_TESTS_IF_FALSE, ORDERED_CONDITION_CHECKING
 	}
 
-	private static final Setting<List<ReductionAlgorithm>> reductionAlgorithm = new ListSetting<ReductionAlgorithm>(
+	public static final Setting<List<ReductionAlgorithm>> reductionAlgorithm = new ListSetting<ReductionAlgorithm>(
 			new EnumSetting<ReductionAlgorithm>(ReductionAlgorithm.class) {
 				@Override
 				public String getKey() {
@@ -129,6 +124,9 @@ public class ReduceActorMachinePhase implements Phase {
 					break;
 				case INFORMATIVE_TESTS_IF_FALSE:
 					result.add(SelectInformativeTests.trueInformative());
+					break;
+				case ORDERED_CONDITION_CHECKING:
+					result.add(new SelectByConditionOrder());
 					break;
 				default:
 					throw new AssertionError();
