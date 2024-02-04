@@ -1,6 +1,7 @@
 package se.lth.cs.tycho.ir.entity.am;
 
 import se.lth.cs.tycho.ir.AbstractIRNode;
+import se.lth.cs.tycho.ir.entity.am.ctrl.ConditionVisitor;
 
 /**
  * Conditions are part of test instructions and describe situations that are either true or false during the execution of
@@ -37,6 +38,8 @@ abstract public class Condition extends AbstractIRNode {
 	public void setOrderNumber(int orderNumber) {
 		this.orderNumber = orderNumber;
 	}
+
+	abstract public <R,P> R accept(ConditionVisitor<R,P> v, P p);
 
 	public int compareTo(Condition other){
 		if(this.getOrderNumber() == other.getOrderNumber()){

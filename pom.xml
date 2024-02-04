@@ -10,6 +10,7 @@
 		<module>core</module>
 		<module>compiler</module>
 		<module>platform-generic-c</module>
+		<module>platform-simulator</module>
 		<module>app-test</module>
 		<module>language-server</module>
 	</modules>

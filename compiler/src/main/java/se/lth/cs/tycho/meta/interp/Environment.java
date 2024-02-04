@@ -11,7 +11,7 @@ public class Environment {
 	private final Map<String, Value> bindings;
 
 	public Environment() {
-		this(new HashMap());
+		this(new HashMap<>());
 	}
 
 	private Environment(Map<String, Value> bindings) {
@@ -28,9 +28,7 @@ public class Environment {
 
 	public Environment with(Map<String, Value> bindings) {
 		Map<String, Value> newBindings = new HashMap<>(this.bindings);
-		for (Map.Entry<String, Value> binding : bindings.entrySet()) {
-			newBindings.put(binding.getKey(), binding.getValue());
-		}
+        newBindings.putAll(bindings);
 		return new Environment(newBindings);
 	}
 }

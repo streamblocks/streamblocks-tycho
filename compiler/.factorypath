@@ -1,4 +1,12 @@
 <factorypath>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/multij/multij-core/0.1-SNAPSHOT/multij-core-0.1-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/multij/multij-processor/0.1-SNAPSHOT/multij-processor-0.1-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/multij/multij-core/0.1/multij-core-0.1.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/multij/multij-processor/0.1/multij-processor-0.1.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/jgrapht/jgrapht-core/1.5.1/jgrapht-core-1.5.1.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/jheaps/jheaps/0.13/jheaps-0.13.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/jgrapht/jgrapht-io/1.5.1/jgrapht-io-1.5.1.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/antlr/antlr4-runtime/4.8-1/antlr4-runtime-4.8-1.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/apache/commons/commons-text/1.8/commons-text-1.8.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/apache/commons/commons-lang3/3.9/commons-lang3-3.9.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/jgrapht/jgrapht-ext/1.5.1/jgrapht-ext-1.5.1.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/github/vlsi/mxgraph/jgraphx/4.1.0/jgraphx-4.1.0.jar" enabled="true" runInBatchMode="false"/>
 </factorypath>

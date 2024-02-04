@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.Port;
+import se.lth.cs.tycho.ir.entity.am.ctrl.ConditionVisitor;
 
 /**
  * PortCondition objects represent input conditions (the condition that there
@@ -36,6 +37,14 @@ public class PortCondition extends Condition {
 
 	public boolean isInputCondition() {
 		return isInputCondition;
+	}
+
+	@Override
+	public <R, P> R accept(ConditionVisitor<R, P> v, P p) {
+		if (isInputCondition)
+			return v.visitInputCondition(this, p);
+		else
+			return v.visitOutputCondition(this, p);
 	}
 
 	//

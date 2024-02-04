@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import se.lth.cs.tycho.ir.IRNode;
+import se.lth.cs.tycho.ir.entity.am.ctrl.ConditionVisitor;
 import se.lth.cs.tycho.ir.expr.Expression;
 
 /**
@@ -51,6 +52,11 @@ public class PredicateCondition extends Condition {
 	@Override
 	public PredicateCondition transformChildren(Transformation transformation) {
 		return copy((Expression) transformation.apply(expression));
+	}
+
+	@Override
+	public <R, P> R accept(ConditionVisitor<R, P> v, P p) {
+		return v.visitPredicateCondition(this, p);
 	}
 }
 
