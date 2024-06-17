@@ -202,6 +202,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
 
     @Override
     public StructureStatement visitStructureConnectionStmt(StructureConnectionStmt stmt, Environment environment) {
+
         PortReference src = stmt.getSrc();
         // -- src
         ImmutableList.Builder<Expression> srcBuilderEntityIndex = new ImmutableList.Builder<>();
@@ -411,7 +412,7 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             //System.out.println(srcEnumeratedPortName + " --> " + dstEnumeratedPortName);
             Connection.End srcConn = new Connection.End(Optional.ofNullable(srcEntityName), srcEnumeratedPortName);
             Connection.End dstConn = new Connection.End(Optional.ofNullable(dstEntityName), dstEnumeratedPortName);
-            Connection conn = new Connection(srcConn, dstConn);
+            Connection conn = new Connection(srcConn, dstConn).withAttributes(stmt.getAttributes().map(ToolAttribute::deepClone));
             connections.add(conn);
 
             return null;
