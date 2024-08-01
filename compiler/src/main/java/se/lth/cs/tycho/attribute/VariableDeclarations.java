@@ -10,12 +10,14 @@ import se.lth.cs.tycho.ir.IRNode;
 import se.lth.cs.tycho.ir.NamespaceDecl;
 import se.lth.cs.tycho.ir.QID;
 import se.lth.cs.tycho.ir.Variable;
+import se.lth.cs.tycho.ir.decl.GlobalEntityDecl;
 import se.lth.cs.tycho.ir.decl.GroupImport;
 import se.lth.cs.tycho.ir.decl.SingleImport;
 import se.lth.cs.tycho.ir.decl.VarDecl;
 import se.lth.cs.tycho.ir.expr.ExprGlobalVariable;
 import se.lth.cs.tycho.ir.expr.ExprVariable;
-import se.lth.cs.tycho.ir.expr.Expression;
+import se.lth.cs.tycho.ir.network.Instance;
+import se.lth.cs.tycho.ir.network.Network;
 import se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable;
 import se.lth.cs.tycho.ir.util.ImmutableList;
 import se.lth.cs.tycho.phase.TreeShadow;
@@ -91,18 +93,32 @@ public interface VariableDeclarations {
                 }
 
                 // -- FIXME: Temporary hack to support println
-                Optional<SourceUnit> s = root().getSourceUnits().stream().filter(sourceUnit -> sourceUnit.getTree().getQID().isPrefixOf(QID.of("prelude"))).findAny();
-                if(s.isPresent()){
+                Optional<SourceUnit> s =
+                        root().getSourceUnits().stream().filter(sourceUnit -> sourceUnit.getTree().getQID().isPrefixOf(QID.of("prelude"))).findAny();
+                if (s.isPresent()) {
                     NamespaceDecl ns = s.get().getTree();
-                    for(VarDecl decl : ns.getVarDecls()){
+                    for (VarDecl decl : ns.getVarDecls()) {
                         if (decl.getName().equals(var.getName())) {
                             return decl;
                         }
                     }
                 }
-                node = tree().parent(node);
-            }
 
+                // Comment added by Gareth Callanan on 2024/08/01.
+                // This is a bit of a hack. In general we should always apply "node = tree().parent(node)" however
+                // in the case of network entities, their parent is a task node which is the top node in the tree.
+                // We actually want it to be the global entity representing the network which has a namespace as
+                // its parent. If we do not have this hack here, we are unable to access global constants.
+                if (node instanceof Network) {
+                    Network networkNode = (Network) node;
+                    for (Instance instance : networkNode.getInstances()) {
+                        GlobalEntityDecl entity = globalNames().entityDecl(instance.getEntityName(), false);
+                        node = tree().parent(entity);
+                    }
+                } else {
+                    node = tree().parent(node);
+                }
+            }
             return null;
         }
 
