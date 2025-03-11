@@ -26,6 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static se.lth.cs.tycho.phase.CalToAmPhase.useDcConditions;
 import static se.lth.cs.tycho.phase.ReduceActorMachinePhase.ReductionAlgorithm.ORDERED_CONDITION_CHECKING;
 import static se.lth.cs.tycho.phase.ReduceActorMachinePhase.reductionAlgorithm;
 
@@ -45,6 +46,7 @@ public class CalToAm {
     // also adds "Don't Care" conditions to some state values and sets them from unknown to false when they are
     // "Don't Care".
     boolean orderedConditions = false;
+    boolean useDcConds = false;
 
     public CalToAm(CalActor actor, Configuration configuration, ConstantEvaluator constants, Types types, TreeShadow tree, Ports ports, VariableDeclarations variableDecl, VariableScopes variableScopes, FreeVariables freeVar) {
         this.actor = actor;
@@ -61,6 +63,8 @@ public class CalToAm {
         if(configuration.get(reductionAlgorithm).contains(ORDERED_CONDITION_CHECKING)) {
             orderedConditions = true;
         }
+
+        useDcConds = configuration.get(useDcConditions);
     }
 
     public ActorMachine buildActorMachine() {
@@ -319,7 +323,7 @@ public class CalToAm {
 
             CalState target = (cached(new CalState(state, inputPorts, outputPorts, predicateConditions)));
             // If a test condition is false, find all DC conditions in the target and set them to false.
-            if(value == false && orderedConditions) {
+            if(value == false && useDcConds) {
                 target = setDontCareValues(condition, target);
             }
 
@@ -332,7 +336,7 @@ public class CalToAm {
             CalState target = (cached(new CalState(state, inputPorts, outputPorts, predicateConditions)));
 
             // If a test condition is false, find all DC conditions in the target and set them to false.
-            if(value == false && orderedConditions){
+            if(value == false && useDcConds){
                 target = setDontCareValues(condition ,target);
             }
 
