@@ -35,6 +35,23 @@ public class CalToAmPhase implements Phase {
         }
     };
 
+    public static Setting<Boolean> useDcConditions = new OnOffSetting() {
+        @Override
+        public String getKey() {
+            return "use-dont-cares-in-states";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Enable the actor machine to set values to don't care during reduction if they do not affect the result.";
+        }
+
+        @Override
+        public Boolean defaultValue(Configuration configuration) {
+            return false;
+        }
+    };
+
     @Override
     public String getDescription() {
         return "Translates all Cal actors to actor machines";
@@ -71,7 +88,8 @@ public class CalToAmPhase implements Phase {
         return ImmutableList.of(
                 KnowledgeRemoval.forgetOnExec,
                 KnowledgeRemoval.forgetOnWait,
-                bypassAmGeneration
+                bypassAmGeneration,
+                useDcConditions
         );
     }
 }
