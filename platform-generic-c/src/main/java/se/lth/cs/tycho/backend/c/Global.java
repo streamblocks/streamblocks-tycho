@@ -43,7 +43,10 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
+		backend().callables().declareEnvironmentForCallablesInScope(backend().task());
+		emitter().emit("");
 		globalVariableDeclarations(getGlobalVarDecls());
+		emitter().emit("");
 		globalVariableInitializer(getGlobalVarDecls());
 		emitter().emit("");
 		globalVariableDestructor(getGlobalVarDecls());
@@ -87,7 +90,7 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().declareCallables();
 		emitter().emit("");
-		backend().callables().declareEnvironmentForCallablesInScope(backend().task());
+		backend().callables().declareEnvironmentForCallablesInScopeExtern(backend().task());
 		emitter().emit("");
 		globalVariableDeclarationsExtern(getGlobalVarDecls());
 		emitter().emit("");

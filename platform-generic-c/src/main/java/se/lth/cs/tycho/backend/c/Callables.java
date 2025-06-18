@@ -90,6 +90,13 @@ public interface Callables {
 		}
 	}
 
+	default void declareEnvironmentForCallablesInScopeExtern(IRNode scope) {
+		for (Expression callable : callablesInScope(scope)) {
+			String functionName = functionName(callable);
+			backend().emitter().emit("extern envt_%s env_%s;", functionName, functionName);
+		}
+	}
+
 	default void declareEnvironmentForCallablesInScope(IRNode scope) {
 		for (Expression callable : callablesInScope(scope)) {
 			String functionName = functionName(callable);
