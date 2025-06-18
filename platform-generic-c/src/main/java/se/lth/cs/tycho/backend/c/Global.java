@@ -43,6 +43,7 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().defineCallables();
 		emitter().emit("");
+		globalVariableDeclarations(getGlobalVarDecls());
 		globalVariableInitializer(getGlobalVarDecls());
 		emitter().emit("");
 		globalVariableDestructor(getGlobalVarDecls());
@@ -88,7 +89,7 @@ public interface Global {
 		emitter().emit("");
 		backend().callables().declareEnvironmentForCallablesInScope(backend().task());
 		emitter().emit("");
-		globalVariableDeclarations(getGlobalVarDecls());
+		globalVariableDeclarationsExtern(getGlobalVarDecls());
 		emitter().emit("");
 		emitter().emit("#endif");
 	}
@@ -97,6 +98,14 @@ public interface Global {
 		return backend().task()
 					.getSourceUnits().stream()
 					.flatMap(unit -> unit.getTree().getVarDecls().stream());
+	}
+
+	default void globalVariableDeclarationsExtern(Stream<VarDecl> varDecls) {
+		varDecls.forEach(decl -> {
+			Type type = types().declaredType(decl);
+			String d = code().declaration(type, backend().variables().declarationName(decl));
+			emitter().emit("extern %s;", d);
+		});
 	}
 
 	default void globalVariableDeclarations(Stream<VarDecl> varDecls) {
