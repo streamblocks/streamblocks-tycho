@@ -292,7 +292,12 @@ public interface Code {
 			case False:
 				return "false";
 			case Real:
-				return literal.getText();
+				RealType realType = (RealType) types().type(literal);
+				String suffix = "";
+				if(realType.getSize() == 32){
+					suffix = "f";
+				}
+				return literal.getText()+suffix;
 			case String: {
 				String tmp = variables().generateTemp();
 				trackable().track(tmp, StringType.INSTANCE);
