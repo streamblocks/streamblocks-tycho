@@ -1,147 +1,121 @@
 package ch.epfl.vlsc.tycho.lsp4j;
 
-import ch.epfl.vlsc.tycho.lsp4j.symbols.SymbolFinding;
-import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
+import ch.epfl.vlsc.tycho.lsp4j.analysis.CalWorkspace;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DidChangeTextDocumentParams;
+import org.eclipse.lsp4j.DidCloseTextDocumentParams;
+import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.DocumentSymbol;
+import org.eclipse.lsp4j.DocumentSymbolParams;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.ReferenceParams;
+import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
-import se.lth.cs.tycho.ir.NamespaceDecl;
-import se.lth.cs.tycho.parsing.cal.CalParser;
-import se.lth.cs.tycho.parsing.cal.ParseException;
-import se.lth.cs.tycho.parsing.cal.Token;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class CalTextDocumentService implements TextDocumentService {
 
+    private final CalLanguageServer languageServer;
+    private final CalWorkspace workspace;
 
-    private HashMap<String, TextDocumentItem> documents = new HashMap<>();
-
-    private CalLanguageServer calLanguageServer;
-
-
-    public CalTextDocumentService(CalLanguageServer calLanguageServer) {
-        this.calLanguageServer = calLanguageServer;
-        Set<se.lth.cs.tycho.reporting.Diagnostic.Kind> kinds = new HashSet<>();
-        kinds.add(se.lth.cs.tycho.reporting.Diagnostic.Kind.ERROR);
-        kinds.add(se.lth.cs.tycho.reporting.Diagnostic.Kind.WARNING);
+    public CalTextDocumentService(CalLanguageServer languageServer, CalWorkspace workspace) {
+        this.languageServer = languageServer;
+        this.workspace = workspace;
     }
 
     @Override
-    public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
-        return CompletableFutures.computeAsync((cc) -> {
-            List<Either<SymbolInformation, DocumentSymbol>> symbols = new ArrayList<>();
-            String uri = params.getTextDocument().getUri();
-            Path p = null;
-            try {
-                p = Paths.get(new URI(uri));
-                CalParser parser = new CalParser(Files.newBufferedReader(p));
-                NamespaceDecl ns = parser.CompilationUnit();
-
-                SymbolFinding symbolFinding = new SymbolFinding(uri);
-                return symbolFinding.visit(ns);
-            } catch (URISyntaxException e) {
-                return symbols;
-            } catch (IOException e) {
-                return symbols;
-            } catch (ParseException e) {
-                return symbols;
-            }
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<CompletionItem> items = workspace.completions(asTextDocumentPosition(params));
+            return Either.forLeft(items);
         });
     }
 
     @Override
+    public CompletableFuture<Either<List<? extends Location>, List<? extends org.eclipse.lsp4j.LocationLink>>> definition(TextDocumentPositionParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Location> definitions = workspace.definitionLocations(params);
+            return Either.forLeft(definitions);
+        });
+    }
+
+    @Override
+    public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
+        return CompletableFuture.supplyAsync(() -> workspace.documentSymbols(params.getTextDocument().getUri()));
+    }
+
+    @Override
+    public CompletableFuture<Hover> hover(TextDocumentPositionParams params) {
+        return CompletableFuture.supplyAsync(() -> workspace.hover(params).orElse(null));
+    }
+
+    @Override
+    public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
+        boolean includeDeclaration = params.getContext() != null && params.getContext().isIncludeDeclaration();
+        return CompletableFuture.supplyAsync(() -> workspace.references(asTextDocumentPosition(params), includeDeclaration));
+    }
+
+    @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        documents.put(params.getTextDocument().getUri(), params.getTextDocument());
-
-        CompletableFuture.runAsync(() ->
-                calLanguageServer.client.publishDiagnostics(
-                        new PublishDiagnosticsParams(params.getTextDocument().getUri(), validate(params.getTextDocument().getText()))
-                )
-        );
-
+        workspace.openDocument(params.getTextDocument().getUri(), params.getTextDocument().getText());
+        publishDiagnostics(params.getTextDocument().getUri());
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-
-        String uri = params.getTextDocument().getUri();
-        for (TextDocumentContentChangeEvent changeEvent : params.getContentChanges()) {
-            // Will be full update because we specified that is all we support
-            if (changeEvent.getRange() != null) {
-                throw new UnsupportedOperationException("Range should be null for full document update.");
-            }
-            if (changeEvent.getRangeLength() != null) {
-                throw new UnsupportedOperationException("RangeLength should be null for full document update.");
-            }
-
-            documents.get(uri).setText(changeEvent.getText());
-
-            CompletableFuture.runAsync(() ->
-                    calLanguageServer.client.publishDiagnostics(
-                            new PublishDiagnosticsParams(params.getTextDocument().getUri(), validate(changeEvent.getText()))
-                    )
-            );
+        if (params.getContentChanges().isEmpty()) {
+            return;
         }
-
-    }
-
-
-    private List<Diagnostic> validate(String text) {
-        List<Diagnostic> res = new ArrayList<>();
-
-        try {
-            StringReader sr = new StringReader(text);
-            Reader r = new BufferedReader(sr);
-
-            CalParser parser = new CalParser(r);
-            NamespaceDecl ns = parser.CompilationUnit();
-            System.out.println(ns.getQID());
-
-        } catch (ParseException e) {
-            Diagnostic d = new Diagnostic();
-            d.setMessage(e.getMessage());
-
-            Token t = e.currentToken;
-
-            // -- If kind is a Cal constant get next
-            CalTokenId token = CalTokenId.getById(t.kind);
-            if (token != CalTokenId.ID) {
-                t = t.next;
-            }
-
-            final Range range = new Range();
-            range.setStart(new Position(t.beginLine - 1, t.beginColumn - 1));
-            range.setEnd(new Position(t.endLine - 1, t.beginColumn - 1 + t.image.length()));
-            d.setRange(range);
-
-            res.add(d);
-
+        TextDocumentContentChangeEvent changeEvent = params.getContentChanges().get(params.getContentChanges().size() - 1);
+        if (changeEvent.getRange() != null || changeEvent.getRangeLength() != null) {
+            throw new UnsupportedOperationException("Incremental document updates are not supported yet.");
         }
-
-        return res;
+        workspace.updateDocument(params.getTextDocument().getUri(), params.getContentChanges());
+        publishDiagnostics(params.getTextDocument().getUri());
     }
-
 
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
-        String uri = params.getTextDocument().getUri();
-        documents.remove(uri);
-
+        workspace.closeDocument(params.getTextDocument().getUri());
+        publishDiagnostics(params.getTextDocument().getUri());
     }
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
+        // Rely on didChange to keep the in-memory representation up to date.
+    }
 
+    private void publishDiagnostics(String uri) {
+        List<Diagnostic> diagnostics = workspace.diagnostics(uri);
+        if (languageServer.getClient() != null) {
+            languageServer.getClient().publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
+        }
+    }
+
+    private TextDocumentPositionParams asTextDocumentPosition(CompletionParams params) {
+        TextDocumentIdentifier identifier = params.getTextDocument();
+        TextDocumentPositionParams positionParams = new TextDocumentPositionParams();
+        positionParams.setTextDocument(identifier);
+        positionParams.setPosition(params.getPosition());
+        return positionParams;
+    }
+
+    private TextDocumentPositionParams asTextDocumentPosition(ReferenceParams params) {
+        TextDocumentPositionParams positionParams = new TextDocumentPositionParams();
+        positionParams.setTextDocument(params.getTextDocument());
+        positionParams.setPosition(params.getPosition());
+        return positionParams;
     }
 }
