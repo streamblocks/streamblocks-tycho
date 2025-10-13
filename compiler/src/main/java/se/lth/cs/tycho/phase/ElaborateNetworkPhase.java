@@ -210,10 +210,14 @@ public class ElaborateNetworkPhase implements Phase {
 
                 attrs.addAll(ImmutableList.from(attributes).map(ToolAttribute::deepClone));
                 attrs.addAll(expr.getAttributes().map(ToolAttribute::deepClone));
+                
+                @SuppressWarnings("unchecked")
+                ImmutableList<ValueParameter> valueParams = (ImmutableList<ValueParameter>) (ImmutableList<?>) expr.getValueParameters().map(ValueParameter::deepClone);
+                
                 Instance instance = new Instance(
                         entity.getInstanceName(),
                         entityName,
-                        expr.getValueParameters().map(ValueParameter::deepClone),
+                        valueParams,
                         ImmutableList.empty())
                         .withAttributes(attrs.build());
                 instances.add(instance);

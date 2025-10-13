@@ -1,0 +1,24 @@
+{
+    // Maven configuration
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.maven.enabled": true,
+    "maven.terminal.useJavaHome": true,
+    
+    // Java compilation settings
+    "java.autobuild.enabled": true,
+    "java.compile.nullAnalysis.mode": "automatic",
+    
+    // Error handling
+    "java.errors.incompleteClasspath.severity": "warning",
+    
+    // Test configuration - set working directory for app-test module
+    "java.test.config": [
+        {
+            "name": "ApplicationTest",
+            "workingDirectory": "${workspaceFolder}/app-test"
+        }
+    ],
+    
+    // Performance tuning (optional - adjust based on your system)
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Xmx16G -Xms100m"
+}

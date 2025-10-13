@@ -318,10 +318,14 @@ public class NlToNetwork implements EntityExprVisitor<EntityExpr, Environment>, 
             ImmutableList.Builder<ToolAttribute> attrs = ImmutableList.builder();
             attrs.addAll(attributes.map(ToolAttribute::deepClone));
             attrs.addAll(e.getAttributes().map(ToolAttribute::deepClone));
+            
+            @SuppressWarnings("unchecked")
+            ImmutableList<ValueParameter> valueParams = (ImmutableList<ValueParameter>) (ImmutableList<?>) e.getValueParameters().map(ValueParameter::deepClone);
+            
             Instance instance = new Instance(
                     s,
                     entityName,
-                    e.getValueParameters().map(ValueParameter::deepClone),
+                    valueParams,
                     ImmutableList.empty())
                     .withAttributes(attrs.build());
             instances.put(instance.getInstanceName(), instance);

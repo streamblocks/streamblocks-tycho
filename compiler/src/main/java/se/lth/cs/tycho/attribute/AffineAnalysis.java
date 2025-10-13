@@ -13,15 +13,56 @@ import java.util.stream.Collectors;
 /**
  * Affine Analysis for StmtForeach statements.
  * 
+ * This analysis determines if loops are affine for polyhedral optimization.
+ * 
  * An affine loop is a loop where:
  * 1. ITERATION SCOPE:
- *    - The loop collection is an affine structure (e.g., lists, comprehensions with affine bounds)
- *    - The loop filters are affine expressions (linear combinations of variables and constants)
+ *    - The loop collection is an affine structure (e.g., ranges with affine bounds)
+ *    - The loop filters are affine constraints (e.g., i < 10, but NOT x[i] < 10)
+ *    - Filters use AND only (OR creates non-convex sets)
+ * 
  * 2. LOOP BODY:
- *    - Array/indexer accesses use affine index expressions
- *    - Assignments to loop-carried variables are affine
+ *    - Array/indexer accesses use affine index expressions (e.g., y[i], x[2*i+1])
+ *    - Index expressions must be affine FUNCTIONS (e.g., i+1, NOT x[i])
  *    - No modifications to variables used in loop bounds/filters
- *    - No non-affine control flow (breaks based on non-affine conditions, etc.)
+ *    - No non-affine control flow
+ * 
+ * IMPORTANT DISTINCTIONS:
+ * 
+ * - Affine Function: f(x) = ax + b (e.g., i, i+1, 2*i)
+ *   Used for: indices, bounds, filters
+ *   Examples: i, i+1, 2*i ✓  |  x[i], i*j, i/2 ✗
+ * 
+ * - Affine Access Pattern: Memory accesses with affine indices
+ *   Used for: RHS expressions in assignments
+ *   Examples: x[i] * y[i] ✓ (indices are affine)  |  z[x[i]] ✗ (nested access)
+ * 
+ * EXAMPLES:
+ * 
+ * Affine:
+ *   foreach int i in 0..63 do
+ *     y[i] := x[i] * scale[i];  // ✓ All indices (i) are affine
+ *   end
+ * 
+ * Affine with filter:
+ *   foreach int i in 0..100, i < 50 && i > 10 do  // ✓ Pure affine constraint
+ *     y[i] := x[i];
+ *   end
+ * 
+ * Non-affine (nested index):
+ *   foreach int i in 0..n do
+ *     y[i] := z[x[i]];  // ✗ x[i] is not an affine function
+ *   end
+ * 
+ * Non-affine (filter with array access):
+ *   foreach int i in 0..n, x[i] < 10 do  // ✗ x[i] in filter
+ *     y[i] := i;
+ *   end
+ * 
+ * Non-affine (non-convex filter):
+ *   foreach int i in 0..100, i < 10 || i > 90 do  // ✗ OR creates non-convex set
+ *     y[i] := i;
+ *   end
  * 
  * Note: This analysis can be configured to check only iteration scope (lightweight)
  * or both iteration scope and body (comprehensive).
@@ -101,8 +142,10 @@ public interface AffineAnalysis {
             }
 
             // Check if all filters are affine
+            // Filters must be affine functions (not just affine access patterns)
+            // because the iteration set must be representable in the polyhedral model
             for (Expression filter : foreach.getFilters()) {
-                if (!isAffineExpression(filter)) {
+                if (!isAffineFunction(filter)) {
                     return false;
                 }
             }
@@ -165,8 +208,9 @@ public interface AffineAnalysis {
             }
 
             // Check if all filters are affine
+            // Filters must be affine functions for polyhedral model
             for (Expression filter : comprehension.getFilters()) {
-                if (!isAffineExpression(filter)) {
+                if (!isAffineFunction(filter)) {
                     return false;
                 }
             }
@@ -182,7 +226,9 @@ public interface AffineAnalysis {
             }
 
             // Check the collection expression being generated
-            if (!isAffineExpression(comprehension.getCollection())) {
+            // For comprehensions, we need the generated values to be from affine functions
+            // (not just affine access patterns) because the result set must be affine
+            if (!isAffineFunction(comprehension.getCollection())) {
                 return false;
             }
 
@@ -230,8 +276,10 @@ public interface AffineAnalysis {
                 se.lth.cs.tycho.ir.stmt.StmtAssignment assignment = 
                     (se.lth.cs.tycho.ir.stmt.StmtAssignment) stmt;
                 
-                // Check that the RHS expression is affine
-                if (!isAffineExpression(assignment.getExpression())) {
+                // Check that all array accesses in the RHS use affine indices
+                // Note: We don't require the entire RHS expression to be affine,
+                // only that memory accesses use affine indices
+                if (!hasAffineMemoryAccesses(assignment.getExpression())) {
                     return false;
                 }
                 
@@ -268,9 +316,11 @@ public interface AffineAnalysis {
             }
             
             // If statements with affine conditions
+            // Conditions must be affine functions (not just affine access patterns)
+            // for the control flow to be representable in the polyhedral model
             if (stmt instanceof se.lth.cs.tycho.ir.stmt.StmtIf) {
                 se.lth.cs.tycho.ir.stmt.StmtIf ifStmt = (se.lth.cs.tycho.ir.stmt.StmtIf) stmt;
-                if (!isAffineExpression(ifStmt.getCondition())) {
+                if (!isAffineFunction(ifStmt.getCondition())) {
                     return false;
                 }
                 for (se.lth.cs.tycho.ir.stmt.Statement thenStmt : ifStmt.getThenBranch()) {
@@ -316,8 +366,9 @@ public interface AffineAnalysis {
             if (lvalue instanceof se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer) {
                 se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer indexer = 
                     (se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer) lvalue;
-                // Check that the index expression is affine
-                if (!isAffineExpression(indexer.getIndex())) {
+                // Check that the index expression is an affine function
+                // (e.g., i, i+1, 2*i are ok; x[i] is NOT ok because values could be non-affine)
+                if (!isAffineFunction(indexer.getIndex())) {
                     return false;
                 }
                 // Recursively check the structure being indexed
@@ -339,12 +390,12 @@ public interface AffineAnalysis {
         default boolean isAffineCollection(Expression collection) {
             if (collection instanceof ExprList) {
                 ExprList list = (ExprList) collection;
-                // A literal list is affine if all its elements are affine
-                return list.getElements().stream().allMatch(this::isAffineExpression);
+                // A literal list is affine if all its elements are affine functions
+                return list.getElements().stream().allMatch(this::isAffineFunction);
             } else if (collection instanceof ExprSet) {
                 ExprSet set = (ExprSet) collection;
-                // A literal set is affine if all its elements are affine
-                return set.getElements().stream().allMatch(this::isAffineExpression);
+                // A literal set is affine if all its elements are affine functions
+                return set.getElements().stream().allMatch(this::isAffineFunction);
             } else if (collection instanceof ExprComprehension) {
                 ExprComprehension comp = (ExprComprehension) collection;
                 // Use the comprehensive comprehension check
@@ -352,14 +403,39 @@ public interface AffineAnalysis {
             } else if (collection instanceof ExprVariable) {
                 // Variables are assumed to be affine collections
                 return true;
+            } else if (collection instanceof ExprBinaryOp) {
+                ExprBinaryOp binOp = (ExprBinaryOp) collection;
+                // Check if this is a range expression (e.g., a..b)
+                if (binOp.getOperations().size() == 1 && binOp.getOperations().get(0).equals("..")) {
+                    // A range is affine if both bounds are affine functions
+                    return binOp.getOperands().stream().allMatch(this::isAffineFunction);
+                }
             }
             // Other collection types (function calls, etc.) might be affine,
             // but we conservatively return false
             return false;
         }
 
-        @Override
-        default boolean isAffineExpression(Expression expr) {
+        /**
+         * Checks if an expression is a mathematical affine function.
+         * An affine function has the form f(x) = ax + b (linear relationship).
+         * 
+         * This is stricter than isAffineExpression:
+         * - Variables: affine (e.g., i, j)
+         * - Literals: affine (e.g., 5, 10)
+         * - Addition/subtraction: affine if operands are affine (e.g., i + 1, j - 2)
+         * - Multiplication: affine if one operand is constant (e.g., 2*i, but not i*j)
+         * - Array accesses: NOT affine (e.g., x[i] could return arbitrary values)
+         * 
+         * Use this for:
+         * - Loop bounds (e.g., 0..n)
+         * - Array indices (e.g., i, i+1, 2*i)
+         * - Filter conditions (need affine predicates for polyhedral model)
+         * 
+         * @param expr the expression to check
+         * @return true if the expression is a mathematical affine function
+         */
+        default boolean isAffineFunction(Expression expr) {
             // Base case: literals are affine
             if (expr instanceof ExprLiteral) {
                 return true;
@@ -374,14 +450,12 @@ public interface AffineAnalysis {
             if (expr instanceof ExprBinaryOp) {
                 ExprBinaryOp binOp = (ExprBinaryOp) expr;
                 
-                // For multi-operation expressions like a+b*c, we need to check all operations
-                // are affine-preserving, and handle multiplication specially
+                // For multi-operation expressions, check all operations are affine-preserving
                 for (int i = 0; i < binOp.getOperations().size(); i++) {
                     String op = binOp.getOperations().get(i);
                     
                     // Multiplication requires at least one operand to be constant
                     if (op.equals("*")) {
-                        // For a*b, check if either a or b is constant
                         Expression left = binOp.getOperands().get(i);
                         Expression right = binOp.getOperands().get(i + 1);
                         if (!isConstantExpression(left) && !isConstantExpression(right)) {
@@ -394,7 +468,7 @@ public interface AffineAnalysis {
                 }
                 
                 // All operations are affine-compatible, check all operands are affine
-                return binOp.getOperands().stream().allMatch(this::isAffineExpression);
+                return binOp.getOperands().stream().allMatch(this::isAffineFunction);
             }
 
             // Unary operations
@@ -404,43 +478,40 @@ public interface AffineAnalysis {
                 
                 // Negation and logical NOT preserve affinity
                 if (op.equals("-") || op.equals("+") || op.equals("!") || op.equals("not")) {
-                    return isAffineExpression(unOp.getOperand());
+                    return isAffineFunction(unOp.getOperand());
                 }
                 
                 return false;
             }
 
-            // Array/indexer access - affine if the index is affine
+            // Array/indexer access - NOT affine as a function
+            // (the returned values could be arbitrary, not a linear function)
             if (expr instanceof ExprIndexer) {
-                ExprIndexer indexer = (ExprIndexer) expr;
-                // Check that the index expression is affine
-                if (!isAffineExpression(indexer.getIndex())) {
-                    return false;
-                }
-                // Recursively check the structure being indexed
-                return isAffineExpression(indexer.getStructure());
+                return false;
             }
 
-            // List/set comprehensions
-            if (expr instanceof ExprComprehension) {
-                ExprComprehension comp = (ExprComprehension) expr;
-                return isAffineComprehension(comp);
+            // List/set literals - could be affine if all elements are affine
+            // But for simplicity, we reject them (constants would be accepted as literals)
+            if (expr instanceof ExprList || expr instanceof ExprSet) {
+                return false;
             }
 
-            // List literals
-            if (expr instanceof ExprList) {
-                ExprList list = (ExprList) expr;
-                return list.getElements().stream().allMatch(this::isAffineExpression);
-            }
-
-            // Set literals
-            if (expr instanceof ExprSet) {
-                ExprSet set = (ExprSet) expr;
-                return set.getElements().stream().allMatch(this::isAffineExpression);
-            }
-
-            // Field access and function calls are not affine in general
+            // Other expression types are not affine functions
             return false;
+        }
+
+        @Override
+        default boolean isAffineExpression(Expression expr) {
+            // This method now delegates to isAffineFunction for consistent semantics.
+            // Previously, this method incorrectly accepted array accesses like x[i]
+            // as "affine" even though the values might not be affine.
+            // 
+            // For polyhedral analysis, we need to distinguish:
+            // - Affine functions (this method): i, i+1, 2*i (but NOT x[i])
+            // - Affine access patterns (hasAffineMemoryAccesses): checks indices only
+            //
+            // This method is kept for backward compatibility but now has correct semantics.
+            return isAffineFunction(expr);
         }
 
         /**
@@ -465,8 +536,99 @@ public interface AffineAnalysis {
         }
 
         /**
-         * Checks if a binary operator preserves affinity (excluding multiplication).
-         * Multiplication is handled specially because it requires at least one constant operand.
+         * Checks if all memory accesses (array indexing) in an expression use affine indices.
+         * Unlike isAffineExpression, this allows arbitrary arithmetic operations on the values,
+         * as long as the array indices themselves are affine.
+         * 
+         * This is the correct check for polyhedral loop analysis, where we care about
+         * predictable memory access patterns, not about the arithmetic being affine.
+         * 
+         * @param expr the expression to check
+         * @return true if all array/indexer accesses use affine indices
+         */
+        default boolean hasAffineMemoryAccesses(Expression expr) {
+            // Literals have no memory accesses
+            if (expr instanceof ExprLiteral) {
+                return true;
+            }
+
+            // Variables have no memory accesses (just a value)
+            if (expr instanceof ExprVariable) {
+                return true;
+            }
+
+            // Binary operations - recursively check operands
+            if (expr instanceof ExprBinaryOp) {
+                ExprBinaryOp binOp = (ExprBinaryOp) expr;
+                return binOp.getOperands().stream().allMatch(this::hasAffineMemoryAccesses);
+            }
+
+            // Unary operations - check the operand
+            if (expr instanceof ExprUnaryOp) {
+                ExprUnaryOp unOp = (ExprUnaryOp) expr;
+                return hasAffineMemoryAccesses(unOp.getOperand());
+            }
+
+            // Array/indexer access - THIS is what we care about!
+            // The index must be an affine function, and we recursively check the structure
+            if (expr instanceof ExprIndexer) {
+                ExprIndexer indexer = (ExprIndexer) expr;
+                // The index expression must be an affine function (not just any expression)
+                // e.g., i, i+1, 2*i are ok; x[i] is NOT ok (could be non-affine values)
+                if (!isAffineFunction(indexer.getIndex())) {
+                    return false;
+                }
+                // Recursively check the structure being indexed
+                return hasAffineMemoryAccesses(indexer.getStructure());
+            }
+
+            // List/set comprehensions - check recursively
+            if (expr instanceof ExprComprehension) {
+                ExprComprehension comp = (ExprComprehension) expr;
+                return isAffineComprehension(comp);
+            }
+
+            // List literals - check all elements
+            if (expr instanceof ExprList) {
+                ExprList list = (ExprList) expr;
+                return list.getElements().stream().allMatch(this::hasAffineMemoryAccesses);
+            }
+
+            // Set literals - check all elements
+            if (expr instanceof ExprSet) {
+                ExprSet set = (ExprSet) expr;
+                return set.getElements().stream().allMatch(this::hasAffineMemoryAccesses);
+            }
+
+            // Function calls - check if all arguments have affine memory accesses
+            // Pure functions don't affect memory access patterns, so we only need
+            // to verify that the arguments themselves use affine indices
+            // Note: This assumes functions are pure (no hidden memory accesses).
+            // For impure functions (I/O, global state), a more sophisticated 
+            // analysis would be needed.
+            if (expr instanceof ExprApplication) {
+                ExprApplication app = (ExprApplication) expr;
+                // Check the function being called
+                if (!hasAffineMemoryAccesses(app.getFunction())) {
+                    return false;
+                }
+                // Check all arguments
+                return app.getArgs().stream().allMatch(this::hasAffineMemoryAccesses);
+            }
+
+            // For other expression types, conservatively return false
+            // (unknown patterns should be rejected for safety)
+            return false;
+        }
+
+        /**
+         * Checks if a binary operator preserves affine constraints.
+         * 
+         * This is used for filters and conditions in loops. For the polyhedral model,
+         * operators must preserve the convexity of iteration sets.
+         * 
+         * Note: Multiplication is handled specially elsewhere because it requires
+         * at least one constant operand to be affine.
          */
         default boolean isAffineOperator(String op) {
             // Arithmetic operators that preserve affinity
@@ -474,16 +636,23 @@ public interface AffineAnalysis {
                 return true;
             }
             
-            // Comparison operators
+            // Comparison operators define affine half-spaces
+            // e.g., "i < 10" defines the half-space {i | i < 10}
             if (op.equals("<") || op.equals("<=") || op.equals(">") || 
                 op.equals(">=") || op.equals("==") || op.equals("!=")) {
                 return true;
             }
             
-            // Logical operators
-            if (op.equals("&&") || op.equals("||") || op.equals("and") || op.equals("or")) {
+            // Logical AND operator: Preserves convexity
+            // e.g., "i > 0 && i < 10" defines the convex set {i | 0 < i < 10}
+            if (op.equals("&&") || op.equals("and")) {
                 return true;
             }
+            
+            // Logical OR operator: REMOVED - creates non-convex sets
+            // e.g., "i < 10 || i > 20" creates {i | i < 10 or i > 20} which is non-convex
+            // Standard polyhedral tools require convex iteration spaces
+            // If you need OR, consider splitting into multiple loops or using advanced tools
             
             // Division, modulo, exponentiation, bitwise ops, etc. are not affine
             return false;

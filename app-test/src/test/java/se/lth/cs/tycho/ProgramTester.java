@@ -54,7 +54,7 @@ public class ProgramTester {
 			if (!cfiles.isEmpty()) {
 				List<String> command = new ArrayList<>();
 				command.add("cc");
-				command.add("-std=c99");
+				command.add("-std=c11");
 				command.add(String.format("-I%s", target));
 				cfiles.forEach(p -> command.add(p.toAbsolutePath().toString()));
 				test.getExternalSources().forEach(p -> command.add(p.toAbsolutePath().toString()));
